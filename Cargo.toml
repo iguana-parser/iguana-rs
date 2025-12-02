@@ -1,0 +1,20 @@
+[package]
+name = "iguana"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+dot = { git = "https://github.com/przygienda/dot-rust.git", rev = "fed06f613a9d72bfde711a12791f96a777b2371e" }
+clap = { version = "4.5.51", features = ["derive"] }
+env_logger = "0.11.8"
+log = "0.4.28"
+prettyplease = "0.2.37"
+proc-macro2 = "1.0.103"
+quote = "1.0.41"
+syn = "2.0.108"
+typed-builder = "0.21.2"
+rustc-hash = "2.1.1"
+indexmap = "2.12.1"

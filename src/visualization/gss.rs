@@ -1,0 +1,90 @@
+use std::{borrow::Cow, io};
+
+use dot::Labeller;
+
+use crate::parser::Parser;
+
+#[derive(Debug)]
+pub struct GSS {
+    pub nodes: Vec<GSSDotNode>,
+    pub edges: Vec<GSSDotEdge>,
+}
+
+#[derive(Debug, Clone)]
+pub struct GSSDotNode {
+    pub id: usize,
+    pub label: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct GSSDotEdge {
+    pub id: usize,
+    pub src: usize,
+    pub dest: usize,
+    pub label: String,
+}
+
+impl<'a> Labeller<'a, GSSDotNode, GSSDotEdge> for GSS {
+    fn graph_id(&'a self) -> dot::Id<'a> {
+        dot::Id::new("GSS").unwrap()
+    }
+
+    fn node_id(&'a self, n: &GSSDotNode) -> dot::Id<'a> {
+        dot::Id::new(format!("N{}", n.id)).unwrap()
+    }
+
+    fn node_label(&'a self, n: &GSSDotNode) -> dot::LabelText<'a> {
+        dot::LabelText::LabelStr(Cow::Borrowed(&self.nodes[n.id].label))
+    }
+
+    fn edge_label(&'a self, e: &GSSDotEdge) -> dot::LabelText<'a> {
+        dot::LabelText::LabelStr(Cow::Borrowed(&self.edges[e.id].label))
+    }
+
+    fn rank_dir(&'a self) -> Option<dot::RankDir> {
+        Some(dot::RankDir::BottomTop)
+    }
+}
+
+impl<'a> dot::GraphWalk<'a, GSSDotNode, GSSDotEdge> for GSS {
+    fn nodes(&'a self) -> dot::Nodes<'a, GSSDotNode> {
+        Cow::Borrowed(&self.nodes)
+    }
+
+    fn edges(&'a self) -> dot::Edges<'a, GSSDotEdge> {
+        Cow::Borrowed(&self.edges)
+    }
+
+    fn source(&'a self, edge: &GSSDotEdge) -> GSSDotNode {
+        self.nodes[edge.src].clone()
+    }
+
+    fn target(&'a self, edge: &GSSDotEdge) -> GSSDotNode {
+        self.nodes[edge.dest].clone()
+    }
+}
+
+pub fn render_gss<'i>(parser: &impl Parser<'i>, w: &mut impl std::io::Write) -> io::Result<()> {
+    let gss: GSS = build_gss_dot_graph(parser);
+    dot::render(&gss, w)
+}
+
+pub fn build_gss_dot_graph<'i>(parser: &impl Parser<'i>) -> GSS {
+    let mut nodes = Vec::with_capacity(parser.stats().gss_nodes_count);
+    let mut edges = Vec::with_capacity(parser.stats().gss_edges_count);
+    for gss_node in parser.gss_nodes() {
+        nodes.push(GSSDotNode {
+            id: gss_node.id,
+            label: parser.gss_to_string(gss_node.id),
+        });
+        for (id, gss_edge) in gss_node.edges().iter().enumerate() {
+            edges.push(GSSDotEdge {
+                id,
+                src: gss_node.id,
+                dest: gss_edge.dest_id,
+                label: parser.slot_name(gss_edge.return_slot).to_owned(),
+            });
+        }
+    }
+    GSS { nodes, edges }
+}
