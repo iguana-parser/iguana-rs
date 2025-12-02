@@ -1,35 +1,31 @@
 use proc_macro2::Span;
 use proc_macro2::TokenStream;
 use quote::quote;
-use std::collections::HashMap;
 use syn::Ident;
 
+use crate::generator::id::EndSlot;
+use crate::generator::id::NonterminalIds;
+use crate::generator::id::SlotIds;
+use crate::generator::id::TerminalIds;
+use crate::grammar::symbols::Alternative;
 use crate::grammar::symbols::Grammar;
 use crate::grammar::symbols::Nonterminal;
-use crate::grammar::symbols::Seq;
 use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
-use crate::parser::NonterminalId;
-use crate::parser::SlotId;
-use crate::parser::TerminalId;
 
-pub fn generate(grammar: &Grammar) -> String {
+pub fn generate(
+    grammar: &Grammar,
+    nonterminal_ids: &mut NonterminalIds,
+    slot_ids: &mut SlotIds,
+    terminal_ids: &mut TerminalIds,
+) -> TokenStream {
     let grammar_name = &grammar.name;
-    let mut nonterminal_ids = NonterminalIds::default();
-    for nonterminal in grammar.nonterminals() {
-        nonterminal_ids.insert(&nonterminal.name);
-    }
-    let mut slot_ids = SlotIds::default();
-    let mut terminal_ids = TerminalIds::default();
-
     let imports = gen_imports();
-    let nonterminals_const = gen_nonterminals_const(&nonterminal_ids);
-    let execute_method =
-        gen_execute_method(grammar, &nonterminal_ids, &mut slot_ids, &mut terminal_ids);
-    let first_descriptors =
-        gen_add_first_descriptors_method(grammar, &nonterminal_ids, &mut slot_ids);
-    let terminal_const = gen_terminal_const(&terminal_ids);
-    let slots_const = gen_slots_const(&slot_ids);
+    let nonterminals_const = gen_nonterminals_const(nonterminal_ids);
+    let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids);
+    let first_descriptors = gen_add_first_descriptors_method(grammar, nonterminal_ids, slot_ids);
+    let terminal_const = gen_terminal_const(terminal_ids);
+    let slots_const = gen_slots_const(slot_ids);
     let nonterminal_name_method = gen_nonterminal_name_method();
     let terminal_name_method = gen_terminal_name_method();
     let slot_name_method = gen_slot_name_method();
@@ -56,13 +52,11 @@ pub fn generate(grammar: &Grammar) -> String {
     let add_intermediate_node_child = gen_add_intermediate_node_child();
     let intermediate_nodes_children = gen_intermediate_nodes_children_map();
     let nonterminal_nodes_children = gen_nonterminal_nodes_children_map();
-    let parser_struct = gen_parser_struct(grammar_name, &nonterminal_ids, &terminal_ids, &slot_ids);
-    let parser_impl = gen_parser_impl(grammar_name, &nonterminal_ids, &terminal_ids, &slot_ids);
-    let scanner_struct = gen_scanner_struct(grammar_name);
-    let scanner_impl = gen_scanner_impl(grammar_name, &terminal_ids);
+    let parser_struct = gen_parser_struct(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
+    let parser_impl = gen_parser_impl(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let grammar_name_ident =
         Ident::new(&format!("{}{}", grammar_name, "Parser"), Span::call_site());
-    let code = quote! {
+    quote! {
         #imports
         #nonterminals_const
         #terminal_const
@@ -99,12 +93,7 @@ pub fn generate(grammar: &Grammar) -> String {
         }
         #parser_struct
         #parser_impl
-        #scanner_struct
-        #scanner_impl
-    };
-    let tokens = code.to_string();
-    let syntax = syn::parse_file(&tokens.to_string()).unwrap();
-    prettyplease::unparse(&syntax)
+    }
 }
 
 fn gen_imports() -> TokenStream {
@@ -120,6 +109,7 @@ fn gen_imports() -> TokenStream {
             sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
             utils::inline_map::InlineMap,
         };
+        use crate::scanner::Test2Scanner;
         use log::trace;
         use rustc_hash::FxHashMap;
     }
@@ -132,8 +122,7 @@ fn gen_add_first_descriptors_method(
 ) -> TokenStream {
     let mut nonterminal_quotes = vec![];
     for nonterminal in grammar.nonterminals() {
-        let name = &nonterminal.name;
-        let nt_slot = nonterminal_ids.get_id(name);
+        let nonterminal_id = nonterminal_ids.get_id(nonterminal);
         let nt_name = &nonterminal.name;
         let mut alternative_quotes = vec![];
         if let Some(alternatives) = grammar.alternatives(nonterminal) {
@@ -150,7 +139,7 @@ fn gen_add_first_descriptors_method(
         }
         nonterminal_quotes.push(quote! {
             #[comment = #nt_name]
-            #nt_slot => {
+            #nonterminal_id => {
                 #( #alternative_quotes)*
             }
         });
@@ -169,7 +158,10 @@ fn gen_add_first_descriptors_method(
 
 fn gen_nonterminals_const(nonterminal_ids: &NonterminalIds) -> TokenStream {
     let nonterminal_ids_len = nonterminal_ids.len();
-    let nonterminal_names = nonterminal_ids.nonterminals.iter().map(|n| quote! { #n });
+    let nonterminal_names = nonterminal_ids.nonterminals().map(|n| {
+        let nonterminal_name = &n.name;
+        quote! { #nonterminal_name }
+    });
     quote! {
         const NONTERMINALS: [&str; #nonterminal_ids_len] = [#(#nonterminal_names),*];
     }
@@ -177,7 +169,7 @@ fn gen_nonterminals_const(nonterminal_ids: &NonterminalIds) -> TokenStream {
 
 fn gen_terminal_const(terminal_ids: &TerminalIds) -> TokenStream {
     let terminal_ids_len = terminal_ids.len();
-    let terminal_names = terminal_ids.terminals.iter().map(|n| quote! { #n });
+    let terminal_names = terminal_ids.terminals().map(|n| quote! { #n });
     quote! {
         const TERMINALS: [&str; #terminal_ids_len] = [#(#terminal_names),*];
     }
@@ -185,7 +177,7 @@ fn gen_terminal_const(terminal_ids: &TerminalIds) -> TokenStream {
 
 fn gen_slots_const(slot_ids: &SlotIds) -> TokenStream {
     let slot_ids_len = slot_ids.len();
-    let slot_names = slot_ids.slots.iter().map(|s| quote! { #s });
+    let slot_names = slot_ids.slots().map(|s| quote! { #s });
     quote! {
         const SLOTS: [&str; #slot_ids_len] = [#(#slot_names),*];
     }
@@ -193,7 +185,7 @@ fn gen_slots_const(slot_ids: &SlotIds) -> TokenStream {
 
 fn gen_execute_method(
     grammar: &Grammar,
-    nonterminal_ids: &NonterminalIds,
+    nonterminal_ids: &mut NonterminalIds,
     slot_ids: &mut SlotIds,
     terminal_ids: &mut TerminalIds,
 ) -> TokenStream {
@@ -202,7 +194,7 @@ fn gen_execute_method(
         let nt_name = &nonterminal.name;
         let alternatives = grammar.alternatives(nonterminal);
         if let Some(alternatives) = alternatives {
-            for alternative in alternatives.iter() {
+            for (index, alternative) in alternatives.iter().enumerate() {
                 for (position, symbol) in alternative.symbols.iter().enumerate() {
                     slot_quotes.push(gen_slot_code(
                         position,
@@ -215,13 +207,20 @@ fn gen_execute_method(
                     ));
                 }
                 // Handle the last grammar slot
-                let last_index = alternative.symbols.len();
-                let last_slot_name = slot_to_string(nt_name, alternative, last_index);
-                let last_slot_id = slot_ids.id(&last_slot_name);
-                let nonterminal_id = nonterminal_ids.get_id(nt_name);
+                let last_symbol_index = alternative.symbols.len();
+                let end_slot_name = slot_to_string(nt_name, alternative, last_symbol_index);
+                let end_slot_id = slot_ids.id(&end_slot_name);
+                let nonterminal_id = nonterminal_ids
+                    .get_id(nonterminal)
+                    .expect("nonterminal not found ");
+                let alternative = EndSlot {
+                    index,
+                    slot_id: end_slot_id,
+                };
+                nonterminal_ids.add_end_slot(nonterminal_id, alternative);
                 let last_slot_quote = quote! {
-                    #[comment = #last_slot_name]
-                    #last_slot_id => {
+                    #[comment = #end_slot_name]
+                    #end_slot_id => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -229,7 +228,7 @@ fn gen_execute_method(
                         let left_extent = node.left_extent();
                         let right_extent = node.right_extent();
                         let nonterminal_id = #nonterminal_id;
-                        let return_slot = #last_slot_id;
+                        let return_slot = #end_slot_id;
                         if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                             nonterminal_id,
                             return_slot,
@@ -272,7 +271,7 @@ fn gen_slot_code(
     position: usize,
     symbol: &Symbol,
     nt_name: &str,
-    alternative: &Seq,
+    alternative: &Alternative,
     nonterminal_ids: &NonterminalIds,
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds,
@@ -376,7 +375,7 @@ fn gen_nonterminal_slot(
     nonterminal_ids: &NonterminalIds,
     slot_ids: &mut SlotIds,
 ) -> TokenStream {
-    let nonterminal_id = nonterminal_ids.get_id(&nonterminal.name);
+    let nonterminal_id = nonterminal_ids.get_id(nonterminal);
     let slot_id = slot_ids.id(slot_name);
     let return_slot_id = slot_ids.id(next_slot_name);
     quote! {
@@ -778,61 +777,8 @@ fn gen_terminal_nodes_index_field(slot_ids: &TerminalIds) -> TokenStream {
     }
 }
 
-fn gen_scanner_struct(grammar_name: &str) -> TokenStream {
-    let name_ident = syn::Ident::new(&format!("{}{}", grammar_name, "Scanner"), Span::call_site());
-    quote! {
-        pub struct #name_ident<'i> {
-            pub input: &'i Input,
-        }
-
-        impl<'i> #name_ident<'i> {
-            fn new(input: &'i Input) -> Self {
-                Self { input }
-            }
-        }
-    }
-}
-
-fn gen_scanner_impl(name: &str, terminal_ids: &TerminalIds) -> TokenStream {
-    let match_tokens_method = gen_match_token(terminal_ids);
-    let name_ident = syn::Ident::new(&format!("{}{}", name, "Scanner"), Span::call_site());
-    quote! {
-        impl Scanner for #name_ident<'_> {
-            #match_tokens_method
-        }
-    }
-}
-
-fn gen_match_token(terminal_ids: &TerminalIds) -> TokenStream {
-    let mut match_terminal_id_quotes = vec![];
-    for (id, terminal_name) in terminal_ids.terminals.iter().enumerate() {
-        let ch = terminal_name.chars().next().unwrap();
-        let id = id as u16;
-        match_terminal_id_quotes.push(quote! {
-            #[comment= #terminal_name]
-            TerminalId(#id) => {
-                if let Some(c) = self.input.char_at(input_index) && c == #ch {
-                    Some(input_index + 1)
-                } else {
-                    None
-                }
-            }
-        });
-    }
-    quote! {
-        fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
-            match terminal_id {
-                #(#match_terminal_id_quotes)*
-                _ => {
-                    unreachable!("Unknown token type: {terminal_id}");
-                }
-            }
-        }
-    }
-}
-
 /// Creates a string representation of a grammar slot of the form `A : a B . c`.
-fn slot_to_string(nt_name: &str, seq: &Seq, pos: usize) -> String {
+fn slot_to_string(nt_name: &str, seq: &Alternative, pos: usize) -> String {
     let mut s = String::new();
     s.push_str(nt_name);
     s.push_str(" : ");
@@ -850,211 +796,4 @@ fn slot_to_string(nt_name: &str, seq: &Seq, pos: usize) -> String {
         s.push('.');
     }
     s
-}
-
-#[derive(Default)]
-struct NonterminalIds {
-    value: usize,
-    nonterminal_to_id: HashMap<String, u16>,
-    nonterminals: Vec<String>,
-}
-
-impl NonterminalIds {
-    fn insert(&mut self, name: &str) {
-        let value = self.value;
-        self.value += 1;
-        self.nonterminal_to_id.insert(name.to_owned(), value as u16);
-        self.nonterminals.push(name.to_owned());
-    }
-    fn get_id(&self, name: &str) -> NonterminalId {
-        let id = self.nonterminal_to_id.get(name).unwrap();
-        NonterminalId(*id)
-    }
-    fn len(&self) -> usize {
-        self.nonterminals.len()
-    }
-}
-
-#[derive(Default)]
-struct SlotIds {
-    value: usize,
-    slot_to_id: HashMap<String, usize>,
-    slots: Vec<String>,
-}
-
-impl SlotIds {
-    fn id(&mut self, name: &str) -> SlotId {
-        if let Some(id) = self.slot_to_id.get(name) {
-            SlotId(*id as u16)
-        } else {
-            let value = self.value;
-            self.value += 1;
-            self.slot_to_id.insert(name.to_owned(), value);
-            self.slots.push(name.to_owned());
-            SlotId(value as u16)
-        }
-    }
-    fn len(&self) -> usize {
-        self.slots.len()
-    }
-}
-
-#[derive(Default)]
-struct TerminalIds {
-    value: usize,
-    terminal_ids: HashMap<String, usize>,
-    terminals: Vec<String>,
-}
-
-impl TerminalIds {
-    fn id(&mut self, name: &str) -> TerminalId {
-        if let Some(id) = self.terminal_ids.get(name) {
-            TerminalId(*id as u16)
-        } else {
-            let value = self.value;
-            self.value += 1;
-            self.terminal_ids.insert(name.to_owned(), value);
-            self.terminals.push(name.to_owned());
-            TerminalId(value as u16)
-        }
-    }
-    fn len(&self) -> usize {
-        self.terminal_ids.len()
-    }
-}
-
-pub fn gen_cargo_toml_file(name: &str) -> String {
-    format!(
-        r#"
-[package]
-name = "{}"
-version = "0.1.0"
-edition = "2024"
-
-[profile.release]
-debug = true
-
-[lib]
-path = "src/lib.rs"
-
-[dependencies]
-iguana = {{ path = "/Users/afroozeh/Workspace/iguana-rs" }}
-dot = {{ git = "https://github.com/przygienda/dot-rust.git", rev = "fed06f613a9d72bfde711a12791f96a777b2371e" }}
-log = "0.4.28"
-rustc-hash = "2.1.1"
-dhat = "0.3"
-
-[features]
-dhat-heap = []
-    "#,
-        name
-    )
-    .trim()
-    .to_owned()
-}
-
-#[cfg(test)]
-mod test {
-    use crate::{
-        generator::generate,
-        grammar::symbols::{Grammar, Nonterminal, Seq, Symbol, Terminal},
-    };
-    use std::io::Result;
-
-    #[test]
-    fn test1() -> Result<()> {
-        // A ::= 'a' 'b'
-        let grammar = Grammar::builder()
-            .name("Test".to_string())
-            .add_production(
-                Nonterminal::new("A"),
-                Seq::builder()
-                    .add_symbol(Symbol::Terminal(Terminal::new("a")))
-                    .add_symbol(Symbol::Terminal(Terminal::new("b")))
-                    .build(),
-            )
-            .start_symbol(Nonterminal::new("A"))
-            .build();
-        let output = generate(&grammar);
-        println!("{output}");
-        Ok(())
-    }
-
-    #[test]
-    fn test2() -> Result<()> {
-        // A ::= B
-        // B ::= 'b'
-        let grammar = Grammar::builder()
-            .name("Test2".to_string())
-            .add_production(
-                Nonterminal::new("A"),
-                Seq::builder()
-                    .add_symbol(Symbol::Nonterminal(Nonterminal::new("B")))
-                    .build(),
-            )
-            .add_production(
-                Nonterminal::new("B"),
-                Seq::builder()
-                    .add_symbol(Symbol::Terminal(Terminal::new("b")))
-                    .build(),
-            )
-            .start_symbol(Nonterminal::new("A"))
-            .build();
-        let output = generate(&grammar);
-        println!("{output}");
-        Ok(())
-    }
-
-    #[test]
-    fn test3() -> Result<()> {
-        // A ::= A B 'c'
-        // B ::= 'b'
-        // A ::= 'a'
-        let grammar = Grammar::builder()
-            .name("Test2".to_string())
-            .add_production(
-                Nonterminal::new("A"),
-                Seq::builder()
-                    .add_symbol(Symbol::Nonterminal(Nonterminal::new("A")))
-                    .build(),
-            )
-            .add_production(
-                Nonterminal::new("A"),
-                Seq::builder()
-                    .add_symbol(Symbol::Terminal(Terminal::new("a")))
-                    .build(),
-            )
-            .start_symbol(Nonterminal::new("A"))
-            .build();
-        let output = generate(&grammar);
-        println!("{output}");
-        Ok(())
-    }
-
-    #[test]
-    fn test4() -> Result<()> {
-        // E ::= E '+' E
-        // E ::= 'a'
-        let grammar = Grammar::builder()
-            .name("Test2".to_string())
-            .add_production(
-                Nonterminal::new("E"),
-                Seq::builder()
-                    .add_symbol(Symbol::Nonterminal(Nonterminal::new("E")))
-                    .add_symbol(Symbol::Terminal(Terminal::new("+")))
-                    .add_symbol(Symbol::Nonterminal(Nonterminal::new("E")))
-                    .build(),
-            )
-            .add_production(
-                Nonterminal::new("E"),
-                Seq::builder()
-                    .add_symbol(Symbol::Terminal(Terminal::new("a")))
-                    .build(),
-            )
-            .start_symbol(Nonterminal::new("A"))
-            .build();
-        let output = generate(&grammar);
-        println!("{output}");
-        Ok(())
-    }
 }

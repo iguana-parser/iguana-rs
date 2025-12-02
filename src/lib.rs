@@ -4,6 +4,7 @@ pub mod grammar;
 pub mod gss;
 pub mod input;
 pub mod parser;
+pub mod parse_tree;
 pub mod scanner;
 pub mod sppf;
 pub mod utils;

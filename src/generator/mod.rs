@@ -1,0 +1,67 @@
+use std::{fs, io::Write, path::Path};
+
+use proc_macro2::TokenStream;
+
+use crate::{
+    generator::id::{NonterminalIds, SlotIds, TerminalIds},
+    grammar::symbols::Grammar,
+};
+
+mod cargo_toml_gen;
+mod id;
+mod lib_gen;
+mod parse_tree_gen;
+mod parser_gen;
+mod scanner_gen;
+
+pub fn generate(grammar: &Grammar) -> std::io::Result<()> {
+    let mut nonterminal_ids = NonterminalIds::default();
+    for nonterminal in grammar.nonterminals() {
+        nonterminal_ids.insert(nonterminal.clone());
+    }
+    let mut slot_ids = SlotIds::default();
+    let mut terminal_ids = TerminalIds::default();
+
+    let name = "grammar-test";
+    let base = Path::new("/Users/afroozeh/Workspace");
+    let project_dir = base.join(name);
+    if !project_dir.exists() {
+        fs::create_dir(&project_dir)?;
+    }
+
+    write_file(cargo_toml_gen::generate(grammar), &base.join("Cargo.toml"))?;
+
+    let src_dir = project_dir.join("src");
+    if !src_dir.exists() {
+        fs::create_dir(&src_dir)?;
+    }
+    write_file(lib_gen::generate(), &src_dir.join("lib.rs"))?;
+    let parser_code = parser_gen::generate(
+        grammar,
+        &mut nonterminal_ids,
+        &mut slot_ids,
+        &mut terminal_ids,
+    );
+    write_file(to_string(parser_code), &src_dir.join("parser.rs"))?;
+
+    let scanner_code = scanner_gen::generate(grammar, &terminal_ids);
+    write_file(to_string(scanner_code), &src_dir.join("scanner.rs"))?;
+
+    let parse_tree_code =
+        parse_tree_gen::generate(grammar, &nonterminal_ids, &terminal_ids, &slot_ids);
+    write_file(to_string(parse_tree_code), &src_dir.join("parse_tree.rs"))?;
+
+    Ok(())
+}
+
+fn write_file(content: impl AsRef<str>, path: &Path) -> std::io::Result<()> {
+    let mut file = fs::File::create(path)?;
+    file.write_all(content.as_ref().as_bytes())?;
+    file.write_all(b"\n")?;
+    Ok(())
+}
+
+fn to_string(tokens: TokenStream) -> String {
+    let syntax = syn::parse_file(&tokens.to_string()).unwrap();
+    prettyplease::unparse(&syntax)
+}

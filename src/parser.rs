@@ -452,7 +452,7 @@ impl Stats {
 ///
 /// This is a type-safe wrapper around an index into the grammar's nonterminal list.
 /// Uses `u16` since real-world grammars rarely exceed a few hundred nonterminals
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct NonterminalId(pub u16);
 
 impl NonterminalId {
