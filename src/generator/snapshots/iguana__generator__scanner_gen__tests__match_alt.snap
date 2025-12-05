@@ -1,0 +1,7 @@
+---
+source: src/generator/scanner_gen.rs
+expression: code
+---
+fn test_match(i: u32) -> Option<u32> {
+    self.match_char(i, 'a').or_else(|| self.match_char(i, 'b'))
+}

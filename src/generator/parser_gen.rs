@@ -1,14 +1,15 @@
 use proc_macro2::Span;
 use proc_macro2::TokenStream;
+use quote::format_ident;
 use quote::quote;
-use syn::Ident;
 
 use crate::generator::id::EndSlot;
 use crate::generator::id::NonterminalIds;
 use crate::generator::id::SlotIds;
 use crate::generator::id::TerminalIds;
-use crate::grammar::symbols::Alternative;
-use crate::grammar::symbols::Grammar;
+use crate::generator::utils::to_first_uppercase;
+use crate::grammar::grammar::Alternative;
+use crate::grammar::grammar::Grammar;
 use crate::grammar::symbols::Nonterminal;
 use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
@@ -20,11 +21,11 @@ pub fn generate(
     terminal_ids: &mut TerminalIds,
 ) -> TokenStream {
     let grammar_name = &grammar.name;
-    let imports = gen_imports();
+    let imports = gen_imports(grammar);
     let nonterminals_const = gen_nonterminals_const(nonterminal_ids);
     let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids);
     let first_descriptors = gen_add_first_descriptors_method(grammar, nonterminal_ids, slot_ids);
-    let terminal_const = gen_terminal_const(terminal_ids);
+    let terminals_const = gen_terminals_const(terminal_ids);
     let slots_const = gen_slots_const(slot_ids);
     let nonterminal_name_method = gen_nonterminal_name_method();
     let terminal_name_method = gen_terminal_name_method();
@@ -54,12 +55,11 @@ pub fn generate(
     let nonterminal_nodes_children = gen_nonterminal_nodes_children_map();
     let parser_struct = gen_parser_struct(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let parser_impl = gen_parser_impl(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
-    let grammar_name_ident =
-        Ident::new(&format!("{}{}", grammar_name, "Parser"), Span::call_site());
+    let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
     quote! {
         #imports
         #nonterminals_const
-        #terminal_const
+        #terminals_const
         #slots_const
         impl<'i> Parser<'i> for #grammar_name_ident<'i> {
             #execute_method
@@ -96,7 +96,8 @@ pub fn generate(
     }
 }
 
-fn gen_imports() -> TokenStream {
+fn gen_imports(grammar: &Grammar) -> TokenStream {
+    let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&grammar.name));
     quote! {
         use std::cell::OnceCell;
         use iguana::{
@@ -109,7 +110,7 @@ fn gen_imports() -> TokenStream {
             sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
             utils::inline_map::InlineMap,
         };
-        use crate::scanner::Test2Scanner;
+        use crate::scanner::#scanner_name;
         use log::trace;
         use rustc_hash::FxHashMap;
     }
@@ -167,9 +168,12 @@ fn gen_nonterminals_const(nonterminal_ids: &NonterminalIds) -> TokenStream {
     }
 }
 
-fn gen_terminal_const(terminal_ids: &TerminalIds) -> TokenStream {
+fn gen_terminals_const(terminal_ids: &TerminalIds) -> TokenStream {
     let terminal_ids_len = terminal_ids.len();
-    let terminal_names = terminal_ids.terminals().map(|n| quote! { #n });
+    let terminal_names = terminal_ids.terminals().map(|t| {
+        let terminal_name = &t.name;
+        quote! { #terminal_name }
+    });
     quote! {
         const TERMINALS: [&str; #terminal_ids_len] = [#(#terminal_names),*];
     }
@@ -212,7 +216,7 @@ fn gen_execute_method(
                 let end_slot_id = slot_ids.id(&end_slot_name);
                 let nonterminal_id = nonterminal_ids
                     .get_id(nonterminal)
-                    .expect("nonterminal not found ");
+                    .expect("nonterminal not found");
                 let alternative = EndSlot {
                     index,
                     slot_id: end_slot_id,
@@ -303,6 +307,7 @@ fn gen_slot_code(
     }
 }
 
+/// Generates code for the grammar slots before a terminal.
 fn gen_terminal_slot(
     terminal: &Terminal,
     position: usize,
@@ -311,8 +316,9 @@ fn gen_terminal_slot(
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds,
 ) -> TokenStream {
-    let terminal_name = &terminal.name;
-    let terminal_id = terminal_ids.id(&terminal.name);
+    let terminal_id = terminal_ids
+        .get_id(terminal)
+        .unwrap_or_else(|| panic!("cannot not find the lexical definition {}", terminal.name));
     let slot_id = slot_ids.id(slot_name);
     let next_slot_id = slot_ids.id(next_slot_name);
     // At grammar position 0, i.e., A ::= . alpha, the current SPPF node is None.
@@ -348,6 +354,7 @@ fn gen_terminal_slot(
             }
         }
     };
+    let terminal_name = &terminal.name;
     quote! {
         #[comment = #slot_name]
         #slot_id => {
@@ -375,7 +382,9 @@ fn gen_nonterminal_slot(
     nonterminal_ids: &NonterminalIds,
     slot_ids: &mut SlotIds,
 ) -> TokenStream {
-    let nonterminal_id = nonterminal_ids.get_id(nonterminal);
+    let nonterminal_id = nonterminal_ids
+        .get_id(nonterminal)
+        .unwrap_or_else(|| panic!("nonterminal {} is not defined", nonterminal.name));
     let slot_id = slot_ids.id(slot_name);
     let return_slot_id = slot_ids.id(next_slot_name);
     quote! {

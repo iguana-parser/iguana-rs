@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 
 use crate::{
     generator::id::{NonterminalIds, SlotIds, TerminalIds},
-    grammar::symbols::Grammar,
+    grammar::grammar::Grammar,
 };
 
 mod cargo_toml_gen;
@@ -13,14 +13,18 @@ mod lib_gen;
 mod parse_tree_gen;
 mod parser_gen;
 mod scanner_gen;
+mod utils;
 
 pub fn generate(grammar: &Grammar) -> std::io::Result<()> {
     let mut nonterminal_ids = NonterminalIds::default();
     for nonterminal in grammar.nonterminals() {
         nonterminal_ids.insert(nonterminal.clone());
     }
-    let mut slot_ids = SlotIds::default();
     let mut terminal_ids = TerminalIds::default();
+    for terminal in grammar.terminals() {
+        terminal_ids.insert(terminal.clone());
+    }
+    let mut slot_ids = SlotIds::default();
 
     let name = "grammar-test";
     let base = Path::new("/Users/afroozeh/Workspace");

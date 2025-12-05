@@ -1,9 +1,12 @@
 use std::collections::HashSet;
 
-use crate::grammar::symbols::{Grammar, Nonterminal, Symbol};
+use crate::grammar::{
+    grammar::Grammar,
+    symbols::{Nonterminal, Symbol},
+};
 
 /// Calculates the nullable nonterminals in the provided grammar.
-/// 
+///
 /// A nonterminal is nullable if
 /// - it directly derives epsilon, i.e., has an alternative with no symbols in its body.
 /// - it has an alternative where all the symbols in the body are nullable.
@@ -53,11 +56,8 @@ fn calc_first_sets(grammar: &Grammar) {
 
 fn add_first_set(first_set: &mut HashSet<char>) {}
 
-
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_nullables() {
-
-    }
+    fn test_nullables() {}
 }

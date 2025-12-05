@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use indexmap::{IndexMap, IndexSet};
 
 use crate::{
-    grammar::symbols::Nonterminal,
+    grammar::symbols::{Nonterminal, Terminal},
     parser::{NonterminalId, SlotId, TerminalId},
 };
 
@@ -15,7 +15,7 @@ pub struct EndSlot {
 
 #[derive(Default)]
 pub struct NonterminalIds {
-    // nonterminals[i] = the name of the nonterminal with id i
+    // nonterminals[i] = the nonterminal with id i
     nonterminals: IndexSet<Nonterminal>,
     // Indexed by nonterminal ids to a list of their end grammar slots.
     // end_slots[nonterminal_id] = end slots for the nonterminal's alternatives.
@@ -86,32 +86,27 @@ impl SlotIds {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct TerminalIds {
-    value: usize,
-    terminal_ids: HashMap<String, usize>,
-    terminals: Vec<String>,
+    // terminals[i] = the terminal with id i
+    terminals: IndexSet<Terminal>,
 }
 
 impl TerminalIds {
-    pub fn id(&mut self, name: &str) -> TerminalId {
-        if let Some(id) = self.terminal_ids.get(name) {
-            TerminalId(*id as u16)
-        } else {
-            let value = self.value;
-            self.value += 1;
-            self.terminal_ids.insert(name.to_owned(), value);
-            self.terminals.push(name.to_owned());
-            TerminalId(value as u16)
-        }
+    pub fn insert(&mut self, terminal: Terminal) {
+        self.terminals.insert(terminal);
+    }
+    pub fn get_id(&self, terminal: &Terminal) -> Option<TerminalId> {
+        let id = self.terminals.get_index_of(terminal);
+        id.map(|id| TerminalId(id as u16))
     }
     pub fn ids(&self) -> impl Iterator<Item = TerminalId> {
         (0..self.len()).map(|id| TerminalId(id as u16))
     }
     pub fn len(&self) -> usize {
-        self.terminal_ids.len()
+        self.terminals.len()
     }
-    pub fn terminals(&self) -> impl Iterator<Item = &str> {
-        self.terminals.iter().map(|s| s.as_str())
+    pub fn terminals(&self) -> impl Iterator<Item = &Terminal> {
+        self.terminals.iter()
     }
 }

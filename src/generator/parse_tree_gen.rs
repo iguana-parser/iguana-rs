@@ -5,8 +5,8 @@ use quote::{format_ident, quote};
 use syn::Ident;
 
 use crate::{
-    generator::id::{NonterminalIds, SlotIds, TerminalIds},
-    grammar::{self, symbols::{Alternative, Grammar, Nonterminal, Symbol}},
+    generator::{id::{NonterminalIds, SlotIds, TerminalIds}, utils::{to_first_lowercase, to_first_uppercase}},
+    grammar::{grammar::{Alternative, Grammar}, symbols::{Nonterminal, Symbol}},
 };
 
 pub fn generate(
@@ -19,7 +19,7 @@ pub fn generate(
         .ids()
         .map(|id| syn::Ident::new(&format!("T{}", id.index()), Span::call_site()))
         .collect();
-    let imports = gen_imports();
+    let imports = gen_imports(grammar);
     let token_kind_enum = gen_token_kind_enum(&token_names);
     let token_kind_function = gen_token_kind_function(terminal_ids, &token_names);
     let token_struct = gen_token_struct();
@@ -48,14 +48,15 @@ pub fn generate(
     }
 }
 
-fn gen_imports() -> TokenStream {
+fn gen_imports(grammar: &Grammar) -> TokenStream {
+    let parser_name = format_ident!("{}Parser", to_first_uppercase(&grammar.name));
     quote! {
         use iguana::{
             parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
             parser::{NonterminalId, Parser, SlotId, TerminalId},
             sppf::{NonterminalNode, SPPFNodeId},
         };
-        use crate::parser::Test2Parser;
+        use crate::parser::#parser_name;
     }
 }
 
@@ -217,10 +218,7 @@ fn gen_nonterminal_node_method(
                                 (Ident::new("unwrap_token", Span::call_site()), false)
                             }
                             Symbol::Nonterminal(n) => { 
-                                let ident = Ident::new(
-                                    &format!("unwrap_{}", to_first_lowercase(&n.name)), 
-                                    Span::call_site()
-                                );
+                                let ident = format_ident!("unwrap_{}", to_first_uppercase(&n.name));
                                 // Pass true if should be boxed.
                                 (ident, n.name == *nonterminal_name)
                             }
@@ -243,7 +241,11 @@ fn gen_nonterminal_node_method(
                         .collect();
                     let nonterminal_type = Ident::new(&to_first_uppercase(&nonterminal.name), Span::call_site());
                     // Todo: handle 0
-                    let constructor = if grammar.alternatives_len(nonterminal) == 1 {
+                    let num_alternatives = grammar
+                        .alternatives(nonterminal)
+                        .map(|alt| alt.len())
+                        .unwrap_or_default();
+                    let constructor = if num_alternatives == 1 {
                         quote! {
                             #nonterminal_type
                         }
@@ -289,22 +291,6 @@ fn gen_nonterminal_node_method(
     }
 }
 
-fn to_first_uppercase(s: &str) -> String {
-    let mut chars = s.chars();
-    match chars.next() {
-        Some(c) => format!("{}{}", c.to_uppercase(), chars.as_str()),
-        None => String::new(),
-    }
-}
-
-fn to_first_lowercase(s: &str) -> String {
-    let mut chars = s.chars();
-    match chars.next() {
-        Some(c) => format!("{}{}", c.to_lowercase(), chars.as_str()),
-        None => String::new(),
-    }
-}
-
 fn gen_new_token_method() -> TokenStream {
     quote! {
         fn new_token(&self, terminal_id: TerminalId) -> ParseTree {
@@ -336,10 +322,7 @@ fn gen_parse_tree_impl(grammar: &Grammar) -> TokenStream {
     let methods: Vec<_> = grammar
         .nonterminals()
         .map(|n| {
-            let method_ident = Ident::new(
-                &format!("unwrap_{}", to_first_lowercase(&n.name)),
-                Span::call_site(),
-            );
+            let method_ident = format_ident!("unwrap_{}", to_first_lowercase(&n.name));
             let return_type_ident = Ident::new(&to_first_uppercase(&n.name), Span::call_site());
             let var_ident = Ident::new(&to_first_lowercase(&n.name), Span::call_site());
             quote! {

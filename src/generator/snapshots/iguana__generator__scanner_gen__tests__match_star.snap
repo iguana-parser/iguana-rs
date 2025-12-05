@@ -1,0 +1,11 @@
+---
+source: src/generator/scanner_gen.rs
+expression: code
+---
+fn test_match(i: u32) -> Option<u32> {
+    let mut j = i;
+    while let Some(k) = (|i| self.match_char(i, 'a'))(j) {
+        j = k;
+    }
+    Some(j)
+}

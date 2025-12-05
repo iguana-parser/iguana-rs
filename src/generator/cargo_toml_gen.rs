@@ -1,4 +1,4 @@
-use crate::grammar::symbols::Grammar;
+use crate::grammar::grammar::Grammar;
 
 pub fn generate(grammar: &Grammar) -> String {
     let grammar_name = &grammar.name;
