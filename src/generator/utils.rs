@@ -1,5 +1,8 @@
+use std::borrow::Cow;
 use std::io::Write;
 use std::process::{Command, Stdio};
+
+use crate::grammar::grammar::Alternative;
 
 pub fn to_first_uppercase(s: &str) -> String {
     let mut chars = s.chars();
@@ -14,6 +17,13 @@ pub fn to_first_lowercase(s: &str) -> String {
     match chars.next() {
         Some(c) => format!("{}{}", c.to_lowercase(), chars.as_str()),
         None => String::new(),
+    }
+}
+
+pub fn alternative_label(alternative: &Alternative, index: usize) -> Cow<'_, str> {
+    match &alternative.label {
+        Some(label) => Cow::Borrowed(label),
+        None => Cow::Owned(format!("Alt{}", index)),
     }
 }
 

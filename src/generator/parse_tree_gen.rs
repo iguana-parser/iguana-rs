@@ -1,11 +1,9 @@
-use std::borrow::Cow;
-
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::Ident;
 
 use crate::{
-    generator::{id::{NonterminalIds, SlotIds, TerminalIds}, utils::{to_first_lowercase, to_first_uppercase}},
+    generator::{id::{NonterminalIds, SlotIds, TerminalIds}, utils::{alternative_label, to_first_lowercase, to_first_uppercase}},
     grammar::{grammar::{Alternative, Grammar}, symbols::{Nonterminal, Symbol}},
 };
 
@@ -15,16 +13,22 @@ pub fn generate(
     terminal_ids: &TerminalIds,
     slot_ids: &SlotIds,
 ) -> TokenStream {
-    let token_names: Vec<Ident> = terminal_ids
+    let terminals: Vec<(Ident, String)> = terminal_ids
         .ids()
-        .map(|id| syn::Ident::new(&format!("T{}", id.index()), Span::call_site()))
+        .zip(terminal_ids.terminals())
+        .map(|(id, t)| (format_ident!("T{}", id.index()), t.to_string()))
         .collect();
     let imports = gen_imports(grammar);
-    let token_kind_enum = gen_token_kind_enum(&token_names);
-    let token_kind_function = gen_token_kind_function(terminal_ids, &token_names);
+    let token_kind_enum = gen_token_kind_enum(&terminals);
+    let token_kind_impl = gen_token_kind_impl(&terminals);
+    let token_kind_function = gen_token_kind_function(&terminals);
     let token_struct = gen_token_struct();
     let parse_tree_enum = gen_parse_tree_enum(grammar);
     let parse_tree_impl = gen_parse_tree_impl(grammar);
+    let parse_tree_ref_enum = gen_parse_tree_as_ref_enum(grammar);
+    let parse_tree_ref_impl = gen_parse_tree_ref_impl();
+    let child_iter_struct = gen_child_iter_struct();
+    let impl_iterator_for_child_iter = gen_impl_iterator_for_child_iter(grammar);
     let from_for_tree_impls = gen_from_for_tree_impls(grammar);
     let parse_tree_builder_impl = gen_parse_tree_builder_impl(grammar, nonterminal_ids, slot_ids);
     let create_parse_tree_method = gen_create_parse_tree_method(grammar);
@@ -34,13 +38,24 @@ pub fn generate(
         .map(|n| gen_nonterminal_type(n, grammar.alternatives(n)))
         .collect();
 
+    let nonterminal_types_impl: Vec<_> = grammar
+        .nonterminals()
+        .map(|n| gen_nonterminal_type_impl(grammar, n))
+        .collect();
+
     quote! {
         #imports
         #token_kind_enum
+        #token_kind_impl
         #parse_tree_enum
         #parse_tree_impl
+        #parse_tree_ref_enum
+        #parse_tree_ref_impl
+        #child_iter_struct
+        #impl_iterator_for_child_iter
         #from_for_tree_impls
         #(#nonterminal_types)*
+        #(#nonterminal_types_impl)*
         #token_struct
         #token_kind_function
         #parse_tree_builder_impl
@@ -128,10 +143,115 @@ fn gen_nonterminal_type(
     }
 }
 
-fn alternative_label(alternative: &Alternative, index: usize) -> Cow<'_, str> {
-    match &alternative.label {
-        Some(label) => Cow::Borrowed(label),
-        None => Cow::Owned(format!("Alt{}", index)),
+fn gen_nonterminal_type_impl(
+    grammar: &Grammar,
+    nonterminal: &Nonterminal,
+) -> TokenStream {
+    let nonterminal_name = Ident::new(&nonterminal.name, Span::call_site());
+    let child_method = gen_child_method(grammar, nonterminal);
+    let as_node_ref_method = gen_as_parse_tree_ref(&nonterminal.name);
+    quote! {
+        impl #nonterminal_name {
+            #child_method
+            #as_node_ref_method
+        }
+    }
+}
+
+fn gen_child_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
+    let children_by_index = gen_children_by_index(grammar, nonterminal);
+    quote! {
+        pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+            #children_by_index
+        }
+    }
+}
+
+fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
+    let ident = Ident::new(&to_first_uppercase(&nonterminal.name), Span::call_site());
+    if let Some(alternatives) = grammar.alternatives(nonterminal) {
+        if alternatives.len() == 1 {
+            let alternative = &alternatives[0];
+            let body = child_by_index(alternative, true);
+            quote! {
+                match index {
+                    #body
+                }
+            }
+        } else {
+            let cases: Vec<_> = alternatives.iter().enumerate().map(|(i, alternative)| {
+                let label = alternative_label(alternative, i);
+                let alt_variant = Ident::new(&to_first_uppercase(&label), Span::call_site());
+                let children_names = children_names(alternative);
+                let body = child_by_index(alternative, false);
+                quote! {
+                    #ident::#alt_variant(#(#children_names),*) => #body
+                }
+            }).collect();
+            quote! {
+                match self {
+                    #(#cases),*
+                }
+            }
+        }
+    } else {
+        // Handle empty alternatives later
+        unreachable!()
+    }
+}
+
+fn child_by_index(alternative: &Alternative, single_rule: bool) -> TokenStream {
+    let cases = alternative.symbols.iter().enumerate().map(|(i, s)| {
+        let name = match s {
+            Symbol::Terminal(_) => "Token",
+            Symbol::Nonterminal(nonterminal) => &nonterminal.name,
+            _ => unreachable!()
+        };
+        let name_ident = Ident::new(name, Span::call_site());
+        let i_lit = Literal::usize_unsuffixed(i);
+        // For nonterminals with only one body, i.e., no alternatives,
+        // generate the arms as 0 => Some(ParseTreeRef::E(&self.0))
+        // As, we can index the children directly.
+        if single_rule {
+            quote! {
+                #i_lit => Some(ParseTreeRef::#name_ident(&self.#i_lit))
+            }
+        } else {
+            // For nonterminals with alternatives, we need to return the exact child:
+            // case E::Plus(c0, c1, c2) {
+            //     match index {
+            //         0 => Some(ParseTreeRef::E(&c0)),
+            //         1 => Some(ParseTreeRef::E(&c1)),
+            //         2 => Some(ParseTreeRef::E(&c2)),
+            //         _ => unreachable!()
+            // }
+            let child_name = format_ident!("c{}", i);
+            quote! {
+                #i_lit => Some(ParseTreeRef::#name_ident(#child_name))
+            }
+        }
+    });
+    if single_rule {
+        quote! {
+            #(#cases),*,
+            _ => unreachable!(),
+        }
+    } else {
+        quote! {
+            match index {
+                #(#cases),*,
+                _ => unreachable!(),
+            }
+        }
+    }
+}
+
+fn gen_as_parse_tree_ref(nonterminal_name: &str) -> TokenStream {
+    let name_ident = Ident::new(&to_first_uppercase(nonterminal_name), Span::call_site());
+    quote! {
+        pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+            ParseTreeRef::#name_ident(self)
+        }
     }
 }
 
@@ -144,21 +264,46 @@ fn gen_token_struct() -> TokenStream {
     }
 }
 
-fn gen_token_kind_enum(token_names: &[Ident]) -> TokenStream {
+fn gen_token_kind_enum(terminals: &[(Ident, String)]) -> TokenStream {
+    let terminal_ids: Vec<_> = terminals.iter().map(|(id, name)|{
+        quote! {
+            #[comment = #name]
+            #id
+        }
+    }).collect();
     quote! {
         #[derive(Debug)]
         enum TokenKind {
-            #(#token_names),*
+            #(#terminal_ids),*
         }
     }
 }
 
-fn gen_token_kind_function(terminal_ids: &TerminalIds, token_names: &[Ident]) -> TokenStream {
-    let cases: Vec<TokenStream> = terminal_ids
-        .ids()
-        .map(|id| {
-            let token_name = &token_names[id.index()];
-            quote! { #id => TokenKind::#token_name }
+fn gen_token_kind_impl(terminals: &[(Ident, String)]) -> TokenStream {
+    let terminal_ids: Vec<_> = terminals.iter().map(|(id, name)|{
+        quote! {
+            TokenKind::#id => #name
+        }
+    }).collect();
+    quote! {
+        impl TokenKind {
+            pub fn name(&self) -> &'static str {
+                match self {
+                    #(#terminal_ids),*
+                }
+            }
+        }
+    }
+}
+
+fn gen_token_kind_function(terminals: &[(Ident, String)]) -> TokenStream {
+    let cases: Vec<TokenStream> = terminals
+        .iter()
+        .map(|(id, name)| {
+            quote! { 
+                #[comment = #name]
+                #id => TokenKind::#id 
+            }
         })
         .collect();
     quote! {
@@ -188,6 +333,13 @@ fn gen_parse_tree_builder_impl(
     }
 }
 
+fn children_names(alternative: &Alternative) -> Vec<Ident> {
+    let num_symbols = alternative.len();
+    (0..num_symbols)
+        .map(|i| Ident::new(&format!("c{i}"), Span::call_site()))
+        .collect::<Vec<_>>()
+}
+
 fn gen_nonterminal_node_method(
     grammar: &Grammar,
     nonterminal_ids: &NonterminalIds,
@@ -207,9 +359,7 @@ fn gen_nonterminal_node_method(
                     let end_slot_id = end_slot.slot_id;
                     let slot_name = slot_ids.slot_name(&end_slot.slot_id);
                     let num_symbols = alternative.len();
-                    let children_names = (0..num_symbols)
-                        .map(|i| Ident::new(&format!("c{i}"), Span::call_site()))
-                        .collect::<Vec<_>>();
+                    let children_names = children_names(alternative);
                     let methods: Vec<_> = alternative
                         .symbols
                         .iter()
@@ -218,7 +368,7 @@ fn gen_nonterminal_node_method(
                                 (Ident::new("unwrap_token", Span::call_site()), false)
                             }
                             Symbol::Nonterminal(n) => { 
-                                let ident = format_ident!("unwrap_{}", to_first_uppercase(&n.name));
+                                let ident = format_ident!("unwrap_{}", to_first_lowercase(&n.name));
                                 // Pass true if should be boxed.
                                 (ident, n.name == *nonterminal_name)
                             }
@@ -270,7 +420,7 @@ fn gen_nonterminal_node_method(
             quote! {
                 #[comment = #nonterminal_name]
                 #nonterminal_id => match nonterminal_node.return_slot {
-                    #(#slot_cases),*
+                    #(#slot_cases),*,
                     _ => unreachable!()
                 }
             }
@@ -319,7 +469,7 @@ fn gen_parse_tree_enum(grammar: &Grammar) -> TokenStream {
 }
 
 fn gen_parse_tree_impl(grammar: &Grammar) -> TokenStream {
-    let methods: Vec<_> = grammar
+    let unwrap_methods: Vec<_> = grammar
         .nonterminals()
         .map(|n| {
             let method_ident = format_ident!("unwrap_{}", to_first_lowercase(&n.name));
@@ -335,14 +485,101 @@ fn gen_parse_tree_impl(grammar: &Grammar) -> TokenStream {
             }
         })
         .collect();
+    let as_parse_tree_ref_method = gen_as_parse_tree_ref_method(grammar);
     quote! {
         impl ParseTree {
-            #(#methods)*
+            #(#unwrap_methods)*
             fn unwrap_token(self) -> Token {
                 match self {
                     ParseTree::Token(t) => t,
                     _ => panic!(),
                 }
+            }
+            #as_parse_tree_ref_method
+        }
+    }
+}
+
+fn gen_as_parse_tree_ref_method(grammar: &Grammar) -> TokenStream {
+    let cases: Vec<_> = grammar
+        .nonterminals()
+        .map(|n| {
+            let variant = Ident::new(&to_first_uppercase(&n.name), Span::call_site());
+            let var_ident = Ident::new(&to_first_lowercase(&n.name), Span::call_site());
+            quote! {
+                ParseTree::#variant(#var_ident) => #var_ident.as_parse_tree_ref()
+            }
+        })
+        .collect();
+    quote! {
+        fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+            match self {
+                #(#cases),*,
+                _ => unreachable!()
+            }
+        }
+    }
+}
+
+fn gen_parse_tree_as_ref_enum(grammar: &Grammar) -> TokenStream {
+    let variants: Vec<_> = grammar
+        .nonterminals()
+        .map(|n| {
+            let ident = Ident::new(&n.name, Span::call_site());
+            quote! { #ident(&'a #ident) }
+        })
+        .collect();
+    quote! {
+        #[derive(Clone, Copy)]
+        pub enum ParseTreeRef<'a> {
+            #(#variants),*,
+            Token(&'a Token),
+        }
+    }
+}
+
+fn gen_parse_tree_ref_impl() -> TokenStream {
+    quote! {
+        impl<'a> ParseTreeRef<'a> {
+            pub fn children(&self) -> ChildIter<'a> {
+                ChildIter {
+                    node: *self,
+                    index: 0,
+                }
+            }
+        }
+    }
+}
+
+fn gen_child_iter_struct() -> TokenStream {
+    quote! {
+        pub struct ChildIter<'a> {
+            node: ParseTreeRef<'a>,
+            index: usize,
+        }
+    }
+}
+
+fn gen_impl_iterator_for_child_iter(grammar: &Grammar) -> TokenStream {
+    let cases: Vec<_> = grammar
+        .nonterminals()
+        .map(|n| {
+            let variant = Ident::new(&to_first_uppercase(&n.name), Span::call_site());
+            let var_ident = Ident::new(&to_first_lowercase(&n.name), Span::call_site());
+            quote! { ParseTreeRef::#variant(#var_ident) => #var_ident.child(self.index) }
+        })
+        .collect();
+    quote! {
+        impl<'a> Iterator for ChildIter<'a> {
+            type Item = ParseTreeRef<'a>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                let child = match self.node {
+                    #(#cases),*,
+                    ParseTreeRef::Token(_) => None,
+                };
+                self.index += 1;
+                child
             }
         }
     }

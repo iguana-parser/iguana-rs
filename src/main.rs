@@ -31,7 +31,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser() -> std::io::Result<()> {
-    let grammar = &iggy();
+    let grammar = &grammar2();
     generate(grammar)?;
 
     Ok(())
@@ -150,6 +150,8 @@ fn grammar3() -> Grammar {
 //   ;
 // Identifier
 //   = [a-zA-Z_][a-zA-Z_0-9]*
+// WS
+//   = [ ]*
 fn iggy() -> Grammar {
     GrammarDef::builder()
         .name("Iggy".to_string())
@@ -157,6 +159,7 @@ fn iggy() -> Grammar {
             Nonterminal::new("Grammar"),
             Alternative::builder()
                 .add_symbol(Symbol::Terminal(Terminal::literal("grammar")))
+                .add_symbol(Symbol::Terminal(Terminal::identifier("WS")))
                 .add_symbol(Symbol::Terminal(Terminal::identifier("Identifier")))
                 .build(),
         )
@@ -191,6 +194,7 @@ fn iggy() -> Grammar {
                 ]))),
             ]),
         )
+        .add_lexical_rule(Terminal::identifier("WS"), Regex::star(Regex::Char(' ')))
         .start_symbol(Nonterminal::new("Grammar"))
         .build()
         .into()
