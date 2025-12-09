@@ -3,7 +3,10 @@ use std::{fs, io::Write, path::Path};
 use proc_macro2::TokenStream;
 
 use crate::{
-    generator::id::{NonterminalIds, SlotIds, TerminalIds},
+    generator::{
+        id::{NonterminalIds, SlotIds, TerminalIds},
+        utils::rustfmt,
+    },
     grammar::grammar::Grammar,
 };
 
@@ -14,6 +17,11 @@ mod parse_tree_gen;
 mod parser_gen;
 mod scanner_gen;
 mod utils;
+
+enum FileFormat {
+    Rust,
+    TOML,
+}
 
 pub fn generate(grammar: &Grammar) -> std::io::Result<()> {
     let mut nonterminal_ids = NonterminalIds::default();
@@ -33,34 +41,58 @@ pub fn generate(grammar: &Grammar) -> std::io::Result<()> {
         fs::create_dir(&project_dir)?;
     }
 
-    write_file(cargo_toml_gen::generate(grammar), &base.join("Cargo.toml"))?;
+    write_file(
+        cargo_toml_gen::generate(grammar),
+        &base.join("Cargo.toml"),
+        FileFormat::TOML,
+    )?;
 
     let src_dir = project_dir.join("src");
     if !src_dir.exists() {
         fs::create_dir(&src_dir)?;
     }
-    write_file(lib_gen::generate(), &src_dir.join("lib.rs"))?;
+    write_file(
+        lib_gen::generate(),
+        &src_dir.join("lib.rs"),
+        FileFormat::Rust,
+    )?;
     let parser_code = parser_gen::generate(
         grammar,
         &mut nonterminal_ids,
         &mut slot_ids,
         &mut terminal_ids,
     );
-    write_file(to_string(parser_code), &src_dir.join("parser.rs"))?;
+    write_file(
+        to_string(parser_code),
+        &src_dir.join("parser.rs"),
+        FileFormat::Rust,
+    )?;
 
     let scanner_code = scanner_gen::generate(grammar, &terminal_ids);
-    write_file(to_string(scanner_code), &src_dir.join("scanner.rs"))?;
+    write_file(
+        to_string(scanner_code),
+        &src_dir.join("scanner.rs"),
+        FileFormat::Rust,
+    )?;
 
     let parse_tree_code =
         parse_tree_gen::generate(grammar, &nonterminal_ids, &terminal_ids, &slot_ids);
-    write_file(to_string(parse_tree_code), &src_dir.join("parse_tree.rs"))?;
+    write_file(
+        to_string(parse_tree_code),
+        &src_dir.join("parse_tree.rs"),
+        FileFormat::Rust,
+    )?;
 
     Ok(())
 }
 
-fn write_file(content: impl AsRef<str>, path: &Path) -> std::io::Result<()> {
+fn write_file(content: impl AsRef<str>, path: &Path, format: FileFormat) -> std::io::Result<()> {
     let mut file = fs::File::create(path)?;
-    file.write_all(content.as_ref().as_bytes())?;
+    let formatted = match format {
+        FileFormat::Rust => rustfmt(content.as_ref()),
+        _ => content.as_ref().into(),
+    };
+    file.write_all(formatted.as_bytes())?;
     file.write_all(b"\n")?;
     Ok(())
 }

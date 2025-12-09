@@ -1,4 +1,4 @@
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote};
 
 use crate::{
@@ -62,7 +62,7 @@ fn gen_char_at_method() -> TokenStream {
 fn gen_match_token(terminal_ids: &TerminalIds, grammar: &Grammar) -> TokenStream {
     let mut match_terminal_cases = vec![];
     for (id, terminal) in terminal_ids.terminals().enumerate() {
-        let id = id as u16;
+        let id = Literal::u16_unsuffixed(id as u16);
         let regex = grammar
             .lexical_rules(terminal)
             .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));

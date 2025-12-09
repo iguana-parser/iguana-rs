@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use log::{debug, info, trace};
+use proc_macro2::Literal;
 use rustc_hash::FxHashMap;
 
 use crate::{
@@ -469,7 +470,7 @@ impl std::fmt::Display for NonterminalId {
 
 impl quote::ToTokens for NonterminalId {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let id = self.0;
+        let id = Literal::u16_unsuffixed(self.0);
         tokens.extend(quote::quote! { NonterminalId(#id) });
     }
 }
@@ -496,7 +497,7 @@ impl std::fmt::Display for SlotId {
 
 impl quote::ToTokens for SlotId {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let id = self.0;
+        let id = Literal::u16_unsuffixed(self.0);
         tokens.extend(quote::quote! { SlotId(#id) });
     }
 }
@@ -522,7 +523,7 @@ impl std::fmt::Display for TerminalId {
 
 impl quote::ToTokens for TerminalId {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let id = self.0;
+        let id = Literal::u16_unsuffixed(self.0);
         tokens.extend(quote::quote! { TerminalId(#id) });
     }
 }

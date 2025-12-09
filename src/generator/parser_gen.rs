@@ -1,3 +1,4 @@
+use proc_macro2::Literal;
 use proc_macro2::Span;
 use proc_macro2::TokenStream;
 use quote::format_ident;
@@ -158,32 +159,32 @@ fn gen_add_first_descriptors_method(
 }
 
 fn gen_nonterminals_const(nonterminal_ids: &NonterminalIds) -> TokenStream {
-    let nonterminal_ids_len = nonterminal_ids.len();
+    let nonterminals_len = Literal::usize_unsuffixed(nonterminal_ids.len());
     let nonterminal_names = nonterminal_ids.nonterminals().map(|n| {
         let nonterminal_name = &n.name;
         quote! { #nonterminal_name }
     });
     quote! {
-        const NONTERMINALS: [&str; #nonterminal_ids_len] = [#(#nonterminal_names),*];
+        const NONTERMINALS: [&str; #nonterminals_len] = [#(#nonterminal_names),*];
     }
 }
 
 fn gen_terminals_const(terminal_ids: &TerminalIds) -> TokenStream {
-    let terminal_ids_len = terminal_ids.len();
+    let terminals_len = Literal::usize_unsuffixed(terminal_ids.len());
     let terminal_names = terminal_ids.terminals().map(|t| {
         let terminal_name = &t.name;
         quote! { #terminal_name }
     });
     quote! {
-        const TERMINALS: [&str; #terminal_ids_len] = [#(#terminal_names),*];
+        const TERMINALS: [&str; #terminals_len] = [#(#terminal_names),*];
     }
 }
 
 fn gen_slots_const(slot_ids: &SlotIds) -> TokenStream {
-    let slot_ids_len = slot_ids.len();
+    let slots_len = Literal::usize_unsuffixed(slot_ids.len());
     let slot_names = slot_ids.slots().map(|s| quote! { #s });
     quote! {
-        const SLOTS: [&str; #slot_ids_len] = [#(#slot_names),*];
+        const SLOTS: [&str; #slots_len] = [#(#slot_names),*];
     }
 }
 
@@ -683,9 +684,9 @@ fn gen_parser_struct(
     terminal_ids: &TerminalIds,
     slot_ids: &SlotIds,
 ) -> TokenStream {
-    let nonterminal_ids_len = nonterminal_ids.len();
-    let terminal_ids_len = terminal_ids.len();
-    let slot_ids_len = slot_ids.len();
+    let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.len());
+    let terminal_ids_len = Literal::usize_unsuffixed(terminal_ids.len());
+    let slot_ids_len = Literal::usize_unsuffixed(slot_ids.len());
     let parser_name_ident =
         syn::Ident::new(&format!("{}{}", grammar_name, "Parser"), Span::call_site());
     let scanner_name_ident =
@@ -759,28 +760,28 @@ fn gen_new_method(
 }
 
 fn gen_gss_nodes_index_field(nonterminal_ids: &NonterminalIds) -> TokenStream {
-    let nonterminal_ids_len = nonterminal_ids.len();
+    let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.len());
     quote! {
         gss_nodes_index: [const { vec![] }; #nonterminal_ids_len]
     }
 }
 
 fn gen_nonterminal_nodes_index_field(nonterminal_ids: &NonterminalIds) -> TokenStream {
-    let nonterminal_ids_len = nonterminal_ids.len();
+    let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.len());
     quote! {
         nonterminal_nodes_index: [const { InlineMap::Empty }; #nonterminal_ids_len]
     }
 }
 
 fn gen_intermediate_nodes_index_field(slot_ids: &SlotIds) -> TokenStream {
-    let intermediate_ids_len = slot_ids.len();
+    let intermediate_ids_len = Literal::usize_unsuffixed(slot_ids.len());
     quote! {
         intermediate_nodes_index: [const { InlineMap::Empty }; #intermediate_ids_len]
     }
 }
 
 fn gen_terminal_nodes_index_field(slot_ids: &TerminalIds) -> TokenStream {
-    let terminal_ids_len = slot_ids.len();
+    let terminal_ids_len = Literal::usize_unsuffixed(slot_ids.len());
     quote! {
         terminal_nodes_index: [const { InlineMap::Empty }; #terminal_ids_len]
     }
