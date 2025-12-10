@@ -57,6 +57,9 @@ pub struct LexicalRule {
     pub fn add_lexical_rule(&mut self, head: Terminal, regex: Regex) {
         self.lexical_rules.push(LexicalRule { head, regex });
     }
+    pub fn add_layout_definition(&mut self, terminal: Terminal) {
+        self.layout_def.push(terminal);
+    }
 ))]
 pub struct GrammarDef {
     pub name: String,
@@ -65,6 +68,9 @@ pub struct GrammarDef {
     syntax_rules: Vec<SyntaxRule>,
     #[builder(via_mutators)]
     lexical_rules: Vec<LexicalRule>,
+    // Whitespace and comment nodes
+    #[builder(via_mutators)]
+    layout_def: Vec<Terminal>,
 }
 
 impl From<GrammarDef> for Grammar {
@@ -98,6 +104,7 @@ impl From<GrammarDef> for Grammar {
             start_symbol: grammar_def.start_symbol,
             productions,
             lexical_rules,
+            layout_defs: grammar_def.layout_def,
         }
     }
 }
@@ -110,6 +117,7 @@ pub struct Grammar {
     pub start_symbol: Nonterminal,
     productions: IndexMap<Nonterminal, Alternatives>,
     lexical_rules: IndexMap<Terminal, Regex>,
+    pub layout_defs: Vec<Terminal>,
 }
 
 impl Grammar {

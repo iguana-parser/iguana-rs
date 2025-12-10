@@ -29,6 +29,8 @@ pub fn alternative_label(alternative: &Alternative, index: usize) -> Cow<'_, str
 
 pub fn rustfmt(code: &str) -> String {
     let mut child = Command::new("rustfmt")
+        .arg("--edition")
+        .arg("2024")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()

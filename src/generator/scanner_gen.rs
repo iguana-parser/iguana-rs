@@ -1,5 +1,6 @@
 use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote};
+use syn::Ident;
 
 use crate::{
     generator::id::TerminalIds,
@@ -20,7 +21,12 @@ pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
 
 fn gen_imports() -> TokenStream {
     quote! {
-        use iguana::{input::Input, parser::TerminalId, scanner::Scanner};
+        use iguana::{
+            input::Input,
+            parser::TerminalId,
+            scanner::Scanner,
+            sppf::{Span, TerminalNode},
+        };
     }
 }
 
@@ -40,13 +46,17 @@ fn gen_scanner_struct(grammar_name: &str) -> TokenStream {
 }
 
 fn gen_scanner_impl(name: &str, terminal_ids: &TerminalIds, grammar: &Grammar) -> TokenStream {
-    let match_tokens_method = gen_match_token(terminal_ids, grammar);
+    let match_token_method = gen_match_token(terminal_ids, grammar);
     let char_at_method = gen_char_at_method();
+    let match_leading_layout_method = gen_match_layout_method(grammar, terminal_ids, false);
+    let match_trailing_layout_method = gen_match_layout_method(grammar, terminal_ids, true);
     let scanner_name = format_ident!("{name}Scanner");
     quote! {
         impl Scanner for #scanner_name<'_> {
-            #match_tokens_method
+            #match_token_method
             #char_at_method
+            #match_leading_layout_method
+            #match_trailing_layout_method
         }
     }
 }
@@ -85,6 +95,47 @@ fn gen_match_token(terminal_ids: &TerminalIds, grammar: &Grammar) -> TokenStream
                     unreachable!("Unknown token type: {terminal_id}");
                 }
             }
+        }
+    }
+}
+
+fn gen_match_layout_method(
+    grammar: &Grammar,
+    terminal_ids: &TerminalIds,
+    trailing: bool,
+) -> TokenStream {
+    let layout_def_ids: Vec<_> = grammar
+        .layout_defs
+        .iter()
+        .map(|t| terminal_ids.get_id(t))
+        .collect();
+    let method_name = if trailing {
+        Ident::new("match_trailing_layout", Span::call_site())
+    } else {
+        Ident::new("match_leading_layout", Span::call_site())
+    };
+    let trailing_layout_check = if trailing {
+        quote! {
+            #[comment = "// If the last matched character is a newline, do not match further"]
+            if let Some(last_matched_char) = self.input.char_at(next_index - 1)
+                && last_matched_char == '\n'
+            {
+                break;
+            }
+        }
+    } else {
+        quote! {}
+    };
+    quote! {
+        fn #method_name(&self, input_index: u32) -> (u32, Vec<TerminalNode>) {
+            let mut i = input_index;
+            let mut layout_nodes = vec![];
+            while let Some((next_index, terminal_id)) = self.match_any(&vec![#(#layout_def_ids),*], i) {
+                layout_nodes.push(TerminalNode::new(terminal_id, Span::new(i, next_index)));
+                i = next_index;
+                #trailing_layout_check
+            }
+            (i, layout_nodes)
         }
     }
 }
@@ -162,7 +213,7 @@ fn match_star(r: &Regex) -> TokenStream {
         while let Some(k) = (|i| { #match_r })(j) {
             j = k;
         }
-        Some(j)
+        if j > i { Some(j) } else { None }
     }
 }
 

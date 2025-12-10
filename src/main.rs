@@ -86,6 +86,7 @@ fn grammar2() -> Grammar {
     // S -> E
     // E -> E '+' E
     // E -> 'a'
+    // WS -> ' '*
     GrammarDef::builder()
         .name("Test2".to_string())
         .add_syntax_rule(
@@ -108,6 +109,8 @@ fn grammar2() -> Grammar {
                 .add_symbol(Symbol::Terminal(Terminal::literal("a")))
                 .build(),
         )
+        .add_lexical_rule(Terminal::identifier("WS"), Regex::star(Regex::Char(' ')))
+        .add_layout_definition(Terminal::identifier("WS"))
         .start_symbol(Nonterminal::new("S"))
         .build()
         .into()

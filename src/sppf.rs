@@ -60,6 +60,19 @@ impl Hash for Span {
 pub struct TerminalNode {
     pub terminal_id: TerminalId,
     pub span: Span,
+    pub leading_layout: Vec<TerminalNode>,
+    pub trailing_layout: Vec<TerminalNode>,
+}
+
+impl TerminalNode {
+    pub fn new(terminal_id: TerminalId, span: Span) -> Self {
+        Self {
+            terminal_id,
+            span,
+            leading_layout: vec![],
+            trailing_layout: vec![],
+        }
+    }
 }
 
 #[derive(Debug)]

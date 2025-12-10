@@ -324,7 +324,7 @@ fn gen_terminal_slot(
     let next_slot_id = slot_ids.id(next_slot_name);
     // At grammar position 0, i.e., A ::= . alpha, the current SPPF node is None.
     // Therefore, we should get the input index from the current GSS node.
-    let input_index = if position == 0 {
+    let gen_get_input_index = if position == 0 {
         quote! {
             let i = self.gss_node(gss_node_id).index;
         }
@@ -359,13 +359,32 @@ fn gen_terminal_slot(
     quote! {
         #[comment = #slot_name]
         #slot_id => {
-            #input_index
+            #gen_get_input_index
+            trace!("Matching leading layout at input index {i}");
+            let (i, leading_layout) = self.scanner.match_leading_layout(i);
+            if leading_layout.is_empty() {
+                trace!("No leading layout found");
+            } else {
+                trace!("Matched leading layout. New input_index is {i}");
+            }
             trace!("Matching terminal {} at input index {i}", #terminal_name);
-            let terminal_id = #terminal_id;
-            match self.scanner.match_token(terminal_id, i) {
+            match self.scanner.match_token(#terminal_id, i) {
                 Some(j) => {
-                    trace!("Terminal match successful, index: {j}");
-                    let right_child_id = self.get_or_create_terminal_node(terminal_id, i, j);
+                    trace!("Terminal match successful, index: {i}");
+                    trace!("Matching trailing layout at input index {i}");
+                    let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
+                    if leading_layout.is_empty() {
+                        trace!("No trailing layout found");
+                    } else {
+                        trace!("Matched trailing layout. New input_index is {i}");
+                    }
+                    let right_child_id = self.get_or_create_terminal_node(
+                        #terminal_id,
+                        i,
+                        j,
+                        leading_layout,
+                        trailing_layout
+                    );
                     #[comment = #next_slot_name]
                     let next_slot_id = #next_slot_id;
                     #new_node
