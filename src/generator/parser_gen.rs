@@ -127,17 +127,18 @@ fn gen_add_first_descriptors_method(
         let nonterminal_id = nonterminal_ids.get_id(nonterminal);
         let nt_name = &nonterminal.name;
         let mut alternative_quotes = vec![];
-        if let Some(alternatives) = grammar.alternatives(nonterminal) {
-            for alternative in alternatives.iter() {
-                let slot_name = slot_to_string(nt_name, alternative, 0);
-                let first_slot = slot_ids.id(&slot_name);
-                alternative_quotes.push(quote! {
-                    #[comment = #slot_name]
-                    self.add_descriptor(Descriptor::new(#first_slot, None, gss_node_id));
-                });
-            }
-        } else {
+        let alternatives = grammar.alternatives(nonterminal);
+        if alternatives.is_empty() {
             // todo: handle the empty alternative
+            todo!()
+        }
+        for alternative in alternatives {
+            let slot_name = slot_to_string(nt_name, alternative, 0);
+            let first_slot = slot_ids.id(&slot_name);
+            alternative_quotes.push(quote! {
+                #[comment = #slot_name]
+                self.add_descriptor(Descriptor::new(#first_slot, None, gss_node_id));
+            });
         }
         nonterminal_quotes.push(quote! {
             #[comment = #nt_name]
@@ -198,55 +199,53 @@ fn gen_execute_method(
     for nonterminal in grammar.nonterminals() {
         let nt_name = &nonterminal.name;
         let alternatives = grammar.alternatives(nonterminal);
-        if let Some(alternatives) = alternatives {
-            for (index, alternative) in alternatives.iter().enumerate() {
-                for (position, symbol) in alternative.symbols.iter().enumerate() {
-                    slot_quotes.push(gen_slot_code(
-                        position,
-                        symbol,
-                        nt_name,
-                        alternative,
-                        nonterminal_ids,
-                        terminal_ids,
-                        slot_ids,
-                    ));
-                }
-                // Handle the last grammar slot
-                let last_symbol_index = alternative.symbols.len();
-                let end_slot_name = slot_to_string(nt_name, alternative, last_symbol_index);
-                let end_slot_id = slot_ids.id(&end_slot_name);
-                let nonterminal_id = nonterminal_ids
-                    .get_id(nonterminal)
-                    .expect("nonterminal not found");
-                let alternative = EndSlot {
-                    index,
-                    slot_id: end_slot_id,
-                };
-                nonterminal_ids.add_end_slot(nonterminal_id, alternative);
-                let last_slot_quote = quote! {
-                    #[comment = #end_slot_name]
-                    #end_slot_id => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let node = self.sppf_node(result);
-                        let left_extent = node.left_extent();
-                        let right_extent = node.right_extent();
-                        let nonterminal_id = #nonterminal_id;
-                        let return_slot = #end_slot_id;
-                        if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                            nonterminal_id,
-                            return_slot,
-                            left_extent,
-                            right_extent,
-                            result,
-                        ) {
-                            self.pop(gss_node_id, nonterminal_node_id);
-                        }
-                    }
-                };
-                slot_quotes.push(last_slot_quote);
+        for (index, alternative) in alternatives.iter().enumerate() {
+            for (position, symbol) in alternative.symbols.iter().enumerate() {
+                slot_quotes.push(gen_slot_code(
+                    position,
+                    symbol,
+                    nt_name,
+                    alternative,
+                    nonterminal_ids,
+                    terminal_ids,
+                    slot_ids,
+                ));
             }
+            // Handle the last grammar slot
+            let last_symbol_index = alternative.symbols.len();
+            let end_slot_name = slot_to_string(nt_name, alternative, last_symbol_index);
+            let end_slot_id = slot_ids.id(&end_slot_name);
+            let nonterminal_id = nonterminal_ids
+                .get_id(nonterminal)
+                .expect("nonterminal not found");
+            let alternative = EndSlot {
+                index,
+                slot_id: end_slot_id,
+            };
+            nonterminal_ids.add_end_slot(nonterminal_id, alternative);
+            let last_slot_quote = quote! {
+                #[comment = #end_slot_name]
+                #end_slot_id => {
+                    let Some(result) = result else {
+                        unreachable!("result cannot be None here.")
+                    };
+                    let node = self.sppf_node(result);
+                    let left_extent = node.left_extent();
+                    let right_extent = node.right_extent();
+                    let nonterminal_id = #nonterminal_id;
+                    let return_slot = #end_slot_id;
+                    if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                        nonterminal_id,
+                        return_slot,
+                        left_extent,
+                        right_extent,
+                        result,
+                    ) {
+                        self.pop(gss_node_id, nonterminal_node_id);
+                    }
+                }
+            };
+            slot_quotes.push(last_slot_quote);
         }
     }
 

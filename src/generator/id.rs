@@ -72,9 +72,6 @@ impl SlotIds {
             SlotId(value as u16)
         }
     }
-    pub fn ids(&self) -> impl Iterator<Item = SlotId> {
-        (0..self.len()).map(|id| SlotId(id as u16))
-    }
     pub fn len(&self) -> usize {
         self.slots.len()
     }

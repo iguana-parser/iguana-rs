@@ -15,21 +15,17 @@ fn calc_nullables(grammar: &Grammar) -> HashSet<&Nonterminal> {
     let mut changed = true;
     while changed {
         for nonterminal in grammar.nonterminals() {
-            if let Some(alternatives) = grammar.alternatives(nonterminal) {
-                for alternative in alternatives {
-                    if alternative
-                        .symbols
-                        .iter()
-                        .all(|s| is_nullable(s, &nullables))
-                    {
-                        changed |= nullables.insert(nonterminal);
-                        if changed {
-                            break;
-                        }
+            for alternative in grammar.alternatives(nonterminal) {
+                if alternative
+                    .symbols
+                    .iter()
+                    .all(|s| is_nullable(s, &nullables))
+                {
+                    changed |= nullables.insert(nonterminal);
+                    if changed {
+                        break;
                     }
                 }
-            } else {
-                changed |= nullables.insert(nonterminal);
             }
         }
     }

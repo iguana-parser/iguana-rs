@@ -20,7 +20,7 @@ mod utils;
 
 enum FileFormat {
     Rust,
-    TOML,
+    Toml,
 }
 
 pub fn generate(grammar: &Grammar) -> std::io::Result<()> {
@@ -44,7 +44,7 @@ pub fn generate(grammar: &Grammar) -> std::io::Result<()> {
     write_file(
         cargo_toml_gen::generate(grammar),
         &base.join("Cargo.toml"),
-        FileFormat::TOML,
+        FileFormat::Toml,
     )?;
 
     let src_dir = project_dir.join("src");

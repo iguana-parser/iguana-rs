@@ -86,69 +86,66 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
 
 fn gen_nonterminal_type(
     nonterminal: &Nonterminal,
-    alternatives: Option<&Vec<Alternative>>,
+    alternatives: &[Alternative],
 ) -> TokenStream {
     let nonterminal_name_id = Ident::new(&nonterminal.name, Span::call_site());
-    if let Some(alternatives) = alternatives {
-        // TODO: handle empty alternatives
-        if alternatives.len() == 1 {
-            let alternative = &alternatives[0];
-            let fields: Vec<_> = alternative
-                .symbols
-                .iter()
-                .map(|s| match s {
-                    Symbol::Terminal(_) => Ident::new("Token", Span::call_site()),
-                    Symbol::Nonterminal(n) => {
-                        Ident::new(&to_first_uppercase(&n.name), Span::call_site())
-                    }
-                    _ => panic!(),
-                })
-                .collect();
-            quote! {
-                #[derive(Debug)]
-                pub struct #nonterminal_name_id(#(#fields),*);
-            }
-        } else {
-            let variants: Vec<_> = alternatives
-                .iter()
-                .enumerate()
-                .map(|(index, alternative)| {
-                    let children: Vec<_> = alternative
-                        .symbols
-                        .iter()
-                        .map(|s| match s {
-                            Symbol::Terminal(_) => {
-                                let token = Ident::new("Token", Span::call_site());
-                                quote! { #token }
-                            }
-                            Symbol::Nonterminal(n) => {
-                                if n.name == nonterminal.name {
-                                    let name = Ident::new(&n.name, Span::call_site());
-                                    quote! { Box<#name> }
-                                } else {
-                                    let name = Ident::new(&n.name, Span::call_site());
-                                    quote! { #name }
-                                }
-                            }
-                            _ => unimplemented!(),
-                        })
-                        .collect();
-                    let label = alternative_label(alternative, index);
-                    let variant_name = Ident::new(&label, Span::call_site());
-                    quote! {
-                        #variant_name(#(#children),*)
-                    }
-                })
-                .collect();
-            quote! {
-                #[derive(Debug)]
-                pub enum #nonterminal_name_id {
-                    #(#variants),*
+    if alternatives.is_empty() {
+        todo!("handle empty alternatives")
+    } else if alternatives.len() == 1 {
+        let alternative = &alternatives[0];
+        let fields: Vec<_> = alternative
+            .symbols
+            .iter()
+            .map(|s| match s {
+                Symbol::Terminal(_) => Ident::new("Token", Span::call_site()),
+                Symbol::Nonterminal(n) => {
+                    Ident::new(&to_first_uppercase(&n.name), Span::call_site())
                 }
-            }
+                _ => panic!(),
+            })
+            .collect();
+        quote! {
+            #[derive(Debug)]
+            pub struct #nonterminal_name_id(#(#fields),*);
         }
     } else {
-        quote! {}
+        let variants: Vec<_> = alternatives
+            .iter()
+            .enumerate()
+            .map(|(index, alternative)| {
+                let children: Vec<_> = alternative
+                    .symbols
+                    .iter()
+                    .map(|s| match s {
+                        Symbol::Terminal(_) => {
+                            let token = Ident::new("Token", Span::call_site());
+                            quote! { #token }
+                        }
+                        Symbol::Nonterminal(n) => {
+                            if n.name == nonterminal.name {
+                                let name = Ident::new(&n.name, Span::call_site());
+                                quote! { Box<#name> }
+                            } else {
+                                let name = Ident::new(&n.name, Span::call_site());
+                                quote! { #name }
+                            }
+                        }
+                        _ => unimplemented!(),
+                    })
+                    .collect();
+                let label = alternative_label(alternative, index);
+                let variant_name = Ident::new(&label, Span::call_site());
+                quote! {
+                    #variant_name(#(#children),*)
+                }
+            })
+            .collect();
+        quote! {
+            #[derive(Debug)]
+            pub enum #nonterminal_name_id {
+                #(#variants),*
+            }
+        }
     }
 }
 
@@ -180,8 +177,10 @@ fn gen_child_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream
 
 fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let ident = Ident::new(&to_first_uppercase(&nonterminal.name), Span::call_site());
-    if let Some(alternatives) = grammar.alternatives(nonterminal) {
-        if alternatives.len() == 1 {
+    let alternatives = grammar.alternatives(nonterminal);
+    if alternatives.is_empty() {
+        todo!("handle empty alternatives")
+    } else if alternatives.len() == 1 {
             let alternative = &alternatives[0];
             let body = child_by_index(alternative, true);
             quote! {
@@ -203,11 +202,7 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
                 match self {
                     #(#arms),*
                 }
-            }
         }
-    } else {
-        // Handle empty alternatives later
-        unreachable!()
     }
 }
 
@@ -253,35 +248,34 @@ fn child_by_index(alternative: &Alternative, single_rule: bool) -> TokenStream {
 
 fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let ident = Ident::new(&to_first_uppercase(&nonterminal.name), Span::call_site());
-    if let Some(alternatives) = grammar.alternatives(nonterminal) {
-        let body = if alternatives.len() == 1 {
-            let count_symbols = alternatives[0].symbols.len();
-            quote! {
-                #count_symbols
-            }
-        } else {
-            let arms: Vec<_> = alternatives.iter().enumerate().map(|(i, alternative)| {
-                let label = alternative_label(alternative, i);
-                let alt_variant = Ident::new(&to_first_uppercase(&label), Span::call_site());
-                let count_symbols = alternative.symbols.len();
-                quote! {
-                    #ident::#alt_variant(..) => #count_symbols
-                }
-            }).collect();
-            quote! {
-                match self {
-                    #(#arms),*
-                }
-            }
-        };
+    let alternatives = grammar.alternatives(nonterminal);
+    let body = if alternatives.is_empty() {
+        todo!("handle empty alternatives")
+    }
+    else if alternatives.len() == 1 {
+        let count_symbols = alternatives[0].symbols.len();
         quote! {
-            pub fn child_count(&self) -> usize {
-                #body
-            }
+            #count_symbols
         }
     } else {
-        // Handle the no alternative case
-        unimplemented!()
+        let arms: Vec<_> = alternatives.iter().enumerate().map(|(i, alternative)| {
+            let label = alternative_label(alternative, i);
+            let alt_variant = Ident::new(&to_first_uppercase(&label), Span::call_site());
+            let count_symbols = alternative.symbols.len();
+            quote! {
+                #ident::#alt_variant(..) => #count_symbols
+            }
+        }).collect();
+        quote! {
+            match self {
+                #(#arms),*
+            }
+        }
+    };
+    quote! {
+        pub fn child_count(&self) -> usize {
+            #body
+        }
     }
 }
 
@@ -407,7 +401,7 @@ fn gen_nonterminal_node_method(
                 .map(|end_slot| {
                     let index = end_slot.index;
                     let alternatives = grammar.alternatives(nonterminal);
-                    let alternative = &alternatives.unwrap()[index];
+                    let alternative = &alternatives[index];
                     let end_slot_id = end_slot.slot_id;
                     let slot_name = slot_ids.slot_name(&end_slot.slot_id);
                     let num_symbols = alternative.len();
@@ -445,8 +439,7 @@ fn gen_nonterminal_node_method(
                     // Todo: handle 0
                     let num_alternatives = grammar
                         .alternatives(nonterminal)
-                        .map(|alt| alt.len())
-                        .unwrap_or_default();
+                        .len();
                     let constructor = if num_alternatives == 1 {
                         quote! {
                             #nonterminal_type

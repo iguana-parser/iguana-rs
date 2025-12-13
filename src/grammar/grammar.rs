@@ -109,13 +109,11 @@ impl From<GrammarDef> for Grammar {
     }
 }
 
-type Alternatives = Vec<Alternative>;
-
 #[derive(Debug)]
 pub struct Grammar {
     pub name: String,
     pub start_symbol: Nonterminal,
-    productions: IndexMap<Nonterminal, Alternatives>,
+    productions: IndexMap<Nonterminal, Vec<Alternative>>,
     lexical_rules: IndexMap<Terminal, Regex>,
     pub layout_defs: Vec<Terminal>,
 }
@@ -127,8 +125,8 @@ impl Grammar {
     pub fn nonterminals(&self) -> impl Iterator<Item = &'_ Nonterminal> {
         self.productions.keys()
     }
-    pub fn alternatives(&self, nonterminal: &Nonterminal) -> Option<&Alternatives> {
-        self.productions.get(nonterminal)
+    pub fn alternatives(&self, nonterminal: &Nonterminal) -> &[Alternative] {
+        self.productions.get(nonterminal).map_or(&[], |v| v)
     }
     pub fn terminals(&self) -> impl Iterator<Item = &'_ Terminal> {
         self.lexical_rules.keys()
