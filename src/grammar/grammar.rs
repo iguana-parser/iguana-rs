@@ -37,10 +37,27 @@ impl Display for Alternative {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, TypedBuilder)]
+#[builder(mutators(
+    pub fn add_priority_level(&mut self, priority_level: PriorityLevel) {
+        self.priority_levels.push(priority_level);
+    }
+))]
 pub struct SyntaxRule {
     pub head: Nonterminal,
-    pub body: Alternative,
+    #[builder(via_mutators)]
+    pub priority_levels: Vec<PriorityLevel>,
+}
+
+#[derive(Debug, TypedBuilder)]
+#[builder(mutators(
+    pub fn add_alternative(&mut self, alternative: Alternative) {
+        self.alternatives.push(alternative);
+    }
+))]
+pub struct PriorityLevel {
+    #[builder(via_mutators)]
+    pub alternatives: Vec<Alternative>,
 }
 
 #[derive(Debug)]
@@ -51,8 +68,8 @@ pub struct LexicalRule {
 
 #[derive(Debug, TypedBuilder)]
 #[builder(mutators(
-    pub fn add_syntax_rule(&mut self, head: Nonterminal, body: Alternative) {
-        self.syntax_rules.push(SyntaxRule { head, body });
+    pub fn add_syntax_rule(&mut self, syntax_rule: SyntaxRule) {
+        self.syntax_rules.push(syntax_rule);
     }
     pub fn add_lexical_rule(&mut self, head: Terminal, regex: Regex) {
         self.lexical_rules.push(LexicalRule { head, regex });
@@ -80,15 +97,22 @@ impl From<GrammarDef> for Grammar {
             .into_iter()
             .map(|r| (r.head, r.regex))
             .collect();
-        for SyntaxRule { head: _, body } in &grammar_def.syntax_rules {
-            for symbol in &body.symbols {
-                match symbol {
-                    Symbol::Terminal(terminal) if terminal.kind == TerminalKind::Literal => {
-                        if !lexical_rules.contains_key(terminal) {
-                            lexical_rules.insert(terminal.clone(), Regex::literal(&terminal.name));
+        for rule in &grammar_def.syntax_rules {
+            for priority_level in &rule.priority_levels {
+                for alternative in &priority_level.alternatives {
+                    for symbol in &alternative.symbols {
+                        match symbol {
+                            Symbol::Terminal(terminal)
+                                if terminal.kind == TerminalKind::Literal =>
+                            {
+                                if !lexical_rules.contains_key(terminal) {
+                                    lexical_rules
+                                        .insert(terminal.clone(), Regex::literal(&terminal.name));
+                                }
+                            }
+                            _ => (),
                         }
                     }
-                    _ => (),
                 }
             }
         }
@@ -96,7 +120,12 @@ impl From<GrammarDef> for Grammar {
             .syntax_rules
             .into_iter()
             .fold(IndexMap::new(), |mut acc, r| {
-                acc.entry(r.head).or_default().push(r.body);
+                let alternatives: Vec<Alternative> = r
+                    .priority_levels
+                    .into_iter()
+                    .flat_map(|l| l.alternatives)
+                    .collect();
+                acc.entry(r.head).or_default().extend(alternatives);
                 acc
             });
         Self {

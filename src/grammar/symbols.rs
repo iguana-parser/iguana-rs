@@ -11,6 +11,15 @@ pub enum Symbol {
     Alt(Seq),
 }
 
+impl Symbol {
+    pub fn literal(name: &str) -> Self {
+        Symbol::Terminal(Terminal::literal(name))
+    }
+    pub fn nonterminal(name: &str) -> Self {
+        Symbol::Nonterminal(Nonterminal::new(name))
+    }
+}
+
 impl Display for Symbol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
