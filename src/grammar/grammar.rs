@@ -14,6 +14,9 @@ use crate::grammar::{
     pub fn add_symbol(&mut self, symbol: Symbol) {
         self.symbols.push(symbol);
     }
+    pub fn add_symbols(&mut self, symbols: Vec<Symbol>) {
+        self.symbols.extend(symbols);
+    }
 ))]
 pub struct Alternative {
     #[builder(via_mutators)]
@@ -42,6 +45,9 @@ impl Display for Alternative {
     pub fn add_priority_level(&mut self, priority_level: PriorityLevel) {
         self.priority_levels.push(priority_level);
     }
+    pub fn add_priority_levels(&mut self, priority_levels: Vec<PriorityLevel>) {
+        self.priority_levels.extend(priority_levels);
+    }
 ))]
 pub struct SyntaxRule {
     pub head: Nonterminal,
@@ -53,6 +59,9 @@ pub struct SyntaxRule {
 #[builder(mutators(
     pub fn add_alternative(&mut self, alternative: Alternative) {
         self.alternatives.push(alternative);
+    }
+    pub fn add_alternatives(&mut self, alternatives: Vec<Alternative>) {
+        self.alternatives.extend(alternatives);
     }
 ))]
 pub struct PriorityLevel {
@@ -82,12 +91,75 @@ pub struct GrammarDef {
     pub name: String,
     pub start_symbol: Nonterminal,
     #[builder(via_mutators)]
-    syntax_rules: Vec<SyntaxRule>,
+    pub syntax_rules: Vec<SyntaxRule>,
     #[builder(via_mutators)]
-    lexical_rules: Vec<LexicalRule>,
+    pub lexical_rules: Vec<LexicalRule>,
     // Whitespace and comment nodes
     #[builder(via_mutators)]
-    layout_def: Vec<Terminal>,
+    pub layout_def: Vec<Terminal>,
+}
+
+impl Display for SyntaxRule {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}", self.head)?;
+        if let Some((first_level, rest_levels)) = self.priority_levels.split_first() {
+            if let Some((first_alt, rest_alts)) = first_level.alternatives.split_first() {
+                write!(f, "  : {}", first_alt.symbols.iter().join(" "))?;
+                if let Some(label) = &first_alt.label {
+                    write!(f, " #{}", label)?;
+                }
+                writeln!(f)?;
+                for alternative in rest_alts {
+                    write!(f, "  | {}", alternative.symbols.iter().join(" "))?;
+                    if let Some(label) = &alternative.label {
+                        write!(f, " #{}", label)?;
+                    }
+                    writeln!(f)?;
+                }
+                if rest_levels.is_empty() {
+                    writeln!(f, "  ;")?;
+                }
+            }
+            for (level_idx, level) in rest_levels.iter().enumerate() {
+                writeln!(f, "  >")?;
+                if let Some((first_alt, rest_alts)) = level.alternatives.split_first() {
+                    write!(f, "    {}", first_alt.symbols.iter().join(" "))?;
+                    if let Some(label) = &first_alt.label {
+                        write!(f, " #{}", label)?;
+                    }
+                    writeln!(f)?;
+                    for alternative in rest_alts {
+                        write!(f, "  | {}", alternative.symbols.iter().join(" "))?;
+                        if let Some(label) = &alternative.label {
+                            write!(f, " #{}", label)?;
+                        }
+                        writeln!(f)?;
+                    }
+                    if level_idx == rest_levels.len() - 1 {
+                        writeln!(f, "  ;")?;
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Display for GrammarDef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "grammar {}\n", self.name)?;
+        writeln!(f, "start: {}\n", self.start_symbol)?;
+        for rule in &self.syntax_rules {
+            writeln!(f, "{}", rule)?;
+        }
+        for lexical_rule in &self.lexical_rules {
+            writeln!(f, "{}: {}", lexical_rule.head, lexical_rule.regex)?;
+        }
+        if !self.layout_def.is_empty() {
+            writeln!(f, "\nlayout: {}", self.layout_def.iter().join(", "))?;
+        }
+        Ok(())
+    }
 }
 
 impl From<GrammarDef> for Grammar {

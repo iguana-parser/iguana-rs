@@ -1,14 +1,16 @@
 use std::fmt::Display;
 
-use typed_builder::TypedBuilder;
+use itertools::Itertools;
 
 #[derive(Debug, Clone)]
 pub enum Symbol {
     Terminal(Terminal),
     Nonterminal(Nonterminal),
-    Seq(Seq),
-    Opt(Box<Opt>),
-    Alt(Seq),
+    Group(Vec<Symbol>),
+    Opt(Box<Symbol>),
+    Alt(Vec<Symbol>),
+    Star(Box<Symbol>),
+    Plus(Box<Symbol>),
 }
 
 impl Symbol {
@@ -25,9 +27,11 @@ impl Display for Symbol {
         match self {
             Symbol::Terminal(terminal) => write!(f, "{terminal}"),
             Symbol::Nonterminal(nonterminal) => write!(f, "{nonterminal}"),
-            Symbol::Seq(seq) => write!(f, "{seq}"),
-            Symbol::Opt(opt) => write!(f, "{opt}"),
-            Symbol::Alt(_) => todo!(),
+            Symbol::Group(symbols) => write!(f, "({})", symbols.iter().join(" ")),
+            Symbol::Opt(opt) => write!(f, "{opt}?"),
+            Symbol::Alt(symbols) => write!(f, "({})", symbols.iter().join(" | ")),
+            Symbol::Star(symbol) => write!(f, "{symbol}*"),
+            Symbol::Plus(symbol) => write!(f, "{symbol}*"),
         }
     }
 }
@@ -87,38 +91,6 @@ impl Nonterminal {
 impl Display for Nonterminal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.name)
-    }
-}
-
-#[derive(Debug, TypedBuilder, Clone)]
-#[builder(mutators(
-    pub fn add_symbol(&mut self, symbol: Symbol) {
-        self.symbols.push(symbol);
-    }
-))]
-pub struct Seq {
-    #[builder(via_mutators)]
-    pub symbols: Vec<Symbol>,
-}
-
-impl Seq {
-    pub fn len(&self) -> usize {
-        self.symbols.len()
-    }
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-}
-
-impl Display for Seq {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let seq_to_string = self
-            .symbols
-            .iter()
-            .map(|s| s.to_string())
-            .collect::<Vec<String>>()
-            .join(" ");
-        write!(f, "{seq_to_string}")
     }
 }
 
