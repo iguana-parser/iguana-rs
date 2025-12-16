@@ -31,9 +31,8 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser() -> std::io::Result<()> {
-    let grammar = &grammar2();
-    generate(grammar)?;
-
+    let grammar = iggy().into();
+    generate(&grammar)?;
     Ok(())
 }
 
@@ -184,15 +183,21 @@ fn grammar3() -> Grammar {
 }
 
 // Grammar
-//   = "grammar" Identifier
+//   : "grammar" Identifier Rule+
 //   ;
-// Identifier
-//   = [a-zA-Z_][a-zA-Z_0-9]*
+// Rule
+//   : Identifier ":" Identifier+ ";"
+//   ;
+// regex Identifier
+//   : [a-zA-Z_][a-zA-Z_0-9]*
+//   ;
 // WS
-//   = [ ]*
-fn iggy() -> Grammar {
+//   : [ \n]*
+//   ;
+fn iggy() -> GrammarDef {
     GrammarDef::builder()
         .name("Iggy".to_string())
+        // Grammar : "grammar" Identifier Rule+
         .add_syntax_rule(
             SyntaxRule::builder()
                 .head(Nonterminal::new("Grammar"))
@@ -201,14 +206,32 @@ fn iggy() -> Grammar {
                         .add_alternative(
                             Alternative::builder()
                                 .add_symbol(Symbol::literal("grammar"))
-                                .add_symbol(Symbol::literal("WS"))
-                                .add_symbol(Symbol::literal("Identifier"))
+                                .add_symbol(Symbol::terminal("Identifier"))
+                                .add_symbol(Symbol::plus(Symbol::nonterminal("Rule")))
                                 .build(),
                         )
                         .build(),
                 )
                 .build(),
         )
+        // Rule : Identifier ":" Identifier+
+        .add_syntax_rule(
+            SyntaxRule::builder()
+                .head(Nonterminal::new("Rule"))
+                .add_priority_level(
+                    PriorityLevel::builder()
+                        .add_alternative(
+                            Alternative::builder()
+                                .add_symbol(Symbol::terminal("Identifier"))
+                                .add_symbol(Symbol::literal(":"))
+                                .add_symbol(Symbol::plus(Symbol::terminal("Identifier")))
+                                .build(),
+                        )
+                        .build(),
+                )
+                .build(),
+        )
+        // regex Identifier : [a-zA-Z_][a-zA-Z_0-9]*
         .add_lexical_rule(
             Terminal::identifier("Identifier"),
             Regex::Seq(vec![
@@ -240,8 +263,12 @@ fn iggy() -> Grammar {
                 ]))),
             ]),
         )
-        .add_lexical_rule(Terminal::identifier("WS"), Regex::star(Regex::Char(' ')))
+        // WS : [ ]*
+        .add_lexical_rule(
+            Terminal::identifier("WS"),
+            Regex::star(Regex::Alt(vec![Regex::Char(' '), Regex::Char('\n')])),
+        )
+        .add_layout_definition(Terminal::identifier("WS"))
         .start_symbol(Nonterminal::new("Grammar"))
         .build()
-        .into()
 }

@@ -20,6 +20,15 @@ impl Symbol {
     pub fn nonterminal(name: &str) -> Self {
         Symbol::Nonterminal(Nonterminal::new(name))
     }
+    pub fn terminal(name: &str) -> Self {
+        Symbol::Terminal(Terminal::identifier(name))
+    }
+    pub fn plus(symbol: Symbol) -> Self {
+        Symbol::Plus(Box::new(symbol))
+    }
+    pub fn star(symbol: Symbol) -> Self {
+        Symbol::Star(Box::new(symbol))
+    }
 }
 
 impl Display for Symbol {

@@ -388,7 +388,7 @@ fn gen_terminal_slot(
                     let next_slot_id = #next_slot_id;
                     #new_node
                 }
-                None => trace!("Parse error: failed to match '{}' at index {i}", #terminal_name),
+                None => trace!("{}", self.scanner.input.format_error(#terminal_name, i)),
             }
         }
     }
@@ -573,7 +573,7 @@ fn gen_add_intermediate_node_method() -> TokenStream {
 fn gen_input_len_method() -> TokenStream {
     quote! {
         fn input_len(&self) -> u32 {
-            self.scanner.input.len() as u32
+            self.scanner.input.len()
         }
     }
 }

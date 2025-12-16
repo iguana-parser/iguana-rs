@@ -7,6 +7,7 @@ use typed_builder::TypedBuilder;
 use crate::grammar::{
     regex::Regex,
     symbols::{Nonterminal, Symbol, Terminal, TerminalKind},
+    transformations::ebnf_to_bnf,
 };
 
 #[derive(Debug, TypedBuilder, Clone)]
@@ -164,6 +165,7 @@ impl Display for GrammarDef {
 
 impl From<GrammarDef> for Grammar {
     fn from(grammar_def: GrammarDef) -> Self {
+        let grammar_def = ebnf_to_bnf::ebnf_to_bnf(grammar_def);
         let mut lexical_rules: IndexMap<Terminal, Regex> = grammar_def
             .lexical_rules
             .into_iter()
