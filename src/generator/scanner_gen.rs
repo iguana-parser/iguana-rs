@@ -1,21 +1,23 @@
-use proc_macro2::{Literal, Span, TokenStream};
+use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::Ident;
 
 use crate::{
     generator::id::TerminalIds,
-    grammar::{grammar::Grammar, regex::Regex},
+    grammar::{grammar::Grammar, regex::Regex, symbols::Terminal},
 };
 
 pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
     let grammar_name = &grammar.name;
     let imports = gen_imports();
     let scanner_struct = gen_scanner_struct(grammar_name);
-    let scanner_impl = gen_scanner_impl(grammar_name, terminal_ids, grammar);
+    let scanner_impl = gen_scanner_imp(terminal_ids, grammar);
+    let scanner_trait_impl = gen_scanner_trait_impl(terminal_ids, grammar);
     quote! {
         #imports
         #scanner_struct
         #scanner_impl
+        #scanner_trait_impl
     }
 }
 
@@ -36,21 +38,32 @@ fn gen_scanner_struct(grammar_name: &str) -> TokenStream {
         pub struct #name_ident<'i> {
             pub input: &'i Input,
         }
+    }
+}
 
+fn gen_scanner_imp(terminal_ids: &TerminalIds, grammar: &Grammar) -> TokenStream {
+    let name_ident = syn::Ident::new(&format!("{}{}", grammar.name, "Scanner"), Span::call_site());
+    let match_terminals: Vec<_> = terminal_ids
+        .terminals()
+        .enumerate()
+        .map(|(id, terminal)| gen_match_terminal_method(id as u16, terminal, grammar))
+        .collect();
+    quote! {
         impl<'i> #name_ident<'i> {
             pub fn new(input: &'i Input) -> Self {
                 Self { input }
             }
+            #(#match_terminals)*
         }
     }
 }
 
-fn gen_scanner_impl(name: &str, terminal_ids: &TerminalIds, grammar: &Grammar) -> TokenStream {
-    let match_token_method = gen_match_token(terminal_ids, grammar);
+fn gen_scanner_trait_impl(terminal_ids: &TerminalIds, grammar: &Grammar) -> TokenStream {
+    let match_token_method = gen_match_token(terminal_ids);
     let char_at_method = gen_char_at_method();
     let match_leading_layout_method = gen_match_layout_method(grammar, terminal_ids, false);
     let match_trailing_layout_method = gen_match_layout_method(grammar, terminal_ids, true);
-    let scanner_name = format_ident!("{name}Scanner");
+    let scanner_name = format_ident!("{}Scanner", grammar.name);
     quote! {
         impl Scanner for #scanner_name<'_> {
             #match_token_method
@@ -69,32 +82,43 @@ fn gen_char_at_method() -> TokenStream {
     }
 }
 
-fn gen_match_token(terminal_ids: &TerminalIds, grammar: &Grammar) -> TokenStream {
-    let mut match_terminal_cases = vec![];
-    for (id, terminal) in terminal_ids.terminals().enumerate() {
-        let id = Literal::u16_unsuffixed(id as u16);
-        let regex = grammar
-            .lexical_rules(terminal)
-            .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
-        let match_regex = match_regex(regex);
-        let terminal_name = &terminal.name;
-        match_terminal_cases.push(quote! {
-            #[comment= #terminal_name]
-            TerminalId(#id) => {
-                let i = input_index;
-                #match_regex
+fn gen_match_token(terminal_ids: &TerminalIds) -> TokenStream {
+    let match_terminal_arms = terminal_ids.ids().map(|id| {
+        let fn_name = format_ident!("match_terminal_{}", id.index() as u16);
+        quote! {
+            #id => {
+                self.#fn_name(input_index)
             }
-        });
-    }
+        }
+    });
 
     quote! {
         fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
-            match terminal_id {
-                #(#match_terminal_cases)*
+            let res = match terminal_id {
+                #(#match_terminal_arms)*
                 _ => {
                     unreachable!("Unknown token type: {terminal_id}");
                 }
-            }
+            };
+            #[comment = "// Regular expressions should match at least 1 character."]
+            res.filter(|next_index| *next_index > input_index)
+        }
+    }
+}
+
+fn gen_match_terminal_method(id: u16, terminal: &Terminal, grammar: &Grammar) -> TokenStream {
+    let fn_name = format_ident!("match_terminal_{}", id);
+    let terminal_name = &terminal.name;
+    let regex = grammar
+        .lexical_rules(terminal)
+        .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
+    let match_regex = match_regex(regex);
+
+    quote! {
+        #[comment= #terminal_name]
+        pub fn #fn_name(&self, input_index: u32) -> Option<u32> {
+            let i = input_index;
+            #match_regex
         }
     }
 }
@@ -213,7 +237,7 @@ fn match_star(r: &Regex) -> TokenStream {
         while let Some(k) = (|i| { #match_r })(j) {
             j = k;
         }
-        if j > i { Some(j) } else { None }
+        Some(j)
     }
 }
 

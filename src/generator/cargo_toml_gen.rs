@@ -1,4 +1,4 @@
-use crate::grammar::grammar::Grammar;
+use crate::{generator::utils::to_first_lowercase, grammar::grammar::Grammar};
 
 pub fn generate(grammar: &Grammar) -> String {
     let grammar_name = &grammar.name;
@@ -25,7 +25,7 @@ dhat = "0.3"
 [features]
 dhat-heap = []
     "#,
-        grammar_name
+        to_first_lowercase(grammar_name)
     )
     .trim().to_owned()
 }

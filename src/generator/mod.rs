@@ -23,7 +23,7 @@ enum FileFormat {
     Toml,
 }
 
-pub fn generate(grammar: &Grammar) -> std::io::Result<()> {
+pub fn generate(grammar: &Grammar, output_dir: &Path) -> std::io::Result<()> {
     let mut nonterminal_ids = NonterminalIds::default();
     for nonterminal in grammar.nonterminals() {
         nonterminal_ids.insert(nonterminal.clone());
@@ -34,20 +34,17 @@ pub fn generate(grammar: &Grammar) -> std::io::Result<()> {
     }
     let mut slot_ids = SlotIds::default();
 
-    let name = "grammar-test";
-    let base = Path::new("/Users/afroozeh/Workspace");
-    let project_dir = base.join(name);
-    if !project_dir.exists() {
-        fs::create_dir(&project_dir)?;
+    if !output_dir.exists() {
+        fs::create_dir_all(output_dir)?;
     }
 
     write_file(
         cargo_toml_gen::generate(grammar),
-        &base.join("Cargo.toml"),
+        &output_dir.join("Cargo.toml"),
         FileFormat::Toml,
     )?;
 
-    let src_dir = project_dir.join("src");
+    let src_dir = output_dir.join("src");
     if !src_dir.exists() {
         fs::create_dir(&src_dir)?;
     }

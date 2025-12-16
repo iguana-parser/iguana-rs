@@ -1,3 +1,5 @@
+use std::path::{Path, PathBuf};
+
 use clap::{Parser, Subcommand};
 use iguana::{
     generator::generate,
@@ -16,23 +18,25 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Generate,
+    Generate {
+        #[arg(short, long)]
+        output: PathBuf,
+    },
     Run,
 }
 
 fn main() -> std::io::Result<()> {
-    // let cli = Cli::parse();
-    generate_parser()?;
-    // match cli.command {
-    //     Commands::Generate => generate_parser()?,
-    //     Commands::Run => todo!(),
-    // }
+    let cli = Cli::parse();
+    match cli.command {
+        Commands::Generate { output } => generate_parser(&output)?,
+        Commands::Run => todo!(),
+    }
     Ok(())
 }
 
-fn generate_parser() -> std::io::Result<()> {
+fn generate_parser(output: &Path) -> std::io::Result<()> {
     let grammar = iggy().into();
-    generate(&grammar)?;
+    generate(&grammar, output)?;
     Ok(())
 }
 
