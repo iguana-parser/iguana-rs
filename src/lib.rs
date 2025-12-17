@@ -7,5 +7,6 @@ pub mod parser;
 pub mod parse_tree;
 pub mod scanner;
 pub mod sppf;
+pub mod trace;
 pub mod utils;
 pub mod visualization;
