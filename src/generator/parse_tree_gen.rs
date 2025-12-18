@@ -75,6 +75,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
     quote! {
         use core::fmt;
         use std::fmt::Write;
+        use iguana::trace::TraceEvent;
         use iguana::{
             parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
             parser::{NonterminalId, Parser, SlotId, TerminalId},

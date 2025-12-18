@@ -24,6 +24,7 @@ dhat = "0.3"
 
 [features]
 dhat-heap = []
+debug-trace = ["iguana/debug-trace"]
     "#,
         to_first_lowercase(grammar_name)
     )

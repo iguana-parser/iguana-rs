@@ -2,6 +2,7 @@ use std::{fs, io, path::Path};
 
 /// Represents the input text to be parsed.
 /// The maximum input size is bounded by u32 (~4GB).
+#[derive(Debug)]
 pub struct Input {
     source: Vec<char>,
     // line_start_end_offsets[i] = (start_offset, end_offset) at line i

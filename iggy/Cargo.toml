@@ -18,3 +18,4 @@ dhat = "0.3"
 
 [features]
 dhat-heap = []
+debug-trace = ["iguana/debug-trace"]

@@ -1,12 +1,15 @@
 use crate::scanner::IggyScanner;
+use iguana::trace::TraceEvent;
 use iguana::{
     descriptor::Descriptor,
     gss::GSSNode,
     input::Input,
     parser::{NonterminalId, SlotId, TerminalId},
     parser::{Parser, Stats, init_logger},
+    record,
     scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
+    trace::TraceEventKind::*,
     utils::inline_map::InlineMap,
 };
 use log::trace;
@@ -50,18 +53,34 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Grammar : . "grammar" Identifier Grammar_Plus0
             SlotId(0) => {
                 let i = self.gss_node(gss_node_id).index;
-                trace!("Matching leading layout at input index {i}");
+                record!(
+                    self,
+                    MatchingLeadingLayout,
+                    (i, slot_id, result, gss_node_id)
+                );
                 let (i, leading_layout) = self.scanner.match_leading_layout(i);
                 if leading_layout.is_empty() {
                     trace!("No leading layout found");
                 } else {
                     trace!("Matched leading layout. New input_index is {i}");
                 }
-                trace!("Matching terminal {} at input index {i}", "grammar");
+                record!(
+                    self,
+                    MatchingTerminal("grammar"),
+                    (i, slot_id, result, gss_node_id)
+                );
                 match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
-                        trace!("Terminal match successful, index: {i}");
-                        trace!("Matching trailing layout at input index {i}");
+                        record!(
+                            self,
+                            MatchSuccess("grammar", j),
+                            (i, slot_id, result, gss_node_id)
+                        );
+                        record!(
+                            self,
+                            MatchingTrailingLayout,
+                            (i, slot_id, result, gss_node_id)
+                        );
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         if leading_layout.is_empty() {
                             trace!("No trailing layout found");
@@ -89,18 +108,34 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_child = self.sppf_node(left_child_id);
                 let left_extent = left_child.left_extent();
                 let i = left_child.right_extent();
-                trace!("Matching leading layout at input index {i}");
+                record!(
+                    self,
+                    MatchingLeadingLayout,
+                    (i, slot_id, result, gss_node_id)
+                );
                 let (i, leading_layout) = self.scanner.match_leading_layout(i);
                 if leading_layout.is_empty() {
                     trace!("No leading layout found");
                 } else {
                     trace!("Matched leading layout. New input_index is {i}");
                 }
-                trace!("Matching terminal {} at input index {i}", "Identifier");
+                record!(
+                    self,
+                    MatchingTerminal("grammar"),
+                    (i, slot_id, result, gss_node_id)
+                );
                 match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        trace!("Terminal match successful, index: {i}");
-                        trace!("Matching trailing layout at input index {i}");
+                        record!(
+                            self,
+                            MatchSuccess("grammar", j),
+                            (i, slot_id, result, gss_node_id)
+                        );
+                        record!(
+                            self,
+                            MatchingTrailingLayout,
+                            (i, slot_id, result, gss_node_id)
+                        );
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         if leading_layout.is_empty() {
                             trace!("No trailing layout found");
@@ -158,18 +193,34 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Rule : . Identifier ":" Rule_Plus1
             SlotId(4) => {
                 let i = self.gss_node(gss_node_id).index;
-                trace!("Matching leading layout at input index {i}");
+                record!(
+                    self,
+                    MatchingLeadingLayout,
+                    (i, slot_id, result, gss_node_id)
+                );
                 let (i, leading_layout) = self.scanner.match_leading_layout(i);
                 if leading_layout.is_empty() {
                     trace!("No leading layout found");
                 } else {
                     trace!("Matched leading layout. New input_index is {i}");
                 }
-                trace!("Matching terminal {} at input index {i}", "Identifier");
+                record!(
+                    self,
+                    MatchingTerminal("grammar"),
+                    (i, slot_id, result, gss_node_id)
+                );
                 match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        trace!("Terminal match successful, index: {i}");
-                        trace!("Matching trailing layout at input index {i}");
+                        record!(
+                            self,
+                            MatchSuccess("grammar", j),
+                            (i, slot_id, result, gss_node_id)
+                        );
+                        record!(
+                            self,
+                            MatchingTrailingLayout,
+                            (i, slot_id, result, gss_node_id)
+                        );
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         if leading_layout.is_empty() {
                             trace!("No trailing layout found");
@@ -199,18 +250,34 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_child = self.sppf_node(left_child_id);
                 let left_extent = left_child.left_extent();
                 let i = left_child.right_extent();
-                trace!("Matching leading layout at input index {i}");
+                record!(
+                    self,
+                    MatchingLeadingLayout,
+                    (i, slot_id, result, gss_node_id)
+                );
                 let (i, leading_layout) = self.scanner.match_leading_layout(i);
                 if leading_layout.is_empty() {
                     trace!("No leading layout found");
                 } else {
                     trace!("Matched leading layout. New input_index is {i}");
                 }
-                trace!("Matching terminal {} at input index {i}", ":");
+                record!(
+                    self,
+                    MatchingTerminal("grammar"),
+                    (i, slot_id, result, gss_node_id)
+                );
                 match self.scanner.match_token(TerminalId(3), i) {
                     Some(j) => {
-                        trace!("Terminal match successful, index: {i}");
-                        trace!("Matching trailing layout at input index {i}");
+                        record!(
+                            self,
+                            MatchSuccess("grammar", j),
+                            (i, slot_id, result, gss_node_id)
+                        );
+                        record!(
+                            self,
+                            MatchingTrailingLayout,
+                            (i, slot_id, result, gss_node_id)
+                        );
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         if leading_layout.is_empty() {
                             trace!("No trailing layout found");
@@ -325,18 +392,34 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_child = self.sppf_node(left_child_id);
                 let left_extent = left_child.left_extent();
                 let i = left_child.right_extent();
-                trace!("Matching leading layout at input index {i}");
+                record!(
+                    self,
+                    MatchingLeadingLayout,
+                    (i, slot_id, result, gss_node_id)
+                );
                 let (i, leading_layout) = self.scanner.match_leading_layout(i);
                 if leading_layout.is_empty() {
                     trace!("No leading layout found");
                 } else {
                     trace!("Matched leading layout. New input_index is {i}");
                 }
-                trace!("Matching terminal {} at input index {i}", "Identifier");
+                record!(
+                    self,
+                    MatchingTerminal("grammar"),
+                    (i, slot_id, result, gss_node_id)
+                );
                 match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        trace!("Terminal match successful, index: {i}");
-                        trace!("Matching trailing layout at input index {i}");
+                        record!(
+                            self,
+                            MatchSuccess("grammar", j),
+                            (i, slot_id, result, gss_node_id)
+                        );
+                        record!(
+                            self,
+                            MatchingTrailingLayout,
+                            (i, slot_id, result, gss_node_id)
+                        );
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         if leading_layout.is_empty() {
                             trace!("No trailing layout found");
@@ -390,18 +473,34 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Rule_Plus1 : . Identifier
             SlotId(16) => {
                 let i = self.gss_node(gss_node_id).index;
-                trace!("Matching leading layout at input index {i}");
+                record!(
+                    self,
+                    MatchingLeadingLayout,
+                    (i, slot_id, result, gss_node_id)
+                );
                 let (i, leading_layout) = self.scanner.match_leading_layout(i);
                 if leading_layout.is_empty() {
                     trace!("No leading layout found");
                 } else {
                     trace!("Matched leading layout. New input_index is {i}");
                 }
-                trace!("Matching terminal {} at input index {i}", "Identifier");
+                record!(
+                    self,
+                    MatchingTerminal("grammar"),
+                    (i, slot_id, result, gss_node_id)
+                );
                 match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        trace!("Terminal match successful, index: {i}");
-                        trace!("Matching trailing layout at input index {i}");
+                        record!(
+                            self,
+                            MatchSuccess("grammar", j),
+                            (i, slot_id, result, gss_node_id)
+                        );
+                        record!(
+                            self,
+                            MatchingTrailingLayout,
+                            (i, slot_id, result, gss_node_id)
+                        );
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         if leading_layout.is_empty() {
                             trace!("No trailing layout found");
@@ -450,31 +549,66 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
         }
     }
-    fn add_first_descriptors(&mut self, nonterminal_id: NonterminalId, gss_node_id: usize) {
+    fn add_first_descriptors(
+        &mut self,
+        nonterminal_id: NonterminalId,
+        input_index: u32,
+        gss_node_id: usize,
+    ) {
         match nonterminal_id {
             //Grammar
             NonterminalId(0) => {
                 //Grammar : . "grammar" Identifier Grammar_Plus0
-                self.add_descriptor(Descriptor::new(SlotId(0), None, gss_node_id));
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(0),
+                    sppf_node_id: None,
+                    gss_node_id,
+                });
             }
             //Rule
             NonterminalId(1) => {
                 //Rule : . Identifier ":" Rule_Plus1
-                self.add_descriptor(Descriptor::new(SlotId(4), None, gss_node_id));
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(4),
+                    sppf_node_id: None,
+                    gss_node_id,
+                });
             }
             //Grammar_Plus0
             NonterminalId(2) => {
                 //Grammar_Plus0 : . Grammar_Plus0 Rule
-                self.add_descriptor(Descriptor::new(SlotId(8), None, gss_node_id));
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(8),
+                    sppf_node_id: None,
+                    gss_node_id,
+                });
                 //Grammar_Plus0 : . Rule
-                self.add_descriptor(Descriptor::new(SlotId(11), None, gss_node_id));
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(11),
+                    sppf_node_id: None,
+                    gss_node_id,
+                });
             }
             //Rule_Plus1
             NonterminalId(3) => {
                 //Rule_Plus1 : . Rule_Plus1 Identifier
-                self.add_descriptor(Descriptor::new(SlotId(13), None, gss_node_id));
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(13),
+                    sppf_node_id: None,
+                    gss_node_id,
+                });
                 //Rule_Plus1 : . Identifier
-                self.add_descriptor(Descriptor::new(SlotId(16), None, gss_node_id));
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(16),
+                    sppf_node_id: None,
+                    gss_node_id,
+                });
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -578,8 +712,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         self.sppf_nodes.push(node);
         intermediate_node_id
     }
-    fn input_len(&self) -> u32 {
-        self.scanner.input.len()
+    fn input(&self) -> &'i Input {
+        self.scanner.input
     }
     fn stats(&self) -> &Stats {
         &self.stats
@@ -666,6 +800,8 @@ pub struct IggyParser<'i> {
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
+    #[cfg(feature = "debug-trace")]
+    pub trace_events: Option<Vec<TraceEvent>>,
 }
 impl<'i> IggyParser<'i> {
     pub fn new(input: &'i Input) -> Self {
@@ -684,6 +820,8 @@ impl<'i> IggyParser<'i> {
             intermediate_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_children: vec![],
             nonterminal_nodes_children_map: OnceCell::new(),
+            #[cfg(feature = "debug-trace")]
+            trace_events: None,
         }
     }
 }

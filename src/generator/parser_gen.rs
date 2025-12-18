@@ -43,7 +43,7 @@ pub fn generate(
     let new_terminal_node_method = gen_add_terminal_node_method();
     let new_nonterminal_node_method = gen_add_nonterminal_node_method();
     let new_intermediate_node_method = gen_add_intermediate_node_method();
-    let input_len_method = gen_input_len_method();
+    let input_len_method = gen_input_method();
     let stats_method = gen_stats_method();
     let stats_mut_method = gen_stats_mut_method();
     let lookup_nonterminal_node_method = gen_lookup_nonterminal_node_method();
@@ -101,14 +101,17 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
     let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&grammar.name));
     quote! {
         use std::cell::OnceCell;
+        use iguana::trace::TraceEvent;
         use iguana::{
             descriptor::Descriptor,
             parser::{NonterminalId, SlotId, TerminalId},
             gss::GSSNode,
             input::Input,
             parser::{Parser, Stats, init_logger},
+            record,
             scanner::Scanner,
             sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
+            trace::TraceEventKind::*,
             utils::inline_map::InlineMap,
         };
         use crate::scanner::#scanner_name;
@@ -137,7 +140,12 @@ fn gen_add_first_descriptors_method(
             let first_slot = slot_ids.id(&slot_name);
             alternative_quotes.push(quote! {
                 #[comment = #slot_name]
-                self.add_descriptor(Descriptor::new(#first_slot, None, gss_node_id));
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: #first_slot,
+                    sppf_node_id: None,
+                    gss_node_id,
+                });
             });
         }
         nonterminal_quotes.push(quote! {
@@ -148,7 +156,12 @@ fn gen_add_first_descriptors_method(
         });
     }
     quote! {
-        fn add_first_descriptors(&mut self, nonterminal_id: NonterminalId, gss_node_id: usize) {
+        fn add_first_descriptors(
+            &mut self, 
+            nonterminal_id: NonterminalId, 
+            input_index: u32, 
+            gss_node_id: usize
+        ) {
             match nonterminal_id {
                 #( #nonterminal_quotes)*
                 _ => {
@@ -359,18 +372,18 @@ fn gen_terminal_slot(
         #[comment = #slot_name]
         #slot_id => {
             #gen_get_input_index
-            trace!("Matching leading layout at input index {i}");
+            record!(self, MatchingLeadingLayout, (i, slot_id, result, gss_node_id));
             let (i, leading_layout) = self.scanner.match_leading_layout(i);
             if leading_layout.is_empty() {
                 trace!("No leading layout found");
             } else {
                 trace!("Matched leading layout. New input_index is {i}");
             }
-            trace!("Matching terminal {} at input index {i}", #terminal_name);
+            record!(self, MatchingTerminal("grammar"), (i, slot_id, result, gss_node_id));
             match self.scanner.match_token(#terminal_id, i) {
                 Some(j) => {
-                    trace!("Terminal match successful, index: {i}");
-                    trace!("Matching trailing layout at input index {i}");
+                    record!(self, MatchSuccess("grammar", j), (i, slot_id, result, gss_node_id));
+                    record!(self, MatchingTrailingLayout, (i, slot_id, result, gss_node_id));
                     let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                     if leading_layout.is_empty() {
                         trace!("No trailing layout found");
@@ -570,10 +583,10 @@ fn gen_add_intermediate_node_method() -> TokenStream {
     }
 }
 
-fn gen_input_len_method() -> TokenStream {
+fn gen_input_method() -> TokenStream {
     quote! {
-        fn input_len(&self) -> u32 {
-            self.scanner.input.len()
+        fn input(&self) -> &'i Input {
+            self.scanner.input
         }
     }
 }
@@ -725,6 +738,8 @@ fn gen_parser_struct(
             intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
             nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
             nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
+            #[cfg(feature = "debug-trace")]
+            pub trace_events: Option<Vec<TraceEvent>>,
         }
     }
 }
@@ -772,6 +787,8 @@ fn gen_new_method(
                 intermediate_nodes_children_map: OnceCell::new(),
                 nonterminal_nodes_children: vec![],
                 nonterminal_nodes_children_map: OnceCell::new(),
+                #[cfg(feature = "debug-trace")]
+                trace_events: None,
             }
         }
     }

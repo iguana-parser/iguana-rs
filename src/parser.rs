@@ -7,12 +7,18 @@ use rustc_hash::FxHashMap;
 use crate::{
     descriptor::Descriptor,
     gss::{EdgeResult, GSSEdge, GSSNode},
+    input::Input,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
 };
 
 pub trait Parser<'i> {
-    fn execute(&mut self, slot_id: SlotId, result: Option<SPPFNodeId>, gss_node_id: usize);
-    fn add_first_descriptors(&mut self, nonterminal_id: NonterminalId, gss_node_id: usize);
+    fn execute(&mut self, slot_id: SlotId, sppf_node_id: Option<SPPFNodeId>, gss_node_id: usize);
+    fn add_first_descriptors(
+        &mut self,
+        nonterminal_id: NonterminalId,
+        input_index: u32,
+        gss_node_id: usize,
+    );
     fn nonterminal_name(&self, nonterminal_id: NonterminalId) -> &str;
     fn terminal_name(&self, terminal_id: TerminalId) -> &str;
     fn slot_name(&self, slot_id: SlotId) -> &str;
@@ -25,7 +31,7 @@ pub trait Parser<'i> {
     fn gss_node_mut(&mut self, id: usize) -> &mut GSSNode;
     fn add_descriptor(&mut self, descriptor: Descriptor);
     fn next_descriptor(&mut self) -> Option<Descriptor>;
-    fn input_len(&self) -> u32;
+    fn input(&self) -> &'i Input;
     fn stats(&self) -> &Stats;
     fn stats_mut(&mut self) -> &mut Stats;
     fn add_nonterminal_node_child(&mut self, node: SPPFNodeId, child: SPPFNodeId);
@@ -114,14 +120,20 @@ pub trait Parser<'i> {
             // For each popped element of the current GSS node add a descriptor with the return label.
             for popped_element in popped_elements.iter() {
                 let popped_node = self.sppf_node(*popped_element);
+                let right_extent = popped_node.right_extent();
                 if let Some(new_node) = self.merge(
                     result,
                     *popped_element,
                     return_slot,
                     edge_result.clone().map(|r| r.left_extent),
-                    popped_node.right_extent(),
+                    right_extent,
                 ) {
-                    self.add_descriptor(Descriptor::new(return_slot, Some(new_node), gss_node_id));
+                    self.add_descriptor(Descriptor {
+                        input_index: right_extent,
+                        slot_id: return_slot,
+                        sppf_node_id: Some(new_node),
+                        gss_node_id,
+                    });
                 }
             }
             *self.gss_node_mut(exiting_gss_node_id).popped_elements_mut() = popped_elements;
@@ -135,7 +147,7 @@ pub trait Parser<'i> {
             );
             let new_gss_node_id = self.new_gss_node(nonterminal_id, i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, edge_result, return_slot);
-            self.add_first_descriptors(nonterminal_id, new_gss_node_id);
+            self.add_first_descriptors(nonterminal_id, i, new_gss_node_id);
             self.add_gss_node(nonterminal_id, i, new_gss_node_id);
         }
     }
@@ -189,8 +201,9 @@ pub trait Parser<'i> {
                 right_extent,
             ) {
                 self.add_descriptor(Descriptor {
+                    input_index: right_extent,
                     slot_id: edge.return_slot,
-                    result: Some(new_node_id),
+                    sppf_node_id: Some(new_node_id),
                     gss_node_id: edge.dest_id,
                 });
             }
@@ -261,7 +274,7 @@ pub trait Parser<'i> {
             "({}, {}, {})",
             self.slot_name(descriptor.slot_id),
             self.gss_to_string(descriptor.gss_node_id),
-            if let Some(result) = descriptor.result {
+            if let Some(result) = descriptor.sppf_node_id {
                 self.sppf_node_to_string(self.sppf_node(result))
             } else {
                 "$".to_string()
@@ -397,18 +410,18 @@ pub trait Parser<'i> {
     fn run(&mut self, start_nonterminal_id: NonterminalId) -> Option<SPPFNodeId> {
         let start = Instant::now();
         let start_gss_node_id = self.new_gss_node(start_nonterminal_id, 0);
-        self.add_first_descriptors(start_nonterminal_id, start_gss_node_id);
+        self.add_first_descriptors(start_nonterminal_id, 0, start_gss_node_id);
         self.add_gss_node(start_nonterminal_id, 0, start_gss_node_id);
         while let Some(descriptor) = self.next_descriptor() {
             self.execute(
                 descriptor.slot_id,
-                descriptor.result,
+                descriptor.sppf_node_id,
                 descriptor.gss_node_id,
             );
         }
         debug!("Processing descriptors finished.");
         let duration = start.elapsed();
-        let right_extent = self.input_len();
+        let right_extent = self.input().len();
         if let Some(node_id) = self.lookup_nonterminal_node(start_nonterminal_id, 0, right_extent) {
             info!("Parse successful. ({} ms)", duration.as_millis());
             debug!("{:?}", self.stats());
