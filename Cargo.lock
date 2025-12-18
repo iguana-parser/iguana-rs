@@ -263,7 +263,6 @@ dependencies = [
  "indexmap",
  "insta",
  "itertools",
- "log",
  "prettyplease",
  "proc-macro2",
  "quote",

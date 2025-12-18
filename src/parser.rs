@@ -1,6 +1,5 @@
 use std::time::Instant;
 
-use log::{debug, info, trace};
 use proc_macro2::Literal;
 use rustc_hash::FxHashMap;
 
@@ -8,11 +7,21 @@ use crate::{
     descriptor::Descriptor,
     gss::{EdgeResult, GSSEdge, GSSNode},
     input::Input,
+    record,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
 };
 
+#[cfg(feature = "debug-trace")]
+use crate::trace::TraceEvent;
+
 pub trait Parser<'i> {
-    fn execute(&mut self, slot_id: SlotId, sppf_node_id: Option<SPPFNodeId>, gss_node_id: usize);
+    fn execute(
+        &mut self,
+        input_index: u32,
+        slot_id: SlotId,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: usize,
+    );
     fn add_first_descriptors(
         &mut self,
         nonterminal_id: NonterminalId,
@@ -85,35 +94,24 @@ pub trait Parser<'i> {
     fn create(
         &mut self,
         nonterminal_id: NonterminalId,
-        result: Option<SPPFNodeId>,
+        sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: usize,
         return_slot: SlotId,
     ) {
-        let sppf_node = result.map(|id| self.sppf_node(id));
-        let gss_node = self.gss_node(gss_node_id);
-        trace!(
-            "Create {}, {}, {}",
-            sppf_node
-                .map(|n| self.sppf_node_to_string(n))
-                .unwrap_or("$".to_owned()),
-            self.gss_to_string(gss_node_id),
-            self.slot_name(return_slot)
-        );
+        record!(self, Call, sppf_node_id, gss_node_id, return_slot);
+        let sppf_node = sppf_node_id.map(|id| self.sppf_node(id));
         let edge_result = sppf_node.map(|n| EdgeResult {
-            node_id: result.unwrap(),
+            node_id: sppf_node_id.unwrap(),
             left_extent: n.left_extent(),
         });
+        let gss_node = self.gss_node(gss_node_id);
         let i = match sppf_node {
             Some(node) => node.right_extent(),
             None => gss_node.index,
         };
         // If there is already a GSS node for this call, just add the edge
         if let Some(exiting_gss_node_id) = self.get_gss_node(nonterminal_id, i) {
-            trace!(
-                "GSS node ({},{}) found",
-                self.nonterminal_name(nonterminal_id),
-                i
-            );
+            record!(self, GSSNodeFound, nonterminal_id, i);
             let popped_elements =
                 std::mem::take(self.gss_node_mut(exiting_gss_node_id).popped_elements_mut());
 
@@ -122,7 +120,7 @@ pub trait Parser<'i> {
                 let popped_node = self.sppf_node(*popped_element);
                 let right_extent = popped_node.right_extent();
                 if let Some(new_node) = self.merge(
-                    result,
+                    sppf_node_id,
                     *popped_element,
                     return_slot,
                     edge_result.clone().map(|r| r.left_extent),
@@ -140,11 +138,7 @@ pub trait Parser<'i> {
 
             self.add_gss_edge(exiting_gss_node_id, gss_node_id, edge_result, return_slot);
         } else {
-            trace!(
-                "GSS node ({},{}) not found",
-                self.nonterminal_name(nonterminal_id),
-                i
-            );
+            record!(self, GSSNodeNotFound, nonterminal_id, i);
             let new_gss_node_id = self.new_gss_node(nonterminal_id, i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, edge_result, return_slot);
             self.add_first_descriptors(nonterminal_id, i, new_gss_node_id);
@@ -154,48 +148,40 @@ pub trait Parser<'i> {
 
     fn add_gss_edge(
         &mut self,
-        origin_gss_id: usize,
-        dest_id: usize,
+        origin_gss_node_id: usize,
+        dest_gss_node_id: usize,
         result: Option<EdgeResult>,
         return_slot: SlotId,
     ) {
-        let origin = self.gss_node_mut(origin_gss_id);
-        let gss_edge = GSSEdge::new(result, return_slot, dest_id);
+        let origin = self.gss_node_mut(origin_gss_node_id);
+        let gss_edge = GSSEdge::new(result, return_slot, dest_gss_node_id);
         origin.add_edge(gss_edge);
-        trace!(
-            "GSS edge added from {} to {} with return label {}",
-            self.gss_to_string(origin_gss_id),
-            self.gss_to_string(dest_id),
-            self.slot_name(return_slot)
+        record!(
+            self,
+            GSSNodeAdded,
+            origin_gss_node_id,
+            dest_gss_node_id,
+            return_slot
         );
         self.stats_mut().gss_edges_count += 1;
     }
 
-    fn pop(&mut self, gss_node_id: usize, node_id: SPPFNodeId) {
-        trace!(
-            "Pop: {} with result {}",
-            self.gss_to_string(gss_node_id),
-            self.sppf_node_to_string(self.sppf_node(node_id))
-        );
+    fn pop(&mut self, gss_node_id: usize, sppf_node_id: SPPFNodeId) {
+        record!(self, Pop, gss_node_id, sppf_node_id);
         let gss = self.gss_node(gss_node_id);
-        if gss.contains_popped_element(&node_id) {
-            trace!("Node already in popped elements");
-            return;
+        if gss.contains_popped_element(&sppf_node_id) {
+            record!(self, NodeAlreadyInPoppedElements);
         }
-        let node = self.sppf_node(node_id);
+        let node = self.sppf_node(sppf_node_id);
         let right_extent = node.right_extent();
-        trace!(
-            "Added {} to {}'s popped elements",
-            self.sppf_node_to_string(self.sppf_node(node_id)),
-            self.gss_to_string(gss_node_id)
-        );
+        record!(self, AddToPoppedElements, gss_node_id, sppf_node_id);
         let gss = self.gss_node_mut(gss_node_id);
-        gss.add_to_popped_elements(node_id);
+        gss.add_to_popped_elements(sppf_node_id);
         let edges = gss.edges().clone();
         for edge in edges.iter() {
             if let Some(new_node_id) = self.merge(
                 edge.result.as_ref().map(|r| r.node_id),
-                node_id,
+                sppf_node_id,
                 edge.return_slot,
                 edge.result.as_ref().map(|r| r.left_extent),
                 right_extent,
@@ -269,19 +255,6 @@ pub trait Parser<'i> {
         }
     }
 
-    fn descriptor_to_string(&self, descriptor: &Descriptor) -> String {
-        format!(
-            "({}, {}, {})",
-            self.slot_name(descriptor.slot_id),
-            self.gss_to_string(descriptor.gss_node_id),
-            if let Some(result) = descriptor.sppf_node_id {
-                self.sppf_node_to_string(self.sppf_node(result))
-            } else {
-                "$".to_string()
-            }
-        )
-    }
-
     /// Looks up the nonterminal node identified by `nonterminal_id` and the span
     /// (`left_extent`, `right_extent`). If no such node exists, it is created and
     /// added to the index; see `add_nonterminal_node`.
@@ -299,10 +272,7 @@ pub trait Parser<'i> {
         if let Some(existing_node_id) =
             self.lookup_nonterminal_node(nonterminal_id, left_extent, right_extent)
         {
-            trace!(
-                "Nonterminal node found {}",
-                self.sppf_node_to_string(self.sppf_node(existing_node_id))
-            );
+            record!(self, NonterminalNodeFound, existing_node_id);
             let node = self.sppf_node_mut(existing_node_id);
             let SPPFNode::Nonterminal(node) = node else {
                 unreachable!("It's a nonterminal node");
@@ -345,10 +315,7 @@ pub trait Parser<'i> {
         if let Some(existing_node_id) =
             self.lookup_intermediate_node(slot_id, left_extent, right_extent)
         {
-            trace!(
-                "Intermediate node found {}",
-                self.sppf_node_to_string(self.sppf_node(existing_node_id))
-            );
+            record!(self, IntermediateNodeFound, existing_node_id);
             let SPPFNode::Intermediate(node) = self.sppf_node_mut(existing_node_id) else {
                 unreachable!("It's a nonterminal node");
             };
@@ -383,10 +350,7 @@ pub trait Parser<'i> {
         if let Some(existing_node_id) =
             self.lookup_terminal_node(terminal_id, left_extent, right_extent)
         {
-            trace!(
-                "Terminal node found {}",
-                self.sppf_node_to_string(self.sppf_node(existing_node_id))
-            );
+            record!(self, TerminalNodeFound, existing_node_id);
             return existing_node_id;
         }
         let terminal_node = TerminalNode {
@@ -409,25 +373,25 @@ pub trait Parser<'i> {
 
     fn run(&mut self, start_nonterminal_id: NonterminalId) -> Option<SPPFNodeId> {
         let start = Instant::now();
-        let start_gss_node_id = self.new_gss_node(start_nonterminal_id, 0);
-        self.add_first_descriptors(start_nonterminal_id, 0, start_gss_node_id);
-        self.add_gss_node(start_nonterminal_id, 0, start_gss_node_id);
+        let start_input_index = 0;
+        let start_gss_node_id = self.new_gss_node(start_nonterminal_id, start_input_index);
+        self.add_first_descriptors(start_nonterminal_id, start_input_index, start_gss_node_id);
+        self.add_gss_node(start_nonterminal_id, start_input_index, start_gss_node_id);
         while let Some(descriptor) = self.next_descriptor() {
             self.execute(
+                start_input_index,
                 descriptor.slot_id,
                 descriptor.sppf_node_id,
                 descriptor.gss_node_id,
             );
         }
-        debug!("Processing descriptors finished.");
         let duration = start.elapsed();
         let right_extent = self.input().len();
         if let Some(node_id) = self.lookup_nonterminal_node(start_nonterminal_id, 0, right_extent) {
-            info!("Parse successful. ({} ms)", duration.as_millis());
-            debug!("{:?}", self.stats());
+            record!(self, ParseSuccess, duration);
             Some(node_id)
         } else {
-            info!("Parse failed.");
+            record!(self, ParseFailed, duration);
             None
         }
     }
@@ -438,6 +402,9 @@ pub trait Parser<'i> {
     ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>;
 
     fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>;
+
+    #[cfg(feature = "debug-trace")]
+    fn add_trace_event(&mut self, event: TraceEvent);
 }
 
 pub fn init_logger() {

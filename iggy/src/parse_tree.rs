@@ -1,6 +1,5 @@
 use crate::parser::IggyParser;
 use core::fmt;
-use iguana::trace::TraceEvent;
 use iguana::{
     parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
     parser::{NonterminalId, Parser, SlotId, TerminalId},

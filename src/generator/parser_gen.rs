@@ -50,10 +50,11 @@ pub fn generate(
     let lookup_intermediate_node_method = gen_lookup_intermediate_node_method();
     let lookup_terminal_node_method = gen_lookup_terminal_node_method();
     let gss_nodes_method = gen_gss_nodes_method();
-    let add_nonterminal_node_child = gen_add_nonterminal_node_child();
-    let add_intermediate_node_child = gen_add_intermediate_node_child();
-    let intermediate_nodes_children = gen_intermediate_nodes_children_map();
-    let nonterminal_nodes_children = gen_nonterminal_nodes_children_map();
+    let add_nonterminal_node_child_method = gen_add_nonterminal_node_child_method();
+    let add_intermediate_node_child_method = gen_add_intermediate_node_child_method();
+    let intermediate_nodes_children_method = gen_intermediate_nodes_children_map_method();
+    let nonterminal_nodes_children_method = gen_nonterminal_nodes_children_map_method();
+    let add_trace_event_method = gen_add_trace_event_method();
     let parser_struct = gen_parser_struct(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let parser_impl = gen_parser_impl(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
@@ -87,10 +88,11 @@ pub fn generate(
             #lookup_intermediate_node_method
             #lookup_terminal_node_method
             #gss_nodes_method
-            #add_intermediate_node_child
-            #add_nonterminal_node_child
-            #intermediate_nodes_children
-            #nonterminal_nodes_children
+            #add_intermediate_node_child_method
+            #add_nonterminal_node_child_method
+            #intermediate_nodes_children_method
+            #nonterminal_nodes_children_method
+            #add_trace_event_method
         }
         #parser_struct
         #parser_impl
@@ -101,7 +103,6 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
     let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&grammar.name));
     quote! {
         use std::cell::OnceCell;
-        use iguana::trace::TraceEvent;
         use iguana::{
             descriptor::Descriptor,
             parser::{NonterminalId, SlotId, TerminalId},
@@ -111,11 +112,11 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
             record,
             scanner::Scanner,
             sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
-            trace::TraceEventKind::*,
             utils::inline_map::InlineMap,
         };
+        #[cfg(feature = "debug-trace")]
+        use iguana::trace::TraceEvent;
         use crate::scanner::#scanner_name;
-        use log::trace;
         use rustc_hash::FxHashMap;
     }
 }
@@ -157,9 +158,9 @@ fn gen_add_first_descriptors_method(
     }
     quote! {
         fn add_first_descriptors(
-            &mut self, 
-            nonterminal_id: NonterminalId, 
-            input_index: u32, 
+            &mut self,
+            nonterminal_id: NonterminalId,
+            input_index: u32,
             gss_node_id: usize
         ) {
             match nonterminal_id {
@@ -263,17 +264,14 @@ fn gen_execute_method(
     }
 
     quote! {
-        fn execute(&mut self, slot_id: SlotId, result: Option<SPPFNodeId>, gss_node_id: usize) {
-            trace!(
-                "Processing ({}, {}, {})",
-                self.slot_name(slot_id),
-                self.gss_to_string(gss_node_id),
-                if let Some(result) = result {
-                    self.sppf_node_to_string(self.sppf_node(result))
-                } else {
-                    "$".to_string()
-                }
-            );
+        fn execute(
+            &mut self,
+            input_index: u32,
+            slot_id: SlotId,
+            result: Option<SPPFNodeId>,
+            gss_node_id: usize
+        ) {
+            record!(self, ProcessingDescriptor, input_index, slot_id, result, gss_node_id);
             match slot_id {
                 #(#slot_quotes)*
                 _ => {
@@ -352,7 +350,7 @@ fn gen_terminal_slot(
     let new_node = if position == 0 {
         quote! {
             let new_node = right_child_id;
-            self.execute(next_slot_id, Some(new_node), gss_node_id);
+            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
         }
     } else {
         quote! {
@@ -363,7 +361,7 @@ fn gen_terminal_slot(
                 left_child_id,
                 right_child_id,
             ) {
-                self.execute(next_slot_id, Some(new_node), gss_node_id);
+                self.execute(j, next_slot_id, Some(new_node), gss_node_id);
             }
         }
     };
@@ -372,24 +370,16 @@ fn gen_terminal_slot(
         #[comment = #slot_name]
         #slot_id => {
             #gen_get_input_index
-            record!(self, MatchingLeadingLayout, (i, slot_id, result, gss_node_id));
+            record!(self, MatchingLeadingLayout, i);
             let (i, leading_layout) = self.scanner.match_leading_layout(i);
-            if leading_layout.is_empty() {
-                trace!("No leading layout found");
-            } else {
-                trace!("Matched leading layout. New input_index is {i}");
-            }
-            record!(self, MatchingTerminal("grammar"), (i, slot_id, result, gss_node_id));
+            record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+            record!(self, MatchingTerminal, #terminal_name, i);
             match self.scanner.match_token(#terminal_id, i) {
                 Some(j) => {
-                    record!(self, MatchSuccess("grammar", j), (i, slot_id, result, gss_node_id));
-                    record!(self, MatchingTrailingLayout, (i, slot_id, result, gss_node_id));
+                    record!(self, MatchSuccess, #terminal_name, i, j);
+                    record!(self, MatchingTrailingLayout, i);
                     let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                    if leading_layout.is_empty() {
-                        trace!("No trailing layout found");
-                    } else {
-                        trace!("Matched trailing layout. New input_index is {i}");
-                    }
+                    record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                     let right_child_id = self.get_or_create_terminal_node(
                         #terminal_id,
                         i,
@@ -401,7 +391,7 @@ fn gen_terminal_slot(
                     let next_slot_id = #next_slot_id;
                     #new_node
                 }
-                None => trace!("{}", self.scanner.input.format_error(#terminal_name, i)),
+                None => record!(self, MatchFailed, #terminal_name, i),
             }
         }
     }
@@ -474,7 +464,7 @@ fn gen_new_gss_node_method() -> TokenStream {
         fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> usize {
             let id = self.gss_nodes.len();
             let gss_node = GSSNode::new(id, nonterminal_id, input_index);
-            trace!("GSS node ({},{input_index}) created", self.nonterminal_name(nonterminal_id));
+            record!(self, GSSNodeCreated, nonterminal_id, input_index);
             self.gss_nodes.push(gss_node);
             self.stats.gss_nodes_count += 1;
             self.gss_nodes[id].id
@@ -517,7 +507,14 @@ fn gen_sppf_node_mut_method() -> TokenStream {
 fn gen_add_descriptor_method() -> TokenStream {
     quote! {
         fn add_descriptor(&mut self, descriptor: Descriptor) {
-            trace!("Descriptor added: {}", self.descriptor_to_string(&descriptor));
+            record!(
+                self,
+                DescriptorAdded,
+                descriptor.input_index,
+                descriptor.slot_id,
+                descriptor.sppf_node_id,
+                descriptor.gss_node_id
+            );
             self.stats_mut().descriptors_count += 1;
             self.descriptors.push(descriptor);
         }
@@ -538,10 +535,9 @@ fn gen_add_terminal_node_method() -> TokenStream {
             let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
             self.stats.terminal_nodes_count += 1;
             self.terminal_nodes_index[terminal_node.terminal_id.index()]
-                .insert(terminal_node.span.clone(), terminal_node_id);
-            let node = SPPFNode::Terminal(terminal_node);
-            trace!("Terminal node created: {}", self.sppf_node_to_string(&node));
-            self.sppf_nodes.push(node);
+                .insert(terminal_node.span, terminal_node_id);
+            record!(self, TerminalNodeCreated, terminal_node.terminal_id, terminal_node.span);
+            self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
             terminal_node_id
         }
     }
@@ -553,13 +549,9 @@ fn gen_add_nonterminal_node_method() -> TokenStream {
             let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
             self.stats.nonterminal_nodes_count += 1;
             self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
-                .insert(nonterminal_node.span.clone(), nonterminal_node_id);
-            let node = SPPFNode::Nonterminal(nonterminal_node);
-            trace!(
-                "Nonterminal node created: {}",
-                self.sppf_node_to_string(&node),
-            );
-            self.sppf_nodes.push(node);
+                .insert(nonterminal_node.span, nonterminal_node_id);
+            record!(self, NonterminalNodeCreated, nonterminal_node.nonterminal_id, nonterminal_node.span);
+            self.sppf_nodes.push(SPPFNode::Nonterminal(nonterminal_node));
             nonterminal_node_id
         }
     }
@@ -571,13 +563,9 @@ fn gen_add_intermediate_node_method() -> TokenStream {
             let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
             self.stats.intermediate_nodes_count += 1;
             self.intermediate_nodes_index[intermediate_node.slot_id.index()]
-                .insert(intermediate_node.span.clone(), intermediate_node_id);
-            let node = SPPFNode::Intermediate(intermediate_node);
-            trace!(
-                "Intermediate node created: {}",
-                self.sppf_node_to_string(&node)
-            );
-            self.sppf_nodes.push(node);
+                .insert(intermediate_node.span, intermediate_node_id);
+            record!(self, IntermediateNodeCreated, intermediate_node.slot_id, intermediate_node.span);
+            self.sppf_nodes.push(SPPFNode::Intermediate(intermediate_node));
             intermediate_node_id
         }
     }
@@ -657,7 +645,7 @@ fn gen_gss_nodes_method() -> TokenStream {
     }
 }
 
-fn gen_add_intermediate_node_child() -> TokenStream {
+fn gen_add_intermediate_node_child_method() -> TokenStream {
     quote! {
         fn add_intermediate_node_child(
             &mut self,
@@ -671,7 +659,7 @@ fn gen_add_intermediate_node_child() -> TokenStream {
     }
 }
 
-fn gen_intermediate_nodes_children_map() -> TokenStream {
+fn gen_intermediate_nodes_children_map_method() -> TokenStream {
     quote! {
         fn intermediate_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> {
             self.intermediate_nodes_children_map.get_or_init(|| {
@@ -686,7 +674,7 @@ fn gen_intermediate_nodes_children_map() -> TokenStream {
     }
 }
 
-fn gen_add_nonterminal_node_child() -> TokenStream {
+fn gen_add_nonterminal_node_child_method() -> TokenStream {
     quote! {
         fn add_nonterminal_node_child(&mut self, node: SPPFNodeId, child: SPPFNodeId) {
             self.nonterminal_nodes_children.push((node, child));
@@ -694,7 +682,7 @@ fn gen_add_nonterminal_node_child() -> TokenStream {
     }
 }
 
-fn gen_nonterminal_nodes_children_map() -> TokenStream {
+fn gen_nonterminal_nodes_children_map_method() -> TokenStream {
     quote! {
         fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<SPPFNodeId>> {
             self.nonterminal_nodes_children_map.get_or_init(|| {
@@ -705,6 +693,17 @@ fn gen_nonterminal_nodes_children_map() -> TokenStream {
                 }
                 map
             })
+        }
+    }
+}
+
+fn gen_add_trace_event_method() -> TokenStream {
+    quote! {
+        #[cfg(feature = "debug-trace")]
+        fn add_trace_event(&mut self, event: TraceEvent) {
+            if let Some(trace_events) = &mut self.trace_events {
+                trace_events.push(event);
+            }
         }
     }
 }

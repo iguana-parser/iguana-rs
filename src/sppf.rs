@@ -34,7 +34,7 @@ impl SPPFNode {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub struct Span {
     pub left_extent: u32,
     pub right_extent: u32,

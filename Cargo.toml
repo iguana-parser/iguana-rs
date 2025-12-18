@@ -16,7 +16,6 @@ path = "src/lib.rs"
 dot = { git = "https://github.com/przygienda/dot-rust.git", rev = "fed06f613a9d72bfde711a12791f96a777b2371e" }
 clap = { version = "4.5.51", features = ["derive"] }
 env_logger = "0.11.8"
-log = { version = "0.4.28", features = ["release_max_level_info"] }
 prettyplease = "0.2.37"
 proc-macro2 = "1.0.103"
 quote = "1.0.41"
