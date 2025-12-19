@@ -4,7 +4,7 @@ use syn::Ident;
 
 use crate::{
     generator::{id::{NonterminalIds, SlotIds, TerminalIds}, utils::{alternative_label, to_first_lowercase, to_first_uppercase}},
-    grammar::{grammar::{Alternative, Grammar}, symbols::{Nonterminal, Symbol}}, parser::TerminalId,
+    grammar::{grammar::{Alternative, Grammar}, symbols::{Nonterminal, Symbol}}, ids::TerminalId,
 };
 
 pub fn generate(
@@ -76,8 +76,9 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         use core::fmt;
         use std::fmt::Write;
         use iguana::{
+            ids::{NonterminalId, SlotId, TerminalId},
             parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
-            parser::{NonterminalId, Parser, SlotId, TerminalId},
+            parser::Parser,
             sppf::{NonterminalNode, SPPFNodeId},
         };
         use crate::parser::#parser_name;

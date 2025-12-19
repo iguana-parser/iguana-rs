@@ -1,3 +1,9 @@
 {
-    "rust-analyzer.cargo.features": ["debug-trace"]
+    "rust-analyzer.cargo.features": [
+        "debug-trace"
+    ],
+    "rust-analyzer.runnables.extraArgs": [
+        "--features",
+        "debug-trace"
+    ]
 }

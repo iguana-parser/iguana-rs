@@ -4,8 +4,8 @@ use iguana::trace::TraceEvent;
 use iguana::{
     descriptor::Descriptor,
     gss::GSSNode,
+    ids::{NonterminalId, SlotId, TerminalId},
     input::Input,
-    parser::{NonterminalId, SlotId, TerminalId},
     parser::{Parser, Stats, init_logger},
     record,
     scanner::Scanner,
@@ -78,7 +78,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id);
                     }
-                    None => record!(self, MatchFailed, "grammar", i),
+                    None => {
+                        record!(self, MatchFailed, "grammar", i);
+                    }
                 }
             }
             //Grammar : "grammar" . Identifier Grammar_Plus0
@@ -116,7 +118,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self.execute(j, next_slot_id, Some(new_node), gss_node_id);
                         }
                     }
-                    None => record!(self, MatchFailed, "Identifier", i),
+                    None => {
+                        record!(self, MatchFailed, "Identifier", i);
+                    }
                 }
             }
             //Grammar : "grammar" Identifier . Grammar_Plus0
@@ -168,7 +172,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id);
                     }
-                    None => record!(self, MatchFailed, "Identifier", i),
+                    None => {
+                        record!(self, MatchFailed, "Identifier", i);
+                    }
                 }
             }
             //Rule : Identifier . ":" Rule_Plus1
@@ -206,7 +212,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self.execute(j, next_slot_id, Some(new_node), gss_node_id);
                         }
                     }
-                    None => record!(self, MatchFailed, ":", i),
+                    None => {
+                        record!(self, MatchFailed, ":", i);
+                    }
                 }
             }
             //Rule : Identifier ":" . Rule_Plus1
@@ -324,7 +332,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self.execute(j, next_slot_id, Some(new_node), gss_node_id);
                         }
                     }
-                    None => record!(self, MatchFailed, "Identifier", i),
+                    None => {
+                        record!(self, MatchFailed, "Identifier", i);
+                    }
                 }
             }
             //Rule_Plus1 : Rule_Plus1 Identifier.
@@ -372,7 +382,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id);
                     }
-                    None => record!(self, MatchFailed, "Identifier", i),
+                    None => {
+                        record!(self, MatchFailed, "Identifier", i);
+                    }
                 }
             }
             //Rule_Plus1 : Identifier.

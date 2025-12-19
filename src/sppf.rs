@@ -1,4 +1,4 @@
-use crate::parser::{NonterminalId, SlotId, TerminalId};
+use crate::ids::{NonterminalId, SlotId, TerminalId};
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]

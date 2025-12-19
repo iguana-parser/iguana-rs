@@ -1,6 +1,6 @@
 use iguana::{
+    ids::TerminalId,
     input::Input,
-    parser::TerminalId,
     scanner::Scanner,
     sppf::{Span, TerminalNode},
 };

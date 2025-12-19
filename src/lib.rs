@@ -2,6 +2,7 @@ pub mod descriptor;
 pub mod generator;
 pub mod grammar;
 pub mod gss;
+pub mod ids;
 pub mod input;
 pub mod parser;
 pub mod parse_tree;

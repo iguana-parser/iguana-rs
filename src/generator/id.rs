@@ -4,7 +4,7 @@ use indexmap::{IndexMap, IndexSet};
 
 use crate::{
     grammar::symbols::{Nonterminal, Terminal},
-    parser::{NonterminalId, SlotId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
 };
 
 #[derive(Debug)]

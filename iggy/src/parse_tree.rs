@@ -1,8 +1,9 @@
 use crate::parser::IggyParser;
 use core::fmt;
 use iguana::{
+    ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
-    parser::{NonterminalId, Parser, SlotId, TerminalId},
+    parser::Parser,
     sppf::{NonterminalNode, SPPFNodeId},
 };
 use std::fmt::Write;

@@ -7,7 +7,7 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-debug-trace = []
+debug-trace = ["iggy/debug-trace"]
 
 [lib]
 path = "src/lib.rs"

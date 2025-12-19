@@ -1,4 +1,4 @@
-use crate::{parser::TerminalId, sppf::TerminalNode};
+use crate::{ids::TerminalId, sppf::TerminalNode};
 
 pub struct Token {
     pub token_type: TerminalId,

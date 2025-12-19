@@ -105,8 +105,8 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         use std::cell::OnceCell;
         use iguana::{
             descriptor::Descriptor,
-            parser::{NonterminalId, SlotId, TerminalId},
             gss::GSSNode,
+            ids::{NonterminalId, SlotId, TerminalId},
             input::Input,
             parser::{Parser, Stats, init_logger},
             record,
@@ -391,7 +391,9 @@ fn gen_terminal_slot(
                     let next_slot_id = #next_slot_id;
                     #new_node
                 }
-                None => record!(self, MatchFailed, #terminal_name, i),
+                None => {
+                    record!(self, MatchFailed, #terminal_name, i);
+                }
             }
         }
     }

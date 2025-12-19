@@ -1,5 +1,6 @@
 use crate::{
-    parser::{Parser, TerminalId},
+    ids::TerminalId,
+    parser::Parser,
     sppf::{NonterminalNode, SPPFNode},
 };
 

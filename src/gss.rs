@@ -1,5 +1,5 @@
 use crate::{
-    parser::{NonterminalId, SlotId},
+    ids::{NonterminalId, SlotId},
     sppf::SPPFNodeId,
     utils::{inline_set::InlineSet, inline_vec::InlineVec},
 };

@@ -1,4 +1,4 @@
-use crate::{parser::SlotId, sppf::SPPFNodeId};
+use crate::{ids::SlotId, sppf::SPPFNodeId};
 
 pub struct Descriptor {
     pub input_index: u32,

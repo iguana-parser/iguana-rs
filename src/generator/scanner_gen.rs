@@ -24,8 +24,8 @@ pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
 fn gen_imports() -> TokenStream {
     quote! {
         use iguana::{
+            ids::TerminalId,
             input::Input,
-            parser::TerminalId,
             scanner::Scanner,
             sppf::{Span, TerminalNode},
         };
