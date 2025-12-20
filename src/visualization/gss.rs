@@ -1,4 +1,4 @@
-use std::{borrow::Cow, io};
+use std::{borrow::Cow, fs::File, io, io::BufWriter, path::Path};
 
 use dot::Labeller;
 
@@ -64,9 +64,11 @@ impl<'a> dot::GraphWalk<'a, GSSDotNode, GSSDotEdge> for GSS {
     }
 }
 
-pub fn render_gss<'i>(parser: &impl Parser<'i>, w: &mut impl std::io::Write) -> io::Result<()> {
+pub fn render_gss<'i>(parser: &impl Parser<'i>, path: impl AsRef<Path>) -> io::Result<()> {
+    let file = File::create(path)?;
+    let mut writer = BufWriter::new(file);
     let gss: GSS = build_gss_dot_graph(parser);
-    dot::render(&gss, w)
+    dot::render(&gss, &mut writer)
 }
 
 pub fn build_gss_dot_graph<'i>(parser: &impl Parser<'i>) -> GSS {

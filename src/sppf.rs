@@ -1,4 +1,5 @@
 use crate::ids::{NonterminalId, SlotId, TerminalId};
+use serde::Serialize;
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
@@ -34,7 +35,7 @@ impl SPPFNode {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Serialize)]
 pub struct Span {
     pub left_extent: u32,
     pub right_extent: u32,
@@ -98,7 +99,7 @@ pub struct IntermediateNode {
 ///
 /// This is a type-safe wrapper around an index into the parser's SPPF nodes list.
 /// Uses `u32` since real-world grammars rarely exceed 2^32 - 1 nodes.
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize)]
 pub struct SPPFNodeId(pub u32);
 
 impl SPPFNodeId {

@@ -10,9 +10,11 @@ use crate::{
     ids::{NonterminalId, SlotId, TerminalId},
     sppf::Span,
 };
+#[cfg(feature = "debug-trace")]
+use serde::Serialize;
 
 #[cfg(feature = "debug-trace")]
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum TraceEvent {
     ProcessingDescriptor(SlotId, u32, usize, Option<SPPFNodeId>),
     DescriptorAdded(SlotId, u32, usize, Option<SPPFNodeId>),

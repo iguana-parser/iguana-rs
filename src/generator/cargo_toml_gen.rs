@@ -21,10 +21,12 @@ dot = {{ git = "https://github.com/przygienda/dot-rust.git", rev = "fed06f613a9d
 log = "0.4.28"
 rustc-hash = "2.1.1"
 dhat = "0.3"
+clap = {{ version = "4", features = ["derive"] }}
+serde_json = {{ version = "1.0", optional = true }}
 
 [features]
 dhat-heap = []
-debug-trace = ["iguana/debug-trace"]
+debug-trace = ["iguana/debug-trace", "serde_json"]
     "#,
         to_first_lowercase(grammar_name)
     )

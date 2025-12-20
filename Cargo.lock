@@ -267,6 +267,8 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustc-hash 2.1.1",
+ "serde",
+ "serde_json",
  "syn",
  "typed-builder",
 ]
