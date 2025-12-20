@@ -35,6 +35,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             let _profiler = dhat::Profiler::new_heap();
 
             let args: Vec<String> = env::args().collect();
+            if args.len() < 2 {
+                eprintln!("Usage: {} <file>", args[0]);
+                std::process::exit(1);
+            }
             let file_path = Path::new(&args[1]);
             let input = Input::try_from(file_path)?;
             let mut parser = #parser::new(&input);
@@ -48,10 +52,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 write_svg(path);
 
                 let path = Path::new("sppf.dot");
-                write_sppf_dot(&parser, node_id, "sppf.dot")?;
+                write_sppf_dot(&parser, node_id, path)?;
                 write_svg(path);
                 let parse_tree = create_parse_tree(node_id, &parser, &parse_tree_builder);
-                println!("{:?}", parse_tree);
                 println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
             } else {
                 println!("Parse failed");
