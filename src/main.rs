@@ -35,7 +35,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = iggy().into();
+    let grammar = grammar2();
     generate(&grammar, output)?;
     Ok(())
 }

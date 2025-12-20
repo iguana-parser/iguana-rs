@@ -13,6 +13,7 @@ use crate::{
 mod cargo_toml_gen;
 mod id;
 mod lib_gen;
+mod main_gen;
 mod parse_tree_gen;
 mod parser_gen;
 mod scanner_gen;
@@ -77,6 +78,13 @@ pub fn generate(grammar: &Grammar, output_dir: &Path) -> std::io::Result<()> {
     write_file(
         to_string(parse_tree_code),
         &src_dir.join("parse_tree.rs"),
+        FileFormat::Rust,
+    )?;
+
+    let main_code = main_gen::generate(grammar);
+    write_file(
+        to_string(main_code),
+        &src_dir.join("main.rs"),
         FileFormat::Rust,
     )?;
 
