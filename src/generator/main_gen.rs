@@ -40,6 +40,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             let mut parser = #parser::new(&input);
             let parse_tree_builder = #parse_tree_builder;
             if let Some(node_id) = parser.run(NonterminalId(0)) {
+                println!("Parse success.");
                 let path = Path::new("gss.dot");
                 let file = File::create(path)?;
                 let mut gss_dot_file = BufWriter::new(file);
@@ -52,6 +53,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 let parse_tree = create_parse_tree(node_id, &parser, &parse_tree_builder);
                 println!("{:?}", parse_tree);
                 println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
+            } else {
+                println!("Parse failed");
             }
             Ok(())
         }

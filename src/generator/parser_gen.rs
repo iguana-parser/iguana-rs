@@ -332,20 +332,6 @@ fn gen_terminal_slot(
         .unwrap_or_else(|| panic!("cannot not find the lexical definition {}", terminal.name));
     let slot_id = slot_ids.id(slot_name);
     let next_slot_id = slot_ids.id(next_slot_name);
-    // At grammar position 0, i.e., A ::= . alpha, the current SPPF node is None.
-    // Therefore, we should get the input index from the current GSS node.
-    let gen_get_input_index = if position == 0 {
-        quote! {
-            let i = self.gss_node(gss_node_id).index;
-        }
-    } else {
-        quote! {
-            let left_child_id = result.expect("Result should not be None.");
-            let left_child = self.sppf_node(left_child_id);
-            let left_extent = left_child.left_extent();
-            let i = left_child.right_extent();
-        }
-    };
     // At grammar position 0, we do not need to create an intermediate node.
     let new_node = if position == 0 {
         quote! {
@@ -354,6 +340,9 @@ fn gen_terminal_slot(
         }
     } else {
         quote! {
+            let left_child_id = result.expect("Result should not be None.");
+            let left_child = self.sppf_node(left_child_id);
+            let left_extent = left_child.left_extent();
             if let Some(new_node) = self.create_intermediate_node_or_attach_children(
                 next_slot_id,
                 left_extent,
@@ -369,9 +358,8 @@ fn gen_terminal_slot(
     quote! {
         #[comment = #slot_name]
         #slot_id => {
-            #gen_get_input_index
-            record!(self, MatchingLeadingLayout, i);
-            let (i, leading_layout) = self.scanner.match_leading_layout(i);
+            record!(self, MatchingLeadingLayout, input_index);
+            let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
             record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
             record!(self, MatchingTerminal, #terminal_name, i);
             match self.scanner.match_token(#terminal_id, i) {

@@ -379,7 +379,7 @@ pub trait Parser<'i> {
         self.add_gss_node(start_nonterminal_id, start_input_index, start_gss_node_id);
         while let Some(descriptor) = self.next_descriptor() {
             self.execute(
-                start_input_index,
+                descriptor.input_index,
                 descriptor.slot_id,
                 descriptor.sppf_node_id,
                 descriptor.gss_node_id,
