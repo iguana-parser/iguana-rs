@@ -1,5 +1,5 @@
 [workspace]
-members = ["iggy"]
+members = ["iggy", "terrarium/src-tauri"]
 
 [package]
 name = "iguana"
