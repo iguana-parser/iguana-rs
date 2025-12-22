@@ -1822,11 +1822,13 @@ dependencies = [
 name = "iggy"
 version = "0.1.0"
 dependencies = [
+ "clap",
  "dhat",
  "dot",
  "iguana",
  "log",
  "rustc-hash 2.1.1",
+ "serde_json",
 ]
 
 [[package]]
