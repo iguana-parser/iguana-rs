@@ -8,10 +8,9 @@ use iguana::trace::TraceEvent;
 use iguana::{
     ids::NonterminalId,
     input::Input,
-    parser::Parser,
+    parser::{ParseResult, Parser},
     visualization::{dot::write_svg, gss::render_gss, sppf::write_sppf_dot},
 };
-#[cfg(feature = "debug-trace")]
 use std::{
     fs::File,
     io::{self, BufWriter, Write},
@@ -62,24 +61,28 @@ fn main() -> Result<(), io::Error> {
         parser.trace_events = Some(vec![]);
     }
     let parse_tree_builder = IggyParseTreeBuilder;
-    if let Some(node_id) = parser.run(NonterminalId(0)) {
-        println!("Parse success.");
-        if cli.gss {
-            let path = std::path::Path::new("gss.dot");
-            render_gss(&parser, path)?;
-            write_svg(path)?;
-            println!("GSS visualization generated: gss.svg");
+    match parser.run(NonterminalId(0)) {
+        ParseResult::Success(parse_success) => {
+            let node_id = parse_success.sppf_node_id;
+            println!("Parse success.");
+            if cli.gss {
+                let path = std::path::Path::new("gss.dot");
+                render_gss(&parser, path)?;
+                write_svg(path)?;
+                println!("GSS visualization generated: gss.svg");
+            }
+            if cli.sppf {
+                let path = std::path::Path::new("sppf.dot");
+                write_sppf_dot(&parser, node_id, path)?;
+                write_svg(path)?;
+                println!("SPPF visualization generated: sppf.svg");
+            }
+            let parse_tree = create_parse_tree(node_id, &parser, &parse_tree_builder);
+            println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
         }
-        if cli.sppf {
-            let path = std::path::Path::new("sppf.dot");
-            write_sppf_dot(&parser, node_id, path)?;
-            write_svg(path)?;
-            println!("SPPF visualization generated: sppf.svg");
+        ParseResult::Failure() => {
+            println!("Parse failed");
         }
-        let parse_tree = create_parse_tree(node_id, &parser, &parse_tree_builder);
-        println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
-    } else {
-        println!("Parse failed");
     }
     #[cfg(feature = "debug-trace")]
     if let Some(ref trace_events) = parser.trace_events {
@@ -94,25 +97,37 @@ fn write_trace_events<'i>(
     trace_option: &Option<Option<PathBuf>>,
     format: TraceFormat,
 ) -> io::Result<()> {
-    let mut writer: Box<dyn Write> = match trace_option {
+    match trace_option {
         Some(Some(path)) => {
             let file = File::create(path)?;
-            Box::new(BufWriter::new(file))
-        }
-        Some(None) => Box::new(io::stdout()),
-        None => return Ok(()),
-    };
-    match format {
-        TraceFormat::Text => {
-            for event in trace_events {
-                writeln!(writer, "{}", event.message(parser))?;
+            let mut writer = BufWriter::new(file);
+            match format {
+                TraceFormat::Text => {
+                    for event in trace_events {
+                        writeln!(writer, "{}", event.message(parser))?;
+                    }
+                }
+                TraceFormat::Json => {
+                    for event in trace_events {
+                        writeln!(writer, "{}", serde_json::to_string(event).unwrap())?;
+                    }
+                }
             }
         }
-        TraceFormat::Json => {
-            for event in trace_events {
-                writeln!(writer, "{}", serde_json::to_string(event).unwrap())?;
+        Some(None) => match format {
+            TraceFormat::Text => {
+                for event in trace_events {
+                    println!("{}", event.message(parser));
+                }
             }
-        }
-    };
+            TraceFormat::Json => {
+                for event in trace_events {
+                    println!("{}", serde_json::to_string(event).unwrap());
+                }
+            }
+        },
+        None => {}
+    }
     Ok(())
 }
+

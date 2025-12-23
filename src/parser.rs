@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use rustc_hash::FxHashMap;
 
@@ -13,6 +13,17 @@ use crate::{
 
 #[cfg(feature = "debug-trace")]
 use crate::trace::TraceEvent;
+
+pub enum ParseResult {
+    Success(ParseSuccess),
+    Failure(),
+}
+
+pub struct ParseSuccess {
+    pub sppf_node_id: SPPFNodeId,
+    pub duration: Duration,
+    pub stats: Stats,
+}
 
 pub trait Parser<'i> {
     fn execute(
@@ -371,7 +382,7 @@ pub trait Parser<'i> {
 
     fn add_terminal_node(&mut self, node: TerminalNode) -> SPPFNodeId;
 
-    fn run(&mut self, start_nonterminal_id: NonterminalId) -> Option<SPPFNodeId> {
+    fn run(&mut self, start_nonterminal_id: NonterminalId) -> ParseResult {
         let start = Instant::now();
         let start_input_index = 0;
         let start_gss_node_id = self.new_gss_node(start_nonterminal_id, start_input_index);
@@ -387,12 +398,16 @@ pub trait Parser<'i> {
         }
         let duration = start.elapsed();
         let right_extent = self.input().len();
-        if let Some(node_id) = self.lookup_nonterminal_node(start_nonterminal_id, 0, right_extent) {
-            record!(self, ParseSuccess, duration);
-            Some(node_id)
+        if let Some(sppf_node_id) =
+            self.lookup_nonterminal_node(start_nonterminal_id, 0, right_extent)
+        {
+            ParseResult::Success(ParseSuccess {
+                sppf_node_id,
+                duration,
+                stats: self.stats().clone(),
+            })
         } else {
-            record!(self, ParseFailed, duration);
-            None
+            ParseResult::Failure()
         }
     }
     fn gss_nodes(&self) -> impl Iterator<Item = &GSSNode>;
@@ -416,7 +431,7 @@ pub fn init_logger() {
         .init();
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Stats {
     pub descriptors_count: usize,
     pub gss_nodes_count: usize,
