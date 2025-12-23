@@ -1,5 +1,75 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
+  import { listen } from "@tauri-apps/api/event";
+  import { open } from "@tauri-apps/plugin-dialog";
+  import { onMount } from "svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2 } from "lucide-svelte";
+
+  // Event listeners for build progress
+  onMount(() => {
+    const unlistenProgress = listen<{ stage: string; message: string }>("build-progress", (event) => {
+      setStatus(event.payload.message, "info");
+    });
+
+    const unlistenResult = listen<{ success: boolean; message: string }>("build-result", async (event) => {
+      isBuilding = false;
+      if (event.payload.success) {
+        buildStatus = "success";
+        // Refresh parser name after successful build
+        try {
+          parserName = await invoke<string>("get_parser_name", { directory: parserDirectory });
+        } catch {
+          // Ignore - parser name is optional
+        }
+        setStatus("Build successful", "success");
+      } else {
+        buildStatus = "error";
+        buildError = event.payload.message;
+        setStatus("Build failed", "error");
+      }
+    });
+
+    return () => {
+      unlistenProgress.then(fn => fn());
+      unlistenResult.then(fn => fn());
+    };
+  });
+
+  // Parser directory state
+  let parserDirectory = $state<string | null>(null);
+  let parserName = $state<string | null>(null);
+  let isBuilding = $state(false);
+  let buildStatus = $state<"none" | "success" | "error">("none");
+  let buildError = $state<string | null>(null);
+
+  // Modal state
+  let showErrorModal = $state(false);
+  let errorModalMessage = $state("");
+
+  // Status bar state
+  let statusMessage = $state<string | null>(null);
+  let statusType = $state<"info" | "error" | "success">("info");
+  let showStatusDetails = $state(false);
+  let statusTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  function setStatus(message: string, type: "info" | "error" | "success") {
+    // Clear any existing timeout
+    if (statusTimeout) {
+      clearTimeout(statusTimeout);
+      statusTimeout = null;
+    }
+
+    statusMessage = message;
+    statusType = type;
+
+    // Auto-dismiss success messages after 3 seconds
+    if (type === "success") {
+      statusTimeout = setTimeout(() => {
+        statusMessage = null;
+        statusTimeout = null;
+      }, 3000);
+    }
+  }
 
   // State
   let inputText = $state("1 + 2 * 3");
@@ -30,9 +100,56 @@
   let isDraggingInput = $state(false);
   let isDraggingCurrent = $state(false);
 
+  async function selectDirectory() {
+    const selected = await open({
+      directory: true,
+      multiple: false,
+      title: "Select Parser Directory",
+    });
+    if (selected) {
+      parserDirectory = selected as string;
+      buildStatus = "none";
+      buildError = null;
+      statusMessage = null;
+      // Try to get parser name (might not exist yet if empty directory)
+      try {
+        parserName = await invoke<string>("get_parser_name", { directory: parserDirectory });
+        setStatus(`Loaded parser: ${parserName}`, "success");
+      } catch {
+        // No existing parser - that's fine, user can generate one
+        parserName = null;
+        setStatus("Ready to generate parser", "success");
+      }
+    }
+  }
+
+  function closeErrorModal() {
+    showErrorModal = false;
+    errorModalMessage = "";
+  }
+
+  async function buildParser() {
+    if (!parserDirectory) return;
+    isBuilding = true;
+    buildError = null;
+    setStatus("Starting build...", "info");
+    // Command returns immediately, results come via events
+    await invoke("build_parser", { directory: parserDirectory });
+  }
+
+  function clearStatus() {
+    if (statusTimeout) {
+      clearTimeout(statusTimeout);
+      statusTimeout = null;
+    }
+    statusMessage = null;
+    showStatusDetails = false;
+  }
+
   async function parse() {
-    // TODO: invoke Tauri command
+    if (!parserDirectory || buildStatus !== "success") return;
     console.log("Parsing:", inputText, "from", startNonterminal, "trace:", traceEnabled);
+    // TODO: invoke parse Tauri command
   }
 
   function stepBack() {
@@ -105,24 +222,65 @@
 <svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} />
 
 <div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent}>
-  <!-- Left Panel -->
-  <div class="left-panel" style="width: {leftPanelWidth}px">
-    <!-- Header -->
-    <div class="header">
-      <label>
-        Start:
-        <select bind:value={startNonterminal}>
-          {#each nonterminals as nt}
-            <option value={nt}>{nt}</option>
-          {/each}
-        </select>
-      </label>
-      <label class="trace-checkbox">
-        <input type="checkbox" bind:checked={traceEnabled} />
-        Trace
-      </label>
-      <button class="parse-btn" onclick={parse}>Parse</button>
-    </div>
+  <!-- Parser Directory Bar -->
+  <div class="parser-bar">
+    <span class="parser-label">Parser:</span>
+    <span class="parser-path" class:placeholder={!parserDirectory}>
+      {#if parserName}
+        {parserName}
+        <span class="parser-dir">({parserDirectory})</span>
+      {:else if parserDirectory}
+        {parserDirectory}
+      {:else}
+        No parser selected
+      {/if}
+    </span>
+    <button class="icon-btn" onclick={selectDirectory} title="Select parser directory">
+      <FolderOpen size={18} color="#e0e0e0" />
+    </button>
+    <button
+      class="build-btn"
+      onclick={buildParser}
+      disabled={!parserDirectory || isBuilding}
+      class:success={buildStatus === "success"}
+      class:error={buildStatus === "error"}
+    >
+      {#if isBuilding}
+        <Loader2 size={14} class="spinning" />
+        Building...
+      {:else}
+        <Hammer size={14} />
+        {#if buildStatus === "success"}
+          Built
+        {:else if buildStatus === "error"}
+          Rebuild
+        {:else}
+          Build
+        {/if}
+      {/if}
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Left Panel -->
+    <div class="left-panel" style="width: {leftPanelWidth}px">
+      <!-- Header -->
+      <div class="header">
+        <label>
+          Start:
+          <select bind:value={startNonterminal} disabled={!parserDirectory}>
+            {#each nonterminals as nt}
+              <option value={nt}>{nt}</option>
+            {/each}
+          </select>
+        </label>
+        <label class="trace-checkbox">
+          <input type="checkbox" bind:checked={traceEnabled} disabled={!parserDirectory} />
+          Trace
+        </label>
+        <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success"}>Parse</button>
+      </div>
 
     <!-- Input Area -->
     <div class="input-section" style="flex: 0 0 {inputHeight}px">
@@ -231,6 +389,62 @@
       </div>
     </div>
   </div>
+  </div>
+
+  <!-- Status Bar (always visible) -->
+  <div class="status-bar" class:error={statusMessage && statusType === "error"} class:success={statusMessage && statusType === "success"}>
+    <div class="status-content">
+      {#if statusMessage}
+        {#if statusType === "error"}
+          <AlertTriangle size={14} />
+        {:else if statusType === "success"}
+          <CheckCircle size={14} />
+        {:else}
+          <Loader2 size={14} class="spinning" />
+        {/if}
+        <span class="status-text">{statusMessage}</span>
+        {#if buildError && statusType === "error"}
+          <button class="status-details-btn" onclick={() => showStatusDetails = !showStatusDetails}>
+            {showStatusDetails ? "Hide" : "Details"}
+          </button>
+        {/if}
+        {#if statusType === "error"}
+          <button class="status-close" onclick={clearStatus}>
+            <X size={14} />
+          </button>
+        {/if}
+      {:else}
+        <span class="status-text placeholder">Ready</span>
+      {/if}
+    </div>
+    {#if showStatusDetails && buildError}
+      <div class="status-details">
+        <pre>{buildError}</pre>
+      </div>
+    {/if}
+  </div>
+
+  <!-- Error Modal -->
+  {#if showErrorModal}
+    <div class="modal-overlay" onclick={closeErrorModal}>
+      <div class="modal" onclick={(e) => e.stopPropagation()}>
+        <div class="modal-header">
+          <AlertTriangle size={20} color="#f48771" />
+          <span>Invalid Parser Directory</span>
+          <button class="modal-close" onclick={closeErrorModal}>
+            <X size={18} />
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>{errorModalMessage}</p>
+          <p class="modal-hint">Please select a directory containing a generated Iguana parser.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn" onclick={closeErrorModal}>OK</button>
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -246,12 +460,101 @@
 
   .app {
     display: flex;
+    flex-direction: column;
     height: 100vh;
     width: 100vw;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 14px;
     background: #1e1e1e;
     color: #d4d4d4;
+  }
+
+  /* Parser Directory Bar */
+  .parser-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border-bottom: 1px solid #3c3c3c;
+    flex-shrink: 0;
+  }
+
+  .parser-label {
+    font-weight: 600;
+    color: #888;
+  }
+
+  .parser-path {
+    flex: 1;
+    font-family: "Fira Code", "Consolas", monospace;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .parser-path.placeholder {
+    color: #666;
+    font-style: italic;
+  }
+
+  .parser-dir {
+    color: #666;
+    font-size: 11px;
+    margin-left: 8px;
+  }
+
+  .icon-btn {
+    padding: 4px 8px;
+    background: #3c3c3c;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .icon-btn:hover {
+    background: #4c4c4c;
+  }
+
+  .build-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #3c3c3c;
+    color: #d4d4d4;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 80px;
+  }
+
+  .build-btn:hover:not(:disabled) {
+    background: #4c4c4c;
+  }
+
+  .build-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .build-btn.success {
+    background: #2d5a2d;
+    border-color: #3d7a3d;
+  }
+
+  .build-btn.error {
+    background: #5a2d2d;
+    border-color: #7a3d3d;
+  }
+
+  /* Main Content */
+  .main-content {
+    display: flex;
+    flex: 1;
+    min-height: 0;
   }
 
   /* Dragging state */
@@ -547,5 +850,181 @@
 
   code {
     background: transparent;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    display: flex;
+    flex-direction: column;
+    background: #2d2d2d;
+    border-top: 1px solid #3c3c3c;
+    flex-shrink: 0;
+  }
+
+  .status-bar > .status-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+  }
+
+  .status-bar.error {
+    background: #3d2020;
+    border-top-color: #5a3030;
+  }
+
+  .status-bar.success {
+    background: #203d20;
+    border-top-color: #305a30;
+  }
+
+  .status-text {
+    flex: 1;
+    font-size: 13px;
+  }
+
+  .status-text.placeholder {
+    color: #666;
+  }
+
+  .status-details-btn {
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #d4d4d4;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .status-details-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .status-close {
+    padding: 4px;
+    background: transparent;
+    color: #888;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+
+  .status-close:hover {
+    color: #d4d4d4;
+  }
+
+  .status-details {
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    max-height: 200px;
+    overflow: auto;
+  }
+
+  .status-details pre {
+    margin: 0;
+    font-family: "Fira Code", "Consolas", monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal {
+    background: #2d2d2d;
+    border: 1px solid #3c3c3c;
+    border-radius: 8px;
+    min-width: 400px;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    border-bottom: 1px solid #3c3c3c;
+    font-weight: 600;
+  }
+
+  .modal-header span {
+    flex: 1;
+  }
+
+  .modal-close {
+    padding: 4px;
+    background: transparent;
+    color: #888;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+
+  .modal-close:hover {
+    color: #d4d4d4;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-body p {
+    margin: 0 0 12px 0;
+  }
+
+  .modal-hint {
+    color: #888;
+    font-size: 13px;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 16px;
+    border-top: 1px solid #3c3c3c;
+  }
+
+  .modal-btn {
+    padding: 8px 20px;
+    background: #0e639c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .modal-btn:hover {
+    background: #1177bb;
+  }
+
+  /* Spinning animation for loader */
+  :global(.spinning) {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 </style>
