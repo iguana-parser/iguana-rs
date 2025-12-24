@@ -5,7 +5,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     descriptor::Descriptor,
     gss::{EdgeResult, GSSEdge, GSSNode},
-    ids::{NonterminalId, SlotId, TerminalId},
+    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     record,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
@@ -31,24 +31,29 @@ pub trait Parser<'i> {
         input_index: u32,
         slot_id: SlotId,
         sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: usize,
+        gss_node_id: GssNodeId,
     );
     fn add_first_descriptors(
         &mut self,
         nonterminal_id: NonterminalId,
         input_index: u32,
-        gss_node_id: usize,
+        gss_node_id: GssNodeId,
     );
     fn nonterminal_name(&self, nonterminal_id: NonterminalId) -> &str;
     fn terminal_name(&self, terminal_id: TerminalId) -> &str;
     fn slot_name(&self, slot_id: SlotId) -> &str;
-    fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<usize>;
-    fn add_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32, gss_node_id: usize);
-    fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> usize;
-    fn gss_node(&self, id: usize) -> &GSSNode;
+    fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId>;
+    fn add_gss_node(
+        &mut self,
+        nonterminal_id: NonterminalId,
+        input_index: u32,
+        gss_node_id: GssNodeId,
+    );
+    fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId;
+    fn gss_node(&self, id: GssNodeId) -> &GSSNode;
     fn sppf_node(&self, id: SPPFNodeId) -> &SPPFNode;
     fn sppf_node_mut(&mut self, id: SPPFNodeId) -> &mut SPPFNode;
-    fn gss_node_mut(&mut self, id: usize) -> &mut GSSNode;
+    fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode;
     fn add_descriptor(&mut self, descriptor: Descriptor);
     fn next_descriptor(&mut self) -> Option<Descriptor>;
     fn input(&self) -> &'i Input;
@@ -106,7 +111,7 @@ pub trait Parser<'i> {
         &mut self,
         nonterminal_id: NonterminalId,
         sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: usize,
+        gss_node_id: GssNodeId,
         return_slot: SlotId,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
@@ -119,7 +124,7 @@ pub trait Parser<'i> {
         let i = match sppf_node {
             Some(node) => node.right_extent(),
             None => gss_node.index,
-        };
+        } as u32;
         // If there is already a GSS node for this call, just add the edge
         if let Some(exiting_gss_node_id) = self.get_gss_node(nonterminal_id, i) {
             record!(self, GSSNodeFound, nonterminal_id, i);
@@ -159,8 +164,8 @@ pub trait Parser<'i> {
 
     fn add_gss_edge(
         &mut self,
-        origin_gss_node_id: usize,
-        dest_gss_node_id: usize,
+        origin_gss_node_id: GssNodeId,
+        dest_gss_node_id: GssNodeId,
         result: Option<EdgeResult>,
         return_slot: SlotId,
     ) {
@@ -177,7 +182,7 @@ pub trait Parser<'i> {
         self.stats_mut().gss_edges_count += 1;
     }
 
-    fn pop(&mut self, gss_node_id: usize, sppf_node_id: SPPFNodeId) {
+    fn pop(&mut self, gss_node_id: GssNodeId, sppf_node_id: SPPFNodeId) {
         record!(self, Pop, gss_node_id, sppf_node_id);
         let gss = self.gss_node(gss_node_id);
         if gss.contains_popped_element(&sppf_node_id) {
@@ -230,7 +235,7 @@ pub trait Parser<'i> {
         }
     }
 
-    fn gss_to_string(&self, gss_node_id: usize) -> String {
+    fn gss_to_string(&self, gss_node_id: GssNodeId) -> String {
         let gss_node = self.gss_node(gss_node_id);
         format!(
             "({},{})",

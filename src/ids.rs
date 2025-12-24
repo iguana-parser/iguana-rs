@@ -79,3 +79,23 @@ impl quote::ToTokens for TerminalId {
         tokens.extend(quote::quote! { TerminalId(#id) });
     }
 }
+
+/// A unique identifier for a GSS node.
+///
+/// This is a type-safe wrapper around an index into the parser's GSS node list.
+/// Uses `u32` since GSS nodes are of the form (nonterminal_id, input_index), which
+/// is bounded by the input length (u32).
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize)]
+pub struct GssNodeId(pub u32);
+
+impl GssNodeId {
+    pub fn index(&self) -> usize {
+        self.0 as usize
+    }
+}
+
+impl std::fmt::Display for GssNodeId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}

@@ -2,6 +2,8 @@
 use std::time::Duration;
 
 #[cfg(feature = "debug-trace")]
+use crate::ids::GssNodeId;
+#[cfg(feature = "debug-trace")]
 use crate::parser::Parser;
 #[cfg(feature = "debug-trace")]
 use crate::sppf::SPPFNodeId;
@@ -16,8 +18,8 @@ use serde::Serialize;
 #[cfg(feature = "debug-trace")]
 #[derive(Debug, Serialize)]
 pub enum TraceEvent {
-    ProcessingDescriptor(SlotId, u32, usize, Option<SPPFNodeId>),
-    DescriptorAdded(SlotId, u32, usize, Option<SPPFNodeId>),
+    ProcessingDescriptor(SlotId, u32, GssNodeId, Option<SPPFNodeId>),
+    DescriptorAdded(SlotId, u32, GssNodeId, Option<SPPFNodeId>),
     MatchingLeadingLayout(u32),
     MatchingTrailingLayout(u32),
     MatchingTerminal(&'static str, u32),  // terminal_name
@@ -27,17 +29,17 @@ pub enum TraceEvent {
     GSSNodeCreated(NonterminalId, u32),
     GSSNodeFound(NonterminalId, u32),
     GSSNodeNotFound(NonterminalId, u32),
-    GSSNodeAdded(usize, usize, SlotId),
+    GSSNodeAdded(GssNodeId, GssNodeId, SlotId), // (src, dest)
     TerminalNodeCreated(TerminalId, Span),
     NonterminalNodeCreated(NonterminalId, Span),
     IntermediateNodeCreated(SlotId, Span),
     TerminalNodeFound(SPPFNodeId),
     NonterminalNodeFound(SPPFNodeId),
     IntermediateNodeFound(SPPFNodeId),
-    Pop(usize, SPPFNodeId),
-    AddToPoppedElements(usize, SPPFNodeId),
+    Pop(GssNodeId, SPPFNodeId),
+    AddToPoppedElements(GssNodeId, SPPFNodeId),
     NodeAlreadyInPoppedElements,
-    Call(Option<SPPFNodeId>, usize, SlotId),
+    Call(Option<SPPFNodeId>, GssNodeId, SlotId),
     ParseSuccess(Duration),
     ParseFailed(Duration),
 }
@@ -199,13 +201,20 @@ macro_rules! record {
         ));
     };
     ($parser:expr, MatchingLeadingLayout, $input_index:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::MatchingLeadingLayout($input_index));
+        $parser.add_trace_event($crate::trace::TraceEvent::MatchingLeadingLayout(
+            $input_index,
+        ));
     };
     ($parser:expr, MatchingTrailingLayout, $input_index:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::MatchingTrailingLayout($input_index));
+        $parser.add_trace_event($crate::trace::TraceEvent::MatchingTrailingLayout(
+            $input_index,
+        ));
     };
     ($parser:expr, MatchingTerminal, $terminal_name:expr, $input_index:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::MatchingTerminal($terminal_name, $input_index));
+        $parser.add_trace_event($crate::trace::TraceEvent::MatchingTerminal(
+            $terminal_name,
+            $input_index,
+        ));
     };
     ($parser:expr, MatchSuccess, $terminal_name:expr, $input_index:expr, $next_index:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::MatchSuccess(
@@ -215,19 +224,31 @@ macro_rules! record {
         ));
     };
     ($parser:expr, MatchFailed, $terminal_name:expr, $input_index:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::MatchFailed($terminal_name, $input_index));
+        $parser.add_trace_event($crate::trace::TraceEvent::MatchFailed(
+            $terminal_name,
+            $input_index,
+        ));
     };
     ($parser:expr, MatchedLayout, $match_index:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::MatchedLayout($match_index));
     };
     ($parser:expr, GSSNodeCreated, $nonterminal_id:expr, $input_index:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::GSSNodeCreated($nonterminal_id, $input_index));
+        $parser.add_trace_event($crate::trace::TraceEvent::GSSNodeCreated(
+            $nonterminal_id,
+            $input_index,
+        ));
     };
     ($parser:expr, GSSNodeFound, $nonterminal_id:expr, $input_index:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::GSSNodeFound($nonterminal_id, $input_index));
+        $parser.add_trace_event($crate::trace::TraceEvent::GSSNodeFound(
+            $nonterminal_id,
+            $input_index,
+        ));
     };
     ($parser:expr, GSSNodeNotFound, $nonterminal_id:expr, $input_index:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::GSSNodeNotFound($nonterminal_id, $input_index));
+        $parser.add_trace_event($crate::trace::TraceEvent::GSSNodeNotFound(
+            $nonterminal_id,
+            $input_index,
+        ));
     };
     ($parser:expr, GSSNodeAdded, $origin_gss_node_id:expr, $dest_gss_node_id:expr, $return_slot:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::GSSNodeAdded(
@@ -237,34 +258,53 @@ macro_rules! record {
         ));
     };
     ($parser:expr, TerminalNodeCreated, $terminal_id:expr, $span:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::TerminalNodeCreated($terminal_id, $span));
+        $parser.add_trace_event($crate::trace::TraceEvent::TerminalNodeCreated(
+            $terminal_id,
+            $span,
+        ));
     };
     ($parser:expr, NonterminalNodeCreated, $nonterminal_id:expr, $span:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::NonterminalNodeCreated($nonterminal_id, $span));
+        $parser.add_trace_event($crate::trace::TraceEvent::NonterminalNodeCreated(
+            $nonterminal_id,
+            $span,
+        ));
     };
     ($parser:expr, IntermediateNodeCreated, $slot_id:expr, $span:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::IntermediateNodeCreated($slot_id, $span));
+        $parser.add_trace_event($crate::trace::TraceEvent::IntermediateNodeCreated(
+            $slot_id, $span,
+        ));
     };
     ($parser:expr, TerminalNodeFound, $sppf_node_id:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::TerminalNodeFound($sppf_node_id));
     };
     ($parser:expr, NonterminalNodeFound, $sppf_node_id:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::NonterminalNodeFound($sppf_node_id));
+        $parser.add_trace_event($crate::trace::TraceEvent::NonterminalNodeFound(
+            $sppf_node_id,
+        ));
     };
     ($parser:expr, IntermediateNodeFound, $sppf_node_id:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::IntermediateNodeFound($sppf_node_id));
+        $parser.add_trace_event($crate::trace::TraceEvent::IntermediateNodeFound(
+            $sppf_node_id,
+        ));
     };
     ($parser:expr, Pop, $gss_node_id:expr, $sppf_node_id:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::Pop($gss_node_id, $sppf_node_id));
     };
     ($parser:expr, AddToPoppedElements, $gss_node_id:expr, $sppf_node_id:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::AddToPoppedElements($gss_node_id, $sppf_node_id));
+        $parser.add_trace_event($crate::trace::TraceEvent::AddToPoppedElements(
+            $gss_node_id,
+            $sppf_node_id,
+        ));
     };
     ($parser:expr, NodeAlreadyInPoppedElements) => {
         $parser.add_trace_event($crate::trace::TraceEvent::NodeAlreadyInPoppedElements);
     };
     ($parser:expr, Call, $sppf_node_id:expr, $gss_node_id:expr, $slot_id:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::Call($sppf_node_id, $gss_node_id, $slot_id));
+        $parser.add_trace_event($crate::trace::TraceEvent::Call(
+            $sppf_node_id,
+            $gss_node_id,
+            $slot_id,
+        ));
     };
     ($parser:expr, ParseSuccess, $duration:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::ParseSuccess($duration));

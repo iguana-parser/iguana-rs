@@ -4,7 +4,7 @@ use iguana::trace::TraceEvent;
 use iguana::{
     descriptor::Descriptor,
     gss::GSSNode,
-    ids::{NonterminalId, SlotId, TerminalId},
+    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     parser::{Parser, Stats, init_logger},
     record,
@@ -42,7 +42,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         input_index: u32,
         slot_id: SlotId,
         result: Option<SPPFNodeId>,
-        gss_node_id: usize,
+        gss_node_id: GssNodeId,
     ) {
         record!(
             self,
@@ -410,7 +410,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         &mut self,
         nonterminal_id: NonterminalId,
         input_index: u32,
-        gss_node_id: usize,
+        gss_node_id: GssNodeId,
     ) {
         match nonterminal_id {
             //Grammar
@@ -481,7 +481,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     fn slot_name(&self, slot_id: SlotId) -> &str {
         SLOTS[slot_id.index()]
     }
-    fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<usize> {
+    fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
         let gss_nodes = &self.gss_nodes_index[nonterminal_id.index()];
         gss_nodes
             .iter()
@@ -492,25 +492,25 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         &mut self,
         nonterminal_id: NonterminalId,
         input_index: u32,
-        gss_node_id: usize,
+        gss_node_id: GssNodeId,
     ) {
         let gss_nodes = &mut self.gss_nodes_index[nonterminal_id.index()];
         gss_nodes.push((input_index, gss_node_id));
     }
-    fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> usize {
-        let id = self.gss_nodes.len();
-        let gss_node = GSSNode::new(id, nonterminal_id, input_index);
+    fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
+        let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
+        let gss_node = GSSNode::new(gss_node_id, nonterminal_id, input_index);
         record!(self, GSSNodeCreated, nonterminal_id, input_index);
         self.gss_nodes.push(gss_node);
         self.stats.gss_nodes_count += 1;
-        self.gss_nodes[id].id
+        gss_node_id
     }
-    fn gss_node(&self, id: usize) -> &GSSNode {
-        &self.gss_nodes[id]
+    fn gss_node(&self, id: GssNodeId) -> &GSSNode {
+        &self.gss_nodes[id.index()]
     }
-    fn gss_node_mut(&mut self, id: usize) -> &mut GSSNode {
+    fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode {
         self.gss_nodes
-            .get_mut(id)
+            .get_mut(id.index())
             .expect("GSS node id should be valid")
     }
     fn sppf_node(&self, id: SPPFNodeId) -> &SPPFNode {
@@ -662,7 +662,7 @@ pub struct IggyParser<'i> {
     scanner: IggyScanner<'i>,
     gss_nodes: Vec<GSSNode>,
     //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
-    gss_nodes_index: [Vec<(u32, usize)>; 4],
+    gss_nodes_index: [Vec<(u32, GssNodeId)>; 4],
     sppf_nodes: Vec<SPPFNode>,
     stats: Stats,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],

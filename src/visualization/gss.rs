@@ -2,7 +2,7 @@ use std::{borrow::Cow, fs::File, io, io::BufWriter, path::Path};
 
 use dot::Labeller;
 
-use crate::parser::Parser;
+use crate::{ids::GssNodeId, parser::Parser};
 
 #[derive(Debug)]
 pub struct GSS {
@@ -12,15 +12,15 @@ pub struct GSS {
 
 #[derive(Debug, Clone)]
 pub struct GSSDotNode {
-    pub id: usize,
+    pub id: GssNodeId,
     pub label: String,
 }
 
 #[derive(Debug, Clone)]
 pub struct GSSDotEdge {
     pub id: usize,
-    pub src: usize,
-    pub dest: usize,
+    pub src: GssNodeId,
+    pub dest: GssNodeId,
     pub label: String,
 }
 
@@ -34,7 +34,7 @@ impl<'a> Labeller<'a, GSSDotNode, GSSDotEdge> for GSS {
     }
 
     fn node_label(&'a self, n: &GSSDotNode) -> dot::LabelText<'a> {
-        dot::LabelText::LabelStr(Cow::Borrowed(&self.nodes[n.id].label))
+        dot::LabelText::LabelStr(Cow::Borrowed(&self.nodes[n.id.index()].label))
     }
 
     fn edge_label(&'a self, e: &GSSDotEdge) -> dot::LabelText<'a> {
@@ -56,11 +56,11 @@ impl<'a> dot::GraphWalk<'a, GSSDotNode, GSSDotEdge> for GSS {
     }
 
     fn source(&'a self, edge: &GSSDotEdge) -> GSSDotNode {
-        self.nodes[edge.src].clone()
+        self.nodes[edge.src.index()].clone()
     }
 
     fn target(&'a self, edge: &GSSDotEdge) -> GSSDotNode {
-        self.nodes[edge.dest].clone()
+        self.nodes[edge.dest.index()].clone()
     }
 }
 

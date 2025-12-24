@@ -1,12 +1,12 @@
 use crate::{
-    ids::{NonterminalId, SlotId},
+    ids::{GssNodeId, NonterminalId, SlotId},
     sppf::SPPFNodeId,
     utils::{inline_set::InlineSet, inline_vec::InlineVec},
 };
 
 #[derive(Debug)]
 pub struct GSSNode {
-    pub id: usize,
+    pub id: GssNodeId,
     pub nonterminal_id: NonterminalId,
     pub index: u32,
     edges: InlineVec<GSSEdge>,
@@ -14,7 +14,7 @@ pub struct GSSNode {
 }
 
 impl GSSNode {
-    pub fn new(id: usize, nonterminal_id: NonterminalId, index: u32) -> Self {
+    pub fn new(id: GssNodeId, nonterminal_id: NonterminalId, index: u32) -> Self {
         Self {
             id,
             nonterminal_id,
@@ -59,11 +59,11 @@ pub struct EdgeResult {
 pub struct GSSEdge {
     pub result: Option<EdgeResult>,
     pub return_slot: SlotId,
-    pub dest_id: usize,
+    pub dest_id: GssNodeId,
 }
 
 impl GSSEdge {
-    pub fn new(result: Option<EdgeResult>, return_slot: SlotId, dest_id: usize) -> Self {
+    pub fn new(result: Option<EdgeResult>, return_slot: SlotId, dest_id: GssNodeId) -> Self {
         Self {
             result,
             return_slot,

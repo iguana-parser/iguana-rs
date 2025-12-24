@@ -106,7 +106,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         use iguana::{
             descriptor::Descriptor,
             gss::GSSNode,
-            ids::{NonterminalId, SlotId, TerminalId},
+            ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
             input::Input,
             parser::{Parser, Stats, init_logger},
             record,
@@ -161,7 +161,7 @@ fn gen_add_first_descriptors_method(
             &mut self,
             nonterminal_id: NonterminalId,
             input_index: u32,
-            gss_node_id: usize
+            gss_node_id: GssNodeId
         ) {
             match nonterminal_id {
                 #( #nonterminal_quotes)*
@@ -269,7 +269,7 @@ fn gen_execute_method(
             input_index: u32,
             slot_id: SlotId,
             result: Option<SPPFNodeId>,
-            gss_node_id: usize
+            gss_node_id: GssNodeId
         ) {
             record!(self, ProcessingDescriptor, input_index, slot_id, result, gss_node_id);
             match slot_id {
@@ -433,7 +433,7 @@ fn gen_slot_name_method() -> TokenStream {
 
 fn gen_get_gss_node_method() -> TokenStream {
     quote! {
-        fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<usize> {
+        fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
             let gss_nodes = &self.gss_nodes_index[nonterminal_id.index()];
             gss_nodes.iter().find(|(k, _)| *k == input_index).map(|x| x.1)
         }
@@ -442,7 +442,7 @@ fn gen_get_gss_node_method() -> TokenStream {
 
 fn gen_add_gss_node_method() -> TokenStream {
     quote! {
-        fn add_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32, gss_node_id: usize) {
+        fn add_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32, gss_node_id: GssNodeId) {
             let gss_nodes = &mut self.gss_nodes_index[nonterminal_id.index()];
             gss_nodes.push((input_index, gss_node_id));
         }
@@ -451,29 +451,29 @@ fn gen_add_gss_node_method() -> TokenStream {
 
 fn gen_new_gss_node_method() -> TokenStream {
     quote! {
-        fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> usize {
-            let id = self.gss_nodes.len();
-            let gss_node = GSSNode::new(id, nonterminal_id, input_index);
+        fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
+            let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
+            let gss_node = GSSNode::new(gss_node_id, nonterminal_id, input_index);
             record!(self, GSSNodeCreated, nonterminal_id, input_index);
             self.gss_nodes.push(gss_node);
             self.stats.gss_nodes_count += 1;
-            self.gss_nodes[id].id
+            gss_node_id
         }
     }
 }
 
 fn gen_gss_node_method() -> TokenStream {
     quote! {
-        fn gss_node(&self, id: usize) -> &GSSNode {
-            &self.gss_nodes[id]
+        fn gss_node(&self, id: GssNodeId) -> &GSSNode {
+            &self.gss_nodes[id.index()]
         }
     }
 }
 
 fn gen_gss_node_mut_method() -> TokenStream {
     quote! {
-        fn gss_node_mut(&mut self, id: usize) -> &mut GSSNode {
-            self.gss_nodes.get_mut(id).expect("GSS node id should be valid")
+        fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode {
+            self.gss_nodes.get_mut(id.index()).expect("GSS node id should be valid")
         }
     }
 }
@@ -717,7 +717,7 @@ fn gen_parser_struct(
             scanner: #scanner_name_ident<'i>,
             gss_nodes: Vec<GSSNode>,
             #[comment="A vector from nonterminal_ids to a tuple (input_index, gss_node_id)"]
-            gss_nodes_index: [Vec<(u32, usize)>; #nonterminal_ids_len],
+            gss_nodes_index: [Vec<(u32, GssNodeId)>; #nonterminal_ids_len],
             sppf_nodes: Vec<SPPFNode>,
             stats: Stats,
             nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #nonterminal_ids_len],
