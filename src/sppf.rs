@@ -1,5 +1,6 @@
 use crate::ids::{NonterminalId, SlotId, TerminalId};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use specta::Type;
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
@@ -99,7 +100,7 @@ pub struct IntermediateNode {
 ///
 /// This is a type-safe wrapper around an index into the parser's SPPF nodes list.
 /// Uses `u32` since real-world grammars rarely exceed 2^32 - 1 nodes.
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct SPPFNodeId(pub u32);
 
 impl SPPFNodeId {

@@ -19,7 +19,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             ids::NonterminalId,
             input::Input,
             parser::{ParseResult, Parser},
-            visualization::{dot::write_svg, gss::render_gss, sppf::write_sppf_dot},
+            visualization::{dot::write_svg, gss::render_gss, sppf::{build_sppf_graph, write_sppf_dot}},
         };
         use #grammar_name::{
             parse_tree::{#parse_tree_builder, create_parse_tree, to_sexpr},
@@ -28,12 +28,25 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
         #[cfg(feature = "debug-trace")]
         use iguana::trace::TraceEvent;
+        use serde_json;
 
         #[derive(Clone, Copy, Default, clap::ValueEnum)]
         enum TraceFormat {
             #[default]
             Text,
             Json,
+        }
+
+        #[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+        enum VisTarget {
+            Sppf,
+            Gss,
+        }
+
+        #[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+        enum EmitTarget {
+            Sppf,
+            Gss,
         }
 
         #[derive(ClapParser)]
@@ -51,13 +64,13 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             #[arg(long, value_enum, default_value_t = TraceFormat::Text, requires = "trace")]
             format: TraceFormat,
 
-            /// Generate SPPF (Shared Packed Parse Forest) visualization
-            #[arg(long)]
-            sppf: bool,
+            /// Generate visualization as SVG (sppf or gss)
+            #[arg(long, value_enum)]
+            vis: Option<VisTarget>,
 
-            /// Generate GSS (Graph Structured Stack) visualization
-            #[arg(long)]
-            gss: bool,
+            /// Emit data as JSON to stdout (sppf or gss)
+            #[arg(long, value_enum)]
+            emit: Option<EmitTarget>,
         }
 
         #[cfg(feature = "dhat-heap")]
@@ -87,21 +100,43 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             match parser.run(NonterminalId(0)) {
                 ParseResult::Success(parse_success) => {
                     let node_id = parse_success.sppf_node_id;
-                    println!("Parse success.");
-                    if cli.gss {
-                        let path = std::path::Path::new("gss.dot");
-                        render_gss(&parser, path)?;
-                        write_svg(path)?;
-                        println!("GSS visualization generated: gss.svg");
+
+                    // Handle --emit (data as JSON to stdout) - outputs only JSON
+                    if let Some(emit_target) = cli.emit {
+                        match emit_target {
+                            EmitTarget::Sppf => {
+                                let sppf = build_sppf_graph(&parser, node_id);
+                                println!("{}", serde_json::to_string(&sppf).unwrap());
+                            }
+                            EmitTarget::Gss => {
+                                // TODO: implement GSS JSON emission
+                                eprintln!("GSS JSON emission not yet implemented");
+                            }
+                        }
+                    } else {
+                        // Normal output mode
+                        println!("Parse success.");
+
+                        // Handle --vis (visualization as SVG)
+                        match cli.vis {
+                            Some(VisTarget::Gss) => {
+                                let path = std::path::Path::new("gss.dot");
+                                render_gss(&parser, path)?;
+                                write_svg(path)?;
+                                println!("GSS visualization generated: gss.svg");
+                            }
+                            Some(VisTarget::Sppf) => {
+                                let path = std::path::Path::new("sppf.dot");
+                                write_sppf_dot(&parser, node_id, path)?;
+                                write_svg(path)?;
+                                println!("SPPF visualization generated: sppf.svg");
+                            }
+                            None => {}
+                        }
+
+                        let parse_tree = create_parse_tree(node_id, &parser, &parse_tree_builder);
+                        println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
                     }
-                    if cli.sppf {
-                        let path = std::path::Path::new("sppf.dot");
-                        write_sppf_dot(&parser, node_id, path)?;
-                        write_svg(path)?;
-                        println!("SPPF visualization generated: sppf.svg");
-                    }
-                    let parse_tree = create_parse_tree(node_id, &parser, &parse_tree_builder);
-                    println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
                 }
                 ParseResult::Failure() => {
                     println!("Parse failed");

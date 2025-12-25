@@ -7,24 +7,28 @@ use std::{
 
 use dot::Labeller;
 use rustc_hash::{FxHashMap, FxHashSet};
+use serde::{Deserialize, Serialize};
+use specta::Type;
 
 use crate::{
     parser::Parser,
     sppf::{SPPFNode, SPPFNodeId},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Type)]
 pub struct SPPF {
     // A map from node_id to SPPFDotNode
     // Because not all created SPPF nodes are reachable from the root,
     // and for visualization, we only care about the reachable nodes from the root,
     // we need a hashmap here to only keep track of the reachable nodes.
+    #[serde(skip)]
+    #[specta(skip)]
     pub nodes_map: FxHashMap<SPPFNodeId, SPPFDotNode>,
     pub nodes: Vec<SPPFDotNode>,
     pub edges: Vec<SPPFDotEdge>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum NodeKind {
     Nonterminal,
     Intermediate,
@@ -32,14 +36,14 @@ pub enum NodeKind {
     Packed,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct SPPFDotNode {
     pub id: SPPFNodeId,
     pub kind: NodeKind,
     pub label: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct SPPFDotEdge {
     pub src: SPPFNodeId,
     pub dest: SPPFNodeId,
@@ -100,6 +104,10 @@ impl<'a> dot::GraphWalk<'a, SPPFDotNode, SPPFDotEdge> for SPPF {
     }
 }
 
+pub fn build_sppf_graph<'i>(parser: &impl Parser<'i>, start_node: SPPFNodeId) -> SPPF {
+    SPPFGraphBuilder::new(parser).build(start_node)
+}
+
 pub fn write_sppf_dot<'i>(
     parser: &impl Parser<'i>,
     start_node: SPPFNodeId,
@@ -107,8 +115,7 @@ pub fn write_sppf_dot<'i>(
 ) -> io::Result<()> {
     let file = File::create(path)?;
     let mut sppf_dot_file = BufWriter::new(file);
-    let builder = SPPFGraphBuilder::new(parser);
-    let sppf = builder.build(start_node);
+    let sppf = build_sppf_graph(parser, start_node);
     dot::render(&sppf, &mut sppf_dot_file)
 }
 

@@ -1,9 +1,13 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
+  import { commands, type SPPF } from "../bindings";
   import { listen } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { onMount } from "svelte";
   import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2 } from "lucide-svelte";
+  import cytoscape from "cytoscape";
+  import dagre from "cytoscape-dagre";
+
+  cytoscape.use(dagre);
 
   // Event listeners for build progress
   onMount(() => {
@@ -16,10 +20,11 @@
       if (event.payload.success) {
         buildStatus = "success";
         // Refresh parser name after successful build
-        try {
-          parserName = await invoke<string>("get_parser_name", { directory: parserDirectory });
-        } catch {
-          // Ignore - parser name is optional
+        if (parserDirectory) {
+          const result = await commands.getParserName(parserDirectory);
+          if (result.status === "ok") {
+            parserName = result.data;
+          }
         }
         setStatus("Build successful", "success");
       } else {
@@ -90,6 +95,115 @@
   // Graph tab
   let activeTab = $state<"gss" | "sppf">("gss");
 
+  // SPPF data
+  let sppf = $state<SPPF | null>(null);
+  let sppfContainer: HTMLDivElement;
+  let cy: cytoscape.Core | null = null;
+
+  function renderSPPF() {
+    if (!sppf || !sppfContainer) return;
+
+    const elements: cytoscape.ElementDefinition[] = [
+      ...sppf.nodes.map((node) => ({
+        data: {
+          id: `n${node.id}`,
+          label: node.label || (node.kind === "Packed" ? "●" : ""),
+        },
+        classes: node.kind.toLowerCase(),
+      })),
+      ...sppf.edges.map((edge, i) => ({
+        data: {
+          id: `e${i}`,
+          source: `n${edge.src}`,
+          target: `n${edge.dest}`,
+        },
+      })),
+    ];
+
+    if (cy) {
+      cy.destroy();
+    }
+
+    cy = cytoscape({
+      container: sppfContainer,
+      elements,
+      style: [
+        {
+          selector: "node",
+          style: {
+            label: "data(label)",
+            "text-valign": "center",
+            "text-halign": "center",
+            "font-size": "10px",
+            color: "#d4d4d4",
+            "background-color": "#3c3c3c",
+            "border-width": 1,
+            "border-color": "#555",
+            width: "label",
+            height: 24,
+            "padding-left": "8px",
+            "padding-right": "8px",
+            shape: "round-rectangle",
+          },
+        },
+        {
+          selector: "node.nonterminal",
+          style: {
+            "background-color": "#2d4a3d",
+            "border-color": "#4ec9b0",
+          },
+        },
+        {
+          selector: "node.intermediate",
+          style: {
+            "background-color": "#2d3a4d",
+            "border-color": "#569cd6",
+          },
+        },
+        {
+          selector: "node.terminal",
+          style: {
+            "background-color": "#4d3a2d",
+            "border-color": "#ce9178",
+          },
+        },
+        {
+          selector: "node.packed",
+          style: {
+            width: 12,
+            height: 12,
+            "background-color": "#666",
+            "border-width": 0,
+            label: "",
+          },
+        },
+        {
+          selector: "edge",
+          style: {
+            width: 1,
+            "line-color": "#555",
+            "target-arrow-color": "#555",
+            "target-arrow-shape": "triangle",
+            "curve-style": "bezier",
+            "arrow-scale": 0.8,
+          },
+        },
+      ],
+      layout: {
+        name: "dagre",
+        rankDir: "TB",
+        nodeSep: 30,
+        rankSep: 50,
+      } as any,
+    });
+  }
+
+  $effect(() => {
+    if (sppf && sppfContainer) {
+      renderSPPF();
+    }
+  });
+
   // Resizable panes
   let leftPanelWidth = $state(350);
   let callStackHeight = $state(200);
@@ -111,11 +225,13 @@
       buildStatus = "none";
       buildError = null;
       statusMessage = null;
+      sppf = null;
       // Try to get parser name (might not exist yet if empty directory)
-      try {
-        parserName = await invoke<string>("get_parser_name", { directory: parserDirectory });
+      const result = await commands.getParserName(parserDirectory);
+      if (result.status === "ok") {
+        parserName = result.data;
         setStatus(`Loaded parser: ${parserName}`, "success");
-      } catch {
+      } else {
         // No existing parser - that's fine, user can generate one
         parserName = null;
         setStatus("Ready to generate parser", "success");
@@ -134,7 +250,7 @@
     buildError = null;
     setStatus("Starting build...", "info");
     // Command returns immediately, results come via events
-    await invoke("build_parser", { directory: parserDirectory });
+    await commands.buildParser(parserDirectory);
   }
 
   function clearStatus() {
@@ -148,8 +264,16 @@
 
   async function parse() {
     if (!parserDirectory || buildStatus !== "success") return;
-    console.log("Parsing:", inputText, "from", startNonterminal, "trace:", traceEnabled);
-    // TODO: invoke parse Tauri command
+    setStatus("Parsing...", "info");
+    const result = await commands.parse(parserDirectory, inputText);
+    if (result.status === "ok") {
+      sppf = result.data;
+      setStatus("Parse successful", "success");
+    } else {
+      sppf = null;
+      setStatus("Parse failed", "error");
+      buildError = result.error;
+    }
   }
 
   function stepBack() {
@@ -361,8 +485,10 @@
       <div class="graph-container">
         {#if activeTab === "gss"}
           <div class="graph-placeholder">GSS Graph</div>
+        {:else if sppf}
+          <div class="cytoscape-container" bind:this={sppfContainer}></div>
         {:else}
-          <div class="graph-placeholder">SPPF Graph</div>
+          <div class="graph-placeholder">Parse input to see SPPF</div>
         {/if}
       </div>
     </div>
@@ -826,6 +952,11 @@
   .graph-placeholder {
     color: #555;
     font-size: 24px;
+  }
+
+  .cytoscape-container {
+    width: 100%;
+    height: 100%;
   }
 
   /* Call Stack */
