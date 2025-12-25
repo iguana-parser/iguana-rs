@@ -1,5 +1,6 @@
 use proc_macro2::Literal;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use specta::Type;
 
 /// A unique identifier for a nonterminal in the grammar.
 ///
@@ -85,7 +86,7 @@ impl quote::ToTokens for TerminalId {
 /// This is a type-safe wrapper around an index into the parser's GSS node list.
 /// Uses `u32` since GSS nodes are of the form (nonterminal_id, input_index), which
 /// is bounded by the input length (u32).
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct GssNodeId(pub u32);
 
 impl GssNodeId {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { commands, type SPPF } from "../bindings";
+  import { commands, type SPPF, type GSS } from "../bindings";
   import { listen } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { onMount, tick } from "svelte";
@@ -100,12 +100,21 @@
   let sppfContainer: HTMLDivElement;
   let collapsedNodes = $state<Set<string>>(new Set());
 
+  // GSS data
+  let gss = $state<GSS | null>(null);
+  let gssContainer: HTMLDivElement;
+  let gssCollapsedNodes = $state<Set<string>>(new Set());
+
+  // Track if parse result is available
+  let parseResultAvailable = $state(false);
+
   // Output panel state
   let outputPanelOpen = $state(false);
   let outputContent = $state<string | null>(null);
   let outputType = $state<"success" | "error" | "info">("info");
   let outputPanelHeight = $state(150);
   let cy: cytoscape.Core | null = null;
+  let gssCy: cytoscape.Core | null = null;
 
   // Find the root node (node with no incoming edges)
   function findRoot(): string | null {
@@ -308,8 +317,83 @@
     });
   }
 
+  function renderGSS() {
+    if (!gss || !gssContainer) return;
+
+    // Reset collapsed nodes when rendering new GSS
+    gssCollapsedNodes = new Set();
+
+    const elements: cytoscape.ElementDefinition[] = [
+      ...gss.nodes.map((node) => ({
+        data: {
+          id: `n${node.id}`,
+          label: node.label,
+        },
+      })),
+      ...gss.edges.map((edge, i) => ({
+        data: {
+          id: `e${i}`,
+          source: `n${edge.src}`,
+          target: `n${edge.dest}`,
+          label: edge.label,
+        },
+      })),
+    ];
+
+    if (gssCy) {
+      gssCy.destroy();
+    }
+
+    gssCy = cytoscape({
+      container: gssContainer,
+      elements,
+      style: [
+        {
+          selector: "node",
+          style: {
+            label: "data(label)",
+            "text-valign": "center",
+            "text-halign": "center",
+            "font-size": "10px",
+            color: "#d4d4d4",
+            "background-color": "#2d4a3d",
+            "border-width": 1,
+            "border-color": "#4ec9b0",
+            width: "label",
+            height: 24,
+            "padding-left": "8px",
+            "padding-right": "8px",
+            shape: "round-rectangle",
+          },
+        },
+        {
+          selector: "edge",
+          style: {
+            label: "data(label)",
+            "font-size": "9px",
+            color: "#888",
+            "text-rotation": "autorotate",
+            "text-margin-y": -10,
+            width: 1,
+            "line-color": "#555",
+            "target-arrow-color": "#555",
+            "target-arrow-shape": "triangle",
+            "curve-style": "bezier",
+            "arrow-scale": 0.8,
+          },
+        },
+      ],
+      layout: {
+        name: "dagre",
+        rankDir: "BT",  // Bottom to top for GSS
+        nodeSep: 50,
+        rankSep: 60,
+      } as any,
+    });
+  }
+
   $effect(() => {
-    // Track activeTab so effect re-runs when switching to SPPF tab
+    // Track activeTab so effect re-runs when switching tabs
     if (activeTab === "sppf" && sppf) {
       // Wait for DOM to update after tab switch
       tick().then(() => {
@@ -317,6 +401,23 @@
           renderSPPF();
         }
       });
+    } else if (activeTab === "gss" && gss) {
+      tick().then(() => {
+        if (gssContainer) {
+          renderGSS();
+        }
+      });
+    }
+  });
+
+  // Fetch data when switching tabs
+  $effect(() => {
+    if (parseResultAvailable) {
+      if (activeTab === "sppf" && !sppf) {
+        fetchSppf();
+      } else if (activeTab === "gss" && !gss) {
+        fetchGss();
+      }
     }
   });
 
@@ -385,14 +486,26 @@
     outputContent = "Parsing...";
     outputType = "info";
 
+    // Reset previous results
+    sppf = null;
+    gss = null;
+    parseResultAvailable = false;
+
     const result = await commands.parse(parserDirectory, inputText);
     if (result.status === "ok") {
-      sppf = result.data;
-      outputContent = `Parse successful\n\nSPPF: ${result.data.nodes.length} nodes, ${result.data.edges.length} edges`;
+      parseResultAvailable = true;
+      outputContent = "Parse successful";
       outputType = "success";
       setStatus("Parse successful", "success");
+
+      // Fetch the data for the active tab
+      if (activeTab === "sppf") {
+        await fetchSppf();
+      } else {
+        await fetchGss();
+      }
     } else {
-      sppf = null;
+      parseResultAvailable = false;
       outputContent = `Parse failed\n\n${result.error}`;
       outputType = "error";
       outputPanelOpen = true;  // Only auto-open on error
@@ -400,33 +513,64 @@
     }
   }
 
-  // SPPF graph controls
+  async function fetchSppf() {
+    if (!parseResultAvailable) return;
+    const result = await commands.getSppf();
+    if (result.status === "ok") {
+      sppf = result.data;
+      outputContent = `Parse successful\n\nSPPF: ${result.data.nodes.length} nodes, ${result.data.edges.length} edges`;
+    } else {
+      outputContent = `Failed to load SPPF: ${result.error}`;
+      outputType = "error";
+    }
+  }
+
+  async function fetchGss() {
+    if (!parseResultAvailable) return;
+    const result = await commands.getGss();
+    if (result.status === "ok") {
+      gss = result.data;
+      outputContent = `Parse successful\n\nGSS: ${result.data.nodes.length} nodes, ${result.data.edges.length} edges`;
+    } else {
+      outputContent = `Failed to load GSS: ${result.error}`;
+      outputType = "error";
+    }
+  }
+
+  // Graph controls (work with active graph)
   function zoomIn() {
-    if (cy) {
-      cy.zoom(cy.zoom() * 1.2);
+    const activeCy = activeTab === "sppf" ? cy : gssCy;
+    if (activeCy) {
+      activeCy.zoom(activeCy.zoom() * 1.2);
     }
   }
 
   function zoomOut() {
-    if (cy) {
-      cy.zoom(cy.zoom() / 1.2);
+    const activeCy = activeTab === "sppf" ? cy : gssCy;
+    if (activeCy) {
+      activeCy.zoom(activeCy.zoom() / 1.2);
     }
   }
 
   function resetView() {
-    if (cy) {
-      cy.fit();
-      cy.center();
+    const activeCy = activeTab === "sppf" ? cy : gssCy;
+    if (activeCy) {
+      activeCy.fit();
+      activeCy.center();
     }
   }
 
   function expandAll() {
-    if (!cy) return;
-    // Clear all collapsed state
-    cy.nodes().removeClass('collapsed');
-    collapsedNodes = new Set();
-    // Update visibility (everything should now be reachable)
-    updateVisibility();
+    if (activeTab === "sppf") {
+      if (!cy) return;
+      cy.nodes().removeClass('collapsed');
+      collapsedNodes = new Set();
+      updateVisibility();
+    } else {
+      if (!gssCy) return;
+      gssCy.nodes().removeClass('collapsed');
+      gssCollapsedNodes = new Set();
+    }
   }
 
   function stepBack() {
@@ -659,7 +803,22 @@
       </div>
       <div class="graph-container">
         {#if activeTab === "gss"}
-          <div class="graph-placeholder">GSS Graph</div>
+          {#if gss}
+            <div class="cytoscape-container" bind:this={gssContainer}></div>
+            <div class="graph-controls">
+              <button onclick={zoomIn} title="Zoom in">
+                <ZoomIn size={16} />
+              </button>
+              <button onclick={zoomOut} title="Zoom out">
+                <ZoomOut size={16} />
+              </button>
+              <button onclick={resetView} title="Reset view">
+                <Maximize2 size={16} />
+              </button>
+            </div>
+          {:else}
+            <div class="graph-placeholder">Parse input to see GSS</div>
+          {/if}
         {:else if sppf}
           <div class="cytoscape-container" bind:this={sppfContainer}></div>
           <div class="graph-controls">

@@ -1,23 +1,27 @@
 use std::{borrow::Cow, fs::File, io, io::BufWriter, path::Path};
 
 use dot::Labeller;
+use serde::{Deserialize, Serialize};
+use specta::Type;
 
 use crate::{ids::GssNodeId, parser::Parser};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Type)]
 pub struct GSS {
     pub nodes: Vec<GSSDotNode>,
     pub edges: Vec<GSSDotEdge>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct GSSDotNode {
     pub id: GssNodeId,
     pub label: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct GSSDotEdge {
+    #[serde(skip)]
+    #[specta(skip)]
     pub id: usize,
     pub src: GssNodeId,
     pub dest: GssNodeId,

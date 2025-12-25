@@ -16,9 +16,25 @@ async getParserName(directory: string) : Promise<Result<string, string>> {
 async buildParser(directory: string) : Promise<void> {
     await TAURI_INVOKE("build_parser", { directory });
 },
-async parse(directory: string, input: string) : Promise<Result<SPPF, string>> {
+async parse(directory: string, input: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("parse", { directory, input }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getSppf() : Promise<Result<SPPF, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_sppf") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getGss() : Promise<Result<GSS, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_gss") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -36,6 +52,17 @@ async parse(directory: string, input: string) : Promise<Result<SPPF, string>> {
 
 /** user-defined types **/
 
+export type GSS = { nodes: GSSDotNode[]; edges: GSSDotEdge[] }
+export type GSSDotEdge = { src: GssNodeId; dest: GssNodeId; label: string }
+export type GSSDotNode = { id: GssNodeId; label: string }
+/**
+ * A unique identifier for a GSS node.
+ * 
+ * This is a type-safe wrapper around an index into the parser's GSS node list.
+ * Uses `u32` since GSS nodes are of the form (nonterminal_id, input_index), which
+ * is bounded by the input length (u32).
+ */
+export type GssNodeId = number
 export type NodeKind = "Nonterminal" | "Intermediate" | "Terminal" | "Packed"
 export type SPPF = { nodes: SPPFDotNode[]; edges: SPPFDotEdge[] }
 export type SPPFDotEdge = { src: SPPFNodeId; dest: SPPFNodeId }

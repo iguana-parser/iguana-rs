@@ -1,11 +1,11 @@
-use std::{fs, io::Write, path::Path, process::Command, thread};
+use std::{fs, io::Write, path::Path, path::PathBuf, process::Command, sync::Mutex, thread};
 
-use iguana::visualization::sppf::SPPF;
-use serde::{Deserialize, Serialize};
+use iguana::visualization::{gss::GSS, sppf::SPPF};
+use serde::Serialize;
 use specta::Type;
 use tauri::Emitter;
 use tauri_specta::{collect_commands, Builder};
-use tempfile::NamedTempFile;
+use tempfile::{NamedTempFile, TempDir};
 use toml::Value;
 
 #[derive(Clone, Serialize, Type)]
@@ -18,6 +18,14 @@ struct BuildProgress {
 struct BuildResult {
     success: bool,
     message: String,
+}
+
+#[derive(Default)]
+struct ParseState {
+    // Keep TempDir alive so files aren't deleted
+    _temp_dir: Option<TempDir>,
+    sppf_path: Option<PathBuf>,
+    gss_path: Option<PathBuf>,
 }
 
 #[tauri::command]
@@ -165,16 +173,26 @@ fn build_parser(directory: String, app: tauri::AppHandle) {
 
 #[tauri::command]
 #[specta::specta]
-fn parse(directory: String, input: String) -> Result<SPPF, String> {
+fn parse(
+    directory: String,
+    input: String,
+    state: tauri::State<Mutex<ParseState>>,
+) -> Result<(), String> {
     // Get parser name from Cargo.toml
     let parser_name = get_parser_name(directory.clone())?;
 
     // Write input to temp file
-    let mut temp_file = NamedTempFile::new()
+    let mut input_file = NamedTempFile::new()
         .map_err(|e| format!("Failed to create temp file: {}", e))?;
-    temp_file
+    input_file
         .write_all(input.as_bytes())
         .map_err(|e| format!("Failed to write input: {}", e))?;
+
+    // Create temp directory for output files
+    let temp_dir = TempDir::new()
+        .map_err(|e| format!("Failed to create temp directory: {}", e))?;
+    let sppf_path = temp_dir.path().join("sppf.json");
+    let gss_path = temp_dir.path().join("gss.json");
 
     // Build path to parser binary
     let parser_path = Path::new(&directory)
@@ -184,45 +202,82 @@ fn parse(directory: String, input: String) -> Result<SPPF, String> {
 
     // Check if parser exists
     if !parser_path.exists() {
-        return Err(format!("Parser not found at {:?}. Please build first.", parser_path));
+        return Err(format!(
+            "Parser not found at {:?}. Please build first.",
+            parser_path
+        ));
     }
 
-    // Run parser with --emit sppf
+    // Run parser with --write-sppf and --write-gss
     let output = Command::new(&parser_path)
-        .arg(temp_file.path())
-        .args(["--emit", "sppf"])
+        .arg(input_file.path())
+        .arg("--write-sppf")
+        .arg(&sppf_path)
+        .arg("--write-gss")
+        .arg(&gss_path)
         .output()
         .map_err(|e| format!("Failed to run parser: {}", e))?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    // Check for parse failure (parser outputs "Parse failed" on failure)
+    // Check for parse failure
     if stdout.trim() == "Parse failed" {
         return Err("Parse error".to_string());
     }
 
-    // Check if stdout is empty
-    if stdout.trim().is_empty() {
-        let mut msg = "Parser produced no output.".to_string();
-        if !stderr.is_empty() {
-            msg.push_str(&format!("\nStderr: {}", stderr));
-        }
-        return Err(msg);
+    if !output.status.success() {
+        return Err(format!("Parser exited with error: {}", stderr));
     }
 
-    if output.status.success() {
-        serde_json::from_str(&stdout)
-            .map_err(|e| format!("Failed to parse SPPF JSON: {}\n\nOutput was: {}", e, stdout))
-    } else {
-        Err(format!("Parser exited with error: {}", stderr))
-    }
+    // Store paths in state
+    let mut parse_state = state.lock().unwrap();
+    parse_state._temp_dir = Some(temp_dir);
+    parse_state.sppf_path = Some(sppf_path);
+    parse_state.gss_path = Some(gss_path);
+
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+fn get_sppf(state: tauri::State<Mutex<ParseState>>) -> Result<SPPF, String> {
+    let parse_state = state.lock().unwrap();
+    let sppf_path = parse_state
+        .sppf_path
+        .as_ref()
+        .ok_or("No parse result available. Run parse first.")?;
+
+    let content = fs::read_to_string(sppf_path)
+        .map_err(|e| format!("Failed to read SPPF file: {}", e))?;
+
+    serde_json::from_str(&content).map_err(|e| format!("Failed to parse SPPF JSON: {}", e))
+}
+
+#[tauri::command]
+#[specta::specta]
+fn get_gss(state: tauri::State<Mutex<ParseState>>) -> Result<GSS, String> {
+    let parse_state = state.lock().unwrap();
+    let gss_path = parse_state
+        .gss_path
+        .as_ref()
+        .ok_or("No parse result available. Run parse first.")?;
+
+    let content =
+        fs::read_to_string(gss_path).map_err(|e| format!("Failed to read GSS file: {}", e))?;
+
+    serde_json::from_str(&content).map_err(|e| format!("Failed to parse GSS JSON: {}", e))
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let builder = Builder::<tauri::Wry>::new()
-        .commands(collect_commands![get_parser_name, build_parser, parse]);
+    let builder = Builder::<tauri::Wry>::new().commands(collect_commands![
+        get_parser_name,
+        build_parser,
+        parse,
+        get_sppf,
+        get_gss
+    ]);
 
     #[cfg(debug_assertions)]
     builder
@@ -233,6 +288,7 @@ pub fn run() {
         .expect("Failed to export typescript bindings");
 
     tauri::Builder::default()
+        .manage(Mutex::new(ParseState::default()))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(builder.invoke_handler())
