@@ -182,6 +182,11 @@ fn parse(directory: String, input: String) -> Result<SPPF, String> {
         .join("debug")
         .join(&parser_name);
 
+    // Check if parser exists
+    if !parser_path.exists() {
+        return Err(format!("Parser not found at {:?}. Please build first.", parser_path));
+    }
+
     // Run parser with --emit sppf
     let output = Command::new(&parser_path)
         .arg(temp_file.path())
@@ -189,14 +194,28 @@ fn parse(directory: String, input: String) -> Result<SPPF, String> {
         .output()
         .map_err(|e| format!("Failed to run parser: {}", e))?;
 
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Check for parse failure (parser outputs "Parse failed" on failure)
+    if stdout.trim() == "Parse failed" {
+        return Err("Parse error".to_string());
+    }
+
+    // Check if stdout is empty
+    if stdout.trim().is_empty() {
+        let mut msg = "Parser produced no output.".to_string();
+        if !stderr.is_empty() {
+            msg.push_str(&format!("\nStderr: {}", stderr));
+        }
+        return Err(msg);
+    }
+
     if output.status.success() {
-        let json = String::from_utf8(output.stdout)
-            .map_err(|e| format!("Invalid UTF-8 in output: {}", e))?;
-        serde_json::from_str(&json)
-            .map_err(|e| format!("Failed to parse SPPF JSON: {}", e))
+        serde_json::from_str(&stdout)
+            .map_err(|e| format!("Failed to parse SPPF JSON: {}\n\nOutput was: {}", e, stdout))
     } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        Err(format!("Parse failed: {}", stderr))
+        Err(format!("Parser exited with error: {}", stderr))
     }
 }
 

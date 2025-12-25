@@ -2,8 +2,8 @@
   import { commands, type SPPF } from "../bindings";
   import { listen } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
-  import { onMount } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2 } from "lucide-svelte";
+  import { onMount, tick } from "svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
 
@@ -79,7 +79,7 @@
   // State
   let inputText = $state("1 + 2 * 3");
   let startNonterminal = $state("Expr");
-  let traceEnabled = $state(true);
+  let traceEnabled = $state(false);
   let nonterminals = $state(["Expr", "Term", "Factor"]); // TODO: load from grammar
 
   // Playback state
@@ -98,10 +98,106 @@
   // SPPF data
   let sppf = $state<SPPF | null>(null);
   let sppfContainer: HTMLDivElement;
+  let collapsedNodes = $state<Set<string>>(new Set());
+
+  // Output panel state
+  let outputPanelOpen = $state(false);
+  let outputContent = $state<string | null>(null);
+  let outputType = $state<"success" | "error" | "info">("info");
+  let outputPanelHeight = $state(150);
   let cy: cytoscape.Core | null = null;
+
+  // Find the root node (node with no incoming edges)
+  function findRoot(): string | null {
+    if (!cy) return null;
+    const roots = cy.nodes().filter((node: cytoscape.NodeSingular) => node.incomers('edge').length === 0);
+    return roots.length > 0 ? roots.first().id() : null;
+  }
+
+  // Get all nodes reachable from root, respecting collapsed nodes (their outgoing edges are "cut")
+  function getReachableNodes(): Set<string> {
+    if (!cy) return new Set();
+    const reachable = new Set<string>();
+    const root = findRoot();
+    if (!root) return reachable;
+
+    const queue = [root];
+    while (queue.length > 0) {
+      const nodeId = queue.shift()!;
+      if (reachable.has(nodeId)) continue;
+      reachable.add(nodeId);
+
+      // If this node is collapsed, don't traverse its children
+      if (collapsedNodes.has(nodeId)) continue;
+
+      const node = cy.getElementById(nodeId);
+      node.outgoers('node').forEach((child: cytoscape.NodeSingular) => {
+        if (!reachable.has(child.id())) {
+          queue.push(child.id());
+        }
+      });
+    }
+
+    return reachable;
+  }
+
+  // Update visibility based on reachability
+  function updateVisibility() {
+    if (!cy) return;
+
+    const reachable = getReachableNodes();
+
+    cy.nodes().forEach((node: cytoscape.NodeSingular) => {
+      if (reachable.has(node.id())) {
+        node.style('display', 'element');
+      } else {
+        node.style('display', 'none');
+      }
+    });
+
+    cy.edges().forEach((edge: cytoscape.EdgeSingular) => {
+      const sourceId = edge.source().id();
+      const targetId = edge.target().id();
+      // Show edge only if both endpoints are visible AND source is not collapsed
+      if (reachable.has(sourceId) && reachable.has(targetId) && !collapsedNodes.has(sourceId)) {
+        edge.style('display', 'element');
+      } else {
+        edge.style('display', 'none');
+      }
+    });
+  }
+
+  // Toggle collapse/expand a node
+  function toggleCollapse(nodeId: string) {
+    if (!cy) return;
+
+    const node = cy.getElementById(nodeId);
+
+    // Check if node has children
+    if (node.outgoers('node').length === 0) return;
+
+    const isCollapsed = collapsedNodes.has(nodeId);
+
+    if (isCollapsed) {
+      collapsedNodes.delete(nodeId);
+      node.removeClass('collapsed');
+    } else {
+      collapsedNodes.add(nodeId);
+      node.addClass('collapsed');
+    }
+
+    // Trigger reactivity
+    collapsedNodes = new Set(collapsedNodes);
+
+    // Update all visibility based on new reachability
+    updateVisibility();
+  }
 
   function renderSPPF() {
     if (!sppf || !sppfContainer) return;
+
+    // Reset collapsed nodes when rendering new SPPF
+    collapsedNodes = new Set();
 
     const elements: cytoscape.ElementDefinition[] = [
       ...sppf.nodes.map((node) => ({
@@ -158,6 +254,7 @@
           style: {
             "background-color": "#2d3a4d",
             "border-color": "#569cd6",
+            shape: "rectangle",
           },
         },
         {
@@ -175,6 +272,13 @@
             "background-color": "#666",
             "border-width": 0,
             label: "",
+          },
+        },
+        {
+          selector: "node.collapsed",
+          style: {
+            "border-width": 3,
+            "border-style": "double",
           },
         },
         {
@@ -196,11 +300,23 @@
         rankSep: 50,
       } as any,
     });
+
+    // Add double-click handler for collapse/expand
+    cy.on('dbltap', 'node', (event) => {
+      const node = event.target;
+      toggleCollapse(node.id());
+    });
   }
 
   $effect(() => {
-    if (sppf && sppfContainer) {
-      renderSPPF();
+    // Track activeTab so effect re-runs when switching to SPPF tab
+    if (activeTab === "sppf" && sppf) {
+      // Wait for DOM to update after tab switch
+      tick().then(() => {
+        if (sppfContainer) {
+          renderSPPF();
+        }
+      });
     }
   });
 
@@ -213,6 +329,7 @@
   let isDraggingHorizontal = $state(false);
   let isDraggingInput = $state(false);
   let isDraggingCurrent = $state(false);
+  let isDraggingOutput = $state(false);
 
   async function selectDirectory() {
     const selected = await open({
@@ -265,15 +382,51 @@
   async function parse() {
     if (!parserDirectory || buildStatus !== "success") return;
     setStatus("Parsing...", "info");
+    outputContent = "Parsing...";
+    outputType = "info";
+
     const result = await commands.parse(parserDirectory, inputText);
     if (result.status === "ok") {
       sppf = result.data;
+      outputContent = `Parse successful\n\nSPPF: ${result.data.nodes.length} nodes, ${result.data.edges.length} edges`;
+      outputType = "success";
       setStatus("Parse successful", "success");
     } else {
       sppf = null;
+      outputContent = `Parse failed\n\n${result.error}`;
+      outputType = "error";
+      outputPanelOpen = true;  // Only auto-open on error
       setStatus("Parse failed", "error");
-      buildError = result.error;
     }
+  }
+
+  // SPPF graph controls
+  function zoomIn() {
+    if (cy) {
+      cy.zoom(cy.zoom() * 1.2);
+    }
+  }
+
+  function zoomOut() {
+    if (cy) {
+      cy.zoom(cy.zoom() / 1.2);
+    }
+  }
+
+  function resetView() {
+    if (cy) {
+      cy.fit();
+      cy.center();
+    }
+  }
+
+  function expandAll() {
+    if (!cy) return;
+    // Clear all collapsed state
+    cy.nodes().removeClass('collapsed');
+    collapsedNodes = new Set();
+    // Update visibility (everything should now be reachable)
+    updateVisibility();
   }
 
   function stepBack() {
@@ -308,6 +461,11 @@
     e.preventDefault();
   }
 
+  function startOutputDrag(e: MouseEvent) {
+    isDraggingOutput = true;
+    e.preventDefault();
+  }
+
   function onMouseMove(e: MouseEvent) {
     if (isDraggingVertical) {
       leftPanelWidth = Math.max(250, Math.min(600, e.clientX));
@@ -333,6 +491,9 @@
         currentDescHeight = Math.max(50, Math.min(200, e.clientY - rect.top));
       }
     }
+    if (isDraggingOutput) {
+      outputPanelHeight = Math.max(80, Math.min(400, window.innerHeight - e.clientY - 30));
+    }
   }
 
   function onMouseUp() {
@@ -340,12 +501,13 @@
     isDraggingHorizontal = false;
     isDraggingInput = false;
     isDraggingCurrent = false;
+    isDraggingOutput = false;
   }
 </script>
 
 <svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} />
 
-<div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent}>
+<div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput}>
   <!-- Parser Directory Bar -->
   <div class="parser-bar">
     <span class="parser-label">Parser:</span>
@@ -371,16 +533,10 @@
     >
       {#if isBuilding}
         <Loader2 size={14} class="spinning" />
-        Building...
+        {buildStatus === "success" ? "Regenerating..." : "Generating..."}
       {:else}
         <Hammer size={14} />
-        {#if buildStatus === "success"}
-          Built
-        {:else if buildStatus === "error"}
-          Rebuild
-        {:else}
-          Build
-        {/if}
+        {buildStatus === "success" ? "Regenerate" : "Generate"}
       {/if}
     </button>
   </div>
@@ -463,6 +619,25 @@
         {/if}
       </div>
     </div>
+
+    <!-- Call Stack -->
+    <div class="section call-stack" style="flex: 0 0 {callStackHeight}px">
+      <div class="section-header">Call Stack</div>
+      <div class="section-content">
+        {#if callStack.length > 0}
+          <ul>
+            {#each callStack as call, i}
+              <li style="padding-left: {i * 16}px">
+                <span class="call-marker">{i === callStack.length - 1 ? "●" : "▼"}</span>
+                <code>{call}</code>
+              </li>
+            {/each}
+          </ul>
+        {:else}
+          <span class="placeholder">Empty</span>
+        {/if}
+      </div>
+    </div>
   </div>
 
   <!-- Vertical Resize Handle -->
@@ -487,34 +662,55 @@
           <div class="graph-placeholder">GSS Graph</div>
         {:else if sppf}
           <div class="cytoscape-container" bind:this={sppfContainer}></div>
+          <div class="graph-controls">
+            <button onclick={zoomIn} title="Zoom in">
+              <ZoomIn size={16} />
+            </button>
+            <button onclick={zoomOut} title="Zoom out">
+              <ZoomOut size={16} />
+            </button>
+            <button onclick={resetView} title="Reset view">
+              <Maximize2 size={16} />
+            </button>
+            <button onclick={expandAll} title="Expand all (double-click node to collapse)">
+              <Expand size={16} />
+            </button>
+          </div>
         {:else}
           <div class="graph-placeholder">Parse input to see SPPF</div>
         {/if}
       </div>
     </div>
+  </div>
+  </div>
 
-    <!-- Horizontal Resize Handle -->
-    <div class="resize-handle-horizontal" onmousedown={startHorizontalDrag}></div>
-
-    <!-- Call Stack -->
-    <div class="section call-stack" style="flex: 0 0 {callStackHeight}px">
-      <div class="section-header">Call Stack</div>
-      <div class="section-content">
-        {#if callStack.length > 0}
-          <ul>
-            {#each callStack as call, i}
-              <li style="padding-left: {i * 16}px">
-                <span class="call-marker">{i === callStack.length - 1 ? "●" : "▼"}</span>
-                <code>{call}</code>
-              </li>
-            {/each}
-          </ul>
+  <!-- Output Panel (collapsible) -->
+  {#if outputPanelOpen}
+    <div class="resize-handle-horizontal" onmousedown={startOutputDrag}></div>
+  {/if}
+  <div class="output-panel" class:open={outputPanelOpen}>
+    <button class="output-header" onclick={() => outputPanelOpen = !outputPanelOpen}>
+      {#if outputPanelOpen}
+        <ChevronDown size={14} />
+      {:else}
+        <ChevronRight size={14} />
+      {/if}
+      <span>Output</span>
+      {#if outputType === "error"}
+        <AlertTriangle size={14} class="output-status-icon error" />
+      {:else if outputType === "success"}
+        <CheckCircle size={14} class="output-status-icon success" />
+      {/if}
+    </button>
+    {#if outputPanelOpen}
+      <div class="output-content" class:error={outputType === "error"} class:success={outputType === "success"} style="height: {outputPanelHeight}px">
+        {#if outputContent}
+          <pre>{outputContent}</pre>
         {:else}
-          <span class="placeholder">Empty</span>
+          <span class="placeholder">No output</span>
         {/if}
       </div>
-    </div>
-  </div>
+    {/if}
   </div>
 
   <!-- Status Bar (always visible) -->
@@ -647,6 +843,7 @@
   .build-btn {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     padding: 6px 12px;
     background: #3c3c3c;
@@ -654,7 +851,7 @@
     border: 1px solid #555;
     border-radius: 4px;
     cursor: pointer;
-    min-width: 80px;
+    min-width: 120px;
   }
 
   .build-btn:hover:not(:disabled) {
@@ -765,8 +962,14 @@
     cursor: pointer;
   }
 
-  .parse-btn:hover {
+  .parse-btn:hover:not(:disabled) {
     background: #1177bb;
+  }
+
+  .parse-btn:disabled {
+    background: #3c3c3c;
+    color: #888;
+    cursor: not-allowed;
   }
 
   /* Input Section */
@@ -907,6 +1110,7 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+    overflow: hidden;
   }
 
   /* Graph Section */
@@ -915,6 +1119,7 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    overflow: hidden;
   }
 
   .tabs {
@@ -947,6 +1152,9 @@
     align-items: center;
     justify-content: center;
     background: #1e1e1e;
+    overflow: hidden;
+    position: relative;
+    min-height: 0;
   }
 
   .graph-placeholder {
@@ -957,6 +1165,43 @@
   .cytoscape-container {
     width: 100%;
     height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .graph-controls {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .graph-container:hover .graph-controls {
+    opacity: 1;
+  }
+
+  .graph-controls button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(45, 45, 45, 0.9);
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #d4d4d4;
+    cursor: pointer;
+  }
+
+  .graph-controls button:hover {
+    background: rgba(60, 60, 60, 0.95);
+    border-color: #888;
   }
 
   /* Call Stack */
@@ -981,6 +1226,70 @@
 
   code {
     background: transparent;
+  }
+
+  /* Output Panel */
+  .output-panel {
+    display: flex;
+    flex-direction: column;
+    background: #1e1e1e;
+    border-top: 1px solid #3c3c3c;
+    flex-shrink: 0;
+  }
+
+  .output-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #2d2d2d;
+    border: none;
+    border-bottom: 1px solid #3c3c3c;
+    color: #d4d4d4;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    text-align: left;
+  }
+
+  .output-header:hover {
+    background: #383838;
+  }
+
+  .output-status-icon {
+    margin-left: auto;
+  }
+
+  .output-status-icon.error {
+    color: #f48771;
+  }
+
+  .output-status-icon.success {
+    color: #89d185;
+  }
+
+  .output-content {
+    padding: 12px;
+    overflow: auto;
+    font-family: "Fira Code", "Consolas", monospace;
+    font-size: 12px;
+  }
+
+  .output-content pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .output-content.error {
+    background: #2d1f1f;
+    color: #f48771;
+  }
+
+  .output-content.success {
+    background: #1f2d1f;
+    color: #89d185;
   }
 
   /* Status Bar */
