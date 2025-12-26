@@ -2,8 +2,10 @@
   import { commands, type SPPF, type GSS } from "../bindings";
   import { listen } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
+  import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
+  import { availableMonitors, currentMonitor } from "@tauri-apps/api/window";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand } from "lucide-svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand, TreeDeciduous, Footprints, Pencil } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
 
@@ -12,7 +14,7 @@
   // Event listeners for build progress
   onMount(() => {
     const unlistenProgress = listen<{ stage: string; message: string }>("build-progress", (event) => {
-      setStatus(event.payload.message, "info");
+      // Progress is shown in title bar status, not status bar
     });
 
     const unlistenResult = listen<{ success: boolean; message: string }>("build-result", async (event) => {
@@ -26,11 +28,15 @@
             parserName = result.data;
           }
         }
-        setStatus("Build successful", "success");
+        // Show "Ready" status briefly
+        showReadyStatus = true;
+        if (readyStatusTimeout) clearTimeout(readyStatusTimeout);
+        readyStatusTimeout = setTimeout(() => {
+          showReadyStatus = false;
+        }, 3000);
       } else {
         buildStatus = "error";
         buildError = event.payload.message;
-        setStatus("Build failed", "error");
       }
     });
 
@@ -46,6 +52,8 @@
   let isBuilding = $state(false);
   let buildStatus = $state<"none" | "success" | "error">("none");
   let buildError = $state<string | null>(null);
+  let showReadyStatus = $state(false);
+  let readyStatusTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Modal state
   let showErrorModal = $state(false);
@@ -93,7 +101,10 @@
   let callStack = $state<string[]>([]);
 
   // Graph tab
-  let activeTab = $state<"gss" | "sppf">("gss");
+  let activeTab = $state<"gss" | "sppf">("sppf");
+
+  // App mode
+  let activeMode = $state<"parse" | "debug" | "design">("parse");
 
   // SPPF data
   let sppf = $state<SPPF | null>(null);
@@ -442,18 +453,20 @@
       parserDirectory = selected as string;
       buildStatus = "none";
       buildError = null;
-      statusMessage = null;
       sppf = null;
+      gss = null;
+      parseResultAvailable = false;
+
       // Try to get parser name (might not exist yet if empty directory)
       const result = await commands.getParserName(parserDirectory);
       if (result.status === "ok") {
         parserName = result.data;
-        setStatus(`Loaded parser: ${parserName}`, "success");
       } else {
-        // No existing parser - that's fine, user can generate one
         parserName = null;
-        setStatus("Ready to generate parser", "success");
       }
+
+      // Auto-build the parser
+      await buildParser();
     }
   }
 
@@ -647,45 +660,159 @@
     isDraggingCurrent = false;
     isDraggingOutput = false;
   }
+
+  function startWindowDrag() {
+    getCurrentWindow().startDragging();
+  }
+
+  // Store pre-maximize bounds for custom maximize behavior
+  let savedBounds: { x: number; y: number; width: number; height: number } | null = null;
+  let isCustomMaximized = false;
+  let isAnimating = false;
+
+  // Easing function for smooth animation (ease-out quint - even smoother)
+  function easeOutQuint(t: number): number {
+    return 1 - Math.pow(1 - t, 5);
+  }
+
+  async function animateWindow(
+    from: { x: number; y: number; width: number; height: number },
+    to: { x: number; y: number; width: number; height: number },
+    duration: number = 500
+  ) {
+    const window = getCurrentWindow();
+    const startTime = performance.now();
+
+    return new Promise<void>((resolve) => {
+      function step(currentTime: number) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = easeOutQuint(progress);
+
+        const currentX = Math.round(from.x + (to.x - from.x) * eased);
+        const currentY = Math.round(from.y + (to.y - from.y) * eased);
+        const currentWidth = Math.round(from.width + (to.width - from.width) * eased);
+        const currentHeight = Math.round(from.height + (to.height - from.height) * eased);
+
+        window.setPosition({ type: "Physical", x: currentX, y: currentY });
+        window.setSize({ type: "Physical", width: currentWidth, height: currentHeight });
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          resolve();
+        }
+      }
+
+      requestAnimationFrame(step);
+    });
+  }
+
+  async function toggleMaximize() {
+    if (isAnimating) return;
+
+    const window = getCurrentWindow();
+    const monitor = await currentMonitor();
+
+    if (!monitor) return;
+
+    isAnimating = true;
+
+    const pos = await window.outerPosition();
+    const size = await window.outerSize();
+    const currentBounds = { x: pos.x, y: pos.y, width: size.width, height: size.height };
+
+    if (isCustomMaximized && savedBounds) {
+      // Animate to saved bounds
+      await animateWindow(currentBounds, savedBounds);
+      isCustomMaximized = false;
+      savedBounds = null;
+    } else {
+      // Save current bounds
+      savedBounds = currentBounds;
+
+      // Animate to monitor bounds
+      const { position, size: monitorSize } = monitor;
+      const targetBounds = { x: position.x, y: position.y, width: monitorSize.width, height: monitorSize.height };
+      await animateWindow(currentBounds, targetBounds);
+      isCustomMaximized = true;
+    }
+
+    isAnimating = false;
+  }
 </script>
 
 <svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} />
 
 <div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput}>
-  <!-- Parser Directory Bar -->
-  <div class="parser-bar">
-    <span class="parser-label">Parser:</span>
-    <span class="parser-path" class:placeholder={!parserDirectory}>
-      {#if parserName}
-        {parserName}
-        <span class="parser-dir">({parserDirectory})</span>
-      {:else if parserDirectory}
-        {parserDirectory}
-      {:else}
-        No parser selected
-      {/if}
-    </span>
-    <button class="icon-btn" onclick={selectDirectory} title="Select parser directory">
-      <FolderOpen size={18} color="#e0e0e0" />
+  <!-- Activity Bar -->
+  <div class="activity-bar">
+    <div class="activity-bar-spacer" onmousedown={startWindowDrag}></div>
+    <button
+      class="activity-btn"
+      class:active={activeMode === "parse"}
+      onclick={() => activeMode = "parse"}
+      title="Parse"
+    >
+      <TreeDeciduous size={24} />
     </button>
     <button
-      class="build-btn"
-      onclick={buildParser}
-      disabled={!parserDirectory || isBuilding}
-      class:success={buildStatus === "success"}
-      class:error={buildStatus === "error"}
+      class="activity-btn"
+      class:active={activeMode === "debug"}
+      onclick={() => activeMode = "debug"}
+      title="Debug"
     >
-      {#if isBuilding}
-        <Loader2 size={14} class="spinning" />
-        {buildStatus === "success" ? "Regenerating..." : "Generating..."}
-      {:else}
-        <Hammer size={14} />
-        {buildStatus === "success" ? "Regenerate" : "Generate"}
-      {/if}
+      <Footprints size={24} />
+    </button>
+    <button
+      class="activity-btn"
+      class:active={activeMode === "design"}
+      onclick={() => activeMode = "design"}
+      title="Design"
+    >
+      <Pencil size={24} />
     </button>
   </div>
 
-  <!-- Main Content -->
+  <!-- Main Area -->
+  <div class="main-area">
+  <!-- Title Bar -->
+  <div class="title-bar" onmousedown={startWindowDrag} ondblclick={toggleMaximize}>
+    <div class="title-bar-left">
+      <!-- Space for macOS traffic lights -->
+    </div>
+    <div class="title-bar-center">
+      <button class="command-palette" onclick={selectDirectory} onmousedown={(e) => e.stopPropagation()}>
+        <div class="palette-content">
+          {#if parserName && parserDirectory}
+            <span class="palette-name">{parserName}</span>
+            <span class="palette-separator">—</span>
+            <span class="palette-path">{parserDirectory}</span>
+          {:else if parserDirectory}
+            <span class="palette-path">{parserDirectory}</span>
+          {:else}
+            <FolderOpen size={14} />
+            <span class="palette-placeholder">Open Parser...</span>
+          {/if}
+        </div>
+        <div class="palette-status-area">
+          {#if isBuilding}
+            <Loader2 size={14} class="spinning" />
+          {:else if showReadyStatus}
+            <CheckCircle size={14} class="palette-status-success" />
+          {:else if buildStatus === "error"}
+            <AlertTriangle size={14} class="palette-status-error" />
+          {/if}
+        </div>
+      </button>
+    </div>
+    <div class="title-bar-right">
+    </div>
+  </div>
+
+  <!-- Mode Content -->
+  {#if activeMode === "parse"}
+  <!-- Parse Mode -->
   <div class="main-content">
     <!-- Left Panel -->
     <div class="left-panel" style="width: {leftPanelWidth}px">
@@ -871,38 +998,35 @@
       </div>
     {/if}
   </div>
+  {:else if activeMode === "debug"}
+  <!-- Debug Mode -->
+  <div class="mode-placeholder">
+    <Footprints size={48} />
+    <h2>Debug Mode</h2>
+    <p>Trace visualization coming soon</p>
+  </div>
+  {:else if activeMode === "design"}
+  <!-- Design Mode -->
+  <div class="mode-placeholder">
+    <Pencil size={48} />
+    <h2>Design Mode</h2>
+    <p>Grammar editor coming soon</p>
+  </div>
+  {/if}
 
   <!-- Status Bar (always visible) -->
-  <div class="status-bar" class:error={statusMessage && statusType === "error"} class:success={statusMessage && statusType === "success"}>
+  <div class="status-bar">
     <div class="status-content">
-      {#if statusMessage}
-        {#if statusType === "error"}
-          <AlertTriangle size={14} />
-        {:else if statusType === "success"}
-          <CheckCircle size={14} />
+      <span class="status-text">
+        {#if isBuilding}
+          Building...
+        {:else if parserDirectory && buildStatus === "success"}
+          Ready
         {:else}
-          <Loader2 size={14} class="spinning" />
+          No parser selected
         {/if}
-        <span class="status-text">{statusMessage}</span>
-        {#if buildError && statusType === "error"}
-          <button class="status-details-btn" onclick={() => showStatusDetails = !showStatusDetails}>
-            {showStatusDetails ? "Hide" : "Details"}
-          </button>
-        {/if}
-        {#if statusType === "error"}
-          <button class="status-close" onclick={clearStatus}>
-            <X size={14} />
-          </button>
-        {/if}
-      {:else}
-        <span class="status-text placeholder">Ready</span>
-      {/if}
+      </span>
     </div>
-    {#if showStatusDetails && buildError}
-      <div class="status-details">
-        <pre>{buildError}</pre>
-      </div>
-    {/if}
   </div>
 
   <!-- Error Modal -->
@@ -926,6 +1050,7 @@
       </div>
     </div>
   {/if}
+  </div>
 </div>
 
 <style>
@@ -941,7 +1066,7 @@
 
   .app {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     height: 100vh;
     width: 100vw;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -950,86 +1075,179 @@
     color: #d4d4d4;
   }
 
-  /* Parser Directory Bar */
-  .parser-bar {
+  /* Activity Bar */
+  .activity-bar {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
-    background: #2d2d2d;
-    border-bottom: 1px solid #3c3c3c;
+    flex-direction: column;
+    width: 48px;
+    background: #333333;
+    border-right: 1px solid #3c3c3c;
     flex-shrink: 0;
   }
 
-  .parser-label {
-    font-weight: 600;
-    color: #888;
+  .activity-bar-spacer {
+    height: 52px; /* Match title bar height, space for macOS traffic lights */
+    flex-shrink: 0;
+    cursor: default;
   }
 
-  .parser-path {
-    flex: 1;
-    font-family: "Fira Code", "Consolas", monospace;
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .parser-path.placeholder {
-    color: #666;
-    font-style: italic;
-  }
-
-  .parser-dir {
-    color: #666;
-    font-size: 11px;
-    margin-left: 8px;
-  }
-
-  .icon-btn {
-    padding: 4px 8px;
-    background: #3c3c3c;
-    border: 1px solid #555;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-
-  .icon-btn:hover {
-    background: #4c4c4c;
-  }
-
-  .build-btn {
+  .activity-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: #3c3c3c;
-    color: #d4d4d4;
-    border: 1px solid #555;
-    border-radius: 4px;
+    width: 48px;
+    height: 48px;
+    background: transparent;
+    border: none;
+    color: #858585;
     cursor: pointer;
-    min-width: 120px;
+    border-left: 2px solid transparent;
   }
 
-  .build-btn:hover:not(:disabled) {
-    background: #4c4c4c;
+  .activity-btn:hover {
+    color: #d4d4d4;
   }
 
-  .build-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .activity-btn.active {
+    color: #d4d4d4;
+    border-left-color: #d4d4d4;
   }
 
-  .build-btn.success {
-    background: #2d5a2d;
-    border-color: #3d7a3d;
+  /* Main Area (right of activity bar) */
+  .main-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
   }
 
-  .build-btn.error {
-    background: #5a2d2d;
-    border-color: #7a3d3d;
+  /* Mode Placeholder */
+  .mode-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    gap: 16px;
+  }
+
+  .mode-placeholder h2 {
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .mode-placeholder p {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  /* Title Bar */
+  .title-bar {
+    display: flex;
+    align-items: center;
+    height: 52px;
+    background: #1e1e1e;
+    border-bottom: 1px solid #3c3c3c;
+    flex-shrink: 0;
+    cursor: default;
+  }
+
+  .title-bar-left {
+    width: 78px;  /* Space for macOS traffic lights */
+    flex-shrink: 0;
+  }
+
+  .title-bar-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 16px;
+  }
+
+  .title-bar-right {
+    width: 78px;  /* Balance with left */
+    flex-shrink: 0;
+  }
+
+  /* Command Palette */
+  .command-palette {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    min-width: 300px;
+    max-width: 550px;
+    width: 100%;
+    background: #2d2d2d;
+    border: 1px solid #404040;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #888;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .command-palette:hover {
+    border-color: #555;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .command-palette:focus {
+    outline: none;
+    border-color: #0e639c;
+  }
+
+  .palette-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .palette-status-area {
+    width: 20px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .palette-name {
+    font-weight: 600;
+    color: #e0e0e0;
+    flex-shrink: 0;
+  }
+
+  .palette-separator {
+    color: #444;
+    flex-shrink: 0;
+  }
+
+  .palette-path {
+    color: #666;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .palette-placeholder {
+    color: #666;
+  }
+
+  :global(.palette-status-success) {
+    color: #89d185;
+  }
+
+  :global(.palette-status-error) {
+    color: #f48771;
   }
 
   /* Main Content */
@@ -1454,7 +1672,6 @@
   /* Status Bar */
   .status-bar {
     display: flex;
-    flex-direction: column;
     background: #2d2d2d;
     border-top: 1px solid #3c3c3c;
     flex-shrink: 0;
@@ -1463,71 +1680,13 @@
   .status-bar > .status-content {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
+    gap: 6px;
+    padding: 4px 12px;
   }
 
-  .status-bar.error {
-    background: #3d2020;
-    border-top-color: #5a3030;
-  }
-
-  .status-bar.success {
-    background: #203d20;
-    border-top-color: #305a30;
-  }
-
-  .status-text {
-    flex: 1;
-    font-size: 13px;
-  }
-
-  .status-text.placeholder {
+  .status-bar .status-text {
+    font-size: 12px;
     color: #666;
-  }
-
-  .status-details-btn {
-    padding: 2px 8px;
-    background: rgba(255, 255, 255, 0.1);
-    color: #d4d4d4;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 12px;
-  }
-
-  .status-details-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  .status-close {
-    padding: 4px;
-    background: transparent;
-    color: #888;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-  }
-
-  .status-close:hover {
-    color: #d4d4d4;
-  }
-
-  .status-details {
-    padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.2);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    max-height: 200px;
-    overflow: auto;
-  }
-
-  .status-details pre {
-    margin: 0;
-    font-family: "Fira Code", "Consolas", monospace;
-    font-size: 12px;
-    white-space: pre-wrap;
-    word-break: break-all;
   }
 
   /* Modal */
