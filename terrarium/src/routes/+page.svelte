@@ -5,7 +5,7 @@
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
   import { availableMonitors, currentMonitor } from "@tauri-apps/api/window";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand, TreeDeciduous, Footprints, Pencil } from "lucide-svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand, GitFork, Bug, Braces } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
 
@@ -754,7 +754,7 @@
       onclick={() => activeMode = "parse"}
       title="Parse"
     >
-      <TreeDeciduous size={24} />
+      <GitFork size={24} style="transform: rotate(180deg)" />
     </button>
     <button
       class="activity-btn"
@@ -762,7 +762,7 @@
       onclick={() => activeMode = "debug"}
       title="Debug"
     >
-      <Footprints size={24} />
+      <Bug size={24} />
     </button>
     <button
       class="activity-btn"
@@ -770,7 +770,7 @@
       onclick={() => activeMode = "design"}
       title="Design"
     >
-      <Pencil size={24} />
+      <Braces size={24} />
     </button>
   </div>
 
@@ -1001,14 +1001,14 @@
   {:else if activeMode === "debug"}
   <!-- Debug Mode -->
   <div class="mode-placeholder">
-    <Footprints size={48} />
+    <Bug size={48} />
     <h2>Debug Mode</h2>
     <p>Trace visualization coming soon</p>
   </div>
   {:else if activeMode === "design"}
   <!-- Design Mode -->
   <div class="mode-placeholder">
-    <Pencil size={48} />
+    <Braces size={48} />
     <h2>Design Mode</h2>
     <p>Grammar editor coming soon</p>
   </div>
