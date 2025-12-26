@@ -87,7 +87,6 @@
   // State
   let inputText = $state("1 + 2 * 3");
   let startNonterminal = $state("Expr");
-  let traceEnabled = $state(false);
   let nonterminals = $state(["Expr", "Term", "Factor"]); // TODO: load from grammar
 
   // Playback state
@@ -826,88 +825,16 @@
             {/each}
           </select>
         </label>
-        <label class="trace-checkbox">
-          <input type="checkbox" bind:checked={traceEnabled} disabled={!parserDirectory} />
-          Trace
-        </label>
         <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success"}>Parse</button>
       </div>
 
     <!-- Input Area -->
-    <div class="input-section" style="flex: 0 0 {inputHeight}px">
+    <div class="input-section">
       <textarea
         bind:value={inputText}
         placeholder="Enter code to parse..."
         spellcheck="false"
       ></textarea>
-    </div>
-
-    <!-- Input Resize Handle -->
-    <div class="resize-handle-horizontal" onmousedown={startInputDrag}></div>
-
-    <!-- Playback Controls -->
-    <div class="playback-controls">
-      <button onclick={stepBack} disabled={currentStep === 0}>◀</button>
-      <button onclick={togglePlay}>{isPlaying ? "⏸" : "▶"}</button>
-      <button onclick={stepForward} disabled={currentStep === totalSteps}>▶▶</button>
-      <span class="step-counter">Step {currentStep}/{totalSteps}</span>
-      <input
-        type="range"
-        min="0"
-        max={totalSteps}
-        bind:value={currentStep}
-        class="step-slider"
-      />
-    </div>
-
-    <!-- Current Descriptor -->
-    <div class="section current-section" style="flex: 0 0 {currentDescHeight}px">
-      <div class="section-header">Current</div>
-      <div class="section-content current-descriptor">
-        {#if currentDescriptor}
-          <code>{currentDescriptor}</code>
-        {:else}
-          <span class="placeholder">No descriptor</span>
-        {/if}
-      </div>
-    </div>
-
-    <!-- Current Resize Handle -->
-    <div class="resize-handle-horizontal" onmousedown={startCurrentDrag}></div>
-
-    <!-- Descriptor Set -->
-    <div class="section descriptor-set">
-      <div class="section-header">Descriptor Set</div>
-      <div class="section-content">
-        {#if descriptorSet.length > 0}
-          <ul>
-            {#each descriptorSet as desc, i}
-              <li class:current={i === 0}><code>{desc}</code></li>
-            {/each}
-          </ul>
-        {:else}
-          <span class="placeholder">Empty</span>
-        {/if}
-      </div>
-    </div>
-
-    <!-- Call Stack -->
-    <div class="section call-stack" style="flex: 0 0 {callStackHeight}px">
-      <div class="section-header">Call Stack</div>
-      <div class="section-content">
-        {#if callStack.length > 0}
-          <ul>
-            {#each callStack as call, i}
-              <li style="padding-left: {i * 16}px">
-                <span class="call-marker">{i === callStack.length - 1 ? "●" : "▼"}</span>
-                <code>{call}</code>
-              </li>
-            {/each}
-          </ul>
-        {:else}
-          <span class="placeholder">Empty</span>
-        {/if}
-      </div>
     </div>
   </div>
 
@@ -1000,10 +927,157 @@
   </div>
   {:else if activeMode === "debug"}
   <!-- Debug Mode -->
-  <div class="mode-placeholder">
-    <Bug size={48} />
-    <h2>Debug Mode</h2>
-    <p>Trace visualization coming soon</p>
+  <div class="main-content">
+    <!-- Left Panel -->
+    <div class="left-panel" style="width: {leftPanelWidth}px">
+      <!-- Header -->
+      <div class="header">
+        <label>
+          Start:
+          <select bind:value={startNonterminal} disabled={!parserDirectory}>
+            {#each nonterminals as nt}
+              <option value={nt}>{nt}</option>
+            {/each}
+          </select>
+        </label>
+        <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success"}>Debug</button>
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-section" style="flex: 0 0 {inputHeight}px">
+        <textarea
+          bind:value={inputText}
+          placeholder="Enter code to parse..."
+          spellcheck="false"
+        ></textarea>
+      </div>
+
+      <!-- Input Resize Handle -->
+      <div class="resize-handle-horizontal" onmousedown={startInputDrag}></div>
+
+      <!-- Playback Controls -->
+      <div class="playback-controls">
+        <button onclick={stepBack} disabled={currentStep === 0}>◀</button>
+        <button onclick={togglePlay}>{isPlaying ? "⏸" : "▶"}</button>
+        <button onclick={stepForward} disabled={currentStep === totalSteps}>▶▶</button>
+        <span class="step-counter">Step {currentStep}/{totalSteps}</span>
+        <input
+          type="range"
+          min="0"
+          max={totalSteps}
+          bind:value={currentStep}
+          class="step-slider"
+        />
+      </div>
+
+      <!-- Current Descriptor -->
+      <div class="section current-section" style="flex: 0 0 {currentDescHeight}px">
+        <div class="section-header">Current</div>
+        <div class="section-content current-descriptor">
+          {#if currentDescriptor}
+            <code>{currentDescriptor}</code>
+          {:else}
+            <span class="placeholder">No descriptor</span>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Current Resize Handle -->
+      <div class="resize-handle-horizontal" onmousedown={startCurrentDrag}></div>
+
+      <!-- Descriptor Set -->
+      <div class="section descriptor-set">
+        <div class="section-header">Descriptor Set</div>
+        <div class="section-content">
+          {#if descriptorSet.length > 0}
+            <ul>
+              {#each descriptorSet as desc, i}
+                <li class:current={i === 0}><code>{desc}</code></li>
+              {/each}
+            </ul>
+          {:else}
+            <span class="placeholder">Empty</span>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Call Stack -->
+      <div class="section call-stack" style="flex: 0 0 {callStackHeight}px">
+        <div class="section-header">Call Stack</div>
+        <div class="section-content">
+          {#if callStack.length > 0}
+            <ul>
+              {#each callStack as call, i}
+                <li style="padding-left: {i * 16}px">
+                  <span class="call-marker">{i === callStack.length - 1 ? "●" : "▼"}</span>
+                  <code>{call}</code>
+                </li>
+              {/each}
+            </ul>
+          {:else}
+            <span class="placeholder">Empty</span>
+          {/if}
+        </div>
+      </div>
+    </div>
+
+    <!-- Vertical Resize Handle -->
+    <div class="resize-handle-vertical" onmousedown={startVerticalDrag}></div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <!-- Graph Tabs -->
+      <div class="graph-section">
+        <div class="tabs">
+          <button
+            class:active={activeTab === "gss"}
+            onclick={() => activeTab = "gss"}
+          >GSS</button>
+          <button
+            class:active={activeTab === "sppf"}
+            onclick={() => activeTab = "sppf"}
+          >SPPF</button>
+        </div>
+        <div class="graph-container">
+          {#if activeTab === "gss"}
+            {#if gss}
+              <div class="cytoscape-container" bind:this={gssContainer}></div>
+              <div class="graph-controls">
+                <button onclick={zoomIn} title="Zoom in">
+                  <ZoomIn size={16} />
+                </button>
+                <button onclick={zoomOut} title="Zoom out">
+                  <ZoomOut size={16} />
+                </button>
+                <button onclick={resetView} title="Reset view">
+                  <Maximize2 size={16} />
+                </button>
+              </div>
+            {:else}
+              <div class="graph-placeholder">Run debug to see GSS</div>
+            {/if}
+          {:else if sppf}
+            <div class="cytoscape-container" bind:this={sppfContainer}></div>
+            <div class="graph-controls">
+              <button onclick={zoomIn} title="Zoom in">
+                <ZoomIn size={16} />
+              </button>
+              <button onclick={zoomOut} title="Zoom out">
+                <ZoomOut size={16} />
+              </button>
+              <button onclick={resetView} title="Reset view">
+                <Maximize2 size={16} />
+              </button>
+              <button onclick={expandAll} title="Expand all (double-click node to collapse)">
+                <Expand size={16} />
+              </button>
+            </div>
+          {:else}
+            <div class="graph-placeholder">Run debug to see SPPF</div>
+          {/if}
+        </div>
+      </div>
+    </div>
   </div>
   {:else if activeMode === "design"}
   <!-- Design Mode -->
@@ -1323,12 +1397,6 @@
     border-radius: 4px;
   }
 
-  .trace-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
   .parse-btn {
     margin-left: auto;
     padding: 6px 16px;
@@ -1351,8 +1419,8 @@
 
   /* Input Section */
   .input-section {
+    flex: 1;
     min-height: 100px;
-    max-height: 400px;
     padding: 8px;
   }
 
