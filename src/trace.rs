@@ -101,17 +101,17 @@ impl TraceEvent {
             }
             TraceEvent::GSSNodeCreated(nonterminal_id, input_index) => format!(
                 "GSS node ({},{}) created",
-                parser.nonterminal_name(nonterminal_id),
+                parser.nonterminal(nonterminal_id),
                 input_index
             ),
             TraceEvent::GSSNodeFound(nonterminal_id, input_index) => format!(
                 "GSS node ({},{}) found",
-                parser.nonterminal_name(nonterminal_id),
+                parser.nonterminal(nonterminal_id),
                 input_index
             ),
             TraceEvent::GSSNodeNotFound(nonterminal_id, input_index) => format!(
                 "GSS node ({},{}) not found",
-                parser.nonterminal_name(nonterminal_id),
+                parser.nonterminal(nonterminal_id),
                 input_index
             ),
             TraceEvent::GSSNodeAdded(origin_gss_node_id, dest_gss_node_id, return_slot) => format!(
@@ -128,7 +128,7 @@ impl TraceEvent {
             ),
             TraceEvent::NonterminalNodeCreated(nonterminal_id, span) => format!(
                 "({}, {}, {})",
-                parser.nonterminal_name(nonterminal_id),
+                parser.nonterminal(nonterminal_id),
                 span.left_extent,
                 span.right_extent
             ),

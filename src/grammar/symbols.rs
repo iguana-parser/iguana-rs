@@ -1,6 +1,8 @@
-use std::fmt::Display;
+use core::hash;
+use std::{fmt::Display, hash::Hasher};
 
 use itertools::Itertools;
+use quote::quote;
 
 #[derive(Debug, Clone)]
 pub enum Symbol {
@@ -87,15 +89,66 @@ impl Display for Terminal {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
+pub enum NonterminalNodeKind {
+    Simple,
+    Star,
+    Plus,
+    Opt,
+    Group,
+    Alt,
+}
+
+impl quote::ToTokens for NonterminalNodeKind {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let variant = match self {
+            Self::Simple => quote!(Simple),
+            Self::Star => quote!(Star),
+            Self::Plus => quote!(Plus),
+            Self::Opt => quote!(Opt),
+            Self::Group => quote!(Group),
+            Self::Alt => quote!(Alt),
+        };
+        tokens.extend(quote!(NonterminalNodeKind::#variant));
+    }
+}
+
+/// The `name` uniquely identifies the nonterminal in the grammar.
+/// `kind` has information on how this nonterminal was derived (e.g., from EBNF transformations).
+#[derive(Debug, Clone)]
 pub struct Nonterminal {
     pub name: String,
+    pub kind: NonterminalNodeKind,
 }
 
 impl Nonterminal {
     pub fn new(name: impl Into<String>) -> Self {
-        Self { name: name.into() }
+        Self {
+            name: name.into(),
+            kind: NonterminalNodeKind::Simple,
+        }
+    }
+
+    pub fn with_kind(name: impl Into<String>, kind: NonterminalNodeKind) -> Self {
+        Self {
+            name: name.into(),
+            kind,
+        }
     }
 }
+
+impl hash::Hash for Nonterminal {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+    }
+}
+
+impl PartialEq for Nonterminal {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
+impl Eq for Nonterminal {}
 
 impl Display for Nonterminal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

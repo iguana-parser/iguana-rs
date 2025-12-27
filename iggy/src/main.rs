@@ -11,11 +11,10 @@ use iguana::{
     parser::{ParseResult, Parser},
     visualization::{
         dot::write_svg,
-        gss::render_gss,
+        gss::{build_gss_dot_graph, render_gss},
         sppf::{build_sppf_graph, write_sppf_dot},
     },
 };
-use serde_json;
 use std::{
     fs::File,
     io::{self, BufWriter, Write},
@@ -29,11 +28,6 @@ enum TraceFormat {
 }
 #[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
 enum VisTarget {
-    Sppf,
-    Gss,
-}
-#[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
-enum EmitTarget {
     Sppf,
     Gss,
 }
@@ -52,9 +46,12 @@ struct Cli {
     /// Generate visualization as SVG (sppf or gss)
     #[arg(long, value_enum)]
     vis: Option<VisTarget>,
-    /// Emit data as JSON to stdout (sppf or gss)
-    #[arg(long, value_enum)]
-    emit: Option<EmitTarget>,
+    /// Write SPPF as JSON to the specified file
+    #[arg(long, value_name = "FILE")]
+    write_sppf: Option<PathBuf>,
+    /// Write GSS as JSON to the specified file
+    #[arg(long, value_name = "FILE")]
+    write_gss: Option<PathBuf>,
 }
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
@@ -79,7 +76,18 @@ fn main() -> Result<(), io::Error> {
     match parser.run(NonterminalId(0)) {
         ParseResult::Success(parse_success) => {
             let node_id = parse_success.sppf_node_id;
-            println!("Parse success.");
+            if let Some(ref path) = cli.write_sppf {
+                let sppf = build_sppf_graph(&parser, node_id);
+                let file = File::create(path)?;
+                let mut writer = BufWriter::new(file);
+                writeln!(writer, "{}", serde_json::to_string(&sppf).unwrap())?;
+            }
+            if let Some(ref path) = cli.write_gss {
+                let gss = build_gss_dot_graph(&parser);
+                let file = File::create(path)?;
+                let mut writer = BufWriter::new(file);
+                writeln!(writer, "{}", serde_json::to_string(&gss).unwrap())?;
+            }
             match cli.vis {
                 Some(VisTarget::Gss) => {
                     let path = std::path::Path::new("gss.dot");
@@ -95,18 +103,11 @@ fn main() -> Result<(), io::Error> {
                 }
                 None => {}
             }
-            match cli.emit {
-                Some(EmitTarget::Sppf) => {
-                    let sppf = build_sppf_graph(&parser, node_id);
-                    println!("{}", serde_json::to_string(&sppf).unwrap());
-                }
-                Some(EmitTarget::Gss) => {
-                    eprintln!("GSS JSON emission not yet implemented");
-                }
-                None => {}
+            if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() {
+                println!("Parse success.");
+                let parse_tree = create_parse_tree(node_id, &parser, &parse_tree_builder);
+                println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
             }
-            let parse_tree = create_parse_tree(node_id, &parser, &parse_tree_builder);
-            println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
         }
         ParseResult::Failure() => {
             println!("Parse failed");

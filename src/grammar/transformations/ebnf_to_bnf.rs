@@ -1,6 +1,6 @@
 use crate::grammar::{
     grammar::{Alternative, GrammarDef, PriorityLevel, SyntaxRule},
-    symbols::{Nonterminal, Symbol},
+    symbols::{Nonterminal, NonterminalNodeKind, Symbol},
 };
 
 struct Counters {
@@ -111,7 +111,7 @@ fn transform_symbol(
         Symbol::Group(symbols) => {
             let name = counters.next_group(parent_name);
             let new_rule = SyntaxRule::builder()
-                .head(Nonterminal::new(&name))
+                .head(Nonterminal::with_kind(&name, NonterminalNodeKind::Group))
                 .add_priority_level(
                     PriorityLevel::builder()
                         .add_alternative(Alternative::builder().add_symbols(symbols).build())
@@ -119,14 +119,14 @@ fn transform_symbol(
                 )
                 .build();
             new_rules.push(new_rule);
-            Symbol::Nonterminal(Nonterminal::new(&name))
+            Symbol::Nonterminal(Nonterminal::new(name))
         }
         // Transform A? into: S_Opt0 ::= A | ε
         Symbol::Opt(symbol) => {
             let name = counters.next_opt(parent_name);
             let transformed_symbol = transform_symbol(*symbol, parent_name, counters, new_rules);
             let new_rule = SyntaxRule::builder()
-                .head(Nonterminal::new(&name))
+                .head(Nonterminal::with_kind(&name, NonterminalNodeKind::Opt))
                 .add_priority_level(
                     PriorityLevel::builder()
                         .add_alternative(
@@ -139,7 +139,7 @@ fn transform_symbol(
                 )
                 .build();
             new_rules.push(new_rule);
-            Symbol::Nonterminal(Nonterminal::new(&name))
+            Symbol::Nonterminal(Nonterminal::new(name))
         }
         // Transform (A | B | C) into: S_Alt0 ::= A | B | C
         Symbol::Alt(symbols) => {
@@ -153,7 +153,7 @@ fn transform_symbol(
                 .map(|s| Alternative::builder().add_symbol(s).build())
                 .collect();
             let new_rule = SyntaxRule::builder()
-                .head(Nonterminal::new(&name))
+                .head(Nonterminal::with_kind(&name, NonterminalNodeKind::Alt))
                 .add_priority_level(
                     PriorityLevel::builder()
                         .add_alternatives(alternatives)
@@ -161,14 +161,14 @@ fn transform_symbol(
                 )
                 .build();
             new_rules.push(new_rule);
-            Symbol::Nonterminal(Nonterminal::new(&name))
+            Symbol::Nonterminal(Nonterminal::new(name))
         }
         // Transform A* into: S_Star0 ::= S_Star0 A | ε (left-recursive)
         Symbol::Star(symbol) => {
             let name = counters.next_star(parent_name);
             let transformed_symbol = transform_symbol(*symbol, parent_name, counters, new_rules);
             let new_rule = SyntaxRule::builder()
-                .head(Nonterminal::new(&name))
+                .head(Nonterminal::with_kind(&name, NonterminalNodeKind::Star))
                 .add_priority_level(
                     PriorityLevel::builder()
                         .add_alternative(
@@ -182,14 +182,14 @@ fn transform_symbol(
                 )
                 .build();
             new_rules.push(new_rule);
-            Symbol::Nonterminal(Nonterminal::new(&name))
+            Symbol::Nonterminal(Nonterminal::new(name))
         }
         // Transform A+ into: S_Plus0 ::= S_Plus0 A | A (left-recursive)
         Symbol::Plus(symbol) => {
             let name = counters.next_plus(parent_name);
             let transformed_symbol = transform_symbol(*symbol, parent_name, counters, new_rules);
             let new_rule = SyntaxRule::builder()
-                .head(Nonterminal::new(&name))
+                .head(Nonterminal::with_kind(&name, NonterminalNodeKind::Plus))
                 .add_priority_level(
                     PriorityLevel::builder()
                         .add_alternative(
@@ -207,7 +207,7 @@ fn transform_symbol(
                 )
                 .build();
             new_rules.push(new_rule);
-            Symbol::Nonterminal(Nonterminal::new(&name))
+            Symbol::Nonterminal(Nonterminal::new(name))
         }
         _ => symbol,
     }

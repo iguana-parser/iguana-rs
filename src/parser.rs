@@ -4,6 +4,7 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     descriptor::Descriptor,
+    grammar::symbols::Nonterminal,
     gss::{EdgeResult, GSSEdge, GSSNode},
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
@@ -39,9 +40,10 @@ pub trait Parser<'i> {
         input_index: u32,
         gss_node_id: GssNodeId,
     );
-    fn nonterminal_name(&self, nonterminal_id: NonterminalId) -> &str;
+    fn nonterminal(&self, nonterminal_id: NonterminalId) -> &Nonterminal;
     fn terminal_name(&self, terminal_id: TerminalId) -> &str;
     fn slot_name(&self, slot_id: SlotId) -> &str;
+    fn nonterminals() -> impl Iterator<Item = &'static Nonterminal>;
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId>;
     fn add_gss_node(
         &mut self,
@@ -124,7 +126,7 @@ pub trait Parser<'i> {
         let i = match sppf_node {
             Some(node) => node.right_extent(),
             None => gss_node.index,
-        } as u32;
+        };
         // If there is already a GSS node for this call, just add the edge
         if let Some(exiting_gss_node_id) = self.get_gss_node(nonterminal_id, i) {
             record!(self, GSSNodeFound, nonterminal_id, i);
@@ -239,7 +241,7 @@ pub trait Parser<'i> {
         let gss_node = self.gss_node(gss_node_id);
         format!(
             "({},{})",
-            self.nonterminal_name(gss_node.nonterminal_id),
+            self.nonterminal(gss_node.nonterminal_id),
             gss_node.index
         )
     }
@@ -256,7 +258,7 @@ pub trait Parser<'i> {
             }
             SPPFNode::Nonterminal(n) => format!(
                 "({}, {}, {})",
-                self.nonterminal_name(n.nonterminal_id),
+                self.nonterminal(n.nonterminal_id),
                 n.span.left_extent,
                 n.span.right_extent
             ),

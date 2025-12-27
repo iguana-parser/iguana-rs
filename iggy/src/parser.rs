@@ -3,6 +3,7 @@ use crate::scanner::IggyScanner;
 use iguana::trace::TraceEvent;
 use iguana::{
     descriptor::Descriptor,
+    grammar::symbols::{Nonterminal, NonterminalNodeKind},
     gss::GSSNode,
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
@@ -13,8 +14,15 @@ use iguana::{
     utils::inline_map::InlineMap,
 };
 use rustc_hash::FxHashMap;
-use std::cell::OnceCell;
-const NONTERMINALS: [&str; 4] = ["Grammar", "Rule", "Grammar_Plus0", "Rule_Plus1"];
+use std::{cell::OnceCell, sync::LazyLock};
+static NONTERMINALS: LazyLock<[Nonterminal; 4]> = LazyLock::new(|| {
+    [
+        Nonterminal::with_kind("Grammar", NonterminalNodeKind::Simple),
+        Nonterminal::with_kind("Rule", NonterminalNodeKind::Simple),
+        Nonterminal::with_kind("Grammar_Plus0", NonterminalNodeKind::Plus),
+        Nonterminal::with_kind("Rule_Plus1", NonterminalNodeKind::Plus),
+    ]
+});
 const TERMINALS: [&str; 4] = ["Identifier", "WS", "grammar", ":"];
 const SLOTS: [&str; 18] = [
     "Grammar : . \"grammar\" Identifier Grammar_Plus0",
@@ -472,8 +480,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
         }
     }
-    fn nonterminal_name(&self, nonterminal_id: NonterminalId) -> &str {
-        NONTERMINALS[nonterminal_id.index()]
+    fn nonterminal(&self, nonterminal_id: NonterminalId) -> &Nonterminal {
+        &NONTERMINALS[nonterminal_id.index()]
+    }
+    fn nonterminals() -> impl Iterator<Item = &'static Nonterminal> {
+        NONTERMINALS.iter()
     }
     fn terminal_name(&self, terminal_id: TerminalId) -> &str {
         TERMINALS[terminal_id.index()]

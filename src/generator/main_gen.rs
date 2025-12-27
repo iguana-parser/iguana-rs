@@ -28,7 +28,6 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
         #[cfg(feature = "debug-trace")]
         use iguana::trace::TraceEvent;
-        use serde_json;
 
         #[derive(Clone, Copy, Default, clap::ValueEnum)]
         enum TraceFormat {

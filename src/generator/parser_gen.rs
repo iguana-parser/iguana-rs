@@ -29,6 +29,7 @@ pub fn generate(
     let terminals_const = gen_terminals_const(terminal_ids);
     let slots_const = gen_slots_const(slot_ids);
     let nonterminal_name_method = gen_nonterminal_name_method();
+    let nonterminals_method = gen_nonterminals_method();
     let terminal_name_method = gen_terminal_name_method();
     let slot_name_method = gen_slot_name_method();
     let get_gss_node_method = gen_get_gss_node_method();
@@ -67,6 +68,7 @@ pub fn generate(
             #execute_method
             #first_descriptors
             #nonterminal_name_method
+            #nonterminals_method
             #terminal_name_method
             #slot_name_method
             #get_gss_node_method
@@ -102,9 +104,10 @@ pub fn generate(
 fn gen_imports(grammar: &Grammar) -> TokenStream {
     let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&grammar.name));
     quote! {
-        use std::cell::OnceCell;
+        use std::{cell::OnceCell, sync::LazyLock};
         use iguana::{
             descriptor::Descriptor,
+            grammar::symbols::{Nonterminal, NonterminalNodeKind},
             gss::GSSNode,
             ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
             input::Input,
@@ -177,10 +180,11 @@ fn gen_nonterminals_const(nonterminal_ids: &NonterminalIds) -> TokenStream {
     let nonterminals_len = Literal::usize_unsuffixed(nonterminal_ids.len());
     let nonterminal_names = nonterminal_ids.nonterminals().map(|n| {
         let nonterminal_name = &n.name;
-        quote! { #nonterminal_name }
+        let kind = &n.kind;
+        quote! { Nonterminal::with_kind(#nonterminal_name, #kind) }
     });
     quote! {
-        const NONTERMINALS: [&str; #nonterminals_len] = [#(#nonterminal_names),*];
+        static NONTERMINALS: LazyLock<[Nonterminal; #nonterminals_len]> = LazyLock::new(|| [#(#nonterminal_names),*]);
     }
 }
 
@@ -409,8 +413,16 @@ fn gen_nonterminal_slot(
 
 fn gen_nonterminal_name_method() -> TokenStream {
     quote! {
-        fn nonterminal_name(&self, nonterminal_id: NonterminalId) -> &str {
-            NONTERMINALS[nonterminal_id.index()]
+        fn nonterminal(&self, nonterminal_id: NonterminalId) -> &Nonterminal {
+            &NONTERMINALS[nonterminal_id.index()]
+        }
+    }
+}
+
+fn gen_nonterminals_method() -> TokenStream {
+    quote! {
+        fn nonterminals() -> impl Iterator<Item = &'static Nonterminal> {
+            NONTERMINALS.iter()
         }
     }
 }
