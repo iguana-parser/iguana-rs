@@ -667,10 +667,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             trace_events.push(event);
         }
     }
+    fn start_nonterminal(&self) -> NonterminalId {
+        self.start_nonterminal
+    }
 }
 pub struct IggyParser<'i> {
-    descriptors: Vec<Descriptor>,
+    start_nonterminal: NonterminalId,
     scanner: IggyScanner<'i>,
+    descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
     //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
     gss_nodes_index: [Vec<(u32, GssNodeId)>; 4],
@@ -687,12 +691,13 @@ pub struct IggyParser<'i> {
     pub trace_events: Option<Vec<TraceEvent>>,
 }
 impl<'i> IggyParser<'i> {
-    pub fn new(input: &'i Input) -> Self {
+    pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
         init_logger();
         Self {
+            start_nonterminal,
+            scanner: IggyScanner::new(input),
             gss_nodes_index: [const { vec![] }; 4],
             descriptors: vec![],
-            scanner: IggyScanner::new(input),
             gss_nodes: vec![],
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 4],

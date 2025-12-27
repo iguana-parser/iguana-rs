@@ -56,6 +56,7 @@ pub fn generate(
     let intermediate_nodes_children_method = gen_intermediate_nodes_children_map_method();
     let nonterminal_nodes_children_method = gen_nonterminal_nodes_children_map_method();
     let add_trace_event_method = gen_add_trace_event_method();
+    let start_nonterminal_method = gen_start_nonterminal_method();
     let parser_struct = gen_parser_struct(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let parser_impl = gen_parser_impl(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
@@ -95,6 +96,7 @@ pub fn generate(
             #intermediate_nodes_children_method
             #nonterminal_nodes_children_method
             #add_trace_event_method
+            #start_nonterminal_method
         }
         #parser_struct
         #parser_impl
@@ -725,8 +727,9 @@ fn gen_parser_struct(
         syn::Ident::new(&format!("{}{}", grammar_name, "Scanner"), Span::call_site());
     quote! {
         pub struct #parser_name_ident<'i> {
-            descriptors: Vec<Descriptor>,
+            start_nonterminal: NonterminalId,
             scanner: #scanner_name_ident<'i>,
+            descriptors: Vec<Descriptor>,
             gss_nodes: Vec<GSSNode>,
             #[comment="A vector from nonterminal_ids to a tuple (input_index, gss_node_id)"]
             gss_nodes_index: [Vec<(u32, GssNodeId)>; #nonterminal_ids_len],
@@ -772,12 +775,13 @@ fn gen_new_method(
     let intermediate_nodes_index_field = gen_intermediate_nodes_index_field(slot_ids);
     let terminal_nodes_index_field = gen_terminal_nodes_index_field(terminal_ids);
     quote! {
-        pub fn new(input: &'i Input) -> Self {
+        pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
             init_logger();
             Self {
+                start_nonterminal,
+                scanner: #name_ident::new(input),
                 #gss_nodes_index_field,
                 descriptors: vec![],
-                scanner: #name_ident::new(input),
                 gss_nodes: vec![],
                 sppf_nodes: vec![],
                 #nonterminal_nodes_index_field,
@@ -822,6 +826,14 @@ fn gen_terminal_nodes_index_field(slot_ids: &TerminalIds) -> TokenStream {
         terminal_nodes_index: [const { InlineMap::Empty }; #terminal_ids_len]
     }
 }
+
+fn gen_start_nonterminal_method() -> TokenStream {
+    quote! {
+        fn start_nonterminal(&self) -> NonterminalId {
+            self.start_nonterminal
+        }
+    }
+}    
 
 /// Creates a string representation of a grammar slot of the form `A : a B . c`.
 fn slot_to_string(nt_name: &str, seq: &Alternative, pos: usize) -> String {

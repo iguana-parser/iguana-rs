@@ -40,6 +40,7 @@ pub trait Parser<'i> {
         input_index: u32,
         gss_node_id: GssNodeId,
     );
+    fn start_nonterminal(&self) -> NonterminalId;
     fn nonterminal(&self, nonterminal_id: NonterminalId) -> &Nonterminal;
     fn terminal_name(&self, terminal_id: TerminalId) -> &str;
     fn slot_name(&self, slot_id: SlotId) -> &str;
@@ -389,9 +390,10 @@ pub trait Parser<'i> {
 
     fn add_terminal_node(&mut self, node: TerminalNode) -> SPPFNodeId;
 
-    fn run(&mut self, start_nonterminal_id: NonterminalId) -> ParseResult {
+    fn run(&mut self) -> ParseResult {
         let start = Instant::now();
         let start_input_index = 0;
+        let start_nonterminal_id = self.start_nonterminal();
         let start_gss_node_id = self.new_gss_node(start_nonterminal_id, start_input_index);
         self.add_first_descriptors(start_nonterminal_id, start_input_index, start_gss_node_id);
         self.add_gss_node(start_nonterminal_id, start_input_index, start_gss_node_id);

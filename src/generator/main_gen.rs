@@ -49,6 +49,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             /// Input file to parse
             file: PathBuf,
 
+            // The nonterminal to start parse from
+            #[arg(long = "start")]
+            start_nonterminal: String,
+
             /// Enable trace output (writes to stdout or specified file)
             #[arg(long, value_name = "FILE")]
             trace: Option<Option<PathBuf>>,
@@ -86,7 +90,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             }
 
             let input = Input::try_from(cli.file.as_path())?;
-            let mut parser = #parser::new(&input);
+            let start_nonterminal_id = NonterminalId(0);
+            let mut parser = #parser::new(&input, start_nonterminal_id);
 
             #[cfg(feature = "debug-trace")]
             if cli.trace.is_some() {
@@ -94,7 +99,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             }
 
             let parse_tree_builder = #parse_tree_builder;
-            match parser.run(NonterminalId(0)) {
+            match parser.run() {
                 ParseResult::Success(parse_success) => {
                     let node_id = parse_success.sppf_node_id;
 

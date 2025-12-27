@@ -37,6 +37,8 @@ enum VisTarget {
 struct Cli {
     /// Input file to parse
     file: PathBuf,
+    #[arg(long = "start")]
+    start_nonterminal: String,
     /// Enable trace output (writes to stdout or specified file)
     #[arg(long, value_name = "FILE")]
     trace: Option<Option<PathBuf>>,
@@ -67,13 +69,14 @@ fn main() -> Result<(), io::Error> {
         );
     }
     let input = Input::try_from(cli.file.as_path())?;
-    let mut parser = IggyParser::new(&input);
+    let start_nonterminal_id = NonterminalId(0);
+    let mut parser = IggyParser::new(&input, start_nonterminal_id);
     #[cfg(feature = "debug-trace")]
     if cli.trace.is_some() {
         parser.trace_events = Some(vec![]);
     }
     let parse_tree_builder = IggyParseTreeBuilder;
-    match parser.run(NonterminalId(0)) {
+    match parser.run() {
         ParseResult::Success(parse_success) => {
             let node_id = parse_success.sppf_node_id;
             if let Some(ref path) = cli.write_sppf {
