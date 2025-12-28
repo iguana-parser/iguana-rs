@@ -19,9 +19,9 @@ async buildParser(directory: string) : Promise<void> {
 async generateParser(directory: string) : Promise<void> {
     await TAURI_INVOKE("generate_parser", { directory });
 },
-async parse(directory: string, input: string) : Promise<Result<null, string>> {
+async parse(directory: string, input: string, startNonterminal: string) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("parse", { directory, input }) };
+    return { status: "ok", data: await TAURI_INVOKE("parse", { directory, input, startNonterminal }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

@@ -540,7 +540,7 @@
     gss = null;
     parseResultAvailable = false;
 
-    const result = await commands.parse(parserDirectory, inputText);
+    const result = await commands.parse(parserDirectory, inputText, startNonterminal!);
     if (result.status === "ok") {
       parseResultAvailable = true;
       outputContent = "Parse successful";

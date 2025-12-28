@@ -138,6 +138,7 @@ fn build_parser(directory: String, app: tauri::AppHandle) {
 fn parse(
     directory: String,
     input: String,
+    start_nonterminal: String,
     state: tauri::State<Mutex<ParseState>>,
 ) -> Result<(), String> {
     let parser_path = get_parser_binary_path(&directory)?;
@@ -155,6 +156,8 @@ fn parse(
 
     let output = Command::new(&parser_path)
         .arg(input_file.path())
+        .arg("--start")
+        .arg(&start_nonterminal)
         .arg("--write-sppf")
         .arg(&sppf_path)
         .arg("--write-gss")
