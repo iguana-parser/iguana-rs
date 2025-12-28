@@ -32,7 +32,11 @@ pub fn generate(
     let impl_iterator_for_child_iter = gen_impl_iterator_for_child_iter(grammar);
     let from_for_tree_impls = gen_from_for_tree_impls(grammar);
     let parse_tree_builder_impl = gen_parse_tree_builder_impl(grammar, nonterminal_ids, slot_ids);
-    let create_parse_tree_method = gen_create_parse_tree_method(grammar);
+    let create_parse_tree_function = gen_create_parse_tree_function(grammar);
+    let create_parse_tree_functions: Vec<_> = grammar
+        .nonterminals()
+        .map(|n| gen_create_parse_tree_nonterminal_function(grammar, &n.name))
+        .collect();
 
     let nonterminal_types: Vec<_> = grammar
         .nonterminals()
@@ -64,7 +68,8 @@ pub fn generate(
         #token_impl
         #token_kind_function
         #parse_tree_builder_impl
-        #create_parse_tree_method
+        #create_parse_tree_function
+        #(#create_parse_tree_functions)*
         #to_sexpr_function
         #node_to_sexpr_function
     }
@@ -507,7 +512,7 @@ fn gen_parse_tree_enum(grammar: &Grammar) -> TokenStream {
         .collect();
     quote! {
         #[derive(Debug)]
-        enum ParseTree {
+        pub enum ParseTree {
             #(#variants),*,
             Token(Token)
         }
@@ -515,9 +520,11 @@ fn gen_parse_tree_enum(grammar: &Grammar) -> TokenStream {
 }
 
 fn gen_parse_tree_impl(grammar: &Grammar) -> TokenStream {
+    let as_parse_tree_ref_method = gen_as_parse_tree_ref_method_for_parse_tree(grammar);
     let unwrap_methods = gen_unwrap_methods(grammar);
     quote! {
         impl ParseTree {
+            #as_parse_tree_ref_method
             #(#unwrap_methods)*
             fn unwrap_token(self) -> Token {
                 match self {
@@ -528,6 +535,24 @@ fn gen_parse_tree_impl(grammar: &Grammar) -> TokenStream {
         }
     }
 }
+
+fn gen_as_parse_tree_ref_method_for_parse_tree(grammar: &Grammar) -> TokenStream {
+    let arms = grammar.nonterminals().map(|n| {
+        let name = &n.name;
+        let variant = Ident::new(&to_first_uppercase(name), Span::call_site());
+        let var = Ident::new(&to_first_lowercase(name), Span::call_site());
+        quote! { ParseTree::#variant(#var) => #var.as_parse_tree_ref() }
+    });
+    quote! {
+        pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+            match self {
+                #(#arms),*,
+                ParseTree::Token(token) => token.as_parse_tree_ref(),
+            }
+        }
+    }
+}
+
 
 fn gen_unwrap_methods(grammar: &Grammar) -> Vec<TokenStream> {
     grammar
@@ -686,20 +711,50 @@ fn gen_from_for_tree_impls(grammar: &Grammar) -> TokenStream {
     quote! { #(#from_impls)* }
 }
 
-fn gen_create_parse_tree_method(grammar: &Grammar) -> TokenStream {
+
+fn gen_create_parse_tree_function(grammar: &Grammar) -> TokenStream {
     let parser_name_ident = format_ident!("{}Parser", grammar.name);
     let builder_name_ident = format_ident!("{}ParseTreeBuilder", grammar.name);
-    let return_type = Ident::new(&to_first_uppercase(&grammar.start_symbol.name), Span::call_site());
-    let unwrap_method = format_ident!("unwrap_{}", to_first_lowercase(&grammar.start_symbol.name));
+    let arms: Vec<_> = grammar
+        .nonterminals()
+        .map(|n| {
+            let name = &n.name;
+            let function_name = format_ident!("create_parse_tree_{}", to_first_lowercase(name));
+            let variant_name = Ident::new(&to_first_uppercase(name), Span::call_site());
+            quote! { #name => ParseTree::#variant_name(#function_name(root_id, parser, builder)) }
+        })
+        .collect();
     quote! {
         pub fn create_parse_tree(
-        root_id: SPPFNodeId,
-        parser: &#parser_name_ident,
-        builder: &#builder_name_ident,
-    ) -> #return_type {
-        let node = parser.sppf_node(root_id);
-        visit_sppf(node, parser, builder).unwrap_one().#unwrap_method()
+            root_id: SPPFNodeId,
+            name: &str,
+            parser: &#parser_name_ident,
+            builder: &#builder_name_ident,
+        ) -> ParseTree {
+            match name {
+                #(#arms),*,
+                _ => panic!()
+            }
+        }
     }
+}
+
+/// Generates functions with the name create_parse_tree_#name, where name is the name of a nonterminal. 
+fn gen_create_parse_tree_nonterminal_function(grammar: &Grammar, nonterminal_name: &str) -> TokenStream {
+    let parser_name_ident = format_ident!("{}Parser", grammar.name);
+    let builder_name_ident = format_ident!("{}ParseTreeBuilder", grammar.name);
+    let return_type = Ident::new(&to_first_uppercase(nonterminal_name), Span::call_site());
+    let function_name = format_ident!("create_parse_tree_{}", to_first_lowercase(nonterminal_name));
+    let unwrap_method = format_ident!("unwrap_{}", to_first_lowercase(nonterminal_name));
+    quote! {
+        pub fn #function_name(
+            root_id: SPPFNodeId,
+            parser: &#parser_name_ident,
+            builder: &#builder_name_ident,
+        ) -> #return_type {
+            let node = parser.sppf_node(root_id);
+            visit_sppf(node, parser, builder).unwrap_one().#unwrap_method()
+        }
     }
 }
 

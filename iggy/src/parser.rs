@@ -23,6 +23,13 @@ static NONTERMINALS: LazyLock<[Nonterminal; 4]> = LazyLock::new(|| {
         Nonterminal::with_kind("Rule_Plus1", NonterminalNodeKind::Plus),
     ]
 });
+static NONTERMINAL_IDS: LazyLock<FxHashMap<&str, NonterminalId>> = LazyLock::new(|| {
+    NONTERMINALS
+        .iter()
+        .enumerate()
+        .map(|(i, nt)| (nt.name.as_ref(), NonterminalId(i as u16)))
+        .collect()
+});
 const TERMINALS: [&str; 4] = ["Identifier", "WS", "grammar", ":"];
 const SLOTS: [&str; 18] = [
     "Grammar : . \"grammar\" Identifier Grammar_Plus0",
@@ -45,6 +52,18 @@ const SLOTS: [&str; 18] = [
     "Rule_Plus1 : Identifier.",
 ];
 impl<'i> Parser<'i> for IggyParser<'i> {
+    fn nonterminal(nonterminal_id: NonterminalId) -> &'static Nonterminal {
+        &NONTERMINALS[nonterminal_id.index()]
+    }
+    fn nonterminal_id(name: &str) -> Option<NonterminalId> {
+        NONTERMINAL_IDS.get(name).copied()
+    }
+    fn nonterminals() -> impl Iterator<Item = &'static Nonterminal> {
+        NONTERMINALS.iter()
+    }
+    fn terminal_name(terminal_id: TerminalId) -> &'static str {
+        TERMINALS[terminal_id.index()]
+    }
     fn execute(
         &mut self,
         input_index: u32,
@@ -480,16 +499,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
         }
     }
-    fn nonterminal(&self, nonterminal_id: NonterminalId) -> &Nonterminal {
-        &NONTERMINALS[nonterminal_id.index()]
-    }
-    fn nonterminals() -> impl Iterator<Item = &'static Nonterminal> {
-        NONTERMINALS.iter()
-    }
-    fn terminal_name(&self, terminal_id: TerminalId) -> &str {
-        TERMINALS[terminal_id.index()]
-    }
-    fn slot_name(&self, slot_id: SlotId) -> &str {
+    fn slot_name(slot_id: SlotId) -> &'static str {
         SLOTS[slot_id.index()]
     }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {

@@ -46,12 +46,12 @@ pub enum TraceEvent {
 
 #[cfg(feature = "debug-trace")]
 impl TraceEvent {
-    pub fn message<'i>(&self, parser: &impl Parser<'i>) -> String {
+    pub fn message<'i, P: Parser<'i>>(&self, parser: &P) -> String {
         match *self {
             TraceEvent::ProcessingDescriptor(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 format!(
                     "Processing ({}, {}, {}, {})",
-                    parser.slot_name(slot_id),
+                    P::slot_name(slot_id),
                     input_index,
                     parser.gss_to_string(gss_node_id),
                     if let Some(sppf_node_id) = sppf_node_id {
@@ -64,7 +64,7 @@ impl TraceEvent {
             TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 format!(
                     "Descriptor ({}, {}, {}, {}) added.",
-                    parser.slot_name(slot_id),
+                    P::slot_name(slot_id),
                     input_index,
                     parser.gss_to_string(gss_node_id),
                     if let Some(sppf_node_id) = sppf_node_id {
@@ -101,40 +101,40 @@ impl TraceEvent {
             }
             TraceEvent::GSSNodeCreated(nonterminal_id, input_index) => format!(
                 "GSS node ({},{}) created",
-                parser.nonterminal(nonterminal_id),
+                P::nonterminal(nonterminal_id),
                 input_index
             ),
             TraceEvent::GSSNodeFound(nonterminal_id, input_index) => format!(
                 "GSS node ({},{}) found",
-                parser.nonterminal(nonterminal_id),
+                P::nonterminal(nonterminal_id),
                 input_index
             ),
             TraceEvent::GSSNodeNotFound(nonterminal_id, input_index) => format!(
                 "GSS node ({},{}) not found",
-                parser.nonterminal(nonterminal_id),
+                P::nonterminal(nonterminal_id),
                 input_index
             ),
             TraceEvent::GSSNodeAdded(origin_gss_node_id, dest_gss_node_id, return_slot) => format!(
                 "GSS edge added from {} to {} with return label {}",
                 parser.gss_to_string(origin_gss_node_id),
                 parser.gss_to_string(dest_gss_node_id),
-                parser.slot_name(return_slot)
+                P::slot_name(return_slot)
             ),
             TraceEvent::TerminalNodeCreated(terminal_id, span) => format!(
                 "({}, {}, {})",
-                parser.terminal_name(terminal_id),
+                P::terminal_name(terminal_id),
                 span.left_extent,
                 span.right_extent
             ),
             TraceEvent::NonterminalNodeCreated(nonterminal_id, span) => format!(
                 "({}, {}, {})",
-                parser.nonterminal(nonterminal_id),
+                P::nonterminal(nonterminal_id),
                 span.left_extent,
                 span.right_extent
             ),
             TraceEvent::IntermediateNodeCreated(slot_id, span) => format!(
                 "({}, {}, {})",
-                parser.slot_name(slot_id),
+                P::slot_name(slot_id),
                 span.left_extent,
                 span.right_extent
             ),
@@ -169,7 +169,7 @@ impl TraceEvent {
                     .map(|sppf_node_id| parser.sppf_node_to_string(parser.sppf_node(sppf_node_id)))
                     .unwrap_or("$".to_owned()),
                 parser.gss_to_string(gss_node_id),
-                parser.slot_name(slot_id)
+                P::slot_name(slot_id)
             ),
             TraceEvent::ParseSuccess(duration) => {
                 format!("Parse succeeded in {:?} ms", duration.as_millis())

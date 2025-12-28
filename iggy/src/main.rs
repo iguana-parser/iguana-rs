@@ -6,7 +6,6 @@ use iggy::{
 #[cfg(feature = "debug-trace")]
 use iguana::trace::TraceEvent;
 use iguana::{
-    ids::NonterminalId,
     input::Input,
     parser::{ParseResult, Parser},
     visualization::{
@@ -69,7 +68,8 @@ fn main() -> Result<(), io::Error> {
         );
     }
     let input = Input::try_from(cli.file.as_path())?;
-    let start_nonterminal_id = NonterminalId(0);
+    let start_nonterminal_name = &cli.start_nonterminal;
+    let start_nonterminal_id = IggyParser::nonterminal_id(start_nonterminal_name).unwrap();
     let mut parser = IggyParser::new(&input, start_nonterminal_id);
     #[cfg(feature = "debug-trace")]
     if cli.trace.is_some() {
@@ -108,7 +108,12 @@ fn main() -> Result<(), io::Error> {
             }
             if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() {
                 println!("Parse success.");
-                let parse_tree = create_parse_tree(node_id, &parser, &parse_tree_builder);
+                let parse_tree = create_parse_tree(
+                    node_id,
+                    start_nonterminal_name,
+                    &parser,
+                    &parse_tree_builder,
+                );
                 println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
             }
         }

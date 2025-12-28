@@ -24,11 +24,13 @@ pub fn generate(
     let grammar_name = &grammar.name;
     let imports = gen_imports(grammar);
     let nonterminals_const = gen_nonterminals_const(nonterminal_ids);
+    let nonterminal_ids_static_var = gen_nonterminal_ids();
     let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids);
     let first_descriptors = gen_add_first_descriptors_method(grammar, nonterminal_ids, slot_ids);
     let terminals_const = gen_terminals_const(terminal_ids);
     let slots_const = gen_slots_const(slot_ids);
-    let nonterminal_name_method = gen_nonterminal_name_method();
+    let nonterminal_method = gen_nonterminal_method();
+    let nonterminal_id_method = gen_nonterminal_id_method();
     let nonterminals_method = gen_nonterminals_method();
     let terminal_name_method = gen_terminal_name_method();
     let slot_name_method = gen_slot_name_method();
@@ -63,14 +65,16 @@ pub fn generate(
     quote! {
         #imports
         #nonterminals_const
+        #nonterminal_ids_static_var
         #terminals_const
         #slots_const
         impl<'i> Parser<'i> for #grammar_name_ident<'i> {
-            #execute_method
-            #first_descriptors
-            #nonterminal_name_method
+            #nonterminal_method
+            #nonterminal_id_method
             #nonterminals_method
             #terminal_name_method
+            #execute_method
+            #first_descriptors
             #slot_name_method
             #get_gss_node_method
             #gen_add_gss_node_method
@@ -187,6 +191,18 @@ fn gen_nonterminals_const(nonterminal_ids: &NonterminalIds) -> TokenStream {
     });
     quote! {
         static NONTERMINALS: LazyLock<[Nonterminal; #nonterminals_len]> = LazyLock::new(|| [#(#nonterminal_names),*]);
+    }
+}
+
+fn gen_nonterminal_ids() -> TokenStream {
+    quote! {
+        static NONTERMINAL_IDS: LazyLock<FxHashMap<&str, NonterminalId>> = LazyLock::new(|| {
+            NONTERMINALS
+                .iter()
+                .enumerate()
+                .map(|(i, nt)| (nt.name.as_ref(), NonterminalId(i as u16)))
+                .collect()
+        });
     }
 }
 
@@ -413,9 +429,9 @@ fn gen_nonterminal_slot(
     }
 }
 
-fn gen_nonterminal_name_method() -> TokenStream {
+fn gen_nonterminal_method() -> TokenStream {
     quote! {
-        fn nonterminal(&self, nonterminal_id: NonterminalId) -> &Nonterminal {
+        fn nonterminal(nonterminal_id: NonterminalId) -> &'static Nonterminal {
             &NONTERMINALS[nonterminal_id.index()]
         }
     }
@@ -429,9 +445,17 @@ fn gen_nonterminals_method() -> TokenStream {
     }
 }
 
+fn gen_nonterminal_id_method() -> TokenStream {
+    quote! {
+        fn nonterminal_id(name: &str) -> Option<NonterminalId> {
+            NONTERMINAL_IDS.get(name).copied()
+        }
+    }
+}
+
 fn gen_terminal_name_method() -> TokenStream {
     quote! {
-        fn terminal_name(&self, terminal_id: TerminalId) -> &str {
+        fn terminal_name(terminal_id: TerminalId) -> &'static str {
             TERMINALS[terminal_id.index()]
         }
     }
@@ -439,7 +463,7 @@ fn gen_terminal_name_method() -> TokenStream {
 
 fn gen_slot_name_method() -> TokenStream {
     quote! {
-        fn slot_name(&self, slot_id: SlotId) -> &str {
+        fn slot_name(slot_id: SlotId) -> &'static str {
             SLOTS[slot_id.index()]
         }
     }
@@ -833,7 +857,7 @@ fn gen_start_nonterminal_method() -> TokenStream {
             self.start_nonterminal
         }
     }
-}    
+}
 
 /// Creates a string representation of a grammar slot of the form `A : a B . c`.
 fn slot_to_string(nt_name: &str, seq: &Alternative, pos: usize) -> String {

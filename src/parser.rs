@@ -27,6 +27,11 @@ pub struct ParseSuccess {
 }
 
 pub trait Parser<'i> {
+    fn nonterminal(nonterminal_id: NonterminalId) -> &'static Nonterminal;
+    fn nonterminal_id(name: &str) -> Option<NonterminalId>;
+    fn terminal_name(terminal_id: TerminalId) -> &'static str;
+    fn slot_name(slot_id: SlotId) -> &'static str;
+    fn nonterminals() -> impl Iterator<Item = &'static Nonterminal>;
     fn execute(
         &mut self,
         input_index: u32,
@@ -41,10 +46,6 @@ pub trait Parser<'i> {
         gss_node_id: GssNodeId,
     );
     fn start_nonterminal(&self) -> NonterminalId;
-    fn nonterminal(&self, nonterminal_id: NonterminalId) -> &Nonterminal;
-    fn terminal_name(&self, terminal_id: TerminalId) -> &str;
-    fn slot_name(&self, slot_id: SlotId) -> &str;
-    fn nonterminals() -> impl Iterator<Item = &'static Nonterminal>;
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId>;
     fn add_gss_node(
         &mut self,
@@ -242,7 +243,7 @@ pub trait Parser<'i> {
         let gss_node = self.gss_node(gss_node_id);
         format!(
             "({},{})",
-            self.nonterminal(gss_node.nonterminal_id),
+            Self::nonterminal(gss_node.nonterminal_id),
             gss_node.index
         )
     }
@@ -252,21 +253,21 @@ pub trait Parser<'i> {
             SPPFNode::Terminal(t) => {
                 format!(
                     "({}, {}, {})",
-                    self.terminal_name(t.terminal_id),
+                    Self::terminal_name(t.terminal_id),
                     t.span.left_extent,
                     t.span.right_extent
                 )
             }
             SPPFNode::Nonterminal(n) => format!(
                 "({}, {}, {})",
-                self.nonterminal(n.nonterminal_id),
+                Self::nonterminal(n.nonterminal_id),
                 n.span.left_extent,
                 n.span.right_extent
             ),
             SPPFNode::Intermediate(i) => {
                 format!(
                     "({}, {}, {})",
-                    self.slot_name(i.slot_id),
+                    Self::slot_name(i.slot_id),
                     i.span.left_extent,
                     i.span.right_extent
                 )

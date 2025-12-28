@@ -29,7 +29,7 @@ impl TokenKind {
     }
 }
 #[derive(Debug)]
-enum ParseTree {
+pub enum ParseTree {
     Grammar(Grammar),
     Rule(Rule),
     Grammar_Plus0(Grammar_Plus0),
@@ -37,6 +37,15 @@ enum ParseTree {
     Token(Token),
 }
 impl ParseTree {
+    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        match self {
+            ParseTree::Grammar(grammar) => grammar.as_parse_tree_ref(),
+            ParseTree::Rule(rule) => rule.as_parse_tree_ref(),
+            ParseTree::Grammar_Plus0(grammar_Plus0) => grammar_Plus0.as_parse_tree_ref(),
+            ParseTree::Rule_Plus1(rule_Plus1) => rule_Plus1.as_parse_tree_ref(),
+            ParseTree::Token(token) => token.as_parse_tree_ref(),
+        }
+    }
     fn unwrap_grammar(self) -> Grammar {
         match self {
             ParseTree::Grammar(grammar) => grammar,
@@ -341,6 +350,24 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
+    name: &str,
+    parser: &IggyParser,
+    builder: &IggyParseTreeBuilder,
+) -> ParseTree {
+    match name {
+        "Grammar" => ParseTree::Grammar(create_parse_tree_grammar(root_id, parser, builder)),
+        "Rule" => ParseTree::Rule(create_parse_tree_rule(root_id, parser, builder)),
+        "Grammar_Plus0" => {
+            ParseTree::Grammar_Plus0(create_parse_tree_grammar_Plus0(root_id, parser, builder))
+        }
+        "Rule_Plus1" => {
+            ParseTree::Rule_Plus1(create_parse_tree_rule_Plus1(root_id, parser, builder))
+        }
+        _ => panic!(),
+    }
+}
+pub fn create_parse_tree_grammar(
+    root_id: SPPFNodeId,
     parser: &IggyParser,
     builder: &IggyParseTreeBuilder,
 ) -> Grammar {
@@ -348,6 +375,34 @@ pub fn create_parse_tree(
     visit_sppf(node, parser, builder)
         .unwrap_one()
         .unwrap_grammar()
+}
+pub fn create_parse_tree_rule(
+    root_id: SPPFNodeId,
+    parser: &IggyParser,
+    builder: &IggyParseTreeBuilder,
+) -> Rule {
+    let node = parser.sppf_node(root_id);
+    visit_sppf(node, parser, builder).unwrap_one().unwrap_rule()
+}
+pub fn create_parse_tree_grammar_Plus0(
+    root_id: SPPFNodeId,
+    parser: &IggyParser,
+    builder: &IggyParseTreeBuilder,
+) -> Grammar_Plus0 {
+    let node = parser.sppf_node(root_id);
+    visit_sppf(node, parser, builder)
+        .unwrap_one()
+        .unwrap_grammar_Plus0()
+}
+pub fn create_parse_tree_rule_Plus1(
+    root_id: SPPFNodeId,
+    parser: &IggyParser,
+    builder: &IggyParseTreeBuilder,
+) -> Rule_Plus1 {
+    let node = parser.sppf_node(root_id);
+    visit_sppf(node, parser, builder)
+        .unwrap_one()
+        .unwrap_rule_Plus1()
 }
 pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
     let mut s = String::new();

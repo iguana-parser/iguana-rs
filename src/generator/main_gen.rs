@@ -16,7 +16,6 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
         use clap::Parser as ClapParser;
         use iguana::{
-            ids::NonterminalId,
             input::Input,
             parser::{ParseResult, Parser},
             visualization::{dot::write_svg, gss::{build_gss_dot_graph, render_gss}, sppf::{build_sppf_graph, write_sppf_dot}},
@@ -90,7 +89,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             }
 
             let input = Input::try_from(cli.file.as_path())?;
-            let start_nonterminal_id = NonterminalId(0);
+            let start_nonterminal_name = &cli.start_nonterminal;
+            let start_nonterminal_id = #parser::nonterminal_id(start_nonterminal_name).unwrap();
             let mut parser = #parser::new(&input, start_nonterminal_id);
 
             #[cfg(feature = "debug-trace")]
@@ -139,7 +139,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     // Print parse tree if no write flags specified
                     if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() {
                         println!("Parse success.");
-                        let parse_tree = create_parse_tree(node_id, &parser, &parse_tree_builder);
+                        let parse_tree = create_parse_tree(node_id, start_nonterminal_name, &parser, &parse_tree_builder);
                         println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
                     }
                 }
