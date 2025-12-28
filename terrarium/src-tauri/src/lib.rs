@@ -22,16 +22,13 @@ struct BuildResult {
 
 #[derive(Default)]
 struct ParseState {
-    // Keep TempDir alive so files aren't deleted
     _temp_dir: Option<TempDir>,
     sppf_path: Option<PathBuf>,
     gss_path: Option<PathBuf>,
 }
 
-#[tauri::command]
-#[specta::specta]
-fn get_parser_name(directory: String) -> Result<String, String> {
-    let cargo_path = Path::new(&directory).join("Cargo.toml");
+fn read_parser_name(directory: &str) -> Result<String, String> {
+    let cargo_path = Path::new(directory).join("Cargo.toml");
     let content = fs::read_to_string(&cargo_path)
         .map_err(|_| "No valid Iguana parser found in this directory.".to_string())?;
 
@@ -43,6 +40,29 @@ fn get_parser_name(directory: String) -> Result<String, String> {
         .as_str()
         .map(|s| s.to_string())
         .ok_or_else(|| "No valid Iguana parser found in this directory.".to_string())
+}
+
+fn get_parser_binary_path(directory: &str) -> Result<PathBuf, String> {
+    let parser_name = read_parser_name(directory)?;
+    let parser_path = Path::new(directory)
+        .join("target")
+        .join("debug")
+        .join(&parser_name);
+
+    if !parser_path.exists() {
+        return Err(format!(
+            "Parser not found at {:?}. Please build first.",
+            parser_path
+        ));
+    }
+
+    Ok(parser_path)
+}
+
+#[tauri::command]
+#[specta::specta]
+fn get_parser_name(directory: String) -> Result<String, String> {
+    read_parser_name(&directory)
 }
 
 #[tauri::command]
@@ -178,37 +198,19 @@ fn parse(
     input: String,
     state: tauri::State<Mutex<ParseState>>,
 ) -> Result<(), String> {
-    // Get parser name from Cargo.toml
-    let parser_name = get_parser_name(directory.clone())?;
+    let parser_path = get_parser_binary_path(&directory)?;
 
-    // Write input to temp file
     let mut input_file = NamedTempFile::new()
         .map_err(|e| format!("Failed to create temp file: {}", e))?;
     input_file
         .write_all(input.as_bytes())
         .map_err(|e| format!("Failed to write input: {}", e))?;
 
-    // Create temp directory for output files
-    let temp_dir = TempDir::new()
-        .map_err(|e| format!("Failed to create temp directory: {}", e))?;
+    let temp_dir =
+        TempDir::new().map_err(|e| format!("Failed to create temp directory: {}", e))?;
     let sppf_path = temp_dir.path().join("sppf.json");
     let gss_path = temp_dir.path().join("gss.json");
 
-    // Build path to parser binary
-    let parser_path = Path::new(&directory)
-        .join("target")
-        .join("debug")
-        .join(&parser_name);
-
-    // Check if parser exists
-    if !parser_path.exists() {
-        return Err(format!(
-            "Parser not found at {:?}. Please build first.",
-            parser_path
-        ));
-    }
-
-    // Run parser with --write-sppf and --write-gss
     let output = Command::new(&parser_path)
         .arg(input_file.path())
         .arg("--write-sppf")
@@ -221,7 +223,6 @@ fn parse(
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    // Check for parse failure
     if stdout.trim() == "Parse failed" {
         return Err("Parse error".to_string());
     }
@@ -230,7 +231,6 @@ fn parse(
         return Err(format!("Parser exited with error: {}", stderr));
     }
 
-    // Store paths in state
     let mut parse_state = state.lock().unwrap();
     parse_state._temp_dir = Some(temp_dir);
     parse_state.sppf_path = Some(sppf_path);
@@ -269,6 +269,31 @@ fn get_gss(state: tauri::State<Mutex<ParseState>>) -> Result<GSS, String> {
     serde_json::from_str(&content).map_err(|e| format!("Failed to parse GSS JSON: {}", e))
 }
 
+#[tauri::command]
+#[specta::specta]
+fn get_nonterminals(directory: String) -> Result<Vec<String>, String> {
+    let parser_path = get_parser_binary_path(&directory)?;
+
+    let output = Command::new(&parser_path)
+        .arg("--list-nonterminals")
+        .output()
+        .map_err(|e| format!("Failed to run parser: {}", e))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Failed to list nonterminals: {}", stderr));
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let nonterminals: Vec<String> = stdout
+        .lines()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect();
+
+    Ok(nonterminals)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = Builder::<tauri::Wry>::new().commands(collect_commands![
@@ -276,7 +301,8 @@ pub fn run() {
         build_parser,
         parse,
         get_sppf,
-        get_gss
+        get_gss,
+        get_nonterminals
     ]);
 
     #[cfg(debug_assertions)]

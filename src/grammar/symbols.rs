@@ -3,6 +3,8 @@ use std::{fmt::Display, hash::Hasher};
 
 use itertools::Itertools;
 use quote::quote;
+use serde::{Deserialize, Serialize};
+use specta::Type;
 
 #[derive(Debug, Clone)]
 pub enum Symbol {
@@ -88,7 +90,7 @@ impl Display for Terminal {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Serialize, Deserialize, Type)]
 pub enum NonterminalNodeKind {
     Simple,
     Star,
@@ -114,7 +116,7 @@ impl quote::ToTokens for NonterminalNodeKind {
 
 /// The `name` uniquely identifies the nonterminal in the grammar.
 /// `kind` has information on how this nonterminal was derived (e.g., from EBNF transformations).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct Nonterminal {
     pub name: String,
     pub kind: NonterminalNodeKind,

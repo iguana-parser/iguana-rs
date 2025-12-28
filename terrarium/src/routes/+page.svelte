@@ -21,14 +21,19 @@
       isBuilding = false;
       if (event.payload.success) {
         buildStatus = "success";
-        // Refresh parser name after successful build
         if (parserDirectory) {
-          const result = await commands.getParserName(parserDirectory);
-          if (result.status === "ok") {
-            parserName = result.data;
+          const nameResult = await commands.getParserName(parserDirectory);
+          if (nameResult.status === "ok") {
+            parserName = nameResult.data;
+          }
+          const ntResult = await commands.getNonterminals(parserDirectory);
+          if (ntResult.status === "ok") {
+            nonterminals = ntResult.data;
+            if (nonterminals.length > 0 && !startNonterminal) {
+              startNonterminal = nonterminals[0];
+            }
           }
         }
-        // Show "Ready" status briefly
         showReadyStatus = true;
         if (readyStatusTimeout) clearTimeout(readyStatusTimeout);
         readyStatusTimeout = setTimeout(() => {
@@ -86,8 +91,8 @@
 
   // State
   let inputText = $state("1 + 2 * 3");
-  let startNonterminal = $state("Expr");
-  let nonterminals = $state(["Expr", "Term", "Factor"]); // TODO: load from grammar
+  let startNonterminal = $state<string | null>(null);
+  let nonterminals = $state<string[]>([]);
 
   // Playback state
   let currentStep = $state(0);
@@ -825,7 +830,7 @@
             {/each}
           </select>
         </label>
-        <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success"}>Parse</button>
+        <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Parse</button>
       </div>
 
     <!-- Input Area -->
@@ -940,7 +945,7 @@
             {/each}
           </select>
         </label>
-        <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success"}>Debug</button>
+        <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Debug</button>
       </div>
 
       <!-- Input Area -->

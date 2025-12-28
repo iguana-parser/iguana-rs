@@ -16,6 +16,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
         use clap::Parser as ClapParser;
         use iguana::{
+            grammar::symbols::NonterminalNodeKind,
             input::Input,
             parser::{ParseResult, Parser},
             visualization::{dot::write_svg, gss::{build_gss_dot_graph, render_gss}, sppf::{build_sppf_graph, write_sppf_dot}},
@@ -45,12 +46,16 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         #[command(name = "parser")]
         #[command(about = "Parse a file and generate visualization")]
         struct Cli {
-            /// Input file to parse
-            file: PathBuf,
+            /// Input file to parse (required unless --list-nonterminals is used)
+            file: Option<PathBuf>,
 
-            // The nonterminal to start parse from
+            /// The nonterminal to start parsing from (required unless --list-nonterminals is used)
             #[arg(long = "start")]
-            start_nonterminal: String,
+            start_nonterminal: Option<String>,
+
+            /// List simple nonterminals (one per line) and exit
+            #[arg(long)]
+            list_nonterminals: bool,
 
             /// Enable trace output (writes to stdout or specified file)
             #[arg(long, value_name = "FILE")]
@@ -83,14 +88,31 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             let cli = Cli::parse();
 
+            // Handle --list-nonterminals: output simple nonterminals and exit
+            if cli.list_nonterminals {
+                for nt in #parser::nonterminals() {
+                    if nt.kind == NonterminalNodeKind::Simple {
+                        println!("{}", nt.name);
+                    }
+                }
+                return Ok(());
+            }
+
+            // For parsing, file and start_nonterminal are required
+            let file = cli.file.ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidInput, "Input file is required for parsing")
+            })?;
+            let start_nonterminal_name = cli.start_nonterminal.ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidInput, "--start is required for parsing")
+            })?;
+
             #[cfg(not(feature = "debug-trace"))]
             if cli.trace.is_some() {
                 eprintln!("Warning: --trace flag ignored. Recompile with `--features debug-trace` to enable tracing.");
             }
 
-            let input = Input::try_from(cli.file.as_path())?;
-            let start_nonterminal_name = &cli.start_nonterminal;
-            let start_nonterminal_id = #parser::nonterminal_id(start_nonterminal_name).unwrap();
+            let input = Input::try_from(file.as_path())?;
+            let start_nonterminal_id = #parser::nonterminal_id(&start_nonterminal_name).unwrap();
             let mut parser = #parser::new(&input, start_nonterminal_id);
 
             #[cfg(feature = "debug-trace")]
@@ -139,7 +161,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     // Print parse tree if no write flags specified
                     if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() {
                         println!("Parse success.");
-                        let parse_tree = create_parse_tree(node_id, start_nonterminal_name, &parser, &parse_tree_builder);
+                        let parse_tree = create_parse_tree(node_id, &start_nonterminal_name, &parser, &parse_tree_builder);
                         println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
                     }
                 }
