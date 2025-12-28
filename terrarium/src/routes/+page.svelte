@@ -22,11 +22,14 @@
       if (event.payload.success) {
         buildStatus = "success";
         if (parserDirectory) {
-          const nameResult = await commands.getParserName(parserDirectory);
+          // Fetch parser name and nonterminals in parallel
+          const [nameResult, ntResult] = await Promise.all([
+            commands.getParserName(parserDirectory),
+            commands.getNonterminals(parserDirectory)
+          ]);
           if (nameResult.status === "ok") {
             parserName = nameResult.data;
           }
-          const ntResult = await commands.getNonterminals(parserDirectory);
           if (ntResult.status === "ok") {
             nonterminals = ntResult.data;
             if (nonterminals.length > 0 && !startNonterminal) {
@@ -45,9 +48,21 @@
       }
     });
 
+    const unlistenGenerateResult = listen<{ success: boolean; message: string }>("generate-result", (event) => {
+      isGenerating = false;
+      if (event.payload.success) {
+        generateStatus = "success";
+        generateError = null;
+      } else {
+        generateStatus = "error";
+        generateError = event.payload.message;
+      }
+    });
+
     return () => {
       unlistenProgress.then(fn => fn());
       unlistenResult.then(fn => fn());
+      unlistenGenerateResult.then(fn => fn());
     };
   });
 
@@ -63,6 +78,11 @@
   // Modal state
   let showErrorModal = $state(false);
   let errorModalMessage = $state("");
+
+  // Generation state
+  let isGenerating = $state(false);
+  let generateStatus = $state<"none" | "success" | "error">("none");
+  let generateError = $state<string | null>(null);
 
   // Status bar state
   let statusMessage = $state<string | null>(null);
@@ -93,6 +113,7 @@
   let inputText = $state("1 + 2 * 3");
   let startNonterminal = $state<string | null>(null);
   let nonterminals = $state<string[]>([]);
+  let dropdownOpen = $state(false);
 
   // Playback state
   let currentStep = $state(0);
@@ -460,6 +481,8 @@
       sppf = null;
       gss = null;
       parseResultAvailable = false;
+      nonterminals = [];
+      startNonterminal = null;
 
       // Try to get parser name (might not exist yet if empty directory)
       const result = await commands.getParserName(parserDirectory);
@@ -486,6 +509,15 @@
     setStatus("Starting build...", "info");
     // Command returns immediately, results come via events
     await commands.buildParser(parserDirectory);
+  }
+
+  async function generateParser() {
+    if (!parserDirectory) return;
+    isGenerating = true;
+    generateError = null;
+    generateStatus = "none";
+    // Command returns immediately, results come via events
+    await commands.generateParser(parserDirectory);
   }
 
   function clearStatus() {
@@ -665,6 +697,14 @@
     isDraggingOutput = false;
   }
 
+  function handleWindowClick(e: MouseEvent) {
+    // Close dropdown when clicking outside
+    const target = e.target as HTMLElement;
+    if (!target.closest('.custom-dropdown')) {
+      dropdownOpen = false;
+    }
+  }
+
   function startWindowDrag() {
     getCurrentWindow().startDragging();
   }
@@ -746,7 +786,7 @@
   }
 </script>
 
-<svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} />
+<svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} on:click={handleWindowClick} />
 
 <div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput}>
   <!-- Activity Bar -->
@@ -822,14 +862,32 @@
     <div class="left-panel" style="width: {leftPanelWidth}px">
       <!-- Header -->
       <div class="header">
-        <label>
-          Start:
-          <select bind:value={startNonterminal} disabled={!parserDirectory}>
-            {#each nonterminals as nt}
-              <option value={nt}>{nt}</option>
-            {/each}
-          </select>
-        </label>
+        <div class="dropdown-wrapper">
+          <span class="dropdown-label">Start:</span>
+          <div class="custom-dropdown" class:disabled={!parserDirectory || nonterminals.length === 0}>
+            <button
+              class="dropdown-trigger"
+              onclick={() => dropdownOpen = !dropdownOpen}
+              disabled={!parserDirectory || nonterminals.length === 0}
+            >
+              <span class="dropdown-value">{startNonterminal || "Select..."}</span>
+              <ChevronDown size={14} class="dropdown-chevron" />
+            </button>
+            {#if dropdownOpen}
+              <div class="dropdown-menu">
+                {#each nonterminals as nt}
+                  <button
+                    class="dropdown-item"
+                    class:selected={nt === startNonterminal}
+                    onclick={() => { startNonterminal = nt; dropdownOpen = false; }}
+                  >
+                    {nt}
+                  </button>
+                {/each}
+              </div>
+            {/if}
+          </div>
+        </div>
         <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Parse</button>
       </div>
 
@@ -937,14 +995,32 @@
     <div class="left-panel" style="width: {leftPanelWidth}px">
       <!-- Header -->
       <div class="header">
-        <label>
-          Start:
-          <select bind:value={startNonterminal} disabled={!parserDirectory}>
-            {#each nonterminals as nt}
-              <option value={nt}>{nt}</option>
-            {/each}
-          </select>
-        </label>
+        <div class="dropdown-wrapper">
+          <span class="dropdown-label">Start:</span>
+          <div class="custom-dropdown" class:disabled={!parserDirectory || nonterminals.length === 0}>
+            <button
+              class="dropdown-trigger"
+              onclick={() => dropdownOpen = !dropdownOpen}
+              disabled={!parserDirectory || nonterminals.length === 0}
+            >
+              <span class="dropdown-value">{startNonterminal || "Select..."}</span>
+              <ChevronDown size={14} class="dropdown-chevron" />
+            </button>
+            {#if dropdownOpen}
+              <div class="dropdown-menu">
+                {#each nonterminals as nt}
+                  <button
+                    class="dropdown-item"
+                    class:selected={nt === startNonterminal}
+                    onclick={() => { startNonterminal = nt; dropdownOpen = false; }}
+                  >
+                    {nt}
+                  </button>
+                {/each}
+              </div>
+            {/if}
+          </div>
+        </div>
         <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Debug</button>
       </div>
 
@@ -1086,10 +1162,41 @@
   </div>
   {:else if activeMode === "design"}
   <!-- Design Mode -->
-  <div class="mode-placeholder">
-    <Braces size={48} />
-    <h2>Design Mode</h2>
-    <p>Grammar editor coming soon</p>
+  <div class="design-mode">
+    <div class="design-header">
+      <button
+        class="generate-btn"
+        onclick={generateParser}
+        disabled={!parserDirectory || isGenerating}
+      >
+        {#if isGenerating}
+          <Loader2 size={16} class="spinning" />
+          Generating...
+        {:else}
+          Generate Parser
+        {/if}
+      </button>
+      {#if generateStatus === "success"}
+        <span class="generate-status success">
+          <CheckCircle size={16} />
+          Generated successfully
+        </span>
+      {:else if generateStatus === "error"}
+        <span class="generate-status error">
+          <AlertTriangle size={16} />
+          Generation failed
+        </span>
+      {/if}
+    </div>
+    {#if generateError}
+      <div class="generate-error">
+        <pre>{generateError}</pre>
+      </div>
+    {/if}
+    <div class="design-placeholder">
+      <Braces size={48} />
+      <p>Grammar editor coming soon</p>
+    </div>
   </div>
   {/if}
 
@@ -1217,6 +1324,93 @@
   }
 
   .mode-placeholder p {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  /* Design Mode */
+  .design-mode {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .design-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: #2d2d2d;
+    border-bottom: 1px solid #3c3c3c;
+  }
+
+  .generate-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #0e639c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .generate-btn:hover:not(:disabled) {
+    background: #1177bb;
+  }
+
+  .generate-btn:disabled {
+    background: #3c3c3c;
+    color: #888;
+    cursor: not-allowed;
+  }
+
+  .generate-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+  }
+
+  .generate-status.success {
+    color: #89d185;
+  }
+
+  .generate-status.error {
+    color: #f48771;
+  }
+
+  .generate-error {
+    padding: 12px 16px;
+    background: #2d1f1f;
+    border-bottom: 1px solid #3c3c3c;
+    max-height: 200px;
+    overflow: auto;
+  }
+
+  .generate-error pre {
+    margin: 0;
+    font-family: "Fira Code", "Consolas", monospace;
+    font-size: 12px;
+    color: #f48771;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .design-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    gap: 16px;
+  }
+
+  .design-placeholder p {
     margin: 0;
     font-size: 14px;
   }
@@ -1394,12 +1588,100 @@
     background: #2d2d2d;
   }
 
-  .header select {
-    padding: 4px 8px;
+  .dropdown-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dropdown-label {
+    color: #d4d4d4;
+    font-size: 13px;
+  }
+
+  .custom-dropdown {
+    position: relative;
+    width: 150px;
+  }
+
+  .custom-dropdown.disabled {
+    opacity: 0.5;
+  }
+
+  .dropdown-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 5px 8px;
     background: #3c3c3c;
     color: #d4d4d4;
     border: 1px solid #555;
     border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+  }
+
+  .dropdown-trigger:hover:not(:disabled) {
+    background: #454545;
+    border-color: #666;
+  }
+
+  .dropdown-trigger:focus {
+    outline: none;
+    border-color: #0e639c;
+  }
+
+  .dropdown-trigger:disabled {
+    cursor: not-allowed;
+  }
+
+  .dropdown-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  :global(.dropdown-chevron) {
+    flex-shrink: 0;
+    color: #888;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 2px;
+    background: #2d2d2d;
+    border: 1px solid #454545;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+  }
+
+  .dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 6px 10px;
+    background: transparent;
+    color: #d4d4d4;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+  }
+
+  .dropdown-item:hover {
+    background: #094771;
+  }
+
+  .dropdown-item.selected {
+    background: #0e639c;
   }
 
   .parse-btn {

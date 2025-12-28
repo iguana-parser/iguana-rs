@@ -44,19 +44,36 @@ fn read_parser_name(directory: &str) -> Result<String, String> {
 
 fn get_parser_binary_path(directory: &str) -> Result<PathBuf, String> {
     let parser_name = read_parser_name(directory)?;
-    let parser_path = Path::new(directory)
-        .join("target")
-        .join("debug")
-        .join(&parser_name);
+    let dir_path = Path::new(directory);
 
-    if !parser_path.exists() {
-        return Err(format!(
-            "Parser not found at {:?}. Please build first.",
-            parser_path
-        ));
+    // First, check local target directory (standalone project)
+    let local_path = dir_path.join("target").join("debug").join(&parser_name);
+    if local_path.exists() {
+        return Ok(local_path);
     }
 
-    Ok(parser_path)
+    // For Cargo workspace members, the binary is in the workspace root's target directory.
+    // Walk up to find a parent Cargo.toml with [workspace].
+    let mut current = dir_path.to_path_buf();
+    while let Some(parent) = current.parent() {
+        let parent_cargo = parent.join("Cargo.toml");
+        if parent_cargo.exists() {
+            if let Ok(content) = fs::read_to_string(&parent_cargo) {
+                if content.contains("[workspace]") {
+                    let workspace_path = parent.join("target").join("debug").join(&parser_name);
+                    if workspace_path.exists() {
+                        return Ok(workspace_path);
+                    }
+                }
+            }
+        }
+        current = parent.to_path_buf();
+    }
+
+    Err(format!(
+        "Parser binary '{}' not found. Please build first.",
+        parser_name
+    ))
 }
 
 #[tauri::command]
@@ -68,83 +85,8 @@ fn get_parser_name(directory: String) -> Result<String, String> {
 #[tauri::command]
 #[specta::specta]
 fn build_parser(directory: String, app: tauri::AppHandle) {
-    // Get the workspace root before spawning thread
-    let workspace_root = match std::env::current_dir() {
-        Ok(dir) => match dir.parent() {
-            Some(parent) => parent.to_path_buf(),
-            None => {
-                let _ = app.emit(
-                    "build-result",
-                    BuildResult {
-                        success: false,
-                        message: "Failed to find workspace root".into(),
-                    },
-                );
-                return;
-            }
-        },
-        Err(e) => {
-            let _ = app.emit(
-                "build-result",
-                BuildResult {
-                    success: false,
-                    message: format!("Failed to get current directory: {}", e),
-                },
-            );
-            return;
-        }
-    };
-
     // Spawn blocking work in a separate thread
     thread::spawn(move || {
-        // Step 1: Generate the parser
-        let _ = app.emit(
-            "build-progress",
-            BuildProgress {
-                stage: "generate".into(),
-                message: "Generating parser...".into(),
-            },
-        );
-
-        let generate_output = Command::new("cargo")
-            .args([
-                "run",
-                "--package",
-                "iguana",
-                "--",
-                "generate",
-                "--output",
-                &directory,
-            ])
-            .current_dir(&workspace_root)
-            .output();
-
-        match generate_output {
-            Ok(output) if output.status.success() => {}
-            Ok(output) => {
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                let _ = app.emit(
-                    "build-result",
-                    BuildResult {
-                        success: false,
-                        message: format!("Generation failed:\n{}", stderr),
-                    },
-                );
-                return;
-            }
-            Err(e) => {
-                let _ = app.emit(
-                    "build-result",
-                    BuildResult {
-                        success: false,
-                        message: format!("Failed to run generator: {}", e),
-                    },
-                );
-                return;
-            }
-        }
-
-        // Step 2: Build the generated parser
         let _ = app.emit(
             "build-progress",
             BuildProgress {
@@ -294,11 +236,98 @@ fn get_nonterminals(directory: String) -> Result<Vec<String>, String> {
     Ok(nonterminals)
 }
 
+#[tauri::command]
+#[specta::specta]
+fn generate_parser(directory: String, app: tauri::AppHandle) {
+    // Get the workspace root (parent of terrarium directory)
+    let workspace_root = match std::env::current_dir() {
+        Ok(dir) => match dir.parent() {
+            Some(parent) => parent.to_path_buf(),
+            None => {
+                let _ = app.emit(
+                    "generate-result",
+                    BuildResult {
+                        success: false,
+                        message: "Failed to find workspace root".into(),
+                    },
+                );
+                return;
+            }
+        },
+        Err(e) => {
+            let _ = app.emit(
+                "generate-result",
+                BuildResult {
+                    success: false,
+                    message: format!("Failed to get current directory: {}", e),
+                },
+            );
+            return;
+        }
+    };
+
+    // Spawn blocking work in a separate thread
+    thread::spawn(move || {
+        let _ = app.emit(
+            "generate-progress",
+            BuildProgress {
+                stage: "generate".into(),
+                message: "Generating parser...".into(),
+            },
+        );
+
+        let generate_output = Command::new("cargo")
+            .args([
+                "run",
+                "--package",
+                "iguana",
+                "--",
+                "generate",
+                "--output",
+                &directory,
+            ])
+            .current_dir(&workspace_root)
+            .output();
+
+        match generate_output {
+            Ok(output) if output.status.success() => {
+                let _ = app.emit(
+                    "generate-result",
+                    BuildResult {
+                        success: true,
+                        message: "Generation successful".into(),
+                    },
+                );
+            }
+            Ok(output) => {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                let _ = app.emit(
+                    "generate-result",
+                    BuildResult {
+                        success: false,
+                        message: format!("Generation failed:\n{}", stderr),
+                    },
+                );
+            }
+            Err(e) => {
+                let _ = app.emit(
+                    "generate-result",
+                    BuildResult {
+                        success: false,
+                        message: format!("Failed to run generator: {}", e),
+                    },
+                );
+            }
+        }
+    });
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = Builder::<tauri::Wry>::new().commands(collect_commands![
         get_parser_name,
         build_parser,
+        generate_parser,
         parse,
         get_sppf,
         get_gss,

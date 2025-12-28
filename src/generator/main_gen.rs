@@ -45,6 +45,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         #[derive(ClapParser)]
         #[command(name = "parser")]
         #[command(about = "Parse a file and generate visualization")]
+        #[command(arg_required_else_help = true)]
         struct Cli {
             /// Input file to parse (required unless --list-nonterminals is used)
             file: Option<PathBuf>,

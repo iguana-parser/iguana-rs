@@ -6,6 +6,7 @@ use iggy::{
 #[cfg(feature = "debug-trace")]
 use iguana::trace::TraceEvent;
 use iguana::{
+    grammar::symbols::NonterminalNodeKind,
     input::Input,
     parser::{ParseResult, Parser},
     visualization::{
@@ -33,11 +34,16 @@ enum VisTarget {
 #[derive(ClapParser)]
 #[command(name = "parser")]
 #[command(about = "Parse a file and generate visualization")]
+#[command(arg_required_else_help = true)]
 struct Cli {
-    /// Input file to parse
-    file: PathBuf,
+    /// Input file to parse (required unless --list-nonterminals is used)
+    file: Option<PathBuf>,
+    /// The nonterminal to start parsing from (required unless --list-nonterminals is used)
     #[arg(long = "start")]
-    start_nonterminal: String,
+    start_nonterminal: Option<String>,
+    /// List simple nonterminals (one per line) and exit
+    #[arg(long)]
+    list_nonterminals: bool,
     /// Enable trace output (writes to stdout or specified file)
     #[arg(long, value_name = "FILE")]
     trace: Option<Option<PathBuf>>,
@@ -61,15 +67,34 @@ fn main() -> Result<(), io::Error> {
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
     let cli = Cli::parse();
+    if cli.list_nonterminals {
+        for nt in IggyParser::nonterminals() {
+            if nt.kind == NonterminalNodeKind::Simple {
+                println!("{}", nt.name);
+            }
+        }
+        return Ok(());
+    }
+    let file = cli.file.ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "Input file is required for parsing",
+        )
+    })?;
+    let start_nonterminal_name = cli.start_nonterminal.ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "--start is required for parsing",
+        )
+    })?;
     #[cfg(not(feature = "debug-trace"))]
     if cli.trace.is_some() {
         eprintln!(
             "Warning: --trace flag ignored. Recompile with `--features debug-trace` to enable tracing."
         );
     }
-    let input = Input::try_from(cli.file.as_path())?;
-    let start_nonterminal_name = &cli.start_nonterminal;
-    let start_nonterminal_id = IggyParser::nonterminal_id(start_nonterminal_name).unwrap();
+    let input = Input::try_from(file.as_path())?;
+    let start_nonterminal_id = IggyParser::nonterminal_id(&start_nonterminal_name).unwrap();
     let mut parser = IggyParser::new(&input, start_nonterminal_id);
     #[cfg(feature = "debug-trace")]
     if cli.trace.is_some() {
@@ -110,7 +135,7 @@ fn main() -> Result<(), io::Error> {
                 println!("Parse success.");
                 let parse_tree = create_parse_tree(
                     node_id,
-                    start_nonterminal_name,
+                    &start_nonterminal_name,
                     &parser,
                     &parse_tree_builder,
                 );

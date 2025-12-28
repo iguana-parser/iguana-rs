@@ -16,6 +16,9 @@ async getParserName(directory: string) : Promise<Result<string, string>> {
 async buildParser(directory: string) : Promise<void> {
     await TAURI_INVOKE("build_parser", { directory });
 },
+async generateParser(directory: string) : Promise<void> {
+    await TAURI_INVOKE("generate_parser", { directory });
+},
 async parse(directory: string, input: string) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("parse", { directory, input }) };
@@ -35,6 +38,14 @@ async getSppf() : Promise<Result<SPPF, string>> {
 async getGss() : Promise<Result<GSS, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_gss") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getNonterminals(directory: string) : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_nonterminals", { directory }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
