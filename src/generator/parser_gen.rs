@@ -28,13 +28,14 @@ pub fn generate(
     let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids);
     let first_descriptors = gen_add_first_descriptors_method(grammar, nonterminal_ids, slot_ids);
     let terminals = gen_terminals(terminal_ids);
-    let slots_const = gen_slots_const(slot_ids);
+    let slots = gen_slots(slot_ids);
     let nonterminal_method = gen_nonterminal_method();
     let nonterminal_id_method = gen_nonterminal_id_method();
     let nonterminals_method = gen_nonterminals_method();
     let terminal_method = gen_terminal_method();
     let terminals_method = gen_terminals_method();
-    let slot_name_method = gen_slot_name_method();
+    let slot_method = gen_slot_method();
+    let slots_method = gen_slots_method();
     let get_gss_node_method = gen_get_gss_node_method();
     let gen_add_gss_node_method = gen_add_gss_node_method();
     let gen_new_gss_node_method = gen_new_gss_node_method();
@@ -68,16 +69,17 @@ pub fn generate(
         #nonterminals
         #nonterminal_ids_static_var
         #terminals
-        #slots_const
+        #slots
         impl<'i> Parser<'i> for #grammar_name_ident<'i> {
             #nonterminal_method
             #nonterminal_id_method
             #nonterminals_method
             #terminal_method
             #terminals_method
+            #slot_method
+            #slots_method
             #execute_method
             #first_descriptors
-            #slot_name_method
             #get_gss_node_method
             #gen_add_gss_node_method
             #gen_new_gss_node_method
@@ -115,6 +117,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         use std::{cell::OnceCell, sync::LazyLock};
         use iguana::{
             descriptor::Descriptor,
+            grammar::slot::Slot,
             grammar::symbols::{Nonterminal, NonterminalNodeKind, Terminal, TerminalKind},
             gss::GSSNode,
             ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -220,11 +223,11 @@ fn gen_terminals(terminal_ids: &TerminalIds) -> TokenStream {
     }
 }
 
-fn gen_slots_const(slot_ids: &SlotIds) -> TokenStream {
+fn gen_slots(slot_ids: &SlotIds) -> TokenStream {
     let slots_len = Literal::usize_unsuffixed(slot_ids.len());
-    let slot_names = slot_ids.slots().map(|s| quote! { #s });
+    let slot_names = slot_ids.slots().map(|s| quote! { Slot::new(#s) });
     quote! {
-        const SLOTS: [&str; #slots_len] = [#(#slot_names),*];
+        static SLOTS: LazyLock<[Slot; #slots_len]> = LazyLock::new(|| [#(#slot_names),*]);
     }
 }
 
@@ -472,10 +475,18 @@ fn gen_terminals_method() -> TokenStream {
     }
 }
 
-fn gen_slot_name_method() -> TokenStream {
+fn gen_slot_method() -> TokenStream {
     quote! {
-        fn slot_name(slot_id: SlotId) -> &'static str {
-            SLOTS[slot_id.index()]
+        fn slot(slot_id: SlotId) -> &'static Slot {
+            &SLOTS[slot_id.index()]
+        }
+    }
+}
+
+fn gen_slots_method() -> TokenStream {
+    quote! {
+        fn slots() -> impl Iterator<Item = &'static Slot> {
+            SLOTS.iter()
         }
     }
 }

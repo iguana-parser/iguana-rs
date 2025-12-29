@@ -103,7 +103,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 return Ok(());
             }
 
-            // Handle --write-symbols: write all nonterminals and terminals as JSON and exit
+            // Handle --write-symbols: write all nonterminals, terminals, and slots as JSON and exit
             if let Some(ref path) = cli.write_symbols {
                 let nonterminals: Vec<&str> = #parser::nonterminals()
                     .map(|nt| nt.name.as_str())
@@ -111,9 +111,13 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 let terminals: Vec<&str> = #parser::terminals()
                     .map(|t| t.name.as_str())
                     .collect();
+                let slots: Vec<&str> = #parser::slots()
+                    .map(|s| s.name.as_str())
+                    .collect();
                 let symbols = serde_json::json!({
                     "nonterminals": nonterminals,
-                    "terminals": terminals
+                    "terminals": terminals,
+                    "slots": slots
                 });
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);

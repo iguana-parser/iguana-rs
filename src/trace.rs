@@ -51,7 +51,7 @@ impl TraceEvent {
             TraceEvent::ProcessingDescriptor(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 format!(
                     "Processing ({}, {}, {}, {})",
-                    P::slot_name(slot_id),
+                    P::slot(slot_id).name,
                     input_index,
                     parser.gss_to_string(gss_node_id),
                     if let Some(sppf_node_id) = sppf_node_id {
@@ -64,7 +64,7 @@ impl TraceEvent {
             TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 format!(
                     "Descriptor ({}, {}, {}, {}) added.",
-                    P::slot_name(slot_id),
+                    P::slot(slot_id).name,
                     input_index,
                     parser.gss_to_string(gss_node_id),
                     if let Some(sppf_node_id) = sppf_node_id {
@@ -118,7 +118,7 @@ impl TraceEvent {
                 "GSS edge added from {} to {} with return label {}",
                 parser.gss_to_string(origin_gss_node_id),
                 parser.gss_to_string(dest_gss_node_id),
-                P::slot_name(return_slot)
+                P::slot(return_slot).name
             ),
             TraceEvent::TerminalNodeCreated(terminal_id, span) => format!(
                 "({}, {}, {})",
@@ -134,7 +134,7 @@ impl TraceEvent {
             ),
             TraceEvent::IntermediateNodeCreated(slot_id, span) => format!(
                 "({}, {}, {})",
-                P::slot_name(slot_id),
+                P::slot(slot_id).name,
                 span.left_extent,
                 span.right_extent
             ),
@@ -169,7 +169,7 @@ impl TraceEvent {
                     .map(|sppf_node_id| parser.sppf_node_to_string(parser.sppf_node(sppf_node_id)))
                     .unwrap_or("$".to_owned()),
                 parser.gss_to_string(gss_node_id),
-                P::slot_name(slot_id)
+                P::slot(slot_id).name
             ),
             TraceEvent::ParseSuccess(duration) => {
                 format!("Parse succeeded in {:?} ms", duration.as_millis())

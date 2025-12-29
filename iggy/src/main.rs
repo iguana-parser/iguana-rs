@@ -83,8 +83,9 @@ fn main() -> Result<(), io::Error> {
             .map(|nt| nt.name.as_str())
             .collect();
         let terminals: Vec<&str> = IggyParser::terminals().map(|t| t.name.as_str()).collect();
+        let slots: Vec<&str> = IggyParser::slots().map(|s| s.name.as_str()).collect();
         let symbols = serde_json::json!(
-            { "nonterminals" : nonterminals, "terminals" : terminals }
+            { "nonterminals" : nonterminals, "terminals" : terminals, "slots" : slots }
         );
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);

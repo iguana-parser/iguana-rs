@@ -3,6 +3,7 @@ use crate::scanner::IggyScanner;
 use iguana::trace::TraceEvent;
 use iguana::{
     descriptor::Descriptor,
+    grammar::slot::Slot,
     grammar::symbols::{Nonterminal, NonterminalNodeKind, Terminal, TerminalKind},
     gss::GSSNode,
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -38,26 +39,28 @@ static TERMINALS: LazyLock<[Terminal; 4]> = LazyLock::new(|| {
         Terminal::with_kind(":", TerminalKind::Literal),
     ]
 });
-const SLOTS: [&str; 18] = [
-    "Grammar : . \"grammar\" Identifier Grammar_Plus0",
-    "Grammar : \"grammar\" . Identifier Grammar_Plus0",
-    "Grammar : \"grammar\" Identifier . Grammar_Plus0",
-    "Grammar : \"grammar\" Identifier Grammar_Plus0.",
-    "Rule : . Identifier \":\" Rule_Plus1",
-    "Rule : Identifier . \":\" Rule_Plus1",
-    "Rule : Identifier \":\" . Rule_Plus1",
-    "Rule : Identifier \":\" Rule_Plus1.",
-    "Grammar_Plus0 : . Grammar_Plus0 Rule",
-    "Grammar_Plus0 : Grammar_Plus0 . Rule",
-    "Grammar_Plus0 : Grammar_Plus0 Rule.",
-    "Grammar_Plus0 : . Rule",
-    "Grammar_Plus0 : Rule.",
-    "Rule_Plus1 : . Rule_Plus1 Identifier",
-    "Rule_Plus1 : Rule_Plus1 . Identifier",
-    "Rule_Plus1 : Rule_Plus1 Identifier.",
-    "Rule_Plus1 : . Identifier",
-    "Rule_Plus1 : Identifier.",
-];
+static SLOTS: LazyLock<[Slot; 18]> = LazyLock::new(|| {
+    [
+        Slot::new("Grammar : . \"grammar\" Identifier Grammar_Plus0"),
+        Slot::new("Grammar : \"grammar\" . Identifier Grammar_Plus0"),
+        Slot::new("Grammar : \"grammar\" Identifier . Grammar_Plus0"),
+        Slot::new("Grammar : \"grammar\" Identifier Grammar_Plus0."),
+        Slot::new("Rule : . Identifier \":\" Rule_Plus1"),
+        Slot::new("Rule : Identifier . \":\" Rule_Plus1"),
+        Slot::new("Rule : Identifier \":\" . Rule_Plus1"),
+        Slot::new("Rule : Identifier \":\" Rule_Plus1."),
+        Slot::new("Grammar_Plus0 : . Grammar_Plus0 Rule"),
+        Slot::new("Grammar_Plus0 : Grammar_Plus0 . Rule"),
+        Slot::new("Grammar_Plus0 : Grammar_Plus0 Rule."),
+        Slot::new("Grammar_Plus0 : . Rule"),
+        Slot::new("Grammar_Plus0 : Rule."),
+        Slot::new("Rule_Plus1 : . Rule_Plus1 Identifier"),
+        Slot::new("Rule_Plus1 : Rule_Plus1 . Identifier"),
+        Slot::new("Rule_Plus1 : Rule_Plus1 Identifier."),
+        Slot::new("Rule_Plus1 : . Identifier"),
+        Slot::new("Rule_Plus1 : Identifier."),
+    ]
+});
 impl<'i> Parser<'i> for IggyParser<'i> {
     fn nonterminal(nonterminal_id: NonterminalId) -> &'static Nonterminal {
         &NONTERMINALS[nonterminal_id.index()]
@@ -73,6 +76,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     }
     fn terminals() -> impl Iterator<Item = &'static Terminal> {
         TERMINALS.iter()
+    }
+    fn slot(slot_id: SlotId) -> &'static Slot {
+        &SLOTS[slot_id.index()]
+    }
+    fn slots() -> impl Iterator<Item = &'static Slot> {
+        SLOTS.iter()
     }
     fn execute(
         &mut self,
@@ -508,9 +517,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
-    }
-    fn slot_name(slot_id: SlotId) -> &'static str {
-        SLOTS[slot_id.index()]
     }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
         let gss_nodes = &self.gss_nodes_index[nonterminal_id.index()];
