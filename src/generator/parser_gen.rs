@@ -23,16 +23,17 @@ pub fn generate(
 ) -> TokenStream {
     let grammar_name = &grammar.name;
     let imports = gen_imports(grammar);
-    let nonterminals_const = gen_nonterminals_const(nonterminal_ids);
+    let nonterminals = gen_nonterminals(nonterminal_ids);
     let nonterminal_ids_static_var = gen_nonterminal_ids();
     let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids);
     let first_descriptors = gen_add_first_descriptors_method(grammar, nonterminal_ids, slot_ids);
-    let terminals_const = gen_terminals_const(terminal_ids);
+    let terminals = gen_terminals(terminal_ids);
     let slots_const = gen_slots_const(slot_ids);
     let nonterminal_method = gen_nonterminal_method();
     let nonterminal_id_method = gen_nonterminal_id_method();
     let nonterminals_method = gen_nonterminals_method();
-    let terminal_name_method = gen_terminal_name_method();
+    let terminal_method = gen_terminal_method();
+    let terminals_method = gen_terminals_method();
     let slot_name_method = gen_slot_name_method();
     let get_gss_node_method = gen_get_gss_node_method();
     let gen_add_gss_node_method = gen_add_gss_node_method();
@@ -64,15 +65,16 @@ pub fn generate(
     let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
     quote! {
         #imports
-        #nonterminals_const
+        #nonterminals
         #nonterminal_ids_static_var
-        #terminals_const
+        #terminals
         #slots_const
         impl<'i> Parser<'i> for #grammar_name_ident<'i> {
             #nonterminal_method
             #nonterminal_id_method
             #nonterminals_method
-            #terminal_name_method
+            #terminal_method
+            #terminals_method
             #execute_method
             #first_descriptors
             #slot_name_method
@@ -113,7 +115,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         use std::{cell::OnceCell, sync::LazyLock};
         use iguana::{
             descriptor::Descriptor,
-            grammar::symbols::{Nonterminal, NonterminalNodeKind},
+            grammar::symbols::{Nonterminal, NonterminalNodeKind, Terminal, TerminalKind},
             gss::GSSNode,
             ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
             input::Input,
@@ -182,7 +184,7 @@ fn gen_add_first_descriptors_method(
     }
 }
 
-fn gen_nonterminals_const(nonterminal_ids: &NonterminalIds) -> TokenStream {
+fn gen_nonterminals(nonterminal_ids: &NonterminalIds) -> TokenStream {
     let nonterminals_len = Literal::usize_unsuffixed(nonterminal_ids.len());
     let nonterminal_names = nonterminal_ids.nonterminals().map(|n| {
         let nonterminal_name = &n.name;
@@ -206,14 +208,15 @@ fn gen_nonterminal_ids() -> TokenStream {
     }
 }
 
-fn gen_terminals_const(terminal_ids: &TerminalIds) -> TokenStream {
+fn gen_terminals(terminal_ids: &TerminalIds) -> TokenStream {
     let terminals_len = Literal::usize_unsuffixed(terminal_ids.len());
-    let terminal_names = terminal_ids.terminals().map(|t| {
+    let terminals = terminal_ids.terminals().map(|t| {
         let terminal_name = &t.name;
-        quote! { #terminal_name }
+        let kind = &t.kind;
+        quote! { Terminal::with_kind(#terminal_name, #kind) }
     });
     quote! {
-        const TERMINALS: [&str; #terminals_len] = [#(#terminal_names),*];
+        static TERMINALS: LazyLock<[Terminal; #terminals_len]> = LazyLock::new(|| [#(#terminals),*]);
     }
 }
 
@@ -453,10 +456,18 @@ fn gen_nonterminal_id_method() -> TokenStream {
     }
 }
 
-fn gen_terminal_name_method() -> TokenStream {
+fn gen_terminal_method() -> TokenStream {
     quote! {
-        fn terminal_name(terminal_id: TerminalId) -> &'static str {
-            TERMINALS[terminal_id.index()]
+        fn terminal(terminal_id: TerminalId) -> &'static Terminal {
+            &TERMINALS[terminal_id.index()]
+        }
+    }
+}
+
+fn gen_terminals_method() -> TokenStream {
+    quote! {
+        fn terminals() -> impl Iterator<Item = &'static Terminal> {
+            TERMINALS.iter()
         }
     }
 }

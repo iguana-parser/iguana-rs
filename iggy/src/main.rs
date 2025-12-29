@@ -44,6 +44,9 @@ struct Cli {
     /// List simple nonterminals (one per line) and exit
     #[arg(long)]
     list_nonterminals: bool,
+    /// Write symbol table (all nonterminals) as JSON to the specified file
+    #[arg(long, value_name = "FILE")]
+    write_symbols: Option<PathBuf>,
     /// Enable trace output (writes to stdout or specified file)
     #[arg(long, value_name = "FILE")]
     trace: Option<Option<PathBuf>>,
@@ -75,6 +78,23 @@ fn main() -> Result<(), io::Error> {
         }
         return Ok(());
     }
+    if let Some(ref path) = cli.write_symbols {
+        let nonterminals: Vec<&str> = IggyParser::nonterminals()
+            .map(|nt| nt.name.as_str())
+            .collect();
+        let terminals: Vec<&str> = IggyParser::terminals().map(|t| t.name.as_str()).collect();
+        let symbols = serde_json::json!(
+            { "nonterminals" : nonterminals, "terminals" : terminals }
+        );
+        let file = File::create(path)?;
+        let mut writer = BufWriter::new(file);
+        writeln!(
+            writer,
+            "{}",
+            serde_json::to_string_pretty(&symbols).unwrap()
+        )?;
+        return Ok(());
+    }
     let file = cli.file.ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::InvalidInput,
@@ -94,7 +114,13 @@ fn main() -> Result<(), io::Error> {
         );
     }
     let input = Input::try_from(file.as_path())?;
-    let start_nonterminal_id = IggyParser::nonterminal_id(&start_nonterminal_name).unwrap();
+    let start_nonterminal_id =
+        IggyParser::nonterminal_id(&start_nonterminal_name).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("Unknown nonterminal: '{}'", start_nonterminal_name),
+            )
+        })?;
     let mut parser = IggyParser::new(&input, start_nonterminal_id);
     #[cfg(feature = "debug-trace")]
     if cli.trace.is_some() {

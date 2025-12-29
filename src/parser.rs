@@ -4,7 +4,7 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     descriptor::Descriptor,
-    grammar::symbols::Nonterminal,
+    grammar::symbols::{Nonterminal, Terminal},
     gss::{EdgeResult, GSSEdge, GSSNode},
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
@@ -29,7 +29,8 @@ pub struct ParseSuccess {
 pub trait Parser<'i> {
     fn nonterminal(nonterminal_id: NonterminalId) -> &'static Nonterminal;
     fn nonterminal_id(name: &str) -> Option<NonterminalId>;
-    fn terminal_name(terminal_id: TerminalId) -> &'static str;
+    fn terminal(terminal_id: TerminalId) -> &'static Terminal;
+    fn terminals() -> impl Iterator<Item = &'static Terminal>;
     fn slot_name(slot_id: SlotId) -> &'static str;
     fn nonterminals() -> impl Iterator<Item = &'static Nonterminal>;
     fn execute(
@@ -253,7 +254,7 @@ pub trait Parser<'i> {
             SPPFNode::Terminal(t) => {
                 format!(
                     "({}, {}, {})",
-                    Self::terminal_name(t.terminal_id),
+                    Self::terminal(t.terminal_id),
                     t.span.left_extent,
                     t.span.right_extent
                 )

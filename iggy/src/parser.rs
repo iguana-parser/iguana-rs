@@ -3,7 +3,7 @@ use crate::scanner::IggyScanner;
 use iguana::trace::TraceEvent;
 use iguana::{
     descriptor::Descriptor,
-    grammar::symbols::{Nonterminal, NonterminalNodeKind},
+    grammar::symbols::{Nonterminal, NonterminalNodeKind, Terminal, TerminalKind},
     gss::GSSNode,
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
@@ -30,7 +30,14 @@ static NONTERMINAL_IDS: LazyLock<FxHashMap<&str, NonterminalId>> = LazyLock::new
         .map(|(i, nt)| (nt.name.as_ref(), NonterminalId(i as u16)))
         .collect()
 });
-const TERMINALS: [&str; 4] = ["Identifier", "WS", "grammar", ":"];
+static TERMINALS: LazyLock<[Terminal; 4]> = LazyLock::new(|| {
+    [
+        Terminal::with_kind("Identifier", TerminalKind::Identifier),
+        Terminal::with_kind("WS", TerminalKind::Identifier),
+        Terminal::with_kind("grammar", TerminalKind::Literal),
+        Terminal::with_kind(":", TerminalKind::Literal),
+    ]
+});
 const SLOTS: [&str; 18] = [
     "Grammar : . \"grammar\" Identifier Grammar_Plus0",
     "Grammar : \"grammar\" . Identifier Grammar_Plus0",
@@ -61,8 +68,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     fn nonterminals() -> impl Iterator<Item = &'static Nonterminal> {
         NONTERMINALS.iter()
     }
-    fn terminal_name(terminal_id: TerminalId) -> &'static str {
-        TERMINALS[terminal_id.index()]
+    fn terminal(terminal_id: TerminalId) -> &'static Terminal {
+        &TERMINALS[terminal_id.index()]
+    }
+    fn terminals() -> impl Iterator<Item = &'static Terminal> {
+        TERMINALS.iter()
     }
     fn execute(
         &mut self,

@@ -58,6 +58,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             #[arg(long)]
             list_nonterminals: bool,
 
+            /// Write symbol table (all nonterminals) as JSON to the specified file
+            #[arg(long, value_name = "FILE")]
+            write_symbols: Option<PathBuf>,
+
             /// Enable trace output (writes to stdout or specified file)
             #[arg(long, value_name = "FILE")]
             trace: Option<Option<PathBuf>>,
@@ -96,6 +100,24 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         println!("{}", nt.name);
                     }
                 }
+                return Ok(());
+            }
+
+            // Handle --write-symbols: write all nonterminals and terminals as JSON and exit
+            if let Some(ref path) = cli.write_symbols {
+                let nonterminals: Vec<&str> = #parser::nonterminals()
+                    .map(|nt| nt.name.as_str())
+                    .collect();
+                let terminals: Vec<&str> = #parser::terminals()
+                    .map(|t| t.name.as_str())
+                    .collect();
+                let symbols = serde_json::json!({
+                    "nonterminals": nonterminals,
+                    "terminals": terminals
+                });
+                let file = File::create(path)?;
+                let mut writer = BufWriter::new(file);
+                writeln!(writer, "{}", serde_json::to_string_pretty(&symbols).unwrap())?;
                 return Ok(());
             }
 

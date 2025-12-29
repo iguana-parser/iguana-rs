@@ -53,16 +53,26 @@ impl Display for Symbol {
 /// In the grammar specification, there are two cases where terminals can appear:
 /// - As identifiers in grammar rules, e.g., `identifier`
 /// - As string literals, e.g., `"+"`, `"if"`, `"while"`
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct Terminal {
     pub name: String,
     pub kind: TerminalKind,
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub enum TerminalKind {
     Literal,
     Identifier,
+}
+
+impl quote::ToTokens for TerminalKind {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let variant = match self {
+            Self::Literal => quote!(Literal),
+            Self::Identifier => quote!(Identifier),
+        };
+        tokens.extend(quote!(TerminalKind::#variant));
+    }
 }
 
 impl Terminal {
@@ -77,6 +87,13 @@ impl Terminal {
         Self {
             name: name.into(),
             kind: TerminalKind::Identifier,
+        }
+    }
+
+    pub fn with_kind(name: impl Into<String>, kind: TerminalKind) -> Self {
+        Self {
+            name: name.into(),
+            kind,
         }
     }
 }
