@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { commands, type SPPF, type GSS } from "../bindings";
+  import { commands, type SPPF, type GSS, type DebugInfo, type StackFrame } from "../bindings";
   import { listen } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
   import { availableMonitors, currentMonitor } from "@tauri-apps/api/window";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand, GitFork, Bug, Braces } from "lucide-svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand, GitFork, Bug, Braces, PanelBottom } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
 
@@ -123,7 +123,8 @@
   // Parser state
   let currentDescriptor = $state<string | null>(null);
   let descriptorSet = $state<string[]>([]);
-  let callStack = $state<string[]>([]);
+  let callStack = $state<StackFrame[]>([]);
+  let debugLoaded = $state(false);
 
   // Graph tab
   let activeTab = $state<"gss" | "sppf">("sppf");
@@ -622,12 +623,61 @@
     }
   }
 
-  function stepBack() {
-    if (currentStep > 0) currentStep--;
+  async function startDebug() {
+    if (!parserDirectory || buildStatus !== "success" || !startNonterminal) return;
+
+    setStatus("Loading debug trace...", "info");
+    debugLoaded = false;
+    callStack = [];
+    currentStep = 0;
+    totalSteps = 0;
+
+    const result = await commands.loadDebugTrace(parserDirectory, inputText, startNonterminal);
+    if (result.status === "ok") {
+      debugLoaded = true;
+      currentStep = result.data.current_step;
+      totalSteps = result.data.total_steps;
+      setStatus(`Loaded ${totalSteps} trace events`, "success");
+      await fetchStackTrace();
+    } else {
+      setStatus(`Debug failed: ${result.error}`, "error");
+    }
   }
 
-  function stepForward() {
-    if (currentStep < totalSteps) currentStep++;
+  async function stepBack() {
+    if (!debugLoaded || currentStep === 0) return;
+    const result = await commands.debugStepTo(currentStep - 1);
+    if (result.status === "ok") {
+      currentStep = result.data.current_step;
+      await fetchStackTrace();
+    }
+  }
+
+  async function stepForward() {
+    if (!debugLoaded || currentStep >= totalSteps) return;
+    const result = await commands.debugStepForward();
+    if (result.status === "ok") {
+      currentStep = result.data.current_step;
+      await fetchStackTrace();
+    }
+  }
+
+  async function stepTo(target: number) {
+    if (!debugLoaded) return;
+    const result = await commands.debugStepTo(target);
+    if (result.status === "ok") {
+      currentStep = result.data.current_step;
+      await fetchStackTrace();
+    }
+  }
+
+  async function fetchStackTrace() {
+    const result = await commands.getStackTrace();
+    if (result.status === "ok") {
+      callStack = result.data;
+    } else {
+      callStack = [];
+    }
   }
 
   function togglePlay() {
@@ -789,38 +839,7 @@
 <svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} on:click={handleWindowClick} />
 
 <div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput}>
-  <!-- Activity Bar -->
-  <div class="activity-bar">
-    <div class="activity-bar-spacer" onmousedown={startWindowDrag}></div>
-    <button
-      class="activity-btn"
-      class:active={activeMode === "parse"}
-      onclick={() => activeMode = "parse"}
-      title="Parse"
-    >
-      <GitFork size={24} style="transform: rotate(180deg)" />
-    </button>
-    <button
-      class="activity-btn"
-      class:active={activeMode === "debug"}
-      onclick={() => activeMode = "debug"}
-      title="Debug"
-    >
-      <Bug size={24} />
-    </button>
-    <button
-      class="activity-btn"
-      class:active={activeMode === "design"}
-      onclick={() => activeMode = "design"}
-      title="Design"
-    >
-      <Braces size={24} />
-    </button>
-  </div>
-
-  <!-- Main Area -->
-  <div class="main-area">
-  <!-- Title Bar -->
+  <!-- Title Bar (full width) -->
   <div class="title-bar" onmousedown={startWindowDrag} ondblclick={toggleMaximize}>
     <div class="title-bar-left">
       <!-- Space for macOS traffic lights -->
@@ -854,7 +873,39 @@
     </div>
   </div>
 
-  <!-- Mode Content -->
+  <!-- Middle Area (activity bar + content) -->
+  <div class="middle-area">
+    <!-- Activity Bar -->
+    <div class="activity-bar">
+      <button
+        class="activity-btn"
+        class:active={activeMode === "parse"}
+        onclick={() => activeMode = "parse"}
+        title="Parse"
+      >
+        <GitFork size={24} style="transform: rotate(180deg)" />
+      </button>
+      <button
+        class="activity-btn"
+        class:active={activeMode === "debug"}
+        onclick={() => activeMode = "debug"}
+        title="Debug"
+      >
+        <Bug size={24} />
+      </button>
+      <button
+        class="activity-btn"
+        class:active={activeMode === "design"}
+        onclick={() => activeMode = "design"}
+        title="Design"
+      >
+        <Braces size={24} />
+      </button>
+    </div>
+
+    <!-- Main Area -->
+    <div class="main-area">
+    <!-- Mode Content -->
   {#if activeMode === "parse"}
   <!-- Parse Mode -->
   <div class="main-content">
@@ -959,40 +1010,11 @@
     </div>
   </div>
   </div>
-
-  <!-- Output Panel (collapsible) -->
-  {#if outputPanelOpen}
-    <div class="resize-handle-horizontal" onmousedown={startOutputDrag}></div>
-  {/if}
-  <div class="output-panel" class:open={outputPanelOpen}>
-    <button class="output-header" onclick={() => outputPanelOpen = !outputPanelOpen}>
-      {#if outputPanelOpen}
-        <ChevronDown size={14} />
-      {:else}
-        <ChevronRight size={14} />
-      {/if}
-      <span>Output</span>
-      {#if outputType === "error"}
-        <AlertTriangle size={14} class="output-status-icon error" />
-      {:else if outputType === "success"}
-        <CheckCircle size={14} class="output-status-icon success" />
-      {/if}
-    </button>
-    {#if outputPanelOpen}
-      <div class="output-content" class:error={outputType === "error"} class:success={outputType === "success"} style="height: {outputPanelHeight}px">
-        {#if outputContent}
-          <pre>{outputContent}</pre>
-        {:else}
-          <span class="placeholder">No output</span>
-        {/if}
-      </div>
-    {/if}
-  </div>
   {:else if activeMode === "debug"}
   <!-- Debug Mode -->
   <div class="main-content">
-    <!-- Left Panel -->
-    <div class="left-panel" style="width: {leftPanelWidth}px">
+    <!-- Debug Panel (full width) -->
+    <div class="debug-panel">
       <!-- Header -->
       <div class="header">
         <div class="dropdown-wrapper">
@@ -1021,7 +1043,7 @@
             {/if}
           </div>
         </div>
-        <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Debug</button>
+        <button class="parse-btn" onclick={startDebug} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Debug</button>
       </div>
 
       <!-- Input Area -->
@@ -1038,15 +1060,17 @@
 
       <!-- Playback Controls -->
       <div class="playback-controls">
-        <button onclick={stepBack} disabled={currentStep === 0}>◀</button>
-        <button onclick={togglePlay}>{isPlaying ? "⏸" : "▶"}</button>
-        <button onclick={stepForward} disabled={currentStep === totalSteps}>▶▶</button>
+        <button onclick={stepBack} disabled={!debugLoaded || currentStep === 0}>◀</button>
+        <button onclick={togglePlay} disabled={!debugLoaded}>{isPlaying ? "⏸" : "▶"}</button>
+        <button onclick={stepForward} disabled={!debugLoaded || currentStep >= totalSteps}>▶▶</button>
         <span class="step-counter">Step {currentStep}/{totalSteps}</span>
         <input
           type="range"
           min="0"
           max={totalSteps}
           bind:value={currentStep}
+          oninput={(e) => stepTo(parseInt((e.target as HTMLInputElement).value))}
+          disabled={!debugLoaded}
           class="step-slider"
         />
       </div>
@@ -1088,73 +1112,15 @@
         <div class="section-content">
           {#if callStack.length > 0}
             <ul>
-              {#each callStack as call, i}
-                <li style="padding-left: {i * 16}px">
-                  <span class="call-marker">{i === callStack.length - 1 ? "●" : "▼"}</span>
-                  <code>{call}</code>
+              {#each callStack as frame, i}
+                <li class:current={i === 0}>
+                  <span class="call-marker">{i === 0 ? "→" : " "}</span>
+                  <code>{frame.slot_name}</code>
                 </li>
               {/each}
             </ul>
           {:else}
-            <span class="placeholder">Empty</span>
-          {/if}
-        </div>
-      </div>
-    </div>
-
-    <!-- Vertical Resize Handle -->
-    <div class="resize-handle-vertical" onmousedown={startVerticalDrag}></div>
-
-    <!-- Right Panel -->
-    <div class="right-panel">
-      <!-- Graph Tabs -->
-      <div class="graph-section">
-        <div class="tabs">
-          <button
-            class:active={activeTab === "gss"}
-            onclick={() => activeTab = "gss"}
-          >GSS</button>
-          <button
-            class:active={activeTab === "sppf"}
-            onclick={() => activeTab = "sppf"}
-          >SPPF</button>
-        </div>
-        <div class="graph-container">
-          {#if activeTab === "gss"}
-            {#if gss}
-              <div class="cytoscape-container" bind:this={gssContainer}></div>
-              <div class="graph-controls">
-                <button onclick={zoomIn} title="Zoom in">
-                  <ZoomIn size={16} />
-                </button>
-                <button onclick={zoomOut} title="Zoom out">
-                  <ZoomOut size={16} />
-                </button>
-                <button onclick={resetView} title="Reset view">
-                  <Maximize2 size={16} />
-                </button>
-              </div>
-            {:else}
-              <div class="graph-placeholder">Run debug to see GSS</div>
-            {/if}
-          {:else if sppf}
-            <div class="cytoscape-container" bind:this={sppfContainer}></div>
-            <div class="graph-controls">
-              <button onclick={zoomIn} title="Zoom in">
-                <ZoomIn size={16} />
-              </button>
-              <button onclick={zoomOut} title="Zoom out">
-                <ZoomOut size={16} />
-              </button>
-              <button onclick={resetView} title="Reset view">
-                <Maximize2 size={16} />
-              </button>
-              <button onclick={expandAll} title="Expand all (double-click node to collapse)">
-                <Expand size={16} />
-              </button>
-            </div>
-          {:else}
-            <div class="graph-placeholder">Run debug to see SPPF</div>
+            <span class="placeholder">{debugLoaded ? "No stack at current step" : "Click Debug to start"}</span>
           {/if}
         </div>
       </div>
@@ -1200,9 +1166,25 @@
   </div>
   {/if}
 
-  <!-- Status Bar (always visible) -->
+    <!-- Output Panel (inside main-area) -->
+    {#if outputPanelOpen}
+      <div class="resize-handle-horizontal" onmousedown={startOutputDrag}></div>
+      <div class="output-panel open">
+        <div class="output-content" class:error={outputType === "error"} class:success={outputType === "success"} style="height: {outputPanelHeight}px">
+          {#if outputContent}
+            <pre>{outputContent}</pre>
+          {:else}
+            <span class="placeholder">No output</span>
+          {/if}
+        </div>
+      </div>
+    {/if}
+    </div>
+  </div>
+
+  <!-- Status Bar (full width) -->
   <div class="status-bar">
-    <div class="status-content">
+    <div class="status-left">
       <span class="status-text">
         {#if isBuilding}
           Building...
@@ -1212,6 +1194,16 @@
           No parser selected
         {/if}
       </span>
+    </div>
+    <div class="status-right">
+      <button
+        class="status-icon-btn"
+        class:active={outputPanelOpen}
+        onclick={() => outputPanelOpen = !outputPanelOpen}
+        title="Toggle Output Panel"
+      >
+        <PanelBottom size={14} />
+      </button>
     </div>
   </div>
 
@@ -1236,7 +1228,6 @@
       </div>
     </div>
   {/if}
-  </div>
 </div>
 
 <style>
@@ -1252,13 +1243,21 @@
 
   .app {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     height: 100vh;
     width: 100vw;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 14px;
     background: #1e1e1e;
     color: #d4d4d4;
+  }
+
+  /* Middle Area (activity bar + content) */
+  .middle-area {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    min-height: 0;
   }
 
   /* Activity Bar */
@@ -1269,12 +1268,6 @@
     background: #333333;
     border-right: 1px solid #3c3c3c;
     flex-shrink: 0;
-  }
-
-  .activity-bar-spacer {
-    height: 52px; /* Match title bar height, space for macOS traffic lights */
-    flex-shrink: 0;
-    cursor: default;
   }
 
   .activity-btn {
@@ -1419,9 +1412,9 @@
   .title-bar {
     display: flex;
     align-items: center;
-    height: 52px;
+    height: 48px;
     background: #1e1e1e;
-    border-bottom: 1px solid #3c3c3c;
+    border-bottom: 1px solid #454545;
     flex-shrink: 0;
     cursor: default;
   }
@@ -1449,13 +1442,13 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
+    padding: 6px 14px;
     min-width: 300px;
     max-width: 550px;
     width: 100%;
     background: #2d2d2d;
     border: 1px solid #404040;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
     color: #888;
@@ -1577,6 +1570,15 @@
     display: flex;
     flex-direction: column;
     background: #252526;
+  }
+
+  /* Debug Panel (full width in debug mode) */
+  .debug-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #252526;
+    max-width: 500px;
   }
 
   .header {
@@ -1708,7 +1710,6 @@
   .input-section {
     flex: 1;
     min-height: 100px;
-    padding: 8px;
   }
 
   .input-section textarea {
@@ -1717,15 +1718,14 @@
     resize: none;
     background: #1e1e1e;
     color: #d4d4d4;
-    border: 1px solid #3c3c3c;
-    border-radius: 4px;
+    border: none;
     padding: 8px;
     font-family: "Fira Code", "Consolas", monospace;
     font-size: 13px;
   }
 
   .input-section textarea:focus {
-    outline: 1px solid #0e639c;
+    outline: none;
   }
 
   /* Playback Controls */
@@ -1952,8 +1952,18 @@
     gap: 8px;
   }
 
+  .call-stack li.current::before {
+    content: none;
+  }
+
   .call-marker {
     color: #888;
+    font-family: monospace;
+    width: 1em;
+  }
+
+  .call-stack li.current .call-marker {
+    color: #4ec9b0;
   }
 
   code {
@@ -2027,21 +2037,52 @@
   /* Status Bar */
   .status-bar {
     display: flex;
-    background: #2d2d2d;
-    border-top: 1px solid #3c3c3c;
+    justify-content: space-between;
+    align-items: center;
+    background: #252526;
+    border-top: 1px solid #454545;
     flex-shrink: 0;
+    height: 32px;
+    padding: 0 12px;
   }
 
-  .status-bar > .status-content {
+  .status-left {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 12px;
+  }
+
+  .status-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .status-bar .status-text {
     font-size: 12px;
-    color: #666;
+    color: #888;
+  }
+
+  .status-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+
+  .status-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #d4d4d4;
+  }
+
+  .status-icon-btn.active {
+    color: #d4d4d4;
   }
 
   /* Modal */

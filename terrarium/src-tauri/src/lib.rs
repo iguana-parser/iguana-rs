@@ -1,3 +1,5 @@
+mod trace_replay;
+
 use std::{fs, io::Write, path::Path, path::PathBuf, process::Command, sync::Mutex, thread};
 
 use iguana::visualization::{gss::GSS, sppf::SPPF};
@@ -7,6 +9,8 @@ use tauri::Emitter;
 use tauri_specta::{collect_commands, Builder};
 use tempfile::{NamedTempFile, TempDir};
 use toml::Value;
+
+use trace_replay::{StackFrame, TraceReplay};
 
 #[derive(Clone, Serialize, Type)]
 struct BuildProgress {
@@ -25,6 +29,18 @@ struct ParseState {
     _temp_dir: Option<TempDir>,
     sppf_path: Option<PathBuf>,
     gss_path: Option<PathBuf>,
+}
+
+#[derive(Default)]
+struct DebugState {
+    replay: Option<TraceReplay>,
+}
+
+/// Debug info returned to the frontend.
+#[derive(Clone, Serialize, Type)]
+struct DebugInfo {
+    current_step: u32,
+    total_steps: u32,
 }
 
 fn read_parser_name(directory: &str) -> Result<String, String> {
@@ -325,6 +341,138 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
     });
 }
 
+// ============ Debug Commands ============
+
+#[tauri::command]
+#[specta::specta]
+fn load_debug_trace(
+    directory: String,
+    input: String,
+    start_nonterminal: String,
+    state: tauri::State<Mutex<DebugState>>,
+) -> Result<DebugInfo, String> {
+    let parser_path = get_parser_binary_path(&directory)?;
+
+    // Write input to temp file
+    let mut input_file =
+        NamedTempFile::new().map_err(|e| format!("Failed to create temp file: {}", e))?;
+    input_file
+        .write_all(input.as_bytes())
+        .map_err(|e| format!("Failed to write input: {}", e))?;
+
+    // Create temp directory for trace and symbols
+    let temp_dir =
+        TempDir::new().map_err(|e| format!("Failed to create temp directory: {}", e))?;
+    let trace_path = temp_dir.path().join("trace.json");
+    let symbols_path = temp_dir.path().join("symbols.json");
+
+    // First, get the symbols (static, doesn't need parsing)
+    let symbols_output = Command::new(&parser_path)
+        .arg("--write-symbols")
+        .arg(&symbols_path)
+        .output()
+        .map_err(|e| format!("Failed to run parser for symbols: {}", e))?;
+
+    if !symbols_output.status.success() {
+        let stderr = String::from_utf8_lossy(&symbols_output.stderr);
+        return Err(format!("Failed to get symbols: {}", stderr));
+    }
+
+    // Then run parser with trace enabled
+    let output = Command::new(&parser_path)
+        .arg(input_file.path())
+        .arg("--start")
+        .arg(&start_nonterminal)
+        .arg("--trace")
+        .arg(&trace_path)
+        .arg("--format")
+        .arg("json")
+        .output()
+        .map_err(|e| format!("Failed to run parser: {}", e))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Parser failed: {}", stderr));
+    }
+
+    // Load trace replay
+    let replay = TraceReplay::load(&trace_path, &symbols_path)
+        .map_err(|e| format!("Failed to load trace: {}", e))?;
+
+    let info = DebugInfo {
+        current_step: replay.current_step() as u32,
+        total_steps: replay.total_steps() as u32,
+    };
+
+    let mut debug_state = state.lock().unwrap();
+    debug_state.replay = Some(replay);
+
+    Ok(info)
+}
+
+#[tauri::command]
+#[specta::specta]
+fn debug_step_forward(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
+    let mut debug_state = state.lock().unwrap();
+    let replay = debug_state
+        .replay
+        .as_mut()
+        .ok_or("No debug session. Load a trace first.")?;
+
+    replay.step_forward();
+
+    Ok(DebugInfo {
+        current_step: replay.current_step() as u32,
+        total_steps: replay.total_steps() as u32,
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
+fn debug_step_to(target: u32, state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
+    let mut debug_state = state.lock().unwrap();
+    let replay = debug_state
+        .replay
+        .as_mut()
+        .ok_or("No debug session. Load a trace first.")?;
+
+    replay.step_to(target as usize);
+
+    Ok(DebugInfo {
+        current_step: replay.current_step() as u32,
+        total_steps: replay.total_steps() as u32,
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
+fn get_debug_info(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
+    let debug_state = state.lock().unwrap();
+    let replay = debug_state
+        .replay
+        .as_ref()
+        .ok_or("No debug session. Load a trace first.")?;
+
+    Ok(DebugInfo {
+        current_step: replay.current_step() as u32,
+        total_steps: replay.total_steps() as u32,
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
+fn get_stack_trace(state: tauri::State<Mutex<DebugState>>) -> Result<Vec<StackFrame>, String> {
+    let debug_state = state.lock().unwrap();
+    let replay = debug_state
+        .replay
+        .as_ref()
+        .ok_or("No debug session. Load a trace first.")?;
+
+    replay
+        .build_stack_trace()
+        .ok_or_else(|| "No stack trace available at current step.".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = Builder::<tauri::Wry>::new().commands(collect_commands![
@@ -334,7 +482,12 @@ pub fn run() {
         parse,
         get_sppf,
         get_gss,
-        get_nonterminals
+        get_nonterminals,
+        load_debug_trace,
+        debug_step_forward,
+        debug_step_to,
+        get_debug_info,
+        get_stack_trace
     ]);
 
     #[cfg(debug_assertions)]
@@ -347,6 +500,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(Mutex::new(ParseState::default()))
+        .manage(Mutex::new(DebugState::default()))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(builder.invoke_handler())

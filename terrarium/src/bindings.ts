@@ -50,6 +50,46 @@ async getNonterminals(directory: string) : Promise<Result<string[], string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async loadDebugTrace(directory: string, input: string, startNonterminal: string) : Promise<Result<DebugInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("load_debug_trace", { directory, input, startNonterminal }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async debugStepForward() : Promise<Result<DebugInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("debug_step_forward") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async debugStepTo(target: number) : Promise<Result<DebugInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("debug_step_to", { target }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getDebugInfo() : Promise<Result<DebugInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_debug_info") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getStackTrace() : Promise<Result<StackFrame[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_stack_trace") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -63,6 +103,10 @@ async getNonterminals(directory: string) : Promise<Result<string[], string>> {
 
 /** user-defined types **/
 
+/**
+ * Debug info returned to the frontend.
+ */
+export type DebugInfo = { current_step: number; total_steps: number }
 export type GSS = { nodes: GSSDotNode[]; edges: GSSDotEdge[] }
 export type GSSDotEdge = { src: GssNodeId; dest: GssNodeId; label: string }
 export type GSSDotNode = { id: GssNodeId; label: string }
@@ -85,6 +129,10 @@ export type SPPFDotNode = { id: SPPFNodeId; kind: NodeKind; label: string }
  * Uses `u32` since real-world grammars rarely exceed 2^32 - 1 nodes.
  */
 export type SPPFNodeId = number
+/**
+ * A stack frame in the GLL call stack.
+ */
+export type StackFrame = { slot_name: string }
 
 /** tauri-specta globals **/
 

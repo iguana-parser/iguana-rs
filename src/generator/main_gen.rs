@@ -225,9 +225,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                             }
                         }
                         TraceFormat::Json => {
-                            for event in trace_events {
-                                writeln!(writer, "{}", serde_json::to_string(event).unwrap())?;
-                            }
+                            writeln!(writer, "{}", serde_json::to_string(trace_events).unwrap())?;
                         }
                     }
                 }
@@ -239,9 +237,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                             }
                         }
                         TraceFormat::Json => {
-                            for event in trace_events {
-                                println!("{}", serde_json::to_string(event).unwrap());
-                            }
+                            println!("{}", serde_json::to_string(trace_events).unwrap());
                         }
                     }
                 }

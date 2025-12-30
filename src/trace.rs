@@ -1,30 +1,24 @@
-#[cfg(feature = "debug-trace")]
 use std::time::Duration;
 
-#[cfg(feature = "debug-trace")]
-use crate::ids::GssNodeId;
-#[cfg(feature = "debug-trace")]
-use crate::parser::Parser;
-#[cfg(feature = "debug-trace")]
-use crate::sppf::SPPFNodeId;
-#[cfg(feature = "debug-trace")]
-use crate::{
-    ids::{NonterminalId, SlotId, TerminalId},
-    sppf::Span,
-};
-#[cfg(feature = "debug-trace")]
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+
+use crate::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
+use crate::sppf::{SPPFNodeId, Span};
 
 #[cfg(feature = "debug-trace")]
-#[derive(Debug, Serialize)]
+use crate::parser::Parser;
+
+/// Trace events emitted during GLL parsing.
+/// Always available for deserialization; runtime tracing requires `debug-trace` feature.
+#[derive(Debug, Serialize, Deserialize)]
 pub enum TraceEvent {
     ProcessingDescriptor(SlotId, u32, GssNodeId, Option<SPPFNodeId>),
     DescriptorAdded(SlotId, u32, GssNodeId, Option<SPPFNodeId>),
     MatchingLeadingLayout(u32),
     MatchingTrailingLayout(u32),
-    MatchingTerminal(&'static str, u32),  // terminal_name
-    MatchSuccess(&'static str, u32, u32), // terminal_name, next_input match
-    MatchFailed(&'static str, u32),       // terminal_name
+    MatchingTerminal(String, u32),  // terminal_name
+    MatchSuccess(String, u32, u32), // terminal_name, next_input match
+    MatchFailed(String, u32),       // terminal_name
     MatchedLayout(Option<u32>),           // next_input match
     GSSNodeCreated(NonterminalId, u32),
     GSSNodeFound(NonterminalId, u32),
@@ -80,16 +74,16 @@ impl TraceEvent {
             TraceEvent::MatchingTrailingLayout(input_index) => {
                 format!("Matching trailing layout at input index {}", input_index)
             }
-            TraceEvent::MatchingTerminal(terminal_name, input_index) => format!(
+            TraceEvent::MatchingTerminal(ref terminal_name, input_index) => format!(
                 "Matched terminal {terminal_name} at input index {}",
                 input_index,
             ),
-            TraceEvent::MatchSuccess(terminal_name, input_index, matched_index) => format!(
+            TraceEvent::MatchSuccess(ref terminal_name, input_index, matched_index) => format!(
                 "Matched terminal {terminal_name} at input index {}. Match length: {}",
                 input_index,
                 matched_index - input_index
             ),
-            TraceEvent::MatchFailed(terminal_name, input_index) => {
+            TraceEvent::MatchFailed(ref terminal_name, input_index) => {
                 parser.input().format_error(terminal_name, input_index)
             }
             TraceEvent::MatchedLayout(matched_index) => {
@@ -212,20 +206,20 @@ macro_rules! record {
     };
     ($parser:expr, MatchingTerminal, $terminal_name:expr, $input_index:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::MatchingTerminal(
-            $terminal_name,
+            $terminal_name.into(),
             $input_index,
         ));
     };
     ($parser:expr, MatchSuccess, $terminal_name:expr, $input_index:expr, $next_index:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::MatchSuccess(
-            $terminal_name,
+            $terminal_name.into(),
             $input_index,
             $next_index,
         ));
     };
     ($parser:expr, MatchFailed, $terminal_name:expr, $input_index:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::MatchFailed(
-            $terminal_name,
+            $terminal_name.into(),
             $input_index,
         ));
     };
