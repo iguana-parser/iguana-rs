@@ -128,6 +128,11 @@ impl TraceReplay {
             .map(|desc| self.format_descriptor(desc))
     }
 
+    /// Get the current input index (position in the input being parsed).
+    pub fn current_input_index(&self) -> Option<usize> {
+        self.current_descriptor.as_ref().map(|desc| desc.input_index as usize)
+    }
+
     /// Get the pending descriptor set as formatted strings.
     pub fn descriptor_set_strings(&self) -> Vec<String> {
         self.descriptor_set

@@ -116,6 +116,10 @@ current_descriptor: string | null;
  */
 descriptor_set: string[]; 
 /**
+ * Current position in the input (character index)
+ */
+input_index: number | null; 
+/**
  * Only set on initial load
  */
 input_path: string | null; symbols_path: string | null; trace_path: string | null }

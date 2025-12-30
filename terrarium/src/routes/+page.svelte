@@ -135,6 +135,7 @@
   let descriptorSet = $state<string[]>([]);
   let callStack = $state<string[]>([]);
   let debugLoaded = $state(false);
+  let inputIndex = $state<number | null>(null);
 
   // Graph tab
   let activeTab = $state<"gss" | "sppf">("sppf");
@@ -686,10 +687,11 @@
     totalSteps = 0;
     currentDescriptor = null;
     descriptorSet = [];
+    inputIndex = null;
 
     const result = await commands.loadDebugTrace(parserDirectory, inputText, startNonterminal);
     if (result.status === "ok") {
-      const { input_path, symbols_path, trace_path, current_descriptor, descriptor_set } = result.data;
+      const { input_path, symbols_path, trace_path, current_descriptor, descriptor_set, input_index } = result.data;
       logCommand(`${parserName} --write-symbols ${symbols_path}`);
       logCommand(`${parserName} ${input_path} --start ${startNonterminal} --trace ${trace_path} --format json`);
       debugLoaded = true;
@@ -697,6 +699,7 @@
       totalSteps = result.data.total_steps;
       currentDescriptor = current_descriptor;
       descriptorSet = descriptor_set;
+      inputIndex = input_index ?? null;
       logOutput(`Loaded ${totalSteps} steps`);
       setStatus(`Loaded ${totalSteps} steps`, "success");
       await fetchStackTrace();
@@ -716,6 +719,7 @@
       currentStep = result.data.current_step;
       currentDescriptor = result.data.current_descriptor;
       descriptorSet = result.data.descriptor_set;
+      inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
     }
   }
@@ -727,6 +731,7 @@
       currentStep = result.data.current_step;
       currentDescriptor = result.data.current_descriptor;
       descriptorSet = result.data.descriptor_set;
+      inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
     }
   }
@@ -738,6 +743,7 @@
       currentStep = result.data.current_step;
       currentDescriptor = result.data.current_descriptor;
       descriptorSet = result.data.descriptor_set;
+      inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
     }
   }
@@ -1149,11 +1155,15 @@
 
       <!-- Input Area -->
       <div class="input-section">
-        <textarea
-          bind:value={inputText}
-          placeholder="Enter code to parse..."
-          spellcheck="false"
-        ></textarea>
+        {#if debugLoaded}
+          <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:current={i === inputIndex} class:consumed={inputIndex !== null && i < inputIndex}>{char}</span>{/each}{#if inputIndex !== null && inputIndex >= inputText.length}<span class="input-char current">&nbsp;</span>{/if}</div>
+        {:else}
+          <textarea
+            bind:value={inputText}
+            placeholder="Enter code to parse..."
+            spellcheck="false"
+          ></textarea>
+        {/if}
       </div>
     </div>
 
@@ -1183,16 +1193,13 @@
       <!-- Call Stack -->
       <div class="section call-stack" style="flex: 1 1 {debugStackHeight}px">
         <div class="section-header">Call Stack</div>
-        <div class="section-content">
+        <div class="stack-list">
           {#if callStack.length > 0}
-            <ul>
-              {#each callStack as frame, i}
-                <li class:current={i === 0}>
-                  <span class="call-marker">{i === 0 ? "→" : " "}</span>
-                  <code>{frame}</code>
-                </li>
-              {/each}
-            </ul>
+            {#each callStack as frame, i}
+              <div class="stack-frame" class:current={i === 0}>
+                <code>{frame}</code>
+              </div>
+            {/each}
           {:else}
             <span class="placeholder">{debugLoaded ? "No stack at current step" : "Click Debug to start"}</span>
           {/if}
@@ -1925,6 +1932,32 @@
     outline: none;
   }
 
+  /* Input Viewer for Debug Mode */
+  .input-viewer {
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    background: #1e1e1e;
+    font-family: "Fira Code", "Consolas", monospace;
+    font-size: 13px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .input-char {
+    color: #d4d4d4;
+  }
+
+  .input-char.consumed {
+    color: #6a9955;
+  }
+
+  .input-char.current {
+    background: #264f78;
+    color: #fff;
+  }
+
   /* Playback Controls */
   .playback-controls {
     display: flex;
@@ -2113,28 +2146,39 @@
     max-height: 400px;
   }
 
-  .call-stack .section-content {
-    max-height: none;
+  .stack-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
   }
 
-  .call-stack li {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  .stack-list .placeholder {
+    padding: 8px 12px;
   }
 
-  .call-stack li.current::before {
-    content: none;
+  .stack-frame {
+    padding: 4px 12px;
+    font-family: "Fira Code", "Consolas", monospace;
+    font-size: 12px;
+    cursor: default;
   }
 
-  .call-marker {
-    color: #888;
-    font-family: monospace;
-    width: 1em;
+  .stack-frame:hover {
+    background: rgba(255, 255, 255, 0.05);
   }
 
-  .call-stack li.current .call-marker {
-    color: #4ec9b0;
+  .stack-frame.current {
+    background: #094771;
+    color: #fff;
+  }
+
+  .stack-frame.current:hover {
+    background: #0a5286;
+  }
+
+  .stack-frame code {
+    background: transparent;
+    color: inherit;
   }
 
   code {

@@ -45,6 +45,8 @@ struct DebugInfo {
     current_descriptor: Option<String>,
     /// Pending descriptors in the worklist (formatted as strings)
     descriptor_set: Vec<String>,
+    /// Current position in the input (character index)
+    input_index: Option<u32>,
     /// Only set on initial load
     input_path: Option<String>,
     symbols_path: Option<String>,
@@ -412,6 +414,7 @@ fn load_debug_trace(
         total_steps: replay.total_steps() as u32,
         current_descriptor: replay.current_descriptor_string(),
         descriptor_set: replay.descriptor_set_strings(),
+        input_index: replay.current_input_index().map(|i| i as u32),
         input_path: Some(input_file.path().to_string_lossy().to_string()),
         symbols_path: Some(symbols_path.to_string_lossy().to_string()),
         trace_path: Some(trace_path.to_string_lossy().to_string()),
@@ -439,6 +442,7 @@ fn debug_step_forward(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInf
         total_steps: replay.total_steps() as u32,
         current_descriptor: replay.current_descriptor_string(),
         descriptor_set: replay.descriptor_set_strings(),
+        input_index: replay.current_input_index().map(|i| i as u32),
         input_path: None,
         symbols_path: None,
         trace_path: None,
@@ -461,6 +465,7 @@ fn debug_step_to(target: u32, state: tauri::State<Mutex<DebugState>>) -> Result<
         total_steps: replay.total_steps() as u32,
         current_descriptor: replay.current_descriptor_string(),
         descriptor_set: replay.descriptor_set_strings(),
+        input_index: replay.current_input_index().map(|i| i as u32),
         input_path: None,
         symbols_path: None,
         trace_path: None,
@@ -481,6 +486,7 @@ fn get_debug_info(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, S
         total_steps: replay.total_steps() as u32,
         current_descriptor: replay.current_descriptor_string(),
         descriptor_set: replay.descriptor_set_strings(),
+        input_index: replay.current_input_index().map(|i| i as u32),
         input_path: None,
         symbols_path: None,
         trace_path: None,
