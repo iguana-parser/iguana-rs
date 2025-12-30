@@ -10,7 +10,7 @@ use tauri_specta::{collect_commands, Builder};
 use tempfile::{NamedTempFile, TempDir};
 use toml::Value;
 
-use trace_replay::{StackFrame, TraceReplay};
+use trace_replay::{Descriptor, StackFrame, TraceReplay};
 
 #[derive(Clone, Serialize, Type)]
 struct BuildProgress {
@@ -41,6 +41,14 @@ struct DebugState {
 struct DebugInfo {
     current_step: u32,
     total_steps: u32,
+    /// The current descriptor being processed
+    current_descriptor: Option<String>,
+    /// Pending descriptors in the worklist
+    descriptor_set: Vec<Descriptor>,
+    /// Only set on initial load
+    input_path: Option<String>,
+    symbols_path: Option<String>,
+    trace_path: Option<String>,
 }
 
 fn read_parser_name(directory: &str) -> Result<String, String> {
@@ -402,6 +410,11 @@ fn load_debug_trace(
     let info = DebugInfo {
         current_step: replay.current_step() as u32,
         total_steps: replay.total_steps() as u32,
+        current_descriptor: replay.current_descriptor_string(),
+        descriptor_set: replay.descriptor_set().to_vec(),
+        input_path: Some(input_file.path().to_string_lossy().to_string()),
+        symbols_path: Some(symbols_path.to_string_lossy().to_string()),
+        trace_path: Some(trace_path.to_string_lossy().to_string()),
     };
 
     let mut debug_state = state.lock().unwrap();
@@ -424,6 +437,11 @@ fn debug_step_forward(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInf
     Ok(DebugInfo {
         current_step: replay.current_step() as u32,
         total_steps: replay.total_steps() as u32,
+        current_descriptor: replay.current_descriptor_string(),
+        descriptor_set: replay.descriptor_set().to_vec(),
+        input_path: None,
+        symbols_path: None,
+        trace_path: None,
     })
 }
 
@@ -441,6 +459,11 @@ fn debug_step_to(target: u32, state: tauri::State<Mutex<DebugState>>) -> Result<
     Ok(DebugInfo {
         current_step: replay.current_step() as u32,
         total_steps: replay.total_steps() as u32,
+        current_descriptor: replay.current_descriptor_string(),
+        descriptor_set: replay.descriptor_set().to_vec(),
+        input_path: None,
+        symbols_path: None,
+        trace_path: None,
     })
 }
 
@@ -456,6 +479,11 @@ fn get_debug_info(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, S
     Ok(DebugInfo {
         current_step: replay.current_step() as u32,
         total_steps: replay.total_steps() as u32,
+        current_descriptor: replay.current_descriptor_string(),
+        descriptor_set: replay.descriptor_set().to_vec(),
+        input_path: None,
+        symbols_path: None,
+        trace_path: None,
     })
 }
 

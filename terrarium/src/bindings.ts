@@ -106,7 +106,23 @@ async getStackTrace() : Promise<Result<StackFrame[], string>> {
 /**
  * Debug info returned to the frontend.
  */
-export type DebugInfo = { current_step: number; total_steps: number }
+export type DebugInfo = { current_step: number; total_steps: number; 
+/**
+ * The current descriptor being processed
+ */
+current_descriptor: string | null; 
+/**
+ * Pending descriptors in the worklist
+ */
+descriptor_set: Descriptor[]; 
+/**
+ * Only set on initial load
+ */
+input_path: string | null; symbols_path: string | null; trace_path: string | null }
+/**
+ * A descriptor in the pending set.
+ */
+export type Descriptor = { slot_name: string; input_index: number; gss_node_id: number }
 export type GSS = { nodes: GSSDotNode[]; edges: GSSDotEdge[] }
 export type GSSDotEdge = { src: GssNodeId; dest: GssNodeId; label: string }
 export type GSSDotNode = { id: GssNodeId; label: string }

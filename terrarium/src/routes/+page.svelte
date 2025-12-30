@@ -5,7 +5,7 @@
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
   import { availableMonitors, currentMonitor } from "@tauri-apps/api/window";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand, GitFork, Bug, Braces, PanelBottom } from "lucide-svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
 
@@ -19,8 +19,10 @@
 
     const unlistenResult = listen<{ success: boolean; message: string }>("build-result", async (event) => {
       isBuilding = false;
+      statusMessage = null;  // Clear status message
       if (event.payload.success) {
         buildStatus = "success";
+        logOutput("Build successful");
         if (parserDirectory) {
           // Fetch parser name and nonterminals in parallel
           const [nameResult, ntResult] = await Promise.all([
@@ -35,6 +37,9 @@
             if (nonterminals.length > 0 && !startNonterminal) {
               startNonterminal = nonterminals[0];
             }
+            // Show nonterminals in output panel
+            logCommand(`${parserName} --list-nonterminals`);
+            logOutput(nonterminals.join('\n'));
           }
         }
         showReadyStatus = true;
@@ -45,17 +50,23 @@
       } else {
         buildStatus = "error";
         buildError = event.payload.message;
+        logError(`Build failed\n${event.payload.message}`);
+        outputPanelOpen = true;
       }
     });
 
     const unlistenGenerateResult = listen<{ success: boolean; message: string }>("generate-result", (event) => {
       isGenerating = false;
+      statusMessage = null;  // Clear status message
       if (event.payload.success) {
         generateStatus = "success";
         generateError = null;
+        logOutput("Parser generated successfully");
       } else {
         generateStatus = "error";
         generateError = event.payload.message;
+        logError(event.payload.message);
+        outputPanelOpen = true;
       }
     });
 
@@ -110,7 +121,7 @@
   }
 
   // State
-  let inputText = $state("1 + 2 * 3");
+  let inputText = $state("");
   let startNonterminal = $state<string | null>(null);
   let nonterminals = $state<string[]>([]);
   let dropdownOpen = $state(false);
@@ -118,7 +129,6 @@
   // Playback state
   let currentStep = $state(0);
   let totalSteps = $state(0);
-  let isPlaying = $state(false);
 
   // Parser state
   let currentDescriptor = $state<string | null>(null);
@@ -147,9 +157,42 @@
 
   // Output panel state
   let outputPanelOpen = $state(false);
-  let outputContent = $state<string | null>(null);
-  let outputType = $state<"success" | "error" | "info">("info");
   let outputPanelHeight = $state(150);
+
+  // Output log entries: each entry has a type and content
+  type LogEntry = { type: "command" | "output" | "error"; content: string };
+  let outputLog = $state<LogEntry[]>([]);
+  let outputContentEl: HTMLDivElement | null = null;
+
+  function scrollOutputToBottom() {
+    if (outputContentEl) {
+      // Use setTimeout to ensure DOM has updated
+      setTimeout(() => {
+        if (outputContentEl) {
+          outputContentEl.scrollTop = outputContentEl.scrollHeight;
+        }
+      }, 0);
+    }
+  }
+
+  function logCommand(cmd: string) {
+    outputLog = [...outputLog, { type: "command", content: cmd }];
+    scrollOutputToBottom();
+  }
+
+  function logOutput(text: string) {
+    outputLog = [...outputLog, { type: "output", content: text }];
+    scrollOutputToBottom();
+  }
+
+  function logError(text: string) {
+    outputLog = [...outputLog, { type: "error", content: text }];
+    scrollOutputToBottom();
+  }
+
+  function clearOutput() {
+    outputLog = [];
+  }
   let cy: cytoscape.Core | null = null;
   let gssCy: cytoscape.Core | null = null;
 
@@ -469,6 +512,14 @@
   let isDraggingCurrent = $state(false);
   let isDraggingOutput = $state(false);
 
+  // Debug mode column widths
+  let debugCol1Width = $state(300);
+  let debugCol3Width = $state(400);
+  let debugStackHeight = $state(200);
+  let isDraggingDebug1 = $state(false);
+  let isDraggingDebug2 = $state(false);
+  let isDraggingDebugStack = $state(false);
+
   async function selectDirectory() {
     const selected = await open({
       directory: true,
@@ -485,10 +536,14 @@
       nonterminals = [];
       startNonterminal = null;
 
+      // Log the working directory
+      logOutput(`Working directory: ${parserDirectory}`);
+
       // Try to get parser name (might not exist yet if empty directory)
       const result = await commands.getParserName(parserDirectory);
       if (result.status === "ok") {
         parserName = result.data;
+        logOutput(`Parser: ${parserName}`);
       } else {
         parserName = null;
       }
@@ -507,7 +562,8 @@
     if (!parserDirectory) return;
     isBuilding = true;
     buildError = null;
-    setStatus("Starting build...", "info");
+    statusMessage = null;  // Let isBuilding control the status display
+    logCommand(`cargo build --features debug-trace`);
     // Command returns immediately, results come via events
     await commands.buildParser(parserDirectory);
   }
@@ -517,6 +573,7 @@
     isGenerating = true;
     generateError = null;
     generateStatus = "none";
+    logCommand(`iguana generate --output .`);
     // Command returns immediately, results come via events
     await commands.generateParser(parserDirectory);
   }
@@ -533,19 +590,18 @@
   async function parse() {
     if (!parserDirectory || buildStatus !== "success") return;
     setStatus("Parsing...", "info");
-    outputContent = "Parsing...";
-    outputType = "info";
 
     // Reset previous results
     sppf = null;
     gss = null;
     parseResultAvailable = false;
 
+    logCommand(`${parserName} <input> --start ${startNonterminal}`);
+
     const result = await commands.parse(parserDirectory, inputText, startNonterminal!);
     if (result.status === "ok") {
       parseResultAvailable = true;
-      outputContent = "Parse successful";
-      outputType = "success";
+      logOutput("Parse successful");
       setStatus("Parse successful", "success");
 
       // Fetch the data for the active tab
@@ -556,8 +612,7 @@
       }
     } else {
       parseResultAvailable = false;
-      outputContent = `Parse failed\n\n${result.error}`;
-      outputType = "error";
+      logError(result.error);
       outputPanelOpen = true;  // Only auto-open on error
       setStatus("Parse failed", "error");
     }
@@ -568,10 +623,9 @@
     const result = await commands.getSppf();
     if (result.status === "ok") {
       sppf = result.data;
-      outputContent = `Parse successful\n\nSPPF: ${result.data.nodes.length} nodes, ${result.data.edges.length} edges`;
+      logOutput(`SPPF: ${result.data.nodes.length} nodes, ${result.data.edges.length} edges`);
     } else {
-      outputContent = `Failed to load SPPF: ${result.error}`;
-      outputType = "error";
+      logError(`Failed to load SPPF: ${result.error}`);
     }
   }
 
@@ -580,10 +634,9 @@
     const result = await commands.getGss();
     if (result.status === "ok") {
       gss = result.data;
-      outputContent = `Parse successful\n\nGSS: ${result.data.nodes.length} nodes, ${result.data.edges.length} edges`;
+      logOutput(`GSS: ${result.data.nodes.length} nodes, ${result.data.edges.length} edges`);
     } else {
-      outputContent = `Failed to load GSS: ${result.error}`;
-      outputType = "error";
+      logError(`Failed to load GSS: ${result.error}`);
     }
   }
 
@@ -631,16 +684,28 @@
     callStack = [];
     currentStep = 0;
     totalSteps = 0;
+    currentDescriptor = null;
+    descriptorSet = [];
 
     const result = await commands.loadDebugTrace(parserDirectory, inputText, startNonterminal);
     if (result.status === "ok") {
+      const { input_path, symbols_path, trace_path, current_descriptor, descriptor_set } = result.data;
+      logCommand(`${parserName} --write-symbols ${symbols_path}`);
+      logCommand(`${parserName} ${input_path} --start ${startNonterminal} --trace ${trace_path} --format json`);
       debugLoaded = true;
       currentStep = result.data.current_step;
       totalSteps = result.data.total_steps;
-      setStatus(`Loaded ${totalSteps} trace events`, "success");
+      currentDescriptor = current_descriptor;
+      descriptorSet = descriptor_set.map(d => `(${d.slot_name}, ${d.input_index}, u${d.gss_node_id})`);
+      logOutput(`Loaded ${totalSteps} steps`);
+      setStatus(`Loaded ${totalSteps} steps`, "success");
       await fetchStackTrace();
     } else {
-      setStatus(`Debug failed: ${result.error}`, "error");
+      logCommand(`${parserName} --write-symbols <symbols.json>`);
+      logCommand(`${parserName} <input> --start ${startNonterminal} --trace <trace.json> --format json`);
+      setStatus("Debug failed", "error");
+      logError(result.error);
+      outputPanelOpen = true;
     }
   }
 
@@ -649,15 +714,19 @@
     const result = await commands.debugStepTo(currentStep - 1);
     if (result.status === "ok") {
       currentStep = result.data.current_step;
+      currentDescriptor = result.data.current_descriptor;
+      descriptorSet = result.data.descriptor_set.map(d => `(${d.slot_name}, ${d.input_index}, u${d.gss_node_id})`);
       await fetchStackTrace();
     }
   }
 
   async function stepForward() {
-    if (!debugLoaded || currentStep >= totalSteps) return;
+    if (!debugLoaded || currentStep >= totalSteps - 1) return;
     const result = await commands.debugStepForward();
     if (result.status === "ok") {
       currentStep = result.data.current_step;
+      currentDescriptor = result.data.current_descriptor;
+      descriptorSet = result.data.descriptor_set.map(d => `(${d.slot_name}, ${d.input_index}, u${d.gss_node_id})`);
       await fetchStackTrace();
     }
   }
@@ -667,6 +736,8 @@
     const result = await commands.debugStepTo(target);
     if (result.status === "ok") {
       currentStep = result.data.current_step;
+      currentDescriptor = result.data.current_descriptor;
+      descriptorSet = result.data.descriptor_set.map(d => `(${d.slot_name}, ${d.input_index}, u${d.gss_node_id})`);
       await fetchStackTrace();
     }
   }
@@ -678,10 +749,6 @@
     } else {
       callStack = [];
     }
-  }
-
-  function togglePlay() {
-    isPlaying = !isPlaying;
   }
 
   function startVerticalDrag(e: MouseEvent) {
@@ -706,6 +773,21 @@
 
   function startOutputDrag(e: MouseEvent) {
     isDraggingOutput = true;
+    e.preventDefault();
+  }
+
+  function startDebugResize1(e: MouseEvent) {
+    isDraggingDebug1 = true;
+    e.preventDefault();
+  }
+
+  function startDebugResize2(e: MouseEvent) {
+    isDraggingDebug2 = true;
+    e.preventDefault();
+  }
+
+  function startDebugStackResize(e: MouseEvent) {
+    isDraggingDebugStack = true;
     e.preventDefault();
   }
 
@@ -737,6 +819,22 @@
     if (isDraggingOutput) {
       outputPanelHeight = Math.max(80, Math.min(400, window.innerHeight - e.clientY - 30));
     }
+    if (isDraggingDebug1) {
+      // Resize first debug column (account for activity bar width of 48px)
+      debugCol1Width = Math.max(200, Math.min(500, e.clientX - 48));
+    }
+    if (isDraggingDebug2) {
+      // Resize third debug column from the right edge
+      debugCol3Width = Math.max(200, Math.min(600, window.innerWidth - e.clientX));
+    }
+    if (isDraggingDebugStack) {
+      // Resize stack height within middle column
+      const stackSection = document.querySelector('.debug-col-stack .call-stack');
+      if (stackSection) {
+        const rect = stackSection.getBoundingClientRect();
+        debugStackHeight = Math.max(100, Math.min(500, e.clientY - rect.top));
+      }
+    }
   }
 
   function onMouseUp() {
@@ -745,6 +843,9 @@
     isDraggingInput = false;
     isDraggingCurrent = false;
     isDraggingOutput = false;
+    isDraggingDebug1 = false;
+    isDraggingDebug2 = false;
+    isDraggingDebugStack = false;
   }
 
   function handleWindowClick(e: MouseEvent) {
@@ -838,7 +939,7 @@
 
 <svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} on:click={handleWindowClick} />
 
-<div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput}>
+<div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebug1 || isDraggingDebug2 || isDraggingDebugStack}>
   <!-- Title Bar (full width) -->
   <div class="title-bar" onmousedown={startWindowDrag} ondblclick={toggleMaximize}>
     <div class="title-bar-left">
@@ -1011,10 +1112,10 @@
   </div>
   </div>
   {:else if activeMode === "debug"}
-  <!-- Debug Mode -->
-  <div class="main-content">
-    <!-- Debug Panel (full width) -->
-    <div class="debug-panel">
+  <!-- Debug Mode - Three Column Layout -->
+  <div class="debug-layout">
+    <!-- Column 1: Input -->
+    <div class="debug-column debug-col-input" style="width: {debugCol1Width}px">
       <!-- Header -->
       <div class="header">
         <div class="dropdown-wrapper">
@@ -1047,67 +1148,38 @@
       </div>
 
       <!-- Input Area -->
-      <div class="input-section" style="flex: 0 0 {inputHeight}px">
+      <div class="input-section">
         <textarea
           bind:value={inputText}
           placeholder="Enter code to parse..."
           spellcheck="false"
         ></textarea>
       </div>
+    </div>
 
-      <!-- Input Resize Handle -->
-      <div class="resize-handle-horizontal" onmousedown={startInputDrag}></div>
+    <!-- Resize Handle 1 -->
+    <div class="resize-handle-vertical" onmousedown={startDebugResize1}></div>
+
+    <!-- Column 2: Stack + Pending -->
+    <div class="debug-column debug-col-stack">
+      <!-- Current Descriptor -->
+      <div class="current-descriptor-bar">
+        {#if currentDescriptor}
+          <code>{currentDescriptor}</code>
+        {:else}
+          <span class="placeholder">No descriptor</span>
+        {/if}
+      </div>
 
       <!-- Playback Controls -->
       <div class="playback-controls">
         <button onclick={stepBack} disabled={!debugLoaded || currentStep === 0}>◀</button>
-        <button onclick={togglePlay} disabled={!debugLoaded}>{isPlaying ? "⏸" : "▶"}</button>
-        <button onclick={stepForward} disabled={!debugLoaded || currentStep >= totalSteps}>▶▶</button>
-        <span class="step-counter">Step {currentStep}/{totalSteps}</span>
-        <input
-          type="range"
-          min="0"
-          max={totalSteps}
-          bind:value={currentStep}
-          oninput={(e) => stepTo(parseInt((e.target as HTMLInputElement).value))}
-          disabled={!debugLoaded}
-          class="step-slider"
-        />
-      </div>
-
-      <!-- Current Descriptor -->
-      <div class="section current-section" style="flex: 0 0 {currentDescHeight}px">
-        <div class="section-header">Current</div>
-        <div class="section-content current-descriptor">
-          {#if currentDescriptor}
-            <code>{currentDescriptor}</code>
-          {:else}
-            <span class="placeholder">No descriptor</span>
-          {/if}
-        </div>
-      </div>
-
-      <!-- Current Resize Handle -->
-      <div class="resize-handle-horizontal" onmousedown={startCurrentDrag}></div>
-
-      <!-- Descriptor Set -->
-      <div class="section descriptor-set">
-        <div class="section-header">Descriptor Set</div>
-        <div class="section-content">
-          {#if descriptorSet.length > 0}
-            <ul>
-              {#each descriptorSet as desc, i}
-                <li class:current={i === 0}><code>{desc}</code></li>
-              {/each}
-            </ul>
-          {:else}
-            <span class="placeholder">Empty</span>
-          {/if}
-        </div>
+        <button onclick={stepForward} disabled={!debugLoaded || currentStep >= totalSteps - 1}>▶</button>
+        <span class="step-counter">Step {currentStep + 1} / {totalSteps}</span>
       </div>
 
       <!-- Call Stack -->
-      <div class="section call-stack" style="flex: 0 0 {callStackHeight}px">
+      <div class="section call-stack" style="flex: 1 1 {debugStackHeight}px">
         <div class="section-header">Call Stack</div>
         <div class="section-content">
           {#if callStack.length > 0}
@@ -1124,6 +1196,33 @@
           {/if}
         </div>
       </div>
+
+      <!-- Resize Handle (horizontal) -->
+      <div class="resize-handle-horizontal" onmousedown={startDebugStackResize}></div>
+
+      <!-- Pending Descriptors -->
+      <div class="section pending-descriptors">
+        <div class="section-header">Pending Descriptors ({descriptorSet.length})</div>
+        <div class="section-content">
+          {#if descriptorSet.length > 0}
+            <ul>
+              {#each descriptorSet as desc}
+                <li><code>{desc}</code></li>
+              {/each}
+            </ul>
+          {:else}
+            <span class="placeholder">Empty</span>
+          {/if}
+        </div>
+      </div>
+    </div>
+
+    <!-- Resize Handle 2 -->
+    <div class="resize-handle-vertical" onmousedown={startDebugResize2}></div>
+
+    <!-- Column 3: GSS/SPPF (placeholder) -->
+    <div class="debug-column debug-col-graphs" style="width: {debugCol3Width}px">
+      <div class="graph-placeholder">GSS / SPPF visualization</div>
     </div>
   </div>
   {:else if activeMode === "design"}
@@ -1166,21 +1265,37 @@
   </div>
   {/if}
 
-    <!-- Output Panel (inside main-area) -->
-    {#if outputPanelOpen}
+    </div>
+  </div>
+
+  <!-- Output Panel (overlay) -->
+  {#if outputPanelOpen}
+    <div class="output-panel-overlay">
       <div class="resize-handle-horizontal" onmousedown={startOutputDrag}></div>
       <div class="output-panel open">
-        <div class="output-content" class:error={outputType === "error"} class:success={outputType === "success"} style="height: {outputPanelHeight}px">
-          {#if outputContent}
-            <pre>{outputContent}</pre>
+        <div class="output-header">
+          <span class="output-title">Output</span>
+          <div class="output-header-buttons">
+            <button class="output-header-btn" onclick={clearOutput} title="Clear output">
+              <Trash2 size={20} />
+            </button>
+            <button class="output-header-btn" onclick={() => outputPanelOpen = false} title="Hide output">
+              <ChevronsDown size={20} />
+            </button>
+          </div>
+        </div>
+        <div class="output-content" style="height: {outputPanelHeight}px" bind:this={outputContentEl}>
+          {#if outputLog.length > 0}
+            {#each outputLog as entry}
+              <pre class="log-entry {entry.type}">{entry.content}</pre>
+            {/each}
           {:else}
             <span class="placeholder">No output</span>
           {/if}
         </div>
       </div>
-    {/if}
     </div>
-  </div>
+  {/if}
 
   <!-- Status Bar (full width) -->
   <div class="status-bar">
@@ -1188,6 +1303,10 @@
       <span class="status-text">
         {#if isBuilding}
           Building...
+        {:else if isGenerating}
+          Generating...
+        {:else if statusMessage}
+          {statusMessage}
         {:else if parserDirectory && buildStatus === "success"}
           Ready
         {:else}
@@ -1242,6 +1361,7 @@
   }
 
   .app {
+    position: relative;
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -1572,13 +1692,80 @@
     background: #252526;
   }
 
-  /* Debug Panel (full width in debug mode) */
-  .debug-panel {
+  /* Debug Layout - Three Columns */
+  .debug-layout {
     flex: 1;
+    display: flex;
+    flex-direction: row;
+    min-height: 0;
+  }
+
+  .debug-column {
     display: flex;
     flex-direction: column;
     background: #252526;
+    border-right: 1px solid #3c3c3c;
+  }
+
+  .debug-column:last-child {
+    border-right: none;
+  }
+
+  .debug-col-input {
+    flex-shrink: 0;
+    min-width: 200px;
     max-width: 500px;
+  }
+
+  .debug-col-stack {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .debug-col-graphs {
+    flex-shrink: 0;
+    min-width: 200px;
+    max-width: 600px;
+  }
+
+  .debug-col-stack .call-stack {
+    min-height: 100px;
+    border-bottom: none;
+  }
+
+  .debug-col-stack .pending-descriptors {
+    flex: 1;
+    min-height: 100px;
+  }
+
+  .debug-col-stack .section-content {
+    flex: 1;
+  }
+
+  .current-descriptor-bar {
+    padding: 8px 12px;
+    background: #2d2d30;
+    border-bottom: 1px solid #3c3c3c;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+    font-size: 13px;
+  }
+
+  .current-descriptor-bar code {
+    color: #4ec9b0;
+  }
+
+  .current-descriptor-bar .placeholder {
+    color: #666;
+    font-style: italic;
+  }
+
+  .graph-placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-style: italic;
   }
 
   .header {
@@ -1762,11 +1949,6 @@
     min-width: 80px;
   }
 
-  .step-slider {
-    flex: 1;
-    height: 4px;
-  }
-
   /* Sections */
   .section {
     display: flex;
@@ -1787,27 +1969,6 @@
     padding: 8px 12px;
     flex: 1;
     overflow-y: auto;
-  }
-
-  .current-section {
-    min-height: 50px;
-    max-height: 200px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .current-descriptor {
-    font-family: "Fira Code", "Consolas", monospace;
-  }
-
-  .descriptor-set {
-    flex: 1;
-    min-height: 0;
-  }
-
-  .descriptor-set .section-content {
-    max-height: none;
-    flex: 1;
   }
 
   .section-content ul {
@@ -1970,68 +2131,94 @@
     background: transparent;
   }
 
+  /* Output Panel Overlay */
+  .output-panel-overlay {
+    position: absolute;
+    bottom: 32px; /* Above status bar */
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+  }
+
   /* Output Panel */
   .output-panel {
     display: flex;
     flex-direction: column;
     background: #1e1e1e;
-    border-top: 1px solid #3c3c3c;
+    border-top: 1px solid #454545;
     flex-shrink: 0;
   }
 
   .output-header {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    justify-content: space-between;
+    padding: 4px 12px;
     background: #2d2d2d;
-    border: none;
     border-bottom: 1px solid #3c3c3c;
-    color: #d4d4d4;
-    cursor: pointer;
-    font-size: 12px;
+  }
+
+  .output-title {
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    text-align: left;
+    color: #888;
   }
 
-  .output-header:hover {
-    background: #383838;
+  .output-header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 
-  .output-status-icon {
-    margin-left: auto;
+  .output-header-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    border-radius: 3px;
   }
 
-  .output-status-icon.error {
-    color: #f48771;
-  }
-
-  .output-status-icon.success {
-    color: #89d185;
+  .output-header-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #d4d4d4;
   }
 
   .output-content {
-    padding: 12px;
+    padding: 8px 12px;
     overflow: auto;
     font-family: "Fira Code", "Consolas", monospace;
     font-size: 12px;
   }
 
-  .output-content pre {
-    margin: 0;
+  .log-entry {
+    margin: 0 0 4px 0;
     white-space: pre-wrap;
     word-break: break-word;
   }
 
-  .output-content.error {
-    background: #2d1f1f;
-    color: #f48771;
+  .log-entry.command {
+    color: #569cd6;
   }
 
-  .output-content.success {
-    background: #1f2d1f;
-    color: #89d185;
+  .log-entry.command::before {
+    content: "$ ";
+    color: #6a9955;
+  }
+
+  .log-entry.output {
+    color: #d4d4d4;
+  }
+
+  .log-entry.error {
+    color: #f48771;
   }
 
   /* Status Bar */
@@ -2049,7 +2236,11 @@
   .status-left {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+  }
+
+  .status-left .status-text {
+    margin-left: 8px;
   }
 
   .status-right {

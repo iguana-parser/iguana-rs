@@ -152,7 +152,15 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             }
 
             let parse_tree_builder = #parse_tree_builder;
-            match parser.run() {
+            let result = parser.run();
+
+            // Write trace events immediately after parsing (before any visualization that might panic)
+            #[cfg(feature = "debug-trace")]
+            if let Some(ref trace_events) = parser.trace_events {
+                write_trace_events(trace_events, &parser, &cli.trace, cli.format)?;
+            }
+
+            match result {
                 ParseResult::Success(parse_success) => {
                     let node_id = parse_success.sppf_node_id;
 
@@ -189,20 +197,19 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         None => {}
                     }
 
-                    // Print parse tree if no write flags specified
-                    if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() {
+                    // Print parse tree if no write flags specified and not tracing
+                    // (trace mode skips parse tree to avoid panics on ambiguous grammars)
+                    if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() && cli.trace.is_none() {
                         println!("Parse success.");
                         let parse_tree = create_parse_tree(node_id, &start_nonterminal_name, &parser, &parse_tree_builder);
                         println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
+                    } else if cli.trace.is_some() {
+                        println!("Parse success.");
                     }
                 }
                 ParseResult::Failure() => {
                     println!("Parse failed");
                 }
-            }
-            #[cfg(feature = "debug-trace")]
-            if let Some(ref trace_events) = parser.trace_events {
-                write_trace_events(trace_events, &parser, &cli.trace, cli.format)?;
             }
             Ok(())
         }

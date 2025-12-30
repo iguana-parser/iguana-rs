@@ -128,7 +128,12 @@ fn main() -> Result<(), io::Error> {
         parser.trace_events = Some(vec![]);
     }
     let parse_tree_builder = IggyParseTreeBuilder;
-    match parser.run() {
+    let result = parser.run();
+    #[cfg(feature = "debug-trace")]
+    if let Some(ref trace_events) = parser.trace_events {
+        write_trace_events(trace_events, &parser, &cli.trace, cli.format)?;
+    }
+    match result {
         ParseResult::Success(parse_success) => {
             let node_id = parse_success.sppf_node_id;
             if let Some(ref path) = cli.write_sppf {
@@ -173,10 +178,6 @@ fn main() -> Result<(), io::Error> {
             println!("Parse failed");
         }
     }
-    #[cfg(feature = "debug-trace")]
-    if let Some(ref trace_events) = parser.trace_events {
-        write_trace_events(trace_events, &parser, &cli.trace, cli.format)?;
-    }
     Ok(())
 }
 #[cfg(feature = "debug-trace")]
@@ -197,9 +198,7 @@ fn write_trace_events<'i>(
                     }
                 }
                 TraceFormat::Json => {
-                    for event in trace_events {
-                        writeln!(writer, "{}", serde_json::to_string(event).unwrap())?;
-                    }
+                    writeln!(writer, "{}", serde_json::to_string(trace_events).unwrap())?;
                 }
             }
         }
@@ -210,9 +209,7 @@ fn write_trace_events<'i>(
                 }
             }
             TraceFormat::Json => {
-                for event in trace_events {
-                    println!("{}", serde_json::to_string(event).unwrap());
-                }
+                println!("{}", serde_json::to_string(trace_events).unwrap());
             }
         },
         None => {}
