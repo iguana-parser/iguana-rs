@@ -1,5 +1,9 @@
+use serde::{Deserialize, Serialize};
+use specta::Type;
+
 use crate::{ids::{GssNodeId, SlotId}, sppf::SPPFNodeId};
 
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct Descriptor {
     pub input_index: u32,
     pub slot_id: SlotId,

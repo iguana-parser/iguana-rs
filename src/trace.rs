@@ -12,7 +12,6 @@ use crate::parser::Parser;
 /// Always available for deserialization; runtime tracing requires `debug-trace` feature.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum TraceEvent {
-    Start(NonterminalId, u32, GssNodeId),
     ProcessingDescriptor(SlotId, u32, GssNodeId, Option<SPPFNodeId>),
     DescriptorAdded(SlotId, u32, GssNodeId, Option<SPPFNodeId>),
     MatchingLeadingLayout(u32),
@@ -43,14 +42,6 @@ pub enum TraceEvent {
 impl TraceEvent {
     pub fn message<'i, P: Parser<'i>>(&self, parser: &P) -> String {
         match *self {
-            TraceEvent::Start(nonterminal_id, input_index, gss_node_id) => {
-                format!(
-                    "Parsing started ({}, {}, {})",
-                    P::nonterminal(nonterminal_id).name,
-                    input_index,
-                    parser.gss_to_string(gss_node_id),
-                )
-            }
             TraceEvent::ProcessingDescriptor(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 format!(
                     "Processing ({}, {}, {}, {})",
@@ -187,13 +178,6 @@ impl TraceEvent {
 #[macro_export]
 #[cfg(feature = "debug-trace")]
 macro_rules! record {
-    ($parser:expr, Start, $input_index:expr, $nonterminal_id:expr, $gss_node_id:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::Start(
-            $nonterminal_id,
-            $input_index,
-            $gss_node_id,
-        ));
-    };
     ($parser:expr, ProcessingDescriptor, $input_index:expr, $slot_id:expr, $sppf_node_id:expr, $gss_node_id:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::ProcessingDescriptor(
             $slot_id,

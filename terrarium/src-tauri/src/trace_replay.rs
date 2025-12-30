@@ -2,10 +2,11 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
+use iguana::descriptor::Descriptor;
 use iguana::gss::{GSSEdge, GSSNode};
 use iguana::ids::{GssNodeId, NonterminalId, SlotId};
 use iguana::trace::TraceEvent;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use specta::Type;
 
 /// Symbol table loaded from `--write-symbols` output.
@@ -35,32 +36,17 @@ impl SymbolTable {
     }
 }
 
-/// A stack frame in the GLL call stack.
-#[derive(Debug, Clone, Serialize, Type)]
-pub struct StackFrame {
-    pub slot_name: String,
-}
-
-/// A descriptor in the pending set.
-#[derive(Debug, Clone, Serialize, Type)]
-pub struct Descriptor {
-    pub slot_name: String,
-    pub input_index: u32,
-    pub gss_node_id: u32,
-}
-
 /// Trace replay for debugging.
-/// Steps are only Start and ProcessingDescriptor events.
-/// Other events update state but are not steps.
+/// Steps are ProcessingDescriptor events.
 pub struct TraceReplay {
     events: Vec<TraceEvent>,
-    /// Indices into `events` that are steps (Start or ProcessingDescriptor)
+    /// Indices into `events` that are steps (ProcessingDescriptor only)
     step_indices: Vec<usize>,
     /// Current step (0-indexed into step_indices)
     current_step: usize,
     /// GSS nodes reconstructed from trace
     gss_nodes: Vec<GSSNode>,
-    /// Pending descriptor set
+    /// Pending descriptor set (uses iguana's Descriptor with IDs)
     descriptor_set: Vec<Descriptor>,
     /// Current descriptor being processed
     current_descriptor: Option<Descriptor>,
@@ -80,12 +66,12 @@ impl TraceReplay {
 
         let symbols = SymbolTable::load(symbols_path)?;
 
-        // Build index of step events (Start and ProcessingDescriptor)
+        // Build index of step events (ProcessingDescriptor only)
         let step_indices: Vec<usize> = events
             .iter()
             .enumerate()
             .filter_map(|(i, event)| match event {
-                TraceEvent::Start(..) | TraceEvent::ProcessingDescriptor(..) => Some(i),
+                TraceEvent::ProcessingDescriptor(..) => Some(i),
                 _ => None,
             })
             .collect();
@@ -118,23 +104,36 @@ impl TraceReplay {
         self.current_step
     }
 
-    /// Get the pending descriptor set.
-    pub fn descriptor_set(&self) -> &[Descriptor] {
-        &self.descriptor_set
+    /// Format a GSS node as "(Nonterminal, InputIndex)".
+    fn format_gss_node(&self, gss_node_id: GssNodeId) -> String {
+        if let Some(node) = self.gss_nodes.get(gss_node_id.index()) {
+            let nt_name = self.symbols.nonterminal(node.nonterminal_id);
+            format!("({}, {})", nt_name, node.index)
+        } else {
+            format!("(?, {})", gss_node_id.0)
+        }
     }
 
-    /// Get the current descriptor being processed.
-    pub fn current_descriptor(&self) -> Option<&Descriptor> {
-        self.current_descriptor.as_ref()
+    /// Format a descriptor for display: "(slot, input_index, (nonterminal, index))".
+    fn format_descriptor(&self, desc: &Descriptor) -> String {
+        let slot_name = self.symbols.slot(desc.slot_id);
+        let gss_node = self.format_gss_node(desc.gss_node_id);
+        format!("({}, {}, {})", slot_name, desc.input_index, gss_node)
     }
 
     /// Get the current descriptor as a formatted string.
     pub fn current_descriptor_string(&self) -> Option<String> {
-        let desc = self.current_descriptor.as_ref()?;
-        Some(format!(
-            "({}, {}, u{})",
-            desc.slot_name, desc.input_index, desc.gss_node_id
-        ))
+        self.current_descriptor
+            .as_ref()
+            .map(|desc| self.format_descriptor(desc))
+    }
+
+    /// Get the pending descriptor set as formatted strings.
+    pub fn descriptor_set_strings(&self) -> Vec<String> {
+        self.descriptor_set
+            .iter()
+            .map(|desc| self.format_descriptor(desc))
+            .collect()
     }
 
     /// Step forward to the next step.
@@ -190,34 +189,27 @@ impl TraceReplay {
     /// Apply the trace event at the given index to update state.
     fn apply_event(&mut self, index: usize) {
         match &self.events[index] {
-            TraceEvent::Start(nonterminal_id, input_index, gss_node_id) => {
-                // Start creates the initial descriptor
-                self.current_descriptor = Some(Descriptor {
-                    slot_name: format!("Start({})", self.symbols.nonterminal(*nonterminal_id)),
+            TraceEvent::ProcessingDescriptor(slot_id, input_index, gss_node_id, sppf_node_id) => {
+                let desc = Descriptor {
+                    slot_id: *slot_id,
                     input_index: *input_index,
-                    gss_node_id: gss_node_id.0,
-                });
-            }
-            TraceEvent::ProcessingDescriptor(slot_id, input_index, gss_node_id, _) => {
-                // Set current descriptor
-                self.current_descriptor = Some(Descriptor {
-                    slot_name: self.symbols.slot(*slot_id).to_string(),
-                    input_index: *input_index,
-                    gss_node_id: gss_node_id.0,
-                });
+                    gss_node_id: *gss_node_id,
+                    sppf_node_id: *sppf_node_id,
+                };
                 // Remove from pending set (if present)
                 self.descriptor_set.retain(|d| {
-                    !(d.slot_name == self.symbols.slot(*slot_id)
+                    !(d.slot_id == *slot_id
                         && d.input_index == *input_index
-                        && d.gss_node_id == gss_node_id.0)
+                        && d.gss_node_id == *gss_node_id)
                 });
+                self.current_descriptor = Some(desc);
             }
-            TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, _) => {
-                // Add to pending descriptor set
+            TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 self.descriptor_set.push(Descriptor {
-                    slot_name: self.symbols.slot(*slot_id).to_string(),
+                    slot_id: *slot_id,
                     input_index: *input_index,
-                    gss_node_id: gss_node_id.0,
+                    gss_node_id: *gss_node_id,
+                    sppf_node_id: *sppf_node_id,
                 });
             }
             TraceEvent::GSSNodeCreated(nonterminal_id, input_index) => {
@@ -235,28 +227,27 @@ impl TraceReplay {
     }
 
     /// Build stack trace from current descriptor.
-    /// Returns frames from top (current) to bottom (root).
-    pub fn build_stack_trace(&self) -> Option<Vec<StackFrame>> {
+    /// Returns slot names from top (current) to bottom (root).
+    pub fn build_stack_trace(&self) -> Option<Vec<String>> {
         let current = self.current_descriptor.as_ref()?;
 
         let mut frames = Vec::new();
 
         // First frame is the current slot
-        frames.push(StackFrame {
-            slot_name: current.slot_name.clone(),
-        });
+        frames.push(self.symbols.slot(current.slot_id).to_string());
 
         // Walk back through GSS edges
-        let mut current_gss = GssNodeId(current.gss_node_id);
+        let mut current_gss = current.gss_node_id;
         while let Some(node) = self.gss_nodes.get(current_gss.index()) {
             // Follow first edge (single execution thread model)
             let Some(edge) = node.edges().first() else {
-                break; // Reached root (no outgoing edges)
+                // Reached root (no outgoing edges) - add the start nonterminal
+                let nt_name = self.symbols.nonterminal(node.nonterminal_id);
+                frames.push(format!("{}.", nt_name));
+                break;
             };
 
-            frames.push(StackFrame {
-                slot_name: self.symbols.slot(edge.return_slot).to_string(),
-            });
+            frames.push(self.symbols.slot(edge.return_slot).to_string());
             current_gss = edge.dest_id;
         }
 

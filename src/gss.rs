@@ -1,15 +1,22 @@
+use serde::{Deserialize, Serialize};
+use specta::Type;
+
 use crate::{
     ids::{GssNodeId, NonterminalId, SlotId},
     sppf::SPPFNodeId,
     utils::{inline_set::InlineSet, inline_vec::InlineVec},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Type)]
 pub struct GSSNode {
     pub id: GssNodeId,
     pub nonterminal_id: NonterminalId,
     pub index: u32,
+    #[serde(skip)]
+    #[specta(skip)]
     edges: InlineVec<GSSEdge>,
+    #[serde(skip)]
+    #[specta(skip)]
     popped_elements: InlineSet<SPPFNodeId>,
 }
 

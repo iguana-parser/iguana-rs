@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { commands, type SPPF, type GSS, type DebugInfo, type StackFrame } from "../bindings";
+  import { commands, type SPPF, type GSS, type DebugInfo } from "../bindings";
   import { listen } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
@@ -133,7 +133,7 @@
   // Parser state
   let currentDescriptor = $state<string | null>(null);
   let descriptorSet = $state<string[]>([]);
-  let callStack = $state<StackFrame[]>([]);
+  let callStack = $state<string[]>([]);
   let debugLoaded = $state(false);
 
   // Graph tab
@@ -696,7 +696,7 @@
       currentStep = result.data.current_step;
       totalSteps = result.data.total_steps;
       currentDescriptor = current_descriptor;
-      descriptorSet = descriptor_set.map(d => `(${d.slot_name}, ${d.input_index}, u${d.gss_node_id})`);
+      descriptorSet = descriptor_set;
       logOutput(`Loaded ${totalSteps} steps`);
       setStatus(`Loaded ${totalSteps} steps`, "success");
       await fetchStackTrace();
@@ -715,7 +715,7 @@
     if (result.status === "ok") {
       currentStep = result.data.current_step;
       currentDescriptor = result.data.current_descriptor;
-      descriptorSet = result.data.descriptor_set.map(d => `(${d.slot_name}, ${d.input_index}, u${d.gss_node_id})`);
+      descriptorSet = result.data.descriptor_set;
       await fetchStackTrace();
     }
   }
@@ -726,7 +726,7 @@
     if (result.status === "ok") {
       currentStep = result.data.current_step;
       currentDescriptor = result.data.current_descriptor;
-      descriptorSet = result.data.descriptor_set.map(d => `(${d.slot_name}, ${d.input_index}, u${d.gss_node_id})`);
+      descriptorSet = result.data.descriptor_set;
       await fetchStackTrace();
     }
   }
@@ -737,7 +737,7 @@
     if (result.status === "ok") {
       currentStep = result.data.current_step;
       currentDescriptor = result.data.current_descriptor;
-      descriptorSet = result.data.descriptor_set.map(d => `(${d.slot_name}, ${d.input_index}, u${d.gss_node_id})`);
+      descriptorSet = result.data.descriptor_set;
       await fetchStackTrace();
     }
   }
@@ -1175,7 +1175,9 @@
       <div class="playback-controls">
         <button onclick={stepBack} disabled={!debugLoaded || currentStep === 0}>◀</button>
         <button onclick={stepForward} disabled={!debugLoaded || currentStep >= totalSteps - 1}>▶</button>
-        <span class="step-counter">Step {currentStep + 1} / {totalSteps}</span>
+        {#if debugLoaded}
+          <span class="step-counter">Step {currentStep + 1} / {totalSteps}</span>
+        {/if}
       </div>
 
       <!-- Call Stack -->
@@ -1187,7 +1189,7 @@
               {#each callStack as frame, i}
                 <li class:current={i === 0}>
                   <span class="call-marker">{i === 0 ? "→" : " "}</span>
-                  <code>{frame.slot_name}</code>
+                  <code>{frame}</code>
                 </li>
               {/each}
             </ul>
@@ -1300,7 +1302,7 @@
   <!-- Status Bar (full width) -->
   <div class="status-bar">
     <div class="status-left">
-      <span class="status-text">
+      <button class="status-text-btn" onclick={() => outputPanelOpen = !outputPanelOpen}>
         {#if isBuilding}
           Building...
         {:else if isGenerating}
@@ -1312,7 +1314,7 @@
         {:else}
           No parser selected
         {/if}
-      </span>
+      </button>
     </div>
     <div class="status-right">
       <button
@@ -1463,21 +1465,25 @@
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: #0e639c;
-    color: white;
-    border: none;
+    background: transparent;
+    color: #d4d4d4;
+    border: 1px solid #555;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
 
   .generate-btn:hover:not(:disabled) {
-    background: #1177bb;
+    border-color: #888;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
   }
 
   .generate-btn:disabled {
-    background: #3c3c3c;
-    color: #888;
+    background: transparent;
+    color: #555;
+    border-color: #3c3c3c;
     cursor: not-allowed;
   }
 
@@ -1876,20 +1882,24 @@
   .parse-btn {
     margin-left: auto;
     padding: 6px 16px;
-    background: #0e639c;
-    color: white;
-    border: none;
+    background: transparent;
+    color: #d4d4d4;
+    border: 1px solid #555;
     border-radius: 4px;
     cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
 
   .parse-btn:hover:not(:disabled) {
-    background: #1177bb;
+    border-color: #888;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
   }
 
   .parse-btn:disabled {
-    background: #3c3c3c;
-    color: #888;
+    background: transparent;
+    color: #555;
+    border-color: #3c3c3c;
     cursor: not-allowed;
   }
 
@@ -2252,6 +2262,22 @@
   .status-bar .status-text {
     font-size: 12px;
     color: #888;
+  }
+
+  .status-text-btn {
+    background: transparent;
+    border: none;
+    font-size: 12px;
+    color: #888;
+    cursor: pointer;
+    padding: 2px 4px;
+    margin: -2px -4px;
+    border-radius: 3px;
+  }
+
+  .status-text-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #d4d4d4;
   }
 
   .status-icon-btn {

@@ -83,7 +83,7 @@ async getDebugInfo() : Promise<Result<DebugInfo, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async getStackTrace() : Promise<Result<StackFrame[], string>> {
+async getStackTrace() : Promise<Result<string[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_stack_trace") };
 } catch (e) {
@@ -108,21 +108,17 @@ async getStackTrace() : Promise<Result<StackFrame[], string>> {
  */
 export type DebugInfo = { current_step: number; total_steps: number; 
 /**
- * The current descriptor being processed
+ * The current descriptor being processed (formatted as string)
  */
 current_descriptor: string | null; 
 /**
- * Pending descriptors in the worklist
+ * Pending descriptors in the worklist (formatted as strings)
  */
-descriptor_set: Descriptor[]; 
+descriptor_set: string[]; 
 /**
  * Only set on initial load
  */
 input_path: string | null; symbols_path: string | null; trace_path: string | null }
-/**
- * A descriptor in the pending set.
- */
-export type Descriptor = { slot_name: string; input_index: number; gss_node_id: number }
 export type GSS = { nodes: GSSDotNode[]; edges: GSSDotEdge[] }
 export type GSSDotEdge = { src: GssNodeId; dest: GssNodeId; label: string }
 export type GSSDotNode = { id: GssNodeId; label: string }
@@ -145,10 +141,6 @@ export type SPPFDotNode = { id: SPPFNodeId; kind: NodeKind; label: string }
  * Uses `u32` since real-world grammars rarely exceed 2^32 - 1 nodes.
  */
 export type SPPFNodeId = number
-/**
- * A stack frame in the GLL call stack.
- */
-export type StackFrame = { slot_name: string }
 
 /** tauri-specta globals **/
 

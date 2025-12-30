@@ -6,7 +6,7 @@ use specta::Type;
 ///
 /// This is a type-safe wrapper around an index into the grammar's nonterminal list.
 /// Uses `u16` since real-world grammars rarely exceed a few hundred nonterminals
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct NonterminalId(pub u16);
 
 impl NonterminalId {
@@ -33,7 +33,7 @@ impl quote::ToTokens for NonterminalId {
 ///
 /// This is a type-safe wrapper around an index into the grammar's grammar slot list.
 /// Uses `u16` since real-world grammars rarely exceed a few thousand grammar slots.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct SlotId(pub u16);
 
 impl SlotId {

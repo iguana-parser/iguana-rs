@@ -399,13 +399,6 @@ pub trait Parser<'i> {
         let start_input_index = 0;
         let start_nonterminal_id = self.start_nonterminal();
         let start_gss_node_id = self.new_gss_node(start_nonterminal_id, start_input_index);
-        record!(
-            self,
-            Start,
-            start_input_index,
-            start_nonterminal_id,
-            start_gss_node_id
-        );
         self.add_first_descriptors(start_nonterminal_id, start_input_index, start_gss_node_id);
         self.add_gss_node(start_nonterminal_id, start_input_index, start_gss_node_id);
         while let Some(descriptor) = self.next_descriptor() {
