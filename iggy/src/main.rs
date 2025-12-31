@@ -59,9 +59,14 @@ struct Cli {
     /// Write SPPF as JSON to the specified file
     #[arg(long, value_name = "FILE")]
     write_sppf: Option<PathBuf>,
-    /// Write GSS as JSON to the specified file
+    /// Write GSS graph as JSON for visualization (nodes with labels + edges).
+    /// Used by Terrarium for Cytoscape.js graph rendering.
     #[arg(long, value_name = "FILE")]
     write_gss: Option<PathBuf>,
+    /// Write GSS nodes as JSON for trace replay (normalized with IDs).
+    /// Used by Terrarium debugger to resolve GssNodeId to (nonterminal, input_index).
+    #[arg(long, value_name = "FILE")]
+    write_gss_nodes: Option<PathBuf>,
 }
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
@@ -148,6 +153,12 @@ fn main() -> Result<(), io::Error> {
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", serde_json::to_string(&gss).unwrap())?;
             }
+            if let Some(ref path) = cli.write_gss_nodes {
+                let gss_nodes: Vec<_> = parser.gss_nodes().collect();
+                let file = File::create(path)?;
+                let mut writer = BufWriter::new(file);
+                writeln!(writer, "{}", serde_json::to_string(&gss_nodes).unwrap())?;
+            }
             match cli.vis {
                 Some(VisTarget::Gss) => {
                     let path = std::path::Path::new("gss.dot");
@@ -163,7 +174,11 @@ fn main() -> Result<(), io::Error> {
                 }
                 None => {}
             }
-            if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() {
+            if cli.write_sppf.is_none()
+                && cli.write_gss.is_none()
+                && cli.vis.is_none()
+                && cli.trace.is_none()
+            {
                 println!("Parse success.");
                 let parse_tree = create_parse_tree(
                     node_id,
@@ -172,6 +187,8 @@ fn main() -> Result<(), io::Error> {
                     &parse_tree_builder,
                 );
                 println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
+            } else if cli.trace.is_some() {
+                println!("Parse success.");
             }
         }
         ParseResult::Failure() => {

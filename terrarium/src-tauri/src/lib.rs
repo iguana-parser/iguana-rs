@@ -49,8 +49,8 @@ struct DebugState {
 struct DebugInfo {
     current_step: u32,
     total_steps: u32,
-    /// The current descriptor being processed (formatted as string)
-    current_descriptor: Option<String>,
+    /// The current action being displayed (formatted as string)
+    current_action: Option<String>,
     /// Pending descriptors in the worklist (formatted as strings)
     descriptor_set: Vec<String>,
     /// Current position in the input (character index)
@@ -420,7 +420,7 @@ fn load_debug_trace(
     let info = DebugInfo {
         current_step: replay.current_step() as u32,
         total_steps: replay.total_steps() as u32,
-        current_descriptor: replay.current_descriptor_string(),
+        current_action: replay.current_action_string(),
         descriptor_set: replay.descriptor_set_strings(),
         input_index: replay.current_input_index().map(|i| i as u32),
         input_path: Some(input_file.path().to_string_lossy().to_string()),
@@ -448,7 +448,7 @@ fn debug_step_forward(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInf
     Ok(DebugInfo {
         current_step: replay.current_step() as u32,
         total_steps: replay.total_steps() as u32,
-        current_descriptor: replay.current_descriptor_string(),
+        current_action: replay.current_action_string(),
         descriptor_set: replay.descriptor_set_strings(),
         input_index: replay.current_input_index().map(|i| i as u32),
         input_path: None,
@@ -471,7 +471,7 @@ fn debug_step_to(target: u32, state: tauri::State<Mutex<DebugState>>) -> Result<
     Ok(DebugInfo {
         current_step: replay.current_step() as u32,
         total_steps: replay.total_steps() as u32,
-        current_descriptor: replay.current_descriptor_string(),
+        current_action: replay.current_action_string(),
         descriptor_set: replay.descriptor_set_strings(),
         input_index: replay.current_input_index().map(|i| i as u32),
         input_path: None,
@@ -492,7 +492,7 @@ fn get_debug_info(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, S
     Ok(DebugInfo {
         current_step: replay.current_step() as u32,
         total_steps: replay.total_steps() as u32,
-        current_descriptor: replay.current_descriptor_string(),
+        current_action: replay.current_action_string(),
         descriptor_set: replay.descriptor_set_strings(),
         input_index: replay.current_input_index().map(|i| i as u32),
         input_path: None,

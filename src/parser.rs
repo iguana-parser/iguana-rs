@@ -189,8 +189,8 @@ pub trait Parser<'i> {
         self.stats_mut().gss_edges_count += 1;
     }
 
-    fn pop(&mut self, gss_node_id: GssNodeId, sppf_node_id: SPPFNodeId) {
-        record!(self, Pop, gss_node_id, sppf_node_id);
+    fn pop(&mut self, gss_node_id: GssNodeId, slot_id: SlotId,  sppf_node_id: SPPFNodeId) {
+        record!(self, Pop, gss_node_id, slot_id, sppf_node_id);
         let gss = self.gss_node(gss_node_id);
         if gss.contains_popped_element(&sppf_node_id) {
             record!(self, NodeAlreadyInPoppedElements);

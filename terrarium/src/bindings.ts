@@ -116,9 +116,9 @@ async getDebugSppf() : Promise<Result<DebugSPPFInfo, string>> {
  */
 export type DebugInfo = { current_step: number; total_steps: number; 
 /**
- * The current descriptor being processed (formatted as string)
+ * The current action being displayed (formatted as string)
  */
-current_descriptor: string | null; 
+current_action: string | null; 
 /**
  * Pending descriptors in the worklist (formatted as strings)
  */

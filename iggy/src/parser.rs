@@ -180,15 +180,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(0);
-                let return_slot = SlotId(3);
+                let end_slot_id = SlotId(3);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
-                    return_slot,
+                    end_slot_id,
                     left_extent,
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, nonterminal_node_id);
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
             //Rule : . Identifier ":" Rule_Plus1
@@ -272,15 +272,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(1);
-                let return_slot = SlotId(7);
+                let end_slot_id = SlotId(7);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
-                    return_slot,
+                    end_slot_id,
                     left_extent,
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, nonterminal_node_id);
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
             //Grammar_Plus0 : . Grammar_Plus0 Rule
@@ -300,15 +300,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(2);
-                let return_slot = SlotId(10);
+                let end_slot_id = SlotId(10);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
-                    return_slot,
+                    end_slot_id,
                     left_extent,
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, nonterminal_node_id);
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
             //Grammar_Plus0 : . Rule
@@ -324,15 +324,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(2);
-                let return_slot = SlotId(12);
+                let end_slot_id = SlotId(12);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
-                    return_slot,
+                    end_slot_id,
                     left_extent,
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, nonterminal_node_id);
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
             //Rule_Plus1 : . Rule_Plus1 Identifier
@@ -387,15 +387,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(3);
-                let return_slot = SlotId(15);
+                let end_slot_id = SlotId(15);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
-                    return_slot,
+                    end_slot_id,
                     left_extent,
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, nonterminal_node_id);
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
             //Rule_Plus1 : . Identifier
@@ -436,15 +436,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(3);
-                let return_slot = SlotId(17);
+                let end_slot_id = SlotId(17);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
-                    return_slot,
+                    end_slot_id,
                     left_extent,
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, nonterminal_node_id);
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
             _ => {
@@ -742,3 +742,4 @@ impl<'i> IggyParser<'i> {
         }
     }
 }
+

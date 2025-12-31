@@ -5,7 +5,7 @@
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
   import { availableMonitors, currentMonitor } from "@tauri-apps/api/window";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown } from "lucide-svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
 
@@ -131,7 +131,7 @@
   let totalSteps = $state(0);
 
   // Parser state
-  let currentDescriptor = $state<string | null>(null);
+  let currentAction = $state<string | null>(null);
   let descriptorSet = $state<string[]>([]);
   let callStack = $state<string[]>([]);
   let debugLoaded = $state(false);
@@ -840,7 +840,7 @@
     debugLoaded = false;
     currentStep = 0;
     totalSteps = 0;
-    currentDescriptor = null;
+    currentAction = null;
     descriptorSet = [];
     callStack = [];
     inputIndex = null;
@@ -852,6 +852,23 @@
     }
   }
 
+  // Copy functionality
+  let copiedFrame = $state<number | null>(null);
+  let copiedAll = $state(false);
+
+  async function copyStackFrame(frame: string, index: number) {
+    await navigator.clipboard.writeText(frame);
+    copiedFrame = index;
+    setTimeout(() => { copiedFrame = null; }, 1500);
+  }
+
+  async function copyAllStackFrames() {
+    const text = callStack.join('\n');
+    await navigator.clipboard.writeText(text);
+    copiedAll = true;
+    setTimeout(() => { copiedAll = false; }, 1500);
+  }
+
   async function startDebug() {
     if (!parserDirectory || buildStatus !== "success" || !startNonterminal) return;
 
@@ -860,19 +877,19 @@
     callStack = [];
     currentStep = 0;
     totalSteps = 0;
-    currentDescriptor = null;
+    currentAction = null;
     descriptorSet = [];
     inputIndex = null;
 
     const result = await commands.loadDebugTrace(parserDirectory, inputText, startNonterminal);
     if (result.status === "ok") {
-      const { input_path, symbols_path, trace_path, current_descriptor, descriptor_set, input_index } = result.data;
+      const { input_path, symbols_path, trace_path, current_action, descriptor_set, input_index } = result.data;
       logCommand(`${parserName} --write-symbols ${symbols_path}`);
       logCommand(`${parserName} ${input_path} --start ${startNonterminal} --trace ${trace_path} --format json`);
       debugLoaded = true;
       currentStep = result.data.current_step;
       totalSteps = result.data.total_steps;
-      currentDescriptor = current_descriptor;
+      currentAction = current_action;
       descriptorSet = descriptor_set;
       inputIndex = input_index ?? null;
       logOutput(`Loaded ${totalSteps} steps`);
@@ -893,7 +910,7 @@
     const result = await commands.debugStepTo(currentStep - 1);
     if (result.status === "ok") {
       currentStep = result.data.current_step;
-      currentDescriptor = result.data.current_descriptor;
+      currentAction = result.data.current_action;
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
@@ -906,7 +923,7 @@
     const result = await commands.debugStepForward();
     if (result.status === "ok") {
       currentStep = result.data.current_step;
-      currentDescriptor = result.data.current_descriptor;
+      currentAction = result.data.current_action;
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
@@ -919,7 +936,7 @@
     const result = await commands.debugStepTo(target);
     if (result.status === "ok") {
       currentStep = result.data.current_step;
-      currentDescriptor = result.data.current_descriptor;
+      currentAction = result.data.current_action;
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
@@ -1113,6 +1130,23 @@
     });
   }
 
+  function handleKeyDown(e: KeyboardEvent) {
+    // Only handle keyboard shortcuts when debugging is active
+    if (!debugLoaded) return;
+
+    // Ignore if typing in an input/textarea
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      stepBack();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      stepForward();
+    }
+  }
+
   async function toggleMaximize() {
     if (isAnimating) return;
 
@@ -1147,7 +1181,7 @@
   }
 </script>
 
-<svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} on:click={handleWindowClick} />
+<svelte:window onmousemove={onMouseMove} onmouseup={onMouseUp} onclick={handleWindowClick} onkeydown={handleKeyDown} />
 
 <div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebug1 || isDraggingDebug2 || isDraggingDebugStack || isDraggingDebugGraph}>
   <!-- Title Bar (full width) -->
@@ -1380,15 +1414,6 @@
 
     <!-- Column 2: Stack + Pending -->
     <div class="debug-column debug-col-stack">
-      <!-- Current Descriptor -->
-      <div class="current-descriptor-bar">
-        {#if currentDescriptor}
-          <code>{currentDescriptor}</code>
-        {:else}
-          <span class="placeholder">No descriptor</span>
-        {/if}
-      </div>
-
       <!-- Playback Controls -->
       <div class="playback-controls">
         <button onclick={stepBack} disabled={!debugLoaded || currentStep === 0}>◀</button>
@@ -1398,14 +1423,50 @@
         {/if}
       </div>
 
+      <!-- Current Action -->
+      <div class="current-action-box">
+        {#if currentAction}
+          <pre>{currentAction}</pre>
+        {:else}
+          <span class="placeholder">No action</span>
+        {/if}
+      </div>
+
       <!-- Call Stack -->
       <div class="section call-stack" style="flex: 1 1 {debugStackHeight}px">
-        <div class="section-header">Call Stack</div>
+        <div class="section-header">
+          <span>Call Stack</span>
+          {#if callStack.length > 0}
+            <button class="copy-btn" onclick={copyAllStackFrames} title="Copy all">
+              {#if copiedAll}
+                <ClipboardCheck size={12} />
+              {:else}
+                <Copy size={12} />
+              {/if}
+            </button>
+          {/if}
+        </div>
         <div class="stack-list">
           {#if callStack.length > 0}
             {#each callStack as frame, i}
-              <div class="stack-frame" class:current={i === 0}>
+              <div
+                class="stack-frame"
+                class:current={i === 0}
+                class:copied={copiedFrame === i}
+              >
                 <code>{frame}</code>
+                <button
+                  class="frame-copy-btn"
+                  class:copied={copiedFrame === i}
+                  onclick={() => copyStackFrame(frame, i)}
+                  title="Copy"
+                >
+                  {#if copiedFrame === i}
+                    <ClipboardCheck size={12} />
+                  {:else}
+                    <Copy size={12} />
+                  {/if}
+                </button>
               </div>
             {/each}
           {:else}
@@ -2001,19 +2062,29 @@
     flex: 1;
   }
 
-  .current-descriptor-bar {
-    padding: 8px 12px;
-    background: #2d2d30;
+  .current-action-box {
+    padding: 12px;
+    background: #252526;
     border-bottom: 1px solid #3c3c3c;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
     font-size: 13px;
+    height: 120px;
+    flex-shrink: 0;
   }
 
-  .current-descriptor-bar code {
+  .current-action-box pre {
+    margin: 0;
+    white-space: pre-wrap;
+    color: #d4d4d4;
+    line-height: 1.5;
+  }
+
+  .current-action-box pre::first-line {
     color: #4ec9b0;
+    font-weight: 600;
   }
 
-  .current-descriptor-bar .placeholder {
+  .current-action-box .placeholder {
     color: #666;
     font-style: italic;
   }
@@ -2247,12 +2318,34 @@
   }
 
   .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 8px 12px;
     background: #2d2d2d;
     font-weight: 600;
     font-size: 12px;
     text-transform: uppercase;
     color: #888;
+  }
+
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+
+  .copy-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #d4d4d4;
   }
 
   .section-content {
@@ -2404,6 +2497,9 @@
   }
 
   .stack-frame {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 4px 12px;
     font-family: "Fira Code", "Consolas", monospace;
     font-size: 12px;
@@ -2423,9 +2519,49 @@
     background: #0a5286;
   }
 
+  .stack-frame.copied {
+    background: rgba(78, 201, 176, 0.2);
+  }
+
   .stack-frame code {
     background: transparent;
     color: inherit;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .frame-copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin-left: 8px;
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    border-radius: 3px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .stack-frame:hover .frame-copy-btn {
+    opacity: 1;
+  }
+
+  .frame-copy-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #d4d4d4;
+  }
+
+  .frame-copy-btn.copied {
+    opacity: 1;
+    color: #4ec9b0;
   }
 
   code {

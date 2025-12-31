@@ -5,9 +5,23 @@ use std::path::Path;
 use iguana::descriptor::Descriptor;
 use iguana::gss::{GSSEdge, GSSNode};
 use iguana::ids::{GssNodeId, NonterminalId, SlotId};
+use iguana::sppf::SPPFNodeId;
 use iguana::trace::TraceEvent;
 use serde::{Deserialize, Serialize};
 use specta::Type;
+
+/// The type of parsing action (step) being displayed.
+#[derive(Debug, Clone)]
+pub enum DebugAction {
+    /// Processing a descriptor from the worklist
+    ProcessingDescriptor(Descriptor),
+    /// Pop action: completed a rule, creating a nonterminal node
+    Pop {
+        slot_id: SlotId,
+        gss_node_id: GssNodeId,
+        sppf_node_id: SPPFNodeId,
+    },
+}
 
 /// Simple SPPF node for debug visualization.
 #[derive(Debug, Clone, Serialize, Type)]
@@ -62,10 +76,10 @@ impl SymbolTable {
 }
 
 /// Trace replay for debugging.
-/// Steps are ProcessingDescriptor events.
+/// Steps are ProcessingDescriptor and Pop events.
 pub struct TraceReplay {
     events: Vec<TraceEvent>,
-    /// Indices into `events` that are steps (ProcessingDescriptor only)
+    /// Indices into `events` that are steps (ProcessingDescriptor or Pop)
     step_indices: Vec<usize>,
     /// Current step (0-indexed into step_indices)
     current_step: usize,
@@ -73,12 +87,12 @@ pub struct TraceReplay {
     gss_nodes: Vec<GSSNode>,
     /// Pending descriptor set (uses iguana's Descriptor with IDs)
     descriptor_set: Vec<Descriptor>,
-    /// Current descriptor being processed
-    current_descriptor: Option<Descriptor>,
+    /// Current action being displayed (ProcessingDescriptor or Pop)
+    current_action: Option<DebugAction>,
     symbols: SymbolTable,
     /// SPPF nodes reconstructed from trace
     sppf_nodes: Vec<DebugSPPFNode>,
-    /// Current SPPF node ID from the descriptor being processed
+    /// Current SPPF node ID from the action being processed
     current_sppf_node_id: Option<u32>,
 }
 
@@ -95,12 +109,12 @@ impl TraceReplay {
 
         let symbols = SymbolTable::load(symbols_path)?;
 
-        // Build index of step events (ProcessingDescriptor only)
+        // Build index of step events (ProcessingDescriptor and Pop)
         let step_indices: Vec<usize> = events
             .iter()
             .enumerate()
             .filter_map(|(i, event)| match event {
-                TraceEvent::ProcessingDescriptor(..) => Some(i),
+                TraceEvent::ProcessingDescriptor(..) | TraceEvent::Pop(..) => Some(i),
                 _ => None,
             })
             .collect();
@@ -111,7 +125,7 @@ impl TraceReplay {
             current_step: 0,
             gss_nodes: Vec::new(),
             descriptor_set: Vec::new(),
-            current_descriptor: None,
+            current_action: None,
             symbols,
             sppf_nodes: Vec::new(),
             current_sppf_node_id: None,
@@ -148,13 +162,30 @@ impl TraceReplay {
     /// Format an SPPF node as "(label, left, right)".
     fn format_sppf_node(&self, sppf_node_id: u32) -> String {
         if let Some(node) = self.sppf_nodes.get(sppf_node_id as usize) {
-            format!("({}, {}, {})", node.label, node.left_extent, node.right_extent)
+            format!(
+                "({}, {}, {})",
+                node.label, node.left_extent, node.right_extent
+            )
         } else {
             format!("(?, {})", sppf_node_id)
         }
     }
 
-    /// Format a descriptor for display: "(slot, input_index, gss_node, sppf_node)".
+    /// Format a descriptor compactly (for pending descriptors list).
+    fn format_descriptor_compact(&self, desc: &Descriptor) -> String {
+        let slot_name = self.symbols.slot(desc.slot_id);
+        let gss_node = self.format_gss_node(desc.gss_node_id);
+        let sppf_node = match desc.sppf_node_id {
+            Some(id) => self.format_sppf_node(id.0),
+            None => "$".to_string(),
+        };
+        format!(
+            "({}, {}, {}, {})",
+            slot_name, desc.input_index, gss_node, sppf_node
+        )
+    }
+
+    /// Format a descriptor for multi-line display (for current action).
     fn format_descriptor(&self, desc: &Descriptor) -> String {
         let slot_name = self.symbols.slot(desc.slot_id);
         let gss_node = self.format_gss_node(desc.gss_node_id);
@@ -162,21 +193,48 @@ impl TraceReplay {
             Some(id) => self.format_sppf_node(id.0),
             None => "$".to_string(),
         };
-        format!("({}, {}, {}, {})", slot_name, desc.input_index, gss_node, sppf_node)
+        format!(
+            "Processing\n  {}\n  input index {}\n  GSS node {}\n  SPPF node {}",
+            slot_name, desc.input_index, gss_node, sppf_node
+        )
     }
 
-    /// Get the current descriptor as a formatted string.
-    pub fn current_descriptor_string(&self) -> Option<String> {
-        self.current_descriptor
-            .as_ref()
-            .map(|desc| self.format_descriptor(desc))
+    /// Format a Pop action for multi-line display.
+    fn format_pop(&self, slot_id: SlotId, gss_node_id: GssNodeId, sppf_node_id: SPPFNodeId) -> String {
+        let slot_name = self.symbols.slot(slot_id);
+        let gss_node = self.format_gss_node(gss_node_id);
+        let sppf_node = self.format_sppf_node(sppf_node_id.0);
+        format!(
+            "Popped\n  GSS node {}\n  {}\n  with SPPF node {}",
+            gss_node, slot_name, sppf_node
+        )
+    }
+
+    /// Get the current action as a formatted string.
+    pub fn current_action_string(&self) -> Option<String> {
+        match &self.current_action {
+            Some(DebugAction::ProcessingDescriptor(desc)) => Some(self.format_descriptor(desc)),
+            Some(DebugAction::Pop {
+                slot_id,
+                gss_node_id,
+                sppf_node_id,
+            }) => Some(self.format_pop(*slot_id, *gss_node_id, *sppf_node_id)),
+            None => None,
+        }
     }
 
     /// Get the current input index (position in the input being parsed).
     pub fn current_input_index(&self) -> Option<usize> {
-        self.current_descriptor
-            .as_ref()
-            .map(|desc| desc.input_index as usize)
+        match &self.current_action {
+            Some(DebugAction::ProcessingDescriptor(desc)) => Some(desc.input_index as usize),
+            Some(DebugAction::Pop { gss_node_id, .. }) => {
+                // For Pop, get the input index from the GSS node
+                self.gss_nodes
+                    .get(gss_node_id.index())
+                    .map(|node| node.index as usize)
+            }
+            None => None,
+        }
     }
 
     /// Get the current SPPF nodes for visualization.
@@ -189,11 +247,11 @@ impl TraceReplay {
         self.current_sppf_node_id
     }
 
-    /// Get the pending descriptor set as formatted strings.
+    /// Get the pending descriptor set as formatted strings (compact format).
     pub fn descriptor_set_strings(&self) -> Vec<String> {
         self.descriptor_set
             .iter()
-            .map(|desc| self.format_descriptor(desc))
+            .map(|desc| self.format_descriptor_compact(desc))
             .collect()
     }
 
@@ -224,7 +282,7 @@ impl TraceReplay {
             // Need to rebuild from scratch
             self.gss_nodes.clear();
             self.descriptor_set.clear();
-            self.current_descriptor = None;
+            self.current_action = None;
             self.sppf_nodes.clear();
             self.current_sppf_node_id = None;
             self.current_step = 0;
@@ -265,9 +323,18 @@ impl TraceReplay {
                         && d.input_index == *input_index
                         && d.gss_node_id == *gss_node_id)
                 });
-                self.current_descriptor = Some(desc);
+                self.current_action = Some(DebugAction::ProcessingDescriptor(desc));
                 // Track the current SPPF node from the descriptor
                 self.current_sppf_node_id = sppf_node_id.map(|id| id.0);
+            }
+            TraceEvent::Pop(gss_node_id, slot_id, sppf_node_id) => {
+                self.current_action = Some(DebugAction::Pop {
+                    slot_id: *slot_id,
+                    gss_node_id: *gss_node_id,
+                    sppf_node_id: *sppf_node_id,
+                });
+                // Track the SPPF node from the Pop
+                self.current_sppf_node_id = Some(sppf_node_id.0);
             }
             TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 self.descriptor_set.push(Descriptor {
@@ -327,18 +394,32 @@ impl TraceReplay {
         }
     }
 
-    /// Build stack trace from current descriptor.
+    /// Build stack trace from current action.
     /// Returns slot names from top (current) to bottom (root).
     pub fn build_stack_trace(&self) -> Option<Vec<String>> {
-        let current = self.current_descriptor.as_ref()?;
-
         let mut frames = Vec::new();
+        let start_gss_node_id;
 
-        // First frame is the current slot
-        frames.push(self.symbols.slot(current.slot_id).to_string());
+        match &self.current_action {
+            Some(DebugAction::ProcessingDescriptor(desc)) => {
+                // First frame is the current slot
+                frames.push(self.symbols.slot(desc.slot_id).to_string());
+                start_gss_node_id = desc.gss_node_id;
+            }
+            Some(DebugAction::Pop {
+                slot_id,
+                gss_node_id,
+                ..
+            }) => {
+                // For Pop, show the slot (which has dot at end, e.g., "A ::= 'a' .")
+                frames.push(self.symbols.slot(*slot_id).to_string());
+                start_gss_node_id = *gss_node_id;
+            }
+            None => return None,
+        }
 
         // Walk back through GSS edges
-        let mut current_gss = current.gss_node_id;
+        let mut current_gss = start_gss_node_id;
         while let Some(node) = self.gss_nodes.get(current_gss.index()) {
             // Follow first edge (single execution thread model)
             let Some(edge) = node.edges().first() else {

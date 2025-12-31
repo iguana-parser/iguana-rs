@@ -275,15 +275,15 @@ fn gen_execute_method(
                     let left_extent = node.left_extent();
                     let right_extent = node.right_extent();
                     let nonterminal_id = #nonterminal_id;
-                    let return_slot = #end_slot_id;
+                    let end_slot_id = #end_slot_id;
                     if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                         nonterminal_id,
-                        return_slot,
+                        end_slot_id,
                         left_extent,
                         right_extent,
                         result,
                     ) {
-                        self.pop(gss_node_id, nonterminal_node_id);
+                        self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                     }
                 }
             };
