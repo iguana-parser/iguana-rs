@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { commands, type SPPF, type GSS, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo } from "../bindings";
+  import { commands, type SPPF, type GSS, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo } from "../bindings";
   import { listen } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
@@ -142,6 +142,13 @@
   let debugSppfContainer: HTMLElement;
   let debugSppfCy: cytoscape.Core | null = null;
   let currentSppfNodeId = $state<number | null>(null);
+
+  // Debug GSS visualization
+  let debugGssNodes = $state<DebugGSSNode[]>([]);
+  let debugGssEdges = $state<DebugGSSEdge[]>([]);
+  let currentGssNodeId = $state<number | null>(null);
+  let debugGssContainer: HTMLElement;
+  let debugGssCy: cytoscape.Core | null = null;
 
   // Graph tab
   let activeTab = $state<"gss" | "sppf">("sppf");
@@ -659,11 +666,122 @@
     });
   }
 
+  // Render debug GSS when nodes or current node changes
+  $effect(() => {
+    const _nodes = debugGssNodes;
+    const _edges = debugGssEdges;
+    const _currentId = currentGssNodeId;
+    if (debugGssContainer) {
+      tick().then(() => renderDebugGSS());
+    }
+  });
+
+  function renderDebugGSS() {
+    if (!debugGssContainer) return;
+
+    const elements: cytoscape.ElementDefinition[] = [];
+
+    // Add all nodes
+    for (const node of debugGssNodes) {
+      elements.push({
+        data: {
+          id: `n${node.id}`,
+          label: node.label,
+        },
+        classes: currentGssNodeId === node.id ? 'current' : '',
+      });
+    }
+
+    // Add edges
+    for (let i = 0; i < debugGssEdges.length; i++) {
+      const edge = debugGssEdges[i];
+      elements.push({
+        data: {
+          id: `e${i}`,
+          source: `n${edge.src}`,
+          target: `n${edge.dest}`,
+          label: edge.label,
+        },
+      });
+    }
+
+    // If no nodes, clear the graph
+    if (elements.length === 0) {
+      if (debugGssCy) {
+        debugGssCy.destroy();
+        debugGssCy = null;
+      }
+      return;
+    }
+
+    if (debugGssCy) {
+      debugGssCy.destroy();
+    }
+
+    debugGssCy = cytoscape({
+      container: debugGssContainer,
+      elements,
+      style: [
+        {
+          selector: "node",
+          style: {
+            label: "data(label)",
+            "text-valign": "center",
+            "text-halign": "center",
+            "font-size": "10px",
+            color: "#d4d4d4",
+            "background-color": "#2d4a3d",
+            "border-color": "#4ec9b0",
+            "border-width": 1,
+            width: "label",
+            height: 24,
+            "padding-left": "8px",
+            "padding-right": "8px",
+            shape: "round-rectangle",
+          },
+        },
+        {
+          selector: "node.current",
+          style: {
+            "border-width": 3,
+            "border-color": "#4ec9b0",
+            "background-color": "#3d5a4d",
+          },
+        },
+        {
+          selector: "edge",
+          style: {
+            label: "data(label)",
+            "font-size": "9px",
+            color: "#888",
+            "text-rotation": "autorotate",
+            "text-margin-y": -10,
+            width: 1,
+            "line-color": "#555",
+            "target-arrow-color": "#555",
+            "target-arrow-shape": "triangle",
+            "curve-style": "bezier",
+            "arrow-scale": 0.8,
+          },
+        },
+      ],
+      layout: {
+        name: "dagre",
+        rankDir: "BT",  // Bottom to top for GSS
+        nodeSep: 50,
+        rankSep: 60,
+      } as any,
+      userZoomingEnabled: true,
+      userPanningEnabled: true,
+      boxSelectionEnabled: false,
+    });
+  }
+
   // Resizable panes
   let leftPanelWidth = $state(350);
   let callStackHeight = $state(200);
   let inputHeight = $state(200);
-  let currentDescHeight = $state(80);
+  let currentDescHeight = $state(120);  // ~25% of column
   let isDraggingVertical = $state(false);
   let isDraggingHorizontal = $state(false);
   let isDraggingInput = $state(false);
@@ -673,10 +791,12 @@
   // Debug mode column widths
   let debugCol1Width = $state(300);
   let debugCol3Width = $state(400);
-  let debugStackHeight = $state(200);
-  let debugSppfHeight = $state(250);
+  let debugActionHeight = $state<number | null>(null);  // null = use CSS flex default (25%)
+  let debugStackHeight = $state<number | null>(null);  // null = use CSS flex default (50%)
+  let debugSppfHeight = $state<number | null>(null);   // null = use CSS flex default (50%)
   let isDraggingDebug1 = $state(false);
   let isDraggingDebug2 = $state(false);
+  let isDraggingDebugAction = $state(false);
   let isDraggingDebugStack = $state(false);
   let isDraggingDebugGraph = $state(false);
 
@@ -850,6 +970,17 @@
       debugSppfCy.destroy();
       debugSppfCy = null;
     }
+    debugGssNodes = [];
+    debugGssEdges = [];
+    currentGssNodeId = null;
+    if (debugGssCy) {
+      debugGssCy.destroy();
+      debugGssCy = null;
+    }
+    // Reset to default proportions
+    debugActionHeight = null;
+    debugStackHeight = null;
+    debugSppfHeight = null;
   }
 
   // Copy functionality
@@ -895,7 +1026,7 @@
       logOutput(`Loaded ${totalSteps} steps`);
       setStatus(`Loaded ${totalSteps} steps`, "success");
       await fetchStackTrace();
-      await fetchDebugSppf();
+      await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
     } else {
       logCommand(`${parserName} --write-symbols <symbols.json>`);
       logCommand(`${parserName} <input> --start ${startNonterminal} --trace <trace.json> --format json`);
@@ -914,7 +1045,7 @@
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
-      await fetchDebugSppf();
+      await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
     }
   }
 
@@ -927,7 +1058,7 @@
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
-      await fetchDebugSppf();
+      await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
     }
   }
 
@@ -940,7 +1071,7 @@
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
-      await fetchDebugSppf();
+      await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
     }
   }
 
@@ -961,6 +1092,19 @@
     } else {
       debugSppfNodes = [];
       currentSppfNodeId = null;
+    }
+  }
+
+  async function fetchDebugGSS() {
+    const result = await commands.getDebugGss();
+    if (result.status === "ok") {
+      debugGssNodes = result.data.nodes;
+      debugGssEdges = result.data.edges;
+      currentGssNodeId = result.data.current_gss_node_id;
+    } else {
+      debugGssNodes = [];
+      debugGssEdges = [];
+      currentGssNodeId = null;
     }
   }
 
@@ -996,6 +1140,11 @@
 
   function startDebugResize2(e: MouseEvent) {
     isDraggingDebug2 = true;
+    e.preventDefault();
+  }
+
+  function startDebugActionResize(e: MouseEvent) {
+    isDraggingDebugAction = true;
     e.preventDefault();
   }
 
@@ -1045,6 +1194,14 @@
       // Resize third debug column from the right edge
       debugCol3Width = Math.max(200, Math.min(600, window.innerWidth - e.clientX));
     }
+    if (isDraggingDebugAction) {
+      // Resize action box height within middle column
+      const actionBox = document.querySelector('.debug-col-stack .current-action-box');
+      if (actionBox) {
+        const rect = actionBox.getBoundingClientRect();
+        debugActionHeight = Math.max(80, Math.min(300, e.clientY - rect.top));
+      }
+    }
     if (isDraggingDebugStack) {
       // Resize stack height within middle column
       const stackSection = document.querySelector('.debug-col-stack .call-stack');
@@ -1071,6 +1228,7 @@
     isDraggingOutput = false;
     isDraggingDebug1 = false;
     isDraggingDebug2 = false;
+    isDraggingDebugAction = false;
     isDraggingDebugStack = false;
     isDraggingDebugGraph = false;
   }
@@ -1183,7 +1341,7 @@
 
 <svelte:window onmousemove={onMouseMove} onmouseup={onMouseUp} onclick={handleWindowClick} onkeydown={handleKeyDown} />
 
-<div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebug1 || isDraggingDebug2 || isDraggingDebugStack || isDraggingDebugGraph}>
+<div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebug1 || isDraggingDebug2 || isDraggingDebugAction || isDraggingDebugStack || isDraggingDebugGraph} class:dragging-horizontal={isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebugAction || isDraggingDebugStack || isDraggingDebugGraph}>
   <!-- Title Bar (full width) -->
   <div class="title-bar" onmousedown={startWindowDrag} ondblclick={toggleMaximize}>
     <div class="title-bar-left">
@@ -1424,7 +1582,7 @@
       </div>
 
       <!-- Current Action -->
-      <div class="current-action-box">
+      <div class="current-action-box" style={debugActionHeight !== null ? `height: ${debugActionHeight}px; flex: 0 0 auto` : ''}>
         {#if currentAction}
           <pre>{currentAction}</pre>
         {:else}
@@ -1432,8 +1590,11 @@
         {/if}
       </div>
 
+      <!-- Resize Handle (between action and stack) -->
+      <div class="resize-handle-horizontal" onmousedown={startDebugActionResize}></div>
+
       <!-- Call Stack -->
-      <div class="section call-stack" style="flex: 1 1 {debugStackHeight}px">
+      <div class="section call-stack" style={debugStackHeight !== null ? `height: ${debugStackHeight}px; flex: 0 0 auto` : ''}>
         <div class="section-header">
           <span>Call Stack</span>
           {#if callStack.length > 0}
@@ -1501,8 +1662,8 @@
     <!-- Column 3: SPPF (top) / GSS (bottom) -->
     <div class="debug-column debug-col-graphs" style="width: {debugCol3Width}px">
       <!-- SPPF Section -->
-      <div class="debug-graph-section" style="flex: 1 1 {debugSppfHeight}px">
-        <div class="section-header">SPPF ({debugSppfNodes.length} nodes)</div>
+      <div class="debug-graph-section" style={debugSppfHeight !== null ? `height: ${debugSppfHeight}px; flex: 0 0 auto` : ''}>
+        <div class="section-header">SPPF</div>
         <div class="debug-graph-container" bind:this={debugSppfContainer}>
           {#if debugSppfNodes.length === 0}
             <div class="graph-placeholder">No SPPF nodes yet</div>
@@ -1514,10 +1675,12 @@
       <div class="resize-handle-horizontal" onmousedown={startDebugGraphResize}></div>
 
       <!-- GSS Section -->
-      <div class="debug-graph-section" style="flex: 1">
+      <div class="debug-graph-section">
         <div class="section-header">GSS</div>
-        <div class="debug-graph-container">
-          <div class="graph-placeholder">GSS visualization</div>
+        <div class="debug-graph-container" bind:this={debugGssContainer}>
+          {#if debugGssNodes.length === 0}
+            <div class="graph-placeholder">No GSS nodes yet</div>
+          {/if}
         </div>
       </div>
     </div>
@@ -1950,6 +2113,10 @@
     cursor: col-resize;
   }
 
+  .app.dragging.dragging-horizontal {
+    cursor: row-resize;
+  }
+
   .app.dragging * {
     pointer-events: none;
   }
@@ -1965,6 +2132,9 @@
     cursor: col-resize;
     background: #3c3c3c;
     transition: background 0.2s;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 5;
   }
 
   .resize-handle-vertical:hover,
@@ -1977,6 +2147,9 @@
     cursor: row-resize;
     background: #3c3c3c;
     transition: background 0.2s;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 5;
   }
 
   .resize-handle-horizontal:hover,
@@ -2036,6 +2209,7 @@
     flex-direction: column;
     min-height: 100px;
     overflow: hidden;
+    flex: 1;  /* 50% each (1:1 ratio) */
   }
 
   .debug-graph-container {
@@ -2046,16 +2220,18 @@
     background: #1e1e1e;
     overflow: hidden;
     position: relative;
+    z-index: 1;
   }
 
   .debug-col-stack .call-stack {
+    flex: 2;  /* 50% of 1:2:1 ratio */
     min-height: 100px;
     border-bottom: none;
   }
 
   .debug-col-stack .pending-descriptors {
-    flex: 1;
-    min-height: 100px;
+    flex: 1;  /* 25% of 1:2:1 ratio */
+    min-height: 80px;
   }
 
   .debug-col-stack .section-content {
@@ -2068,8 +2244,9 @@
     border-bottom: 1px solid #3c3c3c;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
     font-size: 13px;
-    height: 120px;
-    flex-shrink: 0;
+    flex: 1;  /* 25% of 1:2:1 ratio */
+    min-height: 80px;
+    overflow: auto;
   }
 
   .current-action-box pre {

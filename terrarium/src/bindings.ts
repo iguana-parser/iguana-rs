@@ -98,6 +98,14 @@ async getDebugSppf() : Promise<Result<DebugSPPFInfo, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async getDebugGss() : Promise<Result<DebugGSSInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_debug_gss") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -111,6 +119,30 @@ async getDebugSppf() : Promise<Result<DebugSPPFInfo, string>> {
 
 /** user-defined types **/
 
+/**
+ * GSS edge for debug visualization.
+ */
+export type DebugGSSEdge = { src: number; dest: number; 
+/**
+ * Return slot name
+ */
+label: string }
+/**
+ * Debug GSS info returned to the frontend.
+ */
+export type DebugGSSInfo = { nodes: DebugGSSNode[]; edges: DebugGSSEdge[]; 
+/**
+ * The current GSS node ID from the action being processed
+ */
+current_gss_node_id: number | null }
+/**
+ * GSS node for debug visualization.
+ */
+export type DebugGSSNode = { id: number; 
+/**
+ * Format: "(Nonterminal, InputIndex)"
+ */
+label: string }
 /**
  * Debug info returned to the frontend.
  */

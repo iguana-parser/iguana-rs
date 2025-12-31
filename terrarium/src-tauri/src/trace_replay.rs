@@ -41,6 +41,32 @@ pub enum DebugSPPFNodeKind {
     Intermediate,
 }
 
+/// GSS node for debug visualization.
+#[derive(Debug, Clone, Serialize, Type)]
+pub struct DebugGSSNode {
+    pub id: u32,
+    /// Format: "(Nonterminal, InputIndex)"
+    pub label: String,
+}
+
+/// GSS edge for debug visualization.
+#[derive(Debug, Clone, Serialize, Type)]
+pub struct DebugGSSEdge {
+    pub src: u32,
+    pub dest: u32,
+    /// Return slot name
+    pub label: String,
+}
+
+/// Debug GSS info returned to the frontend.
+#[derive(Debug, Clone, Serialize, Type)]
+pub struct DebugGSSInfo {
+    pub nodes: Vec<DebugGSSNode>,
+    pub edges: Vec<DebugGSSEdge>,
+    /// The current GSS node ID from the action being processed
+    pub current_gss_node_id: Option<u32>,
+}
+
 /// Symbol table loaded from `--write-symbols` output.
 /// Array indices correspond to IDs.
 #[derive(Debug, Deserialize, Type)]
@@ -391,6 +417,42 @@ impl TraceReplay {
                 });
             }
             _ => {}
+        }
+    }
+
+    /// Build GSS info for debug visualization.
+    pub fn get_debug_gss_info(&self) -> DebugGSSInfo {
+        let nodes: Vec<DebugGSSNode> = self
+            .gss_nodes
+            .iter()
+            .map(|node| DebugGSSNode {
+                id: node.id.0,
+                label: self.format_gss_node(node.id),
+            })
+            .collect();
+
+        let mut edges = Vec::new();
+        for gss_node in &self.gss_nodes {
+            for edge in gss_node.edges() {
+                edges.push(DebugGSSEdge {
+                    src: gss_node.id.0,
+                    dest: edge.dest_id.0,
+                    label: self.symbols.slot(edge.return_slot).to_string(),
+                });
+            }
+        }
+
+        // Get current GSS node from the current action
+        let current_gss_node_id = match &self.current_action {
+            Some(DebugAction::ProcessingDescriptor(desc)) => Some(desc.gss_node_id.0),
+            Some(DebugAction::Pop { gss_node_id, .. }) => Some(gss_node_id.0),
+            None => None,
+        };
+
+        DebugGSSInfo {
+            nodes,
+            edges,
+            current_gss_node_id,
         }
     }
 

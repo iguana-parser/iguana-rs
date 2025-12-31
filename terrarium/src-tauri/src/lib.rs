@@ -10,7 +10,7 @@ use tauri_specta::{collect_commands, Builder};
 use tempfile::{NamedTempFile, TempDir};
 use toml::Value;
 
-use trace_replay::{DebugSPPFNode, TraceReplay};
+use trace_replay::{DebugGSSInfo, DebugSPPFNode, TraceReplay};
 
 /// Debug SPPF info returned to the frontend.
 #[derive(Clone, Serialize, Type)]
@@ -530,6 +530,18 @@ fn get_debug_sppf(state: tauri::State<Mutex<DebugState>>) -> Result<DebugSPPFInf
     })
 }
 
+#[tauri::command]
+#[specta::specta]
+fn get_debug_gss(state: tauri::State<Mutex<DebugState>>) -> Result<DebugGSSInfo, String> {
+    let debug_state = state.lock().unwrap();
+    let replay = debug_state
+        .replay
+        .as_ref()
+        .ok_or("No debug session. Load a trace first.")?;
+
+    Ok(replay.get_debug_gss_info())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = Builder::<tauri::Wry>::new().commands(collect_commands![
@@ -545,7 +557,8 @@ pub fn run() {
         debug_step_to,
         get_debug_info,
         get_stack_trace,
-        get_debug_sppf
+        get_debug_sppf,
+        get_debug_gss
     ]);
 
     #[cfg(debug_assertions)]
