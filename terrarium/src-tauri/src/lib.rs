@@ -10,7 +10,15 @@ use tauri_specta::{collect_commands, Builder};
 use tempfile::{NamedTempFile, TempDir};
 use toml::Value;
 
-use trace_replay::TraceReplay;
+use trace_replay::{DebugSPPFNode, TraceReplay};
+
+/// Debug SPPF info returned to the frontend.
+#[derive(Clone, Serialize, Type)]
+struct DebugSPPFInfo {
+    nodes: Vec<DebugSPPFNode>,
+    /// The current SPPF node ID from the descriptor being processed
+    current_node_id: Option<u32>,
+}
 
 #[derive(Clone, Serialize, Type)]
 struct BuildProgress {
@@ -507,6 +515,21 @@ fn get_stack_trace(state: tauri::State<Mutex<DebugState>>) -> Result<Vec<String>
         .ok_or_else(|| "No stack trace available at current step.".to_string())
 }
 
+#[tauri::command]
+#[specta::specta]
+fn get_debug_sppf(state: tauri::State<Mutex<DebugState>>) -> Result<DebugSPPFInfo, String> {
+    let debug_state = state.lock().unwrap();
+    let replay = debug_state
+        .replay
+        .as_ref()
+        .ok_or("No debug session. Load a trace first.")?;
+
+    Ok(DebugSPPFInfo {
+        nodes: replay.sppf_nodes().to_vec(),
+        current_node_id: replay.current_sppf_node_id(),
+    })
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = Builder::<tauri::Wry>::new().commands(collect_commands![
@@ -521,7 +544,8 @@ pub fn run() {
         debug_step_forward,
         debug_step_to,
         get_debug_info,
-        get_stack_trace
+        get_stack_trace,
+        get_debug_sppf
     ]);
 
     #[cfg(debug_assertions)]

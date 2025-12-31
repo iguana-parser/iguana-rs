@@ -25,8 +25,8 @@ pub enum TraceEvent {
     GSSNodeNotFound(NonterminalId, u32),
     GSSNodeAdded(GssNodeId, GssNodeId, SlotId), // (src, dest)
     TerminalNodeCreated(TerminalId, Span),
-    NonterminalNodeCreated(NonterminalId, Span),
-    IntermediateNodeCreated(SlotId, Span),
+    NonterminalNodeCreated(NonterminalId, Span, SPPFNodeId),
+    IntermediateNodeCreated(SlotId, Span, SPPFNodeId, SPPFNodeId), // (slot_id, span, left_child, right_child)
     TerminalNodeFound(SPPFNodeId),
     NonterminalNodeFound(SPPFNodeId),
     IntermediateNodeFound(SPPFNodeId),
@@ -115,22 +115,25 @@ impl TraceEvent {
                 P::slot(return_slot).name
             ),
             TraceEvent::TerminalNodeCreated(terminal_id, span) => format!(
-                "({}, {}, {})",
+                "Terminal node created: ({}, {}, {})",
                 P::terminal(terminal_id),
                 span.left_extent,
                 span.right_extent
             ),
-            TraceEvent::NonterminalNodeCreated(nonterminal_id, span) => format!(
-                "({}, {}, {})",
+            TraceEvent::NonterminalNodeCreated(nonterminal_id, span, child) => format!(
+                "Nonterminal node created: ({}, {}, {}, {})",
                 P::nonterminal(nonterminal_id),
                 span.left_extent,
-                span.right_extent
+                span.right_extent,
+                parser.sppf_node_to_string(parser.sppf_node(child)),
             ),
-            TraceEvent::IntermediateNodeCreated(slot_id, span) => format!(
-                "({}, {}, {})",
+            TraceEvent::IntermediateNodeCreated(slot_id, span, left_child, right_child) => format!(
+                "Intermediate node created: ({}, {}, {}, {}, {})",
                 P::slot(slot_id).name,
                 span.left_extent,
-                span.right_extent
+                span.right_extent,
+                parser.sppf_node_to_string(parser.sppf_node(left_child)),
+                parser.sppf_node_to_string(parser.sppf_node(right_child))
             ),
             TraceEvent::TerminalNodeFound(sppf_node_id) => format!(
                 "Terminal node found: {}",
@@ -257,15 +260,19 @@ macro_rules! record {
             $span,
         ));
     };
-    ($parser:expr, NonterminalNodeCreated, $nonterminal_id:expr, $span:expr) => {
+    ($parser:expr, NonterminalNodeCreated, $nonterminal_id:expr, $span:expr, $child:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::NonterminalNodeCreated(
             $nonterminal_id,
             $span,
+            $child,
         ));
     };
-    ($parser:expr, IntermediateNodeCreated, $slot_id:expr, $span:expr) => {
+    ($parser:expr, IntermediateNodeCreated, $slot_id:expr, $span:expr, $left_child:expr, $right_child:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::IntermediateNodeCreated(
-            $slot_id, $span,
+            $slot_id,
+            $span,
+            $left_child,
+            $right_child,
         ));
     };
     ($parser:expr, TerminalNodeFound, $sppf_node_id:expr) => {

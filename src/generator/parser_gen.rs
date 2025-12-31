@@ -600,7 +600,13 @@ fn gen_add_nonterminal_node_method() -> TokenStream {
             self.stats.nonterminal_nodes_count += 1;
             self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
                 .insert(nonterminal_node.span, nonterminal_node_id);
-            record!(self, NonterminalNodeCreated, nonterminal_node.nonterminal_id, nonterminal_node.span);
+            record!(
+                self, 
+                NonterminalNodeCreated, 
+                nonterminal_node.nonterminal_id, 
+                nonterminal_node.span, 
+                nonterminal_node.child
+            );
             self.sppf_nodes.push(SPPFNode::Nonterminal(nonterminal_node));
             nonterminal_node_id
         }
@@ -614,7 +620,14 @@ fn gen_add_intermediate_node_method() -> TokenStream {
             self.stats.intermediate_nodes_count += 1;
             self.intermediate_nodes_index[intermediate_node.slot_id.index()]
                 .insert(intermediate_node.span, intermediate_node_id);
-            record!(self, IntermediateNodeCreated, intermediate_node.slot_id, intermediate_node.span);
+            record!(
+                self, 
+                IntermediateNodeCreated, 
+                intermediate_node.slot_id,
+                intermediate_node.span,
+                intermediate_node.child.0,
+                intermediate_node.child.1
+            );
             self.sppf_nodes.push(SPPFNode::Intermediate(intermediate_node));
             intermediate_node_id
         }

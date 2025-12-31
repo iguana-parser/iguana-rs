@@ -90,6 +90,14 @@ async getStackTrace() : Promise<Result<string[], string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async getDebugSppf() : Promise<Result<DebugSPPFInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_debug_sppf") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -123,6 +131,19 @@ input_index: number | null;
  * Only set on initial load
  */
 input_path: string | null; symbols_path: string | null; trace_path: string | null }
+/**
+ * Debug SPPF info returned to the frontend.
+ */
+export type DebugSPPFInfo = { nodes: DebugSPPFNode[]; 
+/**
+ * The current SPPF node ID from the descriptor being processed
+ */
+current_node_id: number | null }
+/**
+ * Simple SPPF node for debug visualization.
+ */
+export type DebugSPPFNode = { id: number; kind: DebugSPPFNodeKind; label: string; left_extent: number; right_extent: number; children: number[] }
+export type DebugSPPFNodeKind = "Terminal" | "Nonterminal" | "Intermediate"
 export type GSS = { nodes: GSSDotNode[]; edges: GSSDotEdge[] }
 export type GSSDotEdge = { src: GssNodeId; dest: GssNodeId; label: string }
 export type GSSDotNode = { id: GssNodeId; label: string }

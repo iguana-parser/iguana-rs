@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { commands, type SPPF, type GSS, type DebugInfo } from "../bindings";
+  import { commands, type SPPF, type GSS, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo } from "../bindings";
   import { listen } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
@@ -136,6 +136,12 @@
   let callStack = $state<string[]>([]);
   let debugLoaded = $state(false);
   let inputIndex = $state<number | null>(null);
+  let debugSppfNodes = $state<DebugSPPFNode[]>([]);
+
+  // Debug SPPF visualization
+  let debugSppfContainer: HTMLElement;
+  let debugSppfCy: cytoscape.Core | null = null;
+  let currentSppfNodeId = $state<number | null>(null);
 
   // Graph tab
   let activeTab = $state<"gss" | "sppf">("sppf");
@@ -502,6 +508,157 @@
     }
   });
 
+  // Render debug SPPF when nodes or current node changes
+  $effect(() => {
+    // Track both debugSppfNodes and currentSppfNodeId
+    const _nodes = debugSppfNodes;
+    const _currentId = currentSppfNodeId;
+    if (debugSppfContainer) {
+      tick().then(() => renderDebugSppf());
+    }
+  });
+
+  function renderDebugSppf() {
+    if (!debugSppfContainer) return;
+
+    const elements: cytoscape.ElementDefinition[] = [];
+
+    // Build a map for quick lookup
+    const nodeMap = new Map<number, typeof debugSppfNodes[0]>();
+    for (const node of debugSppfNodes) {
+      nodeMap.set(node.id, node);
+    }
+
+    // Find all nodes reachable from current descriptor's node (the subtree to show)
+    const reachableIds = new Set<number>();
+    if (currentSppfNodeId !== null && nodeMap.has(currentSppfNodeId)) {
+      const queue = [currentSppfNodeId];
+      while (queue.length > 0) {
+        const id = queue.shift()!;
+        if (reachableIds.has(id)) continue;
+        reachableIds.add(id);
+        const node = nodeMap.get(id);
+        if (node) {
+          for (const childId of node.children) {
+            queue.push(childId);
+          }
+        }
+      }
+    }
+
+    // If no current node or no reachable nodes, show nothing
+    if (reachableIds.size === 0) {
+      if (debugSppfCy) {
+        debugSppfCy.destroy();
+        debugSppfCy = null;
+      }
+      return;
+    }
+
+    // Add only nodes in the current subtree
+    for (const node of debugSppfNodes) {
+      if (!reachableIds.has(node.id)) continue;
+
+      const label = node.kind === "Terminal"
+        ? `${node.label}\n(${node.left_extent},${node.right_extent})`
+        : `${node.label}\n(${node.left_extent},${node.right_extent})`;
+
+      elements.push({
+        data: {
+          id: `n${node.id}`,
+          label,
+          kind: node.kind,
+        },
+      });
+    }
+
+    // Add edges only within the subtree
+    for (const node of debugSppfNodes) {
+      if (!reachableIds.has(node.id)) continue;
+      for (const childId of node.children) {
+        if (reachableIds.has(childId)) {
+          elements.push({
+            data: {
+              id: `e${node.id}-${childId}`,
+              source: `n${node.id}`,
+              target: `n${childId}`,
+            },
+          });
+        }
+      }
+    }
+
+    if (debugSppfCy) {
+      debugSppfCy.destroy();
+    }
+
+    debugSppfCy = cytoscape({
+      container: debugSppfContainer,
+      elements,
+      style: [
+        {
+          selector: "node",
+          style: {
+            label: "data(label)",
+            "text-valign": "center",
+            "text-halign": "center",
+            "font-size": "10px",
+            "text-wrap": "wrap",
+            "text-max-width": "80px",
+            color: "#d4d4d4",
+            "background-color": "#2d2d2d",
+            "border-color": "#555",
+            "border-width": 1,
+            width: 90,
+            height: 40,
+            shape: "round-rectangle",
+          },
+        },
+        {
+          selector: "node[kind='Terminal']",
+          style: {
+            "background-color": "#1e3a1e",
+            "border-color": "#4ec9b0",
+          },
+        },
+        {
+          selector: "node[kind='Nonterminal']",
+          style: {
+            "background-color": "#1e2a3a",
+            "border-color": "#569cd6",
+          },
+        },
+        {
+          selector: "node[kind='Intermediate']",
+          style: {
+            "background-color": "#3a2a1e",
+            "border-color": "#ce9178",
+          },
+        },
+        {
+          selector: "edge",
+          style: {
+            width: 1,
+            "line-color": "#555",
+            "target-arrow-color": "#555",
+            "target-arrow-shape": "triangle",
+            "curve-style": "bezier",
+            "arrow-scale": 0.8,
+          },
+        },
+      ],
+      layout: {
+        name: "dagre",
+        rankDir: "TB",
+        nodeSep: 30,
+        rankSep: 50,
+      } as any,
+      userZoomingEnabled: true,
+      userPanningEnabled: true,
+      boxSelectionEnabled: false,
+    });
+  }
+
   // Resizable panes
   let leftPanelWidth = $state(350);
   let callStackHeight = $state(200);
@@ -517,9 +674,11 @@
   let debugCol1Width = $state(300);
   let debugCol3Width = $state(400);
   let debugStackHeight = $state(200);
+  let debugSppfHeight = $state(250);
   let isDraggingDebug1 = $state(false);
   let isDraggingDebug2 = $state(false);
   let isDraggingDebugStack = $state(false);
+  let isDraggingDebugGraph = $state(false);
 
   async function selectDirectory() {
     const selected = await open({
@@ -677,6 +836,22 @@
     }
   }
 
+  function stopDebug() {
+    debugLoaded = false;
+    currentStep = 0;
+    totalSteps = 0;
+    currentDescriptor = null;
+    descriptorSet = [];
+    callStack = [];
+    inputIndex = null;
+    debugSppfNodes = [];
+    currentSppfNodeId = null;
+    if (debugSppfCy) {
+      debugSppfCy.destroy();
+      debugSppfCy = null;
+    }
+  }
+
   async function startDebug() {
     if (!parserDirectory || buildStatus !== "success" || !startNonterminal) return;
 
@@ -703,6 +878,7 @@
       logOutput(`Loaded ${totalSteps} steps`);
       setStatus(`Loaded ${totalSteps} steps`, "success");
       await fetchStackTrace();
+      await fetchDebugSppf();
     } else {
       logCommand(`${parserName} --write-symbols <symbols.json>`);
       logCommand(`${parserName} <input> --start ${startNonterminal} --trace <trace.json> --format json`);
@@ -721,6 +897,7 @@
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
+      await fetchDebugSppf();
     }
   }
 
@@ -733,6 +910,7 @@
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
+      await fetchDebugSppf();
     }
   }
 
@@ -745,6 +923,7 @@
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
+      await fetchDebugSppf();
     }
   }
 
@@ -754,6 +933,17 @@
       callStack = result.data;
     } else {
       callStack = [];
+    }
+  }
+
+  async function fetchDebugSppf() {
+    const result = await commands.getDebugSppf();
+    if (result.status === "ok") {
+      debugSppfNodes = result.data.nodes;
+      currentSppfNodeId = result.data.current_node_id;
+    } else {
+      debugSppfNodes = [];
+      currentSppfNodeId = null;
     }
   }
 
@@ -794,6 +984,11 @@
 
   function startDebugStackResize(e: MouseEvent) {
     isDraggingDebugStack = true;
+    e.preventDefault();
+  }
+
+  function startDebugGraphResize(e: MouseEvent) {
+    isDraggingDebugGraph = true;
     e.preventDefault();
   }
 
@@ -841,6 +1036,14 @@
         debugStackHeight = Math.max(100, Math.min(500, e.clientY - rect.top));
       }
     }
+    if (isDraggingDebugGraph) {
+      // Resize SPPF height within right column
+      const graphSection = document.querySelector('.debug-col-graphs');
+      if (graphSection) {
+        const rect = graphSection.getBoundingClientRect();
+        debugSppfHeight = Math.max(100, Math.min(500, e.clientY - rect.top));
+      }
+    }
   }
 
   function onMouseUp() {
@@ -852,6 +1055,7 @@
     isDraggingDebug1 = false;
     isDraggingDebug2 = false;
     isDraggingDebugStack = false;
+    isDraggingDebugGraph = false;
   }
 
   function handleWindowClick(e: MouseEvent) {
@@ -945,7 +1149,7 @@
 
 <svelte:window on:mousemove={onMouseMove} on:mouseup={onMouseUp} on:click={handleWindowClick} />
 
-<div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebug1 || isDraggingDebug2 || isDraggingDebugStack}>
+<div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebug1 || isDraggingDebug2 || isDraggingDebugStack || isDraggingDebugGraph}>
   <!-- Title Bar (full width) -->
   <div class="title-bar" onmousedown={startWindowDrag} ondblclick={toggleMaximize}>
     <div class="title-bar-left">
@@ -1150,7 +1354,11 @@
             {/if}
           </div>
         </div>
-        <button class="parse-btn" onclick={startDebug} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Debug</button>
+        {#if debugLoaded}
+          <button class="parse-btn" onclick={stopDebug}>Stop</button>
+        {:else}
+          <button class="parse-btn" onclick={startDebug} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Debug</button>
+        {/if}
       </div>
 
       <!-- Input Area -->
@@ -1229,9 +1437,28 @@
     <!-- Resize Handle 2 -->
     <div class="resize-handle-vertical" onmousedown={startDebugResize2}></div>
 
-    <!-- Column 3: GSS/SPPF (placeholder) -->
+    <!-- Column 3: SPPF (top) / GSS (bottom) -->
     <div class="debug-column debug-col-graphs" style="width: {debugCol3Width}px">
-      <div class="graph-placeholder">GSS / SPPF visualization</div>
+      <!-- SPPF Section -->
+      <div class="debug-graph-section" style="flex: 1 1 {debugSppfHeight}px">
+        <div class="section-header">SPPF ({debugSppfNodes.length} nodes)</div>
+        <div class="debug-graph-container" bind:this={debugSppfContainer}>
+          {#if debugSppfNodes.length === 0}
+            <div class="graph-placeholder">No SPPF nodes yet</div>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Resize Handle -->
+      <div class="resize-handle-horizontal" onmousedown={startDebugGraphResize}></div>
+
+      <!-- GSS Section -->
+      <div class="debug-graph-section" style="flex: 1">
+        <div class="section-header">GSS</div>
+        <div class="debug-graph-container">
+          <div class="graph-placeholder">GSS visualization</div>
+        </div>
+      </div>
     </div>
   </div>
   {:else if activeMode === "design"}
@@ -1739,6 +1966,25 @@
     flex-shrink: 0;
     min-width: 200px;
     max-width: 600px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .debug-graph-section {
+    display: flex;
+    flex-direction: column;
+    min-height: 100px;
+    overflow: hidden;
+  }
+
+  .debug-graph-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1e1e1e;
+    overflow: hidden;
+    position: relative;
   }
 
   .debug-col-stack .call-stack {
@@ -1909,6 +2155,7 @@
     border-color: #3c3c3c;
     cursor: not-allowed;
   }
+
 
   /* Input Section */
   .input-section {

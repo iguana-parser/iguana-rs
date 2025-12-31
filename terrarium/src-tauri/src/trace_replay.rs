@@ -6,8 +6,26 @@ use iguana::descriptor::Descriptor;
 use iguana::gss::{GSSEdge, GSSNode};
 use iguana::ids::{GssNodeId, NonterminalId, SlotId};
 use iguana::trace::TraceEvent;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use specta::Type;
+
+/// Simple SPPF node for debug visualization.
+#[derive(Debug, Clone, Serialize, Type)]
+pub struct DebugSPPFNode {
+    pub id: u32,
+    pub kind: DebugSPPFNodeKind,
+    pub label: String,
+    pub left_extent: u32,
+    pub right_extent: u32,
+    pub children: Vec<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Type)]
+pub enum DebugSPPFNodeKind {
+    Terminal,
+    Nonterminal,
+    Intermediate,
+}
 
 /// Symbol table loaded from `--write-symbols` output.
 /// Array indices correspond to IDs.
@@ -31,6 +49,13 @@ impl SymbolTable {
         &self.nonterminals[id.index()]
     }
 
+    pub fn terminal(&self, id: &iguana::ids::TerminalId) -> String {
+        self.terminals
+            .get(id.index())
+            .cloned()
+            .unwrap_or_else(|| format!("T{}", id.index()))
+    }
+
     pub fn slot(&self, id: SlotId) -> &str {
         &self.slots[id.index()]
     }
@@ -51,6 +76,10 @@ pub struct TraceReplay {
     /// Current descriptor being processed
     current_descriptor: Option<Descriptor>,
     symbols: SymbolTable,
+    /// SPPF nodes reconstructed from trace
+    sppf_nodes: Vec<DebugSPPFNode>,
+    /// Current SPPF node ID from the descriptor being processed
+    current_sppf_node_id: Option<u32>,
 }
 
 impl TraceReplay {
@@ -84,6 +113,8 @@ impl TraceReplay {
             descriptor_set: Vec::new(),
             current_descriptor: None,
             symbols,
+            sppf_nodes: Vec::new(),
+            current_sppf_node_id: None,
         };
 
         // Apply events up to and including the first step
@@ -114,11 +145,24 @@ impl TraceReplay {
         }
     }
 
-    /// Format a descriptor for display: "(slot, input_index, (nonterminal, index))".
+    /// Format an SPPF node as "(label, left, right)".
+    fn format_sppf_node(&self, sppf_node_id: u32) -> String {
+        if let Some(node) = self.sppf_nodes.get(sppf_node_id as usize) {
+            format!("({}, {}, {})", node.label, node.left_extent, node.right_extent)
+        } else {
+            format!("(?, {})", sppf_node_id)
+        }
+    }
+
+    /// Format a descriptor for display: "(slot, input_index, gss_node, sppf_node)".
     fn format_descriptor(&self, desc: &Descriptor) -> String {
         let slot_name = self.symbols.slot(desc.slot_id);
         let gss_node = self.format_gss_node(desc.gss_node_id);
-        format!("({}, {}, {})", slot_name, desc.input_index, gss_node)
+        let sppf_node = match desc.sppf_node_id {
+            Some(id) => self.format_sppf_node(id.0),
+            None => "$".to_string(),
+        };
+        format!("({}, {}, {}, {})", slot_name, desc.input_index, gss_node, sppf_node)
     }
 
     /// Get the current descriptor as a formatted string.
@@ -130,7 +174,19 @@ impl TraceReplay {
 
     /// Get the current input index (position in the input being parsed).
     pub fn current_input_index(&self) -> Option<usize> {
-        self.current_descriptor.as_ref().map(|desc| desc.input_index as usize)
+        self.current_descriptor
+            .as_ref()
+            .map(|desc| desc.input_index as usize)
+    }
+
+    /// Get the current SPPF nodes for visualization.
+    pub fn sppf_nodes(&self) -> &[DebugSPPFNode] {
+        &self.sppf_nodes
+    }
+
+    /// Get the current SPPF node ID from the descriptor being processed.
+    pub fn current_sppf_node_id(&self) -> Option<u32> {
+        self.current_sppf_node_id
     }
 
     /// Get the pending descriptor set as formatted strings.
@@ -169,6 +225,8 @@ impl TraceReplay {
             self.gss_nodes.clear();
             self.descriptor_set.clear();
             self.current_descriptor = None;
+            self.sppf_nodes.clear();
+            self.current_sppf_node_id = None;
             self.current_step = 0;
 
             if !self.step_indices.is_empty() {
@@ -208,6 +266,8 @@ impl TraceReplay {
                         && d.gss_node_id == *gss_node_id)
                 });
                 self.current_descriptor = Some(desc);
+                // Track the current SPPF node from the descriptor
+                self.current_sppf_node_id = sppf_node_id.map(|id| id.0);
             }
             TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 self.descriptor_set.push(Descriptor {
@@ -226,6 +286,42 @@ impl TraceReplay {
                 if let Some(node) = self.gss_nodes.get_mut(src_id.index()) {
                     node.add_edge(GSSEdge::new(None, *return_slot, *dest_id));
                 }
+            }
+            TraceEvent::TerminalNodeCreated(terminal_id, span) => {
+                let id = self.sppf_nodes.len() as u32;
+                let label = self.symbols.terminal(terminal_id);
+                self.sppf_nodes.push(DebugSPPFNode {
+                    id,
+                    kind: DebugSPPFNodeKind::Terminal,
+                    label,
+                    left_extent: span.left_extent,
+                    right_extent: span.right_extent,
+                    children: vec![],
+                });
+            }
+            TraceEvent::IntermediateNodeCreated(slot_id, span, left_child, right_child) => {
+                let id = self.sppf_nodes.len() as u32;
+                let label = self.symbols.slot(*slot_id).to_string();
+                self.sppf_nodes.push(DebugSPPFNode {
+                    id,
+                    kind: DebugSPPFNodeKind::Intermediate,
+                    label,
+                    left_extent: span.left_extent,
+                    right_extent: span.right_extent,
+                    children: vec![left_child.0, right_child.0],
+                });
+            }
+            TraceEvent::NonterminalNodeCreated(nonterminal_id, span, child) => {
+                let id = self.sppf_nodes.len() as u32;
+                let label = self.symbols.nonterminal(*nonterminal_id).to_string();
+                self.sppf_nodes.push(DebugSPPFNode {
+                    id,
+                    kind: DebugSPPFNodeKind::Nonterminal,
+                    label,
+                    left_extent: span.left_extent,
+                    right_extent: span.right_extent,
+                    children: vec![child.0],
+                });
             }
             _ => {}
         }

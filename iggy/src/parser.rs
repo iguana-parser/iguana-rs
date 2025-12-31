@@ -594,7 +594,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             self,
             NonterminalNodeCreated,
             nonterminal_node.nonterminal_id,
-            nonterminal_node.span
+            nonterminal_node.span,
+            nonterminal_node.child
         );
         self.sppf_nodes
             .push(SPPFNode::Nonterminal(nonterminal_node));
@@ -609,7 +610,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             self,
             IntermediateNodeCreated,
             intermediate_node.slot_id,
-            intermediate_node.span
+            intermediate_node.span,
+            intermediate_node.child.0,
+            intermediate_node.child.1
         );
         self.sppf_nodes
             .push(SPPFNode::Intermediate(intermediate_node));
@@ -739,4 +742,3 @@ impl<'i> IggyParser<'i> {
         }
     }
 }
-
