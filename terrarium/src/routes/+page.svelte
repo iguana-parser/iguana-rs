@@ -792,8 +792,15 @@
   let debugCol1Width = $state(300);
   let debugCol3Width = $state(400);
   let debugActionHeight = $state<number | null>(null);  // null = use CSS flex default (25%)
-  let debugStackHeight = $state<number | null>(null);  // null = use CSS flex default (50%)
+  // Note: Stack section always uses flex: 1 to absorb resize changes from Action and Pending
+  let debugPendingHeight = $state<number | null>(null); // null = use CSS flex default (25%)
   let debugSppfHeight = $state<number | null>(null);   // null = use CSS flex default (50%)
+
+  // Resize start tracking for delta-based resizing
+  let resizeStartY = 0;
+  let resizeStartActionHeight = 0;
+  let resizeStartStackHeight = 0;
+  let resizeStartPendingHeight = 0;
   let isDraggingDebug1 = $state(false);
   let isDraggingDebug2 = $state(false);
   let isDraggingDebugAction = $state(false);
@@ -979,7 +986,7 @@
     }
     // Reset to default proportions
     debugActionHeight = null;
-    debugStackHeight = null;
+    debugPendingHeight = null;
     debugSppfHeight = null;
   }
 
@@ -1145,11 +1152,17 @@
 
   function startDebugActionResize(e: MouseEvent) {
     isDraggingDebugAction = true;
+    resizeStartY = e.clientY;
+    // Capture current Action height (from grid or default)
+    resizeStartActionHeight = debugActionHeight ?? 120;
     e.preventDefault();
   }
 
   function startDebugStackResize(e: MouseEvent) {
     isDraggingDebugStack = true;
+    resizeStartY = e.clientY;
+    // Capture current Pending height (from grid or default)
+    resizeStartPendingHeight = debugPendingHeight ?? 150;
     e.preventDefault();
   }
 
@@ -1195,20 +1208,31 @@
       debugCol3Width = Math.max(200, Math.min(600, window.innerWidth - e.clientX));
     }
     if (isDraggingDebugAction) {
-      // Resize action box height within middle column
-      const actionBox = document.querySelector('.debug-col-stack .current-action-box');
-      if (actionBox) {
-        const rect = actionBox.getBoundingClientRect();
-        debugActionHeight = Math.max(80, Math.min(300, e.clientY - rect.top));
-      }
+      // Resize Action - Call Stack (1fr) absorbs the change
+      const delta = e.clientY - resizeStartY;
+      const newHeight = resizeStartActionHeight + delta;
+      // Get container height to calculate max (leave room for Call Stack min 100px + Pending + handles + playback)
+      const container = document.querySelector('.debug-col-stack') as HTMLElement;
+      const playback = document.querySelector('.debug-col-stack .playback-controls') as HTMLElement;
+      const playbackHeight = playback?.getBoundingClientRect().height ?? 40;
+      const pendingHeight = debugPendingHeight ?? 150;
+      const containerHeight = container?.getBoundingClientRect().height ?? 600;
+      const maxAction = containerHeight - playbackHeight - 100 - 8 - pendingHeight; // 100 = min Call Stack, 8 = handles
+      debugActionHeight = Math.max(80, Math.min(maxAction, newHeight));
     }
     if (isDraggingDebugStack) {
-      // Resize stack height within middle column
-      const stackSection = document.querySelector('.debug-col-stack .call-stack');
-      if (stackSection) {
-        const rect = stackSection.getBoundingClientRect();
-        debugStackHeight = Math.max(100, Math.min(500, e.clientY - rect.top));
-      }
+      // Resize Pending - Call Stack (1fr) absorbs the change
+      const delta = e.clientY - resizeStartY;
+      // Note: dragging DOWN should SHRINK pending (delta is positive, height decreases)
+      const newHeight = resizeStartPendingHeight - delta;
+      // Get container height to calculate max (leave room for Call Stack min 100px + Action + handles + playback)
+      const container = document.querySelector('.debug-col-stack') as HTMLElement;
+      const playback = document.querySelector('.debug-col-stack .playback-controls') as HTMLElement;
+      const playbackHeight = playback?.getBoundingClientRect().height ?? 40;
+      const actionHeight = debugActionHeight ?? 120;
+      const containerHeight = container?.getBoundingClientRect().height ?? 600;
+      const maxPending = containerHeight - playbackHeight - 100 - 8 - actionHeight; // 100 = min Call Stack, 8 = handles
+      debugPendingHeight = Math.max(80, Math.min(maxPending, newHeight));
     }
     if (isDraggingDebugGraph) {
       // Resize SPPF height within right column
@@ -1571,7 +1595,7 @@
     <div class="resize-handle-vertical" onmousedown={startDebugResize1}></div>
 
     <!-- Column 2: Stack + Pending -->
-    <div class="debug-column debug-col-stack">
+    <div class="debug-column debug-col-stack" style={`display: grid; grid-template-rows: auto minmax(80px, ${debugActionHeight ?? 120}px) 4px minmax(100px, 1fr) 4px minmax(80px, ${debugPendingHeight ?? 150}px);`}>
       <!-- Playback Controls -->
       <div class="playback-controls">
         <button onclick={stepBack} disabled={!debugLoaded || currentStep === 0}>◀</button>
@@ -1582,7 +1606,7 @@
       </div>
 
       <!-- Current Action -->
-      <div class="current-action-box" style={debugActionHeight !== null ? `height: ${debugActionHeight}px; flex: 0 0 auto` : ''}>
+      <div class="current-action-box">
         {#if currentAction}
           <pre>{currentAction}</pre>
         {:else}
@@ -1594,7 +1618,7 @@
       <div class="resize-handle-horizontal" onmousedown={startDebugActionResize}></div>
 
       <!-- Call Stack -->
-      <div class="section call-stack" style={debugStackHeight !== null ? `height: ${debugStackHeight}px; flex: 0 0 auto` : ''}>
+      <div class="section call-stack">
         <div class="section-header">
           <span>Call Stack</span>
           {#if callStack.length > 0}
@@ -2194,6 +2218,8 @@
   .debug-col-stack {
     flex: 1;
     min-width: 200px;
+    /* Grid layout is set via inline style */
+    overflow: hidden;
   }
 
   .debug-col-graphs {
@@ -2224,14 +2250,14 @@
   }
 
   .debug-col-stack .call-stack {
-    flex: 2;  /* 50% of 1:2:1 ratio */
-    min-height: 100px;
+    min-height: 0;  /* Allow grid to control size */
     border-bottom: none;
+    overflow: auto;
   }
 
   .debug-col-stack .pending-descriptors {
-    flex: 1;  /* 25% of 1:2:1 ratio */
-    min-height: 80px;
+    min-height: 0;  /* Allow grid to control size */
+    overflow: auto;
   }
 
   .debug-col-stack .section-content {
@@ -2244,8 +2270,7 @@
     border-bottom: 1px solid #3c3c3c;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
     font-size: 13px;
-    flex: 1;  /* 25% of 1:2:1 ratio */
-    min-height: 80px;
+    min-height: 0;  /* Allow grid to control size */
     overflow: auto;
   }
 
@@ -2461,6 +2486,7 @@
     padding: 8px 12px;
     border-bottom: 1px solid #3c3c3c;
     background: #2d2d2d;
+    flex-shrink: 0;
   }
 
   .playback-controls button {
