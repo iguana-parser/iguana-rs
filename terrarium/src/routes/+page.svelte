@@ -5,7 +5,7 @@
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
   import { availableMonitors, currentMonitor } from "@tauri-apps/api/window";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Expand, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck } from "lucide-svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
 
@@ -70,10 +70,31 @@
       }
     });
 
+    // Track window width for proportional column resizing
+    let lastWindowWidth = window.innerWidth;
+
+    function handleWindowResize() {
+      const newWidth = window.innerWidth;
+      const delta = newWidth - lastWindowWidth;
+
+      if (delta !== 0 && activeMode === "debug") {
+        // Distribute the extra/reduced width to the right column
+        // This makes the graph area grow when window expands
+        const minCol3 = 200;
+        const maxCol3 = newWidth - 48 - debugCol1Width - 250;
+        debugCol3Width = Math.max(minCol3, Math.min(maxCol3, debugCol3Width + delta));
+      }
+
+      lastWindowWidth = newWidth;
+    }
+
+    window.addEventListener('resize', handleWindowResize);
+
     return () => {
       unlistenProgress.then(fn => fn());
       unlistenResult.then(fn => fn());
       unlistenGenerateResult.then(fn => fn());
+      window.removeEventListener('resize', handleWindowResize);
     };
   });
 
@@ -169,6 +190,19 @@
   // Track if parse result is available
   let parseResultAvailable = $state(false);
 
+  // Pop-out modal for graphs
+  type PopoutGraph = 'sppf' | 'gss' | 'debugSppf' | 'debugGss' | null;
+  let popoutGraph = $state<PopoutGraph>(null);
+  let popoutContainer: HTMLDivElement;
+  let popoutCy: cytoscape.Core | null = null;
+
+  // Popout modal position for dragging
+  let popoutX = $state(40);
+  let popoutY = $state(40);
+  let isDraggingPopout = $state(false);
+  let popoutDragStartX = 0;
+  let popoutDragStartY = 0;
+
   // Output panel state
   let outputPanelOpen = $state(false);
   let outputPanelHeight = $state(150);
@@ -209,6 +243,171 @@
   }
   let cy: cytoscape.Core | null = null;
   let gssCy: cytoscape.Core | null = null;
+
+  // ============ Shared Graph Styles ============
+  const sppfNodeStyles: cytoscape.Stylesheet[] = [
+    {
+      selector: "node",
+      style: {
+        label: "data(label)",
+        "text-valign": "center",
+        "text-halign": "center",
+        "font-size": "10px",
+        "text-wrap": "wrap",
+        "text-max-width": "80px",
+        color: "#d4d4d4",
+        "background-color": "#3c3c3c",
+        "border-width": 1,
+        "border-color": "#555",
+        width: "label",
+        height: 24,
+        "padding-left": "8px",
+        "padding-right": "8px",
+        shape: "round-rectangle",
+      },
+    },
+    {
+      selector: "node.nonterminal, node[kind='Nonterminal']",
+      style: {
+        "background-color": "#2d4a3d",
+        "border-color": "#4ec9b0",
+      },
+    },
+    {
+      selector: "node.intermediate, node[kind='Intermediate']",
+      style: {
+        "background-color": "#2d3a4d",
+        "border-color": "#569cd6",
+        shape: "rectangle",
+      },
+    },
+    {
+      selector: "node.terminal, node[kind='Terminal']",
+      style: {
+        "background-color": "#4d3a2d",
+        "border-color": "#ce9178",
+      },
+    },
+    {
+      selector: "node.packed",
+      style: {
+        width: 12,
+        height: 12,
+        "background-color": "#666",
+        "border-width": 0,
+        label: "",
+      },
+    },
+    {
+      selector: "node.collapsed",
+      style: {
+        "border-width": 3,
+        "border-style": "double",
+      },
+    },
+  ];
+
+  const gssNodeStyles: cytoscape.Stylesheet[] = [
+    {
+      selector: "node",
+      style: {
+        label: "data(label)",
+        "text-valign": "center",
+        "text-halign": "center",
+        "font-size": "10px",
+        color: "#d4d4d4",
+        "background-color": "#2d4a3d",
+        "border-width": 1,
+        "border-color": "#4ec9b0",
+        width: "label",
+        height: 24,
+        "padding-left": "8px",
+        "padding-right": "8px",
+        shape: "round-rectangle",
+      },
+    },
+    {
+      selector: "node.current",
+      style: {
+        "border-width": 3,
+        "border-color": "#4ec9b0",
+        "background-color": "#3d5a4d",
+      },
+    },
+  ];
+
+  const edgeStyles: cytoscape.Stylesheet = {
+    selector: "edge",
+    style: {
+      width: 1,
+      "line-color": "#555",
+      "target-arrow-color": "#555",
+      "target-arrow-shape": "triangle",
+      "curve-style": "bezier",
+      "arrow-scale": 0.8,
+    },
+  };
+
+  const gssEdgeStyles: cytoscape.Stylesheet = {
+    selector: "edge",
+    style: {
+      label: "data(label)",
+      "font-size": "9px",
+      color: "#888",
+      "text-rotation": "autorotate",
+      "text-margin-y": -10,
+      width: 1,
+      "line-color": "#555",
+      "target-arrow-color": "#555",
+      "target-arrow-shape": "triangle",
+      "curve-style": "bezier",
+      "arrow-scale": 0.8,
+    },
+  };
+
+  // Helper to create a Cytoscape graph with common options
+  interface GraphOptions {
+    container: HTMLElement;
+    elements: cytoscape.ElementDefinition[];
+    styles: cytoscape.Stylesheet[];
+    layout?: 'sppf' | 'gss';
+  }
+
+  // Cap zoom level after fit to prevent huge nodes on small graphs
+  const MAX_FIT_ZOOM = 1.5;
+
+  function capZoom(cyInstance: cytoscape.Core) {
+    if (cyInstance.zoom() > MAX_FIT_ZOOM) {
+      cyInstance.zoom(MAX_FIT_ZOOM);
+      cyInstance.center();
+    }
+  }
+
+  function createGraph(options: GraphOptions): cytoscape.Core {
+    const { container, elements, styles, layout = 'sppf' } = options;
+
+    const cyInstance = cytoscape({
+      container,
+      elements,
+      style: styles,
+      layout: {
+        name: "dagre",
+        rankDir: layout === 'gss' ? "BT" : "TB",
+        nodeSep: layout === 'gss' ? 50 : 30,
+        rankSep: layout === 'gss' ? 60 : 50,
+      } as any,
+      userZoomingEnabled: true,
+      userPanningEnabled: true,
+      boxSelectionEnabled: false,
+    });
+
+    // Cap initial zoom after layout
+    capZoom(cyInstance);
+
+    return cyInstance;
+  }
+
+  // ============ End Shared Graph Styles ============
 
   // Find the root node (node with no incoming edges)
   function findRoot(): string | null {
@@ -323,85 +522,11 @@
       cy.destroy();
     }
 
-    cy = cytoscape({
+    cy = createGraph({
       container: sppfContainer,
       elements,
-      style: [
-        {
-          selector: "node",
-          style: {
-            label: "data(label)",
-            "text-valign": "center",
-            "text-halign": "center",
-            "font-size": "10px",
-            color: "#d4d4d4",
-            "background-color": "#3c3c3c",
-            "border-width": 1,
-            "border-color": "#555",
-            width: "label",
-            height: 24,
-            "padding-left": "8px",
-            "padding-right": "8px",
-            shape: "round-rectangle",
-          },
-        },
-        {
-          selector: "node.nonterminal",
-          style: {
-            "background-color": "#2d4a3d",
-            "border-color": "#4ec9b0",
-          },
-        },
-        {
-          selector: "node.intermediate",
-          style: {
-            "background-color": "#2d3a4d",
-            "border-color": "#569cd6",
-            shape: "rectangle",
-          },
-        },
-        {
-          selector: "node.terminal",
-          style: {
-            "background-color": "#4d3a2d",
-            "border-color": "#ce9178",
-          },
-        },
-        {
-          selector: "node.packed",
-          style: {
-            width: 12,
-            height: 12,
-            "background-color": "#666",
-            "border-width": 0,
-            label: "",
-          },
-        },
-        {
-          selector: "node.collapsed",
-          style: {
-            "border-width": 3,
-            "border-style": "double",
-          },
-        },
-        {
-          selector: "edge",
-          style: {
-            width: 1,
-            "line-color": "#555",
-            "target-arrow-color": "#555",
-            "target-arrow-shape": "triangle",
-            "curve-style": "bezier",
-            "arrow-scale": 0.8,
-          },
-        },
-      ],
-      layout: {
-        name: "dagre",
-        rankDir: "TB",
-        nodeSep: 30,
-        rankSep: 50,
-      } as any,
+      styles: [...sppfNodeStyles, edgeStyles],
+      layout: 'sppf',
     });
 
     // Add double-click handler for collapse/expand
@@ -438,51 +563,11 @@
       gssCy.destroy();
     }
 
-    gssCy = cytoscape({
+    gssCy = createGraph({
       container: gssContainer,
       elements,
-      style: [
-        {
-          selector: "node",
-          style: {
-            label: "data(label)",
-            "text-valign": "center",
-            "text-halign": "center",
-            "font-size": "10px",
-            color: "#d4d4d4",
-            "background-color": "#2d4a3d",
-            "border-width": 1,
-            "border-color": "#4ec9b0",
-            width: "label",
-            height: 24,
-            "padding-left": "8px",
-            "padding-right": "8px",
-            shape: "round-rectangle",
-          },
-        },
-        {
-          selector: "edge",
-          style: {
-            label: "data(label)",
-            "font-size": "9px",
-            color: "#888",
-            "text-rotation": "autorotate",
-            "text-margin-y": -10,
-            width: 1,
-            "line-color": "#555",
-            "target-arrow-color": "#555",
-            "target-arrow-shape": "triangle",
-            "curve-style": "bezier",
-            "arrow-scale": 0.8,
-          },
-        },
-      ],
-      layout: {
-        name: "dagre",
-        rankDir: "BT",  // Bottom to top for GSS
-        nodeSep: 50,
-        rankSep: 60,
-      } as any,
+      styles: [...gssNodeStyles, gssEdgeStyles],
+      layout: 'gss',
     });
   }
 
@@ -514,6 +599,12 @@
       }
     }
   });
+
+  // ResizeObservers for debug graph containers
+  let debugSppfResizeObserver: ResizeObserver | null = null;
+  let debugGssResizeObserver: ResizeObserver | null = null;
+  let sppfResizeTimeout: ReturnType<typeof setTimeout> | null = null;
+  let gssResizeTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Render debug SPPF when nodes or current node changes
   $effect(() => {
@@ -566,9 +657,7 @@
     for (const node of debugSppfNodes) {
       if (!reachableIds.has(node.id)) continue;
 
-      const label = node.kind === "Terminal"
-        ? `${node.label}\n(${node.left_extent},${node.right_extent})`
-        : `${node.label}\n(${node.left_extent},${node.right_extent})`;
+      const label = `(${node.label}, ${node.left_extent}, ${node.right_extent})`;
 
       elements.push({
         data: {
@@ -576,6 +665,7 @@
           label,
           kind: node.kind,
         },
+        classes: node.kind.toLowerCase(),
       });
     }
 
@@ -599,71 +689,27 @@
       debugSppfCy.destroy();
     }
 
-    debugSppfCy = cytoscape({
+    debugSppfCy = createGraph({
       container: debugSppfContainer,
       elements,
-      style: [
-        {
-          selector: "node",
-          style: {
-            label: "data(label)",
-            "text-valign": "center",
-            "text-halign": "center",
-            "font-size": "10px",
-            "text-wrap": "wrap",
-            "text-max-width": "80px",
-            color: "#d4d4d4",
-            "background-color": "#2d2d2d",
-            "border-color": "#555",
-            "border-width": 1,
-            width: 90,
-            height: 40,
-            shape: "round-rectangle",
-          },
-        },
-        {
-          selector: "node[kind='Terminal']",
-          style: {
-            "background-color": "#1e3a1e",
-            "border-color": "#4ec9b0",
-          },
-        },
-        {
-          selector: "node[kind='Nonterminal']",
-          style: {
-            "background-color": "#1e2a3a",
-            "border-color": "#569cd6",
-          },
-        },
-        {
-          selector: "node[kind='Intermediate']",
-          style: {
-            "background-color": "#3a2a1e",
-            "border-color": "#ce9178",
-          },
-        },
-        {
-          selector: "edge",
-          style: {
-            width: 1,
-            "line-color": "#555",
-            "target-arrow-color": "#555",
-            "target-arrow-shape": "triangle",
-            "curve-style": "bezier",
-            "arrow-scale": 0.8,
-          },
-        },
-      ],
-      layout: {
-        name: "dagre",
-        rankDir: "TB",
-        nodeSep: 30,
-        rankSep: 50,
-      } as any,
-      userZoomingEnabled: true,
-      userPanningEnabled: true,
-      boxSelectionEnabled: false,
+      styles: [...sppfNodeStyles, edgeStyles],
+      layout: 'sppf',
     });
+
+    // Set up ResizeObserver to recenter graph when container resizes (debounced)
+    if (debugSppfResizeObserver) {
+      debugSppfResizeObserver.disconnect();
+    }
+    debugSppfResizeObserver = new ResizeObserver(() => {
+      if (sppfResizeTimeout) clearTimeout(sppfResizeTimeout);
+      sppfResizeTimeout = setTimeout(() => {
+        if (debugSppfCy) {
+          debugSppfCy.resize();
+          debugSppfCy.center();
+        }
+      }, 50);
+    });
+    debugSppfResizeObserver.observe(debugSppfContainer);
   }
 
   // Render debug GSS when nodes or current node changes
@@ -718,63 +764,27 @@
       debugGssCy.destroy();
     }
 
-    debugGssCy = cytoscape({
+    debugGssCy = createGraph({
       container: debugGssContainer,
       elements,
-      style: [
-        {
-          selector: "node",
-          style: {
-            label: "data(label)",
-            "text-valign": "center",
-            "text-halign": "center",
-            "font-size": "10px",
-            color: "#d4d4d4",
-            "background-color": "#2d4a3d",
-            "border-color": "#4ec9b0",
-            "border-width": 1,
-            width: "label",
-            height: 24,
-            "padding-left": "8px",
-            "padding-right": "8px",
-            shape: "round-rectangle",
-          },
-        },
-        {
-          selector: "node.current",
-          style: {
-            "border-width": 3,
-            "border-color": "#4ec9b0",
-            "background-color": "#3d5a4d",
-          },
-        },
-        {
-          selector: "edge",
-          style: {
-            label: "data(label)",
-            "font-size": "9px",
-            color: "#888",
-            "text-rotation": "autorotate",
-            "text-margin-y": -10,
-            width: 1,
-            "line-color": "#555",
-            "target-arrow-color": "#555",
-            "target-arrow-shape": "triangle",
-            "curve-style": "bezier",
-            "arrow-scale": 0.8,
-          },
-        },
-      ],
-      layout: {
-        name: "dagre",
-        rankDir: "BT",  // Bottom to top for GSS
-        nodeSep: 50,
-        rankSep: 60,
-      } as any,
-      userZoomingEnabled: true,
-      userPanningEnabled: true,
-      boxSelectionEnabled: false,
+      styles: [...gssNodeStyles, gssEdgeStyles],
+      layout: 'gss',
     });
+
+    // Set up ResizeObserver to recenter graph when container resizes (debounced)
+    if (debugGssResizeObserver) {
+      debugGssResizeObserver.disconnect();
+    }
+    debugGssResizeObserver = new ResizeObserver(() => {
+      if (gssResizeTimeout) clearTimeout(gssResizeTimeout);
+      gssResizeTimeout = setTimeout(() => {
+        if (debugGssCy) {
+          debugGssCy.resize();
+          debugGssCy.center();
+        }
+      }, 50);
+    });
+    debugGssResizeObserver.observe(debugGssContainer);
   }
 
   // Resizable panes
@@ -928,26 +938,37 @@
   }
 
   // Graph controls (work with active graph)
-  function zoomIn() {
-    const activeCy = activeTab === "sppf" ? cy : gssCy;
-    if (activeCy) {
-      activeCy.zoom(activeCy.zoom() * 1.2);
+  // Generic graph control functions
+  function zoomInGraph(graph: cytoscape.Core | null) {
+    if (graph) {
+      graph.zoom(graph.zoom() * 1.2);
     }
+  }
+
+  function zoomOutGraph(graph: cytoscape.Core | null) {
+    if (graph) {
+      graph.zoom(graph.zoom() / 1.2);
+    }
+  }
+
+  function resetViewGraph(graph: cytoscape.Core | null) {
+    if (graph) {
+      graph.fit();
+      capZoom(graph);
+    }
+  }
+
+  // Parse mode convenience functions
+  function zoomIn() {
+    zoomInGraph(activeTab === "sppf" ? cy : gssCy);
   }
 
   function zoomOut() {
-    const activeCy = activeTab === "sppf" ? cy : gssCy;
-    if (activeCy) {
-      activeCy.zoom(activeCy.zoom() / 1.2);
-    }
+    zoomOutGraph(activeTab === "sppf" ? cy : gssCy);
   }
 
   function resetView() {
-    const activeCy = activeTab === "sppf" ? cy : gssCy;
-    if (activeCy) {
-      activeCy.fit();
-      activeCy.center();
-    }
+    resetViewGraph(activeTab === "sppf" ? cy : gssCy);
   }
 
   function expandAll() {
@@ -962,6 +983,186 @@
       gssCollapsedNodes = new Set();
     }
   }
+
+  // Pop-out modal functions
+  function handlePopoutKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      closePopout();
+    }
+  }
+
+  function openPopout(graphType: PopoutGraph) {
+    popoutGraph = graphType;
+    // Reset position for each open
+    popoutX = 40;
+    popoutY = 40;
+    // Add escape key listener
+    window.addEventListener('keydown', handlePopoutKeydown);
+  }
+
+  function closePopout() {
+    if (popoutCy) {
+      popoutCy.destroy();
+      popoutCy = null;
+    }
+    popoutGraph = null;
+    window.removeEventListener('keydown', handlePopoutKeydown);
+  }
+
+  function startPopoutDrag(e: MouseEvent) {
+    isDraggingPopout = true;
+    popoutDragStartX = e.clientX - popoutX;
+    popoutDragStartY = e.clientY - popoutY;
+    window.addEventListener('mousemove', handlePopoutDrag);
+    window.addEventListener('mouseup', stopPopoutDrag);
+  }
+
+  function handlePopoutDrag(e: MouseEvent) {
+    if (!isDraggingPopout) return;
+    popoutX = e.clientX - popoutDragStartX;
+    popoutY = e.clientY - popoutDragStartY;
+  }
+
+  function stopPopoutDrag() {
+    isDraggingPopout = false;
+    window.removeEventListener('mousemove', handlePopoutDrag);
+    window.removeEventListener('mouseup', stopPopoutDrag);
+  }
+
+  function getPopoutElements(): cytoscape.ElementDefinition[] {
+    if (popoutGraph === 'sppf' && sppf) {
+      return [
+        ...sppf.nodes.map((node) => ({
+          data: {
+            id: `n${node.id}`,
+            label: node.label || (node.kind === "Packed" ? "●" : ""),
+          },
+          classes: node.kind.toLowerCase(),
+        })),
+        ...sppf.edges.map((edge, i) => ({
+          data: {
+            id: `e${i}`,
+            source: `n${edge.src}`,
+            target: `n${edge.dest}`,
+          },
+        })),
+      ];
+    } else if (popoutGraph === 'gss' && gss) {
+      return [
+        ...gss.nodes.map((node) => ({
+          data: {
+            id: `n${node.id}`,
+            label: node.label,
+          },
+        })),
+        ...gss.edges.map((edge, i) => ({
+          data: {
+            id: `e${i}`,
+            source: `n${edge.src}`,
+            target: `n${edge.dest}`,
+            label: edge.label,
+          },
+        })),
+      ];
+    } else if (popoutGraph === 'debugSppf') {
+      const elements: cytoscape.ElementDefinition[] = [];
+      const nodeMap = new Map<number, typeof debugSppfNodes[0]>();
+      for (const node of debugSppfNodes) {
+        nodeMap.set(node.id, node);
+      }
+      const reachableIds = new Set<number>();
+      if (currentSppfNodeId !== null && nodeMap.has(currentSppfNodeId)) {
+        const queue = [currentSppfNodeId];
+        while (queue.length > 0) {
+          const id = queue.shift()!;
+          if (reachableIds.has(id)) continue;
+          reachableIds.add(id);
+          const node = nodeMap.get(id);
+          if (node) {
+            for (const childId of node.children) {
+              queue.push(childId);
+            }
+          }
+        }
+      }
+      for (const node of debugSppfNodes) {
+        if (!reachableIds.has(node.id)) continue;
+        elements.push({
+          data: {
+            id: `n${node.id}`,
+            label: `(${node.label}, ${node.left_extent}, ${node.right_extent})`,
+            kind: node.kind,
+          },
+          classes: node.kind.toLowerCase(),
+        });
+      }
+      for (const node of debugSppfNodes) {
+        if (!reachableIds.has(node.id)) continue;
+        for (const childId of node.children) {
+          if (reachableIds.has(childId)) {
+            elements.push({
+              data: {
+                id: `e${node.id}-${childId}`,
+                source: `n${node.id}`,
+                target: `n${childId}`,
+              },
+            });
+          }
+        }
+      }
+      return elements;
+    } else if (popoutGraph === 'debugGss') {
+      const elements: cytoscape.ElementDefinition[] = [];
+      for (const node of debugGssNodes) {
+        elements.push({
+          data: {
+            id: `n${node.id}`,
+            label: node.label,
+          },
+          classes: currentGssNodeId === node.id ? 'current' : '',
+        });
+      }
+      for (let i = 0; i < debugGssEdges.length; i++) {
+        const edge = debugGssEdges[i];
+        elements.push({
+          data: {
+            id: `e${i}`,
+            source: `n${edge.src}`,
+            target: `n${edge.dest}`,
+            label: edge.label,
+          },
+        });
+      }
+      return elements;
+    }
+    return [];
+  }
+
+  function renderPopout() {
+    if (!popoutContainer || !popoutGraph) return;
+
+    const elements = getPopoutElements();
+    if (elements.length === 0) return;
+
+    if (popoutCy) {
+      popoutCy.destroy();
+    }
+
+    const isGss = popoutGraph === 'gss' || popoutGraph === 'debugGss';
+    popoutCy = createGraph({
+      container: popoutContainer,
+      elements,
+      styles: isGss ? [...gssNodeStyles, gssEdgeStyles] : [...sppfNodeStyles, edgeStyles],
+      layout: isGss ? 'gss' : 'sppf',
+    });
+  }
+
+  // Effect to render popout when container becomes available
+  $effect(() => {
+    if (popoutGraph && popoutContainer) {
+      tick().then(() => renderPopout());
+    }
+  });
 
   function stopDebug() {
     debugLoaded = false;
@@ -1201,11 +1402,15 @@
     }
     if (isDraggingDebug1) {
       // Resize first debug column (account for activity bar width of 48px)
-      debugCol1Width = Math.max(200, Math.min(500, e.clientX - 48));
+      // Max width leaves room for: min col2 (250px) + col3
+      const maxCol1 = window.innerWidth - 48 - 250 - debugCol3Width;
+      debugCol1Width = Math.max(200, Math.min(maxCol1, e.clientX - 48));
     }
     if (isDraggingDebug2) {
       // Resize third debug column from the right edge
-      debugCol3Width = Math.max(200, Math.min(600, window.innerWidth - e.clientX));
+      // Max width leaves room for: activity bar (48px) + col1 + min col2 (250px)
+      const maxCol3 = window.innerWidth - 48 - debugCol1Width - 250;
+      debugCol3Width = Math.max(200, Math.min(maxCol3, window.innerWidth - e.clientX));
     }
     if (isDraggingDebugAction) {
       // Resize Action - Call Stack (1fr) absorbs the change
@@ -1510,6 +1715,9 @@
               <button onclick={resetView} title="Reset view">
                 <Maximize2 size={16} />
               </button>
+              <button onclick={() => openPopout('gss')} title="Pop out">
+                <Fullscreen size={16} />
+              </button>
             </div>
           {:else}
             <div class="graph-placeholder">Parse input to see GSS</div>
@@ -1528,6 +1736,9 @@
             </button>
             <button onclick={expandAll} title="Expand all (double-click node to collapse)">
               <Expand size={16} />
+            </button>
+            <button onclick={() => openPopout('sppf')} title="Pop out">
+              <Fullscreen size={16} />
             </button>
           </div>
         {:else}
@@ -1688,9 +1899,25 @@
       <!-- SPPF Section -->
       <div class="debug-graph-section" style={debugSppfHeight !== null ? `height: ${debugSppfHeight}px; flex: 0 0 auto` : ''}>
         <div class="section-header">SPPF</div>
-        <div class="debug-graph-container" bind:this={debugSppfContainer}>
+        <div class="graph-container">
           {#if debugSppfNodes.length === 0}
             <div class="graph-placeholder">No SPPF nodes yet</div>
+          {:else}
+            <div class="cytoscape-container" bind:this={debugSppfContainer}></div>
+            <div class="graph-controls">
+              <button onclick={() => zoomInGraph(debugSppfCy)} title="Zoom in">
+                <ZoomIn size={16} />
+              </button>
+              <button onclick={() => zoomOutGraph(debugSppfCy)} title="Zoom out">
+                <ZoomOut size={16} />
+              </button>
+              <button onclick={() => resetViewGraph(debugSppfCy)} title="Reset view">
+                <Maximize2 size={16} />
+              </button>
+              <button onclick={() => openPopout('debugSppf')} title="Pop out">
+                <Fullscreen size={16} />
+              </button>
+            </div>
           {/if}
         </div>
       </div>
@@ -1701,9 +1928,25 @@
       <!-- GSS Section -->
       <div class="debug-graph-section">
         <div class="section-header">GSS</div>
-        <div class="debug-graph-container" bind:this={debugGssContainer}>
+        <div class="graph-container">
           {#if debugGssNodes.length === 0}
             <div class="graph-placeholder">No GSS nodes yet</div>
+          {:else}
+            <div class="cytoscape-container" bind:this={debugGssContainer}></div>
+            <div class="graph-controls">
+              <button onclick={() => zoomInGraph(debugGssCy)} title="Zoom in">
+                <ZoomIn size={16} />
+              </button>
+              <button onclick={() => zoomOutGraph(debugGssCy)} title="Zoom out">
+                <ZoomOut size={16} />
+              </button>
+              <button onclick={() => resetViewGraph(debugGssCy)} title="Reset view">
+                <Maximize2 size={16} />
+              </button>
+              <button onclick={() => openPopout('debugGss')} title="Pop out">
+                <Fullscreen size={16} />
+              </button>
+            </div>
           {/if}
         </div>
       </div>
@@ -1828,6 +2071,34 @@
         <div class="modal-footer">
           <button class="modal-btn" onclick={closeErrorModal}>OK</button>
         </div>
+      </div>
+    </div>
+  {/if}
+
+  <!-- Pop-out modal for graphs -->
+  {#if popoutGraph}
+    <div class="popout-overlay" onclick={closePopout}>
+      <div class="popout-modal" style="left: {popoutX}px; top: {popoutY}px; right: auto; bottom: auto;" onclick={(e) => e.stopPropagation()}>
+        <div class="popout-header" onmousedown={startPopoutDrag}>
+          <span class="popout-title">
+            {#if popoutGraph === 'sppf'}SPPF{:else if popoutGraph === 'gss'}GSS{:else if popoutGraph === 'debugSppf'}SPPF{:else if popoutGraph === 'debugGss'}GSS{/if}
+          </span>
+          <div class="graph-controls popout-controls">
+            <button title="Zoom In" onclick={(e) => { e.stopPropagation(); popoutCy?.zoom(popoutCy.zoom() * 1.2); }}>
+              <ZoomIn size={16} />
+            </button>
+            <button title="Zoom Out" onclick={(e) => { e.stopPropagation(); popoutCy?.zoom(popoutCy.zoom() / 1.2); }}>
+              <ZoomOut size={16} />
+            </button>
+            <button title="Reset View" onclick={(e) => { e.stopPropagation(); if (popoutCy) { popoutCy.fit(); capZoom(popoutCy); } }}>
+              <Maximize2 size={16} />
+            </button>
+            <button title="Close" onclick={(e) => { e.stopPropagation(); closePopout(); }}>
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+        <div class="popout-container" bind:this={popoutContainer}></div>
       </div>
     </div>
   {/if}
@@ -2225,7 +2496,6 @@
   .debug-col-graphs {
     flex-shrink: 0;
     min-width: 200px;
-    max-width: 600px;
     display: flex;
     flex-direction: column;
   }
@@ -2238,16 +2508,6 @@
     flex: 1;  /* 50% each (1:1 ratio) */
   }
 
-  .debug-graph-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #1e1e1e;
-    overflow: hidden;
-    position: relative;
-    z-index: 1;
-  }
 
   .debug-col-stack .call-stack {
     min-height: 0;  /* Allow grid to control size */
@@ -3027,5 +3287,55 @@
     to {
       transform: rotate(360deg);
     }
+  }
+
+  /* Pop-out modal for graphs */
+  .popout-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+  }
+
+  .popout-modal {
+    position: absolute;
+    background: #1e1e1e;
+    border: 1px solid #3c3c3c;
+    border-radius: 8px;
+    width: calc(100% - 80px);
+    height: calc(100% - 80px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .popout-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border-bottom: 1px solid #3c3c3c;
+    cursor: move;
+    user-select: none;
+  }
+
+  .popout-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #d4d4d4;
+  }
+
+  .popout-controls {
+    position: static;
+  }
+
+  .popout-container {
+    flex: 1;
+    min-height: 0;
   }
 </style>
