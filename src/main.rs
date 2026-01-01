@@ -35,7 +35,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = grammar2().into();
+    let grammar = iggy().into();
     generate(&grammar, output)?;
     Ok(())
 }
@@ -187,7 +187,7 @@ fn grammar3() -> Grammar {
 }
 
 // Grammar
-//   : "grammar" Identifier Rule+
+//   : "grammar" Identifier ";" Rule*
 //   ;
 // Rule
 //   : Identifier ":" Identifier+ ";"
@@ -211,6 +211,7 @@ fn iggy() -> GrammarDef {
                             Alternative::builder()
                                 .add_symbol(Symbol::literal("grammar"))
                                 .add_symbol(Symbol::terminal("Identifier"))
+                                .add_symbol(Symbol::Terminal(Terminal::literal(";")))
                                 .add_symbol(Symbol::plus(Symbol::nonterminal("Rule")))
                                 .build(),
                         )
@@ -218,7 +219,7 @@ fn iggy() -> GrammarDef {
                 )
                 .build(),
         )
-        // Rule : Identifier ":" Identifier+
+        // Rule : Identifier ":" Identifier+ ";"
         .add_syntax_rule(
             SyntaxRule::builder()
                 .head(Nonterminal::new("Rule"))
@@ -229,6 +230,7 @@ fn iggy() -> GrammarDef {
                                 .add_symbol(Symbol::terminal("Identifier"))
                                 .add_symbol(Symbol::literal(":"))
                                 .add_symbol(Symbol::plus(Symbol::terminal("Identifier")))
+                                .add_symbol(Symbol::Terminal(Terminal::literal(";")))
                                 .build(),
                         )
                         .build(),

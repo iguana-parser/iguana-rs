@@ -18,7 +18,7 @@ pub enum TraceEvent {
     MatchingTrailingLayout(u32),
     MatchingTerminal(String, u32),  // terminal_name
     MatchSuccess(String, u32, u32), // terminal_name, next_input match
-    MatchFailed(String, u32),       // terminal_name
+    MatchFailed(String, u32, SlotId, GssNodeId, Option<SPPFNodeId>), // terminal_name, input_index, slot, gss_node, sppf_node
     MatchedLayout(Option<u32>),     // next_input match
     GSSNodeCreated(NonterminalId, u32),
     GSSNodeFound(NonterminalId, u32),
@@ -83,8 +83,17 @@ impl TraceEvent {
                 input_index,
                 matched_index - input_index
             ),
-            TraceEvent::MatchFailed(ref terminal_name, input_index) => {
-                parser.input().format_error(terminal_name, input_index)
+            TraceEvent::MatchFailed(ref terminal_name, input_index, slot_id, gss_node_id, sppf_node_id) => {
+                format!(
+                    "Match failed for terminal {} at input index {} (slot: {}, GSS node: {}, SPPF node: {})",
+                    terminal_name,
+                    input_index,
+                    P::slot(slot_id).name,
+                    parser.gss_to_string(gss_node_id),
+                    sppf_node_id
+                        .map(|id| parser.sppf_node_to_string(parser.sppf_node(id)))
+                        .unwrap_or_else(|| "$".to_string())
+                )
             }
             TraceEvent::MatchedLayout(matched_index) => {
                 if let Some(matched_index) = matched_index {
@@ -221,10 +230,13 @@ macro_rules! record {
             $next_index,
         ));
     };
-    ($parser:expr, MatchFailed, $terminal_name:expr, $input_index:expr) => {
+    ($parser:expr, MatchFailed, $terminal_name:expr, $input_index:expr, $slot_id:expr, $gss_node_id:expr, $sppf_node_id:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::MatchFailed(
             $terminal_name.into(),
             $input_index,
+            $slot_id,
+            $gss_node_id,
+            $sppf_node_id,
         ));
     };
     ($parser:expr, MatchedLayout, $match_index:expr) => {

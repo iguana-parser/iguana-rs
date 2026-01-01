@@ -15,8 +15,10 @@ enum TokenKind {
     T1,
     //"grammar"
     T2,
-    //":"
+    //";"
     T3,
+    //":"
+    T4,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
@@ -24,7 +26,8 @@ impl TokenKind {
             TokenKind::T0 => "Identifier",
             TokenKind::T1 => "WS",
             TokenKind::T2 => "\"grammar\"",
-            TokenKind::T3 => "\":\"",
+            TokenKind::T3 => "\";\"",
+            TokenKind::T4 => "\":\"",
         }
     }
 }
@@ -155,9 +158,9 @@ impl From<Rule_Plus1> for ParseTree {
     }
 }
 #[derive(Debug)]
-pub struct Grammar(Token, Token, Grammar_Plus0);
+pub struct Grammar(Token, Token, Token, Grammar_Plus0);
 #[derive(Debug)]
-pub struct Rule(Token, Token, Rule_Plus1);
+pub struct Rule(Token, Token, Rule_Plus1, Token);
 #[derive(Debug)]
 pub enum Grammar_Plus0 {
     Alt0(Box<Grammar_Plus0>, Rule),
@@ -174,11 +177,12 @@ impl Grammar {
             0 => Some(self.0.as_parse_tree_ref()),
             1 => Some(self.1.as_parse_tree_ref()),
             2 => Some(self.2.as_parse_tree_ref()),
+            3 => Some(self.3.as_parse_tree_ref()),
             _ => None,
         }
     }
     pub fn child_count(&self) -> usize {
-        3usize
+        4usize
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
         ParseTreeRef::Grammar(self)
@@ -190,11 +194,12 @@ impl Rule {
             0 => Some(self.0.as_parse_tree_ref()),
             1 => Some(self.1.as_parse_tree_ref()),
             2 => Some(self.2.as_parse_tree_ref()),
+            3 => Some(self.3.as_parse_tree_ref()),
             _ => None,
         }
     }
     pub fn child_count(&self) -> usize {
-        3usize
+        4usize
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
         ParseTreeRef::Rule(self)
@@ -265,8 +270,10 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         TerminalId(1) => TokenKind::T1,
         //"grammar"
         TerminalId(2) => TokenKind::T2,
-        //":"
+        //";"
         TerminalId(3) => TokenKind::T3,
+        //":"
+        TerminalId(4) => TokenKind::T4,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -282,13 +289,14 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //Grammar
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
-                    //Grammar : "grammar" Identifier Grammar_Plus0.
-                    SlotId(3) => {
-                        let [c0, c1, c2] = <[ParseTree; 3usize]>::try_from(children).unwrap();
+                    //Grammar : "grammar" Identifier ";" Grammar_Plus0.
+                    SlotId(4) => {
+                        let [c0, c1, c2, c3] = <[ParseTree; 4usize]>::try_from(children).unwrap();
                         Grammar(
                             c0.unwrap_token(),
                             c1.unwrap_token(),
-                            c2.unwrap_grammar_Plus0(),
+                            c2.unwrap_token(),
+                            c3.unwrap_grammar_Plus0(),
                         )
                         .into()
                     }
@@ -298,10 +306,16 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //Rule
             NonterminalId(1) => {
                 match nonterminal_node.return_slot {
-                    //Rule : Identifier ":" Rule_Plus1.
-                    SlotId(7) => {
-                        let [c0, c1, c2] = <[ParseTree; 3usize]>::try_from(children).unwrap();
-                        Rule(c0.unwrap_token(), c1.unwrap_token(), c2.unwrap_rule_Plus1()).into()
+                    //Rule : Identifier ":" Rule_Plus1 ";".
+                    SlotId(9) => {
+                        let [c0, c1, c2, c3] = <[ParseTree; 4usize]>::try_from(children).unwrap();
+                        Rule(
+                            c0.unwrap_token(),
+                            c1.unwrap_token(),
+                            c2.unwrap_rule_Plus1(),
+                            c3.unwrap_token(),
+                        )
+                        .into()
                     }
                     _ => unreachable!(),
                 }
@@ -310,13 +324,13 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(2) => {
                 match nonterminal_node.return_slot {
                     //Grammar_Plus0 : Grammar_Plus0 Rule.
-                    SlotId(10) => {
+                    SlotId(12) => {
                         let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
                         Grammar_Plus0::Alt0(Box::new(c0.unwrap_grammar_Plus0()), c1.unwrap_rule())
                             .into()
                     }
                     //Grammar_Plus0 : Rule.
-                    SlotId(12) => {
+                    SlotId(14) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         Grammar_Plus0::Alt1(c0.unwrap_rule()).into()
                     }
@@ -327,12 +341,12 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(3) => {
                 match nonterminal_node.return_slot {
                     //Rule_Plus1 : Rule_Plus1 Identifier.
-                    SlotId(15) => {
+                    SlotId(17) => {
                         let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
                         Rule_Plus1::Alt0(Box::new(c0.unwrap_rule_Plus1()), c1.unwrap_token()).into()
                     }
                     //Rule_Plus1 : Identifier.
-                    SlotId(17) => {
+                    SlotId(19) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         Rule_Plus1::Alt1(c0.unwrap_token()).into()
                     }

@@ -1520,7 +1520,7 @@
       <!-- Current Action -->
       <div class="current-action-box">
         {#if currentAction}
-          <pre>{currentAction}</pre>
+          <pre class:match-failed={currentAction.startsWith('Match Failed')}>{currentAction}</pre>
         {:else}
           <span class="placeholder">No action</span>
         {/if}
@@ -2216,6 +2216,15 @@
 
   .current-action-box pre::first-line {
     color: #4ec9b0;
+    font-weight: 600;
+  }
+
+  .current-action-box pre.match-failed {
+    color: #f48771;
+  }
+
+  .current-action-box pre.match-failed::first-line {
+    color: #f14c4c;
     font-weight: 600;
   }
 

@@ -21,6 +21,14 @@ pub enum DebugAction {
         gss_node_id: GssNodeId,
         sppf_node_id: SPPFNodeId,
     },
+    /// Match failed: terminal didn't match at input position
+    MatchFailed {
+        terminal_name: String,
+        input_index: u32,
+        slot_id: SlotId,
+        gss_node_id: GssNodeId,
+        sppf_node_id: Option<SPPFNodeId>,
+    },
 }
 
 /// Simple SPPF node for debug visualization.
@@ -135,12 +143,14 @@ impl TraceReplay {
 
         let symbols = SymbolTable::load(symbols_path)?;
 
-        // Build index of step events (ProcessingDescriptor and Pop)
+        // Build index of step events (ProcessingDescriptor, Pop, and MatchFailed)
         let step_indices: Vec<usize> = events
             .iter()
             .enumerate()
             .filter_map(|(i, event)| match event {
-                TraceEvent::ProcessingDescriptor(..) | TraceEvent::Pop(..) => Some(i),
+                TraceEvent::ProcessingDescriptor(..)
+                | TraceEvent::Pop(..)
+                | TraceEvent::MatchFailed(..) => Some(i),
                 _ => None,
             })
             .collect();
@@ -236,6 +246,27 @@ impl TraceReplay {
         )
     }
 
+    /// Format a MatchFailed action for multi-line display.
+    fn format_match_failed(
+        &self,
+        terminal_name: &str,
+        input_index: u32,
+        slot_id: SlotId,
+        gss_node_id: GssNodeId,
+        sppf_node_id: Option<SPPFNodeId>,
+    ) -> String {
+        let slot_name = self.symbols.slot(slot_id);
+        let gss_node = self.format_gss_node(gss_node_id);
+        let sppf_node = match sppf_node_id {
+            Some(id) => self.format_sppf_node(id.0),
+            None => "$".to_string(),
+        };
+        format!(
+            "Match Failed\n  terminal '{}'\n  {}\n  input index {}\n  GSS node {}\n  SPPF node {}",
+            terminal_name, slot_name, input_index, gss_node, sppf_node
+        )
+    }
+
     /// Get the current action as a formatted string.
     pub fn current_action_string(&self) -> Option<String> {
         match &self.current_action {
@@ -245,6 +276,19 @@ impl TraceReplay {
                 gss_node_id,
                 sppf_node_id,
             }) => Some(self.format_pop(*slot_id, *gss_node_id, *sppf_node_id)),
+            Some(DebugAction::MatchFailed {
+                terminal_name,
+                input_index,
+                slot_id,
+                gss_node_id,
+                sppf_node_id,
+            }) => Some(self.format_match_failed(
+                terminal_name,
+                *input_index,
+                *slot_id,
+                *gss_node_id,
+                *sppf_node_id,
+            )),
             None => None,
         }
     }
@@ -259,6 +303,7 @@ impl TraceReplay {
                     .get(gss_node_id.index())
                     .map(|node| node.index as usize)
             }
+            Some(DebugAction::MatchFailed { input_index, .. }) => Some(*input_index as usize),
             None => None,
         }
     }
@@ -416,6 +461,17 @@ impl TraceReplay {
                     children: vec![child.0],
                 });
             }
+            TraceEvent::MatchFailed(terminal_name, input_index, slot_id, gss_node_id, sppf_node_id) => {
+                self.current_action = Some(DebugAction::MatchFailed {
+                    terminal_name: terminal_name.clone(),
+                    input_index: *input_index,
+                    slot_id: *slot_id,
+                    gss_node_id: *gss_node_id,
+                    sppf_node_id: *sppf_node_id,
+                });
+                // Update current SPPF node from the context
+                self.current_sppf_node_id = sppf_node_id.map(|id| id.0);
+            }
             _ => {}
         }
     }
@@ -446,6 +502,7 @@ impl TraceReplay {
         let current_gss_node_id = match &self.current_action {
             Some(DebugAction::ProcessingDescriptor(desc)) => Some(desc.gss_node_id.0),
             Some(DebugAction::Pop { gss_node_id, .. }) => Some(gss_node_id.0),
+            Some(DebugAction::MatchFailed { gss_node_id, .. }) => Some(gss_node_id.0),
             None => None,
         };
 
@@ -474,6 +531,15 @@ impl TraceReplay {
                 ..
             }) => {
                 // For Pop, show the slot (which has dot at end, e.g., "A ::= 'a' .")
+                frames.push(self.symbols.slot(*slot_id).to_string());
+                start_gss_node_id = *gss_node_id;
+            }
+            Some(DebugAction::MatchFailed {
+                slot_id,
+                gss_node_id,
+                ..
+            }) => {
+                // For MatchFailed, show the slot where the match was attempted
                 frames.push(self.symbols.slot(*slot_id).to_string());
                 start_gss_node_id = *gss_node_id;
             }

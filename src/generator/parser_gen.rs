@@ -408,7 +408,7 @@ fn gen_terminal_slot(
                     #new_node
                 }
                 None => {
-                    record!(self, MatchFailed, #terminal_name, i);
+                    record!(self, MatchFailed, #terminal_name, i, #slot_id, gss_node_id, result);
                 }
             }
         }
