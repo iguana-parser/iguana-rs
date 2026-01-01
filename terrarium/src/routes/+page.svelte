@@ -3,11 +3,20 @@
   import { listen } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
-  import { availableMonitors, currentMonitor } from "@tauri-apps/api/window";
+  import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+  import { createMaximizeToggle } from "$lib/window-utils";
   import { onMount, tick } from "svelte";
   import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
+  import {
+    sppfNodeStyles,
+    gssNodeStyles,
+    edgeStyles,
+    gssEdgeStyles,
+    capZoom,
+    createGraph,
+  } from "$lib/graph-styles";
 
   cytoscape.use(dagre);
 
@@ -90,10 +99,30 @@
 
     window.addEventListener('resize', handleWindowResize);
 
+    // Listen for graph window ready events to send initial data
+    const unlistenGraphWindowReady = listen<{ graphType: string }>("graph-window-ready", (event) => {
+      const graphType = event.payload.graphType as GraphType;
+      sendGraphData(graphType);
+    });
+
+    // Listen for step events from popup windows
+    const unlistenStepBack = listen("debug-step-back", () => stepBack());
+    const unlistenStepForward = listen("debug-step-forward", () => stepForward());
+
+    // Close all graph windows when main window closes
+    const mainWindow = getCurrentWindow();
+    const unlistenMainClose = mainWindow.onCloseRequested(async () => {
+      await closeAllGraphWindows();
+    });
+
     return () => {
       unlistenProgress.then(fn => fn());
       unlistenResult.then(fn => fn());
       unlistenGenerateResult.then(fn => fn());
+      unlistenGraphWindowReady.then(fn => fn());
+      unlistenStepBack.then(fn => fn());
+      unlistenStepForward.then(fn => fn());
+      unlistenMainClose.then(fn => fn());
       window.removeEventListener('resize', handleWindowResize);
     };
   });
@@ -160,6 +189,7 @@
   let debugSppfNodes = $state<DebugSPPFNode[]>([]);
 
   // Debug SPPF visualization
+  // svelte-ignore non_reactive_update
   let debugSppfContainer: HTMLElement;
   let debugSppfCy: cytoscape.Core | null = null;
   let currentSppfNodeId = $state<number | null>(null);
@@ -168,6 +198,7 @@
   let debugGssNodes = $state<DebugGSSNode[]>([]);
   let debugGssEdges = $state<DebugGSSEdge[]>([]);
   let currentGssNodeId = $state<number | null>(null);
+  // svelte-ignore non_reactive_update
   let debugGssContainer: HTMLElement;
   let debugGssCy: cytoscape.Core | null = null;
 
@@ -179,29 +210,22 @@
 
   // SPPF data
   let sppf = $state<SPPF | null>(null);
+  // svelte-ignore non_reactive_update
   let sppfContainer: HTMLDivElement;
   let collapsedNodes = $state<Set<string>>(new Set());
 
   // GSS data
   let gss = $state<GSS | null>(null);
+  // svelte-ignore non_reactive_update
   let gssContainer: HTMLDivElement;
   let gssCollapsedNodes = $state<Set<string>>(new Set());
 
   // Track if parse result is available
   let parseResultAvailable = $state(false);
 
-  // Pop-out modal for graphs
-  type PopoutGraph = 'sppf' | 'gss' | 'debugSppf' | 'debugGss' | null;
-  let popoutGraph = $state<PopoutGraph>(null);
-  let popoutContainer: HTMLDivElement;
-  let popoutCy: cytoscape.Core | null = null;
-
-  // Popout modal position for dragging
-  let popoutX = $state(40);
-  let popoutY = $state(40);
-  let isDraggingPopout = $state(false);
-  let popoutDragStartX = 0;
-  let popoutDragStartY = 0;
+  // Graph window management (separate OS windows)
+  type GraphType = 'sppf' | 'gss' | 'debugSppf' | 'debugGss';
+  let graphWindows = $state<Map<GraphType, WebviewWindow>>(new Map());
 
   // Output panel state
   let outputPanelOpen = $state(false);
@@ -210,6 +234,7 @@
   // Output log entries: each entry has a type and content
   type LogEntry = { type: "command" | "output" | "error"; content: string };
   let outputLog = $state<LogEntry[]>([]);
+  // svelte-ignore non_reactive_update
   let outputContentEl: HTMLDivElement | null = null;
 
   function scrollOutputToBottom() {
@@ -243,171 +268,6 @@
   }
   let cy: cytoscape.Core | null = null;
   let gssCy: cytoscape.Core | null = null;
-
-  // ============ Shared Graph Styles ============
-  const sppfNodeStyles: cytoscape.Stylesheet[] = [
-    {
-      selector: "node",
-      style: {
-        label: "data(label)",
-        "text-valign": "center",
-        "text-halign": "center",
-        "font-size": "10px",
-        "text-wrap": "wrap",
-        "text-max-width": "80px",
-        color: "#d4d4d4",
-        "background-color": "#3c3c3c",
-        "border-width": 1,
-        "border-color": "#555",
-        width: "label",
-        height: 24,
-        "padding-left": "8px",
-        "padding-right": "8px",
-        shape: "round-rectangle",
-      },
-    },
-    {
-      selector: "node.nonterminal, node[kind='Nonterminal']",
-      style: {
-        "background-color": "#2d4a3d",
-        "border-color": "#4ec9b0",
-      },
-    },
-    {
-      selector: "node.intermediate, node[kind='Intermediate']",
-      style: {
-        "background-color": "#2d3a4d",
-        "border-color": "#569cd6",
-        shape: "rectangle",
-      },
-    },
-    {
-      selector: "node.terminal, node[kind='Terminal']",
-      style: {
-        "background-color": "#4d3a2d",
-        "border-color": "#ce9178",
-      },
-    },
-    {
-      selector: "node.packed",
-      style: {
-        width: 12,
-        height: 12,
-        "background-color": "#666",
-        "border-width": 0,
-        label: "",
-      },
-    },
-    {
-      selector: "node.collapsed",
-      style: {
-        "border-width": 3,
-        "border-style": "double",
-      },
-    },
-  ];
-
-  const gssNodeStyles: cytoscape.Stylesheet[] = [
-    {
-      selector: "node",
-      style: {
-        label: "data(label)",
-        "text-valign": "center",
-        "text-halign": "center",
-        "font-size": "10px",
-        color: "#d4d4d4",
-        "background-color": "#2d4a3d",
-        "border-width": 1,
-        "border-color": "#4ec9b0",
-        width: "label",
-        height: 24,
-        "padding-left": "8px",
-        "padding-right": "8px",
-        shape: "round-rectangle",
-      },
-    },
-    {
-      selector: "node.current",
-      style: {
-        "border-width": 3,
-        "border-color": "#4ec9b0",
-        "background-color": "#3d5a4d",
-      },
-    },
-  ];
-
-  const edgeStyles: cytoscape.Stylesheet = {
-    selector: "edge",
-    style: {
-      width: 1,
-      "line-color": "#555",
-      "target-arrow-color": "#555",
-      "target-arrow-shape": "triangle",
-      "curve-style": "bezier",
-      "arrow-scale": 0.8,
-    },
-  };
-
-  const gssEdgeStyles: cytoscape.Stylesheet = {
-    selector: "edge",
-    style: {
-      label: "data(label)",
-      "font-size": "9px",
-      color: "#888",
-      "text-rotation": "autorotate",
-      "text-margin-y": -10,
-      width: 1,
-      "line-color": "#555",
-      "target-arrow-color": "#555",
-      "target-arrow-shape": "triangle",
-      "curve-style": "bezier",
-      "arrow-scale": 0.8,
-    },
-  };
-
-  // Helper to create a Cytoscape graph with common options
-  interface GraphOptions {
-    container: HTMLElement;
-    elements: cytoscape.ElementDefinition[];
-    styles: cytoscape.Stylesheet[];
-    layout?: 'sppf' | 'gss';
-  }
-
-  // Cap zoom level after fit to prevent huge nodes on small graphs
-  const MAX_FIT_ZOOM = 1.5;
-
-  function capZoom(cyInstance: cytoscape.Core) {
-    if (cyInstance.zoom() > MAX_FIT_ZOOM) {
-      cyInstance.zoom(MAX_FIT_ZOOM);
-      cyInstance.center();
-    }
-  }
-
-  function createGraph(options: GraphOptions): cytoscape.Core {
-    const { container, elements, styles, layout = 'sppf' } = options;
-
-    const cyInstance = cytoscape({
-      container,
-      elements,
-      style: styles,
-      layout: {
-        name: "dagre",
-        rankDir: layout === 'gss' ? "BT" : "TB",
-        nodeSep: layout === 'gss' ? 50 : 30,
-        rankSep: layout === 'gss' ? 60 : 50,
-      } as any,
-      userZoomingEnabled: true,
-      userPanningEnabled: true,
-      boxSelectionEnabled: false,
-    });
-
-    // Cap initial zoom after layout
-    capZoom(cyInstance);
-
-    return cyInstance;
-  }
-
-  // ============ End Shared Graph Styles ============
 
   // Find the root node (node with no incoming edges)
   function findRoot(): string | null {
@@ -984,185 +844,93 @@
     }
   }
 
-  // Pop-out modal functions
-  function handlePopoutKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-      closePopout();
+  // Graph window management functions (separate OS windows)
+  function getGraphTitle(graphType: GraphType): string {
+    switch (graphType) {
+      case 'sppf': return 'SPPF';
+      case 'gss': return 'GSS';
+      case 'debugSppf': return 'SPPF (Debug)';
+      case 'debugGss': return 'GSS (Debug)';
     }
   }
 
-  function openPopout(graphType: PopoutGraph) {
-    popoutGraph = graphType;
-    // Reset position for each open
-    popoutX = 40;
-    popoutY = 40;
-    // Add escape key listener
-    window.addEventListener('keydown', handlePopoutKeydown);
-  }
-
-  function closePopout() {
-    if (popoutCy) {
-      popoutCy.destroy();
-      popoutCy = null;
-    }
-    popoutGraph = null;
-    window.removeEventListener('keydown', handlePopoutKeydown);
-  }
-
-  function startPopoutDrag(e: MouseEvent) {
-    isDraggingPopout = true;
-    popoutDragStartX = e.clientX - popoutX;
-    popoutDragStartY = e.clientY - popoutY;
-    window.addEventListener('mousemove', handlePopoutDrag);
-    window.addEventListener('mouseup', stopPopoutDrag);
-  }
-
-  function handlePopoutDrag(e: MouseEvent) {
-    if (!isDraggingPopout) return;
-    popoutX = e.clientX - popoutDragStartX;
-    popoutY = e.clientY - popoutDragStartY;
-  }
-
-  function stopPopoutDrag() {
-    isDraggingPopout = false;
-    window.removeEventListener('mousemove', handlePopoutDrag);
-    window.removeEventListener('mouseup', stopPopoutDrag);
-  }
-
-  function getPopoutElements(): cytoscape.ElementDefinition[] {
-    if (popoutGraph === 'sppf' && sppf) {
-      return [
-        ...sppf.nodes.map((node) => ({
-          data: {
-            id: `n${node.id}`,
-            label: node.label || (node.kind === "Packed" ? "●" : ""),
-          },
-          classes: node.kind.toLowerCase(),
-        })),
-        ...sppf.edges.map((edge, i) => ({
-          data: {
-            id: `e${i}`,
-            source: `n${edge.src}`,
-            target: `n${edge.dest}`,
-          },
-        })),
-      ];
-    } else if (popoutGraph === 'gss' && gss) {
-      return [
-        ...gss.nodes.map((node) => ({
-          data: {
-            id: `n${node.id}`,
-            label: node.label,
-          },
-        })),
-        ...gss.edges.map((edge, i) => ({
-          data: {
-            id: `e${i}`,
-            source: `n${edge.src}`,
-            target: `n${edge.dest}`,
-            label: edge.label,
-          },
-        })),
-      ];
-    } else if (popoutGraph === 'debugSppf') {
-      const elements: cytoscape.ElementDefinition[] = [];
-      const nodeMap = new Map<number, typeof debugSppfNodes[0]>();
-      for (const node of debugSppfNodes) {
-        nodeMap.set(node.id, node);
-      }
-      const reachableIds = new Set<number>();
-      if (currentSppfNodeId !== null && nodeMap.has(currentSppfNodeId)) {
-        const queue = [currentSppfNodeId];
-        while (queue.length > 0) {
-          const id = queue.shift()!;
-          if (reachableIds.has(id)) continue;
-          reachableIds.add(id);
-          const node = nodeMap.get(id);
-          if (node) {
-            for (const childId of node.children) {
-              queue.push(childId);
-            }
-          }
-        }
-      }
-      for (const node of debugSppfNodes) {
-        if (!reachableIds.has(node.id)) continue;
-        elements.push({
-          data: {
-            id: `n${node.id}`,
-            label: `(${node.label}, ${node.left_extent}, ${node.right_extent})`,
-            kind: node.kind,
-          },
-          classes: node.kind.toLowerCase(),
-        });
-      }
-      for (const node of debugSppfNodes) {
-        if (!reachableIds.has(node.id)) continue;
-        for (const childId of node.children) {
-          if (reachableIds.has(childId)) {
-            elements.push({
-              data: {
-                id: `e${node.id}-${childId}`,
-                source: `n${node.id}`,
-                target: `n${childId}`,
-              },
-            });
-          }
-        }
-      }
-      return elements;
-    } else if (popoutGraph === 'debugGss') {
-      const elements: cytoscape.ElementDefinition[] = [];
-      for (const node of debugGssNodes) {
-        elements.push({
-          data: {
-            id: `n${node.id}`,
-            label: node.label,
-          },
-          classes: currentGssNodeId === node.id ? 'current' : '',
-        });
-      }
-      for (let i = 0; i < debugGssEdges.length; i++) {
-        const edge = debugGssEdges[i];
-        elements.push({
-          data: {
-            id: `e${i}`,
-            source: `n${edge.src}`,
-            target: `n${edge.dest}`,
-            label: edge.label,
-          },
-        });
-      }
-      return elements;
-    }
-    return [];
-  }
-
-  function renderPopout() {
-    if (!popoutContainer || !popoutGraph) return;
-
-    const elements = getPopoutElements();
-    if (elements.length === 0) return;
-
-    if (popoutCy) {
-      popoutCy.destroy();
+  async function openGraphWindow(graphType: GraphType) {
+    // If window already exists, focus it
+    const existing = graphWindows.get(graphType);
+    if (existing) {
+      await existing.setFocus();
+      return;
     }
 
-    const isGss = popoutGraph === 'gss' || popoutGraph === 'debugGss';
-    popoutCy = createGraph({
-      container: popoutContainer,
-      elements,
-      styles: isGss ? [...gssNodeStyles, gssEdgeStyles] : [...sppfNodeStyles, edgeStyles],
-      layout: isGss ? 'gss' : 'sppf',
+    const webview = new WebviewWindow(`graph-${graphType}`, {
+      url: `/graph?type=${graphType}`,
+      title: getGraphTitle(graphType),
+      width: 800,
+      height: 600,
+      center: true,
+      titleBarStyle: 'overlay',
+      hiddenTitle: true,
+    });
+
+    webview.once('tauri://created', () => {
+      graphWindows.set(graphType, webview);
+      // Send initial data after a short delay to ensure the window is ready
+      setTimeout(() => sendGraphData(graphType), 100);
+    });
+
+    webview.once('tauri://destroyed', () => {
+      graphWindows.delete(graphType);
     });
   }
 
-  // Effect to render popout when container becomes available
-  $effect(() => {
-    if (popoutGraph && popoutContainer) {
-      tick().then(() => renderPopout());
+  async function sendGraphData(graphType: GraphType) {
+    const webview = graphWindows.get(graphType);
+    if (!webview) return;
+
+    switch (graphType) {
+      case 'sppf':
+        if (sppf) {
+          await webview.emit('graph-data-sppf', sppf);
+        }
+        break;
+      case 'gss':
+        if (gss) {
+          await webview.emit('graph-data-gss', gss);
+        }
+        break;
+      case 'debugSppf':
+        await webview.emit('graph-data-debug-sppf', {
+          nodes: debugSppfNodes,
+          current_node_id: currentSppfNodeId,
+        });
+        break;
+      case 'debugGss':
+        await webview.emit('graph-data-debug-gss', {
+          nodes: debugGssNodes,
+          edges: debugGssEdges,
+          current_gss_node_id: currentGssNodeId,
+        });
+        break;
     }
-  });
+  }
+
+  // Notify all open debug graph windows of updates
+  async function notifyDebugGraphWindows() {
+    if (graphWindows.has('debugSppf')) {
+      await sendGraphData('debugSppf');
+    }
+    if (graphWindows.has('debugGss')) {
+      await sendGraphData('debugGss');
+    }
+  }
+
+  // Close all graph windows
+  async function closeAllGraphWindows() {
+    for (const [, webview] of graphWindows) {
+      await webview.close();
+    }
+    graphWindows.clear();
+  }
 
   function stopDebug() {
     debugLoaded = false;
@@ -1235,6 +1003,7 @@
       setStatus(`Loaded ${totalSteps} steps`, "success");
       await fetchStackTrace();
       await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
+      await notifyDebugGraphWindows();
     } else {
       logCommand(`${parserName} --write-symbols <symbols.json>`);
       logCommand(`${parserName} <input> --start ${startNonterminal} --trace <trace.json> --format json`);
@@ -1254,6 +1023,7 @@
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
       await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
+      await notifyDebugGraphWindows();
     }
   }
 
@@ -1267,6 +1037,7 @@
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
       await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
+      await notifyDebugGraphWindows();
     }
   }
 
@@ -1280,6 +1051,7 @@
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
       await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
+      await notifyDebugGraphWindows();
     }
   }
 
@@ -1474,48 +1246,7 @@
     getCurrentWindow().startDragging();
   }
 
-  // Store pre-maximize bounds for custom maximize behavior
-  let savedBounds: { x: number; y: number; width: number; height: number } | null = null;
-  let isCustomMaximized = false;
-  let isAnimating = false;
-
-  // Easing function for smooth animation (ease-out quint - even smoother)
-  function easeOutQuint(t: number): number {
-    return 1 - Math.pow(1 - t, 5);
-  }
-
-  async function animateWindow(
-    from: { x: number; y: number; width: number; height: number },
-    to: { x: number; y: number; width: number; height: number },
-    duration: number = 500
-  ) {
-    const window = getCurrentWindow();
-    const startTime = performance.now();
-
-    return new Promise<void>((resolve) => {
-      function step(currentTime: number) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = easeOutQuint(progress);
-
-        const currentX = Math.round(from.x + (to.x - from.x) * eased);
-        const currentY = Math.round(from.y + (to.y - from.y) * eased);
-        const currentWidth = Math.round(from.width + (to.width - from.width) * eased);
-        const currentHeight = Math.round(from.height + (to.height - from.height) * eased);
-
-        window.setPosition({ type: "Physical", x: currentX, y: currentY });
-        window.setSize({ type: "Physical", width: currentWidth, height: currentHeight });
-
-        if (progress < 1) {
-          requestAnimationFrame(step);
-        } else {
-          resolve();
-        }
-      }
-
-      requestAnimationFrame(step);
-    });
-  }
+  const toggleMaximize = createMaximizeToggle();
 
   function handleKeyDown(e: KeyboardEvent) {
     // Only handle keyboard shortcuts when debugging is active
@@ -1533,45 +1264,13 @@
       stepForward();
     }
   }
-
-  async function toggleMaximize() {
-    if (isAnimating) return;
-
-    const window = getCurrentWindow();
-    const monitor = await currentMonitor();
-
-    if (!monitor) return;
-
-    isAnimating = true;
-
-    const pos = await window.outerPosition();
-    const size = await window.outerSize();
-    const currentBounds = { x: pos.x, y: pos.y, width: size.width, height: size.height };
-
-    if (isCustomMaximized && savedBounds) {
-      // Animate to saved bounds
-      await animateWindow(currentBounds, savedBounds);
-      isCustomMaximized = false;
-      savedBounds = null;
-    } else {
-      // Save current bounds
-      savedBounds = currentBounds;
-
-      // Animate to monitor bounds
-      const { position, size: monitorSize } = monitor;
-      const targetBounds = { x: position.x, y: position.y, width: monitorSize.width, height: monitorSize.height };
-      await animateWindow(currentBounds, targetBounds);
-      isCustomMaximized = true;
-    }
-
-    isAnimating = false;
-  }
 </script>
 
 <svelte:window onmousemove={onMouseMove} onmouseup={onMouseUp} onclick={handleWindowClick} onkeydown={handleKeyDown} />
 
 <div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebug1 || isDraggingDebug2 || isDraggingDebugAction || isDraggingDebugStack || isDraggingDebugGraph} class:dragging-horizontal={isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebugAction || isDraggingDebugStack || isDraggingDebugGraph}>
   <!-- Title Bar (full width) -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="title-bar" onmousedown={startWindowDrag} ondblclick={toggleMaximize}>
     <div class="title-bar-left">
       <!-- Space for macOS traffic lights -->
@@ -1685,6 +1384,7 @@
   </div>
 
   <!-- Vertical Resize Handle -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="resize-handle-vertical" onmousedown={startVerticalDrag}></div>
 
   <!-- Right Panel -->
@@ -1715,7 +1415,7 @@
               <button onclick={resetView} title="Reset view">
                 <Maximize2 size={16} />
               </button>
-              <button onclick={() => openPopout('gss')} title="Pop out">
+              <button onclick={() => openGraphWindow('gss')} title="Pop out">
                 <Fullscreen size={16} />
               </button>
             </div>
@@ -1737,7 +1437,7 @@
             <button onclick={expandAll} title="Expand all (double-click node to collapse)">
               <Expand size={16} />
             </button>
-            <button onclick={() => openPopout('sppf')} title="Pop out">
+            <button onclick={() => openGraphWindow('sppf')} title="Pop out">
               <Fullscreen size={16} />
             </button>
           </div>
@@ -1803,6 +1503,7 @@
     </div>
 
     <!-- Resize Handle 1 -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="resize-handle-vertical" onmousedown={startDebugResize1}></div>
 
     <!-- Column 2: Stack + Pending -->
@@ -1826,6 +1527,7 @@
       </div>
 
       <!-- Resize Handle (between action and stack) -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div class="resize-handle-horizontal" onmousedown={startDebugActionResize}></div>
 
       <!-- Call Stack -->
@@ -1872,6 +1574,7 @@
       </div>
 
       <!-- Resize Handle (horizontal) -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div class="resize-handle-horizontal" onmousedown={startDebugStackResize}></div>
 
       <!-- Pending Descriptors -->
@@ -1892,6 +1595,7 @@
     </div>
 
     <!-- Resize Handle 2 -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="resize-handle-vertical" onmousedown={startDebugResize2}></div>
 
     <!-- Column 3: SPPF (top) / GSS (bottom) -->
@@ -1914,7 +1618,7 @@
               <button onclick={() => resetViewGraph(debugSppfCy)} title="Reset view">
                 <Maximize2 size={16} />
               </button>
-              <button onclick={() => openPopout('debugSppf')} title="Pop out">
+              <button onclick={() => openGraphWindow('debugSppf')} title="Pop out">
                 <Fullscreen size={16} />
               </button>
             </div>
@@ -1923,6 +1627,7 @@
       </div>
 
       <!-- Resize Handle -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div class="resize-handle-horizontal" onmousedown={startDebugGraphResize}></div>
 
       <!-- GSS Section -->
@@ -1943,7 +1648,7 @@
               <button onclick={() => resetViewGraph(debugGssCy)} title="Reset view">
                 <Maximize2 size={16} />
               </button>
-              <button onclick={() => openPopout('debugGss')} title="Pop out">
+              <button onclick={() => openGraphWindow('debugGss')} title="Pop out">
                 <Fullscreen size={16} />
               </button>
             </div>
@@ -1998,6 +1703,7 @@
   <!-- Output Panel (overlay) -->
   {#if outputPanelOpen}
     <div class="output-panel-overlay">
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div class="resize-handle-horizontal" onmousedown={startOutputDrag}></div>
       <div class="output-panel open">
         <div class="output-header">
@@ -2055,7 +1761,11 @@
 
   <!-- Error Modal -->
   {#if showErrorModal}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div class="modal-overlay" onclick={closeErrorModal}>
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
       <div class="modal" onclick={(e) => e.stopPropagation()}>
         <div class="modal-header">
           <AlertTriangle size={20} color="#f48771" />
@@ -2075,33 +1785,6 @@
     </div>
   {/if}
 
-  <!-- Pop-out modal for graphs -->
-  {#if popoutGraph}
-    <div class="popout-overlay" onclick={closePopout}>
-      <div class="popout-modal" style="left: {popoutX}px; top: {popoutY}px; right: auto; bottom: auto;" onclick={(e) => e.stopPropagation()}>
-        <div class="popout-header" onmousedown={startPopoutDrag}>
-          <span class="popout-title">
-            {#if popoutGraph === 'sppf'}SPPF{:else if popoutGraph === 'gss'}GSS{:else if popoutGraph === 'debugSppf'}SPPF{:else if popoutGraph === 'debugGss'}GSS{/if}
-          </span>
-          <div class="graph-controls popout-controls">
-            <button title="Zoom In" onclick={(e) => { e.stopPropagation(); popoutCy?.zoom(popoutCy.zoom() * 1.2); }}>
-              <ZoomIn size={16} />
-            </button>
-            <button title="Zoom Out" onclick={(e) => { e.stopPropagation(); popoutCy?.zoom(popoutCy.zoom() / 1.2); }}>
-              <ZoomOut size={16} />
-            </button>
-            <button title="Reset View" onclick={(e) => { e.stopPropagation(); if (popoutCy) { popoutCy.fit(); capZoom(popoutCy); } }}>
-              <Maximize2 size={16} />
-            </button>
-            <button title="Close" onclick={(e) => { e.stopPropagation(); closePopout(); }}>
-              <X size={16} />
-            </button>
-          </div>
-        </div>
-        <div class="popout-container" bind:this={popoutContainer}></div>
-      </div>
-    </div>
-  {/if}
 </div>
 
 <style>
@@ -2184,16 +1867,6 @@
     justify-content: center;
     color: #666;
     gap: 16px;
-  }
-
-  .mode-placeholder h2 {
-    margin: 0;
-    font-weight: 500;
-  }
-
-  .mode-placeholder p {
-    margin: 0;
-    font-size: 14px;
   }
 
   /* Design Mode */
@@ -2829,15 +2502,6 @@
     font-size: 12px;
   }
 
-  .section-content li.current {
-    color: #4ec9b0;
-  }
-
-  .section-content li.current::before {
-    content: "● ";
-    color: #4ec9b0;
-  }
-
   .placeholder {
     color: #666;
     font-style: italic;
@@ -3139,19 +2803,10 @@
     gap: 8px;
   }
 
-  .status-left .status-text {
-    margin-left: 8px;
-  }
-
   .status-right {
     display: flex;
     align-items: center;
     gap: 4px;
-  }
-
-  .status-bar .status-text {
-    font-size: 12px;
-    color: #888;
   }
 
   .status-text-btn {
@@ -3289,53 +2944,4 @@
     }
   }
 
-  /* Pop-out modal for graphs */
-  .popout-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 1000;
-  }
-
-  .popout-modal {
-    position: absolute;
-    background: #1e1e1e;
-    border: 1px solid #3c3c3c;
-    border-radius: 8px;
-    width: calc(100% - 80px);
-    height: calc(100% - 80px);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  }
-
-  .popout-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background: #2d2d2d;
-    border-bottom: 1px solid #3c3c3c;
-    cursor: move;
-    user-select: none;
-  }
-
-  .popout-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: #d4d4d4;
-  }
-
-  .popout-controls {
-    position: static;
-  }
-
-  .popout-container {
-    flex: 1;
-    min-height: 0;
-  }
 </style>
