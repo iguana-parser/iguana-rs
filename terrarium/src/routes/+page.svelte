@@ -17,6 +17,7 @@
     capZoom,
     createGraph,
   } from "$lib/graph-styles";
+  import { GraphCollapseManager } from "$lib/graph-utils";
 
   cytoscape.use(dagre);
 
@@ -214,13 +215,12 @@
   let sppf = $state<SPPF | null>(null);
   // svelte-ignore non_reactive_update
   let sppfContainer: HTMLDivElement;
-  let collapsedNodes = $state<Set<string>>(new Set());
+  const sppfCollapseManager = new GraphCollapseManager();
 
   // GSS data
   let gss = $state<GSS | null>(null);
   // svelte-ignore non_reactive_update
   let gssContainer: HTMLDivElement;
-  let gssCollapsedNodes = $state<Set<string>>(new Set());
 
   // Track if parse result is available
   let parseResultAvailable = $state(false);
@@ -271,97 +271,11 @@
   let cy: cytoscape.Core | null = null;
   let gssCy: cytoscape.Core | null = null;
 
-  // Find the root node (node with no incoming edges)
-  function findRoot(): string | null {
-    if (!cy) return null;
-    const roots = cy.nodes().filter((node: cytoscape.NodeSingular) => node.incomers('edge').length === 0);
-    return roots.length > 0 ? roots.first().id() : null;
-  }
-
-  // Get all nodes reachable from root, respecting collapsed nodes (their outgoing edges are "cut")
-  function getReachableNodes(): Set<string> {
-    if (!cy) return new Set();
-    const reachable = new Set<string>();
-    const root = findRoot();
-    if (!root) return reachable;
-
-    const queue = [root];
-    while (queue.length > 0) {
-      const nodeId = queue.shift()!;
-      if (reachable.has(nodeId)) continue;
-      reachable.add(nodeId);
-
-      // If this node is collapsed, don't traverse its children
-      if (collapsedNodes.has(nodeId)) continue;
-
-      const node = cy.getElementById(nodeId);
-      node.outgoers('node').forEach((child: cytoscape.NodeSingular) => {
-        if (!reachable.has(child.id())) {
-          queue.push(child.id());
-        }
-      });
-    }
-
-    return reachable;
-  }
-
-  // Update visibility based on reachability
-  function updateVisibility() {
-    if (!cy) return;
-
-    const reachable = getReachableNodes();
-
-    cy.nodes().forEach((node: cytoscape.NodeSingular) => {
-      if (reachable.has(node.id())) {
-        node.style('display', 'element');
-      } else {
-        node.style('display', 'none');
-      }
-    });
-
-    cy.edges().forEach((edge: cytoscape.EdgeSingular) => {
-      const sourceId = edge.source().id();
-      const targetId = edge.target().id();
-      // Show edge only if both endpoints are visible AND source is not collapsed
-      if (reachable.has(sourceId) && reachable.has(targetId) && !collapsedNodes.has(sourceId)) {
-        edge.style('display', 'element');
-      } else {
-        edge.style('display', 'none');
-      }
-    });
-  }
-
-  // Toggle collapse/expand a node
-  function toggleCollapse(nodeId: string) {
-    if (!cy) return;
-
-    const node = cy.getElementById(nodeId);
-
-    // Check if node has children
-    if (node.outgoers('node').length === 0) return;
-
-    const isCollapsed = collapsedNodes.has(nodeId);
-
-    if (isCollapsed) {
-      collapsedNodes.delete(nodeId);
-      node.removeClass('collapsed');
-    } else {
-      collapsedNodes.add(nodeId);
-      node.addClass('collapsed');
-    }
-
-    // Trigger reactivity
-    collapsedNodes = new Set(collapsedNodes);
-
-    // Update all visibility based on new reachability
-    updateVisibility();
-  }
-
   function renderSPPF() {
     if (!sppf || !sppfContainer) return;
 
     // Reset collapsed nodes when rendering new SPPF
-    collapsedNodes = new Set();
+    sppfCollapseManager.reset();
 
     const elements: cytoscape.ElementDefinition[] = [
       ...sppf.nodes.map((node) => ({
@@ -391,18 +305,17 @@
       layout: 'sppf',
     });
 
+    sppfCollapseManager.setCy(cy);
+
     // Add double-click handler for collapse/expand
     cy.on('dbltap', 'node', (event) => {
       const node = event.target;
-      toggleCollapse(node.id());
+      sppfCollapseManager.toggleCollapse(node.id());
     });
   }
 
   function renderGSS() {
     if (!gss || !gssContainer) return;
-
-    // Reset collapsed nodes when rendering new GSS
-    gssCollapsedNodes = new Set();
 
     const elements: cytoscape.ElementDefinition[] = [
       ...gss.nodes.map((node) => ({
@@ -835,14 +748,7 @@
 
   function expandAll() {
     if (activeTab === "sppf") {
-      if (!cy) return;
-      cy.nodes().removeClass('collapsed');
-      collapsedNodes = new Set();
-      updateVisibility();
-    } else {
-      if (!gssCy) return;
-      gssCy.nodes().removeClass('collapsed');
-      gssCollapsedNodes = new Set();
+      sppfCollapseManager.expandAll();
     }
   }
 

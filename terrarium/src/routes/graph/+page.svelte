@@ -14,6 +14,7 @@
     capZoom,
     createGraph,
   } from "$lib/graph-styles";
+  import { GraphCollapseManager } from "$lib/graph-utils";
   import { createMaximizeToggle } from "$lib/window-utils";
   import type {
     SPPF,
@@ -55,6 +56,7 @@
 
   let container: HTMLDivElement;
   let cy: cytoscape.Core | null = null;
+  const collapseManager = new GraphCollapseManager();
 
   // Data for different graph types (received via events)
   let sppfData: SPPF | null = $state(null);
@@ -207,7 +209,12 @@
       cy.destroy();
     }
 
+    // Reset collapsed nodes when rendering new graph
+    collapseManager.reset();
+
     const isGss = graphType === "gss" || graphType === "debugGss";
+    const isSppf = graphType === "sppf" || graphType === "debugSppf";
+
     cy = createGraph({
       container,
       elements,
@@ -216,6 +223,16 @@
         : [...sppfNodeStyles, edgeStyles],
       layout: isGss ? "gss" : "sppf",
     });
+
+    collapseManager.setCy(cy);
+
+    // Add double-click handler for collapse/expand (SPPF only)
+    if (isSppf) {
+      cy.on('dbltap', 'node', (event) => {
+        const node = event.target;
+        collapseManager.toggleCollapse(node.id());
+      });
+    }
   }
 
   // Re-render when data changes

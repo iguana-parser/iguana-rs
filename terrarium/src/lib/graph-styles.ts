@@ -160,10 +160,34 @@ export function createGraph(options: GraphOptions): Core {
       nodeSep: layout === "gss" ? 50 : 30,
       rankSep: layout === "gss" ? 60 : 50,
     } as any,
-    userZoomingEnabled: true,
+    userZoomingEnabled: false,  // Disable built-in wheel zoom, we handle it manually
     userPanningEnabled: true,
     boxSelectionEnabled: false,
+    autoungrabify: true,  // Prevent node grabbing (removes grab circle)
   });
+
+  // Enable two-finger trackpad scrolling to pan, pinch to zoom
+  if (container) {
+    container.addEventListener('wheel', (e: WheelEvent) => {
+      e.preventDefault();
+      if (e.ctrlKey) {
+        // Pinch-to-zoom (ctrlKey is set for pinch gestures on macOS)
+        const zoomFactor = 1 - e.deltaY * 0.01;
+        const newZoom = cyInstance.zoom() * zoomFactor;
+        cyInstance.zoom({
+          level: newZoom,
+          renderedPosition: { x: e.offsetX, y: e.offsetY },
+        });
+      } else {
+        // Two-finger scroll to pan
+        const pan = cyInstance.pan();
+        cyInstance.pan({
+          x: pan.x - e.deltaX,
+          y: pan.y - e.deltaY,
+        });
+      }
+    }, { passive: false });
+  }
 
   // Cap initial zoom and center after layout
   capZoom(cyInstance);
