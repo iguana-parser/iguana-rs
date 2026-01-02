@@ -1,6 +1,11 @@
-use crate::grammar::{
-    grammar::{Alternative, GrammarDef, PriorityLevel, SyntaxRule},
-    symbols::{Nonterminal, NonterminalNodeKind, Symbol},
+use crate::{
+    alternative,
+    grammar::{
+        def::{Alternative, PriorityLevel, SyntaxRule},
+        symbols::{Nonterminal, NonterminalNodeKind, Symbol},
+        transformations::transform_rule,
+    },
+    priority_level,
 };
 
 struct Counters {
@@ -53,54 +58,23 @@ impl Counters {
     }
 }
 
-pub fn ebnf_to_bnf(grammar: GrammarDef) -> GrammarDef {
+pub fn ebnf_to_bnf(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
     let mut counters = Counters::new();
     let mut new_rules = vec![];
-    let mut transformed_rules: Vec<_> = grammar
-        .syntax_rules
+    let mut transformed_rules: Vec<_> = syntax_rules
         .into_iter()
         .map(|rule| {
-            let parent_name = &rule.head.name;
-            let new_priority_levels: Vec<_> = rule
-                .priority_levels
-                .into_iter()
-                .map(|pl| {
-                    let new_alternatives: Vec<_> = pl
-                        .alternatives
-                        .into_iter()
-                        .map(|alt| {
-                            let new_symbols: Vec<_> = alt
-                                .symbols
-                                .into_iter()
-                                .map(|s| {
-                                    transform_symbol(s, parent_name, &mut counters, &mut new_rules)
-                                })
-                                .collect();
-                            Alternative::builder().add_symbols(new_symbols).build()
-                        })
-                        .collect();
-                    PriorityLevel::builder()
-                        .add_alternatives(new_alternatives)
-                        .build()
-                })
-                .collect();
-            SyntaxRule::builder()
-                .head(rule.head)
-                .add_priority_levels(new_priority_levels)
-                .build()
+            let name = rule.head.name.clone();
+            transform_rule(rule, |s| {
+                rewrite_ebnf_symbol(s, &name, &mut counters, &mut new_rules)
+            })
         })
         .collect();
     transformed_rules.extend(new_rules);
-    GrammarDef {
-        name: grammar.name,
-        start_symbol: grammar.start_symbol,
-        syntax_rules: transformed_rules,
-        lexical_rules: grammar.lexical_rules,
-        layout_def: grammar.layout_def,
-    }
+    transformed_rules
 }
 
-fn transform_symbol(
+fn rewrite_ebnf_symbol(
     symbol: Symbol,
     parent_name: &str,
     counters: &mut Counters,
@@ -110,104 +84,72 @@ fn transform_symbol(
         // Transform (A B C) into: S_Group0 ::= A B C
         Symbol::Group(symbols) => {
             let name = counters.next_group(parent_name);
-            let new_rule = SyntaxRule::builder()
-                .head(Nonterminal::with_kind(&name, NonterminalNodeKind::Group))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternative(Alternative::builder().add_symbols(symbols).build())
-                        .build(),
-                )
-                .build();
+            let new_rule = SyntaxRule {
+                head: Nonterminal::with_kind(&name, NonterminalNodeKind::Group),
+                priority_levels: vec![priority_level!(Alternative::new(symbols))],
+            };
             new_rules.push(new_rule);
-            Symbol::Nonterminal(Nonterminal::new(name))
+            Symbol::Identifier(name)
         }
         // Transform A? into: S_Opt0 ::= A | ε
         Symbol::Opt(symbol) => {
             let name = counters.next_opt(parent_name);
-            let transformed_symbol = transform_symbol(*symbol, parent_name, counters, new_rules);
-            let new_rule = SyntaxRule::builder()
-                .head(Nonterminal::with_kind(&name, NonterminalNodeKind::Opt))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(transformed_symbol)
-                                .build(),
-                        )
-                        .add_alternative(Alternative::builder().build())
-                        .build(),
-                )
-                .build();
+            let transformed_symbol = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules);
+            let new_rule = SyntaxRule {
+                head: Nonterminal::with_kind(&name, NonterminalNodeKind::Opt),
+                priority_levels: vec![priority_level!(
+                    alternative!(transformed_symbol),
+                    Alternative::empty()
+                )],
+            };
             new_rules.push(new_rule);
-            Symbol::Nonterminal(Nonterminal::new(name))
+            Symbol::Identifier(name)
         }
         // Transform (A | B | C) into: S_Alt0 ::= A | B | C
         Symbol::Alt(symbols) => {
             let name = counters.next_alt(parent_name);
             let transformed_symbols: Vec<_> = symbols
                 .into_iter()
-                .map(|s| transform_symbol(s, parent_name, counters, new_rules))
+                .map(|s| rewrite_ebnf_symbol(s, parent_name, counters, new_rules))
                 .collect();
             let alternatives: Vec<_> = transformed_symbols
                 .into_iter()
-                .map(|s| Alternative::builder().add_symbol(s).build())
+                .map(|s| alternative!(s))
                 .collect();
-            let new_rule = SyntaxRule::builder()
-                .head(Nonterminal::with_kind(&name, NonterminalNodeKind::Alt))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternatives(alternatives)
-                        .build(),
-                )
-                .build();
+            let new_rule = SyntaxRule {
+                head: Nonterminal::with_kind(&name, NonterminalNodeKind::Alt),
+                priority_levels: vec![PriorityLevel::new(alternatives)],
+            };
             new_rules.push(new_rule);
-            Symbol::Nonterminal(Nonterminal::new(name))
+            Symbol::Identifier(name)
         }
         // Transform A* into: S_Star0 ::= S_Star0 A | ε (left-recursive)
         Symbol::Star(symbol) => {
             let name = counters.next_star(parent_name);
-            let transformed_symbol = transform_symbol(*symbol, parent_name, counters, new_rules);
-            let new_rule = SyntaxRule::builder()
-                .head(Nonterminal::with_kind(&name, NonterminalNodeKind::Star))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::Nonterminal(Nonterminal::new(&name)))
-                                .add_symbol(transformed_symbol)
-                                .build(),
-                        )
-                        .add_alternative(Alternative::builder().build())
-                        .build(),
-                )
-                .build();
+            let transformed_symbol = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules);
+            let new_rule = SyntaxRule {
+                head: Nonterminal::with_kind(&name, NonterminalNodeKind::Star),
+                priority_levels: vec![priority_level!(
+                    alternative!(Symbol::Identifier(name.clone()), transformed_symbol),
+                    Alternative::empty()
+                )],
+            };
             new_rules.push(new_rule);
-            Symbol::Nonterminal(Nonterminal::new(name))
+            Symbol::Identifier(name)
         }
         // Transform A+ into: S_Plus0 ::= S_Plus0 A | A (left-recursive)
         Symbol::Plus(symbol) => {
             let name = counters.next_plus(parent_name);
-            let transformed_symbol = transform_symbol(*symbol, parent_name, counters, new_rules);
-            let new_rule = SyntaxRule::builder()
-                .head(Nonterminal::with_kind(&name, NonterminalNodeKind::Plus))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::Nonterminal(Nonterminal::new(&name)))
-                                .add_symbol(transformed_symbol.clone())
-                                .build(),
-                        )
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(transformed_symbol)
-                                .build(),
-                        )
-                        .build(),
-                )
-                .build();
+            let transformed_symbol = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules);
+            let new_rule = SyntaxRule {
+                head: Nonterminal::with_kind(&name, NonterminalNodeKind::Plus),
+                priority_levels: vec![priority_level!(
+                    alternative!(Symbol::Identifier(name.clone()), transformed_symbol.clone()),
+                    alternative!(transformed_symbol)
+                )],
+            };
             new_rules.push(new_rule);
-            Symbol::Nonterminal(Nonterminal::new(name))
+            Symbol::Identifier(name)
         }
         _ => symbol,
     }
@@ -215,204 +157,124 @@ fn transform_symbol(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::ebnf_to_bnf;
+    use crate::{
+        alt, alternative, grammar_def, group, id, opt, plus, priority_level, star, syntax_rule,
+    };
 
     #[test]
     fn test_single_group_transformation() {
         // S ::= A (B C D) E
-        let grammar = GrammarDef::builder()
-            .name("TestGrammar".to_string())
-            .start_symbol(Nonterminal::new("S"))
-            .add_syntax_rule(
-                SyntaxRule::builder()
-                    .head(Nonterminal::new("S"))
-                    .add_priority_level(
-                        PriorityLevel::builder()
-                            .add_alternative(
-                                Alternative::builder()
-                                    .add_symbol(Symbol::nonterminal("A"))
-                                    .add_symbol(Symbol::Group(vec![
-                                        Symbol::nonterminal("B"),
-                                        Symbol::nonterminal("C"),
-                                        Symbol::nonterminal("D"),
-                                    ]))
-                                    .add_symbol(Symbol::nonterminal("E"))
-                                    .build(),
-                            )
-                            .build(),
-                    )
-                    .build(),
-            )
-            .build();
+        let grammar = grammar_def!("TestGrammar",
+            syntax: [
+                syntax_rule!("S" => priority_level!(alternative!(
+                    id!("A"),
+                    group!(id!("B"), id!("C"), id!("D")),
+                    id!("E")
+                )))
+        ]);
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar);
+        let transformed = ebnf_to_bnf(grammar.syntax_rules);
 
-        println!("Transformed grammar:\n{}", transformed);
+        println!("Transformed grammar:\n{:?}", transformed);
     }
 
     #[test]
     fn test_opt_transformation() {
         // S ::= A B? C
-        let grammar = GrammarDef::builder()
-            .name("TestGrammar".to_string())
-            .start_symbol(Nonterminal::new("S"))
-            .add_syntax_rule(
-                SyntaxRule::builder()
-                    .head(Nonterminal::new("S"))
-                    .add_priority_level(
-                        PriorityLevel::builder()
-                            .add_alternative(
-                                Alternative::builder()
-                                    .add_symbol(Symbol::nonterminal("A"))
-                                    .add_symbol(Symbol::Opt(Box::new(Symbol::nonterminal("B"))))
-                                    .add_symbol(Symbol::nonterminal("C"))
-                                    .build(),
-                            )
-                            .build(),
-                    )
-                    .build(),
-            )
-            .build();
+        let grammar = grammar_def!("TestGrammar",
+            syntax: [
+                syntax_rule!("S" => priority_level!(alternative!(
+                    id!("A"),
+                    opt!(id!("B")),
+                    id!("C")
+                )))
+        ]);
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar);
+        let transformed = ebnf_to_bnf(grammar.syntax_rules);
 
-        println!("Transformed grammar:\n{}", transformed);
+        println!("Transformed grammar:\n{:?}", transformed);
     }
 
     #[test]
     fn test_alt_transformation() {
         // S ::= A (B | C | D) E
-        let grammar = GrammarDef::builder()
-            .name("TestGrammar".to_string())
-            .start_symbol(Nonterminal::new("S"))
-            .add_syntax_rule(
-                SyntaxRule::builder()
-                    .head(Nonterminal::new("S"))
-                    .add_priority_level(
-                        PriorityLevel::builder()
-                            .add_alternative(
-                                Alternative::builder()
-                                    .add_symbol(Symbol::nonterminal("A"))
-                                    .add_symbol(Symbol::Alt(vec![
-                                        Symbol::nonterminal("B"),
-                                        Symbol::nonterminal("C"),
-                                        Symbol::nonterminal("D"),
-                                    ]))
-                                    .add_symbol(Symbol::nonterminal("E"))
-                                    .build(),
-                            )
-                            .build(),
-                    )
-                    .build(),
-            )
-            .build();
+        let grammar = grammar_def!("TestGrammar",
+            syntax: [
+                syntax_rule!("S" => priority_level!(alternative!(
+                    id!("A"),
+                    alt!(id!("B"), id!("C"), id!("D")),
+                    id!("E")
+                )))
+        ]);
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar);
+        let transformed = ebnf_to_bnf(grammar.syntax_rules);
 
-        println!("Transformed grammar:\n{}", transformed);
+        println!("Transformed grammar:\n{:?}", transformed);
     }
 
     #[test]
     fn test_star_transformation() {
         // S ::= A B* C
-        let grammar = GrammarDef::builder()
-            .name("TestGrammar".to_string())
-            .start_symbol(Nonterminal::new("S"))
-            .add_syntax_rule(
-                SyntaxRule::builder()
-                    .head(Nonterminal::new("S"))
-                    .add_priority_level(
-                        PriorityLevel::builder()
-                            .add_alternative(
-                                Alternative::builder()
-                                    .add_symbol(Symbol::nonterminal("A"))
-                                    .add_symbol(Symbol::Star(Box::new(Symbol::nonterminal("B"))))
-                                    .add_symbol(Symbol::nonterminal("C"))
-                                    .build(),
-                            )
-                            .build(),
-                    )
-                    .build(),
-            )
-            .build();
+        let grammar = grammar_def!("TestGrammar",
+            syntax: [
+                syntax_rule!("S" => priority_level!(alternative!(
+                    id!("A"),
+                    star!(id!("B")),
+                    id!("C")
+                )))
+        ]);
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar);
+        let transformed = ebnf_to_bnf(grammar.syntax_rules);
 
-        println!("Transformed grammar:\n{}", transformed);
+        println!("Transformed grammar:\n{:?}", transformed);
     }
 
     #[test]
     fn test_plus_transformation() {
         // S ::= A B+ C
-        let grammar = GrammarDef::builder()
-            .name("TestGrammar".to_string())
-            .start_symbol(Nonterminal::new("S"))
-            .add_syntax_rule(
-                SyntaxRule::builder()
-                    .head(Nonterminal::new("S"))
-                    .add_priority_level(
-                        PriorityLevel::builder()
-                            .add_alternative(
-                                Alternative::builder()
-                                    .add_symbol(Symbol::nonterminal("A"))
-                                    .add_symbol(Symbol::Plus(Box::new(Symbol::nonterminal("B"))))
-                                    .add_symbol(Symbol::nonterminal("C"))
-                                    .build(),
-                            )
-                            .build(),
-                    )
-                    .build(),
-            )
-            .build();
+        let grammar = grammar_def!("TestGrammar",
+            syntax: [
+                syntax_rule!("S" => priority_level!(alternative!(
+                    id!("A"),
+                    plus!(id!("B")),
+                    id!("C")
+                )))
+        ]);
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar);
+        let transformed = ebnf_to_bnf(grammar.syntax_rules);
 
-        println!("Transformed grammar:\n{}", transformed);
+        println!("Transformed grammar:\n{:?}", transformed);
     }
 
     #[test]
     fn test_combined_transformations() {
         // S ::= A (B | C)* D+ E?
-        let grammar = GrammarDef::builder()
-            .name("TestGrammar".to_string())
-            .start_symbol(Nonterminal::new("S"))
-            .add_syntax_rule(
-                SyntaxRule::builder()
-                    .head(Nonterminal::new("S"))
-                    .add_priority_level(
-                        PriorityLevel::builder()
-                            .add_alternative(
-                                Alternative::builder()
-                                    .add_symbol(Symbol::nonterminal("A"))
-                                    .add_symbol(Symbol::Star(Box::new(Symbol::Alt(vec![
-                                        Symbol::nonterminal("B"),
-                                        Symbol::nonterminal("C"),
-                                    ]))))
-                                    .add_symbol(Symbol::Plus(Box::new(Symbol::nonterminal("D"))))
-                                    .add_symbol(Symbol::Opt(Box::new(Symbol::nonterminal("E"))))
-                                    .build(),
-                            )
-                            .build(),
-                    )
-                    .build(),
-            )
-            .build();
+        let grammar = grammar_def!("TestGrammar",
+            syntax: [
+                syntax_rule!("S" => priority_level!(alternative!(
+                    id!("A"),
+                    star!(alt!(id!("B"), id!("C"),)),
+                    plus!(id!("D")),
+                    opt!(id!("E"))
+                )))
+        ]);
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar);
+        let transformed = ebnf_to_bnf(grammar.syntax_rules);
 
-        println!("Transformed grammar:\n{}", transformed);
+        println!("Transformed grammar:\n{:?}", transformed);
     }
 
     #[test]
@@ -420,37 +282,20 @@ mod tests {
         // S ::= A ( B | ( C | D)+)?
         // This tests 3 levels of nesting:
         // - Opt containing Alt containing Plus containing Alt
-        let grammar = GrammarDef::builder()
-            .name("TestGrammar".to_string())
-            .start_symbol(Nonterminal::new("S"))
-            .add_syntax_rule(
-                SyntaxRule::builder()
-                    .head(Nonterminal::new("S"))
-                    .add_priority_level(
-                        PriorityLevel::builder()
-                            .add_alternative(
-                                Alternative::builder()
-                                    .add_symbol(Symbol::nonterminal("A"))
-                                    .add_symbol(Symbol::Opt(Box::new(Symbol::Alt(vec![
-                                        Symbol::nonterminal("B"),
-                                        Symbol::Plus(Box::new(Symbol::Alt(vec![
-                                            Symbol::nonterminal("C"),
-                                            Symbol::nonterminal("D"),
-                                        ]))),
-                                    ]))))
-                                    .build(),
-                            )
-                            .build(),
-                    )
-                    .build(),
-            )
-            .build();
+        let grammar = grammar_def!("TestGrammar",
+            syntax: [
+                syntax_rule!("S" =>
+                    priority_level!(alternative!(
+                        id!("A"),
+                        opt!(alt!(id!("B"), plus!(alt!(id!("C"), id!("D"))))),
+                    )))
+        ]);
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar);
+        let transformed = ebnf_to_bnf(grammar.syntax_rules);
 
-        println!("Transformed grammar:\n{}", transformed);
+        println!("Transformed grammar:\n{:?}", transformed);
 
         // Expected transformation:
         // S      ::= A S_Opt0

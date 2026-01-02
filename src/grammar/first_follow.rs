@@ -1,8 +1,8 @@
-use std::{collections::HashSet, ptr::null};
+use std::collections::HashSet;
 
 use crate::grammar::{
-    grammar::Grammar,
-    symbols::{self, Nonterminal, Symbol},
+    def::Grammar,
+    symbols::{Nonterminal, Symbol},
 };
 
 /// Calculates the nullable nonterminals in the provided grammar.
@@ -34,8 +34,8 @@ fn calc_nullables(grammar: &Grammar) -> HashSet<&Nonterminal> {
 
 fn is_nullable(s: &Symbol, nullables: &HashSet<&Nonterminal>) -> bool {
     match s {
-        Symbol::Terminal(_) => false,
-        Symbol::Nonterminal(nonterminal) => nullables.contains(nonterminal),
+        Symbol::Identifier(_) => false,
+        Symbol::Literal(_) => false,
         Symbol::Group(symbols) => symbols.iter().all(|s| is_nullable(s, nullables)),
         Symbol::Opt(_) => true,
         Symbol::Alt(symbols) => symbols.iter().any(|s| is_nullable(s, nullables)),

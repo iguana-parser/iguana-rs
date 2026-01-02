@@ -1,4 +1,4 @@
-use crate::{generator::utils::to_first_lowercase, grammar::grammar::Grammar};
+use crate::{generator::utils::to_first_lowercase, grammar::def::Grammar};
 
 pub fn generate(grammar: &Grammar) -> String {
     let grammar_name = &grammar.name;

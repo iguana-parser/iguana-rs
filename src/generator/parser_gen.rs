@@ -9,8 +9,9 @@ use crate::generator::id::NonterminalIds;
 use crate::generator::id::SlotIds;
 use crate::generator::id::TerminalIds;
 use crate::generator::utils::to_first_uppercase;
-use crate::grammar::grammar::Alternative;
-use crate::grammar::grammar::Grammar;
+use crate::grammar::def::Alternative;
+use crate::grammar::def::Grammar;
+use crate::grammar::symbols::Definition;
 use crate::grammar::symbols::Nonterminal;
 use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
@@ -244,6 +245,7 @@ fn gen_execute_method(
         for (index, alternative) in alternatives.iter().enumerate() {
             for (position, symbol) in alternative.symbols.iter().enumerate() {
                 slot_quotes.push(gen_slot_code(
+                    grammar,
                     position,
                     symbol,
                     nt_name,
@@ -310,7 +312,9 @@ fn gen_execute_method(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn gen_slot_code(
+    grammar: &Grammar,
     position: usize,
     symbol: &Symbol,
     nt_name: &str,
@@ -321,28 +325,35 @@ fn gen_slot_code(
 ) -> TokenStream {
     let slot_name = slot_to_string(nt_name, alternative, position);
     match symbol {
-        Symbol::Terminal(terminal) => {
-            let next_slot_name = slot_to_string(nt_name, alternative, position + 1);
-            gen_terminal_slot(
-                terminal,
-                position,
-                &slot_name,
-                &next_slot_name,
-                terminal_ids,
-                slot_ids,
-            )
+        Symbol::Identifier(name) => {
+            let def = grammar
+                .definition(name)
+                .unwrap_or_else(|| panic!("{name} is not defined"));
+            match def {
+                Definition::Terminal(terminal) => {
+                    let next_slot_name = slot_to_string(nt_name, alternative, position + 1);
+                    gen_terminal_slot(
+                        terminal,
+                        position,
+                        &slot_name,
+                        &next_slot_name,
+                        terminal_ids,
+                        slot_ids,
+                    )
+                }
+                Definition::Nonterminal(nonterminal) => {
+                    let next_slot_name = slot_to_string(nt_name, alternative, position + 1);
+                    gen_nonterminal_slot(
+                        nonterminal,
+                        &slot_name,
+                        &next_slot_name,
+                        nonterminal_ids,
+                        slot_ids,
+                    )
+                }
+            }
         }
-        Symbol::Nonterminal(nonterminal) => {
-            let next_slot_name = slot_to_string(nt_name, alternative, position + 1);
-            gen_nonterminal_slot(
-                nonterminal,
-                &slot_name,
-                &next_slot_name,
-                nonterminal_ids,
-                slot_ids,
-            )
-        }
-        _ => panic!("At runtime only terminal and nonterminals are supported."),
+        _ => unreachable!("Unexpected symbol {}", symbol),
     }
 }
 
@@ -601,10 +612,10 @@ fn gen_add_nonterminal_node_method() -> TokenStream {
             self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
                 .insert(nonterminal_node.span, nonterminal_node_id);
             record!(
-                self, 
-                NonterminalNodeCreated, 
-                nonterminal_node.nonterminal_id, 
-                nonterminal_node.span, 
+                self,
+                NonterminalNodeCreated,
+                nonterminal_node.nonterminal_id,
+                nonterminal_node.span,
                 nonterminal_node.child
             );
             self.sppf_nodes.push(SPPFNode::Nonterminal(nonterminal_node));
@@ -621,8 +632,8 @@ fn gen_add_intermediate_node_method() -> TokenStream {
             self.intermediate_nodes_index[intermediate_node.slot_id.index()]
                 .insert(intermediate_node.span, intermediate_node_id);
             record!(
-                self, 
-                IntermediateNodeCreated, 
+                self,
+                IntermediateNodeCreated,
                 intermediate_node.slot_id,
                 intermediate_node.span,
                 intermediate_node.child.0,

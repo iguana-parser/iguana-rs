@@ -7,7 +7,7 @@ use crate::{
         id::{NonterminalIds, SlotIds, TerminalIds},
         utils::rustfmt,
     },
-    grammar::grammar::Grammar,
+    grammar::def::Grammar,
 };
 
 mod cargo_toml_gen;

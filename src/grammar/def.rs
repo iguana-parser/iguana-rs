@@ -2,36 +2,37 @@ use std::fmt::Display;
 
 use indexmap::IndexMap;
 use itertools::Itertools;
-use typed_builder::TypedBuilder;
 
 use crate::grammar::{
     regex::Regex,
-    symbols::{Nonterminal, Symbol, Terminal, TerminalKind},
-    transformations::ebnf_to_bnf,
+    symbols::{Definition, Nonterminal, Symbol, Terminal, TerminalKind},
+    transformations::{ebnf_to_bnf, transform_rule},
 };
 
-#[derive(Debug, TypedBuilder, Clone)]
-#[builder(mutators(
-    pub fn add_symbol(&mut self, symbol: Symbol) {
-        self.symbols.push(symbol);
-    }
-    pub fn add_symbols(&mut self, symbols: Vec<Symbol>) {
-        self.symbols.extend(symbols);
-    }
-))]
+#[derive(Debug, Clone)]
 pub struct Alternative {
-    #[builder(via_mutators)]
     pub symbols: Vec<Symbol>,
-    #[builder(default=None)]
     pub label: Option<String>,
 }
 
 impl Alternative {
+    pub fn new(symbols: Vec<Symbol>) -> Self {
+        Self {
+            symbols,
+            label: None,
+        }
+    }
     pub fn len(&self) -> usize {
         self.symbols.len()
     }
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+    pub fn empty() -> Self {
+        Self {
+            symbols: vec![],
+            label: None,
+        }
     }
 }
 
@@ -41,33 +42,30 @@ impl Display for Alternative {
     }
 }
 
-#[derive(Debug, TypedBuilder)]
-#[builder(mutators(
-    pub fn add_priority_level(&mut self, priority_level: PriorityLevel) {
-        self.priority_levels.push(priority_level);
-    }
-    pub fn add_priority_levels(&mut self, priority_levels: Vec<PriorityLevel>) {
-        self.priority_levels.extend(priority_levels);
-    }
-))]
+#[derive(Debug)]
 pub struct SyntaxRule {
     pub head: Nonterminal,
-    #[builder(via_mutators)]
     pub priority_levels: Vec<PriorityLevel>,
 }
 
-#[derive(Debug, TypedBuilder)]
-#[builder(mutators(
-    pub fn add_alternative(&mut self, alternative: Alternative) {
-        self.alternatives.push(alternative);
+impl SyntaxRule {
+    pub fn new(head: Nonterminal, priority_levels: Vec<PriorityLevel>) -> Self {
+        Self {
+            head,
+            priority_levels,
+        }
     }
-    pub fn add_alternatives(&mut self, alternatives: Vec<Alternative>) {
-        self.alternatives.extend(alternatives);
-    }
-))]
+}
+
+#[derive(Debug)]
 pub struct PriorityLevel {
-    #[builder(via_mutators)]
     pub alternatives: Vec<Alternative>,
+}
+
+impl PriorityLevel {
+    pub fn new(alternatives: Vec<Alternative>) -> Self {
+        Self { alternatives }
+    }
 }
 
 #[derive(Debug)]
@@ -76,27 +74,11 @@ pub struct LexicalRule {
     pub regex: Regex,
 }
 
-#[derive(Debug, TypedBuilder)]
-#[builder(mutators(
-    pub fn add_syntax_rule(&mut self, syntax_rule: SyntaxRule) {
-        self.syntax_rules.push(syntax_rule);
-    }
-    pub fn add_lexical_rule(&mut self, head: Terminal, regex: Regex) {
-        self.lexical_rules.push(LexicalRule { head, regex });
-    }
-    pub fn add_layout_definition(&mut self, terminal: Terminal) {
-        self.layout_def.push(terminal);
-    }
-))]
 pub struct GrammarDef {
     pub name: String,
-    pub start_symbol: Nonterminal,
-    #[builder(via_mutators)]
     pub syntax_rules: Vec<SyntaxRule>,
-    #[builder(via_mutators)]
     pub lexical_rules: Vec<LexicalRule>,
     // Whitespace and comment nodes
-    #[builder(via_mutators)]
     pub layout_def: Vec<Terminal>,
 }
 
@@ -149,7 +131,6 @@ impl Display for SyntaxRule {
 impl Display for GrammarDef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "grammar {}\n", self.name)?;
-        writeln!(f, "start: {}\n", self.start_symbol)?;
         for rule in &self.syntax_rules {
             writeln!(f, "{}", rule)?;
         }
@@ -163,50 +144,77 @@ impl Display for GrammarDef {
     }
 }
 
+/// Creates a map from names to definitions (terminal or nonterminal).
+fn create_symbol_table<'a>(
+    nonterminals: impl Iterator<Item = &'a Nonterminal>,
+    terminals: impl Iterator<Item = &'a Terminal>,
+) -> IndexMap<String, Definition> {
+    let mut symbol_table = IndexMap::new();
+    for terminal in terminals {
+        symbol_table.insert(
+            terminal.name.clone(),
+            Definition::Terminal(terminal.clone()),
+        );
+    }
+    for nonterminal in nonterminals {
+        symbol_table.insert(
+            nonterminal.name.clone(),
+            Definition::Nonterminal(nonterminal.clone()),
+        );
+    }
+    symbol_table
+}
+
+fn add_lexical_rules_for_literals(
+    syntax_rules: Vec<SyntaxRule>,
+    lexical_rules: &mut IndexMap<Terminal, Regex>,
+) -> Vec<SyntaxRule> {
+    let mut rules = vec![];
+    for rule in syntax_rules {
+        let transformed = transform_rule(rule, |s| {
+            if let Symbol::Literal(name) = s {
+                let name = format!("\"{}\"", name);
+                let terminal = Terminal::with_kind(name.clone(), TerminalKind::Literal);
+                if !lexical_rules.contains_key(&terminal) {
+                    lexical_rules.insert(terminal, Regex::literal(&name));
+                }
+                Symbol::identifier(name)
+            } else {
+                s
+            }
+        });
+        rules.push(transformed);
+    }
+    rules
+}
+
 impl From<GrammarDef> for Grammar {
     fn from(grammar_def: GrammarDef) -> Self {
-        let grammar_def = ebnf_to_bnf::ebnf_to_bnf(grammar_def);
-        let mut lexical_rules: IndexMap<Terminal, Regex> = grammar_def
-            .lexical_rules
+        let lexical_rules = grammar_def.lexical_rules;
+        let mut lexical_rules_map: IndexMap<Terminal, Regex> = lexical_rules
             .into_iter()
             .map(|r| (r.head, r.regex))
             .collect();
-        for rule in &grammar_def.syntax_rules {
-            for priority_level in &rule.priority_levels {
-                for alternative in &priority_level.alternatives {
-                    for symbol in &alternative.symbols {
-                        match symbol {
-                            Symbol::Terminal(terminal)
-                                if terminal.kind == TerminalKind::Literal =>
-                            {
-                                if !lexical_rules.contains_key(terminal) {
-                                    lexical_rules
-                                        .insert(terminal.clone(), Regex::literal(&terminal.name));
-                                }
-                            }
-                            _ => (),
-                        }
-                    }
-                }
-            }
-        }
-        let productions: IndexMap<Nonterminal, Vec<Alternative>> = grammar_def
-            .syntax_rules
-            .into_iter()
-            .fold(IndexMap::new(), |mut acc, r| {
-                let alternatives: Vec<Alternative> = r
-                    .priority_levels
-                    .into_iter()
-                    .flat_map(|l| l.alternatives)
-                    .collect();
-                acc.entry(r.head).or_default().extend(alternatives);
-                acc
-            });
+        let syntax_rules = ebnf_to_bnf::ebnf_to_bnf(grammar_def.syntax_rules);
+        let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules_map);
+        let productions: IndexMap<Nonterminal, Vec<Alternative>> =
+            syntax_rules
+                .into_iter()
+                .fold(IndexMap::new(), |mut acc, r| {
+                    let alternatives: Vec<Alternative> = r
+                        .priority_levels
+                        .into_iter()
+                        .flat_map(|l| l.alternatives)
+                        .collect();
+                    acc.entry(r.head).or_default().extend(alternatives);
+                    acc
+                });
+        let symbol_table = create_symbol_table(productions.keys(), lexical_rules_map.keys());
         Self {
             name: grammar_def.name,
-            start_symbol: grammar_def.start_symbol,
             productions,
-            lexical_rules,
+            lexical_rules: lexical_rules_map,
+            symbol_table,
             layout_defs: grammar_def.layout_def,
         }
     }
@@ -215,9 +223,9 @@ impl From<GrammarDef> for Grammar {
 #[derive(Debug)]
 pub struct Grammar {
     pub name: String,
-    pub start_symbol: Nonterminal,
     productions: IndexMap<Nonterminal, Vec<Alternative>>,
     lexical_rules: IndexMap<Terminal, Regex>,
+    symbol_table: IndexMap<String, Definition>,
     pub layout_defs: Vec<Terminal>,
 }
 
@@ -236,6 +244,9 @@ impl Grammar {
     }
     pub fn lexical_rules(&self, terminal: &Terminal) -> Option<&Regex> {
         self.lexical_rules.get(terminal)
+    }
+    pub fn definition(&self, name: &str) -> Option<&Definition> {
+        self.symbol_table.get(name)
     }
 }
 
@@ -256,4 +267,70 @@ impl Display for Grammar {
         }
         Ok(())
     }
+}
+
+#[macro_export]
+macro_rules! alternative {
+    ($($symbol:expr),* $(,)?, @$label:literal) => {
+        $crate::grammar::Alternative {
+            symbols: vec![$($symbol),*],
+            label: Some($label.to_string()),
+        }
+    };
+    ($($symbol:expr),* $(,)?) => {
+        $crate::grammar::def::Alternative {
+            symbols: vec![$($symbol),*],
+            label: None,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! priority_level {
+    ($($alt:expr),* $(,)?) => {
+        $crate::grammar::def::PriorityLevel {
+            alternatives: vec![$($alt),*],
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! syntax_rule {
+    ($head:literal => $($level:expr),* $(,)?) => {
+        $crate::grammar::def::SyntaxRule {
+            head: $crate::grammar::symbols::Nonterminal::new($head),
+            priority_levels: vec![$($level),*],
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! lexical_rule {
+    ($head:literal => $regex:expr) => {
+        $crate::grammar::def::LexicalRule {
+            head: $crate::grammar::symbols::Terminal::with_kind(
+                $head,
+                $crate::grammar::symbols::TerminalKind::Regex,
+            ),
+            regex: $regex,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! grammar_def {
+    (
+        $name:literal,
+        syntax: [$($syntax:expr),* $(,)?]
+        $(, lexical: [$($lexical:expr),* $(,)?])?
+        $(, layout: [$($layout:expr),* $(,)?])?
+        $(,)?
+    ) => {
+        $crate::grammar::def::GrammarDef {
+            name: $name.to_string(),
+            syntax_rules: vec![$($syntax),*],
+            lexical_rules: vec![$($($lexical),*)?],
+            layout_def: vec![$($($layout),*)?],
+        }
+    };
 }

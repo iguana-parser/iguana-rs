@@ -4,7 +4,7 @@ use syn::Ident;
 
 use crate::{
     generator::id::TerminalIds,
-    grammar::{grammar::Grammar, regex::Regex, symbols::Terminal},
+    grammar::{def::Grammar, regex::Regex, symbols::Terminal},
 };
 
 pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {

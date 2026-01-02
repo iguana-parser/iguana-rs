@@ -33,8 +33,8 @@ static NONTERMINAL_IDS: LazyLock<FxHashMap<&str, NonterminalId>> = LazyLock::new
 });
 static TERMINALS: LazyLock<[Terminal; 5]> = LazyLock::new(|| {
     [
-        Terminal::with_kind("Identifier", TerminalKind::Identifier),
-        Terminal::with_kind("WS", TerminalKind::Identifier),
+        Terminal::with_kind("Identifier", TerminalKind::Regex),
+        Terminal::with_kind("WS", TerminalKind::Regex),
         Terminal::with_kind("grammar", TerminalKind::Literal),
         Terminal::with_kind(";", TerminalKind::Literal),
         Terminal::with_kind(":", TerminalKind::Literal),

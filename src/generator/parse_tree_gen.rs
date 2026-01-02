@@ -4,7 +4,7 @@ use syn::Ident;
 
 use crate::{
     generator::{id::{NonterminalIds, SlotIds, TerminalIds}, utils::{alternative_label, to_first_lowercase, to_first_uppercase}},
-    grammar::{grammar::{Alternative, Grammar}, symbols::{Nonterminal, Symbol}}, ids::TerminalId,
+    grammar::{def::{Alternative, Grammar}, symbols::{Definition, Nonterminal, Symbol}}, ids::TerminalId,
 };
 
 pub fn generate(
@@ -40,7 +40,7 @@ pub fn generate(
 
     let nonterminal_types: Vec<_> = grammar
         .nonterminals()
-        .map(|n| gen_nonterminal_type(n, grammar.alternatives(n)))
+        .map(|n| gen_nonterminal_type(grammar, n))
         .collect();
 
     let nonterminal_types_impl: Vec<_> = grammar
@@ -91,9 +91,10 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
 }
 
 fn gen_nonterminal_type(
+    grammar: &Grammar,
     nonterminal: &Nonterminal,
-    alternatives: &[Alternative],
 ) -> TokenStream {
+    let alternatives = grammar.alternatives(nonterminal);
     let nonterminal_name_id = Ident::new(&nonterminal.name, Span::call_site());
     if alternatives.is_empty() {
         todo!("handle empty alternatives")
@@ -103,9 +104,12 @@ fn gen_nonterminal_type(
             .symbols
             .iter()
             .map(|s| match s {
-                Symbol::Terminal(_) => Ident::new("Token", Span::call_site()),
-                Symbol::Nonterminal(n) => {
-                    Ident::new(&to_first_uppercase(&n.name), Span::call_site())
+                Symbol::Identifier(name) => {
+                    let definition = grammar.definition(name).expect(&format!("{name} not defined"));
+                    match definition {
+                        Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
+                        Definition::Nonterminal(_) => Ident::new(&to_first_uppercase(name), Span::call_site()),
+                    }
                 }
                 _ => panic!(),
             })
@@ -123,17 +127,22 @@ fn gen_nonterminal_type(
                     .symbols
                     .iter()
                     .map(|s| match s {
-                        Symbol::Terminal(_) => {
-                            let token = Ident::new("Token", Span::call_site());
-                            quote! { #token }
-                        }
-                        Symbol::Nonterminal(n) => {
-                            if n.name == nonterminal.name {
-                                let name = Ident::new(&n.name, Span::call_site());
-                                quote! { Box<#name> }
-                            } else {
-                                let name = Ident::new(&n.name, Span::call_site());
-                                quote! { #name }
+                        Symbol::Identifier(name) => {
+                            let definition = grammar.definition(name).expect(&format!("{name} not defined"));
+                            match definition {
+                                Definition::Terminal(_) => {
+                                    let token = Ident::new("Token", Span::call_site());
+                                    quote! { #token }
+                                },
+                                Definition::Nonterminal(_) => {
+                                    if *name == nonterminal.name {
+                                        let name = Ident::new(name, Span::call_site());
+                                        quote! { Box<#name> }
+                                    } else {
+                                        let name = Ident::new(name, Span::call_site());
+                                        quote! { #name }
+                                    }
+                                },
                             }
                         }
                         _ => unimplemented!(),
@@ -416,13 +425,18 @@ fn gen_nonterminal_node_method(
                         .symbols
                         .iter()
                         .map(|s| match s {
-                            Symbol::Terminal(_) => {
-                                (Ident::new("unwrap_token", Span::call_site()), false)
-                            }
-                            Symbol::Nonterminal(n) => { 
-                                let ident = format_ident!("unwrap_{}", to_first_lowercase(&n.name));
-                                // Pass true if should be boxed.
-                                (ident, n.name == *nonterminal_name)
+                            Symbol::Identifier(name) => {
+                                let definition = grammar.definition(name).expect(&format!("{name} not defined"));
+                                match definition {
+                                    Definition::Terminal(_) => {
+                                        (Ident::new("unwrap_token", Span::call_site()), false)
+                                    },
+                                    Definition::Nonterminal(_) => { 
+                                        let ident = format_ident!("unwrap_{}", to_first_lowercase(name));
+                                        // Pass true if should be boxed.
+                                        (ident, *name == *nonterminal_name)
+                                    }
+                                }
                             }
                             _ => panic!(),
                         })

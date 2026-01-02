@@ -1,5 +1,5 @@
 pub mod first_follow;
-pub mod grammar;
+pub mod def;
 pub mod regex;
 pub mod slot;
 pub mod symbols;

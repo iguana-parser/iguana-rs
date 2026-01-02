@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-use crate::grammar::grammar::Alternative;
+use crate::grammar::def::Alternative;
 
 pub fn to_first_uppercase(s: &str) -> String {
     let mut chars = s.chars();

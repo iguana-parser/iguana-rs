@@ -2,12 +2,12 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 use iguana::{
+    alternative,
     generator::generate,
     grammar::{
-        grammar::{Alternative, Grammar, GrammarDef, PriorityLevel, SyntaxRule},
-        regex::Regex,
-        symbols::{Nonterminal, Symbol, Terminal},
+        def::Grammar, regex::Regex, symbols::{Terminal, TerminalKind}
     },
+    grammar_def, id, lexical_rule, lit, plus, priority_level, syntax_rule,
 };
 
 #[derive(Parser)]
@@ -35,155 +35,77 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = iggy().into();
+    let grammar = grammar2();
     generate(&grammar, output)?;
     Ok(())
 }
 
+#[allow(dead_code)]
 fn grammar1() -> Grammar {
-    GrammarDef::builder()
-        .name("Test2".to_string())
-        .add_syntax_rule(
-            SyntaxRule::builder()
-                .head(Nonterminal::new("E"))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::nonterminal("E"))
-                                .add_symbol(Symbol::literal("+"))
-                                .add_symbol(Symbol::nonterminal("E"))
-                                .build(),
-                        )
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::literal("a"))
-                                .build(),
-                        )
-                        .build(),
-                )
-                .build(),
-        )
-        .start_symbol(Nonterminal::new("A"))
-        .build()
-        .into()
+    // E ::= E '+' E | 'a'
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("E" => priority_level!(
+                alternative!(id!("E"), lit!("+"), id!("E")),
+                alternative!(lit!("a"))
+            ))
+        ]
+    )
+    .into()
 }
 
-fn grammar() -> Grammar {
-    // A ::= A 'a'
-    // A ::= 'a'
-    GrammarDef::builder()
-        .name("Test2".to_string())
-        .add_syntax_rule(
-            SyntaxRule::builder()
-                .head(Nonterminal::new("A"))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::nonterminal("A"))
-                                .add_symbol(Symbol::literal("a"))
-                                .build(),
-                        )
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::literal("a"))
-                                .build(),
-                        )
-                        .build(),
-                )
-                .build(),
-        )
-        .start_symbol(Nonterminal::new("A"))
-        .build()
-        .into()
+#[allow(dead_code)]
+fn test_grammar() -> Grammar {
+    // A ::= A 'a' | 'a'
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("A" => priority_level!(
+                alternative!(id!("A"), lit!("a")),
+                alternative!(lit!("a"))
+            ))
+        ]
+    )
+    .into()
 }
 
+#[allow(dead_code)]
 fn grammar2() -> Grammar {
     // S -> E
-    // E -> E '+' E
-    // E -> 'a'
+    // E -> E '+' E | 'a'
     // WS -> ' '*
-    GrammarDef::builder()
-        .name("Test2".to_string())
-        .add_syntax_rule(
-            SyntaxRule::builder()
-                .head(Nonterminal::new("S"))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::nonterminal("E"))
-                                .build(),
-                        )
-                        .build(),
-                )
-                .build(),
-        )
-        .add_syntax_rule(
-            SyntaxRule::builder()
-                .head(Nonterminal::new("E"))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::nonterminal("E"))
-                                .add_symbol(Symbol::literal("+"))
-                                .add_symbol(Symbol::nonterminal("E"))
-                                .build(),
-                        )
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::literal("a"))
-                                .build(),
-                        )
-                        .build(),
-                )
-                .build(),
-        )
-        .add_lexical_rule(Terminal::identifier("WS"), Regex::star(Regex::Char(' ')))
-        .add_layout_definition(Terminal::identifier("WS"))
-        .start_symbol(Nonterminal::new("S"))
-        .build()
-        .into()
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => priority_level!(
+                alternative!(id!("E"))
+            )),
+            syntax_rule!("E" => priority_level!(
+                alternative!(id!("E"), lit!("+"), id!("E")),
+                alternative!(lit!("a"))
+            ))
+        ],
+        lexical: [
+            lexical_rule!("WS" => Regex::star(Regex::Char(' ')))
+        ],
+        layout: [
+            Terminal::with_kind("WS", TerminalKind::Regex)
+        ]
+    )
+    .into()
 }
 
+#[allow(dead_code)]
 fn grammar3() -> Grammar {
-    // S : S S S
-    //   | S S
-    //   | b
-    GrammarDef::builder()
-        .name("Test2".to_string())
-        .add_syntax_rule(
-            SyntaxRule::builder()
-                .head(Nonterminal::new("S"))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::nonterminal("S"))
-                                .add_symbol(Symbol::nonterminal("S"))
-                                .add_symbol(Symbol::nonterminal("S"))
-                                .build(),
-                        )
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::nonterminal("S"))
-                                .add_symbol(Symbol::nonterminal("S"))
-                                .build(),
-                        )
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::literal("b"))
-                                .build(),
-                        )
-                        .build(),
-                )
-                .build(),
-        )
-        .start_symbol(Nonterminal::new("S"))
-        .build()
-        .into()
+    // S : S S S | S S | b
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => priority_level!(
+                alternative!(id!("S"), id!("S"), id!("S")),
+                alternative!(id!("S"), id!("S")),
+                alternative!(lit!("b"))
+            ))
+        ]
+    )
+    .into()
 }
 
 // Grammar
@@ -198,83 +120,49 @@ fn grammar3() -> Grammar {
 // WS
 //   : [ \n]*
 //   ;
-fn iggy() -> GrammarDef {
-    GrammarDef::builder()
-        .name("Iggy".to_string())
-        // Grammar : "grammar" Identifier Rule+
-        .add_syntax_rule(
-            SyntaxRule::builder()
-                .head(Nonterminal::new("Grammar"))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::literal("grammar"))
-                                .add_symbol(Symbol::terminal("Identifier"))
-                                .add_symbol(Symbol::Terminal(Terminal::literal(";")))
-                                .add_symbol(Symbol::plus(Symbol::nonterminal("Rule")))
-                                .build(),
-                        )
-                        .build(),
+fn iggy() -> Grammar {
+    grammar_def!("Iggy",
+        syntax: [
+            // Grammar : "grammar" Identifier ";" Rule+
+            syntax_rule!("Grammar" => priority_level!(
+                alternative!(
+                    lit!("grammar"),
+                    id!("Identifier"),
+                    lit!(";"),
+                    plus!(id!("Rule"))
                 )
-                .build(),
-        )
-        // Rule : Identifier ":" Identifier+ ";"
-        .add_syntax_rule(
-            SyntaxRule::builder()
-                .head(Nonterminal::new("Rule"))
-                .add_priority_level(
-                    PriorityLevel::builder()
-                        .add_alternative(
-                            Alternative::builder()
-                                .add_symbol(Symbol::terminal("Identifier"))
-                                .add_symbol(Symbol::literal(":"))
-                                .add_symbol(Symbol::plus(Symbol::terminal("Identifier")))
-                                .add_symbol(Symbol::Terminal(Terminal::literal(";")))
-                                .build(),
-                        )
-                        .build(),
+            )),
+            // Rule : Identifier ":" Identifier+ ";"
+            syntax_rule!("Rule" => priority_level!(
+                alternative!(
+                    id!("Identifier"),
+                    lit!(":"),
+                    plus!(id!("Identifier")),
+                    lit!(";")
                 )
-                .build(),
-        )
-        // regex Identifier : [a-zA-Z_][a-zA-Z_0-9]*
-        .add_lexical_rule(
-            Terminal::identifier("Identifier"),
-            Regex::Seq(vec![
-                Regex::Alt(vec![
-                    Regex::CharRange {
-                        start: 'a',
-                        end: 'z',
-                    },
-                    Regex::CharRange {
-                        start: 'A',
-                        end: 'Z',
-                    },
-                    Regex::Char('_'),
-                ]),
-                Regex::Star(Box::new(Regex::Alt(vec![
-                    Regex::CharRange {
-                        start: 'a',
-                        end: 'z',
-                    },
-                    Regex::CharRange {
-                        start: 'A',
-                        end: 'Z',
-                    },
-                    Regex::CharRange {
-                        start: '0',
-                        end: '9',
-                    },
-                    Regex::Char('_'),
-                ]))),
-            ]),
-        )
-        // WS : [ ]*
-        .add_lexical_rule(
-            Terminal::identifier("WS"),
-            Regex::star(Regex::Alt(vec![Regex::Char(' '), Regex::Char('\n')])),
-        )
-        .add_layout_definition(Terminal::identifier("WS"))
-        .start_symbol(Nonterminal::new("Grammar"))
-        .build()
+            ))
+        ],
+        lexical: [
+            // regex Identifier : [a-zA-Z_][a-zA-Z_0-9]*
+            lexical_rule!("Identifier" => Regex::Seq(vec![
+                    Regex::Alt(vec![
+                        Regex::CharRange { start: 'a', end: 'z' },
+                        Regex::CharRange { start: 'A', end: 'Z' },
+                        Regex::Char('_'),
+                    ]),
+                    Regex::Star(Box::new(Regex::Alt(vec![
+                        Regex::CharRange { start: 'a', end: 'z' },
+                        Regex::CharRange { start: 'A', end: 'Z' },
+                        Regex::CharRange { start: '0', end: '9' },
+                        Regex::Char('_'),
+                    ]))),
+                ])),
+            // WS : [ \n]*
+            lexical_rule!("WS" => Regex::star(Regex::Alt(vec![Regex::Char(' '), Regex::Char('\n')])))
+        ],
+        layout: [
+            Terminal::with_kind("WS", TerminalKind::Regex)
+        ]
+    )
+    .into()
 }

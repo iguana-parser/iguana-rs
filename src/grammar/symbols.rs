@@ -7,9 +7,15 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 
 #[derive(Debug, Clone)]
-pub enum Symbol {
+pub enum Definition {
     Terminal(Terminal),
     Nonterminal(Nonterminal),
+}
+
+#[derive(Debug, Clone)]
+pub enum Symbol {
+    Identifier(String),
+    Literal(String),
     Group(Vec<Symbol>),
     Opt(Box<Symbol>),
     Alt(Vec<Symbol>),
@@ -18,28 +24,19 @@ pub enum Symbol {
 }
 
 impl Symbol {
-    pub fn literal(name: &str) -> Self {
-        Symbol::Terminal(Terminal::literal(name))
+    pub fn literal(name: impl Into<String>) -> Self {
+        Symbol::Literal(name.into())
     }
-    pub fn nonterminal(name: &str) -> Self {
-        Symbol::Nonterminal(Nonterminal::new(name))
-    }
-    pub fn terminal(name: &str) -> Self {
-        Symbol::Terminal(Terminal::identifier(name))
-    }
-    pub fn plus(symbol: Symbol) -> Self {
-        Symbol::Plus(Box::new(symbol))
-    }
-    pub fn star(symbol: Symbol) -> Self {
-        Symbol::Star(Box::new(symbol))
+    pub fn identifier(name: impl Into<String>) -> Self {
+        Symbol::Identifier(name.into())
     }
 }
 
 impl Display for Symbol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Symbol::Terminal(terminal) => write!(f, "{terminal}"),
-            Symbol::Nonterminal(nonterminal) => write!(f, "{nonterminal}"),
+            Symbol::Literal(literal) => write!(f, "\"{literal}\""),
+            Symbol::Identifier(name) => write!(f, "{name}"),
             Symbol::Group(symbols) => write!(f, "({})", symbols.iter().join(" ")),
             Symbol::Opt(opt) => write!(f, "{opt}?"),
             Symbol::Alt(symbols) => write!(f, "({})", symbols.iter().join(" | ")),
@@ -49,10 +46,10 @@ impl Display for Symbol {
     }
 }
 
-/// A terminal represents a reference to a lexical rule.
-/// In the grammar specification, there are two cases where terminals can appear:
-/// - As identifiers in grammar rules, e.g., `identifier`
-/// - As string literals, e.g., `"+"`, `"if"`, `"while"`
+/// A terminal represents a lexical definition.
+/// A terminal can be a literal, representing string literals in the grammar,
+/// e.g., `"+"`, `"if"`, `"while"`, or it can be Regex, which is referred to
+/// by a name in the grammar, e.g., `identifier`, `number`.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct Terminal {
     pub name: String,
@@ -62,34 +59,10 @@ pub struct Terminal {
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub enum TerminalKind {
     Literal,
-    Identifier,
-}
-
-impl quote::ToTokens for TerminalKind {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let variant = match self {
-            Self::Literal => quote!(Literal),
-            Self::Identifier => quote!(Identifier),
-        };
-        tokens.extend(quote!(TerminalKind::#variant));
-    }
+    Regex,
 }
 
 impl Terminal {
-    pub fn literal(lit: &str) -> Self {
-        Self {
-            name: lit.into(),
-            kind: TerminalKind::Literal,
-        }
-    }
-
-    pub fn identifier(name: &str) -> Self {
-        Self {
-            name: name.into(),
-            kind: TerminalKind::Identifier,
-        }
-    }
-
     pub fn with_kind(name: impl Into<String>, kind: TerminalKind) -> Self {
         Self {
             name: name.into(),
@@ -102,8 +75,18 @@ impl Display for Terminal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.kind {
             TerminalKind::Literal => write!(f, "\"{}\"", self.name),
-            TerminalKind::Identifier => write!(f, "{}", self.name),
+            TerminalKind::Regex => write!(f, "{}", self.name),
         }
+    }
+}
+
+impl quote::ToTokens for TerminalKind {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let variant = match self {
+            Self::Literal => quote!(Literal),
+            Self::Regex => quote!(Regex),
+        };
+        tokens.extend(quote!(TerminalKind::#variant));
     }
 }
 
@@ -184,4 +167,53 @@ impl Display for Opt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}?", self.symbol)
     }
+}
+
+#[macro_export]
+macro_rules! id {
+    ($name:expr) => {
+        $crate::grammar::symbols::Symbol::identifier($name)
+    };
+}
+
+#[macro_export]
+macro_rules! lit {
+    ($name:literal) => {
+        $crate::grammar::symbols::Symbol::literal($name)
+    };
+}
+
+#[macro_export]
+macro_rules! alt {
+    ($($symbol:expr),* $(,)?) => {
+        $crate::grammar::symbols::Symbol::Alt(vec![$($symbol),*])
+    };
+}
+
+#[macro_export]
+macro_rules! group {
+    ($($symbol:expr),* $(,)?) => {
+        $crate::grammar::symbols::Symbol::Group(vec![$($symbol),*])
+    };
+}
+
+#[macro_export]
+macro_rules! plus {
+    ($symbol:expr) => {
+        $crate::grammar::symbols::Symbol::Plus(Box::new($symbol))
+    };
+}
+
+#[macro_export]
+macro_rules! star {
+    ($symbol:expr) => {
+        $crate::grammar::symbols::Symbol::Star(Box::new($symbol))
+    };
+}
+
+#[macro_export]
+macro_rules! opt {
+    ($symbol:expr) => {
+        $crate::grammar::symbols::Symbol::Opt(Box::new($symbol))
+    };
 }
