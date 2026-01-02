@@ -4,9 +4,7 @@ use clap::{Parser, Subcommand};
 use iguana::{
     alternative,
     generator::generate,
-    grammar::{
-        def::Grammar, regex::Regex, symbols::{Terminal, TerminalKind}
-    },
+    grammar::{def::Grammar, regex::Regex, symbols::Terminal},
     grammar_def, id, lexical_rule, lit, plus, priority_level, syntax_rule,
 };
 
@@ -87,7 +85,7 @@ fn grammar2() -> Grammar {
             lexical_rule!("WS" => Regex::star(Regex::Char(' ')))
         ],
         layout: [
-            Terminal::with_kind("WS", TerminalKind::Regex)
+            Terminal::new("WS")
         ]
     )
     .into()
@@ -161,7 +159,7 @@ fn iggy() -> Grammar {
             lexical_rule!("WS" => Regex::star(Regex::Alt(vec![Regex::Char(' '), Regex::Char('\n')])))
         ],
         layout: [
-            Terminal::with_kind("WS", TerminalKind::Regex)
+            Terminal::new("WS")
         ]
     )
     .into()

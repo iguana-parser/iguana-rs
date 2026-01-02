@@ -47,46 +47,20 @@ impl Display for Symbol {
 }
 
 /// A terminal represents a lexical definition.
-/// A terminal can be a literal, representing string literals in the grammar,
-/// e.g., `"+"`, `"if"`, `"while"`, or it can be Regex, which is referred to
-/// by a name in the grammar, e.g., `identifier`, `number`.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct Terminal {
     pub name: String,
-    pub kind: TerminalKind,
-}
-
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
-pub enum TerminalKind {
-    Literal,
-    Regex,
 }
 
 impl Terminal {
-    pub fn with_kind(name: impl Into<String>, kind: TerminalKind) -> Self {
-        Self {
-            name: name.into(),
-            kind,
-        }
+    pub fn new(name: impl Into<String>) -> Self {
+        Self { name: name.into() }
     }
 }
 
 impl Display for Terminal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.kind {
-            TerminalKind::Literal => write!(f, "\"{}\"", self.name),
-            TerminalKind::Regex => write!(f, "{}", self.name),
-        }
-    }
-}
-
-impl quote::ToTokens for TerminalKind {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let variant = match self {
-            Self::Literal => quote!(Literal),
-            Self::Regex => quote!(Regex),
-        };
-        tokens.extend(quote!(TerminalKind::#variant));
+        write!(f, "{}", self.name)
     }
 }
 

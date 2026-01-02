@@ -4,7 +4,7 @@ use iguana::trace::TraceEvent;
 use iguana::{
     descriptor::Descriptor,
     grammar::slot::Slot,
-    grammar::symbols::{Nonterminal, NonterminalNodeKind, Terminal, TerminalKind},
+    grammar::symbols::{Nonterminal, NonterminalNodeKind, Terminal},
     gss::GSSNode,
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
@@ -33,11 +33,11 @@ static NONTERMINAL_IDS: LazyLock<FxHashMap<&str, NonterminalId>> = LazyLock::new
 });
 static TERMINALS: LazyLock<[Terminal; 5]> = LazyLock::new(|| {
     [
-        Terminal::with_kind("Identifier", TerminalKind::Regex),
-        Terminal::with_kind("WS", TerminalKind::Regex),
-        Terminal::with_kind("grammar", TerminalKind::Literal),
-        Terminal::with_kind(";", TerminalKind::Literal),
-        Terminal::with_kind(":", TerminalKind::Literal),
+        Terminal::new("Identifier"),
+        Terminal::new("WS"),
+        Terminal::new("grammar"),
+        Terminal::new(";"),
+        Terminal::new(":"),
     ]
 });
 static SLOTS: LazyLock<[Slot; 20]> = LazyLock::new(|| {
@@ -863,4 +863,3 @@ impl<'i> IggyParser<'i> {
         }
     }
 }
-

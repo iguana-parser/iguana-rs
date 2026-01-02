@@ -5,7 +5,7 @@ use itertools::Itertools;
 
 use crate::grammar::{
     regex::Regex,
-    symbols::{Definition, Nonterminal, Symbol, Terminal, TerminalKind},
+    symbols::{Definition, Nonterminal, Symbol, Terminal},
     transformations::{ebnf_to_bnf, transform_rule},
 };
 
@@ -165,6 +165,13 @@ fn create_symbol_table<'a>(
     symbol_table
 }
 
+
+/// Converts string literals (e.g., `"+"`) in syntax rules into terminal references
+/// and generates corresponding lexical rules. Specifically:
+/// 1. Converts each `Symbol::Literal` into a `Symbol::Identifier` referencing a terminal
+/// 2. Creates a lexical rule that matches the literal string exactly
+/// 
+/// The name of the terminal is the same as the string literal.
 fn add_lexical_rules_for_literals(
     syntax_rules: Vec<SyntaxRule>,
     lexical_rules: &mut IndexMap<Terminal, Regex>,
@@ -173,12 +180,12 @@ fn add_lexical_rules_for_literals(
     for rule in syntax_rules {
         let transformed = transform_rule(rule, |s| {
             if let Symbol::Literal(name) = s {
-                let name = format!("\"{}\"", name);
-                let terminal = Terminal::with_kind(name.clone(), TerminalKind::Literal);
+                let terminal_name = format!("\"{}\"", name);
+                let terminal = Terminal::new(terminal_name.clone());
                 if !lexical_rules.contains_key(&terminal) {
                     lexical_rules.insert(terminal, Regex::literal(&name));
                 }
-                Symbol::identifier(name)
+                Symbol::identifier(terminal_name)
             } else {
                 s
             }
@@ -308,10 +315,7 @@ macro_rules! syntax_rule {
 macro_rules! lexical_rule {
     ($head:literal => $regex:expr) => {
         $crate::grammar::def::LexicalRule {
-            head: $crate::grammar::symbols::Terminal::with_kind(
-                $head,
-                $crate::grammar::symbols::TerminalKind::Regex,
-            ),
+            head: $crate::grammar::symbols::Terminal::new($head),
             regex: $regex,
         }
     };
