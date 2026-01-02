@@ -182,6 +182,8 @@
 
   // Parser state
   let currentAction = $state<string | null>(null);
+  // svelte-ignore non_reactive_update
+  let actionBoxEl: HTMLDivElement | null = null;
   let descriptorSet = $state<string[]>([]);
   let callStack = $state<string[]>([]);
   let debugLoaded = $state(false);
@@ -1249,6 +1251,25 @@
   const toggleMaximize = createMaximizeToggle();
 
   function handleKeyDown(e: KeyboardEvent) {
+    // Escape to deselect text and blur active element
+    if (e.key === 'Escape') {
+      window.getSelection()?.removeAllRanges();
+      (document.activeElement as HTMLElement)?.blur();
+      return;
+    }
+
+    // Prevent Cmd+A from selecting all unless in a valid text area
+    if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+      const target = e.target as HTMLElement;
+      // Allow Cmd+A in textareas and inputs
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      // Allow Cmd+A in our custom selectable containers (they have their own handler)
+      if (target.classList.contains('output-content') || target.classList.contains('current-action-box')) return;
+      // Block Cmd+A everywhere else
+      e.preventDefault();
+      return;
+    }
+
     // Only handle keyboard shortcuts when debugging is active
     if (!debugLoaded) return;
 
@@ -1262,6 +1283,21 @@
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       stepForward();
+    }
+  }
+
+  // Handle Cmd+A to select all text within a container only
+  function handleSelectAllInContainer(e: KeyboardEvent, container: HTMLElement | null) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (container) {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(container);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
     }
   }
 </script>
@@ -1518,7 +1554,13 @@
       </div>
 
       <!-- Current Action -->
-      <div class="current-action-box">
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div
+        class="current-action-box"
+        bind:this={actionBoxEl}
+        tabindex="0"
+        onkeydown={(e) => handleSelectAllInContainer(e, actionBoxEl)}
+      >
         {#if currentAction}
           <pre class:match-failed={currentAction.startsWith('Match Failed')}>{currentAction}</pre>
         {:else}
@@ -1717,7 +1759,14 @@
             </button>
           </div>
         </div>
-        <div class="output-content" style="height: {outputPanelHeight}px" bind:this={outputContentEl}>
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+        <div
+          class="output-content"
+          style="height: {outputPanelHeight}px"
+          bind:this={outputContentEl}
+          tabindex="0"
+          onkeydown={(e) => handleSelectAllInContainer(e, outputContentEl)}
+        >
           {#if outputLog.length > 0}
             {#each outputLog as entry}
               <pre class="log-entry {entry.type}">{entry.content}</pre>
@@ -1808,6 +1857,7 @@
     font-size: 14px;
     background: #1e1e1e;
     color: #d4d4d4;
+    user-select: none;  /* Prevent selection of UI elements */
   }
 
   /* Middle Area (activity bar + content) */
@@ -2140,6 +2190,7 @@
     display: flex;
     flex-direction: row;
     min-height: 0;
+    user-select: none;  /* Contain selection within debug layout */
   }
 
   .debug-column {
@@ -2147,6 +2198,7 @@
     flex-direction: column;
     background: #252526;
     border-right: 1px solid #3c3c3c;
+    user-select: none;  /* Contain selection within columns */
   }
 
   .debug-column:last-child {
@@ -2186,12 +2238,15 @@
     min-height: 0;  /* Allow grid to control size */
     border-bottom: none;
     overflow: auto;
+    user-select: none;  /* Contain selection */
   }
 
   .debug-col-stack .pending-descriptors {
     min-height: 0;  /* Allow grid to control size */
     overflow: auto;
+    user-select: none;  /* Contain selection */
   }
+
 
   .debug-col-stack .section-content {
     flex: 1;
@@ -2205,6 +2260,11 @@
     font-size: 13px;
     min-height: 0;  /* Allow grid to control size */
     overflow: auto;
+    user-select: text;
+  }
+
+  .current-action-box:focus {
+    outline: none;
   }
 
   .current-action-box pre {
@@ -2376,6 +2436,7 @@
   .input-section {
     flex: 1;
     min-height: 100px;
+    user-select: none;  /* Contain selection - allow only in textarea/input-viewer */
   }
 
   .input-section textarea {
@@ -2388,6 +2449,7 @@
     padding: 8px;
     font-family: "Fira Code", "Consolas", monospace;
     font-size: 13px;
+    user-select: text !important;  /* Allow text selection in textarea */
   }
 
   .input-section textarea:focus {
@@ -2405,6 +2467,13 @@
     overflow: auto;
     white-space: pre-wrap;
     word-break: break-all;
+    user-select: text !important;  /* Allow text selection in input viewer */
+  }
+
+  /* Debug mode specific - ensure text selection works */
+  .debug-col-input .input-section textarea,
+  .debug-col-input .input-section .input-viewer {
+    user-select: text !important;
   }
 
   .input-char {
@@ -2640,6 +2709,7 @@
     font-family: "Fira Code", "Consolas", monospace;
     font-size: 12px;
     cursor: default;
+    user-select: none;
   }
 
   .stack-frame:hover {
@@ -2713,6 +2783,7 @@
     z-index: 100;
     display: flex;
     flex-direction: column;
+    user-select: none;  /* Contain selection within overlay */
   }
 
   /* Output Panel */
@@ -2769,6 +2840,17 @@
     overflow: auto;
     font-family: "Fira Code", "Consolas", monospace;
     font-size: 12px;
+    background: #1e1e1e;
+    user-select: text;
+  }
+
+  .output-content:focus {
+    outline: none;
+  }
+
+  .output-content .placeholder {
+    color: #666;
+    font-style: italic;
   }
 
   .log-entry {
