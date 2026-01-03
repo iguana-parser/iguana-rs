@@ -1,10 +1,13 @@
-use crate::scanner::IggyScanner;
+use crate::{
+    scanner::IggyScanner,
+    types::{EbnfKind, Nonterminal},
+};
 #[cfg(feature = "debug-trace")]
 use iguana::trace::TraceEvent;
 use iguana::{
     descriptor::Descriptor,
     grammar::slot::Slot,
-    grammar::symbols::{Nonterminal, Symbol, Terminal},
+    grammar::symbols::Terminal,
     gss::GSSNode,
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
@@ -16,20 +19,28 @@ use iguana::{
 };
 use rustc_hash::FxHashMap;
 use std::{cell::OnceCell, sync::LazyLock};
-static NONTERMINALS: LazyLock<[Nonterminal; 4]> = LazyLock::new(|| {
-    [
-        Nonterminal::new("Grammar"),
-        Nonterminal::new("Rule"),
-        Nonterminal::with_origin(
-            "Grammar_Plus0",
-            Symbol::Plus(Box::new(Symbol::Identifier("Rule".to_string()))),
-        ),
-        Nonterminal::with_origin(
-            "Rule_Plus1",
-            Symbol::Plus(Box::new(Symbol::Identifier("Identifier".to_string()))),
-        ),
-    ]
-});
+pub static NONTERMINALS: [Nonterminal; 4] = [
+    Nonterminal {
+        name: "Grammar",
+        display: "Grammar",
+        kind: None,
+    },
+    Nonterminal {
+        name: "Rule",
+        display: "Rule",
+        kind: None,
+    },
+    Nonterminal {
+        name: "Grammar_Plus0",
+        display: "Rule*",
+        kind: Some(EbnfKind::Plus),
+    },
+    Nonterminal {
+        name: "Rule_Plus1",
+        display: "Identifier*",
+        kind: Some(EbnfKind::Plus),
+    },
+];
 static NONTERMINAL_IDS: LazyLock<FxHashMap<&str, NonterminalId>> = LazyLock::new(|| {
     NONTERMINALS
         .iter()
@@ -71,14 +82,11 @@ static SLOTS: LazyLock<[Slot; 20]> = LazyLock::new(|| {
     ]
 });
 impl<'i> Parser<'i> for IggyParser<'i> {
-    fn nonterminal(nonterminal_id: NonterminalId) -> &'static Nonterminal {
-        &NONTERMINALS[nonterminal_id.index()]
+    fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
+        &NONTERMINALS[nonterminal_id.index()].display
     }
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         NONTERMINAL_IDS.get(name).copied()
-    }
-    fn nonterminals() -> impl Iterator<Item = &'static Nonterminal> {
-        NONTERMINALS.iter()
     }
     fn terminal(terminal_id: TerminalId) -> &'static Terminal {
         &TERMINALS[terminal_id.index()]

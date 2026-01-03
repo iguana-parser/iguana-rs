@@ -1,12 +1,11 @@
 use clap::Parser as ClapParser;
 use iggy::{
     parse_tree::{IggyParseTreeBuilder, create_parse_tree, to_sexpr},
-    parser::IggyParser,
+    parser::{IggyParser, NONTERMINALS},
 };
 #[cfg(feature = "debug-trace")]
 use iguana::trace::TraceEvent;
 use iguana::{
-    grammar::symbols::NonterminalNodeKind,
     input::Input,
     parser::{ParseResult, Parser},
     visualization::{
@@ -76,17 +75,15 @@ fn main() -> Result<(), io::Error> {
     let _profiler = dhat::Profiler::new_heap();
     let cli = Cli::parse();
     if cli.list_nonterminals {
-        for nt in IggyParser::nonterminals() {
-            if !nt.is_derived() {
+        for nt in NONTERMINALS.iter() {
+            if !nt.is_ebnf() {
                 println!("{}", nt.name);
             }
         }
         return Ok(());
     }
     if let Some(ref path) = cli.write_symbols {
-        let nonterminals: Vec<&str> = IggyParser::nonterminals()
-            .map(|nt| nt.name.as_str())
-            .collect();
+        let nonterminals: Vec<&str> = NONTERMINALS.iter().map(|nt| nt.display).collect();
         let terminals: Vec<&str> = IggyParser::terminals().map(|t| t.name.as_str()).collect();
         let slots: Vec<&str> = IggyParser::slots().map(|s| s.name.as_str()).collect();
         let symbols = serde_json::json!(

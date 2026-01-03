@@ -79,30 +79,6 @@ impl Display for Terminal {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Serialize, Deserialize, Type)]
-pub enum NonterminalNodeKind {
-    Simple,
-    Star,
-    Plus,
-    Opt,
-    Group,
-    Alt,
-}
-
-impl quote::ToTokens for NonterminalNodeKind {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let variant = match self {
-            Self::Simple => quote!(Simple),
-            Self::Star => quote!(Star),
-            Self::Plus => quote!(Plus),
-            Self::Opt => quote!(Opt),
-            Self::Group => quote!(Group),
-            Self::Alt => quote!(Alt),
-        };
-        tokens.extend(quote!(NonterminalNodeKind::#variant));
-    }
-}
-
 /// The `name` uniquely identifies the nonterminal in the grammar.
 /// Origin tracks how the nonterminal is created, e.g., from EBNF to BNF conversion.
 /// If origin is None, it's not a derived nonterminal

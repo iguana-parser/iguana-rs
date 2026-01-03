@@ -30,9 +30,8 @@ pub fn generate(
     let first_descriptors = gen_add_first_descriptors_method(grammar, nonterminal_ids, slot_ids);
     let terminals = gen_terminals(terminal_ids);
     let slots = gen_slots(slot_ids);
-    let nonterminal_method = gen_nonterminal_method();
+    let nonterminal_display_name_method = gen_nonterminal_display_name_method();
     let nonterminal_id_method = gen_nonterminal_id_method();
-    let nonterminals_method = gen_nonterminals_method();
     let terminal_method = gen_terminal_method();
     let terminals_method = gen_terminals_method();
     let slot_method = gen_slot_method();
@@ -72,9 +71,8 @@ pub fn generate(
         #terminals
         #slots
         impl<'i> Parser<'i> for #grammar_name_ident<'i> {
-            #nonterminal_method
+            #nonterminal_display_name_method
             #nonterminal_id_method
-            #nonterminals_method
             #terminal_method
             #terminals_method
             #slot_method
@@ -115,11 +113,12 @@ pub fn generate(
 fn gen_imports(grammar: &Grammar) -> TokenStream {
     let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&grammar.name));
     quote! {
+        use crate::{scanner::#scanner_name, types::{EbnfKind, Nonterminal}};
         use std::{cell::OnceCell, sync::LazyLock};
         use iguana::{
             descriptor::Descriptor,
             grammar::slot::Slot,
-            grammar::symbols::{Nonterminal, Symbol, Terminal},
+            grammar::symbols::Terminal,
             gss::GSSNode,
             ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
             input::Input,
@@ -131,7 +130,6 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         };
         #[cfg(feature = "debug-trace")]
         use iguana::trace::TraceEvent;
-        use crate::scanner::#scanner_name;
         use rustc_hash::FxHashMap;
     }
 }
@@ -192,15 +190,29 @@ fn gen_nonterminals(nonterminal_ids: &NonterminalIds) -> TokenStream {
     let nonterminals_len = Literal::usize_unsuffixed(nonterminal_ids.len());
     let nonterminal_names = nonterminal_ids.nonterminals().map(|n| {
         let nonterminal_name = &n.name;
+        let display_name = n.display_name();
         let origin = &n.origin;
-        if origin.is_none() {
-            quote! { Nonterminal::new(#nonterminal_name) }
-        } else {
-            quote! { Nonterminal::with_origin(#nonterminal_name, #origin) }
+        let nonterminal_kind = match origin {
+            Some(s) => match s {
+                Symbol::Group(_) => quote! { Some(EbnfKind::Group) },
+                Symbol::Opt(_) => quote! { Some(EbnfKind::Opt) },
+                Symbol::Alt(_) => quote! { Some(EbnfKind::Alt) },
+                Symbol::Star(_) => quote! { Some(EbnfKind::Star) },
+                Symbol::Plus(_) => quote! { Some(EbnfKind::Plus) },
+                _ => quote! { None },
+            },
+            None => quote! { None },
+        };
+        quote! {
+            Nonterminal {
+                name: #nonterminal_name,
+                display: #display_name,
+                kind: #nonterminal_kind,
+            }
         }
     });
     quote! {
-        static NONTERMINALS: LazyLock<[Nonterminal; #nonterminals_len]> = LazyLock::new(|| [#(#nonterminal_names),*]);
+        pub static NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminal_names),*];
     }
 }
 
@@ -449,18 +461,10 @@ fn gen_nonterminal_slot(
     }
 }
 
-fn gen_nonterminal_method() -> TokenStream {
+fn gen_nonterminal_display_name_method() -> TokenStream {
     quote! {
-        fn nonterminal(nonterminal_id: NonterminalId) -> &'static Nonterminal {
-            &NONTERMINALS[nonterminal_id.index()]
-        }
-    }
-}
-
-fn gen_nonterminals_method() -> TokenStream {
-    quote! {
-        fn nonterminals() -> impl Iterator<Item = &'static Nonterminal> {
-            NONTERMINALS.iter()
+        fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
+            &NONTERMINALS[nonterminal_id.index()].display
         }
     }
 }

@@ -16,14 +16,13 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
         use clap::Parser as ClapParser;
         use iguana::{
-            grammar::symbols::NonterminalNodeKind,
             input::Input,
             parser::{ParseResult, Parser},
             visualization::{dot::write_svg, gss::{build_gss_dot_graph, render_gss}, sppf::{build_sppf_graph, write_sppf_dot}},
         };
         use #grammar_name::{
             parse_tree::{#parse_tree_builder, create_parse_tree, to_sexpr},
-            parser::#parser,
+            parser::{#parser, NONTERMINALS},
         };
 
         #[cfg(feature = "debug-trace")]
@@ -101,8 +100,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             // Handle --list-nonterminals: output simple nonterminals and exit
             if cli.list_nonterminals {
-                for nt in #parser::nonterminals() {
-                    if !nt.is_derived() {
+                for nt in NONTERMINALS.iter() {
+                    if !nt.is_ebnf() {
                         println!("{}", nt.name);
                     }
                 }
@@ -111,9 +110,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             // Handle --write-symbols: write all nonterminals, terminals, and slots as JSON and exit
             if let Some(ref path) = cli.write_symbols {
-                let nonterminals: Vec<&str> = #parser::nonterminals()
-                    .map(|nt| nt.name.as_str())
-                    .collect();
+                let nonterminals: Vec<&str> = NONTERMINALS.iter().map(|nt| nt.display).collect();
                 let terminals: Vec<&str> = #parser::terminals()
                     .map(|t| t.name.as_str())
                     .collect();

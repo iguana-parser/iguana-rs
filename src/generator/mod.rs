@@ -17,6 +17,7 @@ mod main_gen;
 mod parse_tree_gen;
 mod parser_gen;
 mod scanner_gen;
+mod types_gen;
 mod utils;
 
 enum FileFormat {
@@ -50,7 +51,7 @@ pub fn generate(grammar: &Grammar, output_dir: &Path) -> std::io::Result<()> {
         fs::create_dir(&src_dir)?;
     }
     write_file(
-        lib_gen::generate(),
+        to_string(lib_gen::generate()),
         &src_dir.join("lib.rs"),
         FileFormat::Rust,
     )?;
@@ -78,6 +79,13 @@ pub fn generate(grammar: &Grammar, output_dir: &Path) -> std::io::Result<()> {
     write_file(
         to_string(parse_tree_code),
         &src_dir.join("parse_tree.rs"),
+        FileFormat::Rust,
+    )?;
+
+    let types_code = types_gen::generate();
+    write_file(
+        to_string(types_code),
+        &src_dir.join("types.rs"),
         FileFormat::Rust,
     )?;
 

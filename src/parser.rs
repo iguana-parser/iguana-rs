@@ -5,7 +5,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     descriptor::Descriptor,
     grammar::slot::Slot,
-    grammar::symbols::{Nonterminal, Terminal},
+    grammar::symbols::Terminal,
     gss::{EdgeResult, GSSEdge, GSSNode},
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
@@ -28,13 +28,12 @@ pub struct ParseSuccess {
 }
 
 pub trait Parser<'i> {
-    fn nonterminal(nonterminal_id: NonterminalId) -> &'static Nonterminal;
+    fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str;
     fn nonterminal_id(name: &str) -> Option<NonterminalId>;
     fn terminal(terminal_id: TerminalId) -> &'static Terminal;
     fn terminals() -> impl Iterator<Item = &'static Terminal>;
     fn slot(slot_id: SlotId) -> &'static Slot;
     fn slots() -> impl Iterator<Item = &'static Slot>;
-    fn nonterminals() -> impl Iterator<Item = &'static Nonterminal>;
     fn execute(
         &mut self,
         input_index: u32,
@@ -246,7 +245,7 @@ pub trait Parser<'i> {
         let gss_node = self.gss_node(gss_node_id);
         format!(
             "({},{})",
-            Self::nonterminal(gss_node.nonterminal_id),
+            Self::nonterminal_display_name(gss_node.nonterminal_id),
             gss_node.index
         )
     }
@@ -263,7 +262,7 @@ pub trait Parser<'i> {
             }
             SPPFNode::Nonterminal(n) => format!(
                 "({}, {}, {})",
-                Self::nonterminal(n.nonterminal_id),
+                Self::nonterminal_display_name(n.nonterminal_id),
                 n.span.left_extent,
                 n.span.right_extent
             ),
