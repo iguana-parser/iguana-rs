@@ -105,7 +105,7 @@ fn gen_nonterminal_type(
             .iter()
             .map(|s| match s {
                 Symbol::Identifier(name) => {
-                    let definition = grammar.definition(name).expect(&format!("{name} not defined"));
+                    let definition = grammar.definition(name).unwrap_or_else(|| panic!("{name} not defined"));
                     match definition {
                         Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
                         Definition::Nonterminal(_) => Ident::new(&to_first_uppercase(name), Span::call_site()),
@@ -128,7 +128,7 @@ fn gen_nonterminal_type(
                     .iter()
                     .map(|s| match s {
                         Symbol::Identifier(name) => {
-                            let definition = grammar.definition(name).expect(&format!("{name} not defined"));
+                            let definition = grammar.definition(name).unwrap_or_else(|| panic!("{name} not defined"));
                             match definition {
                                 Definition::Terminal(_) => {
                                     let token = Ident::new("Token", Span::call_site());
@@ -426,7 +426,7 @@ fn gen_nonterminal_node_method(
                         .iter()
                         .map(|s| match s {
                             Symbol::Identifier(name) => {
-                                let definition = grammar.definition(name).expect(&format!("{name} not defined"));
+                                let definition = grammar.definition(name).unwrap_or_else(|| panic!("{name} not defined"));
                                 match definition {
                                     Definition::Terminal(_) => {
                                         (Ident::new("unwrap_token", Span::call_site()), false)

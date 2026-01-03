@@ -77,7 +77,7 @@ fn main() -> Result<(), io::Error> {
     let cli = Cli::parse();
     if cli.list_nonterminals {
         for nt in IggyParser::nonterminals() {
-            if nt.kind == NonterminalNodeKind::Simple {
+            if !nt.is_derived() {
                 println!("{}", nt.name);
             }
         }

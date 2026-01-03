@@ -12,7 +12,7 @@ pub enum Definition {
     Nonterminal(Nonterminal),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum Symbol {
     Identifier(String),
     Literal(String),
@@ -43,6 +43,21 @@ impl Display for Symbol {
             Symbol::Star(symbol) => write!(f, "{symbol}*"),
             Symbol::Plus(symbol) => write!(f, "{symbol}*"),
         }
+    }
+}
+
+impl quote::ToTokens for Symbol {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let ts = match self {
+            Symbol::Identifier(s) => quote! { Symbol::Identifier(#s.to_string()) },
+            Symbol::Literal(s) => quote! { Symbol::Literal(#s.to_string()) },
+            Symbol::Group(syms) => quote! { Symbol::Group(vec![#(#syms),*]) },
+            Symbol::Alt(syms) => quote! { Symbol::Alt(vec![#(#syms),*]) },
+            Symbol::Opt(s) => quote! { Symbol::Opt(Box::new(#s)) },
+            Symbol::Star(s) => quote! { Symbol::Star(Box::new(#s)) },
+            Symbol::Plus(s) => quote! { Symbol::Plus(Box::new(#s)) },
+        };
+        tokens.extend(ts);
     }
 }
 
@@ -89,25 +104,37 @@ impl quote::ToTokens for NonterminalNodeKind {
 }
 
 /// The `name` uniquely identifies the nonterminal in the grammar.
-/// `kind` has information on how this nonterminal was derived (e.g., from EBNF transformations).
+/// Origin tracks how the nonterminal is created, e.g., from EBNF to BNF conversion.
+/// If origin is None, it's not a derived nonterminal
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct Nonterminal {
     pub name: String,
-    pub kind: NonterminalNodeKind,
+    pub origin: Option<Symbol>,
 }
 
 impl Nonterminal {
     pub fn new(name: impl Into<String>) -> Self {
         Self {
             name: name.into(),
-            kind: NonterminalNodeKind::Simple,
+            origin: None,
         }
     }
 
-    pub fn with_kind(name: impl Into<String>, kind: NonterminalNodeKind) -> Self {
+    pub fn with_origin(name: impl Into<String>, origin: Symbol) -> Self {
         Self {
             name: name.into(),
-            kind,
+            origin: Some(origin),
+        }
+    }
+
+    pub fn is_derived(&self) -> bool {
+        self.origin.is_some()
+    }
+
+    pub fn display_name(&self) -> String {
+        match &self.origin {
+            Some(symbol) => symbol.to_string(),
+            None => self.name.clone(),
         }
     }
 }

@@ -4,7 +4,7 @@ use iguana::trace::TraceEvent;
 use iguana::{
     descriptor::Descriptor,
     grammar::slot::Slot,
-    grammar::symbols::{Nonterminal, NonterminalNodeKind, Terminal},
+    grammar::symbols::{Nonterminal, Symbol, Terminal},
     gss::GSSNode,
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
@@ -18,10 +18,16 @@ use rustc_hash::FxHashMap;
 use std::{cell::OnceCell, sync::LazyLock};
 static NONTERMINALS: LazyLock<[Nonterminal; 4]> = LazyLock::new(|| {
     [
-        Nonterminal::with_kind("Grammar", NonterminalNodeKind::Simple),
-        Nonterminal::with_kind("Rule", NonterminalNodeKind::Simple),
-        Nonterminal::with_kind("Grammar_Plus0", NonterminalNodeKind::Plus),
-        Nonterminal::with_kind("Rule_Plus1", NonterminalNodeKind::Plus),
+        Nonterminal::new("Grammar"),
+        Nonterminal::new("Rule"),
+        Nonterminal::with_origin(
+            "Grammar_Plus0",
+            Symbol::Plus(Box::new(Symbol::Identifier("Rule".to_string()))),
+        ),
+        Nonterminal::with_origin(
+            "Rule_Plus1",
+            Symbol::Plus(Box::new(Symbol::Identifier("Identifier".to_string()))),
+        ),
     ]
 });
 static NONTERMINAL_IDS: LazyLock<FxHashMap<&str, NonterminalId>> = LazyLock::new(|| {

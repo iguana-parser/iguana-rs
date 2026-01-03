@@ -119,7 +119,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         use iguana::{
             descriptor::Descriptor,
             grammar::slot::Slot,
-            grammar::symbols::{Nonterminal, NonterminalNodeKind, Terminal},
+            grammar::symbols::{Nonterminal, Symbol, Terminal},
             gss::GSSNode,
             ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
             input::Input,
@@ -192,8 +192,12 @@ fn gen_nonterminals(nonterminal_ids: &NonterminalIds) -> TokenStream {
     let nonterminals_len = Literal::usize_unsuffixed(nonterminal_ids.len());
     let nonterminal_names = nonterminal_ids.nonterminals().map(|n| {
         let nonterminal_name = &n.name;
-        let kind = &n.kind;
-        quote! { Nonterminal::with_kind(#nonterminal_name, #kind) }
+        let origin = &n.origin;
+        if origin.is_none() {
+            quote! { Nonterminal::new(#nonterminal_name) }
+        } else {
+            quote! { Nonterminal::with_origin(#nonterminal_name, #origin) }
+        }
     });
     quote! {
         static NONTERMINALS: LazyLock<[Nonterminal; #nonterminals_len]> = LazyLock::new(|| [#(#nonterminal_names),*]);

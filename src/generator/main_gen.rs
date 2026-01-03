@@ -102,7 +102,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             // Handle --list-nonterminals: output simple nonterminals and exit
             if cli.list_nonterminals {
                 for nt in #parser::nonterminals() {
-                    if nt.kind == NonterminalNodeKind::Simple {
+                    if !nt.is_derived() {
                         println!("{}", nt.name);
                     }
                 }

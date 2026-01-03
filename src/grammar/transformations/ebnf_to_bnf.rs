@@ -2,7 +2,7 @@ use crate::{
     alternative,
     grammar::{
         def::{Alternative, PriorityLevel, SyntaxRule},
-        symbols::{Nonterminal, NonterminalNodeKind, Symbol},
+        symbols::{Nonterminal, Symbol},
         transformations::transform_rule,
     },
     priority_level,
@@ -80,12 +80,13 @@ fn rewrite_ebnf_symbol(
     counters: &mut Counters,
     new_rules: &mut Vec<SyntaxRule>,
 ) -> Symbol {
+    let def = symbol.clone();
     match symbol {
         // Transform (A B C) into: S_Group0 ::= A B C
         Symbol::Group(symbols) => {
             let name = counters.next_group(parent_name);
             let new_rule = SyntaxRule {
-                head: Nonterminal::with_kind(&name, NonterminalNodeKind::Group),
+                head: Nonterminal::with_origin(&name, def),
                 priority_levels: vec![priority_level!(Alternative::new(symbols))],
             };
             new_rules.push(new_rule);
@@ -96,7 +97,7 @@ fn rewrite_ebnf_symbol(
             let name = counters.next_opt(parent_name);
             let transformed_symbol = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules);
             let new_rule = SyntaxRule {
-                head: Nonterminal::with_kind(&name, NonterminalNodeKind::Opt),
+                head: Nonterminal::with_origin(&name, def),
                 priority_levels: vec![priority_level!(
                     alternative!(transformed_symbol),
                     Alternative::empty()
@@ -117,7 +118,7 @@ fn rewrite_ebnf_symbol(
                 .map(|s| alternative!(s))
                 .collect();
             let new_rule = SyntaxRule {
-                head: Nonterminal::with_kind(&name, NonterminalNodeKind::Alt),
+                head: Nonterminal::with_origin(&name, def),
                 priority_levels: vec![PriorityLevel::new(alternatives)],
             };
             new_rules.push(new_rule);
@@ -128,7 +129,7 @@ fn rewrite_ebnf_symbol(
             let name = counters.next_star(parent_name);
             let transformed_symbol = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules);
             let new_rule = SyntaxRule {
-                head: Nonterminal::with_kind(&name, NonterminalNodeKind::Star),
+                head: Nonterminal::with_origin(&name, def),
                 priority_levels: vec![priority_level!(
                     alternative!(Symbol::Identifier(name.clone()), transformed_symbol),
                     Alternative::empty()
@@ -142,7 +143,7 @@ fn rewrite_ebnf_symbol(
             let name = counters.next_plus(parent_name);
             let transformed_symbol = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules);
             let new_rule = SyntaxRule {
-                head: Nonterminal::with_kind(&name, NonterminalNodeKind::Plus),
+                head: Nonterminal::with_origin(&name, def),
                 priority_levels: vec![priority_level!(
                     alternative!(Symbol::Identifier(name.clone()), transformed_symbol.clone()),
                     alternative!(transformed_symbol)
