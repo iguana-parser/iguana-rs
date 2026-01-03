@@ -17,9 +17,10 @@ use iguana::{
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
     utils::inline_map::InlineMap,
 };
+use phf::phf_map;
 use rustc_hash::FxHashMap;
 use std::{cell::OnceCell, sync::LazyLock};
-pub static NONTERMINALS: [Nonterminal; 4] = [
+pub const NONTERMINALS: [Nonterminal; 4] = [
     Nonterminal {
         name: "Grammar",
         display: "Grammar",
@@ -32,22 +33,19 @@ pub static NONTERMINALS: [Nonterminal; 4] = [
     },
     Nonterminal {
         name: "Grammar_Plus0",
-        display: "Rule*",
+        display: "Rule+",
         kind: Some(EbnfKind::Plus),
     },
     Nonterminal {
         name: "Rule_Plus1",
-        display: "Identifier*",
+        display: "Identifier+",
         kind: Some(EbnfKind::Plus),
     },
 ];
-static NONTERMINAL_IDS: LazyLock<FxHashMap<&str, NonterminalId>> = LazyLock::new(|| {
-    NONTERMINALS
-        .iter()
-        .enumerate()
-        .map(|(i, nt)| (nt.name.as_ref(), NonterminalId(i as u16)))
-        .collect()
-});
+static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
+    "Grammar" => NonterminalId(0), "Rule" => NonterminalId(1), "Rule+" =>
+    NonterminalId(2), "Identifier+" => NonterminalId(3)
+};
 static TERMINALS: LazyLock<[Terminal; 5]> = LazyLock::new(|| {
     [
         Terminal::new("Identifier"),
@@ -83,7 +81,7 @@ static SLOTS: LazyLock<[Slot; 20]> = LazyLock::new(|| {
 });
 impl<'i> Parser<'i> for IggyParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
-        &NONTERMINALS[nonterminal_id.index()].display
+        NONTERMINALS[nonterminal_id.index()].display
     }
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         NONTERMINAL_IDS.get(name).copied()

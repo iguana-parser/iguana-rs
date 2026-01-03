@@ -41,7 +41,7 @@ impl Display for Symbol {
             Symbol::Opt(opt) => write!(f, "{opt}?"),
             Symbol::Alt(symbols) => write!(f, "({})", symbols.iter().join(" | ")),
             Symbol::Star(symbol) => write!(f, "{symbol}*"),
-            Symbol::Plus(symbol) => write!(f, "{symbol}*"),
+            Symbol::Plus(symbol) => write!(f, "{symbol}+"),
         }
     }
 }

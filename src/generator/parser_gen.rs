@@ -25,7 +25,7 @@ pub fn generate(
     let grammar_name = &grammar.name;
     let imports = gen_imports(grammar);
     let nonterminals = gen_nonterminals(nonterminal_ids);
-    let nonterminal_ids_static_var = gen_nonterminal_ids();
+    let nonterminal_ids_static_var = gen_nonterminal_ids(nonterminal_ids);
     let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids);
     let first_descriptors = gen_add_first_descriptors_method(grammar, nonterminal_ids, slot_ids);
     let terminals = gen_terminals(terminal_ids);
@@ -131,6 +131,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         #[cfg(feature = "debug-trace")]
         use iguana::trace::TraceEvent;
         use rustc_hash::FxHashMap;
+        use phf::phf_map;
     }
 }
 
@@ -188,7 +189,7 @@ fn gen_add_first_descriptors_method(
 
 fn gen_nonterminals(nonterminal_ids: &NonterminalIds) -> TokenStream {
     let nonterminals_len = Literal::usize_unsuffixed(nonterminal_ids.len());
-    let nonterminal_names = nonterminal_ids.nonterminals().map(|n| {
+    let nonterminals = nonterminal_ids.nonterminals().map(|n| {
         let nonterminal_name = &n.name;
         let display_name = n.display_name();
         let origin = &n.origin;
@@ -212,19 +213,24 @@ fn gen_nonterminals(nonterminal_ids: &NonterminalIds) -> TokenStream {
         }
     });
     quote! {
-        pub static NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminal_names),*];
+        pub const NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminals),*];
     }
 }
 
-fn gen_nonterminal_ids() -> TokenStream {
+fn gen_nonterminal_ids(nonterminal_ids: &NonterminalIds) -> TokenStream {
+    let nonterminal_name_to_ids: Vec<_> = nonterminal_ids
+        .nonterminals()
+        .enumerate()
+        .map(|(i, n)| {
+            let display_name = n.display_name();
+            let index = Literal::usize_unsuffixed(i);
+            quote! { #display_name => NonterminalId(#index) }
+        })
+        .collect();
     quote! {
-        static NONTERMINAL_IDS: LazyLock<FxHashMap<&str, NonterminalId>> = LazyLock::new(|| {
-            NONTERMINALS
-                .iter()
-                .enumerate()
-                .map(|(i, nt)| (nt.name.as_ref(), NonterminalId(i as u16)))
-                .collect()
-        });
+        static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
+            #(#nonterminal_name_to_ids),*
+        };
     }
 }
 
@@ -464,7 +470,7 @@ fn gen_nonterminal_slot(
 fn gen_nonterminal_display_name_method() -> TokenStream {
     quote! {
         fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
-            &NONTERMINALS[nonterminal_id.index()].display
+            NONTERMINALS[nonterminal_id.index()].display
         }
     }
 }
