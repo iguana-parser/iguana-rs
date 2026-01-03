@@ -5,6 +5,85 @@ type Stylesheet = any;
 type ElementDefinition = any;
 type Core = cytoscape.Core;
 
+// Label truncation constants
+export const LABEL_MAX_LENGTH = 20;           // Default for terminals/nonterminals
+export const INTERMEDIATE_MAX_LENGTH = 30;    // Longer for intermediate nodes (grammar slots)
+
+export function truncateLabel(label: string, maxLen: number = LABEL_MAX_LENGTH): string {
+  if (label.length <= maxLen) return label;
+  return label.substring(0, maxLen - 3) + "...";
+}
+
+// Tooltip management for graph nodes
+export function setupGraphTooltip(
+  cy: Core,
+  container: HTMLElement
+): () => void {
+  // Create tooltip element
+  const tooltip = document.createElement("div");
+  tooltip.className = "graph-tooltip";
+  tooltip.style.cssText = `
+    position: fixed;
+    background: #252526;
+    border: 1px solid #454545;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    color: #d4d4d4;
+    pointer-events: none;
+    z-index: 10000;
+    display: none;
+    max-width: 400px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  `;
+  document.body.appendChild(tooltip);
+
+  const showTooltip = (event: cytoscape.EventObject) => {
+    const node = event.target;
+    const fullLabel = node.data("fullLabel");
+    const label = node.data("label");
+
+    // Only show tooltip if label was truncated
+    if (!fullLabel || fullLabel === label) return;
+
+    tooltip.textContent = fullLabel;
+    tooltip.style.display = "block";
+
+    // Position near cursor
+    const renderedPos = event.renderedPosition || event.position;
+    const containerRect = container.getBoundingClientRect();
+    tooltip.style.left = `${containerRect.left + renderedPos.x + 15}px`;
+    tooltip.style.top = `${containerRect.top + renderedPos.y + 15}px`;
+  };
+
+  const hideTooltip = () => {
+    tooltip.style.display = "none";
+  };
+
+  const moveTooltip = (event: cytoscape.EventObject) => {
+    if (tooltip.style.display === "none") return;
+    const renderedPos = event.renderedPosition || event.position;
+    const containerRect = container.getBoundingClientRect();
+    tooltip.style.left = `${containerRect.left + renderedPos.x + 15}px`;
+    tooltip.style.top = `${containerRect.top + renderedPos.y + 15}px`;
+  };
+
+  cy.on("mouseover", "node", showTooltip);
+  cy.on("mouseout", "node", hideTooltip);
+  cy.on("mousemove", "node", moveTooltip);
+
+  // Return cleanup function
+  return () => {
+    cy.off("mouseover", "node", showTooltip);
+    cy.off("mouseout", "node", hideTooltip);
+    cy.off("mousemove", "node", moveTooltip);
+    tooltip.remove();
+  };
+}
+
 // SPPF node styles by type
 export const sppfNodeStyles: Stylesheet[] = [
   {
@@ -13,17 +92,18 @@ export const sppfNodeStyles: Stylesheet[] = [
       label: "data(label)",
       "text-valign": "center",
       "text-halign": "center",
-      "font-size": "10px",
-      "text-wrap": "wrap",
-      "text-max-width": "80px",
+      "font-size": "9px",
+      "text-wrap": "wrap",      // Needed for \n to create line breaks
       color: "#d4d4d4",
       "background-color": "#3c3c3c",
       "border-width": 1,
       "border-color": "#555",
       width: "label",
-      height: 24,
-      "padding-left": "8px",
-      "padding-right": "8px",
+      height: "label",
+      "padding-left": "9px",
+      "padding-right": "9px",
+      "padding-top": "5px",
+      "padding-bottom": "5px",
       shape: "round-rectangle",
     },
   },
@@ -76,13 +156,13 @@ export const gssNodeStyles: Stylesheet[] = [
       label: "data(label)",
       "text-valign": "center",
       "text-halign": "center",
-      "font-size": "10px",
+      "font-size": "9px",
       color: "#d4d4d4",
       "background-color": "#2d4a3d",
       "border-width": 1,
       "border-color": "#4ec9b0",
       width: "label",
-      height: 24,
+      height: 22,
       "padding-left": "8px",
       "padding-right": "8px",
       shape: "round-rectangle",

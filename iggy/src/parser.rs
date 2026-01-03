@@ -35,9 +35,9 @@ static TERMINALS: LazyLock<[Terminal; 5]> = LazyLock::new(|| {
     [
         Terminal::new("Identifier"),
         Terminal::new("WS"),
-        Terminal::new("grammar"),
-        Terminal::new(";"),
-        Terminal::new(":"),
+        Terminal::new("\"grammar\""),
+        Terminal::new("\";\""),
+        Terminal::new("\":\""),
     ]
 });
 static SLOTS: LazyLock<[Slot; 20]> = LazyLock::new(|| {
@@ -107,10 +107,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                record!(self, MatchingTerminal, "grammar", i);
+                record!(self, MatchingTerminal, "\"grammar\"", i);
                 match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "grammar", i, j);
+                        record!(self, MatchSuccess, "\"grammar\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -130,7 +130,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self,
                             MatchFailed,
-                            "grammar",
+                            "\"grammar\"",
                             i,
                             SlotId(0),
                             gss_node_id,
@@ -191,10 +191,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                record!(self, MatchingTerminal, ";", i);
+                record!(self, MatchingTerminal, "\";\"", i);
                 match self.scanner.match_token(TerminalId(3), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, ";", i, j);
+                        record!(self, MatchSuccess, "\";\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -221,7 +221,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(self, MatchFailed, ";", i, SlotId(2), gss_node_id, result);
+                        record!(
+                            self,
+                            MatchFailed,
+                            "\";\"",
+                            i,
+                            SlotId(2),
+                            gss_node_id,
+                            result
+                        );
                     }
                 }
             }
@@ -291,10 +299,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                record!(self, MatchingTerminal, ":", i);
+                record!(self, MatchingTerminal, "\":\"", i);
                 match self.scanner.match_token(TerminalId(4), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, ":", i, j);
+                        record!(self, MatchSuccess, "\":\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -321,7 +329,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(self, MatchFailed, ":", i, SlotId(6), gss_node_id, result);
+                        record!(
+                            self,
+                            MatchFailed,
+                            "\":\"",
+                            i,
+                            SlotId(6),
+                            gss_node_id,
+                            result
+                        );
                     }
                 }
             }
@@ -334,10 +350,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                record!(self, MatchingTerminal, ";", i);
+                record!(self, MatchingTerminal, "\";\"", i);
                 match self.scanner.match_token(TerminalId(3), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, ";", i, j);
+                        record!(self, MatchSuccess, "\";\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -364,7 +380,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(self, MatchFailed, ";", i, SlotId(8), gss_node_id, result);
+                        record!(
+                            self,
+                            MatchFailed,
+                            "\";\"",
+                            i,
+                            SlotId(8),
+                            gss_node_id,
+                            result
+                        );
                     }
                 }
             }
@@ -863,3 +887,4 @@ impl<'i> IggyParser<'i> {
         }
     }
 }
+

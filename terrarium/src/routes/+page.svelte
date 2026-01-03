@@ -16,6 +16,10 @@
     gssEdgeStyles,
     capZoom,
     createGraph,
+    truncateLabel,
+    setupGraphTooltip,
+    LABEL_MAX_LENGTH,
+    INTERMEDIATE_MAX_LENGTH,
   } from "$lib/graph-styles";
   import { GraphCollapseManager } from "$lib/graph-utils";
 
@@ -271,20 +275,34 @@
   let cy: cytoscape.Core | null = null;
   let gssCy: cytoscape.Core | null = null;
 
+  let sppfTooltipCleanup: (() => void) | null = null;
+
   function renderSPPF() {
     if (!sppf || !sppfContainer) return;
 
     // Reset collapsed nodes when rendering new SPPF
     sppfCollapseManager.reset();
 
+    // Cleanup previous tooltip
+    if (sppfTooltipCleanup) {
+      sppfTooltipCleanup();
+      sppfTooltipCleanup = null;
+    }
+
     const elements: cytoscape.ElementDefinition[] = [
-      ...sppf.nodes.map((node) => ({
-        data: {
-          id: `n${node.id}`,
-          label: node.label || (node.kind === "Packed" ? "●" : ""),
-        },
-        classes: node.kind.toLowerCase(),
-      })),
+      ...sppf.nodes.map((node) => {
+        const fullLabel = node.label || (node.kind === "Packed" ? "●" : "");
+        // Intermediate nodes get longer max length since they show grammar slots
+        const maxLen = node.kind === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
+        return {
+          data: {
+            id: `n${node.id}`,
+            label: truncateLabel(fullLabel, maxLen),
+            fullLabel: fullLabel,
+          },
+          classes: node.kind.toLowerCase(),
+        };
+      }),
       ...sppf.edges.map((edge, i) => ({
         data: {
           id: `e${i}`,
@@ -306,6 +324,9 @@
     });
 
     sppfCollapseManager.setCy(cy);
+
+    // Setup tooltip for long labels
+    sppfTooltipCleanup = setupGraphTooltip(cy, sppfContainer);
 
     // Add double-click handler for collapse/expand
     cy.on('dbltap', 'node', (event) => {
@@ -391,8 +412,16 @@
     }
   });
 
+  let debugSppfTooltipCleanup: (() => void) | null = null;
+
   function renderDebugSppf() {
     if (!debugSppfContainer) return;
+
+    // Cleanup previous tooltip
+    if (debugSppfTooltipCleanup) {
+      debugSppfTooltipCleanup();
+      debugSppfTooltipCleanup = null;
+    }
 
     const elements: cytoscape.ElementDefinition[] = [];
 
@@ -432,12 +461,18 @@
     for (const node of debugSppfNodes) {
       if (!reachableIds.has(node.id)) continue;
 
-      const label = `(${node.label}, ${node.left_extent}, ${node.right_extent})`;
+      // Line 1: grammar slot (truncated if needed), Line 2: span
+      // Intermediate nodes get longer max length since they show grammar slots
+      const maxLen = node.kind === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
+      const span = `(${node.left_extent}, ${node.right_extent})`;
+      const displayLabel = `${truncateLabel(node.label, maxLen)}\n${span}`;
+      const fullLabel = `${node.label}\n${span}`;
 
       elements.push({
         data: {
           id: `n${node.id}`,
-          label,
+          label: displayLabel,
+          fullLabel: fullLabel,
           kind: node.kind,
         },
         classes: node.kind.toLowerCase(),
@@ -470,6 +505,9 @@
       styles: [...sppfNodeStyles, edgeStyles],
       layout: 'sppf',
     });
+
+    // Setup tooltip for long labels
+    debugSppfTooltipCleanup = setupGraphTooltip(debugSppfCy, debugSppfContainer);
 
     // Set up ResizeObserver to recenter graph when container resizes (debounced)
     if (debugSppfResizeObserver) {

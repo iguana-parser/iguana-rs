@@ -40,7 +40,7 @@ impl<'i> IggyScanner<'i> {
         }
         Some(j)
     }
-    //grammar
+    //"grammar"
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'g')
@@ -51,12 +51,12 @@ impl<'i> IggyScanner<'i> {
             .and_then(|i| self.match_char(i, 'a'))
             .and_then(|i| self.match_char(i, 'r'))
     }
-    //;
+    //";"
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ';')
     }
-    //:
+    //":"
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ':')
