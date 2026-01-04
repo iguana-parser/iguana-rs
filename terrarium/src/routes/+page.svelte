@@ -23,6 +23,23 @@
   } from "$lib/graph-styles";
   import { GraphCollapseManager, buildDebugSppfElements } from "$lib/graph-utils";
 
+  // Parse Tree types (manually defined, not via specta)
+  interface ParseTreeNode {
+    id: number;
+    kind: "Nonterminal" | "Token";
+    label: string;
+    start: number;
+    end: number;
+  }
+  interface ParseTreeEdge {
+    src: number;
+    dest: number;
+  }
+  interface ParseTree {
+    nodes: ParseTreeNode[];
+    edges: ParseTreeEdge[];
+  }
+
   cytoscape.use(dagre);
 
   // Event listeners for build progress
@@ -236,7 +253,7 @@
   let debugGssCy: cytoscape.Core | null = null;
 
   // Graph tab
-  let activeTab = $state<"gss" | "sppf">("sppf");
+  let activeTab = $state<"gss" | "sppf" | "parse-tree">("parse-tree");
 
   // App mode
   let activeMode = $state<"parse" | "debug" | "design">("parse");
@@ -251,6 +268,17 @@
   let gss = $state<GSS | null>(null);
   // svelte-ignore non_reactive_update
   let gssContainer: HTMLDivElement;
+
+  // Parse Tree data
+  let parseTree = $state<ParseTree | null>(null);
+  // svelte-ignore non_reactive_update
+  let parseTreeContainer: HTMLDivElement;
+  let parseTreeCy: cytoscape.Core | null = null;
+  const parseTreeCollapseManager = new GraphCollapseManager();
+
+  // Parse tree node selection (for highlighting span in input)
+  let parseTreeSelectedSpan = $state<{ start: number; end: number } | null>(null);
+  let parseTreeSelectedNodeId = $state<string | null>(null);
 
   // Track if parse result is available
   let parseResultAvailable = $state(false);
@@ -393,6 +421,98 @@
     });
   }
 
+  let parseTreeTooltipCleanup: (() => void) | null = null;
+
+  function renderParseTree() {
+    if (!parseTree || !parseTreeContainer) return;
+
+    parseTreeCollapseManager.reset();
+    // Clear selection when re-rendering
+    parseTreeSelectedSpan = null;
+    parseTreeSelectedNodeId = null;
+
+    if (parseTreeTooltipCleanup) {
+      parseTreeTooltipCleanup();
+      parseTreeTooltipCleanup = null;
+    }
+
+    const elements: cytoscape.ElementDefinition[] = [
+      ...parseTree.nodes.map((node) => {
+        const maxLen = LABEL_MAX_LENGTH;
+        // Add span to label like debug SPPF: "label\n(start, end)"
+        const span = `(${node.start}, ${node.end})`;
+        const displayLabel = `${truncateLabel(node.label, maxLen)}\n${span}`;
+        const fullLabel = `${node.label}\n${span}`;
+        return {
+          data: {
+            id: `n${node.id}`,
+            label: displayLabel,
+            fullLabel: fullLabel,
+            start: node.start,
+            end: node.end,
+          },
+          classes: node.kind.toLowerCase(),
+        };
+      }),
+      ...parseTree.edges.map((edge, i) => ({
+        data: {
+          id: `e${i}`,
+          source: `n${edge.src}`,
+          target: `n${edge.dest}`,
+        },
+      })),
+    ];
+
+    if (parseTreeCy) {
+      parseTreeCy.destroy();
+    }
+
+    parseTreeCy = createGraph({
+      container: parseTreeContainer,
+      elements,
+      styles: [...sppfNodeStyles, edgeStyles],  // Reuse SPPF styles (nonterminal/token)
+      layout: 'sppf',  // Top-to-bottom tree layout
+    });
+
+    parseTreeCollapseManager.setCy(parseTreeCy);
+
+    // Setup tooltip for long labels
+    parseTreeTooltipCleanup = setupGraphTooltip(parseTreeCy, parseTreeContainer);
+
+    // Add double-click handler for collapse/expand
+    parseTreeCy.on('dbltap', 'node', (event) => {
+      const node = event.target;
+      parseTreeCollapseManager.toggleCollapse(node.id());
+    });
+
+    // Add click handler for node selection and span highlighting
+    parseTreeCy.on('tap', 'node', (event) => {
+      const node = event.target;
+      const start = node.data('start');
+      const end = node.data('end');
+      if (start !== undefined && end !== undefined) {
+        parseTreeSelectedSpan = { start, end };
+      }
+      // Update node selection styling
+      if (parseTreeSelectedNodeId) {
+        parseTreeCy?.getElementById(parseTreeSelectedNodeId).removeClass('selected');
+      }
+      parseTreeSelectedNodeId = node.id();
+      node.addClass('selected');
+    });
+
+    // Click on background clears selection
+    parseTreeCy.on('tap', (event) => {
+      if (event.target === parseTreeCy) {
+        parseTreeSelectedSpan = null;
+        if (parseTreeSelectedNodeId) {
+          parseTreeCy?.getElementById(parseTreeSelectedNodeId).removeClass('selected');
+          parseTreeSelectedNodeId = null;
+        }
+      }
+    });
+  }
+
   $effect(() => {
     // Track activeTab so effect re-runs when switching tabs
     if (activeTab === "sppf" && sppf) {
@@ -408,6 +528,12 @@
           renderGSS();
         }
       });
+    } else if (activeTab === "parse-tree" && parseTree) {
+      tick().then(() => {
+        if (parseTreeContainer) {
+          renderParseTree();
+        }
+      });
     }
   });
 
@@ -418,6 +544,8 @@
         fetchSppf();
       } else if (activeTab === "gss" && !gss) {
         fetchGss();
+      } else if (activeTab === "parse-tree" && !parseTree) {
+        fetchParseTree();
       }
     }
   });
@@ -644,6 +772,7 @@
       buildError = null;
       sppf = null;
       gss = null;
+      parseTree = null;
       parseResultAvailable = false;
       nonterminals = [];
       startNonterminal = null;
@@ -706,6 +835,7 @@
     // Reset previous results
     sppf = null;
     gss = null;
+    parseTree = null;
     parseResultAvailable = false;
 
     logCommand(`${parserName} <input> --start ${startNonterminal}`);
@@ -719,8 +849,10 @@
       // Fetch the data for the active tab
       if (activeTab === "sppf") {
         await fetchSppf();
-      } else {
+      } else if (activeTab === "gss") {
         await fetchGss();
+      } else if (activeTab === "parse-tree") {
+        await fetchParseTree();
       }
     } else {
       parseResultAvailable = false;
@@ -752,6 +884,21 @@
     }
   }
 
+  async function fetchParseTree() {
+    if (!parseResultAvailable) return;
+    const result = await commands.getParseTree();
+    if (result.status === "ok") {
+      try {
+        parseTree = JSON.parse(result.data) as ParseTree;
+        logOutput(`Parse Tree: ${parseTree.nodes.length} nodes, ${parseTree.edges.length} edges`);
+      } catch (e) {
+        logError(`Failed to parse parse tree JSON: ${e}`);
+      }
+    } else {
+      logError(`Failed to load parse tree: ${result.error}`);
+    }
+  }
+
   // Graph controls (work with active graph)
   // Generic graph control functions
   function zoomInGraph(graph: cytoscape.Core | null) {
@@ -774,21 +921,31 @@
   }
 
   // Parse mode convenience functions
+  function getActiveGraph(): cytoscape.Core | null {
+    switch (activeTab) {
+      case "sppf": return cy;
+      case "gss": return gssCy;
+      case "parse-tree": return parseTreeCy;
+    }
+  }
+
   function zoomIn() {
-    zoomInGraph(activeTab === "sppf" ? cy : gssCy);
+    zoomInGraph(getActiveGraph());
   }
 
   function zoomOut() {
-    zoomOutGraph(activeTab === "sppf" ? cy : gssCy);
+    zoomOutGraph(getActiveGraph());
   }
 
   function resetView() {
-    resetViewGraph(activeTab === "sppf" ? cy : gssCy);
+    resetViewGraph(getActiveGraph());
   }
 
   function expandAll() {
     if (activeTab === "sppf") {
       sppfCollapseManager.expandAll();
+    } else if (activeTab === "parse-tree") {
+      parseTreeCollapseManager.expandAll();
     }
   }
 
@@ -1367,11 +1524,15 @@
 
     <!-- Input Area -->
     <div class="input-section">
-      <textarea
-        bind:value={inputText}
-        placeholder="Enter code to parse..."
-        spellcheck="false"
-      ></textarea>
+      {#if parseTreeSelectedSpan !== null}
+        <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:selected={i >= parseTreeSelectedSpan.start && i < parseTreeSelectedSpan.end}>{char}</span>{/each}</div>
+      {:else}
+        <textarea
+          bind:value={inputText}
+          placeholder="Enter code to parse..."
+          spellcheck="false"
+        ></textarea>
+      {/if}
     </div>
   </div>
 
@@ -1385,16 +1546,63 @@
     <div class="graph-section">
       <div class="tabs">
         <button
-          class:active={activeTab === "gss"}
-          onclick={() => activeTab = "gss"}
-        >GSS</button>
+          class:active={activeTab === "parse-tree"}
+          onclick={() => activeTab = "parse-tree"}
+        >Parse Tree</button>
         <button
           class:active={activeTab === "sppf"}
           onclick={() => activeTab = "sppf"}
         >SPPF</button>
+        <button
+          class:active={activeTab === "gss"}
+          onclick={() => activeTab = "gss"}
+        >GSS</button>
       </div>
       <div class="graph-container">
-        {#if activeTab === "gss"}
+        {#if activeTab === "parse-tree"}
+          {#if parseTree}
+            <div class="cytoscape-container" bind:this={parseTreeContainer}></div>
+            <div class="graph-controls">
+              <button onclick={zoomIn} title="Zoom in">
+                <ZoomIn size={16} />
+              </button>
+              <button onclick={zoomOut} title="Zoom out">
+                <ZoomOut size={16} />
+              </button>
+              <button onclick={resetView} title="Reset view">
+                <Maximize2 size={16} />
+              </button>
+              <button onclick={expandAll} title="Expand all (double-click node to collapse)">
+                <Expand size={16} />
+              </button>
+            </div>
+          {:else}
+            <div class="graph-placeholder">Parse input to see Parse Tree</div>
+          {/if}
+        {:else if activeTab === "sppf"}
+          {#if sppf}
+            <div class="cytoscape-container" bind:this={sppfContainer}></div>
+            <div class="graph-controls">
+              <button onclick={zoomIn} title="Zoom in">
+                <ZoomIn size={16} />
+              </button>
+              <button onclick={zoomOut} title="Zoom out">
+                <ZoomOut size={16} />
+              </button>
+              <button onclick={resetView} title="Reset view">
+                <Maximize2 size={16} />
+              </button>
+              <button onclick={expandAll} title="Expand all (double-click node to collapse)">
+                <Expand size={16} />
+              </button>
+              <button onclick={() => openGraphWindow('sppf')} title="Pop out">
+                <Fullscreen size={16} />
+              </button>
+            </div>
+          {:else}
+            <div class="graph-placeholder">Parse input to see SPPF</div>
+          {/if}
+        {:else if activeTab === "gss"}
           {#if gss}
             <div class="cytoscape-container" bind:this={gssContainer}></div>
             <div class="graph-controls">
@@ -1414,27 +1622,6 @@
           {:else}
             <div class="graph-placeholder">Parse input to see GSS</div>
           {/if}
-        {:else if sppf}
-          <div class="cytoscape-container" bind:this={sppfContainer}></div>
-          <div class="graph-controls">
-            <button onclick={zoomIn} title="Zoom in">
-              <ZoomIn size={16} />
-            </button>
-            <button onclick={zoomOut} title="Zoom out">
-              <ZoomOut size={16} />
-            </button>
-            <button onclick={resetView} title="Reset view">
-              <Maximize2 size={16} />
-            </button>
-            <button onclick={expandAll} title="Expand all (double-click node to collapse)">
-              <Expand size={16} />
-            </button>
-            <button onclick={() => openGraphWindow('sppf')} title="Pop out">
-              <Fullscreen size={16} />
-            </button>
-          </div>
-        {:else}
-          <div class="graph-placeholder">Parse input to see SPPF</div>
         {/if}
       </div>
     </div>
@@ -2424,6 +2611,11 @@
     white-space: pre-wrap;
     word-break: break-all;
     user-select: text !important;  /* Allow text selection in input viewer */
+  }
+
+  /* Ensure text selection works in input viewer */
+  .input-section .input-viewer {
+    user-select: text !important;
   }
 
   /* Debug mode specific - ensure text selection works */

@@ -50,6 +50,7 @@ pub fn generate(
 
     let to_sexpr_function = gen_to_sexpr_function();
     let node_to_sexpr_function = gen_node_to_sexpr_function();
+    let to_json_function = gen_to_json_function();
 
     quote! {
         #imports
@@ -72,6 +73,7 @@ pub fn generate(
         #(#create_parse_tree_functions)*
         #to_sexpr_function
         #node_to_sexpr_function
+        #to_json_function
     }
 }
 
@@ -84,7 +86,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
             ids::{NonterminalId, SlotId, TerminalId},
             parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
             parser::Parser,
-            sppf::{NonterminalNode, SPPFNodeId},
+            sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
         };
         use crate::parser::#parser_name;
     }
@@ -113,9 +115,10 @@ fn gen_nonterminal_type(
                 }
             })
             .collect();
+        // Add Span as last field
         quote! {
             #[derive(Debug)]
-            pub struct #nonterminal_name_id(#(#fields),*);
+            pub struct #nonterminal_name_id(#(#fields),*, Span);
         }
     } else {
         let variants: Vec<_> = alternatives
@@ -147,8 +150,9 @@ fn gen_nonterminal_type(
                     .collect();
                 let label = alternative_label(alternative, index);
                 let variant_name = Ident::new(&label, Span::call_site());
+                // Add Span as last field in each variant
                 quote! {
-                    #variant_name(#(#children),*)
+                    #variant_name(#(#children),*, Span)
                 }
             })
             .collect();
@@ -169,11 +173,47 @@ fn gen_nonterminal_type_impl(
     let child_method = gen_child_method(grammar, nonterminal);
     let child_count_method = gen_child_count_method(grammar, nonterminal);
     let as_node_ref_method = gen_as_parse_tree_ref_method(&nonterminal.name);
+    let span_method = gen_span_method(grammar, nonterminal);
     quote! {
         impl #nonterminal_name {
             #child_method
             #child_count_method
             #as_node_ref_method
+            #span_method
+        }
+    }
+}
+
+fn gen_span_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
+    let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let alternatives = grammar.alternatives(nonterminal);
+    let body = if alternatives.is_empty() {
+        todo!("handle empty alternatives")
+    } else if alternatives.len() == 1 {
+        // Single alternative: span is the last field
+        let span_index = Literal::usize_unsuffixed(alternatives[0].symbols.len());
+        quote! {
+            self.#span_index
+        }
+    } else {
+        // Multiple alternatives: pattern match to extract span from each variant
+        let arms: Vec<_> = alternatives.iter().enumerate().map(|(i, alternative)| {
+            let label = alternative_label(alternative, i);
+            let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+            // Span is the last field, use .. to match the rest
+            quote! {
+                #ident::#alt_variant(.., span) => *span
+            }
+        }).collect();
+        quote! {
+            match self {
+                #(#arms),*
+            }
+        }
+    };
+    quote! {
+        pub fn span(&self) -> Span {
+            #body
         }
     }
 }
@@ -206,8 +246,9 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
                 let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
                 let children_names = children_names(alternative);
                 let body = child_by_index(alternative, false);
+                // Add _ to ignore the span field at the end
                 quote! {
-                    #ident::#alt_variant(#(#children_names),*) => #body
+                    #ident::#alt_variant(#(#children_names),*, _) => #body
                 }
             }).collect();
             quote! {
@@ -274,6 +315,7 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
             let label = alternative_label(alternative, i);
             let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
             let count_symbols = alternative.symbols.len();
+            // Use .. to match any fields (including span)
             quote! {
                 #ident::#alt_variant(..) => #count_symbols
             }
@@ -305,6 +347,7 @@ fn gen_token_struct() -> TokenStream {
         #[derive(Debug)]
         pub struct Token {
             kind: TokenKind,
+            span: Span,
         }
     }
 }
@@ -314,6 +357,10 @@ fn gen_token_impl() -> TokenStream {
         impl Token {
             pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
                 ParseTreeRef::Token(self)
+            }
+
+            pub fn span(&self) -> Span {
+                self.span
             }
         }
     }
@@ -471,7 +518,7 @@ fn gen_nonterminal_node_method(
                         #[comment = #slot_name]
                         #end_slot_id => {
                             let [#(#children_names),*] = <[ParseTree; #num_symbols]>::try_from(children).unwrap();
-                            #constructor(#(#method_calls),*).into()
+                            #constructor(#(#method_calls),*, nonterminal_node.span).into()
                         }
                     }
                 })
@@ -502,9 +549,10 @@ fn gen_nonterminal_node_method(
 
 fn gen_new_token_method() -> TokenStream {
     quote! {
-        fn new_token(&self, terminal_id: TerminalId) -> ParseTree {
+        fn new_token(&self, terminal_node: &TerminalNode) -> ParseTree {
             ParseTree::Token(Token {
-                kind: token_kind(terminal_id),
+                kind: token_kind(terminal_node.terminal_id),
+                span: terminal_node.span,
             })
         }
     }
@@ -604,11 +652,13 @@ fn gen_parse_tree_ref_impl(grammar: &Grammar) -> TokenStream {
     let name_method = gen_name_method(grammar);
     let children_method = gen_children_method();
     let child_count_method = gen_child_count_method_for_parse_tree_ref(grammar);
+    let span_method = gen_span_method_for_parse_tree_ref(grammar);
     quote! {
         impl<'a> ParseTreeRef<'a> {
             #children_method
             #name_method
             #child_count_method
+            #span_method
         }
     }
 }
@@ -661,6 +711,26 @@ fn gen_child_count_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
     }
 }
 
+fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
+    let arms: Vec<_> = grammar
+        .nonterminals()
+        .map(|n| {
+            let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
+            let var_ident = Ident::new(&to_snake_case(&n.name), Span::call_site());
+            quote! {
+                ParseTreeRef::#variant(#var_ident) => #var_ident.span()
+            }
+        })
+        .collect();
+    quote! {
+        pub fn span(&self) -> Span {
+            match self {
+                #(#arms),*,
+                ParseTreeRef::Token(token) => token.span(),
+            }
+        }
+    }
+}
 
 fn gen_child_iter_struct() -> TokenStream {
     quote! {
@@ -791,6 +861,60 @@ fn gen_node_to_sexpr_function() -> TokenStream {
                 }
                 writeln!(w, "{:indent$})", "")
             }
+        }
+    }
+}
+
+fn gen_to_json_function() -> TokenStream {
+    quote! {
+        /// Converts a parse tree to JSON format for visualization.
+        /// Returns a JSON string with nodes and edges arrays.
+        pub fn to_json(node: ParseTreeRef<'_>) -> String {
+            let mut nodes = Vec::new();
+            let mut edges = Vec::new();
+            let mut next_id = 0u32;
+            build_json_graph(node, &mut nodes, &mut edges, &mut next_id);
+
+            let result = serde_json::json!({
+                "nodes": nodes,
+                "edges": edges
+            });
+
+            result.to_string()
+        }
+
+        fn build_json_graph(
+            node: ParseTreeRef<'_>,
+            nodes: &mut Vec<serde_json::Value>,
+            edges: &mut Vec<serde_json::Value>,
+            next_id: &mut u32,
+        ) -> u32 {
+            let my_id = *next_id;
+            *next_id += 1;
+
+            let span = node.span();
+            let kind = match node {
+                ParseTreeRef::Token(_) => "Token",
+                _ => "Nonterminal",
+            };
+
+            nodes.push(serde_json::json!({
+                "id": my_id,
+                "kind": kind,
+                "label": node.name(),
+                "start": span.left_extent,
+                "end": span.right_extent
+            }));
+
+            for child in node.children() {
+                let child_id = build_json_graph(child, nodes, edges, next_id);
+                edges.push(serde_json::json!({
+                    "src": my_id,
+                    "dest": child_id
+                }));
+            }
+
+            my_id
         }
     }
 }

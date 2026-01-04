@@ -4,7 +4,7 @@ use iguana::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
     parser::Parser,
-    sppf::{NonterminalNode, SPPFNodeId},
+    sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
 use std::fmt::Write;
 #[derive(Debug)]
@@ -113,6 +113,15 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::Token(_) => 0,
         }
     }
+    pub fn span(&self) -> Span {
+        match self {
+            ParseTreeRef::Grammar(grammar) => grammar.span(),
+            ParseTreeRef::Rule(rule) => rule.span(),
+            ParseTreeRef::GrammarPlus0(grammar_plus_0) => grammar_plus_0.span(),
+            ParseTreeRef::RulePlus1(rule_plus_1) => rule_plus_1.span(),
+            ParseTreeRef::Token(token) => token.span(),
+        }
+    }
 }
 pub struct ChildIter<'a> {
     node: ParseTreeRef<'a>,
@@ -158,18 +167,18 @@ impl From<RulePlus1> for ParseTree {
     }
 }
 #[derive(Debug)]
-pub struct Grammar(Token, Token, Token, GrammarPlus0);
+pub struct Grammar(Token, Token, Token, GrammarPlus0, Span);
 #[derive(Debug)]
-pub struct Rule(Token, Token, RulePlus1, Token);
+pub struct Rule(Token, Token, RulePlus1, Token, Span);
 #[derive(Debug)]
 pub enum GrammarPlus0 {
-    Alt0(Box<GrammarPlus0>, Rule),
-    Alt1(Rule),
+    Alt0(Box<GrammarPlus0>, Rule, Span),
+    Alt1(Rule, Span),
 }
 #[derive(Debug)]
 pub enum RulePlus1 {
-    Alt0(Box<RulePlus1>, Token),
-    Alt1(Token),
+    Alt0(Box<RulePlus1>, Token, Span),
+    Alt1(Token, Span),
 }
 impl Grammar {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -186,6 +195,9 @@ impl Grammar {
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
         ParseTreeRef::Grammar(self)
+    }
+    pub fn span(&self) -> Span {
+        self.4
     }
 }
 impl Rule {
@@ -204,16 +216,19 @@ impl Rule {
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
         ParseTreeRef::Rule(self)
     }
+    pub fn span(&self) -> Span {
+        self.4
+    }
 }
 impl GrammarPlus0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            GrammarPlus0::Alt0(c0, c1) => match index {
+            GrammarPlus0::Alt0(c0, c1, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 _ => None,
             },
-            GrammarPlus0::Alt1(c0) => match index {
+            GrammarPlus0::Alt1(c0, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 _ => None,
             },
@@ -228,16 +243,22 @@ impl GrammarPlus0 {
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
         ParseTreeRef::GrammarPlus0(self)
     }
+    pub fn span(&self) -> Span {
+        match self {
+            GrammarPlus0::Alt0(.., span) => *span,
+            GrammarPlus0::Alt1(.., span) => *span,
+        }
+    }
 }
 impl RulePlus1 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            RulePlus1::Alt0(c0, c1) => match index {
+            RulePlus1::Alt0(c0, c1, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 _ => None,
             },
-            RulePlus1::Alt1(c0) => match index {
+            RulePlus1::Alt1(c0, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 _ => None,
             },
@@ -252,14 +273,24 @@ impl RulePlus1 {
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
         ParseTreeRef::RulePlus1(self)
     }
+    pub fn span(&self) -> Span {
+        match self {
+            RulePlus1::Alt0(.., span) => *span,
+            RulePlus1::Alt1(.., span) => *span,
+        }
+    }
 }
 #[derive(Debug)]
 pub struct Token {
     kind: TokenKind,
+    span: Span,
 }
 impl Token {
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
         ParseTreeRef::Token(self)
+    }
+    pub fn span(&self) -> Span {
+        self.span
     }
 }
 fn token_kind(terminal_id: TerminalId) -> TokenKind {
@@ -297,6 +328,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                             c1.unwrap_token(),
                             c2.unwrap_token(),
                             c3.unwrap_grammar_plus_0(),
+                            nonterminal_node.span,
                         )
                         .into()
                     }
@@ -314,6 +346,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                             c1.unwrap_token(),
                             c2.unwrap_rule_plus_1(),
                             c3.unwrap_token(),
+                            nonterminal_node.span,
                         )
                         .into()
                     }
@@ -326,13 +359,17 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Rule+ : Rule+ Rule.
                     SlotId(12) => {
                         let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
-                        GrammarPlus0::Alt0(Box::new(c0.unwrap_grammar_plus_0()), c1.unwrap_rule())
-                            .into()
+                        GrammarPlus0::Alt0(
+                            Box::new(c0.unwrap_grammar_plus_0()),
+                            c1.unwrap_rule(),
+                            nonterminal_node.span,
+                        )
+                        .into()
                     }
                     //Rule+ : Rule.
                     SlotId(14) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
-                        GrammarPlus0::Alt1(c0.unwrap_rule()).into()
+                        GrammarPlus0::Alt1(c0.unwrap_rule(), nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
@@ -343,12 +380,17 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Identifier+ : Identifier+ Identifier.
                     SlotId(17) => {
                         let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
-                        RulePlus1::Alt0(Box::new(c0.unwrap_rule_plus_1()), c1.unwrap_token()).into()
+                        RulePlus1::Alt0(
+                            Box::new(c0.unwrap_rule_plus_1()),
+                            c1.unwrap_token(),
+                            nonterminal_node.span,
+                        )
+                        .into()
                     }
                     //Identifier+ : Identifier.
                     SlotId(19) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
-                        RulePlus1::Alt1(c0.unwrap_token()).into()
+                        RulePlus1::Alt1(c0.unwrap_token(), nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
@@ -356,9 +398,10 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             _ => unreachable!(),
         }
     }
-    fn new_token(&self, terminal_id: TerminalId) -> ParseTree {
+    fn new_token(&self, terminal_node: &TerminalNode) -> ParseTree {
         ParseTree::Token(Token {
-            kind: token_kind(terminal_id),
+            kind: token_kind(terminal_node.terminal_id),
+            span: terminal_node.span,
         })
     }
 }
@@ -434,5 +477,38 @@ fn node_to_sexpr(node: ParseTreeRef<'_>, indent: usize, w: &mut impl Write) -> f
         }
         writeln!(w, "{:indent$})", "")
     }
+}
+/// Converts a parse tree to JSON format for visualization.
+/// Returns a JSON string with nodes and edges arrays.
+pub fn to_json(node: ParseTreeRef<'_>) -> String {
+    let mut nodes = Vec::new();
+    let mut edges = Vec::new();
+    let mut next_id = 0u32;
+    build_json_graph(node, &mut nodes, &mut edges, &mut next_id);
+    let result = serde_json::json!({ "nodes" : nodes, "edges" : edges });
+    result.to_string()
+}
+fn build_json_graph(
+    node: ParseTreeRef<'_>,
+    nodes: &mut Vec<serde_json::Value>,
+    edges: &mut Vec<serde_json::Value>,
+    next_id: &mut u32,
+) -> u32 {
+    let my_id = *next_id;
+    *next_id += 1;
+    let span = node.span();
+    let kind = match node {
+        ParseTreeRef::Token(_) => "Token",
+        _ => "Nonterminal",
+    };
+    nodes.push(serde_json::json!(
+        { "id" : my_id, "kind" : kind, "label" : node.name(), "start" : span
+        .left_extent, "end" : span.right_extent }
+    ));
+    for child in node.children() {
+        let child_id = build_json_graph(child, nodes, edges, next_id);
+        edges.push(serde_json::json!({ "src" : my_id, "dest" : child_id }));
+    }
+    my_id
 }
 

@@ -37,6 +37,7 @@ struct ParseState {
     _temp_dir: Option<TempDir>,
     sppf_path: Option<PathBuf>,
     gss_path: Option<PathBuf>,
+    parse_tree_path: Option<PathBuf>,
 }
 
 #[derive(Default)]
@@ -187,6 +188,7 @@ fn parse(
         TempDir::new().map_err(|e| format!("Failed to create temp directory: {}", e))?;
     let sppf_path = temp_dir.path().join("sppf.json");
     let gss_path = temp_dir.path().join("gss.json");
+    let parse_tree_path = temp_dir.path().join("parse_tree.json");
 
     let output = Command::new(&parser_path)
         .arg(input_file.path())
@@ -196,6 +198,8 @@ fn parse(
         .arg(&sppf_path)
         .arg("--write-gss")
         .arg(&gss_path)
+        .arg("--write-parse-tree")
+        .arg(&parse_tree_path)
         .output()
         .map_err(|e| format!("Failed to run parser: {}", e))?;
 
@@ -214,6 +218,7 @@ fn parse(
     parse_state._temp_dir = Some(temp_dir);
     parse_state.sppf_path = Some(sppf_path);
     parse_state.gss_path = Some(gss_path);
+    parse_state.parse_tree_path = Some(parse_tree_path);
 
     Ok(())
 }
@@ -246,6 +251,21 @@ fn get_gss(state: tauri::State<Mutex<ParseState>>) -> Result<GSS, String> {
         fs::read_to_string(gss_path).map_err(|e| format!("Failed to read GSS file: {}", e))?;
 
     serde_json::from_str(&content).map_err(|e| format!("Failed to parse GSS JSON: {}", e))
+}
+
+/// Returns the parse tree JSON as a string.
+/// The frontend will parse this JSON directly.
+#[tauri::command]
+#[specta::specta]
+fn get_parse_tree(state: tauri::State<Mutex<ParseState>>) -> Result<String, String> {
+    let parse_state = state.lock().unwrap();
+    let parse_tree_path = parse_state
+        .parse_tree_path
+        .as_ref()
+        .ok_or("No parse result available. Run parse first.")?;
+
+    fs::read_to_string(parse_tree_path)
+        .map_err(|e| format!("Failed to read parse tree file: {}", e))
 }
 
 #[tauri::command]
@@ -551,6 +571,7 @@ pub fn run() {
         parse,
         get_sppf,
         get_gss,
+        get_parse_tree,
         get_nonterminals,
         load_debug_trace,
         debug_step_forward,

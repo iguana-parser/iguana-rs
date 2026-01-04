@@ -130,6 +130,13 @@ export const sppfNodeStyles: Stylesheet[] = [
     },
   },
   {
+    selector: "node.token, node[kind='Token']",
+    style: {
+      "background-color": "#4d3a2d",
+      "border-color": "#ce9178",
+    },
+  },
+  {
     selector: "node.packed",
     style: {
       width: 12,
@@ -160,6 +167,12 @@ export const sppfNodeStyles: Stylesheet[] = [
   },
   {
     selector: "node.terminal.selected, node[kind='Terminal'].selected",
+    style: {
+      "background-color": "#5f4a3a",
+    },
+  },
+  {
+    selector: "node.token.selected, node[kind='Token'].selected",
     style: {
       "background-color": "#5f4a3a",
     },

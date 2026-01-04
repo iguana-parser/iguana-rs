@@ -21,7 +21,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             visualization::{dot::write_svg, gss::{build_gss_dot_graph, render_gss}, sppf::{build_sppf_graph, write_sppf_dot}},
         };
         use #grammar_name::{
-            parse_tree::{#parse_tree_builder, create_parse_tree, to_sexpr},
+            parse_tree::{#parse_tree_builder, create_parse_tree, to_json, to_sexpr},
             parser::{#parser, NONTERMINALS, SLOTS, TERMINALS},
         };
 
@@ -86,6 +86,11 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             /// Used by Terrarium debugger to resolve GssNodeId to (nonterminal, input_index).
             #[arg(long, value_name = "FILE")]
             write_gss_nodes: Option<PathBuf>,
+
+            /// Write parse tree as JSON for visualization.
+            /// Used by Terrarium for parse tree rendering.
+            #[arg(long, value_name = "FILE")]
+            write_parse_tree: Option<PathBuf>,
         }
 
         #[cfg(feature = "dhat-heap")]
@@ -185,6 +190,15 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
                         writeln!(writer, "{}", serde_json::to_string(&gss_nodes).unwrap())?;
+                    }
+
+                    // Handle --write-parse-tree (write parse tree as JSON for visualization)
+                    if let Some(ref path) = cli.write_parse_tree {
+                        let parse_tree = create_parse_tree(node_id, &start_nonterminal_name, &parser, &parse_tree_builder);
+                        let json = to_json(parse_tree.as_parse_tree_ref());
+                        let file = File::create(path)?;
+                        let mut writer = BufWriter::new(file);
+                        writeln!(writer, "{}", json)?;
                     }
 
                     // Handle --vis (visualization as SVG)

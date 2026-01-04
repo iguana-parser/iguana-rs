@@ -1,6 +1,6 @@
 use clap::Parser as ClapParser;
 use iggy::{
-    parse_tree::{IggyParseTreeBuilder, create_parse_tree, to_sexpr},
+    parse_tree::{IggyParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     parser::{IggyParser, NONTERMINALS, SLOTS, TERMINALS},
 };
 #[cfg(feature = "debug-trace")]
@@ -66,6 +66,10 @@ struct Cli {
     /// Used by Terrarium debugger to resolve GssNodeId to (nonterminal, input_index).
     #[arg(long, value_name = "FILE")]
     write_gss_nodes: Option<PathBuf>,
+    /// Write parse tree as JSON for visualization.
+    /// Used by Terrarium for parse tree rendering.
+    #[arg(long, value_name = "FILE")]
+    write_parse_tree: Option<PathBuf>,
 }
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
@@ -155,6 +159,18 @@ fn main() -> Result<(), io::Error> {
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", serde_json::to_string(&gss_nodes).unwrap())?;
+            }
+            if let Some(ref path) = cli.write_parse_tree {
+                let parse_tree = create_parse_tree(
+                    node_id,
+                    &start_nonterminal_name,
+                    &parser,
+                    &parse_tree_builder,
+                );
+                let json = to_json(parse_tree.as_parse_tree_ref());
+                let file = File::create(path)?;
+                let mut writer = BufWriter::new(file);
+                writeln!(writer, "{}", json)?;
             }
             match cli.vis {
                 Some(VisTarget::Gss) => {

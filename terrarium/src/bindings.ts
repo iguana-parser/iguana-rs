@@ -43,6 +43,18 @@ async getGss() : Promise<Result<GSS, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Returns the parse tree JSON as a string.
+ * The frontend will parse this JSON directly.
+ */
+async getParseTree() : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_parse_tree") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async getNonterminals(directory: string) : Promise<Result<string[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_nonterminals", { directory }) };

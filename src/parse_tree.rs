@@ -1,7 +1,6 @@
 use crate::{
-    ids::TerminalId,
     parser::Parser,
-    sppf::{NonterminalNode, SPPFNode},
+    sppf::{NonterminalNode, SPPFNode, TerminalNode},
 };
 
 pub enum OneOrMany<T> {
@@ -42,7 +41,7 @@ pub fn visit_sppf<'i, T>(
     builder: &impl ParseTreeBuilder<T>,
 ) -> OneOrMany<T> {
     match node {
-        SPPFNode::Terminal(t) => OneOrMany::One(builder.new_token(t.terminal_id)),
+        SPPFNode::Terminal(t) => OneOrMany::One(builder.new_token(t)),
         SPPFNode::Nonterminal(n) => {
             if n.ambiguous {
                 unimplemented!()
@@ -64,7 +63,7 @@ pub fn visit_sppf<'i, T>(
 }
 
 pub trait ParseTreeBuilder<T> {
-    fn new_token(&self, terminal_id: TerminalId) -> T;
+    fn new_token(&self, terminal_node: &TerminalNode) -> T;
     fn new_nonterminal_node(&self, nonterminal_node: &NonterminalNode, children: OneOrMany<T>)
     -> T;
 }
