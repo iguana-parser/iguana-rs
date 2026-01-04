@@ -418,7 +418,7 @@ fn gen_nonterminal_node_method(
                     let alternatives = grammar.alternatives(nonterminal);
                     let alternative = &alternatives[index];
                     let end_slot_id = end_slot.slot_id;
-                    let slot_name = slot_ids.slot_name(&end_slot.slot_id);
+                    let slot_name = slot_ids.display_name(&end_slot.slot_id);
                     let num_symbols = alternative.len();
                     let children_names = children_names(alternative);
                     let methods: Vec<_> = alternative

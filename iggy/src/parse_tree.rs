@@ -289,7 +289,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //Grammar
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
-                    //Grammar : "grammar" Identifier ";" Grammar_Plus0.
+                    //Grammar : "grammar" Identifier ";" Rule+.
                     SlotId(4) => {
                         let [c0, c1, c2, c3] = <[ParseTree; 4usize]>::try_from(children).unwrap();
                         Grammar(
@@ -306,7 +306,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //Rule
             NonterminalId(1) => {
                 match nonterminal_node.return_slot {
-                    //Rule : Identifier ":" Rule_Plus1 ";".
+                    //Rule : Identifier ":" Identifier+ ";".
                     SlotId(9) => {
                         let [c0, c1, c2, c3] = <[ParseTree; 4usize]>::try_from(children).unwrap();
                         Rule(
@@ -323,13 +323,13 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //Grammar_Plus0
             NonterminalId(2) => {
                 match nonterminal_node.return_slot {
-                    //Grammar_Plus0 : Grammar_Plus0 Rule.
+                    //Rule+ : Rule+ Rule.
                     SlotId(12) => {
                         let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
                         Grammar_Plus0::Alt0(Box::new(c0.unwrap_grammar_Plus0()), c1.unwrap_rule())
                             .into()
                     }
-                    //Grammar_Plus0 : Rule.
+                    //Rule+ : Rule.
                     SlotId(14) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         Grammar_Plus0::Alt1(c0.unwrap_rule()).into()
@@ -340,12 +340,12 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //Rule_Plus1
             NonterminalId(3) => {
                 match nonterminal_node.return_slot {
-                    //Rule_Plus1 : Rule_Plus1 Identifier.
+                    //Identifier+ : Identifier+ Identifier.
                     SlotId(17) => {
                         let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
                         Rule_Plus1::Alt0(Box::new(c0.unwrap_rule_Plus1()), c1.unwrap_token()).into()
                     }
-                    //Rule_Plus1 : Identifier.
+                    //Identifier+ : Identifier.
                     SlotId(19) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         Rule_Plus1::Alt1(c0.unwrap_token()).into()

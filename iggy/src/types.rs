@@ -15,4 +15,7 @@ impl Nonterminal {
         self.kind.is_some()
     }
 }
+pub struct Slot {
+    pub display_name: &'static str,
+}
 

@@ -22,7 +22,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         };
         use #grammar_name::{
             parse_tree::{#parse_tree_builder, create_parse_tree, to_sexpr},
-            parser::{#parser, NONTERMINALS},
+            parser::{#parser, NONTERMINALS, SLOTS},
         };
 
         #[cfg(feature = "debug-trace")]
@@ -114,9 +114,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 let terminals: Vec<&str> = #parser::terminals()
                     .map(|t| t.name.as_str())
                     .collect();
-                let slots: Vec<&str> = #parser::slots()
-                    .map(|s| s.name.as_str())
-                    .collect();
+                let slots: Vec<&str> = SLOTS.iter().map(|s| s.display_name).collect();
                 let symbols = serde_json::json!({
                     "nonterminals": nonterminals,
                     "terminals": terminals,

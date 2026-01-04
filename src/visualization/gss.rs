@@ -88,7 +88,7 @@ pub fn build_gss_dot_graph<'i, P: Parser<'i>>(parser: &P) -> GSS {
                 id,
                 src: gss_node.id,
                 dest: gss_edge.dest_id,
-                label: P::slot(gss_edge.return_slot).name.clone(),
+                label: P::slot_name(gss_edge.return_slot).into(),
             });
         }
     }

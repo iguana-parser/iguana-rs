@@ -3,7 +3,11 @@ use std::collections::HashMap;
 use indexmap::{IndexMap, IndexSet};
 
 use crate::{
-    grammar::symbols::{Nonterminal, Terminal},
+    grammar::{
+        def::Grammar,
+        slot::Slot,
+        symbols::{Nonterminal, Terminal},
+    },
     ids::{NonterminalId, SlotId, TerminalId},
 };
 
@@ -53,33 +57,41 @@ impl NonterminalIds {
     }
 }
 
-#[derive(Default)]
-pub struct SlotIds {
+pub struct SlotIds<'a> {
+    grammar: &'a Grammar,
     value: usize,
-    slot_to_id: HashMap<String, usize>,
-    slots: Vec<String>,
+    slot_to_id: HashMap<Slot<'a>, usize>,
+    slots: Vec<Slot<'a>>,
 }
 
-impl SlotIds {
-    pub fn id(&mut self, name: &str) -> SlotId {
-        if let Some(id) = self.slot_to_id.get(name) {
+impl<'a> SlotIds<'a> {
+    pub fn new(grammar: &'a Grammar) -> Self {
+        Self {
+            grammar,
+            value: 0,
+            slot_to_id: HashMap::new(),
+            slots: vec![],
+        }
+    }
+    pub fn id(&mut self, slot: &Slot<'a>) -> SlotId {
+        if let Some(id) = self.slot_to_id.get(slot) {
             SlotId(*id as u16)
         } else {
             let value = self.value;
             self.value += 1;
-            self.slot_to_id.insert(name.to_owned(), value);
-            self.slots.push(name.to_owned());
+            self.slot_to_id.insert(slot.clone(), value);
+            self.slots.push(slot.clone());
             SlotId(value as u16)
         }
     }
     pub fn len(&self) -> usize {
         self.slots.len()
     }
-    pub fn slot_name(&self, slot_id: &SlotId) -> &str {
-        &self.slots[slot_id.index()]
+    pub fn display_name(&self, slot_id: &SlotId) -> String {
+        self.slots[slot_id.index()].display_name(self.grammar)
     }
-    pub fn slots(&self) -> impl Iterator<Item = &str> {
-        self.slots.iter().map(|s| s.as_str())
+    pub fn slots(&self) -> impl Iterator<Item = &Slot<'a>> {
+        self.slots.iter()
     }
 }
 

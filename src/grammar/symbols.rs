@@ -6,13 +6,22 @@ use quote::quote;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Definition {
     Terminal(Terminal),
     Nonterminal(Nonterminal),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+impl Definition {
+    pub fn display_name(&self) -> String {
+        match self {
+            Definition::Terminal(terminal) => terminal.name.clone(),
+            Definition::Nonterminal(nonterminal) => nonterminal.display_name(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
 pub enum Symbol {
     Identifier(String),
     Literal(String),
@@ -102,11 +111,6 @@ impl Nonterminal {
             origin: Some(origin),
         }
     }
-
-    pub fn is_derived(&self) -> bool {
-        self.origin.is_some()
-    }
-
     pub fn display_name(&self) -> String {
         match &self.origin {
             Some(symbol) => symbol.to_string(),

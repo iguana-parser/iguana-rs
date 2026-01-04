@@ -19,7 +19,7 @@ pub enum TraceEvent {
     MatchingTerminal(String, u32),  // terminal_name
     MatchSuccess(String, u32, u32), // terminal_name, next_input match
     MatchFailed(String, u32, SlotId, GssNodeId, Option<SPPFNodeId>), // terminal_name, input_index, slot, gss_node, sppf_node
-    MatchedLayout(Option<u32>),     // next_input match
+    MatchedLayout(Option<u32>),                                      // next_input match
     GSSNodeCreated(NonterminalId, u32),
     GSSNodeFound(NonterminalId, u32),
     GSSNodeNotFound(NonterminalId, u32),
@@ -45,7 +45,7 @@ impl TraceEvent {
             TraceEvent::ProcessingDescriptor(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 format!(
                     "Processing ({}, {}, {}, {})",
-                    P::slot(slot_id).name,
+                    P::slot_name(slot_id),
                     input_index,
                     parser.gss_to_string(gss_node_id),
                     if let Some(sppf_node_id) = sppf_node_id {
@@ -58,7 +58,7 @@ impl TraceEvent {
             TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 format!(
                     "Descriptor ({}, {}, {}, {}) added.",
-                    P::slot(slot_id).name,
+                    P::slot_name(slot_id),
                     input_index,
                     parser.gss_to_string(gss_node_id),
                     if let Some(sppf_node_id) = sppf_node_id {
@@ -83,12 +83,18 @@ impl TraceEvent {
                 input_index,
                 matched_index - input_index
             ),
-            TraceEvent::MatchFailed(ref terminal_name, input_index, slot_id, gss_node_id, sppf_node_id) => {
+            TraceEvent::MatchFailed(
+                ref terminal_name,
+                input_index,
+                slot_id,
+                gss_node_id,
+                sppf_node_id,
+            ) => {
                 format!(
                     "Match failed for terminal {} at input index {} (slot: {}, GSS node: {}, SPPF node: {})",
                     terminal_name,
                     input_index,
-                    P::slot(slot_id).name,
+                    P::slot_name(slot_id),
                     parser.gss_to_string(gss_node_id),
                     sppf_node_id
                         .map(|id| parser.sppf_node_to_string(parser.sppf_node(id)))
@@ -121,7 +127,7 @@ impl TraceEvent {
                 "GSS edge added from {} to {} with return label {}",
                 parser.gss_to_string(origin_gss_node_id),
                 parser.gss_to_string(dest_gss_node_id),
-                P::slot(return_slot).name
+                P::slot_name(return_slot)
             ),
             TraceEvent::TerminalNodeCreated(terminal_id, span) => format!(
                 "Terminal node created: ({}, {}, {})",
@@ -138,7 +144,7 @@ impl TraceEvent {
             ),
             TraceEvent::IntermediateNodeCreated(slot_id, span, left_child, right_child) => format!(
                 "Intermediate node created: ({}, {}, {}, {}, {})",
-                P::slot(slot_id).name,
+                P::slot_name(slot_id),
                 span.left_extent,
                 span.right_extent,
                 parser.sppf_node_to_string(parser.sppf_node(left_child)),
@@ -159,7 +165,7 @@ impl TraceEvent {
             TraceEvent::Pop(gss_node_id, slot_id, sppf_node_id) => format!(
                 "Pop GSS node {} for the slot {} with SPPF node {}",
                 parser.gss_to_string(gss_node_id),
-                P::slot(slot_id).name,
+                P::slot_name(slot_id),
                 parser.sppf_node_to_string(parser.sppf_node(sppf_node_id))
             ),
             TraceEvent::AddToPoppedElements(gss_node_id, sppf_node_id) => format!(
@@ -176,7 +182,7 @@ impl TraceEvent {
                     .map(|sppf_node_id| parser.sppf_node_to_string(parser.sppf_node(sppf_node_id)))
                     .unwrap_or("$".to_owned()),
                 parser.gss_to_string(gss_node_id),
-                P::slot(slot_id).name
+                P::slot_name(slot_id)
             ),
             TraceEvent::ParseSuccess(duration) => {
                 format!("Parse succeeded in {:?} ms", duration.as_millis())

@@ -9,7 +9,7 @@ use crate::grammar::{
     transformations::{ebnf_to_bnf, transform_rule},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Alternative {
     pub symbols: Vec<Symbol>,
     pub label: Option<String>,

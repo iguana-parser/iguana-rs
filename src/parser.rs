@@ -4,7 +4,6 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     descriptor::Descriptor,
-    grammar::slot::Slot,
     grammar::symbols::Terminal,
     gss::{EdgeResult, GSSEdge, GSSNode},
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -32,8 +31,7 @@ pub trait Parser<'i> {
     fn nonterminal_id(name: &str) -> Option<NonterminalId>;
     fn terminal(terminal_id: TerminalId) -> &'static Terminal;
     fn terminals() -> impl Iterator<Item = &'static Terminal>;
-    fn slot(slot_id: SlotId) -> &'static Slot;
-    fn slots() -> impl Iterator<Item = &'static Slot>;
+    fn slot_name(slot_id: SlotId) -> &'static str;
     fn execute(
         &mut self,
         input_index: u32,
@@ -269,7 +267,7 @@ pub trait Parser<'i> {
             SPPFNode::Intermediate(i) => {
                 format!(
                     "({}, {}, {})",
-                    Self::slot(i.slot_id).name,
+                    Self::slot_name(i.slot_id),
                     i.span.left_extent,
                     i.span.right_extent
                 )

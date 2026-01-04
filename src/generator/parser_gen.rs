@@ -9,17 +9,17 @@ use crate::generator::id::NonterminalIds;
 use crate::generator::id::SlotIds;
 use crate::generator::id::TerminalIds;
 use crate::generator::utils::to_first_uppercase;
-use crate::grammar::def::Alternative;
 use crate::grammar::def::Grammar;
+use crate::grammar::slot::Slot;
 use crate::grammar::symbols::Definition;
 use crate::grammar::symbols::Nonterminal;
 use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
 
-pub fn generate(
-    grammar: &Grammar,
+pub fn generate<'a>(
+    grammar: &'a Grammar,
     nonterminal_ids: &mut NonterminalIds,
-    slot_ids: &mut SlotIds,
+    slot_ids: &mut SlotIds<'a>,
     terminal_ids: &mut TerminalIds,
 ) -> TokenStream {
     let grammar_name = &grammar.name;
@@ -29,13 +29,12 @@ pub fn generate(
     let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids);
     let first_descriptors = gen_add_first_descriptors_method(grammar, nonterminal_ids, slot_ids);
     let terminals = gen_terminals(terminal_ids);
-    let slots = gen_slots(slot_ids);
+    let slots = gen_slots(slot_ids, grammar);
     let nonterminal_display_name_method = gen_nonterminal_display_name_method();
     let nonterminal_id_method = gen_nonterminal_id_method();
     let terminal_method = gen_terminal_method();
     let terminals_method = gen_terminals_method();
-    let slot_method = gen_slot_method();
-    let slots_method = gen_slots_method();
+    let slot_name_method = gen_slot_name_method();
     let get_gss_node_method = gen_get_gss_node_method();
     let gen_add_gss_node_method = gen_add_gss_node_method();
     let gen_new_gss_node_method = gen_new_gss_node_method();
@@ -75,8 +74,7 @@ pub fn generate(
             #nonterminal_id_method
             #terminal_method
             #terminals_method
-            #slot_method
-            #slots_method
+            #slot_name_method
             #execute_method
             #first_descriptors
             #get_gss_node_method
@@ -113,11 +111,10 @@ pub fn generate(
 fn gen_imports(grammar: &Grammar) -> TokenStream {
     let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&grammar.name));
     quote! {
-        use crate::{scanner::#scanner_name, types::{EbnfKind, Nonterminal}};
+        use crate::{scanner::#scanner_name, types::{EbnfKind, Nonterminal, Slot}};
         use std::{cell::OnceCell, sync::LazyLock};
         use iguana::{
             descriptor::Descriptor,
-            grammar::slot::Slot,
             grammar::symbols::Terminal,
             gss::GSSNode,
             ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -135,10 +132,10 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
     }
 }
 
-fn gen_add_first_descriptors_method(
-    grammar: &Grammar,
+fn gen_add_first_descriptors_method<'a>(
+    grammar: &'a Grammar,
     nonterminal_ids: &NonterminalIds,
-    slot_ids: &mut SlotIds,
+    slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
     let mut nonterminal_quotes = vec![];
     for nonterminal in grammar.nonterminals() {
@@ -151,13 +148,14 @@ fn gen_add_first_descriptors_method(
             todo!()
         }
         for alternative in alternatives {
-            let slot_name = slot_to_string(nt_name, alternative, 0);
-            let first_slot = slot_ids.id(&slot_name);
+            let first_slot = Slot::new(nonterminal, alternative, 0, grammar);
+            let first_slot_name = first_slot.display_name(grammar);
+            let first_slot_id = slot_ids.id(&first_slot);
             alternative_quotes.push(quote! {
-                #[comment = #slot_name]
+                #[comment = #first_slot_name]
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: #first_slot,
+                    slot_id: #first_slot_id,
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -245,32 +243,36 @@ fn gen_terminals(terminal_ids: &TerminalIds) -> TokenStream {
     }
 }
 
-fn gen_slots(slot_ids: &SlotIds) -> TokenStream {
+fn gen_slots(slot_ids: &SlotIds, grammar: &Grammar) -> TokenStream {
     let slots_len = Literal::usize_unsuffixed(slot_ids.len());
-    let slot_names = slot_ids.slots().map(|s| quote! { Slot::new(#s) });
+    let slot_names = slot_ids.slots().map(|s| {
+        let display_name = s.display_name(grammar);
+        quote! {
+            Slot {
+                display_name: #display_name
+            }
+        }
+    });
     quote! {
-        static SLOTS: LazyLock<[Slot; #slots_len]> = LazyLock::new(|| [#(#slot_names),*]);
+        pub const SLOTS: [Slot; #slots_len] = [#(#slot_names),*];
     }
 }
 
-fn gen_execute_method(
-    grammar: &Grammar,
+fn gen_execute_method<'a>(
+    grammar: &'a Grammar,
     nonterminal_ids: &mut NonterminalIds,
-    slot_ids: &mut SlotIds,
+    slot_ids: &mut SlotIds<'a>,
     terminal_ids: &mut TerminalIds,
 ) -> TokenStream {
     let mut slot_quotes = vec![];
     for nonterminal in grammar.nonterminals() {
-        let nt_name = &nonterminal.name;
         let alternatives = grammar.alternatives(nonterminal);
         for (index, alternative) in alternatives.iter().enumerate() {
             for (position, symbol) in alternative.symbols.iter().enumerate() {
+                let slot = Slot::new(nonterminal, alternative, position, grammar);
                 slot_quotes.push(gen_slot_code(
                     grammar,
-                    position,
-                    symbol,
-                    nt_name,
-                    alternative,
+                    slot,
                     nonterminal_ids,
                     terminal_ids,
                     slot_ids,
@@ -278,8 +280,9 @@ fn gen_execute_method(
             }
             // Handle the last grammar slot
             let last_symbol_index = alternative.symbols.len();
-            let end_slot_name = slot_to_string(nt_name, alternative, last_symbol_index);
-            let end_slot_id = slot_ids.id(&end_slot_name);
+            let end_slot = Slot::new(nonterminal, alternative, last_symbol_index, grammar);
+            let end_slot_name = end_slot.display_name(grammar);
+            let end_slot_id = slot_ids.id(&end_slot);
             let nonterminal_id = nonterminal_ids
                 .get_id(nonterminal)
                 .expect("nonterminal not found");
@@ -333,67 +336,38 @@ fn gen_execute_method(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
-fn gen_slot_code(
-    grammar: &Grammar,
-    position: usize,
-    symbol: &Symbol,
-    nt_name: &str,
-    alternative: &Alternative,
+fn gen_slot_code<'a>(
+    grammar: &'a Grammar,
+    slot: Slot<'a>,
     nonterminal_ids: &NonterminalIds,
     terminal_ids: &mut TerminalIds,
-    slot_ids: &mut SlotIds,
+    slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
-    let slot_name = slot_to_string(nt_name, alternative, position);
-    match symbol {
-        Symbol::Identifier(name) => {
-            let def = grammar
-                .definition(name)
-                .unwrap_or_else(|| panic!("{name} is not defined"));
-            match def {
-                Definition::Terminal(terminal) => {
-                    let next_slot_name = slot_to_string(nt_name, alternative, position + 1);
-                    gen_terminal_slot(
-                        terminal,
-                        position,
-                        &slot_name,
-                        &next_slot_name,
-                        terminal_ids,
-                        slot_ids,
-                    )
-                }
-                Definition::Nonterminal(nonterminal) => {
-                    let next_slot_name = slot_to_string(nt_name, alternative, position + 1);
-                    gen_nonterminal_slot(
-                        nonterminal,
-                        &slot_name,
-                        &next_slot_name,
-                        nonterminal_ids,
-                        slot_ids,
-                    )
-                }
-            }
+    match slot.symbol_def.unwrap() {
+        Definition::Terminal(terminal) => {
+            gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids)
         }
-        _ => unreachable!("Unexpected symbol {}", symbol),
+        Definition::Nonterminal(nonterminal) => {
+            gen_nonterminal_slot(grammar, nonterminal, slot, nonterminal_ids, slot_ids)
+        }
     }
 }
 
 /// Generates code for the grammar slots before a terminal.
-fn gen_terminal_slot(
+fn gen_terminal_slot<'a>(
+    grammar: &'a Grammar,
     terminal: &Terminal,
-    position: usize,
-    slot_name: &str,
-    next_slot_name: &str,
+    slot: Slot<'a>,
     terminal_ids: &mut TerminalIds,
-    slot_ids: &mut SlotIds,
+    slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
     let terminal_id = terminal_ids
         .get_id(terminal)
         .unwrap_or_else(|| panic!("cannot not find the lexical definition {}", terminal.name));
-    let slot_id = slot_ids.id(slot_name);
-    let next_slot_id = slot_ids.id(next_slot_name);
+    let slot_id = slot_ids.id(&slot);
+    let current_slot_name = slot.display_name(grammar);
     // At grammar position 0, we do not need to create an intermediate node.
-    let new_node = if position == 0 {
+    let new_node = if slot.pos == 0 {
         quote! {
             let new_node = right_child_id;
             self.execute(j, next_slot_id, Some(new_node), gss_node_id);
@@ -414,9 +388,12 @@ fn gen_terminal_slot(
             }
         }
     };
+    let next_slot = slot.next(grammar);
+    let next_slot_id = slot_ids.id(&next_slot);
+    let next_slot_name = next_slot.display_name(grammar);
     let terminal_name = &terminal.name;
     quote! {
-        #[comment = #slot_name]
+        #[comment = #current_slot_name]
         #slot_id => {
             record!(self, MatchingLeadingLayout, input_index);
             let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
@@ -447,18 +424,20 @@ fn gen_terminal_slot(
     }
 }
 
-fn gen_nonterminal_slot(
-    nonterminal: &Nonterminal,
-    slot_name: &str,
-    next_slot_name: &str,
+fn gen_nonterminal_slot<'a>(
+    grammar: &'a Grammar,
+    nonterminal: &'a Nonterminal,
+    slot: Slot<'a>,
     nonterminal_ids: &NonterminalIds,
-    slot_ids: &mut SlotIds,
+    slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
     let nonterminal_id = nonterminal_ids
         .get_id(nonterminal)
         .unwrap_or_else(|| panic!("nonterminal {} is not defined", nonterminal.name));
-    let slot_id = slot_ids.id(slot_name);
-    let return_slot_id = slot_ids.id(next_slot_name);
+    let slot_id = slot_ids.id(&slot);
+    let slot_name = slot.display_name(grammar);
+    let next_slot = slot.next(grammar);
+    let return_slot_id = slot_ids.id(&next_slot);
     quote! {
         #[comment = #slot_name]
         #slot_id => {
@@ -499,18 +478,10 @@ fn gen_terminals_method() -> TokenStream {
     }
 }
 
-fn gen_slot_method() -> TokenStream {
+fn gen_slot_name_method() -> TokenStream {
     quote! {
-        fn slot(slot_id: SlotId) -> &'static Slot {
-            &SLOTS[slot_id.index()]
-        }
-    }
-}
-
-fn gen_slots_method() -> TokenStream {
-    quote! {
-        fn slots() -> impl Iterator<Item = &'static Slot> {
-            SLOTS.iter()
+        fn slot_name(slot_id: SlotId) -> &'static str {
+            SLOTS[slot_id.index()].display_name
         }
     }
 }
@@ -916,25 +887,4 @@ fn gen_start_nonterminal_method() -> TokenStream {
             self.start_nonterminal
         }
     }
-}
-
-/// Creates a string representation of a grammar slot of the form `A : a B . c`.
-fn slot_to_string(nt_name: &str, seq: &Alternative, pos: usize) -> String {
-    let mut s = String::new();
-    s.push_str(nt_name);
-    s.push_str(" : ");
-    for (i, symbol) in seq.symbols.iter().enumerate() {
-        if i == pos {
-            s.push_str(". ");
-        }
-        s.push_str(&symbol.to_string());
-        if i < seq.len() - 1 {
-            s.push(' ');
-        }
-    }
-    // Handle the case where slot is the last grammar position
-    if seq.symbols.len() == pos {
-        s.push('.');
-    }
-    s
 }

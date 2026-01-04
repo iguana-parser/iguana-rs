@@ -34,7 +34,7 @@ pub fn generate(grammar: &Grammar, output_dir: &Path) -> std::io::Result<()> {
     for terminal in grammar.terminals() {
         terminal_ids.insert(terminal.clone());
     }
-    let mut slot_ids = SlotIds::default();
+    let mut slot_ids = SlotIds::new(grammar);
 
     if !output_dir.exists() {
         fs::create_dir_all(output_dir)?;
