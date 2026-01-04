@@ -184,7 +184,13 @@ export type DebugSPPFInfo = { nodes: DebugSPPFNode[];
  */
 current_node_id: number | null }
 /**
- * Simple SPPF node for debug visualization.
+ * SPPF node for debug visualization, reconstructed incrementally from trace events.
+ * 
+ * This is separate from iguana's `SPPFDotNode` because debug mode replays trace events
+ * step-by-step and builds the SPPF incrementally. Each step may add new nodes, so we
+ * need the `children` field to track parent-child relationships as they're discovered.
+ * In contrast, `SPPFDotNode` is built by traversing the completed SPPF tree after parsing,
+ * where edges are stored separately.
  */
 export type DebugSPPFNode = { id: number; kind: DebugSPPFNodeKind; label: string; left_extent: number; right_extent: number; children: number[] }
 export type DebugSPPFNodeKind = "Terminal" | "Nonterminal" | "Intermediate"
@@ -202,7 +208,7 @@ export type GssNodeId = number
 export type NodeKind = "Nonterminal" | "Intermediate" | "Terminal" | "Packed"
 export type SPPF = { nodes: SPPFDotNode[]; edges: SPPFDotEdge[] }
 export type SPPFDotEdge = { src: SPPFNodeId; dest: SPPFNodeId }
-export type SPPFDotNode = { id: SPPFNodeId; kind: NodeKind; label: string }
+export type SPPFDotNode = { id: SPPFNodeId; kind: NodeKind; label: string; left_extent: number; right_extent: number }
 /**
  * A unique identifier for an SPPF node.
  * 

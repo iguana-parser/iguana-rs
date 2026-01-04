@@ -1,6 +1,28 @@
 import type { Core, NodeSingular, EdgeSingular, ElementDefinition } from "cytoscape";
 import type { DebugSPPFNode } from "../bindings";
 import { truncateLabel, LABEL_MAX_LENGTH, INTERMEDIATE_MAX_LENGTH } from "./graph-styles";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
+
+/**
+ * Exports a Cytoscape graph as a PNG file using native save dialog.
+ * @param graph - The Cytoscape instance to export
+ * @param defaultName - Default filename (without extension)
+ */
+export async function exportGraphPng(graph: Core | null, defaultName: string): Promise<void> {
+  if (!graph) return;
+
+  const path = await save({
+    defaultPath: `${defaultName}.png`,
+    filters: [{ name: "PNG Image", extensions: ["png"] }],
+  });
+
+  if (!path) return; // User cancelled
+
+  const blob = graph.png({ output: "blob", bg: "#1e1e1e", scale: 2 }) as Blob;
+  const buffer = await blob.arrayBuffer();
+  await writeFile(path, new Uint8Array(buffer));
+}
 
 /**
  * Manages collapse/expand functionality for SPPF graph nodes.
@@ -114,10 +136,12 @@ export class GraphCollapseManager {
  * Builds Cytoscape elements for debug SPPF visualization.
  * Filters to show only the subtree reachable from currentNodeId.
  * Returns null if there are no reachable nodes.
+ * @param showSpans - Whether to include span information in node labels (default: true for backward compatibility)
  */
 export function buildDebugSppfElements(
   nodes: DebugSPPFNode[],
-  currentNodeId: number | null
+  currentNodeId: number | null,
+  showSpans: boolean = true
 ): ElementDefinition[] | null {
   // Build a map for quick lookup
   const nodeMap = new Map<number, DebugSPPFNode>();
@@ -153,12 +177,16 @@ export function buildDebugSppfElements(
   for (const node of nodes) {
     if (!reachableIds.has(node.id)) continue;
 
-    // Line 1: grammar slot (truncated if needed), Line 2: span
     // Intermediate nodes get longer max length since they show grammar slots
     const maxLen = node.kind === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
+    // Optionally show span on second line
     const span = `(${node.left_extent}, ${node.right_extent})`;
-    const displayLabel = `${truncateLabel(node.label, maxLen)}\n${span}`;
-    const fullLabel = `${node.label}\n${span}`;
+    const displayLabel = showSpans
+      ? `${truncateLabel(node.label, maxLen)}\n${span}`
+      : truncateLabel(node.label, maxLen);
+    const fullLabel = showSpans
+      ? `${node.label}\n${span}`
+      : node.label;
 
     elements.push({
       data: {

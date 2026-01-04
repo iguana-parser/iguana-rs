@@ -5,7 +5,7 @@
   import { getCurrentWindow } from "@tauri-apps/api/window";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
-  import { ZoomIn, ZoomOut, Maximize2 } from "lucide-svelte";
+  import { ZoomIn, ZoomOut, Maximize2, UnfoldHorizontal, FoldHorizontal, Download } from "lucide-svelte";
   import {
     sppfNodeStyles,
     gssNodeStyles,
@@ -18,7 +18,7 @@
     LABEL_MAX_LENGTH,
     INTERMEDIATE_MAX_LENGTH,
   } from "$lib/graph-styles";
-  import { GraphCollapseManager, buildDebugSppfElements } from "$lib/graph-utils";
+  import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng } from "$lib/graph-utils";
   import { createMaximizeToggle } from "$lib/window-utils";
   import type {
     SPPF,
@@ -71,6 +71,7 @@
   let debugGssEdges: DebugGSSEdge[] = $state([]);
   let debugGssCurrentNodeId: number | null = $state(null);
   let selectedNodeId: string | null = $state(null);
+  let showSpans = $state(false);
 
   function getTitle(): string {
     switch (graphType) {
@@ -127,7 +128,7 @@
         })),
       ];
     } else if (graphType === "debugSppf") {
-      return buildDebugSppfElements(debugSppfNodes, debugSppfCurrentNodeId) || [];
+      return buildDebugSppfElements(debugSppfNodes, debugSppfCurrentNodeId, showSpans) || [];
     } else if (graphType === "debugGss") {
       const elements: cytoscape.ElementDefinition[] = [];
       for (const node of debugGssNodes) {
@@ -275,11 +276,14 @@
       );
     } else if (graphType === "debugSppf") {
       unlisteners.push(
-        listen<{ nodes: DebugSPPFNode[]; current_node_id: number | null }>(
+        listen<{ nodes: DebugSPPFNode[]; current_node_id: number | null; show_spans?: boolean }>(
           "graph-data-debug-sppf",
           (event) => {
             debugSppfNodes = event.payload.nodes;
             debugSppfCurrentNodeId = event.payload.current_node_id;
+            if (event.payload.show_spans !== undefined) {
+              showSpans = event.payload.show_spans;
+            }
           }
         )
       );
@@ -337,6 +341,26 @@
       capZoom(cy);
     }
   }
+
+  function toggleSpans() {
+    showSpans = !showSpans;
+    // Preserve selection state before re-rendering
+    const savedSelection = selectedNodeId;
+
+    // Re-render the graph
+    tick().then(() => {
+      renderGraph();
+      // Restore selection
+      if (savedSelection && cy) {
+        selectedNodeId = savedSelection;
+        cy.getElementById(savedSelection).addClass('selected');
+      }
+    });
+    // Notify main window about the change (only for debug SPPF)
+    if (graphType === 'debugSppf') {
+      emit('spans-toggled', { show_spans: showSpans });
+    }
+  }
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
@@ -366,6 +390,18 @@
       </button>
       <button onclick={resetView} title="Reset View">
         <Maximize2 size={14} />
+      </button>
+      {#if graphType === 'debugSppf'}
+        <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
+          {#if showSpans}
+            <FoldHorizontal size={14} />
+          {:else}
+            <UnfoldHorizontal size={14} />
+          {/if}
+        </button>
+      {/if}
+      <button onclick={() => exportGraphPng(cy, graphType ?? 'graph')} title="Export as PNG">
+        <Download size={14} />
       </button>
     </div>
   </div>

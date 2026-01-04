@@ -6,7 +6,7 @@
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { createMaximizeToggle } from "$lib/window-utils";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck } from "lucide-svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
   import {
@@ -21,7 +21,7 @@
     LABEL_MAX_LENGTH,
     INTERMEDIATE_MAX_LENGTH,
   } from "$lib/graph-styles";
-  import { GraphCollapseManager, buildDebugSppfElements } from "$lib/graph-utils";
+  import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng } from "$lib/graph-utils";
 
   // Parse Tree types (manually defined, not via specta)
   interface ParseTreeNode {
@@ -151,6 +151,53 @@
       }
     });
 
+    // Listen for spans toggle from popup windows
+    const unlistenSpansToggled = listen<{ show_spans: boolean }>("spans-toggled", (event) => {
+      showSpans = event.payload.show_spans;
+      // Preserve selection state before re-rendering
+      const savedParseTreeSelection = parseTreeSelectedNodeId;
+      const savedParseTreeSpan = parseTreeSelectedSpan;
+      const savedSppfSelection = sppfSelectedNodeId;
+      const savedSppfSpan = sppfSelectedSpan;
+      const savedDebugSelection = selectedNodeId;
+      const savedDebugSpan = selectedSpan;
+
+      // Re-render main window graphs
+      if (parseTree) {
+        tick().then(() => {
+          renderParseTree();
+          // Restore selection
+          if (savedParseTreeSelection && parseTreeCy) {
+            parseTreeSelectedNodeId = savedParseTreeSelection;
+            parseTreeSelectedSpan = savedParseTreeSpan;
+            parseTreeCy.getElementById(savedParseTreeSelection).addClass('selected');
+          }
+        });
+      }
+      if (sppf) {
+        tick().then(() => {
+          renderSPPF();
+          // Restore selection
+          if (savedSppfSelection && cy) {
+            sppfSelectedNodeId = savedSppfSelection;
+            sppfSelectedSpan = savedSppfSpan;
+            cy.getElementById(savedSppfSelection).addClass('selected');
+          }
+        });
+      }
+      if (debugSppfNodes.length > 0) {
+        tick().then(() => {
+          renderDebugSppf();
+          // Restore selection
+          if (savedDebugSelection && debugSppfCy) {
+            selectedNodeId = savedDebugSelection;
+            selectedSpan = savedDebugSpan;
+            debugSppfCy.getElementById(savedDebugSelection).addClass('selected');
+          }
+        });
+      }
+    });
+
     // Close all graph windows when main window closes
     const mainWindow = getCurrentWindow();
     const unlistenMainClose = mainWindow.onCloseRequested(async (event) => {
@@ -167,6 +214,7 @@
       unlistenStepBack.then(fn => fn());
       unlistenStepForward.then(fn => fn());
       unlistenNodeSelected.then(fn => fn());
+      unlistenSpansToggled.then(fn => fn());
       unlistenMainClose.then(fn => fn());
       window.removeEventListener('resize', handleWindowResize);
     };
@@ -255,6 +303,9 @@
   // Graph tab
   let activeTab = $state<"gss" | "sppf" | "parse-tree">("parse-tree");
 
+  // Show spans in graph labels (hidden by default)
+  let showSpans = $state(false);
+
   // App mode
   let activeMode = $state<"parse" | "debug" | "design">("parse");
 
@@ -279,6 +330,10 @@
   // Parse tree node selection (for highlighting span in input)
   let parseTreeSelectedSpan = $state<{ start: number; end: number } | null>(null);
   let parseTreeSelectedNodeId = $state<string | null>(null);
+
+  // SPPF node selection (for highlighting span in input)
+  let sppfSelectedSpan = $state<{ left: number; right: number } | null>(null);
+  let sppfSelectedNodeId = $state<string | null>(null);
 
   // Track if parse result is available
   let parseResultAvailable = $state(false);
@@ -336,6 +391,9 @@
 
     // Reset collapsed nodes when rendering new SPPF
     sppfCollapseManager.reset();
+    // Clear selection when re-rendering
+    sppfSelectedSpan = null;
+    sppfSelectedNodeId = null;
 
     // Cleanup previous tooltip
     if (sppfTooltipCleanup) {
@@ -345,14 +403,24 @@
 
     const elements: cytoscape.ElementDefinition[] = [
       ...sppf.nodes.map((node) => {
-        const fullLabel = node.label || (node.kind === "Packed" ? "●" : "");
+        const baseLabel = node.label || (node.kind === "Packed" ? "●" : "");
         // Intermediate nodes get longer max length since they show grammar slots
         const maxLen = node.kind === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
+        // Optionally add span to label (skip for packed nodes which have no real span)
+        const span = `(${node.left_extent}, ${node.right_extent})`;
+        const displayLabel = showSpans && node.kind !== "Packed"
+          ? `${truncateLabel(baseLabel, maxLen)}\n${span}`
+          : truncateLabel(baseLabel, maxLen);
+        const fullLabel = showSpans && node.kind !== "Packed"
+          ? `${baseLabel}\n${span}`
+          : baseLabel;
         return {
           data: {
             id: `n${node.id}`,
-            label: truncateLabel(fullLabel, maxLen),
+            label: displayLabel,
             fullLabel: fullLabel,
+            leftExtent: node.left_extent,
+            rightExtent: node.right_extent,
           },
           classes: node.kind.toLowerCase(),
         };
@@ -386,6 +454,33 @@
     cy.on('dbltap', 'node', (event) => {
       const node = event.target;
       sppfCollapseManager.toggleCollapse(node.id());
+    });
+
+    // Click on node to highlight span in input and select node
+    cy.on('tap', 'node', (event) => {
+      const node = event.target;
+      const left = node.data('leftExtent');
+      const right = node.data('rightExtent');
+      if (left !== undefined && right !== undefined) {
+        sppfSelectedSpan = { left, right };
+      }
+      // Update node selection styling
+      if (sppfSelectedNodeId) {
+        cy?.getElementById(sppfSelectedNodeId).removeClass('selected');
+      }
+      sppfSelectedNodeId = node.id();
+      node.addClass('selected');
+    });
+
+    // Click on background to clear selection
+    cy.on('tap', (event) => {
+      if (event.target === cy) {
+        sppfSelectedSpan = null;
+        if (sppfSelectedNodeId) {
+          cy?.getElementById(sppfSelectedNodeId).removeClass('selected');
+          sppfSelectedNodeId = null;
+        }
+      }
     });
   }
 
@@ -439,10 +534,14 @@
     const elements: cytoscape.ElementDefinition[] = [
       ...parseTree.nodes.map((node) => {
         const maxLen = LABEL_MAX_LENGTH;
-        // Add span to label like debug SPPF: "label\n(start, end)"
+        // Optionally add span to label: "label\n(start, end)"
         const span = `(${node.start}, ${node.end})`;
-        const displayLabel = `${truncateLabel(node.label, maxLen)}\n${span}`;
-        const fullLabel = `${node.label}\n${span}`;
+        const displayLabel = showSpans
+          ? `${truncateLabel(node.label, maxLen)}\n${span}`
+          : truncateLabel(node.label, maxLen);
+        const fullLabel = showSpans
+          ? `${node.label}\n${span}`
+          : node.label;
         return {
           data: {
             id: `n${node.id}`,
@@ -577,7 +676,7 @@
       debugSppfTooltipCleanup = null;
     }
 
-    const elements = buildDebugSppfElements(debugSppfNodes, currentSppfNodeId);
+    const elements = buildDebugSppfElements(debugSppfNodes, currentSppfNodeId, showSpans);
 
     // If no reachable nodes, clear the graph
     if (!elements) {
@@ -949,6 +1048,73 @@
     }
   }
 
+  function exportGraph() {
+    const graph = getActiveGraph();
+    const filename = activeTab === "parse-tree" ? "parse-tree" : activeTab;
+    exportGraphPng(graph, filename);
+  }
+
+  function toggleSpans() {
+    showSpans = !showSpans;
+    // Preserve selection state before re-rendering
+    const savedParseTreeSelection = parseTreeSelectedNodeId;
+    const savedParseTreeSpan = parseTreeSelectedSpan;
+    const savedSppfSelection = sppfSelectedNodeId;
+    const savedSppfSpan = sppfSelectedSpan;
+    const savedDebugSelection = selectedNodeId;
+    const savedDebugSpan = selectedSpan;
+
+    // Re-render affected graphs
+    if (parseTree) {
+      tick().then(() => {
+        renderParseTree();
+        // Restore selection
+        if (savedParseTreeSelection && parseTreeCy) {
+          parseTreeSelectedNodeId = savedParseTreeSelection;
+          parseTreeSelectedSpan = savedParseTreeSpan;
+          parseTreeCy.getElementById(savedParseTreeSelection).addClass('selected');
+        }
+      });
+    }
+    if (sppf) {
+      tick().then(() => {
+        renderSPPF();
+        // Restore selection
+        if (savedSppfSelection && cy) {
+          sppfSelectedNodeId = savedSppfSelection;
+          sppfSelectedSpan = savedSppfSpan;
+          cy.getElementById(savedSppfSelection).addClass('selected');
+        }
+      });
+    }
+    if (debugSppfNodes.length > 0) {
+      tick().then(() => {
+        renderDebugSppf();
+        // Restore selection
+        if (savedDebugSelection && debugSppfCy) {
+          selectedNodeId = savedDebugSelection;
+          selectedSpan = savedDebugSpan;
+          debugSppfCy.getElementById(savedDebugSelection).addClass('selected');
+        }
+      });
+    }
+    // Notify popup windows about the change
+    notifyPopupWindowsSpansChanged();
+  }
+
+  function notifyPopupWindowsSpansChanged() {
+    // Re-send data to popup windows with updated showSpans
+    for (const [graphType, webview] of graphWindows) {
+      if (graphType === 'debugSppf') {
+        webview.emit('graph-data-debug-sppf', {
+          nodes: debugSppfNodes,
+          current_node_id: currentSppfNodeId,
+          show_spans: showSpans,
+        });
+      }
+    }
+  }
+
   // Graph window management functions (separate OS windows)
   function getGraphTitle(graphType: GraphType): string {
     switch (graphType) {
@@ -1007,6 +1173,7 @@
         await webview.emit('graph-data-debug-sppf', {
           nodes: debugSppfNodes,
           current_node_id: currentSppfNodeId,
+          show_spans: showSpans,
         });
         break;
       case 'debugGss':
@@ -1526,6 +1693,8 @@
     <div class="input-section">
       {#if parseTreeSelectedSpan !== null}
         <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:selected={i >= parseTreeSelectedSpan.start && i < parseTreeSelectedSpan.end}>{char}</span>{/each}</div>
+      {:else if sppfSelectedSpan !== null}
+        <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:selected={i >= sppfSelectedSpan.left && i < sppfSelectedSpan.right}>{char}</span>{/each}</div>
       {:else}
         <textarea
           bind:value={inputText}
@@ -1575,6 +1744,16 @@
               <button onclick={expandAll} title="Expand all (double-click node to collapse)">
                 <Expand size={16} />
               </button>
+              <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
+                {#if showSpans}
+                  <FoldHorizontal size={16} />
+                {:else}
+                  <UnfoldHorizontal size={16} />
+                {/if}
+              </button>
+              <button onclick={exportGraph} title="Export as PNG">
+                <Download size={16} />
+              </button>
             </div>
           {:else}
             <div class="graph-placeholder">Parse input to see Parse Tree</div>
@@ -1595,6 +1774,16 @@
               <button onclick={expandAll} title="Expand all (double-click node to collapse)">
                 <Expand size={16} />
               </button>
+              <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
+                {#if showSpans}
+                  <FoldHorizontal size={16} />
+                {:else}
+                  <UnfoldHorizontal size={16} />
+                {/if}
+              </button>
+              <button onclick={exportGraph} title="Export as PNG">
+                <Download size={16} />
+              </button>
               <button onclick={() => openGraphWindow('sppf')} title="Pop out">
                 <Fullscreen size={16} />
               </button>
@@ -1614,6 +1803,9 @@
               </button>
               <button onclick={resetView} title="Reset view">
                 <Maximize2 size={16} />
+              </button>
+              <button onclick={exportGraph} title="Export as PNG">
+                <Download size={16} />
               </button>
               <button onclick={() => openGraphWindow('gss')} title="Pop out">
                 <Fullscreen size={16} />
@@ -1803,6 +1995,16 @@
               <button onclick={() => resetViewGraph(debugSppfCy)} title="Reset view">
                 <Maximize2 size={16} />
               </button>
+              <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
+                {#if showSpans}
+                  <FoldHorizontal size={16} />
+                {:else}
+                  <UnfoldHorizontal size={16} />
+                {/if}
+              </button>
+              <button onclick={() => exportGraphPng(debugSppfCy, 'debug-sppf')} title="Export as PNG">
+                <Download size={16} />
+              </button>
               <button onclick={() => openGraphWindow('debugSppf')} title="Pop out">
                 <Fullscreen size={16} />
               </button>
@@ -1832,6 +2034,9 @@
               </button>
               <button onclick={() => resetViewGraph(debugGssCy)} title="Reset view">
                 <Maximize2 size={16} />
+              </button>
+              <button onclick={() => exportGraphPng(debugGssCy, 'debug-gss')} title="Export as PNG">
+                <Download size={16} />
               </button>
               <button onclick={() => openGraphWindow('debugGss')} title="Pop out">
                 <Fullscreen size={16} />

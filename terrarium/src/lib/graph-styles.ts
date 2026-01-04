@@ -157,24 +157,28 @@ export const sppfNodeStyles: Stylesheet[] = [
     selector: "node.nonterminal.selected, node[kind='Nonterminal'].selected",
     style: {
       "background-color": "#3a5f50",
+      "border-color": "#7fffaa",  // Brighter green
     },
   },
   {
     selector: "node.intermediate.selected, node[kind='Intermediate'].selected",
     style: {
       "background-color": "#3a4d60",
+      "border-color": "#7eb8ff",  // Brighter blue
     },
   },
   {
     selector: "node.terminal.selected, node[kind='Terminal'].selected",
     style: {
       "background-color": "#5f4a3a",
+      "border-color": "#ffb07a",  // Brighter orange
     },
   },
   {
     selector: "node.token.selected, node[kind='Token'].selected",
     style: {
       "background-color": "#5f4a3a",
+      "border-color": "#ffb07a",  // Brighter orange
     },
   },
 ];

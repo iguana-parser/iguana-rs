@@ -41,6 +41,8 @@ pub struct SPPFDotNode {
     pub id: SPPFNodeId,
     pub kind: NodeKind,
     pub label: String,
+    pub left_extent: u32,
+    pub right_extent: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -156,22 +158,26 @@ impl<'a, 'i, P: Parser<'i>> SPPFGraphBuilder<'a, P> {
         let label = self.parser.sppf_node_to_string(self.parser.sppf_node(id));
         match node {
             SPPFNode::Terminal(_) => {
-                let node = SPPFDotNode {
+                let dot_node = SPPFDotNode {
                     id,
                     label,
                     kind: NodeKind::Terminal,
+                    left_extent: node.left_extent(),
+                    right_extent: node.right_extent(),
                 };
-                self.nodes.push(node.clone());
-                self.nodes_map.insert(id, node);
+                self.nodes.push(dot_node.clone());
+                self.nodes_map.insert(id, dot_node);
             }
             SPPFNode::Nonterminal(n) => {
-                let node = SPPFDotNode {
+                let dot_node = SPPFDotNode {
                     id,
                     kind: NodeKind::Nonterminal,
                     label,
+                    left_extent: node.left_extent(),
+                    right_extent: node.right_extent(),
                 };
-                self.nodes.push(node.clone());
-                self.nodes_map.insert(id, node);
+                self.nodes.push(dot_node.clone());
+                self.nodes_map.insert(id, dot_node);
                 self.add_edge(id, n.child);
                 self.visit_node(n.child);
                 if n.ambiguous {
@@ -185,13 +191,15 @@ impl<'a, 'i, P: Parser<'i>> SPPFGraphBuilder<'a, P> {
                 }
             }
             SPPFNode::Intermediate(i) => {
-                let node = SPPFDotNode {
+                let dot_node = SPPFDotNode {
                     id,
                     kind: NodeKind::Intermediate,
                     label,
+                    left_extent: node.left_extent(),
+                    right_extent: node.right_extent(),
                 };
-                self.nodes.push(node.clone());
-                self.nodes_map.insert(id, node);
+                self.nodes.push(dot_node.clone());
+                self.nodes_map.insert(id, dot_node);
                 if i.ambiguous {
                     self.add_packed_node_to_intermediate_node(id, i.child.0, i.child.1);
                     let children_map = self.parser.intermediate_nodes_children_map();
@@ -225,10 +233,13 @@ impl<'a, 'i, P: Parser<'i>> SPPFGraphBuilder<'a, P> {
     ) {
         let packed_node_id = SPPFNodeId(self.current_packed_node_id as u32);
         self.current_packed_node_id += 1;
+        // Packed nodes are virtual nodes for visualization only, they don't have spans
         let packed_node = SPPFDotNode {
             id: packed_node_id,
             kind: NodeKind::Packed,
             label: "".to_owned(),
+            left_extent: 0,
+            right_extent: 0,
         };
         self.nodes.push(packed_node.clone());
         self.nodes_map.insert(packed_node_id, packed_node);

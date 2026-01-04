@@ -31,7 +31,13 @@ pub enum DebugAction {
     },
 }
 
-/// Simple SPPF node for debug visualization.
+/// SPPF node for debug visualization, reconstructed incrementally from trace events.
+///
+/// This is separate from iguana's `SPPFDotNode` because debug mode replays trace events
+/// step-by-step and builds the SPPF incrementally. Each step may add new nodes, so we
+/// need the `children` field to track parent-child relationships as they're discovered.
+/// In contrast, `SPPFDotNode` is built by traversing the completed SPPF tree after parsing,
+/// where edges are stored separately.
 #[derive(Debug, Clone, Serialize, Type)]
 pub struct DebugSPPFNode {
     pub id: u32,
