@@ -13,12 +13,9 @@
     gssEdgeStyles,
     capZoom,
     createGraph,
-    truncateLabel,
     setupGraphTooltip,
-    LABEL_MAX_LENGTH,
-    INTERMEDIATE_MAX_LENGTH,
   } from "$lib/graph-styles";
-  import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng } from "$lib/graph-utils";
+  import { GraphCollapseManager, buildDebugSppfElements, buildDebugGssElements, buildSppfElements, buildGssElements, exportGraphPng } from "$lib/graph-utils";
   import { createMaximizeToggle } from "$lib/window-utils";
   import type {
     SPPF,
@@ -87,73 +84,18 @@
   }
 
   function buildElements(): cytoscape.ElementDefinition[] {
-    if (graphType === "sppf" && sppfData) {
-      return [
-        ...sppfData.nodes.map((node) => {
-          const fullLabel = node.label || (node.kind === "Packed" ? "" : "");
-          // Intermediate nodes get longer max length since they show grammar slots
-          const maxLen = node.kind === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
-          return {
-            data: {
-              id: `n${node.id}`,
-              label: truncateLabel(fullLabel, maxLen),
-              fullLabel: fullLabel,
-            },
-            classes: node.kind.toLowerCase(),
-          };
-        }),
-        ...sppfData.edges.map((edge, i) => ({
-          data: {
-            id: `e${i}`,
-            source: `n${edge.src}`,
-            target: `n${edge.dest}`,
-          },
-        })),
-      ];
-    } else if (graphType === "gss" && gssData) {
-      return [
-        ...gssData.nodes.map((node) => ({
-          data: {
-            id: `n${node.id}`,
-            label: node.label,
-          },
-        })),
-        ...gssData.edges.map((edge, i) => ({
-          data: {
-            id: `e${i}`,
-            source: `n${edge.src}`,
-            target: `n${edge.dest}`,
-            label: edge.label,
-          },
-        })),
-      ];
-    } else if (graphType === "debugSppf") {
-      return buildDebugSppfElements(debugSppfNodes, debugSppfCurrentNodeId, showSpans) || [];
-    } else if (graphType === "debugGss") {
-      const elements: cytoscape.ElementDefinition[] = [];
-      for (const node of debugGssNodes) {
-        elements.push({
-          data: {
-            id: `n${node.id}`,
-            label: node.label,
-          },
-          classes: debugGssCurrentNodeId === node.id ? "current" : "",
-        });
-      }
-      for (let i = 0; i < debugGssEdges.length; i++) {
-        const edge = debugGssEdges[i];
-        elements.push({
-          data: {
-            id: `e${i}`,
-            source: `n${edge.src}`,
-            target: `n${edge.dest}`,
-            label: edge.label,
-          },
-        });
-      }
-      return elements;
+    switch (graphType) {
+      case "sppf":
+        return sppfData ? buildSppfElements(sppfData) : [];
+      case "gss":
+        return gssData ? buildGssElements(gssData) : [];
+      case "debugSppf":
+        return buildDebugSppfElements(debugSppfNodes, debugSppfCurrentNodeId, showSpans) || [];
+      case "debugGss":
+        return buildDebugGssElements(debugGssNodes, debugGssEdges, debugGssCurrentNodeId);
+      default:
+        return [];
     }
-    return [];
   }
 
   let tooltipCleanup: (() => void) | null = null;
@@ -327,12 +269,8 @@
     };
   });
 
-  function zoomIn() {
-    if (cy) cy.zoom(cy.zoom() * 1.2);
-  }
-
-  function zoomOut() {
-    if (cy) cy.zoom(cy.zoom() / 1.2);
+  function adjustZoom(factor: number) {
+    if (cy) cy.zoom(cy.zoom() * factor);
   }
 
   function resetView() {
@@ -382,10 +320,10 @@
   <div class="graph-area">
     <div class="graph-container" bind:this={container}></div>
     <div class="graph-controls">
-      <button onclick={zoomIn} title="Zoom In">
+      <button onclick={() => adjustZoom(1.2)} title="Zoom In">
         <ZoomIn size={14} />
       </button>
-      <button onclick={zoomOut} title="Zoom Out">
+      <button onclick={() => adjustZoom(1/1.2)} title="Zoom Out">
         <ZoomOut size={14} />
       </button>
       <button onclick={resetView} title="Reset View">

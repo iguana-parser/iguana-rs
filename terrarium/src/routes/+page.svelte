@@ -1000,15 +1000,9 @@
 
   // Graph controls (work with active graph)
   // Generic graph control functions
-  function zoomInGraph(graph: cytoscape.Core | null) {
+  function adjustZoomGraph(graph: cytoscape.Core | null, factor: number) {
     if (graph) {
-      graph.zoom(graph.zoom() * 1.2);
-    }
-  }
-
-  function zoomOutGraph(graph: cytoscape.Core | null) {
-    if (graph) {
-      graph.zoom(graph.zoom() / 1.2);
+      graph.zoom(graph.zoom() * factor);
     }
   }
 
@@ -1029,11 +1023,11 @@
   }
 
   function zoomIn() {
-    zoomInGraph(getActiveGraph());
+    adjustZoomGraph(getActiveGraph(), 1.2);
   }
 
   function zoomOut() {
-    zoomOutGraph(getActiveGraph());
+    adjustZoomGraph(getActiveGraph(), 1/1.2);
   }
 
   function resetView() {
@@ -1986,10 +1980,10 @@
           {:else}
             <div class="cytoscape-container" bind:this={debugSppfContainer}></div>
             <div class="graph-controls">
-              <button onclick={() => zoomInGraph(debugSppfCy)} title="Zoom in">
+              <button onclick={() => adjustZoomGraph(debugSppfCy, 1.2)} title="Zoom in">
                 <ZoomIn size={16} />
               </button>
-              <button onclick={() => zoomOutGraph(debugSppfCy)} title="Zoom out">
+              <button onclick={() => adjustZoomGraph(debugSppfCy, 1/1.2)} title="Zoom out">
                 <ZoomOut size={16} />
               </button>
               <button onclick={() => resetViewGraph(debugSppfCy)} title="Reset view">
@@ -2026,10 +2020,10 @@
           {:else}
             <div class="cytoscape-container" bind:this={debugGssContainer}></div>
             <div class="graph-controls">
-              <button onclick={() => zoomInGraph(debugGssCy)} title="Zoom in">
+              <button onclick={() => adjustZoomGraph(debugGssCy, 1.2)} title="Zoom in">
                 <ZoomIn size={16} />
               </button>
-              <button onclick={() => zoomOutGraph(debugGssCy)} title="Zoom out">
+              <button onclick={() => adjustZoomGraph(debugGssCy, 1/1.2)} title="Zoom out">
                 <ZoomOut size={16} />
               </button>
               <button onclick={() => resetViewGraph(debugGssCy)} title="Reset view">

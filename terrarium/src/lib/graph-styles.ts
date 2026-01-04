@@ -84,56 +84,78 @@ export function setupGraphTooltip(
   };
 }
 
+// Base styles shared by all graph nodes
+const baseNodeStyle = {
+  label: "data(label)",
+  "text-valign": "center",
+  "text-halign": "center",
+  "font-size": "9px",
+  color: "#d4d4d4",
+  "border-width": 1,
+  width: "label",
+  shape: "round-rectangle",
+};
+
+// Base styles shared by all graph edges
+const baseEdgeStyle = {
+  width: 1,
+  "line-color": "#555",
+  "target-arrow-color": "#555",
+  "target-arrow-shape": "triangle",
+  "curve-style": "bezier",
+  "arrow-scale": 0.8,
+};
+
+// Color definitions for node types
+const nodeColors = {
+  nonterminal: { bg: "#2d4a3d", border: "#4ec9b0", selectedBg: "#3a5f50", selectedBorder: "#7fffaa" },
+  intermediate: { bg: "#2d3a4d", border: "#569cd6", selectedBg: "#3a4d60", selectedBorder: "#7eb8ff" },
+  terminal: { bg: "#4d3a2d", border: "#ce9178", selectedBg: "#5f4a3a", selectedBorder: "#ffb07a" },
+};
+
 // SPPF node styles by type
 export const sppfNodeStyles: Stylesheet[] = [
   {
     selector: "node",
     style: {
-      label: "data(label)",
-      "text-valign": "center",
-      "text-halign": "center",
-      "font-size": "9px",
-      "text-wrap": "wrap",      // Needed for \n to create line breaks
-      color: "#d4d4d4",
+      ...baseNodeStyle,
+      "text-wrap": "wrap",  // Needed for \n to create line breaks
       "background-color": "#3c3c3c",
-      "border-width": 1,
       "border-color": "#555",
-      width: "label",
       height: "label",
       "padding-left": "9px",
       "padding-right": "9px",
       "padding-top": "5px",
       "padding-bottom": "5px",
-      shape: "round-rectangle",
     },
   },
   {
     selector: "node.nonterminal, node[kind='Nonterminal']",
     style: {
-      "background-color": "#2d4a3d",
-      "border-color": "#4ec9b0",
+      "background-color": nodeColors.nonterminal.bg,
+      "border-color": nodeColors.nonterminal.border,
     },
   },
   {
     selector: "node.intermediate, node[kind='Intermediate']",
     style: {
-      "background-color": "#2d3a4d",
-      "border-color": "#569cd6",
+      "background-color": nodeColors.intermediate.bg,
+      "border-color": nodeColors.intermediate.border,
       shape: "rectangle",
     },
   },
   {
     selector: "node.terminal, node[kind='Terminal']",
     style: {
-      "background-color": "#4d3a2d",
-      "border-color": "#ce9178",
+      "background-color": nodeColors.terminal.bg,
+      "border-color": nodeColors.terminal.border,
     },
   },
   {
     selector: "node.token, node[kind='Token']",
     style: {
-      "background-color": "#4d3a2d",
-      "border-color": "#ce9178",
+      "background-color": nodeColors.terminal.bg,
+      "border-color": nodeColors.terminal.border,
     },
   },
   {
@@ -156,29 +178,29 @@ export const sppfNodeStyles: Stylesheet[] = [
   {
     selector: "node.nonterminal.selected, node[kind='Nonterminal'].selected",
     style: {
-      "background-color": "#3a5f50",
-      "border-color": "#7fffaa",  // Brighter green
+      "background-color": nodeColors.nonterminal.selectedBg,
+      "border-color": nodeColors.nonterminal.selectedBorder,
     },
   },
   {
     selector: "node.intermediate.selected, node[kind='Intermediate'].selected",
     style: {
-      "background-color": "#3a4d60",
-      "border-color": "#7eb8ff",  // Brighter blue
+      "background-color": nodeColors.intermediate.selectedBg,
+      "border-color": nodeColors.intermediate.selectedBorder,
     },
   },
   {
     selector: "node.terminal.selected, node[kind='Terminal'].selected",
     style: {
-      "background-color": "#5f4a3a",
-      "border-color": "#ffb07a",  // Brighter orange
+      "background-color": nodeColors.terminal.selectedBg,
+      "border-color": nodeColors.terminal.selectedBorder,
     },
   },
   {
     selector: "node.token.selected, node[kind='Token'].selected",
     style: {
-      "background-color": "#5f4a3a",
-      "border-color": "#ffb07a",  // Brighter orange
+      "background-color": nodeColors.terminal.selectedBg,
+      "border-color": nodeColors.terminal.selectedBorder,
     },
   },
 ];
@@ -188,26 +210,19 @@ export const gssNodeStyles: Stylesheet[] = [
   {
     selector: "node",
     style: {
-      label: "data(label)",
-      "text-valign": "center",
-      "text-halign": "center",
-      "font-size": "9px",
-      color: "#d4d4d4",
-      "background-color": "#2d4a3d",
-      "border-width": 1,
-      "border-color": "#4ec9b0",
-      width: "label",
+      ...baseNodeStyle,
+      "background-color": nodeColors.nonterminal.bg,
+      "border-color": nodeColors.nonterminal.border,
       height: 22,
       "padding-left": "8px",
       "padding-right": "8px",
-      shape: "round-rectangle",
     },
   },
   {
     selector: "node.current",
     style: {
       "border-width": 3,
-      "border-color": "#4ec9b0",
+      "border-color": nodeColors.nonterminal.border,
       "background-color": "#3d5a4d",
     },
   },
@@ -216,31 +231,19 @@ export const gssNodeStyles: Stylesheet[] = [
 // SPPF edge styles (no labels)
 export const edgeStyles: Stylesheet = {
   selector: "edge",
-  style: {
-    width: 1,
-    "line-color": "#555",
-    "target-arrow-color": "#555",
-    "target-arrow-shape": "triangle",
-    "curve-style": "bezier",
-    "arrow-scale": 0.8,
-  },
+  style: { ...baseEdgeStyle },
 };
 
 // GSS edge styles (with labels)
 export const gssEdgeStyles: Stylesheet = {
   selector: "edge",
   style: {
+    ...baseEdgeStyle,
     label: "data(label)",
     "font-size": "9px",
     color: "#888",
     "text-rotation": "autorotate",
     "text-margin-y": -10,
-    width: 1,
-    "line-color": "#555",
-    "target-arrow-color": "#555",
-    "target-arrow-shape": "triangle",
-    "curve-style": "bezier",
-    "arrow-scale": 0.8,
   },
 };
 

@@ -1,5 +1,5 @@
 import type { Core, NodeSingular, EdgeSingular, ElementDefinition } from "cytoscape";
-import type { DebugSPPFNode } from "../bindings";
+import type { DebugSPPFNode, DebugGSSNode, DebugGSSEdge, SPPF, GSS } from "../bindings";
 import { truncateLabel, LABEL_MAX_LENGTH, INTERMEDIATE_MAX_LENGTH } from "./graph-styles";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
@@ -218,4 +218,85 @@ export function buildDebugSppfElements(
   }
 
   return elements;
+}
+
+/**
+ * Builds Cytoscape elements for SPPF visualization (parse mode).
+ */
+export function buildSppfElements(sppf: SPPF): ElementDefinition[] {
+  const nodes = sppf.nodes.map((node) => {
+    const fullLabel = node.label || "";
+    const maxLen = node.kind === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
+    return {
+      data: {
+        id: `n${node.id}`,
+        label: truncateLabel(fullLabel, maxLen),
+        fullLabel: fullLabel,
+        leftExtent: node.left_extent,
+        rightExtent: node.right_extent,
+      },
+      classes: node.kind.toLowerCase(),
+    };
+  });
+
+  const edges = sppf.edges.map((edge, i) => ({
+    data: {
+      id: `e${i}`,
+      source: `n${edge.src}`,
+      target: `n${edge.dest}`,
+    },
+  }));
+
+  return [...nodes, ...edges];
+}
+
+/**
+ * Builds Cytoscape elements for GSS visualization (parse mode).
+ */
+export function buildGssElements(gss: GSS): ElementDefinition[] {
+  const nodes = gss.nodes.map((node) => ({
+    data: {
+      id: `n${node.id}`,
+      label: node.label,
+    },
+  }));
+
+  const edges = gss.edges.map((edge, i) => ({
+    data: {
+      id: `e${i}`,
+      source: `n${edge.src}`,
+      target: `n${edge.dest}`,
+      label: edge.label,
+    },
+  }));
+
+  return [...nodes, ...edges];
+}
+
+/**
+ * Builds Cytoscape elements for debug GSS visualization.
+ */
+export function buildDebugGssElements(
+  nodes: DebugGSSNode[],
+  edges: DebugGSSEdge[],
+  currentNodeId: number | null
+): ElementDefinition[] {
+  const nodeElements = nodes.map((node) => ({
+    data: {
+      id: `n${node.id}`,
+      label: node.label,
+    },
+    classes: currentNodeId === node.id ? "current" : "",
+  }));
+
+  const edgeElements = edges.map((edge, i) => ({
+    data: {
+      id: `e${i}`,
+      source: `n${edge.src}`,
+      target: `n${edge.dest}`,
+      label: edge.label,
+    },
+  }));
+
+  return [...nodeElements, ...edgeElements];
 }
