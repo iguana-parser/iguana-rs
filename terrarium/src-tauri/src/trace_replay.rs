@@ -236,7 +236,12 @@ impl TraceReplay {
     }
 
     /// Format a Pop action for multi-line display.
-    fn format_pop(&self, slot_id: SlotId, gss_node_id: GssNodeId, sppf_node_id: SPPFNodeId) -> String {
+    fn format_pop(
+        &self,
+        slot_id: SlotId,
+        gss_node_id: GssNodeId,
+        sppf_node_id: SPPFNodeId,
+    ) -> String {
         let slot_name = self.symbols.slot(slot_id);
         let gss_node = self.format_gss_node(gss_node_id);
         let sppf_node = self.format_sppf_node(sppf_node_id.0);
@@ -461,7 +466,13 @@ impl TraceReplay {
                     children: vec![child.0],
                 });
             }
-            TraceEvent::MatchFailed(terminal_name, input_index, slot_id, gss_node_id, sppf_node_id) => {
+            TraceEvent::MatchFailed(
+                terminal_name,
+                input_index,
+                slot_id,
+                gss_node_id,
+                sppf_node_id,
+            ) => {
                 self.current_action = Some(DebugAction::MatchFailed {
                     terminal_name: terminal_name.clone(),
                     input_index: *input_index,

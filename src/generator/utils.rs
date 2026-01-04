@@ -20,6 +20,23 @@ pub fn to_first_lowercase(s: &str) -> String {
     }
 }
 
+pub fn to_pascal_case(s: &str) -> String {
+    s.split('_')
+        .filter(|p| !p.is_empty())
+        .map(|p| {
+            let mut chars = p.chars();
+            match chars.next() {
+                Some(c) => c.to_uppercase().to_string() + chars.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect()
+}
+
+pub fn to_snake_case(s: &str) -> String {
+    s.to_lowercase()
+}
+
 pub fn alternative_label(alternative: &Alternative, index: usize) -> Cow<'_, str> {
     match &alternative.label {
         Some(label) => Cow::Borrowed(label),

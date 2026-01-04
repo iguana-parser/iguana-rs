@@ -30,12 +30,12 @@ pub const NONTERMINALS: [Nonterminal; 4] = [
         kind: None,
     },
     Nonterminal {
-        name: "Grammar_Plus0",
+        name: "Grammar_Plus_0",
         display: "Rule+",
         kind: Some(EbnfKind::Plus),
     },
     Nonterminal {
-        name: "Rule_Plus1",
+        name: "Rule_Plus_1",
         display: "Identifier+",
         kind: Some(EbnfKind::Plus),
     },
@@ -666,7 +666,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                 });
             }
-            //Grammar_Plus0
+            //Grammar_Plus_0
             NonterminalId(2) => {
                 //Rule+ : . Rule+ Rule
                 self.add_descriptor(Descriptor {
@@ -683,7 +683,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                 });
             }
-            //Rule_Plus1
+            //Rule_Plus_1
             NonterminalId(3) => {
                 //Identifier+ : . Identifier+ Identifier
                 self.add_descriptor(Descriptor {

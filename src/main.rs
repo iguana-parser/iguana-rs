@@ -68,11 +68,15 @@ fn test_grammar() -> Grammar {
 
 #[allow(dead_code)]
 fn grammar2() -> Grammar {
-    // S -> E
+    // P -> S+
+    // S -> E ";"
     // E -> E '+' E | 'a'
     // WS -> ' '*
     grammar_def!("Test2",
         syntax: [
+            syntax_rule!("P" => priority_level!(
+                alternative!(plus!(id!("S")))
+            )),
             syntax_rule!("S" => priority_level!(
                 alternative!(id!("E"))
             )),

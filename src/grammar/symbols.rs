@@ -126,6 +126,13 @@ impl Nonterminal {
             origin: Some(origin),
         }
     }
+    // For normal nonterminals, i.e., the ones that are defined by the user directly,
+    // the display_name is the same the nonterminal name.
+    // For other nonterminals that are generated during grammar transformations,
+    // `display_name` shows a name that reflects the structure, rather than the unique,
+    // synthetic name using for the code generation.
+    // For example, for the rule S : A (B|C)+ C, the display name is (B|C)+, while the
+    // name is S_Plus_0.
     pub fn display_name(&self) -> String {
         match &self.origin {
             Some(symbol) => symbol.to_string(),

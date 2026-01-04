@@ -28,31 +28,31 @@ impl Counters {
     }
 
     fn next_group(&mut self, parent_name: &str) -> String {
-        let name = format!("{}_Group{}", parent_name, self.group);
+        let name = format!("{}_Group_{}", parent_name, self.group);
         self.group += 1;
         name
     }
 
     fn next_opt(&mut self, parent_name: &str) -> String {
-        let name = format!("{}_Opt{}", parent_name, self.opt);
+        let name = format!("{}_Opt_{}", parent_name, self.opt);
         self.opt += 1;
         name
     }
 
     fn next_alt(&mut self, parent_name: &str) -> String {
-        let name = format!("{}_Alt{}", parent_name, self.alt);
+        let name = format!("{}_Alt_{}", parent_name, self.alt);
         self.alt += 1;
         name
     }
 
     fn next_star(&mut self, parent_name: &str) -> String {
-        let name = format!("{}_Star{}", parent_name, self.star);
+        let name = format!("{}_Star_{}", parent_name, self.star);
         self.star += 1;
         name
     }
 
     fn next_plus(&mut self, parent_name: &str) -> String {
-        let name = format!("{}_Plus{}", parent_name, self.plus);
+        let name = format!("{}_Plus_{}", parent_name, self.plus);
         self.plus += 1;
         name
     }
