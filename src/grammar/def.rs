@@ -251,7 +251,6 @@ impl From<GrammarDef> for Grammar {
             name: grammar_def.name,
             productions,
             lexical_rules: lexical_rules_map,
-            symbol_table,
             definitions,
             layout_defs: grammar_def.layout_def,
         }
@@ -263,7 +262,6 @@ pub struct Grammar {
     pub name: String,
     productions: IndexMap<Nonterminal, Vec<Alternative>>,
     lexical_rules: IndexMap<Terminal, Regex>,
-    symbol_table: FxHashMap<String, DefinitionId>,
     definitions: Vec<Definition>,
     pub layout_defs: Vec<Terminal>,
 }

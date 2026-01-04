@@ -21,7 +21,7 @@
     LABEL_MAX_LENGTH,
     INTERMEDIATE_MAX_LENGTH,
   } from "$lib/graph-styles";
-  import { GraphCollapseManager } from "$lib/graph-utils";
+  import { GraphCollapseManager, buildDebugSppfElements } from "$lib/graph-utils";
 
   cytoscape.use(dagre);
 
@@ -114,10 +114,32 @@
     const unlistenStepBack = listen("debug-step-back", () => stepBack());
     const unlistenStepForward = listen("debug-step-forward", () => stepForward());
 
+    // Listen for node selection from popup windows
+    const unlistenNodeSelected = listen<{ left: number | null; right: number | null; nodeId: string | null }>("sppf-node-selected", (event) => {
+      const { left, right, nodeId } = event.payload;
+      if (left !== null && right !== null) {
+        selectedSpan = { left, right };
+      } else {
+        selectedSpan = null;
+      }
+      // Update selection in main window's graph if it exists
+      if (debugSppfCy) {
+        if (selectedNodeId) {
+          debugSppfCy.getElementById(selectedNodeId).removeClass('selected');
+        }
+        if (nodeId) {
+          debugSppfCy.getElementById(nodeId).addClass('selected');
+        }
+        selectedNodeId = nodeId;
+      }
+    });
+
     // Close all graph windows when main window closes
     const mainWindow = getCurrentWindow();
-    const unlistenMainClose = mainWindow.onCloseRequested(async () => {
+    const unlistenMainClose = mainWindow.onCloseRequested(async (event) => {
+      event.preventDefault();
       await closeAllGraphWindows();
+      await mainWindow.destroy();
     });
 
     return () => {
@@ -127,6 +149,7 @@
       unlistenGraphWindowReady.then(fn => fn());
       unlistenStepBack.then(fn => fn());
       unlistenStepForward.then(fn => fn());
+      unlistenNodeSelected.then(fn => fn());
       unlistenMainClose.then(fn => fn());
       window.removeEventListener('resize', handleWindowResize);
     };
@@ -193,6 +216,8 @@
   let callStack = $state<string[]>([]);
   let debugLoaded = $state(false);
   let inputIndex = $state<number | null>(null);
+  let selectedSpan = $state<{ left: number; right: number } | null>(null);
+  let selectedNodeId = $state<string | null>(null);
   let debugSppfNodes = $state<DebugSPPFNode[]>([]);
 
   // Debug SPPF visualization
@@ -200,6 +225,7 @@
   let debugSppfContainer: HTMLElement;
   let debugSppfCy: cytoscape.Core | null = null;
   let currentSppfNodeId = $state<number | null>(null);
+  const debugSppfCollapseManager = new GraphCollapseManager();
 
   // Debug GSS visualization
   let debugGssNodes = $state<DebugGSSNode[]>([]);
@@ -423,33 +449,10 @@
       debugSppfTooltipCleanup = null;
     }
 
-    const elements: cytoscape.ElementDefinition[] = [];
+    const elements = buildDebugSppfElements(debugSppfNodes, currentSppfNodeId);
 
-    // Build a map for quick lookup
-    const nodeMap = new Map<number, typeof debugSppfNodes[0]>();
-    for (const node of debugSppfNodes) {
-      nodeMap.set(node.id, node);
-    }
-
-    // Find all nodes reachable from current descriptor's node (the subtree to show)
-    const reachableIds = new Set<number>();
-    if (currentSppfNodeId !== null && nodeMap.has(currentSppfNodeId)) {
-      const queue = [currentSppfNodeId];
-      while (queue.length > 0) {
-        const id = queue.shift()!;
-        if (reachableIds.has(id)) continue;
-        reachableIds.add(id);
-        const node = nodeMap.get(id);
-        if (node) {
-          for (const childId of node.children) {
-            queue.push(childId);
-          }
-        }
-      }
-    }
-
-    // If no current node or no reachable nodes, show nothing
-    if (reachableIds.size === 0) {
+    // If no reachable nodes, clear the graph
+    if (!elements) {
       if (debugSppfCy) {
         debugSppfCy.destroy();
         debugSppfCy = null;
@@ -457,47 +460,11 @@
       return;
     }
 
-    // Add only nodes in the current subtree
-    for (const node of debugSppfNodes) {
-      if (!reachableIds.has(node.id)) continue;
-
-      // Line 1: grammar slot (truncated if needed), Line 2: span
-      // Intermediate nodes get longer max length since they show grammar slots
-      const maxLen = node.kind === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
-      const span = `(${node.left_extent}, ${node.right_extent})`;
-      const displayLabel = `${truncateLabel(node.label, maxLen)}\n${span}`;
-      const fullLabel = `${node.label}\n${span}`;
-
-      elements.push({
-        data: {
-          id: `n${node.id}`,
-          label: displayLabel,
-          fullLabel: fullLabel,
-          kind: node.kind,
-        },
-        classes: node.kind.toLowerCase(),
-      });
-    }
-
-    // Add edges only within the subtree
-    for (const node of debugSppfNodes) {
-      if (!reachableIds.has(node.id)) continue;
-      for (const childId of node.children) {
-        if (reachableIds.has(childId)) {
-          elements.push({
-            data: {
-              id: `e${node.id}-${childId}`,
-              source: `n${node.id}`,
-              target: `n${childId}`,
-            },
-          });
-        }
-      }
-    }
-
     if (debugSppfCy) {
       debugSppfCy.destroy();
     }
+
+    debugSppfCollapseManager.reset();
 
     debugSppfCy = createGraph({
       container: debugSppfContainer,
@@ -506,8 +473,43 @@
       layout: 'sppf',
     });
 
+    debugSppfCollapseManager.setCy(debugSppfCy);
+
     // Setup tooltip for long labels
     debugSppfTooltipCleanup = setupGraphTooltip(debugSppfCy, debugSppfContainer);
+
+    // Double-click to collapse/expand node
+    debugSppfCy.on('dbltap', 'node', (event) => {
+      const node = event.target;
+      debugSppfCollapseManager.toggleCollapse(node.id());
+    });
+
+    // Click on node to highlight span in input and select node
+    debugSppfCy.on('tap', 'node', (event) => {
+      const node = event.target;
+      const left = node.data('leftExtent');
+      const right = node.data('rightExtent');
+      if (left !== undefined && right !== undefined) {
+        selectedSpan = { left, right };
+      }
+      // Update node selection styling
+      if (selectedNodeId) {
+        debugSppfCy?.getElementById(selectedNodeId).removeClass('selected');
+      }
+      selectedNodeId = node.id();
+      node.addClass('selected');
+    });
+
+    // Click on background to clear selection
+    debugSppfCy.on('tap', (event) => {
+      if (event.target === debugSppfCy) {
+        selectedSpan = null;
+        if (selectedNodeId) {
+          debugSppfCy?.getElementById(selectedNodeId).removeClass('selected');
+          selectedNodeId = null;
+        }
+      }
+    });
 
     // Set up ResizeObserver to recenter graph when container resizes (debounced)
     if (debugSppfResizeObserver) {
@@ -886,6 +888,8 @@
     descriptorSet = [];
     callStack = [];
     inputIndex = null;
+    selectedSpan = null;
+    selectedNodeId = null;
     debugSppfNodes = [];
     currentSppfNodeId = null;
     if (debugSppfCy) {
@@ -920,6 +924,11 @@
     await navigator.clipboard.writeText(text);
     copiedAll = true;
     setTimeout(() => { copiedAll = false; }, 1500);
+  }
+
+  function clearNodeSelection() {
+    selectedSpan = null;
+    selectedNodeId = null;
   }
 
   async function startDebug() {
@@ -961,6 +970,7 @@
 
   async function stepBack() {
     if (!debugLoaded || currentStep === 0) return;
+    clearNodeSelection();
     const result = await commands.debugStepTo(currentStep - 1);
     if (result.status === "ok") {
       currentStep = result.data.current_step;
@@ -975,6 +985,7 @@
 
   async function stepForward() {
     if (!debugLoaded || currentStep >= totalSteps - 1) return;
+    clearNodeSelection();
     const result = await commands.debugStepForward();
     if (result.status === "ok") {
       currentStep = result.data.current_step;
@@ -989,6 +1000,7 @@
 
   async function stepTo(target: number) {
     if (!debugLoaded) return;
+    clearNodeSelection();
     const result = await commands.debugStepTo(target);
     if (result.status === "ok") {
       currentStep = result.data.current_step;
@@ -1471,7 +1483,7 @@
       <!-- Input Area -->
       <div class="input-section">
         {#if debugLoaded}
-          <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:current={i === inputIndex} class:consumed={inputIndex !== null && i < inputIndex}>{char}</span>{/each}{#if inputIndex !== null && inputIndex >= inputText.length}<span class="input-char current">&nbsp;</span>{/if}</div>
+          <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:selected={selectedSpan !== null && i >= selectedSpan.left && i < selectedSpan.right}>{char}</span>{/each}</div>
         {:else}
           <textarea
             bind:value={inputText}
@@ -2429,6 +2441,11 @@
   }
 
   .input-char.current {
+    background: #264f78;
+    color: #fff;
+  }
+
+  .input-char.selected {
     background: #264f78;
     color: #fff;
   }

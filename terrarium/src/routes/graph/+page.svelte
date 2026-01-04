@@ -18,7 +18,7 @@
     LABEL_MAX_LENGTH,
     INTERMEDIATE_MAX_LENGTH,
   } from "$lib/graph-styles";
-  import { GraphCollapseManager } from "$lib/graph-utils";
+  import { GraphCollapseManager, buildDebugSppfElements } from "$lib/graph-utils";
   import { createMaximizeToggle } from "$lib/window-utils";
   import type {
     SPPF,
@@ -70,6 +70,7 @@
   let debugGssNodes: DebugGSSNode[] = $state([]);
   let debugGssEdges: DebugGSSEdge[] = $state([]);
   let debugGssCurrentNodeId: number | null = $state(null);
+  let selectedNodeId: string | null = $state(null);
 
   function getTitle(): string {
     switch (graphType) {
@@ -126,62 +127,7 @@
         })),
       ];
     } else if (graphType === "debugSppf") {
-      const elements: cytoscape.ElementDefinition[] = [];
-      const nodeMap = new Map<number, DebugSPPFNode>();
-      for (const node of debugSppfNodes) {
-        nodeMap.set(node.id, node);
-      }
-      const reachableIds = new Set<number>();
-      if (
-        debugSppfCurrentNodeId !== null &&
-        nodeMap.has(debugSppfCurrentNodeId)
-      ) {
-        const queue = [debugSppfCurrentNodeId];
-        while (queue.length > 0) {
-          const id = queue.shift()!;
-          if (reachableIds.has(id)) continue;
-          reachableIds.add(id);
-          const node = nodeMap.get(id);
-          if (node) {
-            for (const childId of node.children) {
-              queue.push(childId);
-            }
-          }
-        }
-      }
-      for (const node of debugSppfNodes) {
-        if (!reachableIds.has(node.id)) continue;
-        // Line 1: grammar slot (truncated if needed), Line 2: span
-        // Intermediate nodes get longer max length since they show grammar slots
-        const maxLen = node.kind === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
-        const span = `(${node.left_extent}, ${node.right_extent})`;
-        const displayLabel = `${truncateLabel(node.label, maxLen)}\n${span}`;
-        const fullLabel = `${node.label}\n${span}`;
-        elements.push({
-          data: {
-            id: `n${node.id}`,
-            label: displayLabel,
-            fullLabel: fullLabel,
-            kind: node.kind,
-          },
-          classes: node.kind.toLowerCase(),
-        });
-      }
-      for (const node of debugSppfNodes) {
-        if (!reachableIds.has(node.id)) continue;
-        for (const childId of node.children) {
-          if (reachableIds.has(childId)) {
-            elements.push({
-              data: {
-                id: `e${node.id}-${childId}`,
-                source: `n${node.id}`,
-                target: `n${childId}`,
-              },
-            });
-          }
-        }
-      }
-      return elements;
+      return buildDebugSppfElements(debugSppfNodes, debugSppfCurrentNodeId) || [];
     } else if (graphType === "debugGss") {
       const elements: cytoscape.ElementDefinition[] = [];
       for (const node of debugGssNodes) {
@@ -260,6 +206,38 @@
         const node = event.target;
         collapseManager.toggleCollapse(node.id());
       });
+
+      // Click on node to select and emit span to main window
+      if (graphType === 'debugSppf') {
+        cy.on('tap', 'node', (event) => {
+          const node = event.target;
+          const left = node.data('leftExtent');
+          const right = node.data('rightExtent');
+
+          // Update node selection styling
+          if (selectedNodeId && cy) {
+            cy.getElementById(selectedNodeId).removeClass('selected');
+          }
+          selectedNodeId = node.id();
+          node.addClass('selected');
+
+          // Emit event to main window
+          if (left !== undefined && right !== undefined) {
+            emit('sppf-node-selected', { left, right, nodeId: node.id() });
+          }
+        });
+
+        // Click on background to clear selection
+        cy.on('tap', (event) => {
+          if (event.target === cy) {
+            if (selectedNodeId && cy) {
+              cy.getElementById(selectedNodeId).removeClass('selected');
+              selectedNodeId = null;
+            }
+            emit('sppf-node-selected', { left: null, right: null, nodeId: null });
+          }
+        });
+      }
     }
   }
 

@@ -146,6 +146,24 @@ export const sppfNodeStyles: Stylesheet[] = [
       "border-style": "double",
     },
   },
+  {
+    selector: "node.nonterminal.selected, node[kind='Nonterminal'].selected",
+    style: {
+      "background-color": "#3a5f50",
+    },
+  },
+  {
+    selector: "node.intermediate.selected, node[kind='Intermediate'].selected",
+    style: {
+      "background-color": "#3a4d60",
+    },
+  },
+  {
+    selector: "node.terminal.selected, node[kind='Terminal'].selected",
+    style: {
+      "background-color": "#5f4a3a",
+    },
+  },
 ];
 
 // GSS node styles
@@ -243,7 +261,6 @@ export function createGraph(options: GraphOptions): Core {
     userZoomingEnabled: false,  // Disable built-in wheel zoom, we handle it manually
     userPanningEnabled: true,
     boxSelectionEnabled: false,
-    autoungrabify: true,  // Prevent node grabbing (removes grab circle)
   });
 
   // Enable two-finger trackpad scrolling to pan, pinch to zoom
