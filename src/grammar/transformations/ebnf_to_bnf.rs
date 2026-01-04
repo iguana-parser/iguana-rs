@@ -90,7 +90,7 @@ fn rewrite_ebnf_symbol(
                 priority_levels: vec![priority_level!(Alternative::new(symbols))],
             };
             new_rules.push(new_rule);
-            Symbol::Identifier(name)
+            Symbol::identifier(name)
         }
         // Transform A? into: S_Opt0 ::= A | ε
         Symbol::Opt(symbol) => {
@@ -104,7 +104,7 @@ fn rewrite_ebnf_symbol(
                 )],
             };
             new_rules.push(new_rule);
-            Symbol::Identifier(name)
+            Symbol::identifier(name)
         }
         // Transform (A | B | C) into: S_Alt0 ::= A | B | C
         Symbol::Alt(symbols) => {
@@ -122,7 +122,7 @@ fn rewrite_ebnf_symbol(
                 priority_levels: vec![PriorityLevel::new(alternatives)],
             };
             new_rules.push(new_rule);
-            Symbol::Identifier(name)
+            Symbol::identifier(name)
         }
         // Transform A* into: S_Star0 ::= S_Star0 A | ε (left-recursive)
         Symbol::Star(symbol) => {
@@ -131,12 +131,12 @@ fn rewrite_ebnf_symbol(
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, def),
                 priority_levels: vec![priority_level!(
-                    alternative!(Symbol::Identifier(name.clone()), transformed_symbol),
+                    alternative!(Symbol::identifier(name.clone()), transformed_symbol),
                     Alternative::empty()
                 )],
             };
             new_rules.push(new_rule);
-            Symbol::Identifier(name)
+            Symbol::identifier(name)
         }
         // Transform A+ into: S_Plus0 ::= S_Plus0 A | A (left-recursive)
         Symbol::Plus(symbol) => {
@@ -145,12 +145,12 @@ fn rewrite_ebnf_symbol(
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, def),
                 priority_levels: vec![priority_level!(
-                    alternative!(Symbol::Identifier(name.clone()), transformed_symbol.clone()),
+                    alternative!(Symbol::identifier(name.clone()), transformed_symbol.clone()),
                     alternative!(transformed_symbol)
                 )],
             };
             new_rules.push(new_rule);
-            Symbol::Identifier(name)
+            Symbol::identifier(name)
         }
         _ => symbol,
     }

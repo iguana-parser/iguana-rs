@@ -2,7 +2,6 @@ use core::hash;
 use std::{fmt::Display, hash::Hasher};
 
 use itertools::Itertools;
-use quote::quote;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
@@ -13,6 +12,12 @@ pub enum Definition {
 }
 
 impl Definition {
+    pub fn name(&self) -> &str {
+        match self {
+            Definition::Terminal(terminal) => &terminal.name,
+            Definition::Nonterminal(nonterminal) => &nonterminal.name,
+        }
+    }
     pub fn display_name(&self) -> String {
         match self {
             Definition::Terminal(terminal) => terminal.name.clone(),
@@ -21,9 +26,9 @@ impl Definition {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Symbol {
-    Identifier(String),
+    Identifier(Identifier),
     Literal(String),
     Group(Vec<Symbol>),
     Opt(Box<Symbol>),
@@ -37,7 +42,17 @@ impl Symbol {
         Symbol::Literal(name.into())
     }
     pub fn identifier(name: impl Into<String>) -> Self {
-        Symbol::Identifier(name.into())
+        Symbol::Identifier(Identifier {
+            name: name.into(),
+            definition: None,
+        })
+    }
+    pub fn resolved_def(&self) -> DefinitionId {
+        let ident = match self {
+            Symbol::Identifier(name) => name,
+            _ => panic!("Expected identifier, got {:?}", self),
+        };
+        ident.definition.expect("Symbol should be resolved")
     }
 }
 
@@ -45,7 +60,7 @@ impl Display for Symbol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Symbol::Literal(literal) => write!(f, "\"{literal}\""),
-            Symbol::Identifier(name) => write!(f, "{name}"),
+            Symbol::Identifier(identifier) => write!(f, "{}", identifier.name),
             Symbol::Group(symbols) => write!(f, "({})", symbols.iter().join(" ")),
             Symbol::Opt(opt) => write!(f, "{opt}?"),
             Symbol::Alt(symbols) => write!(f, "({})", symbols.iter().join(" | ")),
@@ -55,18 +70,18 @@ impl Display for Symbol {
     }
 }
 
-impl quote::ToTokens for Symbol {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let ts = match self {
-            Symbol::Identifier(s) => quote! { Symbol::Identifier(#s.to_string()) },
-            Symbol::Literal(s) => quote! { Symbol::Literal(#s.to_string()) },
-            Symbol::Group(syms) => quote! { Symbol::Group(vec![#(#syms),*]) },
-            Symbol::Alt(syms) => quote! { Symbol::Alt(vec![#(#syms),*]) },
-            Symbol::Opt(s) => quote! { Symbol::Opt(Box::new(#s)) },
-            Symbol::Star(s) => quote! { Symbol::Star(Box::new(#s)) },
-            Symbol::Plus(s) => quote! { Symbol::Plus(Box::new(#s)) },
-        };
-        tokens.extend(ts);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct DefinitionId(pub u16);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Identifier {
+    pub name: String,
+    pub definition: Option<DefinitionId>,
+}
+
+impl Display for Identifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}", self.name)
     }
 }
 
@@ -91,7 +106,7 @@ impl Display for Terminal {
 /// The `name` uniquely identifies the nonterminal in the grammar.
 /// Origin tracks how the nonterminal is created, e.g., from EBNF to BNF conversion.
 /// If origin is None, it's not a derived nonterminal
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone)]
 pub struct Nonterminal {
     pub name: String,
     pub origin: Option<Symbol>,

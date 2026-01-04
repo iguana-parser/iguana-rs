@@ -4,7 +4,7 @@ use syn::Ident;
 
 use crate::{
     generator::{id::{NonterminalIds, SlotIds, TerminalIds}, utils::{alternative_label, to_first_lowercase, to_first_uppercase}},
-    grammar::{def::{Alternative, Grammar}, symbols::{Definition, Nonterminal, Symbol}}, ids::TerminalId,
+    grammar::{def::{Alternative, Grammar}, symbols::{Definition, Nonterminal}}, ids::TerminalId,
 };
 
 pub fn generate(
@@ -103,15 +103,13 @@ fn gen_nonterminal_type(
         let fields: Vec<_> = alternative
             .symbols
             .iter()
-            .map(|s| match s {
-                Symbol::Identifier(name) => {
-                    let definition = grammar.definition(name).unwrap_or_else(|| panic!("{name} not defined"));
-                    match definition {
-                        Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
-                        Definition::Nonterminal(_) => Ident::new(&to_first_uppercase(name), Span::call_site()),
-                    }
+            .map(|s| {
+                let def_id = s.resolved_def();
+                let def = grammar.definition(def_id);
+                match def {
+                    Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
+                    Definition::Nonterminal(_) => Ident::new(&to_first_uppercase(&def.name()), Span::call_site()),
                 }
-                _ => panic!(),
             })
             .collect();
         quote! {
@@ -126,26 +124,24 @@ fn gen_nonterminal_type(
                 let children: Vec<_> = alternative
                     .symbols
                     .iter()
-                    .map(|s| match s {
-                        Symbol::Identifier(name) => {
-                            let definition = grammar.definition(name).unwrap_or_else(|| panic!("{name} not defined"));
-                            match definition {
-                                Definition::Terminal(_) => {
-                                    let token = Ident::new("Token", Span::call_site());
-                                    quote! { #token }
-                                },
-                                Definition::Nonterminal(_) => {
-                                    if *name == nonterminal.name {
-                                        let name = Ident::new(name, Span::call_site());
-                                        quote! { Box<#name> }
-                                    } else {
-                                        let name = Ident::new(name, Span::call_site());
-                                        quote! { #name }
-                                    }
-                                },
-                            }
+                    .map(|s| {
+                        let def_id = s.resolved_def();
+                        let def = grammar.definition(def_id);
+                        match def {
+                            Definition::Terminal(_) => {
+                                let token = Ident::new("Token", Span::call_site());
+                                quote! { #token }
+                            },
+                            Definition::Nonterminal(_) => {
+                                if def.name() == nonterminal.name {
+                                    let name = Ident::new(def.name(), Span::call_site());
+                                    quote! { Box<#name> }
+                                } else {
+                                    let name = Ident::new(def.name(), Span::call_site());
+                                    quote! { #name }
+                                }
+                            },
                         }
-                        _ => unimplemented!(),
                     })
                     .collect();
                 let label = alternative_label(alternative, index);
@@ -424,22 +420,19 @@ fn gen_nonterminal_node_method(
                     let methods: Vec<_> = alternative
                         .symbols
                         .iter()
-                        .map(|s| match s {
-                            Symbol::Identifier(name) => {
-                                let definition = grammar.definition(name).unwrap_or_else(|| panic!("{name} not defined"));
-                                match definition {
-                                    Definition::Terminal(_) => {
-                                        (Ident::new("unwrap_token", Span::call_site()), false)
-                                    },
-                                    Definition::Nonterminal(_) => { 
-                                        let ident = format_ident!("unwrap_{}", to_first_lowercase(name));
-                                        // Pass true if should be boxed.
-                                        (ident, *name == *nonterminal_name)
-                                    }
+                        .map(|s| {
+                            let def_id = s.resolved_def();
+                            let def = grammar.definition(def_id);
+                            match def {
+                                Definition::Terminal(_) => {
+                                    (Ident::new("unwrap_token", Span::call_site()), false)
+                                },
+                                Definition::Nonterminal(_) => { 
+                                    let ident = format_ident!("unwrap_{}", to_first_lowercase(def.name()));
+                                    // Pass true if should be boxed.
+                                    (ident, def.name() == nonterminal_name)
                                 }
-                            }
-                            _ => panic!(),
-                        })
+                            }})
                         .collect();
                     let method_calls: Vec<_> = children_names
                         .iter()

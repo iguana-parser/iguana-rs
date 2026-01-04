@@ -2,10 +2,11 @@ use std::fmt::Display;
 
 use indexmap::IndexMap;
 use itertools::Itertools;
+use rustc_hash::FxHashMap;
 
 use crate::grammar::{
     regex::Regex,
-    symbols::{Definition, Nonterminal, Symbol, Terminal},
+    symbols::{Definition, DefinitionId, Identifier, Nonterminal, Symbol, Terminal},
     transformations::{ebnf_to_bnf, transform_rule},
 };
 
@@ -146,31 +147,33 @@ impl Display for GrammarDef {
 
 /// Creates a map from names to definitions (terminal or nonterminal).
 fn create_symbol_table<'a>(
-    nonterminals: impl Iterator<Item = &'a Nonterminal>,
+    syntax_rules: &[SyntaxRule],
     terminals: impl Iterator<Item = &'a Terminal>,
-) -> IndexMap<String, Definition> {
-    let mut symbol_table = IndexMap::new();
+) -> (FxHashMap<String, DefinitionId>, Vec<Definition>) {
+    let mut symbol_table = FxHashMap::default();
+    let mut definitions = vec![];
     for terminal in terminals {
         symbol_table.insert(
             terminal.name.clone(),
-            Definition::Terminal(terminal.clone()),
+            DefinitionId(definitions.len() as u16),
         );
+        definitions.push(Definition::Terminal(terminal.clone()));
     }
-    for nonterminal in nonterminals {
+    for syntax_rule in syntax_rules {
         symbol_table.insert(
-            nonterminal.name.clone(),
-            Definition::Nonterminal(nonterminal.clone()),
+            syntax_rule.head.name.clone(),
+            DefinitionId(definitions.len() as u16),
         );
+        definitions.push(Definition::Nonterminal(syntax_rule.head.clone()));
     }
-    symbol_table
+    (symbol_table, definitions)
 }
-
 
 /// Converts string literals (e.g., `"+"`) in syntax rules into terminal references
 /// and generates corresponding lexical rules. Specifically:
 /// 1. Converts each `Symbol::Literal` into a `Symbol::Identifier` referencing a terminal
 /// 2. Creates a lexical rule that matches the literal string exactly
-/// 
+///
 /// The name of the terminal is the same as the string literal.
 fn add_lexical_rules_for_literals(
     syntax_rules: Vec<SyntaxRule>,
@@ -195,6 +198,31 @@ fn add_lexical_rules_for_literals(
     rules
 }
 
+fn resolve_identifiers(
+    syntax_rules: Vec<SyntaxRule>,
+    symbol_table: &FxHashMap<String, DefinitionId>,
+) -> Vec<SyntaxRule> {
+    let mut rules = vec![];
+    for rule in syntax_rules {
+        let transformed = transform_rule(rule, |s| {
+            if let Symbol::Identifier(identifier) = s {
+                if let Some(definition_id) = symbol_table.get(&identifier.name) {
+                    Symbol::Identifier(Identifier {
+                        name: identifier.name,
+                        definition: Some(*definition_id),
+                    })
+                } else {
+                    panic!("Definition {} not found", &identifier.name)
+                }
+            } else {
+                s
+            }
+        });
+        rules.push(transformed);
+    }
+    rules
+}
+
 impl From<GrammarDef> for Grammar {
     fn from(grammar_def: GrammarDef) -> Self {
         let lexical_rules = grammar_def.lexical_rules;
@@ -204,6 +232,9 @@ impl From<GrammarDef> for Grammar {
             .collect();
         let syntax_rules = ebnf_to_bnf::ebnf_to_bnf(grammar_def.syntax_rules);
         let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules_map);
+        let (symbol_table, definitions) =
+            create_symbol_table(&syntax_rules, lexical_rules_map.keys());
+        let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
         let productions: IndexMap<Nonterminal, Vec<Alternative>> =
             syntax_rules
                 .into_iter()
@@ -216,12 +247,12 @@ impl From<GrammarDef> for Grammar {
                     acc.entry(r.head).or_default().extend(alternatives);
                     acc
                 });
-        let symbol_table = create_symbol_table(productions.keys(), lexical_rules_map.keys());
         Self {
             name: grammar_def.name,
             productions,
             lexical_rules: lexical_rules_map,
             symbol_table,
+            definitions,
             layout_defs: grammar_def.layout_def,
         }
     }
@@ -232,7 +263,8 @@ pub struct Grammar {
     pub name: String,
     productions: IndexMap<Nonterminal, Vec<Alternative>>,
     lexical_rules: IndexMap<Terminal, Regex>,
-    symbol_table: IndexMap<String, Definition>,
+    symbol_table: FxHashMap<String, DefinitionId>,
+    definitions: Vec<Definition>,
     pub layout_defs: Vec<Terminal>,
 }
 
@@ -252,8 +284,8 @@ impl Grammar {
     pub fn lexical_rules(&self, terminal: &Terminal) -> Option<&Regex> {
         self.lexical_rules.get(terminal)
     }
-    pub fn definition(&self, name: &str) -> Option<&Definition> {
-        self.symbol_table.get(name)
+    pub fn definition(&self, definition_id: DefinitionId) -> &Definition {
+        &self.definitions[definition_id.0 as usize]
     }
 }
 

@@ -148,7 +148,7 @@ fn gen_add_first_descriptors_method<'a>(
             todo!()
         }
         for alternative in alternatives {
-            let first_slot = Slot::new(nonterminal, alternative, 0, grammar);
+            let first_slot = Slot::new(nonterminal, alternative, 0);
             let first_slot_name = first_slot.display_name(grammar);
             let first_slot_id = slot_ids.id(&first_slot);
             alternative_quotes.push(quote! {
@@ -269,7 +269,7 @@ fn gen_execute_method<'a>(
         let alternatives = grammar.alternatives(nonterminal);
         for (index, alternative) in alternatives.iter().enumerate() {
             for (position, symbol) in alternative.symbols.iter().enumerate() {
-                let slot = Slot::new(nonterminal, alternative, position, grammar);
+                let slot = Slot::new(nonterminal, alternative, position);
                 slot_quotes.push(gen_slot_code(
                     grammar,
                     slot,
@@ -280,7 +280,7 @@ fn gen_execute_method<'a>(
             }
             // Handle the last grammar slot
             let last_symbol_index = alternative.symbols.len();
-            let end_slot = Slot::new(nonterminal, alternative, last_symbol_index, grammar);
+            let end_slot = Slot::new(nonterminal, alternative, last_symbol_index);
             let end_slot_name = end_slot.display_name(grammar);
             let end_slot_id = slot_ids.id(&end_slot);
             let nonterminal_id = nonterminal_ids
@@ -343,7 +343,9 @@ fn gen_slot_code<'a>(
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
-    match slot.symbol_def.unwrap() {
+    let def_id = slot.symbol_def().expect("Symbol should be resolved");
+    let def = grammar.definition(def_id);
+    match def {
         Definition::Terminal(terminal) => {
             gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids)
         }
@@ -388,7 +390,7 @@ fn gen_terminal_slot<'a>(
             }
         }
     };
-    let next_slot = slot.next(grammar);
+    let next_slot = slot.next();
     let next_slot_id = slot_ids.id(&next_slot);
     let next_slot_name = next_slot.display_name(grammar);
     let terminal_name = &terminal.name;
@@ -436,7 +438,7 @@ fn gen_nonterminal_slot<'a>(
         .unwrap_or_else(|| panic!("nonterminal {} is not defined", nonterminal.name));
     let slot_id = slot_ids.id(&slot);
     let slot_name = slot.display_name(grammar);
-    let next_slot = slot.next(grammar);
+    let next_slot = slot.next();
     let return_slot_id = slot_ids.id(&next_slot);
     quote! {
         #[comment = #slot_name]
