@@ -1,12 +1,11 @@
 use crate::{
     scanner::IggyScanner,
-    types::{EbnfKind, Nonterminal, Slot},
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 #[cfg(feature = "debug-trace")]
 use iguana::trace::TraceEvent;
 use iguana::{
     descriptor::Descriptor,
-    grammar::symbols::Terminal,
     gss::GSSNode,
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
@@ -18,7 +17,7 @@ use iguana::{
 };
 use phf::phf_map;
 use rustc_hash::FxHashMap;
-use std::{cell::OnceCell, sync::LazyLock};
+use std::cell::OnceCell;
 pub const NONTERMINALS: [Nonterminal; 4] = [
     Nonterminal {
         name: "Grammar",
@@ -45,15 +44,15 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "Grammar" => NonterminalId(0), "Rule" => NonterminalId(1), "Rule+" =>
     NonterminalId(2), "Identifier+" => NonterminalId(3)
 };
-static TERMINALS: LazyLock<[Terminal; 5]> = LazyLock::new(|| {
-    [
-        Terminal::new("Identifier"),
-        Terminal::new("WS"),
-        Terminal::new("\"grammar\""),
-        Terminal::new("\";\""),
-        Terminal::new("\":\""),
-    ]
-});
+pub const TERMINALS: [Terminal; 5] = [
+    Terminal { name: "Identifier" },
+    Terminal { name: "WS" },
+    Terminal {
+        name: "\"grammar\"",
+    },
+    Terminal { name: "\";\"" },
+    Terminal { name: "\":\"" },
+];
 pub const SLOTS: [Slot; 20] = [
     Slot {
         display_name: "Grammar : . \"grammar\" Identifier \";\" Rule+",
@@ -123,11 +122,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         NONTERMINAL_IDS.get(name).copied()
     }
-    fn terminal(terminal_id: TerminalId) -> &'static Terminal {
-        &TERMINALS[terminal_id.index()]
-    }
-    fn terminals() -> impl Iterator<Item = &'static Terminal> {
-        TERMINALS.iter()
+    fn terminal_name(terminal_id: TerminalId) -> &'static str {
+        TERMINALS[terminal_id.index()].name
     }
     fn slot_name(slot_id: SlotId) -> &'static str {
         SLOTS[slot_id.index()].display_name

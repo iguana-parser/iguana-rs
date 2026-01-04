@@ -5,11 +5,13 @@ pub fn generate() -> TokenStream {
     let ebnf_kind_enum = gen_ebnf_kind_enum();
     let nonterminal_struct = gen_nonterminal_struct();
     let nonterminal_impl = gen_nonterminal_impl();
+    let terminal_struct = gen_terminal_struct();
     let slot_struct = gen_slot_struct();
     quote! {
         #ebnf_kind_enum
         #nonterminal_struct
         #nonterminal_impl
+        #terminal_struct
         #slot_struct
     }
 }
@@ -46,6 +48,14 @@ fn gen_nonterminal_impl() -> TokenStream {
     }
 }
 
+fn gen_terminal_struct() -> TokenStream {
+    quote! {
+        pub struct Terminal {
+            pub name: &'static str,
+        }
+    }
+}
+
 fn gen_slot_struct() -> TokenStream {
     quote! {
         pub struct Slot {
@@ -53,4 +63,3 @@ fn gen_slot_struct() -> TokenStream {
         }
     }
 }
-

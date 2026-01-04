@@ -1,7 +1,7 @@
 use clap::Parser as ClapParser;
 use iggy::{
     parse_tree::{IggyParseTreeBuilder, create_parse_tree, to_sexpr},
-    parser::{IggyParser, NONTERMINALS, SLOTS},
+    parser::{IggyParser, NONTERMINALS, SLOTS, TERMINALS},
 };
 #[cfg(feature = "debug-trace")]
 use iguana::trace::TraceEvent;
@@ -84,7 +84,7 @@ fn main() -> Result<(), io::Error> {
     }
     if let Some(ref path) = cli.write_symbols {
         let nonterminals: Vec<&str> = NONTERMINALS.iter().map(|nt| nt.display).collect();
-        let terminals: Vec<&str> = IggyParser::terminals().map(|t| t.name.as_str()).collect();
+        let terminals: Vec<&str> = TERMINALS.iter().map(|t| t.name).collect();
         let slots: Vec<&str> = SLOTS.iter().map(|s| s.display_name).collect();
         let symbols = serde_json::json!(
             { "nonterminals" : nonterminals, "terminals" : terminals, "slots" : slots }

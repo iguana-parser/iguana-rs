@@ -131,7 +131,7 @@ impl TraceEvent {
             ),
             TraceEvent::TerminalNodeCreated(terminal_id, span) => format!(
                 "Terminal node created: ({}, {}, {})",
-                P::terminal(terminal_id),
+                P::terminal_name(terminal_id),
                 span.left_extent,
                 span.right_extent
             ),

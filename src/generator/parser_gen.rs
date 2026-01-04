@@ -32,8 +32,7 @@ pub fn generate<'a>(
     let slots = gen_slots(slot_ids, grammar);
     let nonterminal_display_name_method = gen_nonterminal_display_name_method();
     let nonterminal_id_method = gen_nonterminal_id_method();
-    let terminal_method = gen_terminal_method();
-    let terminals_method = gen_terminals_method();
+    let terminal_name_method = gen_terminal_name_method();
     let slot_name_method = gen_slot_name_method();
     let get_gss_node_method = gen_get_gss_node_method();
     let gen_add_gss_node_method = gen_add_gss_node_method();
@@ -72,8 +71,7 @@ pub fn generate<'a>(
         impl<'i> Parser<'i> for #grammar_name_ident<'i> {
             #nonterminal_display_name_method
             #nonterminal_id_method
-            #terminal_method
-            #terminals_method
+            #terminal_name_method
             #slot_name_method
             #execute_method
             #first_descriptors
@@ -111,11 +109,10 @@ pub fn generate<'a>(
 fn gen_imports(grammar: &Grammar) -> TokenStream {
     let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&grammar.name));
     quote! {
-        use crate::{scanner::#scanner_name, types::{EbnfKind, Nonterminal, Slot}};
-        use std::{cell::OnceCell, sync::LazyLock};
+        use std::cell::OnceCell;
+        use crate::{scanner::#scanner_name, types::{EbnfKind, Nonterminal, Slot, Terminal}};
         use iguana::{
             descriptor::Descriptor,
-            grammar::symbols::Terminal,
             gss::GSSNode,
             ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
             input::Input,
@@ -236,10 +233,14 @@ fn gen_terminals(terminal_ids: &TerminalIds) -> TokenStream {
     let terminals_len = Literal::usize_unsuffixed(terminal_ids.len());
     let terminals = terminal_ids.terminals().map(|t| {
         let terminal_name = &t.name;
-        quote! { Terminal::new(#terminal_name) }
+        quote! {
+            Terminal {
+                name: #terminal_name
+            }
+        }
     });
     quote! {
-        static TERMINALS: LazyLock<[Terminal; #terminals_len]> = LazyLock::new(|| [#(#terminals),*]);
+        pub const TERMINALS: [Terminal; #terminals_len] =[#(#terminals),*];
     }
 }
 
@@ -268,8 +269,8 @@ fn gen_execute_method<'a>(
     for nonterminal in grammar.nonterminals() {
         let alternatives = grammar.alternatives(nonterminal);
         for (index, alternative) in alternatives.iter().enumerate() {
-            for (position, symbol) in alternative.symbols.iter().enumerate() {
-                let slot = Slot::new(nonterminal, alternative, position);
+            for pos in 0..alternative.symbols.len() {
+                let slot = Slot::new(nonterminal, alternative, pos);
                 slot_quotes.push(gen_slot_code(
                     grammar,
                     slot,
@@ -464,18 +465,10 @@ fn gen_nonterminal_id_method() -> TokenStream {
     }
 }
 
-fn gen_terminal_method() -> TokenStream {
+fn gen_terminal_name_method() -> TokenStream {
     quote! {
-        fn terminal(terminal_id: TerminalId) -> &'static Terminal {
-            &TERMINALS[terminal_id.index()]
-        }
-    }
-}
-
-fn gen_terminals_method() -> TokenStream {
-    quote! {
-        fn terminals() -> impl Iterator<Item = &'static Terminal> {
-            TERMINALS.iter()
+        fn terminal_name(terminal_id: TerminalId) -> &'static str {
+            TERMINALS[terminal_id.index()].name
         }
     }
 }
