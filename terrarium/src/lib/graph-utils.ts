@@ -19,7 +19,7 @@ export async function exportGraphPng(graph: Core | null, defaultName: string): P
 
   if (!path) return; // User cancelled
 
-  const blob = graph.png({ output: "blob", bg: "#1e1e1e", scale: 2 }) as Blob;
+  const blob = await graph.png({ output: "blob", bg: "#1e1e1e", scale: 2 });
   const buffer = await blob.arrayBuffer();
   await writeFile(path, new Uint8Array(buffer));
 }
