@@ -89,10 +89,22 @@ pub enum ParseTreeRef<'a> {
     Token(&'a Token),
 }
 impl<'a> ParseTreeRef<'a> {
-    pub fn children(&self) -> ChildIter<'a> {
-        ChildIter {
-            node: *self,
-            index: 0,
+    pub fn children(&self) -> Vec<ParseTreeRef<'a>> {
+        match self {
+            ParseTreeRef::Grammar(grammar) => (0..grammar.child_count())
+                .filter_map(|i| grammar.child(i))
+                .collect(),
+            ParseTreeRef::Rule(rule) => (0..rule.child_count())
+                .filter_map(|i| rule.child(i))
+                .collect(),
+            ParseTreeRef::GrammarPlus0(grammar_plus_0) => grammar_plus_0
+                .iter()
+                .map(|a| a.as_parse_tree_ref())
+                .collect(),
+            ParseTreeRef::RulePlus1(rule_plus_1) => {
+                rule_plus_1.iter().map(|a| a.as_parse_tree_ref()).collect()
+            }
+            ParseTreeRef::Token(_) => vec![],
         }
     }
     pub fn name(&self) -> &'static str {
@@ -123,29 +135,6 @@ impl<'a> ParseTreeRef<'a> {
         }
     }
 }
-pub struct ChildIter<'a> {
-    node: ParseTreeRef<'a>,
-    index: usize,
-}
-impl<'a> Iterator for ChildIter<'a> {
-    type Item = ParseTreeRef<'a>;
-    fn next(&mut self) -> Option<Self::Item> {
-        let child = match self.node {
-            ParseTreeRef::Grammar(grammar) => grammar.child(self.index),
-            ParseTreeRef::Rule(rule) => rule.child(self.index),
-            ParseTreeRef::GrammarPlus0(grammar_plus_0) => grammar_plus_0.child(self.index),
-            ParseTreeRef::RulePlus1(rule_plus_1) => rule_plus_1.child(self.index),
-            ParseTreeRef::Token(_) => None,
-        };
-        self.index += 1;
-        child
-    }
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let remaining = self.node.child_count().saturating_sub(self.index);
-        (remaining, Some(remaining))
-    }
-}
-impl<'a> ExactSizeIterator for ChildIter<'a> {}
 impl From<Grammar> for ParseTree {
     fn from(grammar: Grammar) -> Self {
         ParseTree::Grammar(grammar)
@@ -165,6 +154,10 @@ impl From<RulePlus1> for ParseTree {
     fn from(rule_plus_1: RulePlus1) -> Self {
         ParseTree::RulePlus1(rule_plus_1)
     }
+}
+trait ListNode {
+    type Item;
+    fn iter(&self) -> impl Iterator<Item = &Self::Item>;
 }
 #[derive(Debug)]
 pub struct Grammar(Token, Token, Token, GrammarPlus0, Span);
@@ -278,6 +271,46 @@ impl RulePlus1 {
             RulePlus1::Alt0(.., span) => *span,
             RulePlus1::Alt1(.., span) => *span,
         }
+    }
+}
+impl ListNode for GrammarPlus0 {
+    type Item = Rule;
+    fn iter(&self) -> impl Iterator<Item = &Rule> {
+        let mut items = Vec::new();
+        let mut current = self;
+        loop {
+            match current {
+                GrammarPlus0::Alt0(rest, item, _) => {
+                    items.push(item);
+                    current = rest;
+                }
+                GrammarPlus0::Alt1(item, _) => {
+                    items.push(item);
+                    break;
+                }
+            }
+        }
+        items.into_iter().rev()
+    }
+}
+impl ListNode for RulePlus1 {
+    type Item = Token;
+    fn iter(&self) -> impl Iterator<Item = &Token> {
+        let mut items = Vec::new();
+        let mut current = self;
+        loop {
+            match current {
+                RulePlus1::Alt0(rest, item, _) => {
+                    items.push(item);
+                    current = rest;
+                }
+                RulePlus1::Alt1(item, _) => {
+                    items.push(item);
+                    break;
+                }
+            }
+        }
+        items.into_iter().rev()
     }
 }
 #[derive(Debug)]
@@ -467,7 +500,7 @@ pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
     s
 }
 fn node_to_sexpr(node: ParseTreeRef<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
-    let children: Vec<_> = node.children().collect();
+    let children = node.children();
     if children.is_empty() {
         writeln!(w, "{:indent$}{}", "", node.name())
     } else {

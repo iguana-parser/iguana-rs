@@ -5,7 +5,7 @@ use iguana::{
     alternative,
     generator::generate,
     grammar::{def::Grammar, regex::Regex, symbols::Terminal},
-    grammar_def, id, lexical_rule, lit, plus, priority_level, syntax_rule,
+    grammar_def, group, id, lexical_rule, lit, plus, priority_level, syntax_rule,
 };
 
 #[derive(Parser)]
@@ -110,8 +110,50 @@ fn grammar3() -> Grammar {
     .into()
 }
 
+#[allow(dead_code)]
+fn grammar4() -> Grammar {
+    // S : A+
+    // A : 'a'
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => priority_level!(
+                alternative!(plus!(id!("A"))),
+            )),
+            syntax_rule!("A" => priority_level!(
+                alternative!(lit!("a")),
+            ))
+        ]
+    )
+    .into()
+}
+
+#[allow(dead_code)]
+fn grammar5() -> Grammar {
+    // S : (A B C)+
+    // A : 'a'
+    // B: 'b'
+    // C : 'c'
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => priority_level!(
+                alternative!(plus!(group!(id!("A"), id!("B"), id!("C")))),
+            )),
+            syntax_rule!("A" => priority_level!(
+                alternative!(lit!("a")),
+            )),
+            syntax_rule!("B" => priority_level!(
+                alternative!(lit!("b")),
+            )),
+            syntax_rule!("C" => priority_level!(
+                alternative!(lit!("c")),
+            ))
+        ]
+    )
+    .into()
+}
+
 // Grammar
-//   : "grammar" Identifier ";" Rule*
+//   : "grammar" Identifier ";" Rule+
 //   ;
 // Rule
 //   : Identifier ":" Identifier+ ";"

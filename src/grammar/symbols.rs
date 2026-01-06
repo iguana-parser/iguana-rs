@@ -54,6 +54,12 @@ impl Symbol {
         };
         ident.definition.expect("Symbol should be resolved")
     }
+    pub fn as_identifier(&self) -> &Identifier {
+        match self {
+            Symbol::Identifier(identifier) => identifier,
+            _ => panic!("Expected identifier but found {}", self),
+        }
+    }
 }
 
 impl Display for Symbol {
@@ -137,6 +143,15 @@ impl Nonterminal {
         match &self.origin {
             Some(symbol) => symbol.to_string(),
             None => self.name.clone(),
+        }
+    }
+
+    /// Returns true if the nonterminal was generated when converting from an EBNF Star
+    /// or Plus node.
+    pub fn is_ebnf_list(&self) -> bool {
+        match &self.origin {
+            Some(s) => matches!(s, Symbol::Star(_) | Symbol::Plus(_)),
+            None => false,
         }
     }
 }

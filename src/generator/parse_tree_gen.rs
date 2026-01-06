@@ -4,7 +4,7 @@ use syn::Ident;
 
 use crate::{
     generator::{id::{NonterminalIds, SlotIds, TerminalIds}, utils::{alternative_label, to_first_uppercase, to_pascal_case, to_snake_case}},
-    grammar::{def::{Alternative, Grammar}, symbols::{Definition, Nonterminal}}, ids::TerminalId,
+    grammar::{def::{Alternative, Grammar}, symbols::{Definition, Nonterminal, Symbol}}, ids::TerminalId,
 };
 
 pub fn generate(
@@ -28,8 +28,12 @@ pub fn generate(
     let parse_tree_impl = gen_parse_tree_impl(grammar);
     let parse_tree_ref_enum = gen_parse_tree_ref_enum(grammar);
     let parse_tree_ref_impl = gen_parse_tree_ref_impl(grammar);
-    let child_iter_struct = gen_child_iter_struct();
-    let impl_iterator_for_child_iter = gen_impl_iterator_for_child_iter(grammar);
+    let list_node_trait = gen_list_node_trait();
+    let list_node_impls: Vec<_> = grammar
+        .nonterminals()
+        .filter(|n| n.is_ebnf_list())
+        .map(|n| gen_list_node_impl(grammar, n))
+        .collect();
     let from_for_tree_impls = gen_from_for_tree_impls(grammar);
     let parse_tree_builder_impl = gen_parse_tree_builder_impl(grammar, nonterminal_ids, slot_ids);
     let create_parse_tree_function = gen_create_parse_tree_function(grammar);
@@ -60,11 +64,11 @@ pub fn generate(
         #parse_tree_impl
         #parse_tree_ref_enum
         #parse_tree_ref_impl
-        #child_iter_struct
-        #impl_iterator_for_child_iter
         #from_for_tree_impls
+        #list_node_trait
         #(#nonterminal_types)*
         #(#nonterminal_types_impl)*
+        #(#list_node_impls)*
         #token_struct
         #token_impl
         #token_kind_function
@@ -233,28 +237,28 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
     if alternatives.is_empty() {
         todo!("handle empty alternatives")
     } else if alternatives.len() == 1 {
-            let alternative = &alternatives[0];
-            let body = child_by_index(alternative, true);
-            quote! {
-                match index {
-                    #body
-                }
+        let alternative = &alternatives[0];
+        let body = child_by_index(alternative, true);
+        quote! {
+            match index {
+                #body
             }
-        } else {
-            let arms: Vec<_> = alternatives.iter().enumerate().map(|(i, alternative)| {
-                let label = alternative_label(alternative, i);
-                let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-                let children_names = children_names(alternative);
-                let body = child_by_index(alternative, false);
-                // Add _ to ignore the span field at the end
-                quote! {
-                    #ident::#alt_variant(#(#children_names),*, _) => #body
-                }
-            }).collect();
+        }
+    } else {
+        let arms: Vec<_> = alternatives.iter().enumerate().map(|(i, alternative)| {
+            let label = alternative_label(alternative, i);
+            let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+            let children_names = children_names(alternative);
+            let body = child_by_index(alternative, false);
+            // Add _ to ignore the span field at the end
             quote! {
-                match self {
-                    #(#arms),*
-                }
+                #ident::#alt_variant(#(#children_names),*, _) => #body
+            }
+        }).collect();
+        quote! {
+            match self {
+                #(#arms),*
+            }
         }
     }
 }
@@ -367,8 +371,8 @@ fn gen_token_impl() -> TokenStream {
 }
 
 fn gen_token_kind_enum(terminals: &[(TerminalId, String)]) -> TokenStream {
-    let terminal_ids: Vec<_> = terminals.iter().map(|(id, name)|{
-        let ident = format_ident!("T{}", id.0);
+    let terminal_ids: Vec<_> = terminals.iter().map(|(terminal_id, name)|{
+        let ident = format_ident!("T{}", terminal_id.0);
         quote! {
             #[comment = #name]
             #ident
@@ -650,7 +654,7 @@ fn gen_parse_tree_ref_enum(grammar: &Grammar) -> TokenStream {
 
 fn gen_parse_tree_ref_impl(grammar: &Grammar) -> TokenStream {
     let name_method = gen_name_method(grammar);
-    let children_method = gen_children_method();
+    let children_method = gen_children_method(grammar);
     let child_count_method = gen_child_count_method_for_parse_tree_ref(grammar);
     let span_method = gen_span_method_for_parse_tree_ref(grammar);
     quote! {
@@ -663,16 +667,32 @@ fn gen_parse_tree_ref_impl(grammar: &Grammar) -> TokenStream {
     }
 }
 
-fn gen_children_method() -> TokenStream {
+fn gen_children_method(grammar: &Grammar) -> TokenStream {
+    let arms: Vec<_> = grammar
+        .nonterminals()
+        .map(|n| {
+            let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
+            let var_ident = Ident::new(&to_snake_case(&n.name), Span::call_site());
+            if n.is_ebnf_list() {
+                quote! {
+                    ParseTreeRef::#variant(#var_ident) => #var_ident.iter().map(|a| a.as_parse_tree_ref()).collect()
+                }
+            } else {
+                quote! {
+                    ParseTreeRef::#variant(#var_ident) => (0..#var_ident.child_count()).filter_map(|i| #var_ident.child(i)).collect()
+                }
+            }
+        })
+        .collect();
     quote! {
-        pub fn children(&self) -> ChildIter<'a> {
-            ChildIter {
-                node: *self,
-                index: 0,
+        pub fn children(&self) -> Vec<ParseTreeRef<'a>> {
+            match self {
+                #(#arms),*,
+                ParseTreeRef::Token(_) => vec![],
             }
         }
     }
-}
+}    
 
 fn gen_name_method(grammar: &Grammar) -> TokenStream {
     let arms = grammar.nonterminals().map(|n| {
@@ -732,44 +752,71 @@ fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
     }
 }
 
-fn gen_child_iter_struct() -> TokenStream {
+fn gen_list_node_trait() -> TokenStream {
     quote! {
-        pub struct ChildIter<'a> {
-            node: ParseTreeRef<'a>,
-            index: usize,
+        trait ListNode {
+            type Item;
+            fn iter(&self) -> impl Iterator<Item = &Self::Item>;
         }
     }
 }
 
-fn gen_impl_iterator_for_child_iter(grammar: &Grammar) -> TokenStream {
-    let cases: Vec<_> = grammar
-        .nonterminals()
-        .map(|n| {
-            let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
-            let var_ident = Ident::new(&to_snake_case(&n.name), Span::call_site());
-            quote! { ParseTreeRef::#variant(#var_ident) => #var_ident.child(self.index) }
-        })
-        .collect();
-    quote! {
-        impl<'a> Iterator for ChildIter<'a> {
-            type Item = ParseTreeRef<'a>;
-
-            fn next(&mut self) -> Option<Self::Item> {
-                let child = match self.node {
-                    #(#cases),*,
-                    ParseTreeRef::Token(_) => None,
-                };
-                self.index += 1;
-                child
-            }
-
-            fn size_hint(&self) -> (usize, Option<usize>) {
-                let remaining = self.node.child_count().saturating_sub(self.index);
-                (remaining, Some(remaining))
+fn gen_list_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
+    let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let alternatives = grammar.alternatives(nonterminal);
+    // This method must only be called for list nodes, i.e., * and + nonterminals,
+    // which always have two alternatives.
+    assert_eq!(alternatives.len(), 2);
+    let label = alternative_label(&alternatives[0], 0);
+    let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+    let first_arm = quote! {
+        // Add _ to ignore the span field at the end
+        #ident::#alt_variant(rest, item, _) => {
+            items.push(item);
+            current = rest;
+        }
+    };
+    let label = alternative_label(&alternatives[1], 1);
+    let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+    let second_arm = quote! {
+        // Add _ to ignore the span field at the end
+        #ident::#alt_variant(item, _) => {
+            items.push(item);
+            break;
+        }
+    };
+    let origin = nonterminal.origin.as_ref().unwrap();
+    let inner_nonterminal = match origin {
+        Symbol::Plus(symbol) => {
+            if let Some(ebnf_symbol) = grammar.ebnf_symbol(symbol) {
+                ebnf_symbol.as_identifier()
+            } else {
+                symbol.as_identifier()
             }
         }
-
-        impl<'a> ExactSizeIterator for ChildIter<'a> {}
+        _ => panic!("Expected a Star or Plus symbol but got {}", origin)
+    };
+    let def_id = inner_nonterminal.definition.unwrap();
+    let name = match grammar.definition(def_id) {
+        Definition::Terminal(_) => "Token",
+        Definition::Nonterminal(nonterminal) => &to_pascal_case(&nonterminal.name),
+    };
+    let inner_nonterminal_ident = Ident::new(name, Span::call_site());
+    quote! {
+        impl ListNode for #ident {
+            type Item = #inner_nonterminal_ident;
+            fn iter(&self) -> impl Iterator<Item = &#inner_nonterminal_ident> {
+                let mut items = Vec::new();
+                let mut current = self;
+                loop {
+                    match current {
+                        #first_arm
+                        #second_arm
+                    }
+                }
+                items.into_iter().rev()
+            }
+        }
     }
 }
 
@@ -851,7 +898,7 @@ fn gen_to_sexpr_function() -> TokenStream {
 fn gen_node_to_sexpr_function() -> TokenStream {
     quote! {
         fn node_to_sexpr(node: ParseTreeRef<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
-            let children: Vec<_> = node.children().collect();
+            let children = node.children();
             if children.is_empty() {
                 writeln!(w, "{:indent$}{}", "", node.name())
             } else {

@@ -111,6 +111,8 @@ fn write_file(content: impl AsRef<str>, path: &Path, format: FileFormat) -> std:
 }
 
 fn to_string(tokens: TokenStream) -> String {
-    let syntax = syn::parse_file(&tokens.to_string()).unwrap();
+    let syntax = syn::parse_file(&tokens.to_string()).unwrap_or_else(|e| {
+        panic!("Parse error at {:?}: {}", e.span().start(), e);
+    });
     prettyplease::unparse(&syntax)
 }

@@ -1856,7 +1856,7 @@
       <!-- Input Area -->
       <div class="input-section">
         {#if debugLoaded}
-          <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:selected={selectedSpan !== null && i >= selectedSpan.left && i < selectedSpan.right}>{char}</span>{/each}</div>
+          <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:consumed={inputIndex !== null && i < inputIndex} class:current={inputIndex !== null && i === inputIndex} class:selected={selectedSpan !== null && i >= selectedSpan.left && i < selectedSpan.right}>{char}</span>{/each}</div>
         {:else}
           <textarea
             bind:value={inputText}

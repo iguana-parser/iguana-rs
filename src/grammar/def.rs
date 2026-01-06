@@ -149,9 +149,9 @@ impl Display for GrammarDef {
 fn create_symbol_table<'a>(
     syntax_rules: &[SyntaxRule],
     terminals: impl Iterator<Item = &'a Terminal>,
-) -> (FxHashMap<String, DefinitionId>, Vec<Definition>) {
+    definitions: &mut Vec<Definition>,
+) -> FxHashMap<String, DefinitionId> {
     let mut symbol_table = FxHashMap::default();
-    let mut definitions = vec![];
     for terminal in terminals {
         symbol_table.insert(
             terminal.name.clone(),
@@ -166,7 +166,7 @@ fn create_symbol_table<'a>(
         );
         definitions.push(Definition::Nonterminal(syntax_rule.head.clone()));
     }
-    (symbol_table, definitions)
+    symbol_table
 }
 
 /// Converts string literals (e.g., `"+"`) in syntax rules into terminal references
@@ -204,36 +204,70 @@ fn resolve_identifiers(
 ) -> Vec<SyntaxRule> {
     let mut rules = vec![];
     for rule in syntax_rules {
-        let transformed = transform_rule(rule, |s| {
-            if let Symbol::Identifier(identifier) = s {
-                if let Some(definition_id) = symbol_table.get(&identifier.name) {
-                    Symbol::Identifier(Identifier {
-                        name: identifier.name,
-                        definition: Some(*definition_id),
-                    })
-                } else {
-                    panic!("Definition {} not found", &identifier.name)
-                }
-            } else {
-                s
-            }
-        });
+        let transformed = transform_rule(rule, |s| resolve_identifier(s, symbol_table));
         rules.push(transformed);
     }
     rules
 }
 
+fn resolve_identifier(symbol: Symbol, symbol_table: &FxHashMap<String, DefinitionId>) -> Symbol {
+    match symbol {
+        Symbol::Identifier(identifier) => {
+            if let Some(definition_id) = symbol_table.get(&identifier.name) {
+                Symbol::Identifier(Identifier {
+                    name: identifier.name,
+                    definition: Some(*definition_id),
+                })
+            } else {
+                panic!("Definition {} not found", &identifier.name)
+            }
+        }
+        Symbol::Group(symbols) => {
+            let resolved_symbols = symbols
+                .into_iter()
+                .map(|s| resolve_identifier(s, symbol_table))
+                .collect();
+            Symbol::Group(resolved_symbols)
+        }
+        Symbol::Opt(symbol) => {
+            let resolved_symbol = resolve_identifier(*symbol, symbol_table);
+            Symbol::Opt(Box::new(resolved_symbol))
+        }
+        Symbol::Alt(symbols) => {
+            let resolved_symbols = symbols
+                .into_iter()
+                .map(|s| resolve_identifier(s, symbol_table))
+                .collect();
+            Symbol::Alt(resolved_symbols)
+        }
+        Symbol::Star(symbol) => {
+            let resolved_symbol = resolve_identifier(*symbol, symbol_table);
+            Symbol::Star(Box::new(resolved_symbol))
+        }
+        Symbol::Plus(symbol) => {
+            let resolved_symbol = resolve_identifier(*symbol, symbol_table);
+            Symbol::Plus(Box::new(resolved_symbol))
+        }
+        _ => symbol,
+    }
+}
+
 impl From<GrammarDef> for Grammar {
     fn from(grammar_def: GrammarDef) -> Self {
         let lexical_rules = grammar_def.lexical_rules;
+        let syntax_rules = grammar_def.syntax_rules;
         let mut lexical_rules_map: IndexMap<Terminal, Regex> = lexical_rules
             .into_iter()
             .map(|r| (r.head, r.regex))
             .collect();
-        let syntax_rules = ebnf_to_bnf::ebnf_to_bnf(grammar_def.syntax_rules);
         let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules_map);
-        let (symbol_table, definitions) =
-            create_symbol_table(&syntax_rules, lexical_rules_map.keys());
+        let mut definitions = vec![];
+        let symbol_table =
+            create_symbol_table(&syntax_rules, lexical_rules_map.keys(), &mut definitions);
+        let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
+        let (syntax_rules, ebnf_symbols) = ebnf_to_bnf::ebnf_to_bnf(syntax_rules);
+        let symbol_table =
+            create_symbol_table(&syntax_rules, lexical_rules_map.keys(), &mut definitions);
         let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
         let productions: IndexMap<Nonterminal, Vec<Alternative>> =
             syntax_rules
@@ -252,6 +286,7 @@ impl From<GrammarDef> for Grammar {
             productions,
             lexical_rules: lexical_rules_map,
             definitions,
+            ebnf_symbols,
             layout_defs: grammar_def.layout_def,
         }
     }
@@ -263,6 +298,7 @@ pub struct Grammar {
     productions: IndexMap<Nonterminal, Vec<Alternative>>,
     lexical_rules: IndexMap<Terminal, Regex>,
     definitions: Vec<Definition>,
+    ebnf_symbols: FxHashMap<Symbol, Symbol>,
     pub layout_defs: Vec<Terminal>,
 }
 
@@ -284,6 +320,9 @@ impl Grammar {
     }
     pub fn definition(&self, definition_id: DefinitionId) -> &Definition {
         &self.definitions[definition_id.0 as usize]
+    }
+    pub fn ebnf_symbol(&self, symbol: &Symbol) -> Option<&Symbol> {
+        self.ebnf_symbols.get(symbol)
     }
 }
 
