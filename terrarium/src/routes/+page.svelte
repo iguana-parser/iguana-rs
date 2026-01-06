@@ -936,6 +936,8 @@
     gss = null;
     parseTree = null;
     parseResultAvailable = false;
+    parseTreeSelectedSpan = null;
+    sppfSelectedSpan = null;
 
     logCommand(`${parserName} <input> --start ${startNonterminal}`);
 
@@ -1686,9 +1688,13 @@
     <!-- Input Area -->
     <div class="input-section">
       {#if parseTreeSelectedSpan !== null}
-        <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:selected={i >= parseTreeSelectedSpan.start && i < parseTreeSelectedSpan.end}>{char}</span>{/each}</div>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="input-viewer" onclick={() => parseTreeSelectedSpan = null}>{#each inputText.split('') as char, i}<span class="input-char" class:selected={i >= parseTreeSelectedSpan.start && i < parseTreeSelectedSpan.end}>{char}</span>{/each}</div>
       {:else if sppfSelectedSpan !== null}
-        <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:selected={i >= sppfSelectedSpan.left && i < sppfSelectedSpan.right}>{char}</span>{/each}</div>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="input-viewer" onclick={() => sppfSelectedSpan = null}>{#each inputText.split('') as char, i}<span class="input-char" class:selected={i >= sppfSelectedSpan.left && i < sppfSelectedSpan.right}>{char}</span>{/each}</div>
       {:else}
         <textarea
           bind:value={inputText}
