@@ -696,9 +696,9 @@ fn gen_children_method(grammar: &Grammar) -> TokenStream {
 
 fn gen_name_method(grammar: &Grammar) -> TokenStream {
     let arms = grammar.nonterminals().map(|n| {
-        let name = &n.name;
-        let name_ident = Ident::new(&to_pascal_case(name), Span::call_site());
-        quote! { ParseTreeRef::#name_ident(_) => #name }
+        let display_name = &n.display_name();
+        let name_ident = Ident::new(&to_pascal_case(&n.name), Span::call_site());
+        quote! { ParseTreeRef::#name_ident(_) => #display_name }
     });
     quote! {
         pub fn name(&self) -> &'static str {

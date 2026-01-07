@@ -111,8 +111,8 @@ impl<'a> ParseTreeRef<'a> {
         match self {
             ParseTreeRef::Grammar(_) => "Grammar",
             ParseTreeRef::Rule(_) => "Rule",
-            ParseTreeRef::GrammarPlus0(_) => "Grammar_Plus_0",
-            ParseTreeRef::RulePlus1(_) => "Rule_Plus_1",
+            ParseTreeRef::GrammarPlus0(_) => "Rule+",
+            ParseTreeRef::RulePlus1(_) => "Identifier+",
             ParseTreeRef::Token(token) => token.kind.name(),
         }
     }

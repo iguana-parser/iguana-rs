@@ -1,8 +1,6 @@
 use std::{fs, io::Write, path::Path};
 
 use proc_macro2::TokenStream;
-use regex::Regex;
-use syn::token;
 
 use crate::{
     generator::{
@@ -112,20 +110,19 @@ fn write_file(content: impl AsRef<str>, path: &Path, format: FileFormat) -> std:
     Ok(())
 }
 
+/// Formats the generated token stream into Rust source code.
+///
+/// We use prettyplease before rustfmt because:
+/// 1. It formats macro contents (rustfmt leaves them as-is)
+/// 2. It converts `#[doc = "..."]` attributes back to `/// ...` doc comments
+/// 3. It converts `#[comment = "..."]` attributes to `// ...` line comments
+///    (undocumented feature, but stable - this is how we embed comments in
+///    generated code since TokenStream cannot represent comments directly)
+///
+/// Rustfmt runs afterwards for final formatting.
 fn to_string(tokens: TokenStream) -> String {
-    let s = convert_comment_attrs(&tokens.to_string());
-    // Validate syntax
-    syn::parse_file(&s).unwrap_or_else(|e| {
+    let syntax = syn::parse_file(&tokens.to_string()).unwrap_or_else(|e| {
         panic!("Parse error at {:?}: {}", e.span().start(), e);
     });
-    s
-}
-
-/// Converts `#[comment = "..."]` attributes to `// ...` line comments.
-/// 
-/// This is used to embed comments in generated code since comments
-/// cannot be represented directly in a TokenStream.
-fn convert_comment_attrs(s: &str) -> String {
-    let re = Regex::new(r#"#\s*\[comment\s*=\s*"([^"]*)"\s*\]"#).unwrap();
-    re.replace_all(s, "//$1").to_string()
+    prettyplease::unparse(&syntax)
 }
