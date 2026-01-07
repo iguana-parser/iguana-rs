@@ -247,12 +247,19 @@ export const gssEdgeStyles: Stylesheet = {
   },
 };
 
+// Viewport state for preserving zoom/pan across re-renders
+export interface Viewport {
+  zoom: number;
+  pan: { x: number; y: number };
+}
+
 // Graph creation options
 export interface GraphOptions {
   container: HTMLElement;
   elements: ElementDefinition[];
   styles: Stylesheet[];
   layout?: "sppf" | "gss";
+  viewport?: Viewport;  // If provided, restore this viewport instead of auto-fitting
 }
 
 // Cap zoom level after fit to prevent huge nodes on small graphs
@@ -265,8 +272,16 @@ export function capZoom(cyInstance: Core) {
   }
 }
 
+// Get current viewport from a graph instance
+export function getViewport(cyInstance: Core): Viewport {
+  return {
+    zoom: cyInstance.zoom(),
+    pan: cyInstance.pan(),
+  };
+}
+
 export function createGraph(options: GraphOptions): Core {
-  const { container, elements, styles, layout = "sppf" } = options;
+  const { container, elements, styles, layout = "sppf", viewport } = options;
 
   const cyInstance = cytoscape({
     container,
@@ -306,8 +321,13 @@ export function createGraph(options: GraphOptions): Core {
     }, { passive: false });
   }
 
-  // Cap initial zoom and center after layout
-  capZoom(cyInstance);
+  // Restore viewport if provided, otherwise cap initial zoom
+  if (viewport) {
+    cyInstance.zoom(viewport.zoom);
+    cyInstance.pan(viewport.pan);
+  } else {
+    capZoom(cyInstance);
+  }
 
   return cyInstance;
 }

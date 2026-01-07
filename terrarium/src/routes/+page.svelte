@@ -16,6 +16,7 @@
     gssEdgeStyles,
     capZoom,
     createGraph,
+    getViewport,
     truncateLabel,
     setupGraphTooltip,
     LABEL_MAX_LENGTH,
@@ -265,6 +266,7 @@
 
   // State
   let inputText = $state("");
+  let lastParsedInput = $state<string | null>(null);
   let startNonterminal = $state<string | null>(null);
   let nonterminals = $state<string[]>([]);
   let dropdownOpen = $state(false);
@@ -434,6 +436,9 @@
       })),
     ];
 
+    // Save viewport before destroying
+    const savedViewport = cy ? getViewport(cy) : undefined;
+
     if (cy) {
       cy.destroy();
     }
@@ -443,6 +448,7 @@
       elements,
       styles: [...sppfNodeStyles, edgeStyles],
       layout: 'sppf',
+      viewport: savedViewport,
     });
 
     sppfCollapseManager.setCy(cy);
@@ -504,6 +510,9 @@
       })),
     ];
 
+    // Save viewport before destroying
+    const savedViewport = gssCy ? getViewport(gssCy) : undefined;
+
     if (gssCy) {
       gssCy.destroy();
     }
@@ -513,6 +522,7 @@
       elements,
       styles: [...gssNodeStyles, gssEdgeStyles],
       layout: 'gss',
+      viewport: savedViewport,
     });
   }
 
@@ -562,6 +572,9 @@
       })),
     ];
 
+    // Save viewport before destroying
+    const savedViewport = parseTreeCy ? getViewport(parseTreeCy) : undefined;
+
     if (parseTreeCy) {
       parseTreeCy.destroy();
     }
@@ -571,6 +584,7 @@
       elements,
       styles: [...sppfNodeStyles, edgeStyles],  // Reuse SPPF styles (nonterminal/token)
       layout: 'sppf',  // Top-to-bottom tree layout
+      viewport: savedViewport,
     });
 
     parseTreeCollapseManager.setCy(parseTreeCy);
@@ -687,6 +701,9 @@
       return;
     }
 
+    // Save viewport before destroying
+    const savedViewport = debugSppfCy ? getViewport(debugSppfCy) : undefined;
+
     if (debugSppfCy) {
       debugSppfCy.destroy();
     }
@@ -698,6 +715,7 @@
       elements,
       styles: [...sppfNodeStyles, edgeStyles],
       layout: 'sppf',
+      viewport: savedViewport,
     });
 
     debugSppfCollapseManager.setCy(debugSppfCy);
@@ -802,6 +820,9 @@
       return;
     }
 
+    // Save viewport before destroying
+    const savedViewport = debugGssCy ? getViewport(debugGssCy) : undefined;
+
     if (debugGssCy) {
       debugGssCy.destroy();
     }
@@ -811,6 +832,7 @@
       elements,
       styles: [...gssNodeStyles, gssEdgeStyles],
       layout: 'gss',
+      viewport: savedViewport,
     });
 
     // Set up ResizeObserver to recenter graph when container resizes (debounced)
@@ -873,6 +895,7 @@
       gss = null;
       parseTree = null;
       parseResultAvailable = false;
+      lastParsedInput = null;
       nonterminals = [];
       startNonterminal = null;
 
@@ -944,6 +967,7 @@
     const result = await commands.parse(parserDirectory, inputText, startNonterminal!);
     if (result.status === "ok") {
       parseResultAvailable = true;
+      lastParsedInput = inputText;
       logOutput("Parse successful");
       setStatus("Parse successful", "success");
 
@@ -1700,6 +1724,14 @@
           bind:value={inputText}
           placeholder="Enter code to parse..."
           spellcheck="false"
+          onkeydown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
+              e.preventDefault();
+              if (inputText !== lastParsedInput) {
+                parse();
+              }
+            }
+          }}
         ></textarea>
       {/if}
     </div>

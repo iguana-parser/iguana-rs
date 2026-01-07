@@ -13,6 +13,7 @@
     gssEdgeStyles,
     capZoom,
     createGraph,
+    getViewport,
     setupGraphTooltip,
   } from "$lib/graph-styles";
   import { GraphCollapseManager, buildDebugSppfElements, buildDebugGssElements, buildSppfElements, buildGssElements, exportGraphPng } from "$lib/graph-utils";
@@ -119,6 +120,9 @@
       return;
     }
 
+    // Save viewport before destroying
+    const savedViewport = cy ? getViewport(cy) : undefined;
+
     if (cy) {
       cy.destroy();
     }
@@ -136,6 +140,7 @@
         ? [...gssNodeStyles, gssEdgeStyles]
         : [...sppfNodeStyles, edgeStyles],
       layout: isGss ? "gss" : "sppf",
+      viewport: savedViewport,
     });
 
     collapseManager.setCy(cy);
