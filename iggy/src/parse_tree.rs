@@ -107,7 +107,7 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::Token(_) => vec![],
         }
     }
-    pub fn name(&self) -> &'static str {
+    pub fn display_name(&self) -> &'static str {
         match self {
             ParseTreeRef::Grammar(_) => "Grammar",
             ParseTreeRef::Rule(_) => "Rule",
@@ -502,9 +502,9 @@ pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
 fn node_to_sexpr(node: ParseTreeRef<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
     let children = node.children();
     if children.is_empty() {
-        writeln!(w, "{:indent$}{}", "", node.name())
+        writeln!(w, "{:indent$}{}", "", node.display_name())
     } else {
-        writeln!(w, "{:indent$}({}", "", node.name())?;
+        writeln!(w, "{:indent$}({}", "", node.display_name())?;
         for child in children {
             node_to_sexpr(child, indent + 2, w)?;
         }
@@ -535,8 +535,8 @@ fn build_json_graph(
         _ => "Nonterminal",
     };
     nodes.push(serde_json::json!(
-        { "id" : my_id, "kind" : kind, "label" : node.name(), "start" : span
-        .left_extent, "end" : span.right_extent }
+        { "id" : my_id, "kind" : kind, "label" : node.display_name(), "start" :
+        span.left_extent, "end" : span.right_extent }
     ));
     for child in node.children() {
         let child_id = build_json_graph(child, nodes, edges, next_id);

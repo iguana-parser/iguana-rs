@@ -701,7 +701,7 @@ fn gen_name_method(grammar: &Grammar) -> TokenStream {
         quote! { ParseTreeRef::#name_ident(_) => #display_name }
     });
     quote! {
-        pub fn name(&self) -> &'static str {
+        pub fn display_name(&self) -> &'static str {
             match self {
                 #(#arms),*,
                 ParseTreeRef::Token(token) => token.kind.name(),
@@ -900,9 +900,9 @@ fn gen_node_to_sexpr_function() -> TokenStream {
         fn node_to_sexpr(node: ParseTreeRef<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
             let children = node.children();
             if children.is_empty() {
-                writeln!(w, "{:indent$}{}", "", node.name())
+                writeln!(w, "{:indent$}{}", "", node.display_name())
             } else {
-                writeln!(w, "{:indent$}({}", "", node.name())?;
+                writeln!(w, "{:indent$}({}", "", node.display_name())?;
                 for child in children {
                     node_to_sexpr(child, indent + 2, w)?;
                 }
@@ -948,7 +948,7 @@ fn gen_to_json_function() -> TokenStream {
             nodes.push(serde_json::json!({
                 "id": my_id,
                 "kind": kind,
-                "label": node.name(),
+                "label": node.display_name(),
                 "start": span.left_extent,
                 "end": span.right_extent
             }));
