@@ -146,11 +146,18 @@ impl Nonterminal {
         }
     }
 
-    /// Returns true if the nonterminal was generated when converting from an EBNF Star
-    /// or Plus node.
-    pub fn is_ebnf_list(&self) -> bool {
+    /// Returns true if the nonterminal was generated when converting from an EBNF Plus.
+    pub fn is_plus(&self) -> bool {
         match &self.origin {
-            Some(s) => matches!(s, Symbol::Star(_) | Symbol::Plus(_)),
+            Some(s) => matches!(s, Symbol::Plus(_)),
+            None => false,
+        }
+    }
+
+    /// Returns true if the nonterminal was generated when converting from an EBNF Star.
+    pub fn is_star(&self) -> bool {
+        match &self.origin {
+            Some(s) => matches!(s, Symbol::Star(_)),
             None => false,
         }
     }

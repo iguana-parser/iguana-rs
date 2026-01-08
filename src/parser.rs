@@ -96,16 +96,16 @@ pub trait Parser<'i> {
         right_extent: u32,
     ) -> Option<SPPFNodeId>;
 
-    /// Creates a new GSS node if it does not exist for parsing a nonterminal.
+    /// Creates a new GSS node if it does not exist.
     /// If a GSS node with the same nonterminal name and input index exists, just adds an edge.
-    /// This corresponds to a function call in recursive-descent parsers.
+    /// `create` corresponds to a function call in recursive-descent parsers.
     ///
     /// # Arguments
     ///
     /// * `nonterminal_id` - The nonterminal id.
-    /// * `result` - The current result, corresponding to the portion of the production rule before the call.
+    /// * `sppf_node_id` - The current sppf_node, corresponding to the result of parsing before the call.
     ///   If the nonterminal is called at position 0, i.e., it's the first symbol in the production rule,
-    ///   the result is `None`
+    ///   the sppf_node_id is `None`
     /// * `gss_node_id` - The id of the current GSS node.
     /// * `return_slot` - The grammar slot immediately after the nonterminal being called. This is used to record
     ///   the grammar slot to continue parsing when the call returns (pop action).

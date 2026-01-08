@@ -5,7 +5,7 @@ use iguana::{
     alternative,
     generator::generate,
     grammar::{def::Grammar, regex::Regex, symbols::Terminal},
-    grammar_def, group, id, lexical_rule, lit, plus, priority_level, syntax_rule,
+    grammar_def, group, id, lexical_rule, lit, plus, priority_level, star, syntax_rule,
 };
 
 #[derive(Parser)]
@@ -33,7 +33,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = iggy();
+    let grammar = star_grammar();
     generate(&grammar, output)?;
     Ok(())
 }
@@ -147,6 +147,33 @@ fn grammar5() -> Grammar {
             syntax_rule!("C" => priority_level!(
                 alternative!(lit!("c")),
             ))
+        ]
+    )
+    .into()
+}
+
+fn star_grammar() -> Grammar {
+    // S : A*
+    // A : "a"
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => priority_level!(
+                alternative!(star!(id!("A"))),
+            )),
+            syntax_rule!("A" => priority_level!(
+                alternative!(lit!("a")),
+            )),
+        ]
+    )
+    .into()
+}
+
+fn empty() -> Grammar {
+    // A: ;
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("A" => priority_level!(
+            )),
         ]
     )
     .into()

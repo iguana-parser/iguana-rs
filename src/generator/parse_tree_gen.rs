@@ -31,7 +31,7 @@ pub fn generate(
     let list_node_trait = gen_list_node_trait();
     let list_node_impls: Vec<_> = grammar
         .nonterminals()
-        .filter(|n| n.is_ebnf_list())
+        .filter(|n| n.is_plus() || n.is_star())
         .map(|n| gen_list_node_impl(grammar, n))
         .collect();
     let from_for_tree_impls = gen_from_for_tree_impls(grammar);
@@ -106,25 +106,42 @@ fn gen_nonterminal_type(
     if alternatives.is_empty() {
         todo!("handle empty alternatives")
     } else if alternatives.len() == 1 {
-        let alternative = &alternatives[0];
-        let fields: Vec<_> = alternative
-            .symbols
-            .iter()
-            .map(|s| {
-                let def_id = s.resolved_def();
-                let def = grammar.definition(def_id);
-                match def {
-                    Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
-                    Definition::Nonterminal(_) => Ident::new(&to_pascal_case(def.name()), Span::call_site()),
-                }
-            })
-            .collect();
-        // Add Span as last field
-        quote! {
-            #[derive(Debug)]
-            pub struct #nonterminal_name_id(#(#fields),*, Span);
-        }
+        gen_nonterminal_type_with_one_alternative(grammar, &nonterminal_name_id, &alternatives[0])
     } else {
+        gen_nonterminal_type_with_more_than_one_alternative(grammar, nonterminal, &nonterminal_name_id, alternatives)
+    }
+}
+
+fn gen_nonterminal_type_with_one_alternative(
+    grammar: &Grammar, 
+    nonterminal_name_id: &Ident, 
+    alternative: &Alternative
+) -> TokenStream {
+    let fields: Vec<_> = alternative
+        .symbols
+        .iter()
+        .map(|s| {
+            let def_id = s.resolved_def();
+            let def = grammar.definition(def_id);
+            match def {
+                Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
+                Definition::Nonterminal(_) => Ident::new(&to_pascal_case(def.name()), Span::call_site()),
+            }
+        })
+        .collect();
+    // Add Span as last field
+    quote! {
+        #[derive(Debug)]
+        pub struct #nonterminal_name_id(#(#fields),*, Span);
+    }
+}
+
+fn gen_nonterminal_type_with_more_than_one_alternative(
+    grammar: &Grammar, 
+    nonterminal: &Nonterminal,
+    nonterminal_name_id: &Ident, 
+    alternatives: &[Alternative]
+) -> TokenStream {
         let variants: Vec<_> = alternatives
             .iter()
             .enumerate()
@@ -155,8 +172,14 @@ fn gen_nonterminal_type(
                 let label = alternative_label(alternative, index);
                 let variant_name = Ident::new(&label, Span::call_site());
                 // Add Span as last field in each variant
-                quote! {
-                    #variant_name(#(#children),*, Span)
+                if !children.is_empty() {
+                    quote! {
+                        #variant_name(#(#children),*, Span)
+                    }
+                } else {
+                    quote! {
+                        #variant_name(Span)
+                    }
                 }
             })
             .collect();
@@ -166,7 +189,6 @@ fn gen_nonterminal_type(
                 #(#variants),*
             }
         }
-    }
 }
 
 fn gen_nonterminal_type_impl(
@@ -251,9 +273,16 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
             let children_names = children_names(alternative);
             let body = child_by_index(alternative, false);
             // Add _ to ignore the span field at the end
-            quote! {
-                #ident::#alt_variant(#(#children_names),*, _) => #body
+            if children_names.is_empty() {
+                quote! {
+                    #ident::#alt_variant(_) => #body
+                }
+            } else {
+                quote! {
+                    #ident::#alt_variant(#(#children_names),*, _) => #body
+                }
             }
+            
         }).collect();
         quote! {
             match self {
@@ -263,8 +292,9 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
     }
 }
 
+// TODO: simplify the single_rule logic here:
 fn child_by_index(alternative: &Alternative, single_rule: bool) -> TokenStream {
-    let cases = (0..alternative.symbols.len()).map(|i| {
+    let cases: Vec<_> = (0..alternative.symbols.len()).map(|i| {
         let i_lit = Literal::usize_unsuffixed(i);
         // For nonterminals with only one body, i.e., no alternatives,
         // generate the arms as 0 => Some(self.0.as_parse_tree_ref())
@@ -287,17 +317,31 @@ fn child_by_index(alternative: &Alternative, single_rule: bool) -> TokenStream {
                 #i_lit => Some(#child_name.as_parse_tree_ref())
             }
         }
-    });
+    }).collect();
     if single_rule {
-        quote! {
-            #(#cases),*,
-            _ => None,
-        }
-    } else {
-        quote! {
-            match index {
+        if cases.is_empty() {
+            quote! {
+                _ => None
+            }
+        } else {
+            quote! {
                 #(#cases),*,
                 _ => None,
+            }
+        }
+    } else {
+        if cases.is_empty() {
+            quote! {
+                match index {
+                    _ => None,
+                }
+            }
+        } else {
+            quote! {
+                match index {
+                    #(#cases),*,
+                    _ => None,
+                }
             }
         }
     }
@@ -518,11 +562,20 @@ fn gen_nonterminal_node_method(
                             #nonterminal_type::#variant
                         }
                     };
+                    let into = if method_calls.is_empty() {
+                        quote! {
+                            #constructor(nonterminal_node.span).into()
+                        }
+                    } else {
+                        quote! {
+                            #constructor(#(#method_calls),*, nonterminal_node.span).into()
+                        }
+                    };
                     quote! {
                         #[comment = #slot_name]
                         #end_slot_id => {
                             let [#(#children_names),*] = <[ParseTree; #num_symbols]>::try_from(children).unwrap();
-                            #constructor(#(#method_calls),*, nonterminal_node.span).into()
+                            #into
                         }
                     }
                 })
@@ -673,7 +726,7 @@ fn gen_children_method(grammar: &Grammar) -> TokenStream {
         .map(|n| {
             let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
             let var_ident = Ident::new(&to_snake_case(&n.name), Span::call_site());
-            if n.is_ebnf_list() {
+            if n.is_plus() || n.is_star() {
                 quote! {
                     ParseTreeRef::#variant(#var_ident) => #var_ident.iter().map(|a| a.as_parse_tree_ref()).collect()
                 }
@@ -778,16 +831,26 @@ fn gen_list_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStre
     };
     let label = alternative_label(&alternatives[1], 1);
     let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-    let second_arm = quote! {
-        // Add _ to ignore the span field at the end
-        #ident::#alt_variant(item, _) => {
-            items.push(item);
-            break;
+    let second_arm = if nonterminal.is_plus() {
+        quote! {
+            // Add _ to ignore the span field at the end
+            #ident::#alt_variant(item, _) => {
+                items.push(item);
+                break;
+            }
+        }
+    } else {
+        // The star node's second alternative is empty
+        quote! {
+            // Add _ to ignore the span field at the end
+            #ident::#alt_variant(_) => {
+                break;
+            }
         }
     };
     let origin = nonterminal.origin.as_ref().unwrap();
     let inner_nonterminal = match origin {
-        Symbol::Plus(symbol) => {
+        Symbol::Plus(symbol) | Symbol::Star(symbol) => {
             if let Some(ebnf_symbol) = grammar.ebnf_symbol(symbol) {
                 ebnf_symbol.as_identifier()
             } else {

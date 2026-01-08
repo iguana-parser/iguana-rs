@@ -239,8 +239,13 @@ fn gen_terminals(terminal_ids: &TerminalIds) -> TokenStream {
             }
         }
     });
+    let epsilon = quote! {
+        Terminal {
+            name: "Epsilon"
+        }
+    };
     quote! {
-        pub const TERMINALS: [Terminal; #terminals_len] =[#(#terminals),*];
+        pub const TERMINALS: [Terminal; #terminals_len + 1] =[#(#terminals),*, #epsilon];
     }
 }
 
@@ -292,25 +297,55 @@ fn gen_execute_method<'a>(
                 slot_id: end_slot_id,
             };
             nonterminal_ids.add_end_slot(nonterminal_id, alternative);
-            let last_slot_quote = quote! {
-                #[comment = #end_slot_name]
-                #end_slot_id => {
-                    let Some(result) = result else {
-                        unreachable!("result cannot be None here.")
-                    };
-                    let node = self.sppf_node(result);
-                    let left_extent = node.left_extent();
-                    let right_extent = node.right_extent();
-                    let nonterminal_id = #nonterminal_id;
-                    let end_slot_id = #end_slot_id;
-                    if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    ) {
-                        self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+            // Handles the case for an empty alternative
+            let last_slot_quote = if last_symbol_index == 0 {
+                // For now we consider the last terminal to be epsilon.
+                let epsilon_id = Literal::usize_unsuffixed(terminal_ids.len());
+                quote! {
+                    #[comment = #end_slot_name]
+                    #end_slot_id => {
+                        let end_slot_id = #end_slot_id;
+                        let epsilon_node_id =
+                            self.get_or_create_terminal_node(
+                                TerminalId(#epsilon_id),
+                                input_index,
+                                input_index,
+                                vec![],
+                                vec![]
+                            );
+                        let nonterminal_id = #nonterminal_id;    
+                        if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                            nonterminal_id,
+                            end_slot_id,
+                            input_index,
+                            input_index,
+                            epsilon_node_id,
+                        ) {
+                            self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                        }
+                    }
+                }
+            } else {
+                quote! {
+                    #[comment = #end_slot_name]
+                    #end_slot_id => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        let node = self.sppf_node(result);
+                        let left_extent = node.left_extent();
+                        let right_extent = node.right_extent();
+                        let nonterminal_id = #nonterminal_id;
+                        let end_slot_id = #end_slot_id;
+                        if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                            nonterminal_id,
+                            end_slot_id,
+                            left_extent,
+                            right_extent,
+                            result,
+                        ) {
+                            self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                        }
                     }
                 }
             };
@@ -768,7 +803,7 @@ fn gen_parser_struct(
     slot_ids: &SlotIds,
 ) -> TokenStream {
     let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.len());
-    let terminal_ids_len = Literal::usize_unsuffixed(terminal_ids.len());
+    let terminal_ids_len = Literal::usize_unsuffixed(terminal_ids.len() + 1);
     let slot_ids_len = Literal::usize_unsuffixed(slot_ids.len());
     let parser_name_ident =
         syn::Ident::new(&format!("{}{}", grammar_name, "Parser"), Span::call_site());
@@ -870,7 +905,7 @@ fn gen_intermediate_nodes_index_field(slot_ids: &SlotIds) -> TokenStream {
 }
 
 fn gen_terminal_nodes_index_field(slot_ids: &TerminalIds) -> TokenStream {
-    let terminal_ids_len = Literal::usize_unsuffixed(slot_ids.len());
+    let terminal_ids_len = Literal::usize_unsuffixed(slot_ids.len() + 1);
     quote! {
         terminal_nodes_index: [const { InlineMap::Empty }; #terminal_ids_len]
     }
