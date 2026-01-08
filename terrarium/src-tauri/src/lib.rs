@@ -40,6 +40,16 @@ struct ParseState {
     parse_tree_path: Option<PathBuf>,
 }
 
+/// Result of a parse operation, indicating which outputs are available.
+#[derive(Clone, Serialize, Type)]
+struct ParseOutput {
+    success: bool,
+    error: Option<String>,
+    has_sppf: bool,
+    has_gss: bool,
+    has_parse_tree: bool,
+}
+
 #[derive(Default)]
 struct DebugState {
     replay: Option<TraceReplay>,
@@ -175,7 +185,7 @@ fn parse(
     input: String,
     start_nonterminal: String,
     state: tauri::State<Mutex<ParseState>>,
-) -> Result<(), String> {
+) -> Result<ParseOutput, String> {
     let parser_path = get_parser_binary_path(&directory)?;
 
     let mut input_file = NamedTempFile::new()
@@ -191,6 +201,7 @@ fn parse(
     let parse_tree_path = temp_dir.path().join("parse_tree.json");
 
     let output = Command::new(&parser_path)
+        .env("RUST_BACKTRACE", "1")  // Always show backtraces for debugging
         .arg(input_file.path())
         .arg("--start")
         .arg(&start_nonterminal)
@@ -206,21 +217,46 @@ fn parse(
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
+    // Check which output files were created (regardless of parser exit status)
+    let has_sppf = sppf_path.exists();
+    let has_gss = gss_path.exists();
+    let has_parse_tree = parse_tree_path.exists();
+
+    // Store paths for files that exist
+    let mut parse_state = state.lock().unwrap();
+    parse_state._temp_dir = Some(temp_dir);
+    parse_state.sppf_path = if has_sppf { Some(sppf_path) } else { None };
+    parse_state.gss_path = if has_gss { Some(gss_path) } else { None };
+    parse_state.parse_tree_path = if has_parse_tree { Some(parse_tree_path) } else { None };
+
+    // Determine success/error status
     if stdout.trim() == "Parse failed" {
-        return Err("Parse error".to_string());
+        return Ok(ParseOutput {
+            success: false,
+            error: Some("Parse error".to_string()),
+            has_sppf,
+            has_gss,
+            has_parse_tree,
+        });
     }
 
     if !output.status.success() {
-        return Err(format!("Parser exited with error: {}", stderr));
+        return Ok(ParseOutput {
+            success: false,
+            error: Some(format!("Parser error: {}", stderr.trim())),
+            has_sppf,
+            has_gss,
+            has_parse_tree,
+        });
     }
 
-    let mut parse_state = state.lock().unwrap();
-    parse_state._temp_dir = Some(temp_dir);
-    parse_state.sppf_path = Some(sppf_path);
-    parse_state.gss_path = Some(gss_path);
-    parse_state.parse_tree_path = Some(parse_tree_path);
-
-    Ok(())
+    Ok(ParseOutput {
+        success: true,
+        error: None,
+        has_sppf,
+        has_gss,
+        has_parse_tree,
+    })
 }
 
 #[tauri::command]
@@ -266,6 +302,70 @@ fn get_parse_tree(state: tauri::State<Mutex<ParseState>>) -> Result<String, Stri
 
     fs::read_to_string(parse_tree_path)
         .map_err(|e| format!("Failed to read parse tree file: {}", e))
+}
+
+/// Sets up VS Code debug configuration for the current parser.
+/// Writes input to a file and creates/updates .vscode/launch.json.
+#[tauri::command]
+#[specta::specta]
+fn setup_vscode_debug(
+    directory: String,
+    input: String,
+    start_nonterminal: String,
+) -> Result<String, String> {
+    let dir_path = Path::new(&directory);
+
+    // Get parser name from Cargo.toml
+    let cargo_toml_path = dir_path.join("Cargo.toml");
+    let cargo_content = fs::read_to_string(&cargo_toml_path)
+        .map_err(|e| format!("Failed to read Cargo.toml: {}", e))?;
+    let cargo_toml: Value = cargo_content
+        .parse()
+        .map_err(|e| format!("Failed to parse Cargo.toml: {}", e))?;
+    let parser_name = cargo_toml
+        .get("package")
+        .and_then(|p| p.get("name"))
+        .and_then(|n| n.as_str())
+        .ok_or("Could not find package name in Cargo.toml")?;
+
+    // Create .vscode directory if it doesn't exist
+    let vscode_dir = dir_path.join(".vscode");
+    fs::create_dir_all(&vscode_dir)
+        .map_err(|e| format!("Failed to create .vscode directory: {}", e))?;
+
+    // Write input to .vscode/debug-input.txt (keeps parser directory clean)
+    let input_path = vscode_dir.join("debug-input.txt");
+    fs::write(&input_path, &input)
+        .map_err(|e| format!("Failed to write debug input: {}", e))?;
+
+    // Generate launch.json content
+    let launch_json = format!(
+        r#"{{
+  "version": "0.2.0",
+  "configurations": [
+    {{
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug Parser",
+      "cargo": {{
+        "args": ["build", "--manifest-path", "${{workspaceFolder}}/Cargo.toml"]
+      }},
+      "program": "${{workspaceFolder}}/target/debug/{parser_name}",
+      "args": ["${{workspaceFolder}}/.vscode/debug-input.txt", "--start", "{start_nonterminal}"],
+      "cwd": "${{workspaceFolder}}"
+    }}
+  ]
+}}"#,
+        parser_name = parser_name,
+        start_nonterminal = start_nonterminal
+    );
+
+    // Write launch.json
+    let launch_json_path = vscode_dir.join("launch.json");
+    fs::write(&launch_json_path, &launch_json)
+        .map_err(|e| format!("Failed to write launch.json: {}", e))?;
+
+    Ok(directory)
 }
 
 #[tauri::command]
@@ -572,6 +672,7 @@ pub fn run() {
         get_sppf,
         get_gss,
         get_parse_tree,
+        setup_vscode_debug,
         get_nonterminals,
         load_debug_trace,
         debug_step_forward,

@@ -19,7 +19,7 @@ async buildParser(directory: string) : Promise<void> {
 async generateParser(directory: string) : Promise<void> {
     await TAURI_INVOKE("generate_parser", { directory });
 },
-async parse(directory: string, input: string, startNonterminal: string) : Promise<Result<null, string>> {
+async parse(directory: string, input: string, startNonterminal: string) : Promise<Result<ParseOutput, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("parse", { directory, input, startNonterminal }) };
 } catch (e) {
@@ -50,6 +50,18 @@ async getGss() : Promise<Result<GSS, string>> {
 async getParseTree() : Promise<Result<string, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_parse_tree") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Sets up VS Code debug configuration for the current parser.
+ * Writes input to a file and creates/updates .vscode/launch.json.
+ */
+async setupVscodeDebug(directory: string, input: string, startNonterminal: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("setup_vscode_debug", { directory, input, startNonterminal }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -206,6 +218,10 @@ export type GSSDotNode = { id: GssNodeId; label: string }
  */
 export type GssNodeId = number
 export type NodeKind = "Nonterminal" | "Intermediate" | "Terminal" | "Packed"
+/**
+ * Result of a parse operation, indicating which outputs are available.
+ */
+export type ParseOutput = { success: boolean; error: string | null; has_sppf: boolean; has_gss: boolean; has_parse_tree: boolean }
 export type SPPF = { nodes: SPPFDotNode[]; edges: SPPFDotEdge[] }
 export type SPPFDotEdge = { src: SPPFNodeId; dest: SPPFNodeId }
 export type SPPFDotNode = { id: SPPFNodeId; kind: NodeKind; label: string; left_extent: number; right_extent: number }

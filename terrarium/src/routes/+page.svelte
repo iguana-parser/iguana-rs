@@ -6,7 +6,7 @@
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { createMaximizeToggle } from "$lib/window-utils";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download } from "lucide-svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
   import {
@@ -233,6 +233,9 @@
   // Modal state
   let showErrorModal = $state(false);
   let errorModalMessage = $state("");
+
+  // Title bar menu state
+  let titleBarMenuOpen = $state(false);
 
   // Generation state
   let isGenerating = $state(false);
@@ -965,25 +968,68 @@
     logCommand(`${parserName} <input> --start ${startNonterminal}`);
 
     const result = await commands.parse(parserDirectory, inputText, startNonterminal!);
-    if (result.status === "ok") {
-      parseResultAvailable = true;
-      lastParsedInput = inputText;
+    if (result.status === "error") {
+      // Command itself failed (couldn't run parser)
+      logError(result.error);
+      outputPanelOpen = true;
+      setStatus("Parse failed", "error");
+      return;
+    }
+
+    const output = result.data;
+    lastParsedInput = inputText;
+
+    // Some data may be available even if parsing or parse tree creation failed
+    parseResultAvailable = output.has_sppf || output.has_gss || output.has_parse_tree;
+
+    if (output.success) {
       logOutput("Parse successful");
       setStatus("Parse successful", "success");
-
-      // Fetch the data for the active tab
-      if (activeTab === "sppf") {
-        await fetchSppf();
-      } else if (activeTab === "gss") {
-        await fetchGss();
-      } else if (activeTab === "parse-tree") {
-        await fetchParseTree();
-      }
     } else {
-      parseResultAvailable = false;
-      logError(result.error);
-      outputPanelOpen = true;  // Only auto-open on error
-      setStatus("Parse failed", "error");
+      // Partial success - show error but still display available data
+      if (output.error) {
+        logError(output.error);
+      }
+      if (parseResultAvailable) {
+        const available = [
+          output.has_sppf ? "SPPF" : null,
+          output.has_gss ? "GSS" : null,
+          output.has_parse_tree ? "Parse Tree" : null,
+        ].filter(Boolean).join(", ");
+        logOutput(`Partial data available: ${available}`);
+        setStatus("Parse error (partial data)", "error");
+      } else {
+        setStatus("Parse failed", "error");
+      }
+      outputPanelOpen = true;
+    }
+
+    // Fetch the data for the active tab if available
+    if (activeTab === "sppf" && output.has_sppf) {
+      await fetchSppf();
+    } else if (activeTab === "gss" && output.has_gss) {
+      await fetchGss();
+    } else if (activeTab === "parse-tree" && output.has_parse_tree) {
+      await fetchParseTree();
+    } else if (output.has_sppf) {
+      // If active tab data not available, try to show something
+      await fetchSppf();
+    } else if (output.has_gss) {
+      await fetchGss();
+    }
+  }
+
+  async function setupVscodeDebug() {
+    if (!parserDirectory || !startNonterminal) return;
+
+    const result = await commands.setupVscodeDebug(parserDirectory, inputText, startNonterminal);
+    if (result.status === "ok") {
+      logOutput(`Debug config: .vscode/launch.json`);
+      logOutput(`Debug input: .vscode/debug-input.txt`);
+      logOutput(`→ Open ${parserDirectory} in VS Code, press F5`);
+      outputPanelOpen = true;
+    } else {
+      logError(`Failed to setup debug config: ${result.error}`);
     }
   }
 
@@ -1537,10 +1583,13 @@
   }
 
   function handleWindowClick(e: MouseEvent) {
-    // Close dropdown when clicking outside
+    // Close dropdowns when clicking outside
     const target = e.target as HTMLElement;
     if (!target.closest('.custom-dropdown')) {
       dropdownOpen = false;
+    }
+    if (!target.closest('.title-bar-menu')) {
+      titleBarMenuOpen = false;
     }
   }
 
@@ -1637,6 +1686,27 @@
       </button>
     </div>
     <div class="title-bar-right">
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="title-bar-menu" onmousedown={(e) => e.stopPropagation()}>
+        <button
+          class="title-bar-menu-btn"
+          onclick={() => titleBarMenuOpen = !titleBarMenuOpen}
+          title="More options"
+        >
+          <MoreHorizontal size={18} />
+        </button>
+        {#if titleBarMenuOpen}
+          <div class="title-bar-menu-dropdown">
+            <button
+              class="menu-item"
+              onclick={() => { setupVscodeDebug(); titleBarMenuOpen = false; }}
+              disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}
+            >
+              Debug in VSCode...
+            </button>
+          </div>
+        {/if}
+      </div>
     </div>
   </div>
 
@@ -2417,6 +2487,70 @@
   .title-bar-right {
     width: 78px;  /* Balance with left */
     flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 12px;
+  }
+
+  /* Title Bar Menu */
+  .title-bar-menu {
+    position: relative;
+  }
+
+  .title-bar-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: #888;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .title-bar-menu-btn:hover {
+    background: #404040;
+    color: #ccc;
+  }
+
+  .title-bar-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    min-width: 180px;
+    background: #2d2d2d;
+    border: 1px solid #454545;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    padding: 4px 0;
+    z-index: 1000;
+  }
+
+  .menu-item {
+    display: block;
+    width: 100%;
+    padding: 8px 14px;
+    background: transparent;
+    border: none;
+    color: #ccc;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  .menu-item:hover:not(:disabled) {
+    background: #094771;
+  }
+
+  .menu-item:disabled {
+    color: #666;
+    cursor: not-allowed;
   }
 
   /* Command Palette */
