@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    alternative,
+    alt, alternative,
     generator::generate,
     grammar::{def::Grammar, regex::Regex, symbols::Terminal},
     grammar_def, group, id, lexical_rule, lit, plus, priority_level, star, syntax_rule,
@@ -33,7 +33,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = group();
+    let grammar = simple_alt();
     generate(&grammar, output)?;
     Ok(())
 }
@@ -156,6 +156,22 @@ fn group() -> Grammar {
     grammar_def!("Test2",
         syntax: [
             syntax_rule!("A" => alternative!(group!(id!("B"), id!("C"), id!("D")))),
+            syntax_rule!("B" => alternative!(lit!("b"))),
+            syntax_rule!("C" => alternative!(lit!("c"))),
+            syntax_rule!("D" => alternative!(lit!("d"))),
+        ]
+    )
+    .into()
+}
+
+fn simple_alt() -> Grammar {
+    // A: B (C | D);
+    // B: 'b'
+    // C: 'c'
+    // D: 'd'
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("A" => alternative!(id!("B"), alt!(id!("C"), id!("D")))),
             syntax_rule!("B" => alternative!(lit!("b"))),
             syntax_rule!("C" => alternative!(lit!("c"))),
             syntax_rule!("D" => alternative!(lit!("d"))),

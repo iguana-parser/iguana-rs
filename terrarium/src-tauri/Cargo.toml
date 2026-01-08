@@ -1,3 +1,5 @@
+[workspace]  # standalone workspace, excluded from parent to speed up rust-analyzer
+
 [package]
 name = "terrarium"
 version = "0.1.0"

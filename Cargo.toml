@@ -1,5 +1,7 @@
 [workspace]
-members = ["iggy", "terrarium/src-tauri"]
+# terrarium excluded by default - it's a Tauri app with 500+ dependencies that slows rust-analyzer
+members = ["iggy"]
+# members = ["iggy", "terrarium/src-tauri"]  # uncomment when working on terrarium
 
 [package]
 name = "iguana"
