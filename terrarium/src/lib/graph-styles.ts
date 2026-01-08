@@ -113,8 +113,21 @@ const nodeColors = {
   terminal: { bg: "#4d3a2d", border: "#ce9178", selectedBg: "#5f4a3a", selectedBorder: "#ffb07a" },
 };
 
+// Disable the default "active" state indicator (black dot on click)
+const disableActiveStyles: Stylesheet[] = [
+  {
+    selector: "node:active",
+    style: { "overlay-opacity": 0 },
+  },
+  {
+    selector: "core",
+    style: { "active-bg-opacity": 0 },
+  },
+];
+
 // SPPF node styles by type
 export const sppfNodeStyles: Stylesheet[] = [
+  ...disableActiveStyles,
   {
     selector: "node",
     style: {
@@ -171,8 +184,8 @@ export const sppfNodeStyles: Stylesheet[] = [
   {
     selector: "node.collapsed",
     style: {
-      "border-width": 3,
-      "border-style": "double",
+      // Use dashed border instead of double - keeps same width so arrows don't move
+      "border-style": "dashed",
     },
   },
   {
@@ -207,6 +220,7 @@ export const sppfNodeStyles: Stylesheet[] = [
 
 // GSS node styles
 export const gssNodeStyles: Stylesheet[] = [
+  ...disableActiveStyles,
   {
     selector: "node",
     style: {
