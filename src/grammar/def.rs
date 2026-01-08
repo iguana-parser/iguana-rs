@@ -69,6 +69,14 @@ impl PriorityLevel {
     }
 }
 
+impl From<Alternative> for PriorityLevel {
+    fn from(alt: Alternative) -> Self {
+        Self {
+            alternatives: vec![alt],
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct LexicalRule {
     pub head: Terminal,
@@ -375,7 +383,7 @@ macro_rules! syntax_rule {
     ($head:literal => $($level:expr),* $(,)?) => {
         $crate::grammar::def::SyntaxRule {
             head: $crate::grammar::symbols::Nonterminal::new($head),
-            priority_levels: vec![$($level),*],
+            priority_levels: vec![$($level.into()),*],
         }
     };
 }

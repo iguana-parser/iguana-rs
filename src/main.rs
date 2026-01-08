@@ -33,7 +33,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = iggy();
+    let grammar = group();
     generate(&grammar, output)?;
     Ok(())
 }
@@ -74,12 +74,8 @@ fn grammar2() -> Grammar {
     // WS -> ' '*
     grammar_def!("Test2",
         syntax: [
-            syntax_rule!("P" => priority_level!(
-                alternative!(plus!(id!("S")))
-            )),
-            syntax_rule!("S" => priority_level!(
-                alternative!(id!("E"))
-            )),
+            syntax_rule!("P" => alternative!(plus!(id!("S")))),
+            syntax_rule!("S" => alternative!(id!("E"))),
             syntax_rule!("E" => priority_level!(
                 alternative!(id!("E"), lit!("+"), id!("E")),
                 alternative!(lit!("a"))
@@ -116,12 +112,8 @@ fn grammar4() -> Grammar {
     // A : 'a'
     grammar_def!("Test2",
         syntax: [
-            syntax_rule!("S" => priority_level!(
-                alternative!(plus!(id!("A"))),
-            )),
-            syntax_rule!("A" => priority_level!(
-                alternative!(lit!("a")),
-            ))
+            syntax_rule!("S" => alternative!(plus!(id!("A")))),
+            syntax_rule!("A" => alternative!(lit!("a")))
         ]
     )
     .into()
@@ -135,18 +127,10 @@ fn grammar5() -> Grammar {
     // C : 'c'
     grammar_def!("Test2",
         syntax: [
-            syntax_rule!("S" => priority_level!(
-                alternative!(plus!(group!(id!("A"), id!("B"), id!("C")))),
-            )),
-            syntax_rule!("A" => priority_level!(
-                alternative!(lit!("a")),
-            )),
-            syntax_rule!("B" => priority_level!(
-                alternative!(lit!("b")),
-            )),
-            syntax_rule!("C" => priority_level!(
-                alternative!(lit!("c")),
-            ))
+            syntax_rule!("S" => alternative!(plus!(group!(id!("A"), id!("B"), id!("C"))))),
+            syntax_rule!("A" => alternative!(lit!("a"))),
+            syntax_rule!("B" => alternative!(lit!("b"))),
+            syntax_rule!("C" => alternative!(lit!("c")))
         ]
     )
     .into()
@@ -157,12 +141,24 @@ fn star_grammar() -> Grammar {
     // A : "a"
     grammar_def!("Test2",
         syntax: [
-            syntax_rule!("S" => priority_level!(
-                alternative!(star!(id!("A"))),
-            )),
-            syntax_rule!("A" => priority_level!(
-                alternative!(lit!("a")),
-            )),
+            syntax_rule!("S" => alternative!(star!(id!("A")))),
+            syntax_rule!("A" => alternative!(lit!("a")))
+        ]
+    )
+    .into()
+}
+
+fn group() -> Grammar {
+    // A: (B C D);
+    // B: 'b'
+    // C: 'c'
+    // D: 'd'
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("A" => alternative!(group!(id!("B"), id!("C"), id!("D")))),
+            syntax_rule!("B" => alternative!(lit!("b"))),
+            syntax_rule!("C" => alternative!(lit!("c"))),
+            syntax_rule!("D" => alternative!(lit!("d"))),
         ]
     )
     .into()
@@ -195,22 +191,18 @@ fn iggy() -> Grammar {
     grammar_def!("Iggy",
         syntax: [
             // Grammar : "grammar" Identifier ";" Rule+
-            syntax_rule!("Grammar" => priority_level!(
-                alternative!(
-                    lit!("grammar"),
-                    id!("Identifier"),
-                    lit!(";"),
-                    star!(id!("Rule"))
-                )
+            syntax_rule!("Grammar" => alternative!(
+                lit!("grammar"),
+                id!("Identifier"),
+                lit!(";"),
+                star!(id!("Rule"))
             )),
             // Rule : Identifier ":" Identifier+ ";"
-            syntax_rule!("Rule" => priority_level!(
-                alternative!(
-                    id!("Identifier"),
-                    lit!(":"),
-                    plus!(id!("Identifier")),
-                    lit!(";")
-                )
+            syntax_rule!("Rule" => alternative!(
+                id!("Identifier"),
+                lit!(":"),
+                plus!(id!("Identifier")),
+                lit!(";")
             ))
         ],
         lexical: [
