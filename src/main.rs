@@ -33,7 +33,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = star_grammar();
+    let grammar = iggy();
     generate(&grammar, output)?;
     Ok(())
 }
@@ -180,7 +180,7 @@ fn empty() -> Grammar {
 }
 
 // Grammar
-//   : "grammar" Identifier ";" Rule+
+//   : "grammar" Identifier ";" Rule*
 //   ;
 // Rule
 //   : Identifier ":" Identifier+ ";"
@@ -200,7 +200,7 @@ fn iggy() -> Grammar {
                     lit!("grammar"),
                     id!("Identifier"),
                     lit!(";"),
-                    plus!(id!("Rule"))
+                    star!(id!("Rule"))
                 )
             )),
             // Rule : Identifier ":" Identifier+ ";"

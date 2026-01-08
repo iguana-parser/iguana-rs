@@ -30,21 +30,21 @@ pub const NONTERMINALS: [Nonterminal; 4] = [
         kind: None,
     },
     Nonterminal {
-        name: "Grammar_Plus_0",
-        display: "Rule+",
-        kind: Some(EbnfKind::Plus),
+        name: "Grammar_Star_0",
+        display: "Rule*",
+        kind: Some(EbnfKind::Star),
     },
     Nonterminal {
-        name: "Rule_Plus_1",
+        name: "Rule_Plus_0",
         display: "Identifier+",
         kind: Some(EbnfKind::Plus),
     },
 ];
 static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "Grammar" => NonterminalId(0), "Rule" => NonterminalId(1), "Rule+" =>
+    "Grammar" => NonterminalId(0), "Rule" => NonterminalId(1), "Rule*" =>
     NonterminalId(2), "Identifier+" => NonterminalId(3)
 };
-pub const TERMINALS: [Terminal; 5] = [
+pub const TERMINALS: [Terminal; 5 + 1] = [
     Terminal { name: "Identifier" },
     Terminal { name: "WS" },
     Terminal {
@@ -52,22 +52,23 @@ pub const TERMINALS: [Terminal; 5] = [
     },
     Terminal { name: "\";\"" },
     Terminal { name: "\":\"" },
+    Terminal { name: "Epsilon" },
 ];
-pub const SLOTS: [Slot; 20] = [
+pub const SLOTS: [Slot; 19] = [
     Slot {
-        display_name: "Grammar : . \"grammar\" Identifier \";\" Rule+",
+        display_name: "Grammar : . \"grammar\" Identifier \";\" Rule*",
     },
     Slot {
-        display_name: "Grammar : \"grammar\" . Identifier \";\" Rule+",
+        display_name: "Grammar : \"grammar\" . Identifier \";\" Rule*",
     },
     Slot {
-        display_name: "Grammar : \"grammar\" Identifier . \";\" Rule+",
+        display_name: "Grammar : \"grammar\" Identifier . \";\" Rule*",
     },
     Slot {
-        display_name: "Grammar : \"grammar\" Identifier \";\" . Rule+",
+        display_name: "Grammar : \"grammar\" Identifier \";\" . Rule*",
     },
     Slot {
-        display_name: "Grammar : \"grammar\" Identifier \";\" Rule+.",
+        display_name: "Grammar : \"grammar\" Identifier \";\" Rule*.",
     },
     Slot {
         display_name: "Rule : . Identifier \":\" Identifier+ \";\"",
@@ -85,19 +86,16 @@ pub const SLOTS: [Slot; 20] = [
         display_name: "Rule : Identifier \":\" Identifier+ \";\".",
     },
     Slot {
-        display_name: "Rule+ : . Rule+ Rule",
+        display_name: "Rule* : . Rule* Rule",
     },
     Slot {
-        display_name: "Rule+ : Rule+ . Rule",
+        display_name: "Rule* : Rule* . Rule",
     },
     Slot {
-        display_name: "Rule+ : Rule+ Rule.",
+        display_name: "Rule* : Rule* Rule.",
     },
     Slot {
-        display_name: "Rule+ : . Rule",
-    },
-    Slot {
-        display_name: "Rule+ : Rule.",
+        display_name: "Rule* : .",
     },
     Slot {
         display_name: "Identifier+ : . Identifier+ Identifier",
@@ -144,7 +142,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             gss_node_id
         );
         match slot_id {
-            //Grammar : . "grammar" Identifier ";" Rule+
+            //Grammar : . "grammar" Identifier ";" Rule*
             SlotId(0) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
@@ -163,7 +161,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //Grammar : "grammar" . Identifier ";" Rule+
+                        //Grammar : "grammar" . Identifier ";" Rule*
                         let next_slot_id = SlotId(1);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id);
@@ -181,7 +179,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Grammar : "grammar" . Identifier ";" Rule+
+            //Grammar : "grammar" . Identifier ";" Rule*
             SlotId(1) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
@@ -200,7 +198,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //Grammar : "grammar" Identifier . ";" Rule+
+                        //Grammar : "grammar" Identifier . ";" Rule*
                         let next_slot_id = SlotId(2);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -228,7 +226,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Grammar : "grammar" Identifier . ";" Rule+
+            //Grammar : "grammar" Identifier . ";" Rule*
             SlotId(2) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
@@ -247,7 +245,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //Grammar : "grammar" Identifier ";" . Rule+
+                        //Grammar : "grammar" Identifier ";" . Rule*
                         let next_slot_id = SlotId(3);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -275,11 +273,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Grammar : "grammar" Identifier ";" . Rule+
+            //Grammar : "grammar" Identifier ";" . Rule*
             SlotId(3) => {
                 self.create(NonterminalId(2), result, gss_node_id, SlotId(4));
             }
-            //Grammar : "grammar" Identifier ";" Rule+.
+            //Grammar : "grammar" Identifier ";" Rule*.
             SlotId(4) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -454,15 +452,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //Rule+ : . Rule+ Rule
+            //Rule* : . Rule* Rule
             SlotId(10) => {
                 self.create(NonterminalId(2), result, gss_node_id, SlotId(11));
             }
-            //Rule+ : Rule+ . Rule
+            //Rule* : Rule* . Rule
             SlotId(11) => {
                 self.create(NonterminalId(1), result, gss_node_id, SlotId(12));
             }
-            //Rule+ : Rule+ Rule.
+            //Rule* : Rule* Rule.
             SlotId(12) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -482,36 +480,33 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //Rule+ : . Rule
+            //Rule* : .
             SlotId(13) => {
-                self.create(NonterminalId(1), result, gss_node_id, SlotId(14));
-            }
-            //Rule+ : Rule.
-            SlotId(14) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
+                let end_slot_id = SlotId(13);
+                let epsilon_node_id = self.get_or_create_terminal_node(
+                    TerminalId(5),
+                    input_index,
+                    input_index,
+                    vec![],
+                    vec![],
+                );
                 let nonterminal_id = NonterminalId(2);
-                let end_slot_id = SlotId(14);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
                 ) {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
             //Identifier+ : . Identifier+ Identifier
-            SlotId(15) => {
-                self.create(NonterminalId(3), result, gss_node_id, SlotId(16));
+            SlotId(14) => {
+                self.create(NonterminalId(3), result, gss_node_id, SlotId(15));
             }
             //Identifier+ : Identifier+ . Identifier
-            SlotId(16) => {
+            SlotId(15) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -530,7 +525,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             trailing_layout,
                         );
                         //Identifier+ : Identifier+ Identifier.
-                        let next_slot_id = SlotId(17);
+                        let next_slot_id = SlotId(16);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
@@ -550,7 +545,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             MatchFailed,
                             "Identifier",
                             i,
-                            SlotId(16),
+                            SlotId(15),
                             gss_node_id,
                             result
                         );
@@ -558,7 +553,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Identifier+ : Identifier+ Identifier.
-            SlotId(17) => {
+            SlotId(16) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -566,7 +561,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(17);
+                let end_slot_id = SlotId(16);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -578,7 +573,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Identifier+ : . Identifier
-            SlotId(18) => {
+            SlotId(17) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -597,7 +592,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             trailing_layout,
                         );
                         //Identifier+ : Identifier.
-                        let next_slot_id = SlotId(19);
+                        let next_slot_id = SlotId(18);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id);
                     }
@@ -607,7 +602,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             MatchFailed,
                             "Identifier",
                             i,
-                            SlotId(18),
+                            SlotId(17),
                             gss_node_id,
                             result
                         );
@@ -615,7 +610,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Identifier+ : Identifier.
-            SlotId(19) => {
+            SlotId(18) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -623,7 +618,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(19);
+                let end_slot_id = SlotId(18);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -648,7 +643,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         match nonterminal_id {
             //Grammar
             NonterminalId(0) => {
-                //Grammar : . "grammar" Identifier ";" Rule+
+                //Grammar : . "grammar" Identifier ";" Rule*
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(0),
@@ -666,16 +661,16 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                 });
             }
-            //Grammar_Plus_0
+            //Grammar_Star_0
             NonterminalId(2) => {
-                //Rule+ : . Rule+ Rule
+                //Rule* : . Rule* Rule
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(10),
                     sppf_node_id: None,
                     gss_node_id,
                 });
-                //Rule+ : . Rule
+                //Rule* : .
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(13),
@@ -683,19 +678,19 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                 });
             }
-            //Rule_Plus_1
+            //Rule_Plus_0
             NonterminalId(3) => {
                 //Identifier+ : . Identifier+ Identifier
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(15),
+                    slot_id: SlotId(14),
                     sppf_node_id: None,
                     gss_node_id,
                 });
                 //Identifier+ : . Identifier
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(18),
+                    slot_id: SlotId(17),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -897,8 +892,8 @@ pub struct IggyParser<'i> {
     sppf_nodes: Vec<SPPFNode>,
     stats: Stats,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 20],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 19],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
@@ -917,8 +912,8 @@ impl<'i> IggyParser<'i> {
             gss_nodes: vec![],
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 4],
-            intermediate_nodes_index: [const { InlineMap::Empty }; 20],
-            terminal_nodes_index: [const { InlineMap::Empty }; 5],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 19],
+            terminal_nodes_index: [const { InlineMap::Empty }; 6],
             stats: Stats::default(),
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),

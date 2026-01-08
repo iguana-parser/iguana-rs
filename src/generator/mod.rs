@@ -7,7 +7,7 @@ use crate::{
         id::{NonterminalIds, SlotIds, TerminalIds},
         utils::rustfmt,
     },
-    grammar::{def::Grammar, symbols::Terminal},
+    grammar::def::Grammar,
 };
 
 mod cargo_toml_gen;
@@ -121,7 +121,6 @@ fn write_file(content: impl AsRef<str>, path: &Path, format: FileFormat) -> std:
 ///
 /// Rustfmt runs afterwards for final formatting.
 fn to_string(tokens: TokenStream) -> String {
-    println!("{}", tokens.to_string());
     let syntax = syn::parse_file(&tokens.to_string()).unwrap_or_else(|e| {
         panic!("Parse error at {:?}: {}", e.span().start(), e);
     });
