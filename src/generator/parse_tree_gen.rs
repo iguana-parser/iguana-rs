@@ -103,9 +103,7 @@ fn gen_nonterminal_type(
     let alternatives = grammar.alternatives(nonterminal);
     let nonterminal_name = to_pascal_case(&nonterminal.name);
     let nonterminal_name_id = Ident::new(&nonterminal_name, Span::call_site());
-    if alternatives.is_empty() {
-        todo!("handle empty alternatives")
-    } else if alternatives.len() == 1 {
+    if alternatives.len() == 1 {
         gen_nonterminal_type_with_one_alternative(grammar, &nonterminal_name_id, &alternatives[0])
     } else {
         gen_nonterminal_type_with_more_than_one_alternative(grammar, nonterminal, &nonterminal_name_id, alternatives)
@@ -132,7 +130,7 @@ fn gen_nonterminal_type_with_one_alternative(
     // Add Span as last field
     quote! {
         #[derive(Debug)]
-        pub struct #nonterminal_name_id(#(#fields),*, Span);
+        pub struct #nonterminal_name_id(#(#fields,)* Span);
     }
 }
 
@@ -172,14 +170,8 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
                 let label = alternative_label(alternative, index);
                 let variant_name = Ident::new(&label, Span::call_site());
                 // Add Span as last field in each variant
-                if !children.is_empty() {
-                    quote! {
-                        #variant_name(#(#children),*, Span)
-                    }
-                } else {
-                    quote! {
-                        #variant_name(Span)
-                    }
+                quote! {
+                    #variant_name(#(#children,)* Span)
                 }
             })
             .collect();
@@ -213,9 +205,7 @@ fn gen_nonterminal_type_impl(
 fn gen_span_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
     let alternatives = grammar.alternatives(nonterminal);
-    let body = if alternatives.is_empty() {
-        todo!("handle empty alternatives")
-    } else if alternatives.len() == 1 {
+    let body = if alternatives.len() == 1 {
         // Single alternative: span is the last field
         let span_index = Literal::usize_unsuffixed(alternatives[0].symbols.len());
         quote! {
@@ -256,9 +246,7 @@ fn gen_child_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream
 fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
     let alternatives = grammar.alternatives(nonterminal);
-    if alternatives.is_empty() {
-        todo!("handle empty alternatives")
-    } else if alternatives.len() == 1 {
+    if alternatives.len() == 1 {
         let alternative = &alternatives[0];
         let body = child_by_index(alternative, true);
         quote! {
@@ -273,16 +261,9 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
             let children_names = children_names(alternative);
             let body = child_by_index(alternative, false);
             // Add _ to ignore the span field at the end
-            if children_names.is_empty() {
-                quote! {
-                    #ident::#alt_variant(_) => #body
-                }
-            } else {
-                quote! {
-                    #ident::#alt_variant(#(#children_names),*, _) => #body
-                }
+            quote! {
+                #ident::#alt_variant(#(#children_names,)* _) => #body
             }
-            
         }).collect();
         quote! {
             match self {
@@ -319,29 +300,15 @@ fn child_by_index(alternative: &Alternative, single_rule: bool) -> TokenStream {
         }
     }).collect();
     if single_rule {
-        if cases.is_empty() {
-            quote! {
-                _ => None
-            }
-        } else {
-            quote! {
-                #(#cases),*,
-                _ => None,
-            }
+        quote! {
+            #(#cases,)*
+            _ => None,
         }
     } else {
-        if cases.is_empty() {
-            quote! {
-                match index {
-                    _ => None,
-                }
-            }
-        } else {
-            quote! {
-                match index {
-                    #(#cases),*,
-                    _ => None,
-                }
+        quote! {
+            match index {
+                #(#cases,)*
+                _ => None,
             }
         }
     }
@@ -350,10 +317,7 @@ fn child_by_index(alternative: &Alternative, single_rule: bool) -> TokenStream {
 fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
     let alternatives = grammar.alternatives(nonterminal);
-    let body = if alternatives.is_empty() {
-        todo!("handle empty alternatives")
-    }
-    else if alternatives.len() == 1 {
+    let body = if alternatives.len() == 1 {
         let count_symbols = alternatives[0].symbols.len();
         quote! {
             #count_symbols
@@ -441,7 +405,8 @@ fn gen_token_kind_impl(terminals: &[(TerminalId, String)]) -> TokenStream {
         impl TokenKind {
             pub fn name(&self) -> &'static str {
                 match self {
-                    #(#terminal_ids),*
+                    #(#terminal_ids,)*
+                    _ => unreachable!()
                 }
             }
         }
@@ -462,7 +427,7 @@ fn gen_token_kind_function(terminals: &[(TerminalId, String)]) -> TokenStream {
     quote! {
         fn token_kind(terminal_id: TerminalId) -> TokenKind {
             match terminal_id {
-                #(#cases),*,
+                #(#cases,)*
                 _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
             }
         }
@@ -562,20 +527,11 @@ fn gen_nonterminal_node_method(
                             #nonterminal_type::#variant
                         }
                     };
-                    let into = if method_calls.is_empty() {
-                        quote! {
-                            #constructor(nonterminal_node.span).into()
-                        }
-                    } else {
-                        quote! {
-                            #constructor(#(#method_calls),*, nonterminal_node.span).into()
-                        }
-                    };
                     quote! {
                         #[comment = #slot_name]
                         #end_slot_id => {
                             let [#(#children_names),*] = <[ParseTree; #num_symbols]>::try_from(children).unwrap();
-                            #into
+                            #constructor(#(#method_calls,)* nonterminal_node.span).into()
                         }
                     }
                 })

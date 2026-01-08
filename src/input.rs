@@ -17,7 +17,6 @@ impl From<String> for Input {
 
 impl From<&str> for Input {
     fn from(value: &str) -> Self {
-        assert!(!value.is_empty(), "Input cannot be empty");
         assert!(
             value.len() <= u32::MAX as usize,
             "Input exceeds maximum size of {} bytes",

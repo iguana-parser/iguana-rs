@@ -140,10 +140,6 @@ fn gen_add_first_descriptors_method<'a>(
         let nt_name = &nonterminal.name;
         let mut alternative_quotes = vec![];
         let alternatives = grammar.alternatives(nonterminal);
-        if alternatives.is_empty() {
-            // todo: handle the empty alternative
-            todo!()
-        }
         for alternative in alternatives {
             let first_slot = Slot::new(nonterminal, alternative, 0);
             let first_slot_name = first_slot.display_name(grammar);
@@ -230,22 +226,25 @@ fn gen_nonterminal_ids(nonterminal_ids: &NonterminalIds) -> TokenStream {
 }
 
 fn gen_terminals(terminal_ids: &TerminalIds) -> TokenStream {
-    let terminals_len = Literal::usize_unsuffixed(terminal_ids.len());
-    let terminals = terminal_ids.terminals().map(|t| {
-        let terminal_name = &t.name;
-        quote! {
-            Terminal {
-                name: #terminal_name
+    let terminals_len = Literal::usize_unsuffixed(terminal_ids.len() + 1);
+    let terminals: Vec<_> = terminal_ids
+        .terminals()
+        .map(|t| {
+            let terminal_name = &t.name;
+            quote! {
+                Terminal {
+                    name: #terminal_name
+                }
             }
-        }
-    });
+        })
+        .collect();
     let epsilon = quote! {
         Terminal {
             name: "Epsilon"
         }
     };
     quote! {
-        pub const TERMINALS: [Terminal; #terminals_len + 1] =[#(#terminals),*, #epsilon];
+        pub const TERMINALS: [Terminal; #terminals_len] = [#(#terminals,)* #epsilon];
     }
 }
 
@@ -313,7 +312,7 @@ fn gen_execute_method<'a>(
                                 vec![],
                                 vec![]
                             );
-                        let nonterminal_id = #nonterminal_id;    
+                        let nonterminal_id = #nonterminal_id;
                         if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                             nonterminal_id,
                             end_slot_id,

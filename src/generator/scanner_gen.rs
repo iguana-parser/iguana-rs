@@ -83,25 +83,34 @@ fn gen_char_at_method() -> TokenStream {
 }
 
 fn gen_match_token(terminal_ids: &TerminalIds) -> TokenStream {
-    let match_terminal_arms = terminal_ids.ids().map(|id| {
+    let match_terminal_arms: Vec<_> = terminal_ids.ids().map(|id| {
         let fn_name = format_ident!("match_terminal_{}", id.index() as u16);
         quote! {
             #id => {
                 self.#fn_name(input_index)
             }
         }
-    });
+    }).collect();
 
-    quote! {
-        fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+    let match_token = if match_terminal_arms.is_empty() {
+        quote! {
+            None
+        }
+    } else {
+        quote! {
             let res = match terminal_id {
                 #(#match_terminal_arms)*
                 _ => {
                     unreachable!("Unknown token type: {terminal_id}");
                 }
             };
-            #[comment = "// Regular expressions should match at least 1 character."]
+            #[comment = "Regular expressions should match at least 1 character."]
             res.filter(|next_index| *next_index > input_index)
+        }
+    };
+    quote! {
+        fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+            #match_token
         }
     }
 }

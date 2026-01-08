@@ -33,7 +33,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = simple_alt();
+    let grammar = empty();
     generate(&grammar, output)?;
     Ok(())
 }
@@ -184,8 +184,7 @@ fn empty() -> Grammar {
     // A: ;
     grammar_def!("Test2",
         syntax: [
-            syntax_rule!("A" => priority_level!(
-            )),
+            syntax_rule!("A" => alternative!()),
         ]
     )
     .into()
