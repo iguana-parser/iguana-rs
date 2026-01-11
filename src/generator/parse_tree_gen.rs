@@ -805,18 +805,22 @@ fn gen_list_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStre
         }
     };
     let origin = nonterminal.origin.as_ref().unwrap();
-    let inner_nonterminal = match origin {
+    // Todo: this code here is a bit confusing, try to refactor/simplify later.
+    // Here, for type generation, we need to get the name of the inner node
+    // inside a nonterminal, and get its definition.
+    let inner_symbol_name = match origin {
         Symbol::Plus(symbol) | Symbol::Star(symbol) => {
+            // Probably a better way is to return a Definition from ebnf_symbol()?
             if let Some(ebnf_symbol) = grammar.ebnf_symbol(symbol) {
-                ebnf_symbol.as_identifier()
+                &ebnf_symbol.as_identifier().name
             } else {
-                symbol.as_identifier()
+                &symbol.as_identifier().name
             }
         }
         _ => panic!("Expected a Star or Plus symbol but got {}", origin)
     };
-    let def_id = inner_nonterminal.definition.unwrap();
-    let name = match grammar.definition(def_id) {
+    let def_id = grammar.symbol_table.get(inner_symbol_name).unwrap();
+    let name = match grammar.definition(*def_id) {
         Definition::Terminal(_) => "Token",
         Definition::Nonterminal(nonterminal) => &to_pascal_case(&nonterminal.name),
     };
@@ -825,7 +829,7 @@ fn gen_list_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStre
         impl ListNode for #ident {
             type Item = #inner_nonterminal_ident;
             fn iter(&self) -> impl Iterator<Item = &#inner_nonterminal_ident> {
-                let mut items = Vec::new();
+                let mut items = vec![];
                 let mut current = self;
                 loop {
                     match current {

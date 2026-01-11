@@ -1,6 +1,6 @@
 use crate::grammar::{
     def::{Alternative, Grammar},
-    symbols::{DefinitionId, Nonterminal},
+    symbols::{Definition, DefinitionId, Nonterminal},
 };
 
 /// Represents a grammar slot of the form `A : a B . c`
@@ -35,8 +35,21 @@ impl<'a> Slot<'a> {
     }
 
     pub fn display_name(&self, grammar: &'a Grammar) -> String {
+        self.name_to_string(grammar, |n| n.display_name(), |d| d.display_name())
+    }
+
+    pub fn name(&self, grammar: &'a Grammar) -> String {
+        self.name_to_string(grammar, |n| n.name.clone(), |d| d.name().into())
+    }
+
+    fn name_to_string(
+        &self,
+        grammar: &'a Grammar,
+        nt_name: fn(&Nonterminal) -> String,
+        def_name: fn(&Definition) -> String,
+    ) -> String {
         let mut result = String::new();
-        result.push_str(&self.head.display_name());
+        result.push_str(&nt_name(self.head));
         result.push_str(" : ");
         for i in 0..self.alternative.symbols.len() {
             if i == self.pos {
@@ -44,7 +57,7 @@ impl<'a> Slot<'a> {
             }
             let def_id = Self::symbol_def_at_pos(self.alternative, i).unwrap();
             let def = grammar.definition(def_id);
-            result.push_str(&def.display_name());
+            result.push_str(&def_name(def));
             if i < self.alternative.len() - 1 {
                 result.push(' ');
             }

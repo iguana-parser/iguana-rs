@@ -2,10 +2,7 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    alt, alternative,
-    generator::generate,
-    grammar::{def::Grammar, regex::Regex, symbols::Terminal},
-    grammar_def, group, id, lexical_rule, lit, plus, priority_level, star, syntax_rule,
+    alt, alternative, generator::generate, grammar::{def::Grammar, regex::Regex, symbols::Terminal}, grammar_def, group, id, lexical_rule, lit, opt, plus, priority_level, star, syntax_rule
 };
 
 #[derive(Parser)]
@@ -33,7 +30,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = empty();
+    let grammar = iggy();
     generate(&grammar, output)?;
     Ok(())
 }
@@ -194,8 +191,17 @@ fn empty() -> Grammar {
 //   : "grammar" Identifier ";" Rule*
 //   ;
 // Rule
-//   : Identifier ":" Identifier+ ";"
+//   : Identifier ":" PriorityLevel? (">" PriorityLevel)* ";"
 //   ;
+// PriorityLevel
+//   : Alternative? ("|" Alternative)*
+//   ;
+// Alternative:
+//   : Symbol*
+//   ;
+// Symbol
+//   : Identifier
+//   ; 
 // regex Identifier
 //   : [a-zA-Z_][a-zA-Z_0-9]*
 //   ;
@@ -205,19 +211,33 @@ fn empty() -> Grammar {
 fn iggy() -> Grammar {
     grammar_def!("Iggy",
         syntax: [
-            // Grammar : "grammar" Identifier ";" Rule+
+            // Grammar : "grammar" Identifier ";" Rule*
             syntax_rule!("Grammar" => alternative!(
                 lit!("grammar"),
                 id!("Identifier"),
                 lit!(";"),
                 star!(id!("Rule"))
             )),
-            // Rule : Identifier ":" Identifier+ ";"
+            // Rule : Identifier ":" PriorityLevel? (">" PriorityLevel)* ";"
             syntax_rule!("Rule" => alternative!(
                 id!("Identifier"),
                 lit!(":"),
-                plus!(id!("Identifier")),
+                opt!(id!("PriorityLevel")),
+                star!(group!(lit!(">"), id!("PriorityLevel"))),
                 lit!(";")
+            )),
+            // PriorityLevel : Alternative? ("|" Alternative)*
+            syntax_rule!("PriorityLevel" => alternative!(
+                opt!(id!("Alternative")),
+                star!(group!(lit!("|"), id!("Alternative")))
+            )),
+            // Alternative : Symbol*
+            syntax_rule!("Alternative" => alternative!(
+                star!(id!("Symbol"))
+            )),
+            // Symbol : Identifier
+            syntax_rule!("Symbol" => alternative!(
+                id!("Identifier")
             ))
         ],
         lexical: [
