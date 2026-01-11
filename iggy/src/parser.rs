@@ -94,9 +94,7 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     NonterminalId(10), "PriorityLevel_Star_2" => NonterminalId(11), "Alternative_Star_3"
     => NonterminalId(12)
 };
-pub const TERMINALS: [Terminal; 8] = [
-    Terminal { name: "Identifier" },
-    Terminal { name: "WS" },
+pub const TERMINALS: [Terminal; 6] = [
     Terminal {
         name: "\"grammar\"",
     },
@@ -108,37 +106,37 @@ pub const TERMINALS: [Terminal; 8] = [
 ];
 pub const SLOTS: [Slot; 46] = [
     Slot {
-        display_name: "Grammar : . \"grammar\" Identifier \";\" Rule*",
+        display_name: "Grammar : . \"grammar\" \"grammar\" \";\" Rule*",
     },
     Slot {
-        display_name: "Grammar : \"grammar\" . Identifier \";\" Rule*",
+        display_name: "Grammar : \"grammar\" . \"grammar\" \";\" Rule*",
     },
     Slot {
-        display_name: "Grammar : \"grammar\" Identifier . \";\" Rule*",
+        display_name: "Grammar : \"grammar\" \"grammar\" . \";\" Rule*",
     },
     Slot {
-        display_name: "Grammar : \"grammar\" Identifier \";\" . Rule*",
+        display_name: "Grammar : \"grammar\" \"grammar\" \";\" . Rule*",
     },
     Slot {
-        display_name: "Grammar : \"grammar\" Identifier \";\" Rule*.",
+        display_name: "Grammar : \"grammar\" \"grammar\" \";\" Rule*.",
     },
     Slot {
-        display_name: "Rule : . Identifier \":\" PriorityLevel? (\">\" PriorityLevel)* \";\"",
+        display_name: "Rule : . \"grammar\" \":\" PriorityLevel? (\">\" PriorityLevel)* \";\"",
     },
     Slot {
-        display_name: "Rule : Identifier . \":\" PriorityLevel? (\">\" PriorityLevel)* \";\"",
+        display_name: "Rule : \"grammar\" . \":\" PriorityLevel? (\">\" PriorityLevel)* \";\"",
     },
     Slot {
-        display_name: "Rule : Identifier \":\" . PriorityLevel? (\">\" PriorityLevel)* \";\"",
+        display_name: "Rule : \"grammar\" \":\" . PriorityLevel? (\">\" PriorityLevel)* \";\"",
     },
     Slot {
-        display_name: "Rule : Identifier \":\" PriorityLevel? . (\">\" PriorityLevel)* \";\"",
+        display_name: "Rule : \"grammar\" \":\" PriorityLevel? . (\">\" PriorityLevel)* \";\"",
     },
     Slot {
-        display_name: "Rule : Identifier \":\" PriorityLevel? (\">\" PriorityLevel)* . \";\"",
+        display_name: "Rule : \"grammar\" \":\" PriorityLevel? (\">\" PriorityLevel)* . \";\"",
     },
     Slot {
-        display_name: "Rule : Identifier \":\" PriorityLevel? (\">\" PriorityLevel)* \";\".",
+        display_name: "Rule : \"grammar\" \":\" PriorityLevel? (\">\" PriorityLevel)* \";\".",
     },
     Slot {
         display_name: "PriorityLevel : . Alternative? (\"|\" Alternative)*",
@@ -156,10 +154,10 @@ pub const SLOTS: [Slot; 46] = [
         display_name: "Alternative : Symbol*.",
     },
     Slot {
-        display_name: "Symbol : . Identifier",
+        display_name: "Symbol : . \"grammar\"",
     },
     Slot {
-        display_name: "Symbol : Identifier.",
+        display_name: "Symbol : \"grammar\".",
     },
     Slot {
         display_name: "Rule* : . Rule* Rule",
@@ -275,26 +273,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             gss_node_id
         );
         match slot_id {
-            //Grammar : . "grammar" Identifier ";" Grammar_Star_0
+            //Grammar : . "grammar" "grammar" ";" Grammar_Star_0
             SlotId(0) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                 record!(self, MatchingTerminal, "\"grammar\"", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"grammar\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                         let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(2),
+                            TerminalId(0),
                             i,
                             j,
                             leading_layout,
                             trailing_layout,
                         );
-                        //Grammar : "grammar" . Identifier ";" Grammar_Star_0
+                        //Grammar : "grammar" . "grammar" ";" Grammar_Star_0
                         let next_slot_id = SlotId(1);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id);
@@ -312,15 +310,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Grammar : "grammar" . Identifier ";" Grammar_Star_0
+            //Grammar : "grammar" . "grammar" ";" Grammar_Star_0
             SlotId(1) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                record!(self, MatchingTerminal, "Identifier", i);
+                record!(self, MatchingTerminal, "\"grammar\"", i);
                 match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", i, j);
+                        record!(self, MatchSuccess, "\"grammar\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -331,7 +329,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //Grammar : "grammar" Identifier . ";" Grammar_Star_0
+                        //Grammar : "grammar" "grammar" . ";" Grammar_Star_0
                         let next_slot_id = SlotId(2);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -350,7 +348,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self,
                             MatchFailed,
-                            "Identifier",
+                            "\"grammar\"",
                             i,
                             SlotId(1),
                             gss_node_id,
@@ -359,26 +357,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Grammar : "grammar" Identifier . ";" Grammar_Star_0
+            //Grammar : "grammar" "grammar" . ";" Grammar_Star_0
             SlotId(2) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                 record!(self, MatchingTerminal, "\";\"", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\";\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                         let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(3),
+                            TerminalId(1),
                             i,
                             j,
                             leading_layout,
                             trailing_layout,
                         );
-                        //Grammar : "grammar" Identifier ";" . Grammar_Star_0
+                        //Grammar : "grammar" "grammar" ";" . Grammar_Star_0
                         let next_slot_id = SlotId(3);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -406,11 +404,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Grammar : "grammar" Identifier ";" . Grammar_Star_0
+            //Grammar : "grammar" "grammar" ";" . Grammar_Star_0
             SlotId(3) => {
                 self.create(NonterminalId(5), result, gss_node_id, SlotId(4));
             }
-            //Grammar : "grammar" Identifier ";" Grammar_Star_0.
+            //Grammar : "grammar" "grammar" ";" Grammar_Star_0.
             SlotId(4) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -430,15 +428,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //Rule : . Identifier ":" Rule_Opt_0 Rule_Star_1 ";"
+            //Rule : . "grammar" ":" Rule_Opt_0 Rule_Star_1 ";"
             SlotId(5) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                record!(self, MatchingTerminal, "Identifier", i);
+                record!(self, MatchingTerminal, "\"grammar\"", i);
                 match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", i, j);
+                        record!(self, MatchSuccess, "\"grammar\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -449,7 +447,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //Rule : Identifier . ":" Rule_Opt_0 Rule_Star_1 ";"
+                        //Rule : "grammar" . ":" Rule_Opt_0 Rule_Star_1 ";"
                         let next_slot_id = SlotId(6);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id);
@@ -458,7 +456,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self,
                             MatchFailed,
-                            "Identifier",
+                            "\"grammar\"",
                             i,
                             SlotId(5),
                             gss_node_id,
@@ -467,26 +465,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Rule : Identifier . ":" Rule_Opt_0 Rule_Star_1 ";"
+            //Rule : "grammar" . ":" Rule_Opt_0 Rule_Star_1 ";"
             SlotId(6) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                 record!(self, MatchingTerminal, "\":\"", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\":\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                         let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(4),
+                            TerminalId(2),
                             i,
                             j,
                             leading_layout,
                             trailing_layout,
                         );
-                        //Rule : Identifier ":" . Rule_Opt_0 Rule_Star_1 ";"
+                        //Rule : "grammar" ":" . Rule_Opt_0 Rule_Star_1 ";"
                         let next_slot_id = SlotId(7);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -514,34 +512,34 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Rule : Identifier ":" . Rule_Opt_0 Rule_Star_1 ";"
+            //Rule : "grammar" ":" . Rule_Opt_0 Rule_Star_1 ";"
             SlotId(7) => {
                 self.create(NonterminalId(6), result, gss_node_id, SlotId(8));
             }
-            //Rule : Identifier ":" Rule_Opt_0 . Rule_Star_1 ";"
+            //Rule : "grammar" ":" Rule_Opt_0 . Rule_Star_1 ";"
             SlotId(8) => {
                 self.create(NonterminalId(8), result, gss_node_id, SlotId(9));
             }
-            //Rule : Identifier ":" Rule_Opt_0 Rule_Star_1 . ";"
+            //Rule : "grammar" ":" Rule_Opt_0 Rule_Star_1 . ";"
             SlotId(9) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                 record!(self, MatchingTerminal, "\";\"", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\";\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                         let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(3),
+                            TerminalId(1),
                             i,
                             j,
                             leading_layout,
                             trailing_layout,
                         );
-                        //Rule : Identifier ":" Rule_Opt_0 Rule_Star_1 ";".
+                        //Rule : "grammar" ":" Rule_Opt_0 Rule_Star_1 ";".
                         let next_slot_id = SlotId(10);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -569,7 +567,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Rule : Identifier ":" Rule_Opt_0 Rule_Star_1 ";".
+            //Rule : "grammar" ":" Rule_Opt_0 Rule_Star_1 ";".
             SlotId(10) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -641,15 +639,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //Symbol : . Identifier
+            //Symbol : . "grammar"
             SlotId(16) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                record!(self, MatchingTerminal, "Identifier", i);
+                record!(self, MatchingTerminal, "\"grammar\"", i);
                 match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", i, j);
+                        record!(self, MatchSuccess, "\"grammar\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -660,7 +658,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //Symbol : Identifier.
+                        //Symbol : "grammar".
                         let next_slot_id = SlotId(17);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id);
@@ -669,7 +667,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self,
                             MatchFailed,
-                            "Identifier",
+                            "\"grammar\"",
                             i,
                             SlotId(16),
                             gss_node_id,
@@ -678,7 +676,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Symbol : Identifier.
+            //Symbol : "grammar".
             SlotId(17) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -730,7 +728,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             SlotId(21) => {
                 let end_slot_id = SlotId(21);
                 let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(7),
+                    TerminalId(5),
                     input_index,
                     input_index,
                     vec![],
@@ -775,7 +773,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             SlotId(24) => {
                 let end_slot_id = SlotId(24);
                 let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(7),
+                    TerminalId(5),
                     input_index,
                     input_index,
                     vec![],
@@ -798,14 +796,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                 record!(self, MatchingTerminal, "\">\"", i);
-                match self.scanner.match_token(TerminalId(5), i) {
+                match self.scanner.match_token(TerminalId(3), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\">\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                         let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(5),
+                            TerminalId(3),
                             i,
                             j,
                             leading_layout,
@@ -885,7 +883,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             SlotId(31) => {
                 let end_slot_id = SlotId(31);
                 let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(7),
+                    TerminalId(5),
                     input_index,
                     input_index,
                     vec![],
@@ -930,7 +928,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             SlotId(34) => {
                 let end_slot_id = SlotId(34);
                 let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(7),
+                    TerminalId(5),
                     input_index,
                     input_index,
                     vec![],
@@ -953,14 +951,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                 record!(self, MatchingTerminal, "\"|\"", i);
-                match self.scanner.match_token(TerminalId(6), i) {
+                match self.scanner.match_token(TerminalId(4), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"|\"", i, j);
                         record!(self, MatchingTrailingLayout, i);
                         let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
                         record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                         let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(6),
+                            TerminalId(4),
                             i,
                             j,
                             leading_layout,
@@ -1040,7 +1038,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             SlotId(41) => {
                 let end_slot_id = SlotId(41);
                 let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(7),
+                    TerminalId(5),
                     input_index,
                     input_index,
                     vec![],
@@ -1089,7 +1087,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             SlotId(45) => {
                 let end_slot_id = SlotId(45);
                 let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(7),
+                    TerminalId(5),
                     input_index,
                     input_index,
                     vec![],
@@ -1120,7 +1118,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         match nonterminal_id {
             //Grammar
             NonterminalId(0) => {
-                //Grammar : . "grammar" Identifier ";" Grammar_Star_0
+                //Grammar : . "grammar" "grammar" ";" Grammar_Star_0
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(0),
@@ -1130,7 +1128,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule
             NonterminalId(1) => {
-                //Rule : . Identifier ":" Rule_Opt_0 Rule_Star_1 ";"
+                //Rule : . "grammar" ":" Rule_Opt_0 Rule_Star_1 ";"
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(5),
@@ -1160,7 +1158,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol
             NonterminalId(4) => {
-                //Symbol : . Identifier
+                //Symbol : . "grammar"
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(16),
@@ -1488,7 +1486,7 @@ pub struct IggyParser<'i> {
     stats: Stats,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 13],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 46],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 8],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
@@ -1508,7 +1506,7 @@ impl<'i> IggyParser<'i> {
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 13],
             intermediate_nodes_index: [const { InlineMap::Empty }; 46],
-            terminal_nodes_index: [const { InlineMap::Empty }; 8],
+            terminal_nodes_index: [const { InlineMap::Empty }; 6],
             stats: Stats::default(),
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),

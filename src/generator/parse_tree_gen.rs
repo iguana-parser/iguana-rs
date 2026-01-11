@@ -805,22 +805,19 @@ fn gen_list_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStre
         }
     };
     let origin = nonterminal.origin.as_ref().unwrap();
-    // Todo: this code here is a bit confusing, try to refactor/simplify later.
-    // Here, for type generation, we need to get the name of the inner node
-    // inside a nonterminal, and get its definition.
-    let inner_symbol_name = match origin {
+    let inner_symbol = match origin {
         Symbol::Plus(symbol) | Symbol::Star(symbol) => {
-            // Probably a better way is to return a Definition from ebnf_symbol()?
             if let Some(ebnf_symbol) = grammar.ebnf_symbol(symbol) {
-                &ebnf_symbol.as_identifier().name
+                &ebnf_symbol.as_identifier()
             } else {
-                &symbol.as_identifier().name
+                &symbol.as_identifier()
             }
         }
         _ => panic!("Expected a Star or Plus symbol but got {}", origin)
     };
-    let def_id = grammar.symbol_table.get(inner_symbol_name).unwrap();
-    let name = match grammar.definition(*def_id) {
+
+    let def_id = inner_symbol.definition.unwrap_or_else(|| panic!("{} is not resolved", &inner_symbol.name));
+    let name = match grammar.definition(def_id) {
         Definition::Terminal(_) => "Token",
         Definition::Nonterminal(nonterminal) => &to_pascal_case(&nonterminal.name),
     };

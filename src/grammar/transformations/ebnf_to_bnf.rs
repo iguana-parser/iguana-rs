@@ -3,9 +3,10 @@ use rustc_hash::FxHashMap;
 use crate::{
     alternative,
     grammar::{
+        self,
         def::{Alternative, PriorityLevel, SyntaxRule},
         symbols::{Nonterminal, Symbol},
-        transformations::transform_rule,
+        transformations::{resolved_identifier, transform_rule},
     },
     priority_level,
 };
@@ -60,7 +61,10 @@ impl Counters {
     }
 }
 
-pub fn ebnf_to_bnf(syntax_rules: Vec<SyntaxRule>) -> (Vec<SyntaxRule>, FxHashMap<Symbol, Symbol>) {
+pub fn ebnf_to_bnf(
+    syntax_rules: Vec<SyntaxRule>,
+    symbol_table: &mut FxHashMap<String, grammar::symbols::DefinitionId>,
+) -> (Vec<SyntaxRule>, FxHashMap<Symbol, Symbol>) {
     let mut counters = Counters::new();
     let mut new_rules = vec![];
     // A map from a symbol to an identifier that refers to the EBNF definition
@@ -71,7 +75,14 @@ pub fn ebnf_to_bnf(syntax_rules: Vec<SyntaxRule>) -> (Vec<SyntaxRule>, FxHashMap
         .map(|rule| {
             let name = rule.head.name.clone();
             transform_rule(rule, |s| {
-                rewrite_ebnf_symbol(s, &name, &mut counters, &mut new_rules, &mut ebnf_symbols)
+                rewrite_ebnf_symbol(
+                    s,
+                    &name,
+                    &mut counters,
+                    &mut new_rules,
+                    &mut ebnf_symbols,
+                    symbol_table,
+                )
             })
         })
         .collect();
@@ -85,6 +96,7 @@ fn rewrite_ebnf_symbol(
     counters: &mut Counters,
     new_rules: &mut Vec<SyntaxRule>,
     ebnf_symbols: &mut FxHashMap<Symbol, Symbol>,
+    symbol_table: &mut FxHashMap<String, grammar::symbols::DefinitionId>,
 ) -> Symbol {
     if let Some(s) = ebnf_symbols.get(&symbol) {
         return s.clone();
@@ -96,20 +108,36 @@ fn rewrite_ebnf_symbol(
             let name = counters.next_group(parent_name);
             let transformed_symbols: Vec<_> = symbols
                 .into_iter()
-                .map(|s| rewrite_ebnf_symbol(s, parent_name, counters, new_rules, ebnf_symbols))
+                .map(|s| {
+                    rewrite_ebnf_symbol(
+                        s,
+                        parent_name,
+                        counters,
+                        new_rules,
+                        ebnf_symbols,
+                        symbol_table,
+                    )
+                })
                 .collect();
+            let head = Nonterminal::with_origin(&name, origin.clone());
             let new_rule = SyntaxRule {
-                head: Nonterminal::with_origin(&name, origin.clone()),
+                head,
                 priority_levels: vec![priority_level!(Alternative::new(transformed_symbols))],
             };
             new_rules.push(new_rule);
-            Symbol::identifier(name)
+            resolved_identifier(name, symbol_table)
         }
         // Transform A? into: S_Opt0 ::= A | ε
         Symbol::Opt(symbol) => {
             let name = counters.next_opt(parent_name);
-            let transformed_symbol =
-                rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+            let transformed_symbol = rewrite_ebnf_symbol(
+                *symbol,
+                parent_name,
+                counters,
+                new_rules,
+                ebnf_symbols,
+                symbol_table,
+            );
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, origin.clone()),
                 priority_levels: vec![priority_level!(
@@ -118,14 +146,23 @@ fn rewrite_ebnf_symbol(
                 )],
             };
             new_rules.push(new_rule);
-            Symbol::identifier(name)
+            resolved_identifier(name, symbol_table)
         }
         // Transform (A | B | C) into: S_Alt0 ::= A | B | C
         Symbol::Alt(symbols) => {
             let name = counters.next_alt(parent_name);
             let transformed_symbols: Vec<_> = symbols
                 .into_iter()
-                .map(|s| rewrite_ebnf_symbol(s, parent_name, counters, new_rules, ebnf_symbols))
+                .map(|s| {
+                    rewrite_ebnf_symbol(
+                        s,
+                        parent_name,
+                        counters,
+                        new_rules,
+                        ebnf_symbols,
+                        symbol_table,
+                    )
+                })
                 .collect();
             let alternatives: Vec<_> = transformed_symbols
                 .into_iter()
@@ -136,37 +173,51 @@ fn rewrite_ebnf_symbol(
                 priority_levels: vec![PriorityLevel::new(alternatives)],
             };
             new_rules.push(new_rule);
-            Symbol::identifier(name)
+            resolved_identifier(name, symbol_table)
         }
         // Transform A* into: S_Star0 ::= S_Star0 A | ε (left-recursive)
         Symbol::Star(symbol) => {
             let name = counters.next_star(parent_name);
-            let transformed_symbol =
-                rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+            let transformed_symbol = rewrite_ebnf_symbol(
+                *symbol,
+                parent_name,
+                counters,
+                new_rules,
+                ebnf_symbols,
+                symbol_table,
+            );
+            let new_symbol = resolved_identifier(name.clone(), symbol_table);
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, origin.clone()),
                 priority_levels: vec![priority_level!(
-                    alternative!(Symbol::identifier(name.clone()), transformed_symbol),
+                    alternative!(new_symbol.clone(), transformed_symbol),
                     Alternative::empty()
                 )],
             };
             new_rules.push(new_rule);
-            Symbol::identifier(name)
+            new_symbol
         }
         // Transform A+ into: S_Plus0 ::= S_Plus0 A | A (left-recursive)
         Symbol::Plus(symbol) => {
             let name = counters.next_plus(parent_name);
-            let transformed_symbol =
-                rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+            let transformed_symbol = rewrite_ebnf_symbol(
+                *symbol,
+                parent_name,
+                counters,
+                new_rules,
+                ebnf_symbols,
+                symbol_table,
+            );
+            let new_symbol = resolved_identifier(name.clone(), symbol_table);
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, origin.clone()),
                 priority_levels: vec![priority_level!(
-                    alternative!(Symbol::identifier(name.clone()), transformed_symbol.clone()),
+                    alternative!(new_symbol.clone(), transformed_symbol.clone()),
                     alternative!(transformed_symbol)
                 )],
             };
             new_rules.push(new_rule);
-            Symbol::identifier(name)
+            new_symbol
         }
         _ => symbol,
     };
@@ -176,9 +227,12 @@ fn rewrite_ebnf_symbol(
 
 #[cfg(test)]
 mod tests {
+    use rustc_hash::FxHashMap;
+
     use super::ebnf_to_bnf;
     use crate::{
-        alt, alternative, grammar_def, group, id, opt, plus, priority_level, star, syntax_rule,
+        alt, alternative, grammar::def::create_symbol_table, grammar_def, group, id, opt, plus,
+        priority_level, star, syntax_rule,
     };
 
     #[test]
@@ -195,7 +249,13 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let mut symbol_table = FxHashMap::default();
+        create_symbol_table(
+            &grammar.syntax_rules,
+            &grammar.lexical_rules,
+            &mut symbol_table,
+        );
+        let transformed = ebnf_to_bnf(grammar.syntax_rules, &mut symbol_table);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -214,7 +274,13 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let mut symbol_table = FxHashMap::default();
+        create_symbol_table(
+            &grammar.syntax_rules,
+            &grammar.lexical_rules,
+            &mut symbol_table,
+        );
+        let transformed = ebnf_to_bnf(grammar.syntax_rules, &mut symbol_table);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -233,7 +299,13 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let mut symbol_table = FxHashMap::default();
+        create_symbol_table(
+            &grammar.syntax_rules,
+            &grammar.lexical_rules,
+            &mut symbol_table,
+        );
+        let transformed = ebnf_to_bnf(grammar.syntax_rules, &mut symbol_table);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -252,7 +324,13 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let mut symbol_table = FxHashMap::default();
+        create_symbol_table(
+            &grammar.syntax_rules,
+            &grammar.lexical_rules,
+            &mut symbol_table,
+        );
+        let transformed = ebnf_to_bnf(grammar.syntax_rules, &mut symbol_table);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -271,7 +349,13 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let mut symbol_table = FxHashMap::default();
+        create_symbol_table(
+            &grammar.syntax_rules,
+            &grammar.lexical_rules,
+            &mut symbol_table,
+        );
+        let transformed = ebnf_to_bnf(grammar.syntax_rules, &mut symbol_table);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -291,7 +375,13 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let mut symbol_table = FxHashMap::default();
+        create_symbol_table(
+            &grammar.syntax_rules,
+            &grammar.lexical_rules,
+            &mut symbol_table,
+        );
+        let transformed = ebnf_to_bnf(grammar.syntax_rules, &mut symbol_table);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -312,7 +402,13 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let mut symbol_table = FxHashMap::default();
+        create_symbol_table(
+            &grammar.syntax_rules,
+            &grammar.lexical_rules,
+            &mut symbol_table,
+        );
+        let transformed = ebnf_to_bnf(grammar.syntax_rules, &mut symbol_table);
 
         println!("Transformed grammar:\n{:?}", transformed);
 

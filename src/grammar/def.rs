@@ -2,12 +2,12 @@ use std::fmt::Display;
 
 use indexmap::IndexMap;
 use itertools::Itertools;
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::grammar::{
     regex::Regex,
     symbols::{Definition, DefinitionId, Identifier, Nonterminal, Symbol, Terminal},
-    transformations::{ebnf_to_bnf, transform_rule},
+    transformations::{ebnf_to_bnf, resolved_identifier, transform_rule},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -154,13 +154,14 @@ impl Display for GrammarDef {
 }
 
 /// Creates a map from names to definitions (terminal or nonterminal).
-fn create_symbol_table<'a>(
+pub fn create_symbol_table(
     syntax_rules: &[SyntaxRule],
-    terminals: impl Iterator<Item = &'a Terminal>,
-    definitions: &mut Vec<Definition>,
+    lexical_rules: &[LexicalRule],
     symbol_table: &mut FxHashMap<String, DefinitionId>,
-) {
-    for terminal in terminals {
+) -> Vec<Definition> {
+    let mut definitions = vec![];
+    for lexical_rule in lexical_rules {
+        let terminal = &lexical_rule.head;
         symbol_table.insert(
             terminal.name.clone(),
             DefinitionId(definitions.len() as u16),
@@ -174,6 +175,7 @@ fn create_symbol_table<'a>(
         );
         definitions.push(Definition::Nonterminal(syntax_rule.head.clone()));
     }
+    definitions
 }
 
 /// Converts string literals (e.g., `"+"`) in syntax rules into terminal references
@@ -184,50 +186,66 @@ fn create_symbol_table<'a>(
 /// The name of the terminal is the same as the string literal.
 fn add_lexical_rules_for_literals(
     syntax_rules: Vec<SyntaxRule>,
-    lexical_rules: &mut IndexMap<Terminal, Regex>,
-) -> Vec<SyntaxRule> {
-    let mut rules = vec![];
+    symbol_table: &mut FxHashMap<String, DefinitionId>,
+) -> (Vec<SyntaxRule>, Vec<LexicalRule>) {
+    let mut transformed_syntax_rules = vec![];
+    let mut added_terminals = FxHashSet::default();
+    let mut lexical_rules = vec![];
     for rule in syntax_rules {
-        let transformed = transform_rule(rule, |s| add_lexical_rules(s, lexical_rules));
-        rules.push(transformed);
+        let transformed = transform_rule(rule, |s| {
+            add_lexical_rules(s, &mut lexical_rules, &mut added_terminals, symbol_table)
+        });
+        transformed_syntax_rules.push(transformed);
     }
-    rules
+    (transformed_syntax_rules, lexical_rules)
 }
 
-fn add_lexical_rules(symbol: Symbol, lexical_rules: &mut IndexMap<Terminal, Regex>) -> Symbol {
+fn add_lexical_rules(
+    symbol: Symbol,
+    lexical_rules: &mut Vec<LexicalRule>,
+    added_terminals: &mut FxHashSet<Terminal>,
+    symbol_table: &mut FxHashMap<String, DefinitionId>,
+) -> Symbol {
     match symbol {
         Symbol::Literal(name) => {
             let terminal_name = format!("\"{}\"", name);
             let terminal = Terminal::new(terminal_name.clone());
-            if !lexical_rules.contains_key(&terminal) {
-                lexical_rules.insert(terminal, Regex::literal(&name));
+            if !added_terminals.contains(&terminal) {
+                added_terminals.insert(terminal.clone());
+                lexical_rules.push(LexicalRule {
+                    head: terminal,
+                    regex: Regex::literal(&name),
+                });
             }
-            Symbol::identifier(terminal_name)
+            resolved_identifier(terminal_name, symbol_table)
         }
         Symbol::Group(symbols) => {
             let transformed_symbols = symbols
                 .into_iter()
-                .map(|s| add_lexical_rules(s, lexical_rules))
+                .map(|s| add_lexical_rules(s, lexical_rules, added_terminals, symbol_table))
                 .collect();
             Symbol::Group(transformed_symbols)
         }
         Symbol::Opt(symbol) => {
-            let transformed_symbol = add_lexical_rules(*symbol, lexical_rules);
+            let transformed_symbol =
+                add_lexical_rules(*symbol, lexical_rules, added_terminals, symbol_table);
             Symbol::Opt(Box::new(transformed_symbol))
         }
         Symbol::Alt(symbols) => {
             let transformed_symbols = symbols
                 .into_iter()
-                .map(|s| add_lexical_rules(s, lexical_rules))
+                .map(|s| add_lexical_rules(s, lexical_rules, added_terminals, symbol_table))
                 .collect();
             Symbol::Alt(transformed_symbols)
         }
         Symbol::Star(symbol) => {
-            let transformed_symbol = add_lexical_rules(*symbol, lexical_rules);
+            let transformed_symbol =
+                add_lexical_rules(*symbol, lexical_rules, added_terminals, symbol_table);
             Symbol::Star(Box::new(transformed_symbol))
         }
         Symbol::Plus(symbol) => {
-            let transformed_symbol = add_lexical_rules(*symbol, lexical_rules);
+            let transformed_symbol =
+                add_lexical_rules(*symbol, lexical_rules, added_terminals, symbol_table);
             Symbol::Plus(Box::new(transformed_symbol))
         }
         _ => symbol,
@@ -292,28 +310,20 @@ impl From<GrammarDef> for Grammar {
     fn from(grammar_def: GrammarDef) -> Self {
         let lexical_rules = grammar_def.lexical_rules;
         let syntax_rules = grammar_def.syntax_rules;
-        let mut lexical_rules_map: IndexMap<Terminal, Regex> = lexical_rules
+        let mut symbol_table = FxHashMap::default();
+        create_symbol_table(&syntax_rules, &lexical_rules, &mut symbol_table);
+        let (syntax_rules, lexical_rules) =
+            add_lexical_rules_for_literals(syntax_rules, &mut symbol_table);
+        create_symbol_table(&syntax_rules, &lexical_rules, &mut symbol_table);
+        let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
+        let (syntax_rules, ebnf_symbols) =
+            ebnf_to_bnf::ebnf_to_bnf(syntax_rules, &mut symbol_table);
+        let definitions = create_symbol_table(&syntax_rules, &lexical_rules, &mut symbol_table);
+        let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
+        let lexical_rules_map: IndexMap<Terminal, Regex> = lexical_rules
             .into_iter()
             .map(|r| (r.head, r.regex))
             .collect();
-        let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules_map);
-        let mut definitions = vec![];
-        let mut symbol_table: FxHashMap<String, DefinitionId> = FxHashMap::default();
-        create_symbol_table(
-            &syntax_rules,
-            lexical_rules_map.keys(),
-            &mut definitions,
-            &mut symbol_table,
-        );
-        let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
-        let (syntax_rules, ebnf_symbols) = ebnf_to_bnf::ebnf_to_bnf(syntax_rules);
-        create_symbol_table(
-            &syntax_rules,
-            lexical_rules_map.keys(),
-            &mut definitions,
-            &mut symbol_table,
-        );
-        let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
         let productions: IndexMap<Nonterminal, Vec<Alternative>> =
             syntax_rules
                 .into_iter()

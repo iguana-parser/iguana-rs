@@ -41,12 +41,6 @@ impl Symbol {
     pub fn literal(name: impl Into<String>) -> Self {
         Symbol::Literal(name.into())
     }
-    pub fn identifier(name: impl Into<String>) -> Self {
-        Symbol::Identifier(Identifier {
-            name: name.into(),
-            definition: None,
-        })
-    }
     pub fn resolved_def(&self) -> DefinitionId {
         let ident = match self {
             Symbol::Identifier(name) => name,
@@ -197,7 +191,10 @@ impl Display for Opt {
 #[macro_export]
 macro_rules! id {
     ($name:expr) => {
-        $crate::grammar::symbols::Symbol::identifier($name)
+        $crate::grammar::symbols::Symbol::Identifier($crate::grammar::symbols::Identifier {
+            name: $name.into(),
+            definition: None,
+        })
     };
 }
 
