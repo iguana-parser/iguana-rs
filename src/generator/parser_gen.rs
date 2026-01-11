@@ -189,7 +189,7 @@ fn gen_nonterminals(nonterminal_ids: &NonterminalIds) -> TokenStream {
                 Symbol::Group(_) => quote! { Some(EbnfKind::Group) },
                 Symbol::Opt(_) => quote! { Some(EbnfKind::Opt) },
                 Symbol::Alt(_) => quote! { Some(EbnfKind::Alt) },
-                Symbol::Star(_) => quote! { Some(EbnfKind::Star) },
+                Symbol::Star(_, _) => quote! { Some(EbnfKind::Star) },
                 Symbol::Plus(_) => quote! { Some(EbnfKind::Plus) },
                 _ => quote! { None },
             },

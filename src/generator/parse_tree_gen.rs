@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::Ident;
@@ -576,8 +577,12 @@ fn gen_parse_tree_enum(grammar: &Grammar) -> TokenStream {
         .nonterminals()
         .map(|n| {
             let name = to_pascal_case(&n.name);
+            let display_name = n.display_name();
             let ident = Ident::new(&name, Span::call_site());
-            quote! { #ident(#ident) }
+            quote! { 
+                #[comment = #display_name]
+                #ident(#ident) 
+            }
         })
         .collect();
     quote! {
@@ -806,7 +811,7 @@ fn gen_list_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStre
     };
     let origin = nonterminal.origin.as_ref().unwrap();
     let inner_symbol = match origin {
-        Symbol::Plus(symbol) | Symbol::Star(symbol) => {
+        Symbol::Plus(symbol) | Symbol::Star(symbol, _) => {
             if let Some(ebnf_symbol) = grammar.ebnf_symbol(symbol) {
                 &ebnf_symbol.as_identifier()
             } else {

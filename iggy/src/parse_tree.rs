@@ -9,43 +9,62 @@ use iguana::{
 use std::fmt::Write;
 #[derive(Debug)]
 enum TokenKind {
-    //"grammar"
+    //Identifier
     T0,
-    //";"
+    //WS
     T1,
-    //":"
+    //"grammar"
     T2,
-    //">"
+    //";"
     T3,
-    //"|"
+    //":"
     T4,
+    //">"
+    T5,
+    //"|"
+    T6,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
         match self {
-            TokenKind::T0 => "\"grammar\"",
-            TokenKind::T1 => "\";\"",
-            TokenKind::T2 => "\":\"",
-            TokenKind::T3 => "\">\"",
-            TokenKind::T4 => "\"|\"",
+            TokenKind::T0 => "Identifier",
+            TokenKind::T1 => "WS",
+            TokenKind::T2 => "\"grammar\"",
+            TokenKind::T3 => "\";\"",
+            TokenKind::T4 => "\":\"",
+            TokenKind::T5 => "\">\"",
+            TokenKind::T6 => "\"|\"",
             _ => unreachable!(),
         }
     }
 }
 #[derive(Debug)]
 pub enum ParseTree {
+    //Grammar
     Grammar(Grammar),
+    //Rule
     Rule(Rule),
+    //PriorityLevel
     PriorityLevel(PriorityLevel),
+    //Alternative
     Alternative(Alternative),
+    //Symbol
     Symbol(Symbol),
+    //Rule*
     GrammarStar0(GrammarStar0),
+    //PriorityLevel?
     RuleOpt0(RuleOpt0),
+    //(">" PriorityLevel)
     RuleGroup0(RuleGroup0),
+    //(">" PriorityLevel)*
     RuleStar1(RuleStar1),
+    //Alternative?
     PriorityLevelOpt1(PriorityLevelOpt1),
+    //("|" Alternative)
     PriorityLevelGroup1(PriorityLevelGroup1),
+    //("|" Alternative)*
     PriorityLevelStar2(PriorityLevelStar2),
+    //Symbol*
     AlternativeStar3(AlternativeStar3),
     Token(Token),
 }
@@ -725,8 +744,8 @@ impl ListNode for GrammarStar0 {
     }
 }
 impl ListNode for RuleStar1 {
-    type Item = PriorityLevelOpt1;
-    fn iter(&self) -> impl Iterator<Item = &PriorityLevelOpt1> {
+    type Item = RuleGroup0;
+    fn iter(&self) -> impl Iterator<Item = &RuleGroup0> {
         let mut items = vec![];
         let mut current = self;
         loop {
@@ -744,8 +763,8 @@ impl ListNode for RuleStar1 {
     }
 }
 impl ListNode for PriorityLevelStar2 {
-    type Item = AlternativeStar3;
-    fn iter(&self) -> impl Iterator<Item = &AlternativeStar3> {
+    type Item = PriorityLevelGroup1;
+    fn iter(&self) -> impl Iterator<Item = &PriorityLevelGroup1> {
         let mut items = vec![];
         let mut current = self;
         loop {
@@ -796,16 +815,20 @@ impl Token {
 }
 fn token_kind(terminal_id: TerminalId) -> TokenKind {
     match terminal_id {
-        //"grammar"
+        //Identifier
         TerminalId(0) => TokenKind::T0,
-        //";"
+        //WS
         TerminalId(1) => TokenKind::T1,
-        //":"
+        //"grammar"
         TerminalId(2) => TokenKind::T2,
-        //">"
+        //";"
         TerminalId(3) => TokenKind::T3,
-        //"|"
+        //":"
         TerminalId(4) => TokenKind::T4,
+        //">"
+        TerminalId(5) => TokenKind::T5,
+        //"|"
+        TerminalId(6) => TokenKind::T6,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -821,7 +844,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //Grammar
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
-                    //Grammar : "grammar" "grammar" ";" Grammar_Star_0.
+                    //Grammar : "grammar" Identifier ";" Grammar_Star_0.
                     SlotId(4) => {
                         let [c0, c1, c2, c3] = <[ParseTree; 4usize]>::try_from(children).unwrap();
                         Grammar(
@@ -839,7 +862,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //Rule
             NonterminalId(1) => {
                 match nonterminal_node.return_slot {
-                    //Rule : "grammar" ":" Rule_Opt_0 Rule_Star_1 ";".
+                    //Rule : Identifier ":" Rule_Opt_0 Rule_Star_1 ";".
                     SlotId(10) => {
                         let [c0, c1, c2, c3, c4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
@@ -886,7 +909,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //Symbol
             NonterminalId(4) => {
                 match nonterminal_node.return_slot {
-                    //Symbol : "grammar".
+                    //Symbol : Identifier.
                     SlotId(17) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         Symbol(c0.unwrap_token(), nonterminal_node.span).into()

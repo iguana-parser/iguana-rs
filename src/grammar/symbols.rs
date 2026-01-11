@@ -33,7 +33,7 @@ pub enum Symbol {
     Group(Vec<Symbol>),
     Opt(Box<Symbol>),
     Alt(Vec<Symbol>),
-    Star(Box<Symbol>),
+    Star(Box<Symbol>, Option<Box<Symbol>>),
     Plus(Box<Symbol>),
 }
 
@@ -64,7 +64,10 @@ impl Display for Symbol {
             Symbol::Group(symbols) => write!(f, "({})", symbols.iter().join(" ")),
             Symbol::Opt(opt) => write!(f, "{opt}?"),
             Symbol::Alt(symbols) => write!(f, "({})", symbols.iter().join(" | ")),
-            Symbol::Star(symbol) => write!(f, "{symbol}*"),
+            Symbol::Star(symbol, sep) => match sep {
+                Some(sep) => write!(f, "{{{symbol} {sep}}}*"),
+                None => write!(f, "{symbol}*"),
+            },
             Symbol::Plus(symbol) => write!(f, "{symbol}+"),
         }
     }
@@ -151,7 +154,7 @@ impl Nonterminal {
     /// Returns true if the nonterminal was generated when converting from an EBNF Star.
     pub fn is_star(&self) -> bool {
         match &self.origin {
-            Some(s) => matches!(s, Symbol::Star(_)),
+            Some(s) => matches!(s, Symbol::Star(_, _)),
             None => false,
         }
     }
@@ -229,7 +232,10 @@ macro_rules! plus {
 #[macro_export]
 macro_rules! star {
     ($symbol:expr) => {
-        $crate::grammar::symbols::Symbol::Star(Box::new($symbol))
+        $crate::grammar::symbols::Symbol::Star(Box::new($symbol), None)
+    };
+    ($symbol:expr, $sep:expr) => {
+        $crate::grammar::symbols::Symbol::Star(Box::new($symbol), Some(Box::new($sep)))
     };
 }
 

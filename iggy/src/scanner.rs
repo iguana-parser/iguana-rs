@@ -11,8 +11,37 @@ impl<'i> IggyScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //"grammar"
+    //Identifier
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char_range(i, 'a', 'z')
+            .or_else(|| self.match_char_range(i, 'A', 'Z'))
+            .or_else(|| self.match_char(i, '_'))
+            .and_then(|i| {
+                let mut j = i;
+                while let Some(k) = (|i| {
+                    self.match_char_range(i, 'a', 'z')
+                        .or_else(|| self.match_char_range(i, 'A', 'Z'))
+                        .or_else(|| self.match_char_range(i, '0', '9'))
+                        .or_else(|| self.match_char(i, '_'))
+                })(j)
+                {
+                    j = k;
+                }
+                Some(j)
+            })
+    }
+    //WS
+    pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        let mut j = i;
+        while let Some(k) = (|i| self.match_char(i, ' ').or_else(|| self.match_char(i, '\n')))(j) {
+            j = k;
+        }
+        Some(j)
+    }
+    //"grammar"
+    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'g')
             .and_then(|i| self.match_char(i, 'r'))
@@ -23,22 +52,22 @@ impl<'i> IggyScanner<'i> {
             .and_then(|i| self.match_char(i, 'r'))
     }
     //";"
-    pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ';')
     }
     //":"
-    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ':')
     }
     //">"
-    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '>')
     }
     //"|"
-    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '|')
     }
@@ -51,6 +80,8 @@ impl Scanner for IggyScanner<'_> {
             TerminalId(2) => self.match_terminal_2(input_index),
             TerminalId(3) => self.match_terminal_3(input_index),
             TerminalId(4) => self.match_terminal_4(input_index),
+            TerminalId(5) => self.match_terminal_5(input_index),
+            TerminalId(6) => self.match_terminal_6(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }
@@ -64,7 +95,7 @@ impl Scanner for IggyScanner<'_> {
     fn match_leading_layout(&self, input_index: u32) -> (u32, Vec<TerminalNode>) {
         let mut i = input_index;
         let mut layout_nodes = vec![];
-        while let Some((next_index, terminal_id)) = self.match_any(&vec![], i) {
+        while let Some((next_index, terminal_id)) = self.match_any(&vec![TerminalId(1)], i) {
             layout_nodes.push(TerminalNode::new(terminal_id, Span::new(i, next_index)));
             i = next_index;
         }
@@ -73,7 +104,7 @@ impl Scanner for IggyScanner<'_> {
     fn match_trailing_layout(&self, input_index: u32) -> (u32, Vec<TerminalNode>) {
         let mut i = input_index;
         let mut layout_nodes = vec![];
-        while let Some((next_index, terminal_id)) = self.match_any(&vec![], i) {
+        while let Some((next_index, terminal_id)) = self.match_any(&vec![TerminalId(1)], i) {
             layout_nodes.push(TerminalNode::new(terminal_id, Span::new(i, next_index)));
             i = next_index;
             //// If the last matched character is a newline, do not match further

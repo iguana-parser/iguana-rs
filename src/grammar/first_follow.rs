@@ -39,7 +39,7 @@ fn is_nullable(s: &Symbol, nullables: &HashSet<&Nonterminal>) -> bool {
         Symbol::Group(symbols) => symbols.iter().all(|s| is_nullable(s, nullables)),
         Symbol::Opt(_) => true,
         Symbol::Alt(symbols) => symbols.iter().any(|s| is_nullable(s, nullables)),
-        Symbol::Star(_) => true,
+        Symbol::Star(_, _) => true,
         Symbol::Plus(symbol) => is_nullable(symbol, nullables),
     }
 }
