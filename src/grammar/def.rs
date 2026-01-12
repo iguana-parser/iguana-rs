@@ -39,7 +39,7 @@ impl Alternative {
 
 impl Display for Alternative {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{}", self.symbols.iter().join(" "))
+        write!(f, "{}", self.symbols.iter().join(" "))
     }
 }
 
@@ -434,10 +434,14 @@ impl Display for Grammar {
             writeln!(f, "{}", head)?;
             if let Some((first, rest)) = alternatives.split_first() {
                 writeln!(f, "  : {}", first)?;
-                for alternative in rest {
-                    writeln!(f, "  | {}", alternative)?;
+                if let Some((last, rest)) = rest.split_last() {
+                    for alternative in rest {
+                        writeln!(f, "  | {}", alternative)?;
+                    }
+                    writeln!(f, "  | {}", last)?;
                 }
             }
+            writeln!(f, "  ;\n")?;
         }
         for (name, regex) in &self.lexical_rules {
             writeln!(f, "{}: {}", name, regex)?;

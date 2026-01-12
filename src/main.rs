@@ -214,6 +214,18 @@ fn empty() -> Grammar {
     .into()
 }
 
+fn opt() -> Grammar {
+    // S: A?;
+    // A: "a";
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => alternative!(opt!(id!("A")))),
+            syntax_rule!("A" => alternative!(lit!("a")))
+        ]
+    )
+    .into()
+}
+
 // Grammar
 //   : "grammar" Identifier ";" Rule*
 //   ;

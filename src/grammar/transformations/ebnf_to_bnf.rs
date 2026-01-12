@@ -165,10 +165,7 @@ fn rewrite_ebnf_symbol(
             let name = counters.next_star(parent_name);
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, origin.clone()),
-                priority_levels: vec![priority_level!(
-                    alternative!(transformed_symbol),
-                    alternative!()
-                )],
+                priority_levels: vec![priority_level!(alternative!(transformed_symbol),)],
             };
             new_rules.push(new_rule);
             Symbol::Identifier(Identifier {

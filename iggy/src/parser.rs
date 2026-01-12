@@ -139,7 +139,7 @@ pub const TERMINALS: [Terminal; 8] = [
     Terminal { name: "\"|\"" },
     Terminal { name: "Epsilon" },
 ];
-pub const SLOTS: [Slot; 68] = [
+pub const SLOTS: [Slot; 64] = [
     Slot {
         display_name: "Grammar : . \"grammar\" Identifier \";\" Rule*",
     },
@@ -222,9 +222,6 @@ pub const SLOTS: [Slot; 68] = [
         display_name: "Rule* : Rule+?.",
     },
     Slot {
-        display_name: "Rule* : .",
-    },
-    Slot {
         display_name: "{PriorityLevel \">\"}+ : . {PriorityLevel \">\"}+ \">\" PriorityLevel",
     },
     Slot {
@@ -256,9 +253,6 @@ pub const SLOTS: [Slot; 68] = [
     },
     Slot {
         display_name: "{PriorityLevel \">\"}* : {PriorityLevel \">\"}+?.",
-    },
-    Slot {
-        display_name: "{PriorityLevel \">\"}* : .",
     },
     Slot {
         display_name: "Alternative? : . Alternative",
@@ -309,9 +303,6 @@ pub const SLOTS: [Slot; 68] = [
         display_name: "(\"|\" Alternative)* : (\"|\" Alternative)+?.",
     },
     Slot {
-        display_name: "(\"|\" Alternative)* : .",
-    },
-    Slot {
         display_name: "Symbol+ : . Symbol+ Symbol",
     },
     Slot {
@@ -340,9 +331,6 @@ pub const SLOTS: [Slot; 68] = [
     },
     Slot {
         display_name: "Symbol* : Symbol+?.",
-    },
-    Slot {
-        display_name: "Symbol* : .",
     },
 ];
 impl<'i> Parser<'i> for IggyParser<'i> {
@@ -914,33 +902,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //Grammar_Star_0 : .
-            SlotId(27) => {
-                let end_slot_id = SlotId(27);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(7),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
-                let nonterminal_id = NonterminalId(7);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
             //Rule_Plus_1 : . Rule_Plus_1 ">" PriorityLevel
-            SlotId(28) => {
-                self.create(NonterminalId(8), result, gss_node_id, SlotId(29));
+            SlotId(27) => {
+                self.create(NonterminalId(8), result, gss_node_id, SlotId(28));
             }
             //Rule_Plus_1 : Rule_Plus_1 . ">" PriorityLevel
-            SlotId(29) => {
+            SlotId(28) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -959,7 +926,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             trailing_layout,
                         );
                         //Rule_Plus_1 : Rule_Plus_1 ">" . PriorityLevel
-                        let next_slot_id = SlotId(30);
+                        let next_slot_id = SlotId(29);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
@@ -979,7 +946,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             MatchFailed,
                             "\">\"",
                             i,
-                            SlotId(29),
+                            SlotId(28),
                             gss_node_id,
                             result
                         );
@@ -987,11 +954,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Rule_Plus_1 : Rule_Plus_1 ">" . PriorityLevel
-            SlotId(30) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(31));
+            SlotId(29) => {
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(30));
             }
             //Rule_Plus_1 : Rule_Plus_1 ">" PriorityLevel.
-            SlotId(31) => {
+            SlotId(30) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -999,7 +966,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(8);
-                let end_slot_id = SlotId(31);
+                let end_slot_id = SlotId(30);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -1011,11 +978,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Rule_Plus_1 : . PriorityLevel
-            SlotId(32) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(33));
+            SlotId(31) => {
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(32));
             }
             //Rule_Plus_1 : PriorityLevel.
-            SlotId(33) => {
+            SlotId(32) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1023,7 +990,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(8);
-                let end_slot_id = SlotId(33);
+                let end_slot_id = SlotId(32);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -1035,11 +1002,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Rule_Opt_1 : . Rule_Plus_1
-            SlotId(34) => {
-                self.create(NonterminalId(8), result, gss_node_id, SlotId(35));
+            SlotId(33) => {
+                self.create(NonterminalId(8), result, gss_node_id, SlotId(34));
             }
             //Rule_Opt_1 : Rule_Plus_1.
-            SlotId(35) => {
+            SlotId(34) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1047,7 +1014,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(9);
-                let end_slot_id = SlotId(35);
+                let end_slot_id = SlotId(34);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -1059,8 +1026,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Rule_Opt_1 : .
-            SlotId(36) => {
-                let end_slot_id = SlotId(36);
+            SlotId(35) => {
+                let end_slot_id = SlotId(35);
                 let epsilon_node_id = self.get_or_create_terminal_node(
                     TerminalId(7),
                     input_index,
@@ -1080,11 +1047,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Rule_Star_1 : . Rule_Opt_1
-            SlotId(37) => {
-                self.create(NonterminalId(9), result, gss_node_id, SlotId(38));
+            SlotId(36) => {
+                self.create(NonterminalId(9), result, gss_node_id, SlotId(37));
             }
             //Rule_Star_1 : Rule_Opt_1.
-            SlotId(38) => {
+            SlotId(37) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1092,7 +1059,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(10);
-                let end_slot_id = SlotId(38);
+                let end_slot_id = SlotId(37);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -1103,33 +1070,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //Rule_Star_1 : .
-            SlotId(39) => {
-                let end_slot_id = SlotId(39);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(7),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
-                let nonterminal_id = NonterminalId(10);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
             //PriorityLevel_Opt_2 : . Alternative
-            SlotId(40) => {
-                self.create(NonterminalId(3), result, gss_node_id, SlotId(41));
+            SlotId(38) => {
+                self.create(NonterminalId(3), result, gss_node_id, SlotId(39));
             }
             //PriorityLevel_Opt_2 : Alternative.
-            SlotId(41) => {
+            SlotId(39) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1137,7 +1083,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(11);
-                let end_slot_id = SlotId(41);
+                let end_slot_id = SlotId(39);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -1149,8 +1095,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //PriorityLevel_Opt_2 : .
-            SlotId(42) => {
-                let end_slot_id = SlotId(42);
+            SlotId(40) => {
+                let end_slot_id = SlotId(40);
                 let epsilon_node_id = self.get_or_create_terminal_node(
                     TerminalId(7),
                     input_index,
@@ -1170,7 +1116,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //PriorityLevel_Group_0 : . "|" Alternative
-            SlotId(43) => {
+            SlotId(41) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -1189,7 +1135,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             trailing_layout,
                         );
                         //PriorityLevel_Group_0 : "|" . Alternative
-                        let next_slot_id = SlotId(44);
+                        let next_slot_id = SlotId(42);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id);
                     }
@@ -1199,7 +1145,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             MatchFailed,
                             "\"|\"",
                             i,
-                            SlotId(43),
+                            SlotId(41),
                             gss_node_id,
                             result
                         );
@@ -1207,11 +1153,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //PriorityLevel_Group_0 : "|" . Alternative
-            SlotId(44) => {
-                self.create(NonterminalId(3), result, gss_node_id, SlotId(45));
+            SlotId(42) => {
+                self.create(NonterminalId(3), result, gss_node_id, SlotId(43));
             }
             //PriorityLevel_Group_0 : "|" Alternative.
-            SlotId(45) => {
+            SlotId(43) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1219,7 +1165,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(12);
-                let end_slot_id = SlotId(45);
+                let end_slot_id = SlotId(43);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -1231,14 +1177,38 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //PriorityLevel_Plus_2 : . PriorityLevel_Plus_2 PriorityLevel_Group_0
-            SlotId(46) => {
-                self.create(NonterminalId(13), result, gss_node_id, SlotId(47));
+            SlotId(44) => {
+                self.create(NonterminalId(13), result, gss_node_id, SlotId(45));
             }
             //PriorityLevel_Plus_2 : PriorityLevel_Plus_2 . PriorityLevel_Group_0
+            SlotId(45) => {
+                self.create(NonterminalId(12), result, gss_node_id, SlotId(46));
+            }
+            //PriorityLevel_Plus_2 : PriorityLevel_Plus_2 PriorityLevel_Group_0.
+            SlotId(46) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(13);
+                let end_slot_id = SlotId(46);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                }
+            }
+            //PriorityLevel_Plus_2 : . PriorityLevel_Group_0
             SlotId(47) => {
                 self.create(NonterminalId(12), result, gss_node_id, SlotId(48));
             }
-            //PriorityLevel_Plus_2 : PriorityLevel_Plus_2 PriorityLevel_Group_0.
+            //PriorityLevel_Plus_2 : PriorityLevel_Group_0.
             SlotId(48) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -1258,11 +1228,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //PriorityLevel_Plus_2 : . PriorityLevel_Group_0
+            //PriorityLevel_Opt_3 : . PriorityLevel_Plus_2
             SlotId(49) => {
-                self.create(NonterminalId(12), result, gss_node_id, SlotId(50));
+                self.create(NonterminalId(13), result, gss_node_id, SlotId(50));
             }
-            //PriorityLevel_Plus_2 : PriorityLevel_Group_0.
+            //PriorityLevel_Opt_3 : PriorityLevel_Plus_2.
             SlotId(50) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -1270,7 +1240,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(13);
+                let nonterminal_id = NonterminalId(14);
                 let end_slot_id = SlotId(50);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
@@ -1282,33 +1252,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //PriorityLevel_Opt_3 : . PriorityLevel_Plus_2
-            SlotId(51) => {
-                self.create(NonterminalId(13), result, gss_node_id, SlotId(52));
-            }
-            //PriorityLevel_Opt_3 : PriorityLevel_Plus_2.
-            SlotId(52) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(14);
-                let end_slot_id = SlotId(52);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
             //PriorityLevel_Opt_3 : .
-            SlotId(53) => {
-                let end_slot_id = SlotId(53);
+            SlotId(51) => {
+                let end_slot_id = SlotId(51);
                 let epsilon_node_id = self.get_or_create_terminal_node(
                     TerminalId(7),
                     input_index,
@@ -1328,11 +1274,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //PriorityLevel_Star_2 : . PriorityLevel_Opt_3
-            SlotId(54) => {
-                self.create(NonterminalId(14), result, gss_node_id, SlotId(55));
+            SlotId(52) => {
+                self.create(NonterminalId(14), result, gss_node_id, SlotId(53));
             }
             //PriorityLevel_Star_2 : PriorityLevel_Opt_3.
-            SlotId(55) => {
+            SlotId(53) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1340,7 +1286,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(15);
-                let end_slot_id = SlotId(55);
+                let end_slot_id = SlotId(53);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -1351,37 +1297,16 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //PriorityLevel_Star_2 : .
-            SlotId(56) => {
-                let end_slot_id = SlotId(56);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(7),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
-                let nonterminal_id = NonterminalId(15);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
             //Alternative_Plus_3 : . Alternative_Plus_3 Symbol
-            SlotId(57) => {
-                self.create(NonterminalId(16), result, gss_node_id, SlotId(58));
+            SlotId(54) => {
+                self.create(NonterminalId(16), result, gss_node_id, SlotId(55));
             }
             //Alternative_Plus_3 : Alternative_Plus_3 . Symbol
-            SlotId(58) => {
-                self.create(NonterminalId(4), result, gss_node_id, SlotId(59));
+            SlotId(55) => {
+                self.create(NonterminalId(4), result, gss_node_id, SlotId(56));
             }
             //Alternative_Plus_3 : Alternative_Plus_3 Symbol.
-            SlotId(59) => {
+            SlotId(56) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1389,7 +1314,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(16);
-                let end_slot_id = SlotId(59);
+                let end_slot_id = SlotId(56);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -1401,11 +1326,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Alternative_Plus_3 : . Symbol
-            SlotId(60) => {
-                self.create(NonterminalId(4), result, gss_node_id, SlotId(61));
+            SlotId(57) => {
+                self.create(NonterminalId(4), result, gss_node_id, SlotId(58));
             }
             //Alternative_Plus_3 : Symbol.
-            SlotId(61) => {
+            SlotId(58) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1413,7 +1338,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(16);
-                let end_slot_id = SlotId(61);
+                let end_slot_id = SlotId(58);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -1425,11 +1350,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Alternative_Opt_4 : . Alternative_Plus_3
-            SlotId(62) => {
-                self.create(NonterminalId(16), result, gss_node_id, SlotId(63));
+            SlotId(59) => {
+                self.create(NonterminalId(16), result, gss_node_id, SlotId(60));
             }
             //Alternative_Opt_4 : Alternative_Plus_3.
-            SlotId(63) => {
+            SlotId(60) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1437,7 +1362,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(17);
-                let end_slot_id = SlotId(63);
+                let end_slot_id = SlotId(60);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -1449,8 +1374,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Alternative_Opt_4 : .
-            SlotId(64) => {
-                let end_slot_id = SlotId(64);
+            SlotId(61) => {
+                let end_slot_id = SlotId(61);
                 let epsilon_node_id = self.get_or_create_terminal_node(
                     TerminalId(7),
                     input_index,
@@ -1470,11 +1395,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 }
             }
             //Alternative_Star_3 : . Alternative_Opt_4
-            SlotId(65) => {
-                self.create(NonterminalId(17), result, gss_node_id, SlotId(66));
+            SlotId(62) => {
+                self.create(NonterminalId(17), result, gss_node_id, SlotId(63));
             }
             //Alternative_Star_3 : Alternative_Opt_4.
-            SlotId(66) => {
+            SlotId(63) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1482,34 +1407,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(18);
-                let end_slot_id = SlotId(66);
+                let end_slot_id = SlotId(63);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
                     left_extent,
                     right_extent,
                     result,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
-            //Alternative_Star_3 : .
-            SlotId(67) => {
-                let end_slot_id = SlotId(67);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(7),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
-                let nonterminal_id = NonterminalId(18);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
                 ) {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
@@ -1619,27 +1523,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     sppf_node_id: None,
                     gss_node_id,
                 });
-                //Grammar_Star_0 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(27),
-                    sppf_node_id: None,
-                    gss_node_id,
-                });
             }
             //Rule_Plus_1
             NonterminalId(8) => {
                 //Rule_Plus_1 : . Rule_Plus_1 ">" PriorityLevel
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(28),
+                    slot_id: SlotId(27),
                     sppf_node_id: None,
                     gss_node_id,
                 });
                 //Rule_Plus_1 : . PriorityLevel
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(32),
+                    slot_id: SlotId(31),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -1649,14 +1546,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Rule_Opt_1 : . Rule_Plus_1
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(34),
+                    slot_id: SlotId(33),
                     sppf_node_id: None,
                     gss_node_id,
                 });
                 //Rule_Opt_1 : .
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(36),
+                    slot_id: SlotId(35),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -1666,14 +1563,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Rule_Star_1 : . Rule_Opt_1
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(37),
-                    sppf_node_id: None,
-                    gss_node_id,
-                });
-                //Rule_Star_1 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(39),
+                    slot_id: SlotId(36),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -1683,14 +1573,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //PriorityLevel_Opt_2 : . Alternative
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(40),
+                    slot_id: SlotId(38),
                     sppf_node_id: None,
                     gss_node_id,
                 });
                 //PriorityLevel_Opt_2 : .
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(42),
+                    slot_id: SlotId(40),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -1700,7 +1590,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //PriorityLevel_Group_0 : . "|" Alternative
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(43),
+                    slot_id: SlotId(41),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -1710,14 +1600,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //PriorityLevel_Plus_2 : . PriorityLevel_Plus_2 PriorityLevel_Group_0
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(46),
+                    slot_id: SlotId(44),
                     sppf_node_id: None,
                     gss_node_id,
                 });
                 //PriorityLevel_Plus_2 : . PriorityLevel_Group_0
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(49),
+                    slot_id: SlotId(47),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -1727,14 +1617,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //PriorityLevel_Opt_3 : . PriorityLevel_Plus_2
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(51),
+                    slot_id: SlotId(49),
                     sppf_node_id: None,
                     gss_node_id,
                 });
                 //PriorityLevel_Opt_3 : .
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(53),
+                    slot_id: SlotId(51),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -1744,14 +1634,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //PriorityLevel_Star_2 : . PriorityLevel_Opt_3
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(54),
-                    sppf_node_id: None,
-                    gss_node_id,
-                });
-                //PriorityLevel_Star_2 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(56),
+                    slot_id: SlotId(52),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -1761,14 +1644,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Alternative_Plus_3 : . Alternative_Plus_3 Symbol
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(57),
+                    slot_id: SlotId(54),
                     sppf_node_id: None,
                     gss_node_id,
                 });
                 //Alternative_Plus_3 : . Symbol
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(60),
+                    slot_id: SlotId(57),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -1778,14 +1661,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Alternative_Opt_4 : . Alternative_Plus_3
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(62),
+                    slot_id: SlotId(59),
                     sppf_node_id: None,
                     gss_node_id,
                 });
                 //Alternative_Opt_4 : .
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(64),
+                    slot_id: SlotId(61),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -1795,14 +1678,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Alternative_Star_3 : . Alternative_Opt_4
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(65),
-                    sppf_node_id: None,
-                    gss_node_id,
-                });
-                //Alternative_Star_3 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(67),
+                    slot_id: SlotId(62),
                     sppf_node_id: None,
                     gss_node_id,
                 });
@@ -2004,7 +1880,7 @@ pub struct IggyParser<'i> {
     sppf_nodes: Vec<SPPFNode>,
     stats: Stats,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 19],
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 68],
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 64],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 8],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
@@ -2024,7 +1900,7 @@ impl<'i> IggyParser<'i> {
             gss_nodes: vec![],
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 19],
-            intermediate_nodes_index: [const { InlineMap::Empty }; 68],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 64],
             terminal_nodes_index: [const { InlineMap::Empty }; 8],
             stats: Stats::default(),
             intermediate_nodes_children: vec![],
