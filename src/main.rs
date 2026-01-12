@@ -226,6 +226,18 @@ fn opt() -> Grammar {
     .into()
 }
 
+fn ambiguous_grammar() -> Grammar {
+    // S: A? | ;
+    // A: "a";
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => priority_level!(alternative!(opt!(id!("A"))), alternative!())),
+            syntax_rule!("A" => alternative!(lit!("a")))
+        ]
+    )
+    .into()
+}
+
 // Grammar
 //   : "grammar" Identifier ";" Rule*
 //   ;

@@ -1,6 +1,21 @@
 import type { Core, NodeSingular, EdgeSingular, ElementDefinition } from "cytoscape";
-import type { DebugSPPFNode, DebugGSSNode, DebugGSSEdge, SPPF, GSS } from "../bindings";
+import type { DebugSPPFNode, DebugGSSNode, DebugGSSEdge, SPPF, GSS, NodeKind } from "../bindings";
 import { truncateLabel, LABEL_MAX_LENGTH, INTERMEDIATE_MAX_LENGTH } from "./graph-styles";
+
+/**
+ * Extracts the kind name and ambiguous flag from a NodeKind.
+ */
+export function parseNodeKind(kind: NodeKind): { name: string; ambiguous: boolean } {
+  if (typeof kind === "string") {
+    // Terminal or Packed
+    return { name: kind, ambiguous: false };
+  } else if ("Nonterminal" in kind) {
+    return { name: "Nonterminal", ambiguous: kind.Nonterminal.ambiguous };
+  } else if ("Intermediate" in kind) {
+    return { name: "Intermediate", ambiguous: kind.Intermediate.ambiguous };
+  }
+  return { name: "Unknown", ambiguous: false };
+}
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 
@@ -224,28 +239,42 @@ export function buildDebugSppfElements(
  * Builds Cytoscape elements for SPPF visualization (parse mode).
  */
 export function buildSppfElements(sppf: SPPF): ElementDefinition[] {
+  // Build a map of node IDs to their ambiguous status
+  const nodeAmbiguousMap = new Map<number, boolean>();
+
   const nodes = sppf.nodes.map((node) => {
+    const { name: kindName, ambiguous } = parseNodeKind(node.kind);
+    nodeAmbiguousMap.set(node.id, ambiguous);
     const fullLabel = node.label || "";
-    const maxLen = node.kind === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
+    const maxLen = kindName === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
+    const classes = ambiguous
+      ? `${kindName.toLowerCase()} ambiguous`
+      : kindName.toLowerCase();
     return {
       data: {
         id: `n${node.id}`,
         label: truncateLabel(fullLabel, maxLen),
         fullLabel: fullLabel,
+        kind: kindName,
+        ambiguous: ambiguous,
         leftExtent: node.left_extent,
         rightExtent: node.right_extent,
       },
-      classes: node.kind.toLowerCase(),
+      classes: classes,
     };
   });
 
-  const edges = sppf.edges.map((edge, i) => ({
-    data: {
-      id: `e${i}`,
-      source: `n${edge.src}`,
-      target: `n${edge.dest}`,
-    },
-  }));
+  const edges = sppf.edges.map((edge, i) => {
+    const sourceAmbiguous = nodeAmbiguousMap.get(edge.src) || false;
+    return {
+      data: {
+        id: `e${i}`,
+        source: `n${edge.src}`,
+        target: `n${edge.dest}`,
+      },
+      classes: sourceAmbiguous ? "edge-ambiguous" : "",
+    };
+  });
 
   return [...nodes, ...edges];
 }

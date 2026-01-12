@@ -217,7 +217,7 @@ export type GSSDotNode = { id: GssNodeId; label: string }
  * is bounded by the input length (u32).
  */
 export type GssNodeId = number
-export type NodeKind = "Nonterminal" | "Intermediate" | "Terminal" | "Packed"
+export type NodeKind = { Nonterminal: { ambiguous: boolean } } | { Intermediate: { ambiguous: boolean } } | "Terminal" | "Packed"
 /**
  * Result of a parse operation, indicating which outputs are available.
  */

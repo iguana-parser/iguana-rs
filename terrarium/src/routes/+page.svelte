@@ -25,7 +25,7 @@
     LABEL_MAX_LENGTH,
     INTERMEDIATE_MAX_LENGTH,
   } from "$lib/graph-styles";
-  import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng } from "$lib/graph-utils";
+  import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng, parseNodeKind } from "$lib/graph-utils";
 
   // Parse Tree types (manually defined, not via specta)
   interface ParseTreeNode {
@@ -414,37 +414,51 @@
       sppfTooltipCleanup = null;
     }
 
+    // Build a map of node IDs to their ambiguous status for edge coloring
+    const nodeAmbiguousMap = new Map<number, boolean>();
+
     const elements: cytoscape.ElementDefinition[] = [
       ...sppf.nodes.map((node) => {
-        const baseLabel = node.label || (node.kind === "Packed" ? "●" : "");
+        const { name: kindName, ambiguous } = parseNodeKind(node.kind);
+        nodeAmbiguousMap.set(node.id, ambiguous);
+        const baseLabel = node.label || (kindName === "Packed" ? "●" : "");
         // Intermediate nodes get longer max length since they show grammar slots
-        const maxLen = node.kind === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
+        const maxLen = kindName === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
         // Optionally add span to label (skip for packed nodes which have no real span)
         const span = `(${node.left_extent}, ${node.right_extent})`;
-        const displayLabel = showSpans && node.kind !== "Packed"
+        const displayLabel = showSpans && kindName !== "Packed"
           ? `${truncateLabel(baseLabel, maxLen)}\n${span}`
           : truncateLabel(baseLabel, maxLen);
-        const fullLabel = showSpans && node.kind !== "Packed"
+        const fullLabel = showSpans && kindName !== "Packed"
           ? `${baseLabel}\n${span}`
           : baseLabel;
+        const classes = ambiguous
+          ? `${kindName.toLowerCase()} ambiguous`
+          : kindName.toLowerCase();
         return {
           data: {
             id: `n${node.id}`,
             label: displayLabel,
             fullLabel: fullLabel,
+            kind: kindName,
+            ambiguous: ambiguous,
             leftExtent: node.left_extent,
             rightExtent: node.right_extent,
           },
-          classes: node.kind.toLowerCase(),
+          classes: classes,
         };
       }),
-      ...sppf.edges.map((edge, i) => ({
-        data: {
-          id: `e${i}`,
-          source: `n${edge.src}`,
-          target: `n${edge.dest}`,
-        },
-      })),
+      ...sppf.edges.map((edge, i) => {
+        const sourceAmbiguous = nodeAmbiguousMap.get(edge.src) || false;
+        return {
+          data: {
+            id: `e${i}`,
+            source: `n${edge.src}`,
+            target: `n${edge.dest}`,
+          },
+          classes: sourceAmbiguous ? "edge-ambiguous" : "",
+        };
+      }),
     ];
 
     // Save viewport before destroying

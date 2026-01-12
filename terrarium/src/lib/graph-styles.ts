@@ -112,6 +112,7 @@ const nodeColors = {
   intermediate: { bg: "#2d3a4d", border: "#569cd6", selectedBg: "#3a4d60", selectedBorder: "#7eb8ff" },
   terminal: { bg: "#4d3a2d", border: "#ce9178", selectedBg: "#5f4a3a", selectedBorder: "#ffb07a" },
   packed: { bg: "#666", selectedBg: "#888", selectedBorder: "#aaa" },
+  ambiguous: { bg: "#4d2d2d", border: "#e05050", selectedBg: "#5f3a3a", selectedBorder: "#ff7a7a" },
 };
 
 // Disable the default "active" state indicator (black overlay on click)
@@ -229,6 +230,21 @@ export const sppfNodeStyles: Stylesheet[] = [
       "border-color": nodeColors.packed.selectedBorder,
     },
   },
+  // Ambiguous node styles (override the base colors with red)
+  {
+    selector: "node.ambiguous",
+    style: {
+      "background-color": nodeColors.ambiguous.bg,
+      "border-color": nodeColors.ambiguous.border,
+    },
+  },
+  {
+    selector: "node.ambiguous.selected",
+    style: {
+      "background-color": nodeColors.ambiguous.selectedBg,
+      "border-color": nodeColors.ambiguous.selectedBorder,
+    },
+  },
 ];
 
 // GSS node styles
@@ -294,6 +310,21 @@ export const edgeStyles: Stylesheet[] = [
     style: {
       "line-color": "#999",
       "target-arrow-color": "#999",
+    },
+  },
+  {
+    selector: "edge.edge-selected-ambiguous",
+    style: {
+      "line-color": nodeColors.ambiguous.selectedBorder,
+      "target-arrow-color": nodeColors.ambiguous.selectedBorder,
+    },
+  },
+  // Edges from ambiguous nodes (shown in red)
+  {
+    selector: "edge.edge-ambiguous",
+    style: {
+      "line-color": nodeColors.ambiguous.border,
+      "target-arrow-color": nodeColors.ambiguous.border,
     },
   },
 ];
@@ -397,10 +428,14 @@ export function createGraph(options: GraphOptions): Core {
 }
 
 // Edge selection class names
-const EDGE_SELECTED_CLASSES = ['edge-selected-nonterminal', 'edge-selected-intermediate', 'edge-selected-terminal', 'edge-selected-packed', 'edge-clicked'];
+const EDGE_SELECTED_CLASSES = ['edge-selected-nonterminal', 'edge-selected-intermediate', 'edge-selected-terminal', 'edge-selected-packed', 'edge-selected-ambiguous', 'edge-clicked'];
 
 // Get the appropriate edge selection class based on node type
 function getEdgeClassForNode(node: cytoscape.NodeSingular): string {
+  // Ambiguous nodes take priority for edge coloring
+  if (node.data('ambiguous') || node.hasClass('ambiguous')) {
+    return 'edge-selected-ambiguous';
+  }
   const kind = node.data('kind');
   if (kind === 'Packed' || node.hasClass('packed')) {
     return 'edge-selected-packed';

@@ -30,8 +30,8 @@ pub struct SPPF {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum NodeKind {
-    Nonterminal,
-    Intermediate,
+    Nonterminal { ambiguous: bool },
+    Intermediate { ambiguous: bool },
     Terminal,
     Packed,
 }
@@ -70,8 +70,8 @@ impl<'a> Labeller<'a, SPPFDotNode, SPPFDotEdge> for SPPF {
 
     fn node_shape(&'a self, n: &SPPFDotNode) -> Option<dot::LabelText<'a>> {
         let shape = match n.kind {
-            NodeKind::Nonterminal => dot::LabelText::LabelStr(Cow::Borrowed("box")),
-            NodeKind::Intermediate => dot::LabelText::LabelStr(Cow::Borrowed("box")),
+            NodeKind::Nonterminal { .. } => dot::LabelText::LabelStr(Cow::Borrowed("box")),
+            NodeKind::Intermediate { .. } => dot::LabelText::LabelStr(Cow::Borrowed("box")),
             NodeKind::Terminal => dot::LabelText::LabelStr(Cow::Borrowed("box")),
             NodeKind::Packed => dot::LabelText::LabelStr(Cow::Borrowed("")),
         };
@@ -80,8 +80,8 @@ impl<'a> Labeller<'a, SPPFDotNode, SPPFDotEdge> for SPPF {
 
     fn node_style(&'a self, n: &SPPFDotNode) -> dot::Style {
         match n.kind {
-            NodeKind::Nonterminal => dot::Style::Rounded,
-            NodeKind::Intermediate => dot::Style::None,
+            NodeKind::Nonterminal { .. } => dot::Style::Rounded,
+            NodeKind::Intermediate { .. } => dot::Style::None,
             NodeKind::Terminal => dot::Style::None,
             NodeKind::Packed => dot::Style::None,
         }
@@ -171,7 +171,7 @@ impl<'a, 'i, P: Parser<'i>> SPPFGraphBuilder<'a, P> {
             SPPFNode::Nonterminal(n) => {
                 let dot_node = SPPFDotNode {
                     id,
-                    kind: NodeKind::Nonterminal,
+                    kind: NodeKind::Nonterminal { ambiguous: n.ambiguous },
                     label,
                     left_extent: node.left_extent(),
                     right_extent: node.right_extent(),
@@ -193,7 +193,7 @@ impl<'a, 'i, P: Parser<'i>> SPPFGraphBuilder<'a, P> {
             SPPFNode::Intermediate(i) => {
                 let dot_node = SPPFDotNode {
                     id,
-                    kind: NodeKind::Intermediate,
+                    kind: NodeKind::Intermediate { ambiguous: i.ambiguous },
                     label,
                     left_extent: node.left_extent(),
                     right_extent: node.right_extent(),
