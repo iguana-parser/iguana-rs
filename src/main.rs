@@ -2,7 +2,10 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    alt, alternative, generator::generate, grammar::{def::Grammar, regex::Regex, symbols::Terminal}, grammar_def, group, id, lexical_rule, lit, opt, plus, priority_level, star, syntax_rule
+    alt, alternative,
+    generator::generate,
+    grammar::{def::Grammar, regex::Regex, symbols::Terminal},
+    grammar_def, group, id, lexical_rule, lit, opt, plus, priority_level, star, syntax_rule,
 };
 
 #[derive(Parser)]
@@ -145,6 +148,30 @@ fn star_grammar() -> Grammar {
     .into()
 }
 
+fn star_with_sep() -> Grammar {
+    // S : {A ","}*
+    // A : "a"
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => alternative!(star!(id!("A"), lit!(",")))),
+            syntax_rule!("A" => alternative!(lit!("a")))
+        ]
+    )
+    .into()
+}
+
+fn plus_with_sep() -> Grammar {
+    // S : {A ","}+
+    // A : "a"
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => alternative!(plus!(id!("A"), lit!(",")))),
+            syntax_rule!("A" => alternative!(lit!("a")))
+        ]
+    )
+    .into()
+}
+
 fn group() -> Grammar {
     // A: (B C D);
     // B: 'b'
@@ -191,7 +218,7 @@ fn empty() -> Grammar {
 //   : "grammar" Identifier ";" Rule*
 //   ;
 // Rule
-//   : Identifier ":" PriorityLevel? (">" PriorityLevel)* ";"
+//   : Identifier ":" {PriorityLevel ">"}* ";"
 //   ;
 // PriorityLevel
 //   : Alternative? ("|" Alternative)*
@@ -201,7 +228,7 @@ fn empty() -> Grammar {
 //   ;
 // Symbol
 //   : Identifier
-//   ; 
+//   ;
 // regex Identifier
 //   : [a-zA-Z_][a-zA-Z_0-9]*
 //   ;
@@ -222,8 +249,7 @@ fn iggy() -> Grammar {
             syntax_rule!("Rule" => alternative!(
                 id!("Identifier"),
                 lit!(":"),
-                opt!(id!("PriorityLevel")),
-                star!(group!(lit!(">"), id!("PriorityLevel"))),
+                star!(id!("PriorityLevel"), lit!(">")),
                 lit!(";")
             )),
             // PriorityLevel : Alternative? ("|" Alternative)*

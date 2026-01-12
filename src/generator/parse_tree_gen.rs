@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::Ident;
@@ -32,7 +31,7 @@ pub fn generate(
     let list_node_trait = gen_list_node_trait();
     let list_node_impls: Vec<_> = grammar
         .nonterminals()
-        .filter(|n| n.is_plus() || n.is_star())
+        .filter(|n| n.is_plus())
         .map(|n| gen_list_node_impl(grammar, n))
         .collect();
     let from_for_tree_impls = gen_from_for_tree_impls(grammar);
@@ -687,13 +686,15 @@ fn gen_children_method(grammar: &Grammar) -> TokenStream {
         .map(|n| {
             let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
             let var_ident = Ident::new(&to_snake_case(&n.name), Span::call_site());
-            if n.is_plus() || n.is_star() {
+            if n.is_plus() {
                 quote! {
-                    ParseTreeRef::#variant(#var_ident) => #var_ident.iter().map(|a| a.as_parse_tree_ref()).collect()
+                    ParseTreeRef::#variant(#var_ident) => #var_ident.iter().collect()
                 }
             } else {
                 quote! {
-                    ParseTreeRef::#variant(#var_ident) => (0..#var_ident.child_count()).filter_map(|i| #var_ident.child(i)).collect()
+                    ParseTreeRef::#variant(#var_ident) => (0..#var_ident.child_count())
+                        .filter_map(|i| #var_ident.child(i))
+                        .collect()
                 }
             }
         })
@@ -768,9 +769,8 @@ fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
 
 fn gen_list_node_trait() -> TokenStream {
     quote! {
-        trait ListNode {
-            type Item;
-            fn iter(&self) -> impl Iterator<Item = &Self::Item>;
+        trait ListNode<'a> {
+            fn iter(&'a self) -> impl Iterator<Item = ParseTreeRef<'a>>;
         }
     }
 }
@@ -783,54 +783,40 @@ fn gen_list_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStre
     assert_eq!(alternatives.len(), 2);
     let label = alternative_label(&alternatives[0], 0);
     let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-    let first_arm = quote! {
-        // Add _ to ignore the span field at the end
-        #ident::#alt_variant(rest, item, _) => {
-            items.push(item);
-            current = rest;
-        }
+    let first_arm = match &nonterminal.origin {
+        Some(Symbol::Plus(_symbol, sep)) => {
+            match sep {
+                Some(_) => quote! {
+                    // Add _ to ignore the span field at the end
+                    #ident::#alt_variant(rest, sep, item, _) => {
+                        items.push(item.as_parse_tree_ref());
+                        items.push(sep.as_parse_tree_ref());
+                        current = rest;
+                    }
+                },
+                None => quote! {
+                    // Add _ to ignore the span field at the end
+                    #ident::#alt_variant(rest, item, _) => {
+                        items.push(item.as_parse_tree_ref());
+                        current = rest;
+                    }
+                },
+            }
+        },
+        _ => unreachable!("Expected plus"),
     };
     let label = alternative_label(&alternatives[1], 1);
     let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-    let second_arm = if nonterminal.is_plus() {
-        quote! {
-            // Add _ to ignore the span field at the end
-            #ident::#alt_variant(item, _) => {
-                items.push(item);
-                break;
-            }
-        }
-    } else {
-        // The star node's second alternative is empty
-        quote! {
-            // Add _ to ignore the span field at the end
-            #ident::#alt_variant(_) => {
-                break;
-            }
+    let second_arm = quote! {
+        // Add _ to ignore the span field at the end
+        #ident::#alt_variant(item, _) => {
+            items.push(item.as_parse_tree_ref());
+            break;
         }
     };
-    let origin = nonterminal.origin.as_ref().unwrap();
-    let inner_symbol = match origin {
-        Symbol::Plus(symbol) | Symbol::Star(symbol, _) => {
-            if let Some(ebnf_symbol) = grammar.ebnf_symbol(symbol) {
-                &ebnf_symbol.as_identifier()
-            } else {
-                &symbol.as_identifier()
-            }
-        }
-        _ => panic!("Expected a Star or Plus symbol but got {}", origin)
-    };
-
-    let def_id = inner_symbol.definition.unwrap_or_else(|| panic!("{} is not resolved", &inner_symbol.name));
-    let name = match grammar.definition(def_id) {
-        Definition::Terminal(_) => "Token",
-        Definition::Nonterminal(nonterminal) => &to_pascal_case(&nonterminal.name),
-    };
-    let inner_nonterminal_ident = Ident::new(name, Span::call_site());
     quote! {
-        impl ListNode for #ident {
-            type Item = #inner_nonterminal_ident;
-            fn iter(&self) -> impl Iterator<Item = &#inner_nonterminal_ident> {
+        impl<'a> ListNode<'a> for #ident {
+            fn iter(&'a self) -> impl Iterator<Item = ParseTreeRef<'a>> {
                 let mut items = vec![];
                 let mut current = self;
                 loop {

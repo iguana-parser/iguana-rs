@@ -50,20 +50,32 @@ pub enum ParseTree {
     Alternative(Alternative),
     //Symbol
     Symbol(Symbol),
+    //Rule+
+    GrammarPlus0(GrammarPlus0),
+    //Rule+?
+    GrammarOpt0(GrammarOpt0),
     //Rule*
     GrammarStar0(GrammarStar0),
-    //PriorityLevel?
-    RuleOpt0(RuleOpt0),
-    //(">" PriorityLevel)
-    RuleGroup0(RuleGroup0),
-    //(">" PriorityLevel)*
+    //{PriorityLevel ">"}+
+    RulePlus1(RulePlus1),
+    //{PriorityLevel ">"}+?
+    RuleOpt1(RuleOpt1),
+    //{PriorityLevel ">"}*
     RuleStar1(RuleStar1),
     //Alternative?
-    PriorityLevelOpt1(PriorityLevelOpt1),
+    PriorityLevelOpt2(PriorityLevelOpt2),
     //("|" Alternative)
-    PriorityLevelGroup1(PriorityLevelGroup1),
+    PriorityLevelGroup0(PriorityLevelGroup0),
+    //("|" Alternative)+
+    PriorityLevelPlus2(PriorityLevelPlus2),
+    //("|" Alternative)+?
+    PriorityLevelOpt3(PriorityLevelOpt3),
     //("|" Alternative)*
     PriorityLevelStar2(PriorityLevelStar2),
+    //Symbol+
+    AlternativePlus3(AlternativePlus3),
+    //Symbol+?
+    AlternativeOpt4(AlternativeOpt4),
     //Symbol*
     AlternativeStar3(AlternativeStar3),
     Token(Token),
@@ -76,19 +88,31 @@ impl ParseTree {
             ParseTree::PriorityLevel(prioritylevel) => prioritylevel.as_parse_tree_ref(),
             ParseTree::Alternative(alternative) => alternative.as_parse_tree_ref(),
             ParseTree::Symbol(symbol) => symbol.as_parse_tree_ref(),
+            ParseTree::GrammarPlus0(grammar_plus_0) => grammar_plus_0.as_parse_tree_ref(),
+            ParseTree::GrammarOpt0(grammar_opt_0) => grammar_opt_0.as_parse_tree_ref(),
             ParseTree::GrammarStar0(grammar_star_0) => grammar_star_0.as_parse_tree_ref(),
-            ParseTree::RuleOpt0(rule_opt_0) => rule_opt_0.as_parse_tree_ref(),
-            ParseTree::RuleGroup0(rule_group_0) => rule_group_0.as_parse_tree_ref(),
+            ParseTree::RulePlus1(rule_plus_1) => rule_plus_1.as_parse_tree_ref(),
+            ParseTree::RuleOpt1(rule_opt_1) => rule_opt_1.as_parse_tree_ref(),
             ParseTree::RuleStar1(rule_star_1) => rule_star_1.as_parse_tree_ref(),
-            ParseTree::PriorityLevelOpt1(prioritylevel_opt_1) => {
-                prioritylevel_opt_1.as_parse_tree_ref()
+            ParseTree::PriorityLevelOpt2(prioritylevel_opt_2) => {
+                prioritylevel_opt_2.as_parse_tree_ref()
             }
-            ParseTree::PriorityLevelGroup1(prioritylevel_group_1) => {
-                prioritylevel_group_1.as_parse_tree_ref()
+            ParseTree::PriorityLevelGroup0(prioritylevel_group_0) => {
+                prioritylevel_group_0.as_parse_tree_ref()
+            }
+            ParseTree::PriorityLevelPlus2(prioritylevel_plus_2) => {
+                prioritylevel_plus_2.as_parse_tree_ref()
+            }
+            ParseTree::PriorityLevelOpt3(prioritylevel_opt_3) => {
+                prioritylevel_opt_3.as_parse_tree_ref()
             }
             ParseTree::PriorityLevelStar2(prioritylevel_star_2) => {
                 prioritylevel_star_2.as_parse_tree_ref()
             }
+            ParseTree::AlternativePlus3(alternative_plus_3) => {
+                alternative_plus_3.as_parse_tree_ref()
+            }
+            ParseTree::AlternativeOpt4(alternative_opt_4) => alternative_opt_4.as_parse_tree_ref(),
             ParseTree::AlternativeStar3(alternative_star_3) => {
                 alternative_star_3.as_parse_tree_ref()
             }
@@ -125,21 +149,33 @@ impl ParseTree {
             _ => panic!(),
         }
     }
+    fn unwrap_grammar_plus_0(self) -> GrammarPlus0 {
+        match self {
+            ParseTree::GrammarPlus0(grammar_plus_0) => grammar_plus_0,
+            _ => panic!(),
+        }
+    }
+    fn unwrap_grammar_opt_0(self) -> GrammarOpt0 {
+        match self {
+            ParseTree::GrammarOpt0(grammar_opt_0) => grammar_opt_0,
+            _ => panic!(),
+        }
+    }
     fn unwrap_grammar_star_0(self) -> GrammarStar0 {
         match self {
             ParseTree::GrammarStar0(grammar_star_0) => grammar_star_0,
             _ => panic!(),
         }
     }
-    fn unwrap_rule_opt_0(self) -> RuleOpt0 {
+    fn unwrap_rule_plus_1(self) -> RulePlus1 {
         match self {
-            ParseTree::RuleOpt0(rule_opt_0) => rule_opt_0,
+            ParseTree::RulePlus1(rule_plus_1) => rule_plus_1,
             _ => panic!(),
         }
     }
-    fn unwrap_rule_group_0(self) -> RuleGroup0 {
+    fn unwrap_rule_opt_1(self) -> RuleOpt1 {
         match self {
-            ParseTree::RuleGroup0(rule_group_0) => rule_group_0,
+            ParseTree::RuleOpt1(rule_opt_1) => rule_opt_1,
             _ => panic!(),
         }
     }
@@ -149,21 +185,45 @@ impl ParseTree {
             _ => panic!(),
         }
     }
-    fn unwrap_prioritylevel_opt_1(self) -> PriorityLevelOpt1 {
+    fn unwrap_prioritylevel_opt_2(self) -> PriorityLevelOpt2 {
         match self {
-            ParseTree::PriorityLevelOpt1(prioritylevel_opt_1) => prioritylevel_opt_1,
+            ParseTree::PriorityLevelOpt2(prioritylevel_opt_2) => prioritylevel_opt_2,
             _ => panic!(),
         }
     }
-    fn unwrap_prioritylevel_group_1(self) -> PriorityLevelGroup1 {
+    fn unwrap_prioritylevel_group_0(self) -> PriorityLevelGroup0 {
         match self {
-            ParseTree::PriorityLevelGroup1(prioritylevel_group_1) => prioritylevel_group_1,
+            ParseTree::PriorityLevelGroup0(prioritylevel_group_0) => prioritylevel_group_0,
+            _ => panic!(),
+        }
+    }
+    fn unwrap_prioritylevel_plus_2(self) -> PriorityLevelPlus2 {
+        match self {
+            ParseTree::PriorityLevelPlus2(prioritylevel_plus_2) => prioritylevel_plus_2,
+            _ => panic!(),
+        }
+    }
+    fn unwrap_prioritylevel_opt_3(self) -> PriorityLevelOpt3 {
+        match self {
+            ParseTree::PriorityLevelOpt3(prioritylevel_opt_3) => prioritylevel_opt_3,
             _ => panic!(),
         }
     }
     fn unwrap_prioritylevel_star_2(self) -> PriorityLevelStar2 {
         match self {
             ParseTree::PriorityLevelStar2(prioritylevel_star_2) => prioritylevel_star_2,
+            _ => panic!(),
+        }
+    }
+    fn unwrap_alternative_plus_3(self) -> AlternativePlus3 {
+        match self {
+            ParseTree::AlternativePlus3(alternative_plus_3) => alternative_plus_3,
+            _ => panic!(),
+        }
+    }
+    fn unwrap_alternative_opt_4(self) -> AlternativeOpt4 {
+        match self {
+            ParseTree::AlternativeOpt4(alternative_opt_4) => alternative_opt_4,
             _ => panic!(),
         }
     }
@@ -187,13 +247,19 @@ pub enum ParseTreeRef<'a> {
     PriorityLevel(&'a PriorityLevel),
     Alternative(&'a Alternative),
     Symbol(&'a Symbol),
+    GrammarPlus0(&'a GrammarPlus0),
+    GrammarOpt0(&'a GrammarOpt0),
     GrammarStar0(&'a GrammarStar0),
-    RuleOpt0(&'a RuleOpt0),
-    RuleGroup0(&'a RuleGroup0),
+    RulePlus1(&'a RulePlus1),
+    RuleOpt1(&'a RuleOpt1),
     RuleStar1(&'a RuleStar1),
-    PriorityLevelOpt1(&'a PriorityLevelOpt1),
-    PriorityLevelGroup1(&'a PriorityLevelGroup1),
+    PriorityLevelOpt2(&'a PriorityLevelOpt2),
+    PriorityLevelGroup0(&'a PriorityLevelGroup0),
+    PriorityLevelPlus2(&'a PriorityLevelPlus2),
+    PriorityLevelOpt3(&'a PriorityLevelOpt3),
     PriorityLevelStar2(&'a PriorityLevelStar2),
+    AlternativePlus3(&'a AlternativePlus3),
+    AlternativeOpt4(&'a AlternativeOpt4),
     AlternativeStar3(&'a AlternativeStar3),
     Token(&'a Token),
 }
@@ -215,34 +281,49 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::Symbol(symbol) => (0..symbol.child_count())
                 .filter_map(|i| symbol.child(i))
                 .collect(),
-            ParseTreeRef::GrammarStar0(grammar_star_0) => grammar_star_0
-                .iter()
-                .map(|a| a.as_parse_tree_ref())
+            ParseTreeRef::GrammarPlus0(grammar_plus_0) => grammar_plus_0.iter().collect(),
+            ParseTreeRef::GrammarOpt0(grammar_opt_0) => (0..grammar_opt_0.child_count())
+                .filter_map(|i| grammar_opt_0.child(i))
                 .collect(),
-            ParseTreeRef::RuleOpt0(rule_opt_0) => (0..rule_opt_0.child_count())
-                .filter_map(|i| rule_opt_0.child(i))
+            ParseTreeRef::GrammarStar0(grammar_star_0) => (0..grammar_star_0.child_count())
+                .filter_map(|i| grammar_star_0.child(i))
                 .collect(),
-            ParseTreeRef::RuleGroup0(rule_group_0) => (0..rule_group_0.child_count())
-                .filter_map(|i| rule_group_0.child(i))
+            ParseTreeRef::RulePlus1(rule_plus_1) => rule_plus_1.iter().collect(),
+            ParseTreeRef::RuleOpt1(rule_opt_1) => (0..rule_opt_1.child_count())
+                .filter_map(|i| rule_opt_1.child(i))
                 .collect(),
-            ParseTreeRef::RuleStar1(rule_star_1) => {
-                rule_star_1.iter().map(|a| a.as_parse_tree_ref()).collect()
+            ParseTreeRef::RuleStar1(rule_star_1) => (0..rule_star_1.child_count())
+                .filter_map(|i| rule_star_1.child(i))
+                .collect(),
+            ParseTreeRef::PriorityLevelOpt2(prioritylevel_opt_2) => (0..prioritylevel_opt_2
+                .child_count())
+                .filter_map(|i| prioritylevel_opt_2.child(i))
+                .collect(),
+            ParseTreeRef::PriorityLevelGroup0(prioritylevel_group_0) => (0..prioritylevel_group_0
+                .child_count())
+                .filter_map(|i| prioritylevel_group_0.child(i))
+                .collect(),
+            ParseTreeRef::PriorityLevelPlus2(prioritylevel_plus_2) => {
+                prioritylevel_plus_2.iter().collect()
             }
-            ParseTreeRef::PriorityLevelOpt1(prioritylevel_opt_1) => (0..prioritylevel_opt_1
+            ParseTreeRef::PriorityLevelOpt3(prioritylevel_opt_3) => (0..prioritylevel_opt_3
                 .child_count())
-                .filter_map(|i| prioritylevel_opt_1.child(i))
+                .filter_map(|i| prioritylevel_opt_3.child(i))
                 .collect(),
-            ParseTreeRef::PriorityLevelGroup1(prioritylevel_group_1) => (0..prioritylevel_group_1
+            ParseTreeRef::PriorityLevelStar2(prioritylevel_star_2) => (0..prioritylevel_star_2
                 .child_count())
-                .filter_map(|i| prioritylevel_group_1.child(i))
+                .filter_map(|i| prioritylevel_star_2.child(i))
                 .collect(),
-            ParseTreeRef::PriorityLevelStar2(prioritylevel_star_2) => prioritylevel_star_2
-                .iter()
-                .map(|a| a.as_parse_tree_ref())
+            ParseTreeRef::AlternativePlus3(alternative_plus_3) => {
+                alternative_plus_3.iter().collect()
+            }
+            ParseTreeRef::AlternativeOpt4(alternative_opt_4) => (0..alternative_opt_4
+                .child_count())
+                .filter_map(|i| alternative_opt_4.child(i))
                 .collect(),
-            ParseTreeRef::AlternativeStar3(alternative_star_3) => alternative_star_3
-                .iter()
-                .map(|a| a.as_parse_tree_ref())
+            ParseTreeRef::AlternativeStar3(alternative_star_3) => (0..alternative_star_3
+                .child_count())
+                .filter_map(|i| alternative_star_3.child(i))
                 .collect(),
             ParseTreeRef::Token(_) => vec![],
         }
@@ -254,13 +335,19 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::PriorityLevel(_) => "PriorityLevel",
             ParseTreeRef::Alternative(_) => "Alternative",
             ParseTreeRef::Symbol(_) => "Symbol",
+            ParseTreeRef::GrammarPlus0(_) => "Rule+",
+            ParseTreeRef::GrammarOpt0(_) => "Rule+?",
             ParseTreeRef::GrammarStar0(_) => "Rule*",
-            ParseTreeRef::RuleOpt0(_) => "PriorityLevel?",
-            ParseTreeRef::RuleGroup0(_) => "(\">\" PriorityLevel)",
-            ParseTreeRef::RuleStar1(_) => "(\">\" PriorityLevel)*",
-            ParseTreeRef::PriorityLevelOpt1(_) => "Alternative?",
-            ParseTreeRef::PriorityLevelGroup1(_) => "(\"|\" Alternative)",
+            ParseTreeRef::RulePlus1(_) => "{PriorityLevel \">\"}+",
+            ParseTreeRef::RuleOpt1(_) => "{PriorityLevel \">\"}+?",
+            ParseTreeRef::RuleStar1(_) => "{PriorityLevel \">\"}*",
+            ParseTreeRef::PriorityLevelOpt2(_) => "Alternative?",
+            ParseTreeRef::PriorityLevelGroup0(_) => "(\"|\" Alternative)",
+            ParseTreeRef::PriorityLevelPlus2(_) => "(\"|\" Alternative)+",
+            ParseTreeRef::PriorityLevelOpt3(_) => "(\"|\" Alternative)+?",
             ParseTreeRef::PriorityLevelStar2(_) => "(\"|\" Alternative)*",
+            ParseTreeRef::AlternativePlus3(_) => "Symbol+",
+            ParseTreeRef::AlternativeOpt4(_) => "Symbol+?",
             ParseTreeRef::AlternativeStar3(_) => "Symbol*",
             ParseTreeRef::Token(token) => token.kind.name(),
         }
@@ -272,19 +359,29 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::PriorityLevel(prioritylevel) => prioritylevel.child_count(),
             ParseTreeRef::Alternative(alternative) => alternative.child_count(),
             ParseTreeRef::Symbol(symbol) => symbol.child_count(),
+            ParseTreeRef::GrammarPlus0(grammar_plus_0) => grammar_plus_0.child_count(),
+            ParseTreeRef::GrammarOpt0(grammar_opt_0) => grammar_opt_0.child_count(),
             ParseTreeRef::GrammarStar0(grammar_star_0) => grammar_star_0.child_count(),
-            ParseTreeRef::RuleOpt0(rule_opt_0) => rule_opt_0.child_count(),
-            ParseTreeRef::RuleGroup0(rule_group_0) => rule_group_0.child_count(),
+            ParseTreeRef::RulePlus1(rule_plus_1) => rule_plus_1.child_count(),
+            ParseTreeRef::RuleOpt1(rule_opt_1) => rule_opt_1.child_count(),
             ParseTreeRef::RuleStar1(rule_star_1) => rule_star_1.child_count(),
-            ParseTreeRef::PriorityLevelOpt1(prioritylevel_opt_1) => {
-                prioritylevel_opt_1.child_count()
+            ParseTreeRef::PriorityLevelOpt2(prioritylevel_opt_2) => {
+                prioritylevel_opt_2.child_count()
             }
-            ParseTreeRef::PriorityLevelGroup1(prioritylevel_group_1) => {
-                prioritylevel_group_1.child_count()
+            ParseTreeRef::PriorityLevelGroup0(prioritylevel_group_0) => {
+                prioritylevel_group_0.child_count()
+            }
+            ParseTreeRef::PriorityLevelPlus2(prioritylevel_plus_2) => {
+                prioritylevel_plus_2.child_count()
+            }
+            ParseTreeRef::PriorityLevelOpt3(prioritylevel_opt_3) => {
+                prioritylevel_opt_3.child_count()
             }
             ParseTreeRef::PriorityLevelStar2(prioritylevel_star_2) => {
                 prioritylevel_star_2.child_count()
             }
+            ParseTreeRef::AlternativePlus3(alternative_plus_3) => alternative_plus_3.child_count(),
+            ParseTreeRef::AlternativeOpt4(alternative_opt_4) => alternative_opt_4.child_count(),
             ParseTreeRef::AlternativeStar3(alternative_star_3) => alternative_star_3.child_count(),
             ParseTreeRef::Token(_) => 0,
         }
@@ -296,15 +393,21 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::PriorityLevel(prioritylevel) => prioritylevel.span(),
             ParseTreeRef::Alternative(alternative) => alternative.span(),
             ParseTreeRef::Symbol(symbol) => symbol.span(),
+            ParseTreeRef::GrammarPlus0(grammar_plus_0) => grammar_plus_0.span(),
+            ParseTreeRef::GrammarOpt0(grammar_opt_0) => grammar_opt_0.span(),
             ParseTreeRef::GrammarStar0(grammar_star_0) => grammar_star_0.span(),
-            ParseTreeRef::RuleOpt0(rule_opt_0) => rule_opt_0.span(),
-            ParseTreeRef::RuleGroup0(rule_group_0) => rule_group_0.span(),
+            ParseTreeRef::RulePlus1(rule_plus_1) => rule_plus_1.span(),
+            ParseTreeRef::RuleOpt1(rule_opt_1) => rule_opt_1.span(),
             ParseTreeRef::RuleStar1(rule_star_1) => rule_star_1.span(),
-            ParseTreeRef::PriorityLevelOpt1(prioritylevel_opt_1) => prioritylevel_opt_1.span(),
-            ParseTreeRef::PriorityLevelGroup1(prioritylevel_group_1) => {
-                prioritylevel_group_1.span()
+            ParseTreeRef::PriorityLevelOpt2(prioritylevel_opt_2) => prioritylevel_opt_2.span(),
+            ParseTreeRef::PriorityLevelGroup0(prioritylevel_group_0) => {
+                prioritylevel_group_0.span()
             }
+            ParseTreeRef::PriorityLevelPlus2(prioritylevel_plus_2) => prioritylevel_plus_2.span(),
+            ParseTreeRef::PriorityLevelOpt3(prioritylevel_opt_3) => prioritylevel_opt_3.span(),
             ParseTreeRef::PriorityLevelStar2(prioritylevel_star_2) => prioritylevel_star_2.span(),
+            ParseTreeRef::AlternativePlus3(alternative_plus_3) => alternative_plus_3.span(),
+            ParseTreeRef::AlternativeOpt4(alternative_opt_4) => alternative_opt_4.span(),
             ParseTreeRef::AlternativeStar3(alternative_star_3) => alternative_star_3.span(),
             ParseTreeRef::Token(token) => token.span(),
         }
@@ -335,19 +438,29 @@ impl From<Symbol> for ParseTree {
         ParseTree::Symbol(symbol)
     }
 }
+impl From<GrammarPlus0> for ParseTree {
+    fn from(grammar_plus_0: GrammarPlus0) -> Self {
+        ParseTree::GrammarPlus0(grammar_plus_0)
+    }
+}
+impl From<GrammarOpt0> for ParseTree {
+    fn from(grammar_opt_0: GrammarOpt0) -> Self {
+        ParseTree::GrammarOpt0(grammar_opt_0)
+    }
+}
 impl From<GrammarStar0> for ParseTree {
     fn from(grammar_star_0: GrammarStar0) -> Self {
         ParseTree::GrammarStar0(grammar_star_0)
     }
 }
-impl From<RuleOpt0> for ParseTree {
-    fn from(rule_opt_0: RuleOpt0) -> Self {
-        ParseTree::RuleOpt0(rule_opt_0)
+impl From<RulePlus1> for ParseTree {
+    fn from(rule_plus_1: RulePlus1) -> Self {
+        ParseTree::RulePlus1(rule_plus_1)
     }
 }
-impl From<RuleGroup0> for ParseTree {
-    fn from(rule_group_0: RuleGroup0) -> Self {
-        ParseTree::RuleGroup0(rule_group_0)
+impl From<RuleOpt1> for ParseTree {
+    fn from(rule_opt_1: RuleOpt1) -> Self {
+        ParseTree::RuleOpt1(rule_opt_1)
     }
 }
 impl From<RuleStar1> for ParseTree {
@@ -355,14 +468,24 @@ impl From<RuleStar1> for ParseTree {
         ParseTree::RuleStar1(rule_star_1)
     }
 }
-impl From<PriorityLevelOpt1> for ParseTree {
-    fn from(prioritylevel_opt_1: PriorityLevelOpt1) -> Self {
-        ParseTree::PriorityLevelOpt1(prioritylevel_opt_1)
+impl From<PriorityLevelOpt2> for ParseTree {
+    fn from(prioritylevel_opt_2: PriorityLevelOpt2) -> Self {
+        ParseTree::PriorityLevelOpt2(prioritylevel_opt_2)
     }
 }
-impl From<PriorityLevelGroup1> for ParseTree {
-    fn from(prioritylevel_group_1: PriorityLevelGroup1) -> Self {
-        ParseTree::PriorityLevelGroup1(prioritylevel_group_1)
+impl From<PriorityLevelGroup0> for ParseTree {
+    fn from(prioritylevel_group_0: PriorityLevelGroup0) -> Self {
+        ParseTree::PriorityLevelGroup0(prioritylevel_group_0)
+    }
+}
+impl From<PriorityLevelPlus2> for ParseTree {
+    fn from(prioritylevel_plus_2: PriorityLevelPlus2) -> Self {
+        ParseTree::PriorityLevelPlus2(prioritylevel_plus_2)
+    }
+}
+impl From<PriorityLevelOpt3> for ParseTree {
+    fn from(prioritylevel_opt_3: PriorityLevelOpt3) -> Self {
+        ParseTree::PriorityLevelOpt3(prioritylevel_opt_3)
     }
 }
 impl From<PriorityLevelStar2> for ParseTree {
@@ -370,57 +493,99 @@ impl From<PriorityLevelStar2> for ParseTree {
         ParseTree::PriorityLevelStar2(prioritylevel_star_2)
     }
 }
+impl From<AlternativePlus3> for ParseTree {
+    fn from(alternative_plus_3: AlternativePlus3) -> Self {
+        ParseTree::AlternativePlus3(alternative_plus_3)
+    }
+}
+impl From<AlternativeOpt4> for ParseTree {
+    fn from(alternative_opt_4: AlternativeOpt4) -> Self {
+        ParseTree::AlternativeOpt4(alternative_opt_4)
+    }
+}
 impl From<AlternativeStar3> for ParseTree {
     fn from(alternative_star_3: AlternativeStar3) -> Self {
         ParseTree::AlternativeStar3(alternative_star_3)
     }
 }
-trait ListNode {
-    type Item;
-    fn iter(&self) -> impl Iterator<Item = &Self::Item>;
+trait ListNode<'a> {
+    fn iter(&'a self) -> impl Iterator<Item = ParseTreeRef<'a>>;
 }
 #[derive(Debug)]
 pub struct Grammar(Token, Token, Token, GrammarStar0, Span);
 #[derive(Debug)]
-pub struct Rule(Token, Token, RuleOpt0, RuleStar1, Token, Span);
+pub struct Rule(Token, Token, RuleStar1, Token, Span);
 #[derive(Debug)]
-pub struct PriorityLevel(PriorityLevelOpt1, PriorityLevelStar2, Span);
+pub struct PriorityLevel(PriorityLevelOpt2, PriorityLevelStar2, Span);
 #[derive(Debug)]
 pub struct Alternative(AlternativeStar3, Span);
 #[derive(Debug)]
 pub struct Symbol(Token, Span);
 #[derive(Debug)]
+pub enum GrammarPlus0 {
+    Alt0(Box<GrammarPlus0>, Rule, Span),
+    Alt1(Rule, Span),
+}
+#[derive(Debug)]
+pub enum GrammarOpt0 {
+    Alt0(GrammarPlus0, Span),
+    Alt1(Span),
+}
+#[derive(Debug)]
 pub enum GrammarStar0 {
-    Alt0(Box<GrammarStar0>, Rule, Span),
+    Alt0(GrammarOpt0, Span),
     Alt1(Span),
 }
 #[derive(Debug)]
-pub enum RuleOpt0 {
-    Alt0(PriorityLevel, Span),
-    Alt1(Span),
+pub enum RulePlus1 {
+    Alt0(Box<RulePlus1>, Token, PriorityLevel, Span),
+    Alt1(PriorityLevel, Span),
 }
 #[derive(Debug)]
-pub struct RuleGroup0(Token, PriorityLevel, Span);
+pub enum RuleOpt1 {
+    Alt0(RulePlus1, Span),
+    Alt1(Span),
+}
 #[derive(Debug)]
 pub enum RuleStar1 {
-    Alt0(Box<RuleStar1>, RuleGroup0, Span),
+    Alt0(RuleOpt1, Span),
     Alt1(Span),
 }
 #[derive(Debug)]
-pub enum PriorityLevelOpt1 {
+pub enum PriorityLevelOpt2 {
     Alt0(Alternative, Span),
     Alt1(Span),
 }
 #[derive(Debug)]
-pub struct PriorityLevelGroup1(Token, Alternative, Span);
+pub struct PriorityLevelGroup0(Token, Alternative, Span);
+#[derive(Debug)]
+pub enum PriorityLevelPlus2 {
+    Alt0(Box<PriorityLevelPlus2>, PriorityLevelGroup0, Span),
+    Alt1(PriorityLevelGroup0, Span),
+}
+#[derive(Debug)]
+pub enum PriorityLevelOpt3 {
+    Alt0(PriorityLevelPlus2, Span),
+    Alt1(Span),
+}
 #[derive(Debug)]
 pub enum PriorityLevelStar2 {
-    Alt0(Box<PriorityLevelStar2>, PriorityLevelGroup1, Span),
+    Alt0(PriorityLevelOpt3, Span),
+    Alt1(Span),
+}
+#[derive(Debug)]
+pub enum AlternativePlus3 {
+    Alt0(Box<AlternativePlus3>, Symbol, Span),
+    Alt1(Symbol, Span),
+}
+#[derive(Debug)]
+pub enum AlternativeOpt4 {
+    Alt0(AlternativePlus3, Span),
     Alt1(Span),
 }
 #[derive(Debug)]
 pub enum AlternativeStar3 {
-    Alt0(Box<AlternativeStar3>, Symbol, Span),
+    Alt0(AlternativeOpt4, Span),
     Alt1(Span),
 }
 impl Grammar {
@@ -450,18 +615,17 @@ impl Rule {
             1 => Some(self.1.as_parse_tree_ref()),
             2 => Some(self.2.as_parse_tree_ref()),
             3 => Some(self.3.as_parse_tree_ref()),
-            4 => Some(self.4.as_parse_tree_ref()),
             _ => None,
         }
     }
     pub fn child_count(&self) -> usize {
-        5usize
+        4usize
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
         ParseTreeRef::Rule(self)
     }
     pub fn span(&self) -> Span {
-        self.5
+        self.4
     }
 }
 impl PriorityLevel {
@@ -516,12 +680,69 @@ impl Symbol {
         self.1
     }
 }
+impl GrammarPlus0 {
+    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+        match self {
+            GrammarPlus0::Alt0(c0, c1, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                1 => Some(c1.as_parse_tree_ref()),
+                _ => None,
+            },
+            GrammarPlus0::Alt1(c0, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                _ => None,
+            },
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        match self {
+            GrammarPlus0::Alt0(..) => 2usize,
+            GrammarPlus0::Alt1(..) => 1usize,
+        }
+    }
+    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        ParseTreeRef::GrammarPlus0(self)
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            GrammarPlus0::Alt0(.., span) => *span,
+            GrammarPlus0::Alt1(.., span) => *span,
+        }
+    }
+}
+impl GrammarOpt0 {
+    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+        match self {
+            GrammarOpt0::Alt0(c0, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                _ => None,
+            },
+            GrammarOpt0::Alt1(_) => match index {
+                _ => None,
+            },
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        match self {
+            GrammarOpt0::Alt0(..) => 1usize,
+            GrammarOpt0::Alt1(..) => 0usize,
+        }
+    }
+    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        ParseTreeRef::GrammarOpt0(self)
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            GrammarOpt0::Alt0(.., span) => *span,
+            GrammarOpt0::Alt1(.., span) => *span,
+        }
+    }
+}
 impl GrammarStar0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            GrammarStar0::Alt0(c0, c1, _) => match index {
+            GrammarStar0::Alt0(c0, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
-                1 => Some(c1.as_parse_tree_ref()),
                 _ => None,
             },
             GrammarStar0::Alt1(_) => match index {
@@ -531,7 +752,7 @@ impl GrammarStar0 {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            GrammarStar0::Alt0(..) => 2usize,
+            GrammarStar0::Alt0(..) => 1usize,
             GrammarStar0::Alt1(..) => 0usize,
         }
     }
@@ -545,58 +766,70 @@ impl GrammarStar0 {
         }
     }
 }
-impl RuleOpt0 {
+impl RulePlus1 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            RuleOpt0::Alt0(c0, _) => match index {
+            RulePlus1::Alt0(c0, c1, c2, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                1 => Some(c1.as_parse_tree_ref()),
+                2 => Some(c2.as_parse_tree_ref()),
+                _ => None,
+            },
+            RulePlus1::Alt1(c0, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 _ => None,
             },
-            RuleOpt0::Alt1(_) => match index {
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        match self {
+            RulePlus1::Alt0(..) => 3usize,
+            RulePlus1::Alt1(..) => 1usize,
+        }
+    }
+    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        ParseTreeRef::RulePlus1(self)
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            RulePlus1::Alt0(.., span) => *span,
+            RulePlus1::Alt1(.., span) => *span,
+        }
+    }
+}
+impl RuleOpt1 {
+    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+        match self {
+            RuleOpt1::Alt0(c0, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                _ => None,
+            },
+            RuleOpt1::Alt1(_) => match index {
                 _ => None,
             },
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
-            RuleOpt0::Alt0(..) => 1usize,
-            RuleOpt0::Alt1(..) => 0usize,
+            RuleOpt1::Alt0(..) => 1usize,
+            RuleOpt1::Alt1(..) => 0usize,
         }
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::RuleOpt0(self)
+        ParseTreeRef::RuleOpt1(self)
     }
     pub fn span(&self) -> Span {
         match self {
-            RuleOpt0::Alt0(.., span) => *span,
-            RuleOpt0::Alt1(.., span) => *span,
+            RuleOpt1::Alt0(.., span) => *span,
+            RuleOpt1::Alt1(.., span) => *span,
         }
-    }
-}
-impl RuleGroup0 {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
-        match index {
-            0 => Some(self.0.as_parse_tree_ref()),
-            1 => Some(self.1.as_parse_tree_ref()),
-            _ => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        2usize
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::RuleGroup0(self)
-    }
-    pub fn span(&self) -> Span {
-        self.2
     }
 }
 impl RuleStar1 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            RuleStar1::Alt0(c0, c1, _) => match index {
+            RuleStar1::Alt0(c0, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
-                1 => Some(c1.as_parse_tree_ref()),
                 _ => None,
             },
             RuleStar1::Alt1(_) => match index {
@@ -606,7 +839,7 @@ impl RuleStar1 {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            RuleStar1::Alt0(..) => 2usize,
+            RuleStar1::Alt0(..) => 1usize,
             RuleStar1::Alt1(..) => 0usize,
         }
     }
@@ -620,35 +853,35 @@ impl RuleStar1 {
         }
     }
 }
-impl PriorityLevelOpt1 {
+impl PriorityLevelOpt2 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            PriorityLevelOpt1::Alt0(c0, _) => match index {
+            PriorityLevelOpt2::Alt0(c0, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 _ => None,
             },
-            PriorityLevelOpt1::Alt1(_) => match index {
+            PriorityLevelOpt2::Alt1(_) => match index {
                 _ => None,
             },
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
-            PriorityLevelOpt1::Alt0(..) => 1usize,
-            PriorityLevelOpt1::Alt1(..) => 0usize,
+            PriorityLevelOpt2::Alt0(..) => 1usize,
+            PriorityLevelOpt2::Alt1(..) => 0usize,
         }
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::PriorityLevelOpt1(self)
+        ParseTreeRef::PriorityLevelOpt2(self)
     }
     pub fn span(&self) -> Span {
         match self {
-            PriorityLevelOpt1::Alt0(.., span) => *span,
-            PriorityLevelOpt1::Alt1(.., span) => *span,
+            PriorityLevelOpt2::Alt0(.., span) => *span,
+            PriorityLevelOpt2::Alt1(.., span) => *span,
         }
     }
 }
-impl PriorityLevelGroup1 {
+impl PriorityLevelGroup0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
             0 => Some(self.0.as_parse_tree_ref()),
@@ -660,18 +893,75 @@ impl PriorityLevelGroup1 {
         2usize
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::PriorityLevelGroup1(self)
+        ParseTreeRef::PriorityLevelGroup0(self)
     }
     pub fn span(&self) -> Span {
         self.2
     }
 }
+impl PriorityLevelPlus2 {
+    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+        match self {
+            PriorityLevelPlus2::Alt0(c0, c1, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                1 => Some(c1.as_parse_tree_ref()),
+                _ => None,
+            },
+            PriorityLevelPlus2::Alt1(c0, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                _ => None,
+            },
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        match self {
+            PriorityLevelPlus2::Alt0(..) => 2usize,
+            PriorityLevelPlus2::Alt1(..) => 1usize,
+        }
+    }
+    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        ParseTreeRef::PriorityLevelPlus2(self)
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            PriorityLevelPlus2::Alt0(.., span) => *span,
+            PriorityLevelPlus2::Alt1(.., span) => *span,
+        }
+    }
+}
+impl PriorityLevelOpt3 {
+    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+        match self {
+            PriorityLevelOpt3::Alt0(c0, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                _ => None,
+            },
+            PriorityLevelOpt3::Alt1(_) => match index {
+                _ => None,
+            },
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        match self {
+            PriorityLevelOpt3::Alt0(..) => 1usize,
+            PriorityLevelOpt3::Alt1(..) => 0usize,
+        }
+    }
+    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        ParseTreeRef::PriorityLevelOpt3(self)
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            PriorityLevelOpt3::Alt0(.., span) => *span,
+            PriorityLevelOpt3::Alt1(.., span) => *span,
+        }
+    }
+}
 impl PriorityLevelStar2 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            PriorityLevelStar2::Alt0(c0, c1, _) => match index {
+            PriorityLevelStar2::Alt0(c0, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
-                1 => Some(c1.as_parse_tree_ref()),
                 _ => None,
             },
             PriorityLevelStar2::Alt1(_) => match index {
@@ -681,7 +971,7 @@ impl PriorityLevelStar2 {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            PriorityLevelStar2::Alt0(..) => 2usize,
+            PriorityLevelStar2::Alt0(..) => 1usize,
             PriorityLevelStar2::Alt1(..) => 0usize,
         }
     }
@@ -695,12 +985,69 @@ impl PriorityLevelStar2 {
         }
     }
 }
+impl AlternativePlus3 {
+    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+        match self {
+            AlternativePlus3::Alt0(c0, c1, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                1 => Some(c1.as_parse_tree_ref()),
+                _ => None,
+            },
+            AlternativePlus3::Alt1(c0, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                _ => None,
+            },
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        match self {
+            AlternativePlus3::Alt0(..) => 2usize,
+            AlternativePlus3::Alt1(..) => 1usize,
+        }
+    }
+    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        ParseTreeRef::AlternativePlus3(self)
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            AlternativePlus3::Alt0(.., span) => *span,
+            AlternativePlus3::Alt1(.., span) => *span,
+        }
+    }
+}
+impl AlternativeOpt4 {
+    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+        match self {
+            AlternativeOpt4::Alt0(c0, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                _ => None,
+            },
+            AlternativeOpt4::Alt1(_) => match index {
+                _ => None,
+            },
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        match self {
+            AlternativeOpt4::Alt0(..) => 1usize,
+            AlternativeOpt4::Alt1(..) => 0usize,
+        }
+    }
+    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        ParseTreeRef::AlternativeOpt4(self)
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            AlternativeOpt4::Alt0(.., span) => *span,
+            AlternativeOpt4::Alt1(.., span) => *span,
+        }
+    }
+}
 impl AlternativeStar3 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            AlternativeStar3::Alt0(c0, c1, _) => match index {
+            AlternativeStar3::Alt0(c0, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
-                1 => Some(c1.as_parse_tree_ref()),
                 _ => None,
             },
             AlternativeStar3::Alt1(_) => match index {
@@ -710,7 +1057,7 @@ impl AlternativeStar3 {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            AlternativeStar3::Alt0(..) => 2usize,
+            AlternativeStar3::Alt0(..) => 1usize,
             AlternativeStar3::Alt1(..) => 0usize,
         }
     }
@@ -724,18 +1071,18 @@ impl AlternativeStar3 {
         }
     }
 }
-impl ListNode for GrammarStar0 {
-    type Item = Rule;
-    fn iter(&self) -> impl Iterator<Item = &Rule> {
+impl<'a> ListNode<'a> for GrammarPlus0 {
+    fn iter(&'a self) -> impl Iterator<Item = ParseTreeRef<'a>> {
         let mut items = vec![];
         let mut current = self;
         loop {
             match current {
-                GrammarStar0::Alt0(rest, item, _) => {
-                    items.push(item);
+                GrammarPlus0::Alt0(rest, item, _) => {
+                    items.push(item.as_parse_tree_ref());
                     current = rest;
                 }
-                GrammarStar0::Alt1(_) => {
+                GrammarPlus0::Alt1(item, _) => {
+                    items.push(item.as_parse_tree_ref());
                     break;
                 }
             }
@@ -743,18 +1090,19 @@ impl ListNode for GrammarStar0 {
         items.into_iter().rev()
     }
 }
-impl ListNode for RuleStar1 {
-    type Item = RuleGroup0;
-    fn iter(&self) -> impl Iterator<Item = &RuleGroup0> {
+impl<'a> ListNode<'a> for RulePlus1 {
+    fn iter(&'a self) -> impl Iterator<Item = ParseTreeRef<'a>> {
         let mut items = vec![];
         let mut current = self;
         loop {
             match current {
-                RuleStar1::Alt0(rest, item, _) => {
-                    items.push(item);
+                RulePlus1::Alt0(rest, sep, item, _) => {
+                    items.push(item.as_parse_tree_ref());
+                    items.push(sep.as_parse_tree_ref());
                     current = rest;
                 }
-                RuleStar1::Alt1(_) => {
+                RulePlus1::Alt1(item, _) => {
+                    items.push(item.as_parse_tree_ref());
                     break;
                 }
             }
@@ -762,18 +1110,18 @@ impl ListNode for RuleStar1 {
         items.into_iter().rev()
     }
 }
-impl ListNode for PriorityLevelStar2 {
-    type Item = PriorityLevelGroup1;
-    fn iter(&self) -> impl Iterator<Item = &PriorityLevelGroup1> {
+impl<'a> ListNode<'a> for PriorityLevelPlus2 {
+    fn iter(&'a self) -> impl Iterator<Item = ParseTreeRef<'a>> {
         let mut items = vec![];
         let mut current = self;
         loop {
             match current {
-                PriorityLevelStar2::Alt0(rest, item, _) => {
-                    items.push(item);
+                PriorityLevelPlus2::Alt0(rest, item, _) => {
+                    items.push(item.as_parse_tree_ref());
                     current = rest;
                 }
-                PriorityLevelStar2::Alt1(_) => {
+                PriorityLevelPlus2::Alt1(item, _) => {
+                    items.push(item.as_parse_tree_ref());
                     break;
                 }
             }
@@ -781,18 +1129,18 @@ impl ListNode for PriorityLevelStar2 {
         items.into_iter().rev()
     }
 }
-impl ListNode for AlternativeStar3 {
-    type Item = Symbol;
-    fn iter(&self) -> impl Iterator<Item = &Symbol> {
+impl<'a> ListNode<'a> for AlternativePlus3 {
+    fn iter(&'a self) -> impl Iterator<Item = ParseTreeRef<'a>> {
         let mut items = vec![];
         let mut current = self;
         loop {
             match current {
-                AlternativeStar3::Alt0(rest, item, _) => {
-                    items.push(item);
+                AlternativePlus3::Alt0(rest, item, _) => {
+                    items.push(item.as_parse_tree_ref());
                     current = rest;
                 }
-                AlternativeStar3::Alt1(_) => {
+                AlternativePlus3::Alt1(item, _) => {
+                    items.push(item.as_parse_tree_ref());
                     break;
                 }
             }
@@ -862,16 +1210,14 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //Rule
             NonterminalId(1) => {
                 match nonterminal_node.return_slot {
-                    //Rule : Identifier ":" Rule_Opt_0 Rule_Star_1 ";".
-                    SlotId(10) => {
-                        let [c0, c1, c2, c3, c4] =
-                            <[ParseTree; 5usize]>::try_from(children).unwrap();
+                    //Rule : Identifier ":" Rule_Star_1 ";".
+                    SlotId(9) => {
+                        let [c0, c1, c2, c3] = <[ParseTree; 4usize]>::try_from(children).unwrap();
                         Rule(
                             c0.unwrap_token(),
                             c1.unwrap_token(),
-                            c2.unwrap_rule_opt_0(),
-                            c3.unwrap_rule_star_1(),
-                            c4.unwrap_token(),
+                            c2.unwrap_rule_star_1(),
+                            c3.unwrap_token(),
                             nonterminal_node.span,
                         )
                         .into()
@@ -882,11 +1228,11 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //PriorityLevel
             NonterminalId(2) => {
                 match nonterminal_node.return_slot {
-                    //PriorityLevel : PriorityLevel_Opt_1 PriorityLevel_Star_2.
-                    SlotId(13) => {
+                    //PriorityLevel : PriorityLevel_Opt_2 PriorityLevel_Star_2.
+                    SlotId(12) => {
                         let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
                         PriorityLevel(
-                            c0.unwrap_prioritylevel_opt_1(),
+                            c0.unwrap_prioritylevel_opt_2(),
                             c1.unwrap_prioritylevel_star_2(),
                             nonterminal_node.span,
                         )
@@ -899,7 +1245,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(3) => {
                 match nonterminal_node.return_slot {
                     //Alternative : Alternative_Star_3.
-                    SlotId(15) => {
+                    SlotId(14) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         Alternative(c0.unwrap_alternative_star_3(), nonterminal_node.span).into()
                     }
@@ -910,111 +1256,144 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(4) => {
                 match nonterminal_node.return_slot {
                     //Symbol : Identifier.
-                    SlotId(17) => {
+                    SlotId(16) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         Symbol(c0.unwrap_token(), nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
             }
-            //Grammar_Star_0
+            //Grammar_Plus_0
             NonterminalId(5) => {
                 match nonterminal_node.return_slot {
-                    //Grammar_Star_0 : Grammar_Star_0 Rule.
-                    SlotId(20) => {
+                    //Grammar_Plus_0 : Grammar_Plus_0 Rule.
+                    SlotId(19) => {
                         let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
-                        GrammarStar0::Alt0(
-                            Box::new(c0.unwrap_grammar_star_0()),
+                        GrammarPlus0::Alt0(
+                            Box::new(c0.unwrap_grammar_plus_0()),
                             c1.unwrap_rule(),
                             nonterminal_node.span,
                         )
                         .into()
                     }
-                    //Grammar_Star_0 : .
+                    //Grammar_Plus_0 : Rule.
                     SlotId(21) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        GrammarPlus0::Alt1(c0.unwrap_rule(), nonterminal_node.span).into()
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            //Grammar_Opt_0
+            NonterminalId(6) => {
+                match nonterminal_node.return_slot {
+                    //Grammar_Opt_0 : Grammar_Plus_0.
+                    SlotId(23) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        GrammarOpt0::Alt0(c0.unwrap_grammar_plus_0(), nonterminal_node.span).into()
+                    }
+                    //Grammar_Opt_0 : .
+                    SlotId(24) => {
+                        let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
+                        GrammarOpt0::Alt1(nonterminal_node.span).into()
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            //Grammar_Star_0
+            NonterminalId(7) => {
+                match nonterminal_node.return_slot {
+                    //Grammar_Star_0 : Grammar_Opt_0.
+                    SlotId(26) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        GrammarStar0::Alt0(c0.unwrap_grammar_opt_0(), nonterminal_node.span).into()
+                    }
+                    //Grammar_Star_0 : .
+                    SlotId(27) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         GrammarStar0::Alt1(nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
             }
-            //Rule_Opt_0
-            NonterminalId(6) => {
+            //Rule_Plus_1
+            NonterminalId(8) => {
                 match nonterminal_node.return_slot {
-                    //Rule_Opt_0 : PriorityLevel.
-                    SlotId(23) => {
-                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
-                        RuleOpt0::Alt0(c0.unwrap_prioritylevel(), nonterminal_node.span).into()
+                    //Rule_Plus_1 : Rule_Plus_1 ">" PriorityLevel.
+                    SlotId(31) => {
+                        let [c0, c1, c2] = <[ParseTree; 3usize]>::try_from(children).unwrap();
+                        RulePlus1::Alt0(
+                            Box::new(c0.unwrap_rule_plus_1()),
+                            c1.unwrap_token(),
+                            c2.unwrap_prioritylevel(),
+                            nonterminal_node.span,
+                        )
+                        .into()
                     }
-                    //Rule_Opt_0 : .
-                    SlotId(24) => {
-                        let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
-                        RuleOpt0::Alt1(nonterminal_node.span).into()
+                    //Rule_Plus_1 : PriorityLevel.
+                    SlotId(33) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        RulePlus1::Alt1(c0.unwrap_prioritylevel(), nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
             }
-            //Rule_Group_0
-            NonterminalId(7) => {
+            //Rule_Opt_1
+            NonterminalId(9) => {
                 match nonterminal_node.return_slot {
-                    //Rule_Group_0 : ">" PriorityLevel.
-                    SlotId(27) => {
-                        let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
-                        RuleGroup0(
-                            c0.unwrap_token(),
-                            c1.unwrap_prioritylevel(),
-                            nonterminal_node.span,
-                        )
-                        .into()
+                    //Rule_Opt_1 : Rule_Plus_1.
+                    SlotId(35) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        RuleOpt1::Alt0(c0.unwrap_rule_plus_1(), nonterminal_node.span).into()
+                    }
+                    //Rule_Opt_1 : .
+                    SlotId(36) => {
+                        let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
+                        RuleOpt1::Alt1(nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
             }
             //Rule_Star_1
-            NonterminalId(8) => {
+            NonterminalId(10) => {
                 match nonterminal_node.return_slot {
-                    //Rule_Star_1 : Rule_Star_1 Rule_Group_0.
-                    SlotId(30) => {
-                        let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
-                        RuleStar1::Alt0(
-                            Box::new(c0.unwrap_rule_star_1()),
-                            c1.unwrap_rule_group_0(),
-                            nonterminal_node.span,
-                        )
-                        .into()
+                    //Rule_Star_1 : Rule_Opt_1.
+                    SlotId(38) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        RuleStar1::Alt0(c0.unwrap_rule_opt_1(), nonterminal_node.span).into()
                     }
                     //Rule_Star_1 : .
-                    SlotId(31) => {
+                    SlotId(39) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         RuleStar1::Alt1(nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
             }
-            //PriorityLevel_Opt_1
-            NonterminalId(9) => {
+            //PriorityLevel_Opt_2
+            NonterminalId(11) => {
                 match nonterminal_node.return_slot {
-                    //PriorityLevel_Opt_1 : Alternative.
-                    SlotId(33) => {
+                    //PriorityLevel_Opt_2 : Alternative.
+                    SlotId(41) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
-                        PriorityLevelOpt1::Alt0(c0.unwrap_alternative(), nonterminal_node.span)
+                        PriorityLevelOpt2::Alt0(c0.unwrap_alternative(), nonterminal_node.span)
                             .into()
                     }
-                    //PriorityLevel_Opt_1 : .
-                    SlotId(34) => {
+                    //PriorityLevel_Opt_2 : .
+                    SlotId(42) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
-                        PriorityLevelOpt1::Alt1(nonterminal_node.span).into()
+                        PriorityLevelOpt2::Alt1(nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
             }
-            //PriorityLevel_Group_1
-            NonterminalId(10) => {
+            //PriorityLevel_Group_0
+            NonterminalId(12) => {
                 match nonterminal_node.return_slot {
-                    //PriorityLevel_Group_1 : "|" Alternative.
-                    SlotId(37) => {
+                    //PriorityLevel_Group_0 : "|" Alternative.
+                    SlotId(45) => {
                         let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
-                        PriorityLevelGroup1(
+                        PriorityLevelGroup0(
                             c0.unwrap_token(),
                             c1.unwrap_alternative(),
                             nonterminal_node.span,
@@ -1024,42 +1403,120 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     _ => unreachable!(),
                 }
             }
-            //PriorityLevel_Star_2
-            NonterminalId(11) => {
+            //PriorityLevel_Plus_2
+            NonterminalId(13) => {
                 match nonterminal_node.return_slot {
-                    //PriorityLevel_Star_2 : PriorityLevel_Star_2 PriorityLevel_Group_1.
-                    SlotId(40) => {
+                    //PriorityLevel_Plus_2 : PriorityLevel_Plus_2 PriorityLevel_Group_0.
+                    SlotId(48) => {
                         let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
+                        PriorityLevelPlus2::Alt0(
+                            Box::new(c0.unwrap_prioritylevel_plus_2()),
+                            c1.unwrap_prioritylevel_group_0(),
+                            nonterminal_node.span,
+                        )
+                        .into()
+                    }
+                    //PriorityLevel_Plus_2 : PriorityLevel_Group_0.
+                    SlotId(50) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        PriorityLevelPlus2::Alt1(
+                            c0.unwrap_prioritylevel_group_0(),
+                            nonterminal_node.span,
+                        )
+                        .into()
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            //PriorityLevel_Opt_3
+            NonterminalId(14) => {
+                match nonterminal_node.return_slot {
+                    //PriorityLevel_Opt_3 : PriorityLevel_Plus_2.
+                    SlotId(52) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        PriorityLevelOpt3::Alt0(
+                            c0.unwrap_prioritylevel_plus_2(),
+                            nonterminal_node.span,
+                        )
+                        .into()
+                    }
+                    //PriorityLevel_Opt_3 : .
+                    SlotId(53) => {
+                        let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
+                        PriorityLevelOpt3::Alt1(nonterminal_node.span).into()
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            //PriorityLevel_Star_2
+            NonterminalId(15) => {
+                match nonterminal_node.return_slot {
+                    //PriorityLevel_Star_2 : PriorityLevel_Opt_3.
+                    SlotId(55) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         PriorityLevelStar2::Alt0(
-                            Box::new(c0.unwrap_prioritylevel_star_2()),
-                            c1.unwrap_prioritylevel_group_1(),
+                            c0.unwrap_prioritylevel_opt_3(),
                             nonterminal_node.span,
                         )
                         .into()
                     }
                     //PriorityLevel_Star_2 : .
-                    SlotId(41) => {
+                    SlotId(56) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         PriorityLevelStar2::Alt1(nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
             }
-            //Alternative_Star_3
-            NonterminalId(12) => {
+            //Alternative_Plus_3
+            NonterminalId(16) => {
                 match nonterminal_node.return_slot {
-                    //Alternative_Star_3 : Alternative_Star_3 Symbol.
-                    SlotId(44) => {
+                    //Alternative_Plus_3 : Alternative_Plus_3 Symbol.
+                    SlotId(59) => {
                         let [c0, c1] = <[ParseTree; 2usize]>::try_from(children).unwrap();
-                        AlternativeStar3::Alt0(
-                            Box::new(c0.unwrap_alternative_star_3()),
+                        AlternativePlus3::Alt0(
+                            Box::new(c0.unwrap_alternative_plus_3()),
                             c1.unwrap_symbol(),
                             nonterminal_node.span,
                         )
                         .into()
                     }
+                    //Alternative_Plus_3 : Symbol.
+                    SlotId(61) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        AlternativePlus3::Alt1(c0.unwrap_symbol(), nonterminal_node.span).into()
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            //Alternative_Opt_4
+            NonterminalId(17) => {
+                match nonterminal_node.return_slot {
+                    //Alternative_Opt_4 : Alternative_Plus_3.
+                    SlotId(63) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        AlternativeOpt4::Alt0(c0.unwrap_alternative_plus_3(), nonterminal_node.span)
+                            .into()
+                    }
+                    //Alternative_Opt_4 : .
+                    SlotId(64) => {
+                        let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
+                        AlternativeOpt4::Alt1(nonterminal_node.span).into()
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            //Alternative_Star_3
+            NonterminalId(18) => {
+                match nonterminal_node.return_slot {
+                    //Alternative_Star_3 : Alternative_Opt_4.
+                    SlotId(66) => {
+                        let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        AlternativeStar3::Alt0(c0.unwrap_alternative_opt_4(), nonterminal_node.span)
+                            .into()
+                    }
                     //Alternative_Star_3 : .
-                    SlotId(45) => {
+                    SlotId(67) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         AlternativeStar3::Alt1(nonterminal_node.span).into()
                     }
@@ -1092,25 +1549,43 @@ pub fn create_parse_tree(
             ParseTree::Alternative(create_parse_tree_alternative(root_id, parser, builder))
         }
         "Symbol" => ParseTree::Symbol(create_parse_tree_symbol(root_id, parser, builder)),
+        "Grammar_Plus_0" => {
+            ParseTree::GrammarPlus0(create_parse_tree_grammar_plus_0(root_id, parser, builder))
+        }
+        "Grammar_Opt_0" => {
+            ParseTree::GrammarOpt0(create_parse_tree_grammar_opt_0(root_id, parser, builder))
+        }
         "Grammar_Star_0" => {
             ParseTree::GrammarStar0(create_parse_tree_grammar_star_0(root_id, parser, builder))
         }
-        "Rule_Opt_0" => ParseTree::RuleOpt0(create_parse_tree_rule_opt_0(root_id, parser, builder)),
-        "Rule_Group_0" => {
-            ParseTree::RuleGroup0(create_parse_tree_rule_group_0(root_id, parser, builder))
+        "Rule_Plus_1" => {
+            ParseTree::RulePlus1(create_parse_tree_rule_plus_1(root_id, parser, builder))
         }
+        "Rule_Opt_1" => ParseTree::RuleOpt1(create_parse_tree_rule_opt_1(root_id, parser, builder)),
         "Rule_Star_1" => {
             ParseTree::RuleStar1(create_parse_tree_rule_star_1(root_id, parser, builder))
         }
-        "PriorityLevel_Opt_1" => ParseTree::PriorityLevelOpt1(
-            create_parse_tree_prioritylevel_opt_1(root_id, parser, builder),
+        "PriorityLevel_Opt_2" => ParseTree::PriorityLevelOpt2(
+            create_parse_tree_prioritylevel_opt_2(root_id, parser, builder),
         ),
-        "PriorityLevel_Group_1" => ParseTree::PriorityLevelGroup1(
-            create_parse_tree_prioritylevel_group_1(root_id, parser, builder),
+        "PriorityLevel_Group_0" => ParseTree::PriorityLevelGroup0(
+            create_parse_tree_prioritylevel_group_0(root_id, parser, builder),
+        ),
+        "PriorityLevel_Plus_2" => ParseTree::PriorityLevelPlus2(
+            create_parse_tree_prioritylevel_plus_2(root_id, parser, builder),
+        ),
+        "PriorityLevel_Opt_3" => ParseTree::PriorityLevelOpt3(
+            create_parse_tree_prioritylevel_opt_3(root_id, parser, builder),
         ),
         "PriorityLevel_Star_2" => ParseTree::PriorityLevelStar2(
             create_parse_tree_prioritylevel_star_2(root_id, parser, builder),
         ),
+        "Alternative_Plus_3" => ParseTree::AlternativePlus3(create_parse_tree_alternative_plus_3(
+            root_id, parser, builder,
+        )),
+        "Alternative_Opt_4" => ParseTree::AlternativeOpt4(create_parse_tree_alternative_opt_4(
+            root_id, parser, builder,
+        )),
         "Alternative_Star_3" => ParseTree::AlternativeStar3(create_parse_tree_alternative_star_3(
             root_id, parser, builder,
         )),
@@ -1165,6 +1640,26 @@ pub fn create_parse_tree_symbol(
         .unwrap_one()
         .unwrap_symbol()
 }
+pub fn create_parse_tree_grammar_plus_0(
+    root_id: SPPFNodeId,
+    parser: &IggyParser,
+    builder: &IggyParseTreeBuilder,
+) -> GrammarPlus0 {
+    let node = parser.sppf_node(root_id);
+    visit_sppf(node, parser, builder)
+        .unwrap_one()
+        .unwrap_grammar_plus_0()
+}
+pub fn create_parse_tree_grammar_opt_0(
+    root_id: SPPFNodeId,
+    parser: &IggyParser,
+    builder: &IggyParseTreeBuilder,
+) -> GrammarOpt0 {
+    let node = parser.sppf_node(root_id);
+    visit_sppf(node, parser, builder)
+        .unwrap_one()
+        .unwrap_grammar_opt_0()
+}
 pub fn create_parse_tree_grammar_star_0(
     root_id: SPPFNodeId,
     parser: &IggyParser,
@@ -1175,25 +1670,25 @@ pub fn create_parse_tree_grammar_star_0(
         .unwrap_one()
         .unwrap_grammar_star_0()
 }
-pub fn create_parse_tree_rule_opt_0(
+pub fn create_parse_tree_rule_plus_1(
     root_id: SPPFNodeId,
     parser: &IggyParser,
     builder: &IggyParseTreeBuilder,
-) -> RuleOpt0 {
+) -> RulePlus1 {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_rule_opt_0()
+        .unwrap_rule_plus_1()
 }
-pub fn create_parse_tree_rule_group_0(
+pub fn create_parse_tree_rule_opt_1(
     root_id: SPPFNodeId,
     parser: &IggyParser,
     builder: &IggyParseTreeBuilder,
-) -> RuleGroup0 {
+) -> RuleOpt1 {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_rule_group_0()
+        .unwrap_rule_opt_1()
 }
 pub fn create_parse_tree_rule_star_1(
     root_id: SPPFNodeId,
@@ -1205,25 +1700,45 @@ pub fn create_parse_tree_rule_star_1(
         .unwrap_one()
         .unwrap_rule_star_1()
 }
-pub fn create_parse_tree_prioritylevel_opt_1(
+pub fn create_parse_tree_prioritylevel_opt_2(
     root_id: SPPFNodeId,
     parser: &IggyParser,
     builder: &IggyParseTreeBuilder,
-) -> PriorityLevelOpt1 {
+) -> PriorityLevelOpt2 {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_prioritylevel_opt_1()
+        .unwrap_prioritylevel_opt_2()
 }
-pub fn create_parse_tree_prioritylevel_group_1(
+pub fn create_parse_tree_prioritylevel_group_0(
     root_id: SPPFNodeId,
     parser: &IggyParser,
     builder: &IggyParseTreeBuilder,
-) -> PriorityLevelGroup1 {
+) -> PriorityLevelGroup0 {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_prioritylevel_group_1()
+        .unwrap_prioritylevel_group_0()
+}
+pub fn create_parse_tree_prioritylevel_plus_2(
+    root_id: SPPFNodeId,
+    parser: &IggyParser,
+    builder: &IggyParseTreeBuilder,
+) -> PriorityLevelPlus2 {
+    let node = parser.sppf_node(root_id);
+    visit_sppf(node, parser, builder)
+        .unwrap_one()
+        .unwrap_prioritylevel_plus_2()
+}
+pub fn create_parse_tree_prioritylevel_opt_3(
+    root_id: SPPFNodeId,
+    parser: &IggyParser,
+    builder: &IggyParseTreeBuilder,
+) -> PriorityLevelOpt3 {
+    let node = parser.sppf_node(root_id);
+    visit_sppf(node, parser, builder)
+        .unwrap_one()
+        .unwrap_prioritylevel_opt_3()
 }
 pub fn create_parse_tree_prioritylevel_star_2(
     root_id: SPPFNodeId,
@@ -1234,6 +1749,26 @@ pub fn create_parse_tree_prioritylevel_star_2(
     visit_sppf(node, parser, builder)
         .unwrap_one()
         .unwrap_prioritylevel_star_2()
+}
+pub fn create_parse_tree_alternative_plus_3(
+    root_id: SPPFNodeId,
+    parser: &IggyParser,
+    builder: &IggyParseTreeBuilder,
+) -> AlternativePlus3 {
+    let node = parser.sppf_node(root_id);
+    visit_sppf(node, parser, builder)
+        .unwrap_one()
+        .unwrap_alternative_plus_3()
+}
+pub fn create_parse_tree_alternative_opt_4(
+    root_id: SPPFNodeId,
+    parser: &IggyParser,
+    builder: &IggyParseTreeBuilder,
+) -> AlternativeOpt4 {
+    let node = parser.sppf_node(root_id);
+    visit_sppf(node, parser, builder)
+        .unwrap_one()
+        .unwrap_alternative_opt_4()
 }
 pub fn create_parse_tree_alternative_star_3(
     root_id: SPPFNodeId,

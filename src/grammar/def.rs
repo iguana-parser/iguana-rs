@@ -265,9 +265,18 @@ fn add_lexical_rules(
                 None => Symbol::Star(Box::new(transformed_symbol), None),
             }
         }
-        Symbol::Plus(symbol) => {
+        Symbol::Plus(symbol, sep) => {
             let transformed_symbol = add_lexical_rules(*symbol, lexical_rules, added_terminals);
-            Symbol::Plus(Box::new(transformed_symbol))
+            match sep {
+                Some(sep) => {
+                    let transformed_sep = add_lexical_rules(*sep, lexical_rules, added_terminals);
+                    Symbol::Plus(
+                        Box::new(transformed_symbol),
+                        Some(Box::new(transformed_sep)),
+                    )
+                }
+                None => Symbol::Plus(Box::new(transformed_symbol), None),
+            }
         }
         _ => symbol,
     }
@@ -325,9 +334,15 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 None => Symbol::Star(Box::new(resolved_symbol), None),
             }
         }
-        Symbol::Plus(symbol) => {
+        Symbol::Plus(symbol, sep) => {
             let resolved_symbol = resolve_identifier(*symbol, symbol_table);
-            Symbol::Plus(Box::new(resolved_symbol))
+            match sep {
+                Some(sep) => {
+                    let transformed_sep = resolve_identifier(*sep, symbol_table);
+                    Symbol::Plus(Box::new(resolved_symbol), Some(Box::new(transformed_sep)))
+                }
+                None => Symbol::Plus(Box::new(resolved_symbol), None),
+            }
         }
         _ => symbol,
     }
@@ -342,8 +357,7 @@ impl From<GrammarDef> for Grammar {
         let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules);
         create_symbol_table(&syntax_rules, &lexical_rules, &mut symbol_table);
         let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
-        let (syntax_rules, mut ebnf_symbols) =
-            ebnf_to_bnf::ebnf_to_bnf(syntax_rules, &mut symbol_table);
+        let (syntax_rules, mut ebnf_symbols) = ebnf_to_bnf::ebnf_to_bnf(syntax_rules);
         let definitions = create_symbol_table(&syntax_rules, &lexical_rules, &mut symbol_table);
         let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
         ebnf_symbols = ebnf_symbols

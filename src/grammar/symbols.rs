@@ -34,7 +34,7 @@ pub enum Symbol {
     Opt(Box<Symbol>),
     Alt(Vec<Symbol>),
     Star(Box<Symbol>, Option<Box<Symbol>>),
-    Plus(Box<Symbol>),
+    Plus(Box<Symbol>, Option<Box<Symbol>>),
 }
 
 impl Symbol {
@@ -68,7 +68,10 @@ impl Display for Symbol {
                 Some(sep) => write!(f, "{{{symbol} {sep}}}*"),
                 None => write!(f, "{symbol}*"),
             },
-            Symbol::Plus(symbol) => write!(f, "{symbol}+"),
+            Symbol::Plus(symbol, sep) => match sep {
+                Some(sep) => write!(f, "{{{symbol} {sep}}}+"),
+                None => write!(f, "{symbol}+"),
+            },
         }
     }
 }
@@ -146,15 +149,7 @@ impl Nonterminal {
     /// Returns true if the nonterminal was generated when converting from an EBNF Plus.
     pub fn is_plus(&self) -> bool {
         match &self.origin {
-            Some(s) => matches!(s, Symbol::Plus(_)),
-            None => false,
-        }
-    }
-
-    /// Returns true if the nonterminal was generated when converting from an EBNF Star.
-    pub fn is_star(&self) -> bool {
-        match &self.origin {
-            Some(s) => matches!(s, Symbol::Star(_, _)),
+            Some(s) => matches!(s, Symbol::Plus(_, _)),
             None => false,
         }
     }
@@ -225,7 +220,10 @@ macro_rules! group {
 #[macro_export]
 macro_rules! plus {
     ($symbol:expr) => {
-        $crate::grammar::symbols::Symbol::Plus(Box::new($symbol))
+        $crate::grammar::symbols::Symbol::Plus(Box::new($symbol), None)
+    };
+    ($symbol:expr, $sep:expr) => {
+        $crate::grammar::symbols::Symbol::Plus(Box::new($symbol), Some(Box::new($sep)))
     };
 }
 

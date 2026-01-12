@@ -293,7 +293,7 @@ pub trait Parser<'i> {
             record!(self, NonterminalNodeFound, existing_node_id);
             let node = self.sppf_node_mut(existing_node_id);
             let SPPFNode::Nonterminal(node) = node else {
-                unreachable!("It's a nonterminal node");
+                unreachable!("Expects a nonterminal node");
             };
             // Only count an ambiguous node once, i.e., when the second child is attached.
             if !node.ambiguous {
