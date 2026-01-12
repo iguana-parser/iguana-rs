@@ -15,6 +15,9 @@
     createGraph,
     getViewport,
     setupGraphTooltip,
+    highlightOutgoingEdges,
+    clearEdgeHighlights,
+    highlightClickedEdge,
   } from "$lib/graph-styles";
   import { GraphCollapseManager, buildDebugSppfElements, buildDebugGssElements, buildSppfElements, buildGssElements, exportGraphPng } from "$lib/graph-utils";
   import { createMaximizeToggle } from "$lib/window-utils";
@@ -38,7 +41,17 @@
 
   function handleKeyDown(e: KeyboardEvent) {
     if (e.key === "Escape") {
-      getCurrentWindow().close();
+      // Clear selections first, close window if nothing selected
+      if (selectedNodeId || (cy && cy.edges('.edge-clicked').length > 0)) {
+        if (selectedNodeId && cy) {
+          cy.getElementById(selectedNodeId).removeClass('selected');
+          selectedNodeId = null;
+        }
+        if (cy) clearEdgeHighlights(cy);
+        emit('sppf-node-selected', { left: null, right: null, nodeId: null });
+      } else {
+        getCurrentWindow().close();
+      }
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
       emit("debug-step-back");
@@ -138,7 +151,7 @@
       elements,
       styles: isGss
         ? [...gssNodeStyles, gssEdgeStyles]
-        : [...sppfNodeStyles, edgeStyles],
+        : [...sppfNodeStyles, ...edgeStyles],
       layout: isGss ? "gss" : "sppf",
       viewport: savedViewport,
     });
@@ -166,8 +179,13 @@
           if (selectedNodeId && cy) {
             cy.getElementById(selectedNodeId).removeClass('selected');
           }
-          selectedNodeId = node.id();
-          node.addClass('selected');
+          // Clear previous edge highlights and highlight new outgoing edges
+          if (cy) {
+            clearEdgeHighlights(cy);
+            selectedNodeId = node.id();
+            node.addClass('selected');
+            highlightOutgoingEdges(cy, node.id());
+          }
 
           // Emit event to main window
           if (left !== undefined && right !== undefined) {
@@ -182,8 +200,23 @@
               cy.getElementById(selectedNodeId).removeClass('selected');
               selectedNodeId = null;
             }
+            if (cy) clearEdgeHighlights(cy);
             emit('sppf-node-selected', { left: null, right: null, nodeId: null });
           }
+        });
+
+        // Click on edge to highlight it
+        cy.on('tap', 'edge', (event) => {
+          const edge = event.target;
+          // Clear node selection
+          if (selectedNodeId && cy) {
+            cy.getElementById(selectedNodeId).removeClass('selected');
+            selectedNodeId = null;
+          }
+          if (cy) {
+            highlightClickedEdge(cy, edge.id());
+          }
+          emit('sppf-node-selected', { left: null, right: null, nodeId: null });
         });
       }
     }
@@ -297,6 +330,7 @@
       if (savedSelection && cy) {
         selectedNodeId = savedSelection;
         cy.getElementById(savedSelection).addClass('selected');
+        highlightOutgoingEdges(cy, savedSelection);
       }
     });
     // Notify main window about the change (only for debug SPPF)

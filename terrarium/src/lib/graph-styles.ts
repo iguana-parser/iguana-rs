@@ -111,12 +111,17 @@ const nodeColors = {
   nonterminal: { bg: "#2d4a3d", border: "#4ec9b0", selectedBg: "#3a5f50", selectedBorder: "#7fffaa" },
   intermediate: { bg: "#2d3a4d", border: "#569cd6", selectedBg: "#3a4d60", selectedBorder: "#7eb8ff" },
   terminal: { bg: "#4d3a2d", border: "#ce9178", selectedBg: "#5f4a3a", selectedBorder: "#ffb07a" },
+  packed: { bg: "#666", selectedBg: "#888", selectedBorder: "#aaa" },
 };
 
-// Disable the default "active" state indicator (black dot on click)
+// Disable the default "active" state indicator (black overlay on click)
 const disableActiveStyles: Stylesheet[] = [
   {
     selector: "node:active",
+    style: { "overlay-opacity": 0 },
+  },
+  {
+    selector: "edge:active",
     style: { "overlay-opacity": 0 },
   },
   {
@@ -216,6 +221,14 @@ export const sppfNodeStyles: Stylesheet[] = [
       "border-color": nodeColors.terminal.selectedBorder,
     },
   },
+  {
+    selector: "node.packed.selected, node[kind='Packed'].selected",
+    style: {
+      "background-color": nodeColors.packed.selectedBg,
+      "border-width": 2,
+      "border-color": nodeColors.packed.selectedBorder,
+    },
+  },
 ];
 
 // GSS node styles
@@ -243,10 +256,47 @@ export const gssNodeStyles: Stylesheet[] = [
 ];
 
 // SPPF edge styles (no labels)
-export const edgeStyles: Stylesheet = {
-  selector: "edge",
-  style: { ...baseEdgeStyle },
-};
+export const edgeStyles: Stylesheet[] = [
+  {
+    selector: "edge",
+    style: { ...baseEdgeStyle },
+  },
+  {
+    selector: "edge.edge-selected-nonterminal",
+    style: {
+      "line-color": nodeColors.nonterminal.selectedBorder,
+      "target-arrow-color": nodeColors.nonterminal.selectedBorder,
+    },
+  },
+  {
+    selector: "edge.edge-selected-intermediate",
+    style: {
+      "line-color": nodeColors.intermediate.selectedBorder,
+      "target-arrow-color": nodeColors.intermediate.selectedBorder,
+    },
+  },
+  {
+    selector: "edge.edge-selected-terminal",
+    style: {
+      "line-color": nodeColors.terminal.selectedBorder,
+      "target-arrow-color": nodeColors.terminal.selectedBorder,
+    },
+  },
+  {
+    selector: "edge.edge-selected-packed",
+    style: {
+      "line-color": nodeColors.packed.selectedBorder,
+      "target-arrow-color": nodeColors.packed.selectedBorder,
+    },
+  },
+  {
+    selector: "edge.edge-clicked",
+    style: {
+      "line-color": "#999",
+      "target-arrow-color": "#999",
+    },
+  },
+];
 
 // GSS edge styles (with labels)
 export const gssEdgeStyles: Stylesheet = {
@@ -344,4 +394,43 @@ export function createGraph(options: GraphOptions): Core {
   }
 
   return cyInstance;
+}
+
+// Edge selection class names
+const EDGE_SELECTED_CLASSES = ['edge-selected-nonterminal', 'edge-selected-intermediate', 'edge-selected-terminal', 'edge-selected-packed', 'edge-clicked'];
+
+// Get the appropriate edge selection class based on node type
+function getEdgeClassForNode(node: cytoscape.NodeSingular): string {
+  const kind = node.data('kind');
+  if (kind === 'Packed' || node.hasClass('packed')) {
+    return 'edge-selected-packed';
+  } else if (kind === 'Nonterminal' || node.hasClass('nonterminal')) {
+    return 'edge-selected-nonterminal';
+  } else if (kind === 'Intermediate' || node.hasClass('intermediate')) {
+    return 'edge-selected-intermediate';
+  } else if (kind === 'Terminal' || kind === 'Token' || node.hasClass('terminal') || node.hasClass('token')) {
+    return 'edge-selected-terminal';
+  }
+  return 'edge-selected-nonterminal'; // default
+}
+
+// Highlight outgoing edges of a selected node
+export function highlightOutgoingEdges(cy: Core, nodeId: string) {
+  const node = cy.getElementById(nodeId);
+  if (node.empty()) return;
+
+  const edgeClass = getEdgeClassForNode(node);
+  const outgoingEdges = node.outgoers('edge');
+  outgoingEdges.addClass(edgeClass);
+}
+
+// Clear all edge selection highlighting
+export function clearEdgeHighlights(cy: Core) {
+  cy.edges().removeClass(EDGE_SELECTED_CLASSES);
+}
+
+// Highlight a single clicked edge
+export function highlightClickedEdge(cy: Core, edgeId: string) {
+  clearEdgeHighlights(cy);
+  cy.getElementById(edgeId).addClass('edge-clicked');
 }

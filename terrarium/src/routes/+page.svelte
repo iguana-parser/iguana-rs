@@ -19,6 +19,9 @@
     getViewport,
     truncateLabel,
     setupGraphTooltip,
+    highlightOutgoingEdges,
+    clearEdgeHighlights,
+    highlightClickedEdge,
     LABEL_MAX_LENGTH,
     INTERMEDIATE_MAX_LENGTH,
   } from "$lib/graph-styles";
@@ -145,8 +148,10 @@
         if (selectedNodeId) {
           debugSppfCy.getElementById(selectedNodeId).removeClass('selected');
         }
+        clearEdgeHighlights(debugSppfCy);
         if (nodeId) {
           debugSppfCy.getElementById(nodeId).addClass('selected');
+          highlightOutgoingEdges(debugSppfCy, nodeId);
         }
         selectedNodeId = nodeId;
       }
@@ -172,6 +177,7 @@
             parseTreeSelectedNodeId = savedParseTreeSelection;
             parseTreeSelectedSpan = savedParseTreeSpan;
             parseTreeCy.getElementById(savedParseTreeSelection).addClass('selected');
+            highlightOutgoingEdges(parseTreeCy, savedParseTreeSelection);
           }
         });
       }
@@ -183,6 +189,7 @@
             sppfSelectedNodeId = savedSppfSelection;
             sppfSelectedSpan = savedSppfSpan;
             cy.getElementById(savedSppfSelection).addClass('selected');
+            highlightOutgoingEdges(cy, savedSppfSelection);
           }
         });
       }
@@ -194,6 +201,7 @@
             selectedNodeId = savedDebugSelection;
             selectedSpan = savedDebugSpan;
             debugSppfCy.getElementById(savedDebugSelection).addClass('selected');
+            highlightOutgoingEdges(debugSppfCy, savedDebugSelection);
           }
         });
       }
@@ -449,7 +457,7 @@
     cy = createGraph({
       container: sppfContainer,
       elements,
-      styles: [...sppfNodeStyles, edgeStyles],
+      styles: [...sppfNodeStyles, ...edgeStyles],
       layout: 'sppf',
       viewport: savedViewport,
     });
@@ -477,19 +485,37 @@
       if (sppfSelectedNodeId) {
         cy?.getElementById(sppfSelectedNodeId).removeClass('selected');
       }
-      sppfSelectedNodeId = node.id();
-      node.addClass('selected');
+      // Clear previous edge highlights and highlight new outgoing edges
+      if (cy) {
+        clearEdgeHighlights(cy);
+        sppfSelectedNodeId = node.id();
+        node.addClass('selected');
+        highlightOutgoingEdges(cy, node.id());
+      }
     });
 
     // Click on background to clear selection
     cy.on('tap', (event) => {
       if (event.target === cy) {
         sppfSelectedSpan = null;
-        if (sppfSelectedNodeId) {
-          cy?.getElementById(sppfSelectedNodeId).removeClass('selected');
+        if (sppfSelectedNodeId && cy) {
+          cy.getElementById(sppfSelectedNodeId).removeClass('selected');
           sppfSelectedNodeId = null;
         }
+        if (cy) clearEdgeHighlights(cy);
       }
+    });
+
+    // Click on edge to highlight it
+    cy.on('tap', 'edge', (event) => {
+      const edge = event.target;
+      // Clear node selection
+      if (sppfSelectedNodeId && cy) {
+        cy.getElementById(sppfSelectedNodeId).removeClass('selected');
+        sppfSelectedNodeId = null;
+      }
+      sppfSelectedSpan = null;
+      if (cy) highlightClickedEdge(cy, edge.id());
     });
   }
 
@@ -585,7 +611,7 @@
     parseTreeCy = createGraph({
       container: parseTreeContainer,
       elements,
-      styles: [...sppfNodeStyles, edgeStyles],  // Reuse SPPF styles (nonterminal/token)
+      styles: [...sppfNodeStyles, ...edgeStyles],  // Reuse SPPF styles (nonterminal/token)
       layout: 'sppf',  // Top-to-bottom tree layout
       viewport: savedViewport,
     });
@@ -613,19 +639,37 @@
       if (parseTreeSelectedNodeId) {
         parseTreeCy?.getElementById(parseTreeSelectedNodeId).removeClass('selected');
       }
-      parseTreeSelectedNodeId = node.id();
-      node.addClass('selected');
+      // Clear previous edge highlights and highlight new outgoing edges
+      if (parseTreeCy) {
+        clearEdgeHighlights(parseTreeCy);
+        parseTreeSelectedNodeId = node.id();
+        node.addClass('selected');
+        highlightOutgoingEdges(parseTreeCy, node.id());
+      }
     });
 
     // Click on background clears selection
     parseTreeCy.on('tap', (event) => {
       if (event.target === parseTreeCy) {
         parseTreeSelectedSpan = null;
-        if (parseTreeSelectedNodeId) {
-          parseTreeCy?.getElementById(parseTreeSelectedNodeId).removeClass('selected');
+        if (parseTreeSelectedNodeId && parseTreeCy) {
+          parseTreeCy.getElementById(parseTreeSelectedNodeId).removeClass('selected');
           parseTreeSelectedNodeId = null;
         }
+        if (parseTreeCy) clearEdgeHighlights(parseTreeCy);
       }
+    });
+
+    // Click on edge to highlight it
+    parseTreeCy.on('tap', 'edge', (event) => {
+      const edge = event.target;
+      // Clear node selection
+      if (parseTreeSelectedNodeId && parseTreeCy) {
+        parseTreeCy.getElementById(parseTreeSelectedNodeId).removeClass('selected');
+        parseTreeSelectedNodeId = null;
+      }
+      parseTreeSelectedSpan = null;
+      if (parseTreeCy) highlightClickedEdge(parseTreeCy, edge.id());
     });
   }
 
@@ -716,7 +760,7 @@
     debugSppfCy = createGraph({
       container: debugSppfContainer,
       elements,
-      styles: [...sppfNodeStyles, edgeStyles],
+      styles: [...sppfNodeStyles, ...edgeStyles],
       layout: 'sppf',
       viewport: savedViewport,
     });
@@ -744,19 +788,37 @@
       if (selectedNodeId) {
         debugSppfCy?.getElementById(selectedNodeId).removeClass('selected');
       }
-      selectedNodeId = node.id();
-      node.addClass('selected');
+      // Clear previous edge highlights and highlight new outgoing edges
+      if (debugSppfCy) {
+        clearEdgeHighlights(debugSppfCy);
+        selectedNodeId = node.id();
+        node.addClass('selected');
+        highlightOutgoingEdges(debugSppfCy, node.id());
+      }
     });
 
     // Click on background to clear selection
     debugSppfCy.on('tap', (event) => {
       if (event.target === debugSppfCy) {
         selectedSpan = null;
-        if (selectedNodeId) {
-          debugSppfCy?.getElementById(selectedNodeId).removeClass('selected');
+        if (selectedNodeId && debugSppfCy) {
+          debugSppfCy.getElementById(selectedNodeId).removeClass('selected');
           selectedNodeId = null;
         }
+        if (debugSppfCy) clearEdgeHighlights(debugSppfCy);
       }
+    });
+
+    // Click on edge to highlight it
+    debugSppfCy.on('tap', 'edge', (event) => {
+      const edge = event.target;
+      // Clear node selection
+      if (selectedNodeId && debugSppfCy) {
+        debugSppfCy.getElementById(selectedNodeId).removeClass('selected');
+        selectedNodeId = null;
+      }
+      selectedSpan = null;
+      if (debugSppfCy) highlightClickedEdge(debugSppfCy, edge.id());
     });
 
     // Set up ResizeObserver to recenter graph when container resizes (debounced)
@@ -1139,6 +1201,7 @@
           parseTreeSelectedNodeId = savedParseTreeSelection;
           parseTreeSelectedSpan = savedParseTreeSpan;
           parseTreeCy.getElementById(savedParseTreeSelection).addClass('selected');
+          highlightOutgoingEdges(parseTreeCy, savedParseTreeSelection);
         }
       });
     }
@@ -1150,6 +1213,7 @@
           sppfSelectedNodeId = savedSppfSelection;
           sppfSelectedSpan = savedSppfSpan;
           cy.getElementById(savedSppfSelection).addClass('selected');
+          highlightOutgoingEdges(cy, savedSppfSelection);
         }
       });
     }
@@ -1161,6 +1225,7 @@
           selectedNodeId = savedDebugSelection;
           selectedSpan = savedDebugSpan;
           debugSppfCy.getElementById(savedDebugSelection).addClass('selected');
+          highlightOutgoingEdges(debugSppfCy, savedDebugSelection);
         }
       });
     }
@@ -1600,10 +1665,29 @@
   const toggleMaximize = createMaximizeToggle();
 
   function handleKeyDown(e: KeyboardEvent) {
-    // Escape to deselect text and blur active element
+    // Escape to deselect text, blur active element, and clear graph selections
     if (e.key === 'Escape') {
       window.getSelection()?.removeAllRanges();
       (document.activeElement as HTMLElement)?.blur();
+      // Clear all graph selections and edge highlights
+      if (cy) {
+        if (sppfSelectedNodeId) cy.getElementById(sppfSelectedNodeId).removeClass('selected');
+        clearEdgeHighlights(cy);
+      }
+      if (parseTreeCy) {
+        if (parseTreeSelectedNodeId) parseTreeCy.getElementById(parseTreeSelectedNodeId).removeClass('selected');
+        clearEdgeHighlights(parseTreeCy);
+      }
+      if (debugSppfCy) {
+        if (selectedNodeId) debugSppfCy.getElementById(selectedNodeId).removeClass('selected');
+        clearEdgeHighlights(debugSppfCy);
+      }
+      sppfSelectedNodeId = null;
+      sppfSelectedSpan = null;
+      parseTreeSelectedNodeId = null;
+      parseTreeSelectedSpan = null;
+      selectedNodeId = null;
+      selectedSpan = null;
       return;
     }
 
