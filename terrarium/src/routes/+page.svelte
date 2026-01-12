@@ -6,7 +6,7 @@
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { createMaximizeToggle } from "$lib/window-utils";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal } from "lucide-svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
   import {
@@ -241,6 +241,7 @@
   // Modal state
   let showErrorModal = $state(false);
   let errorModalMessage = $state("");
+  let showShortcutsModal = $state(false);
 
   // Title bar menu state
   let titleBarMenuOpen = $state(false);
@@ -1679,8 +1680,31 @@
   const toggleMaximize = createMaximizeToggle();
 
   function handleKeyDown(e: KeyboardEvent) {
-    // Escape to deselect text, blur active element, and clear graph selections
+    // Cmd+O to open parser directory (works everywhere, including in editors)
+    if ((e.metaKey || e.ctrlKey) && e.key === 'o') {
+      e.preventDefault();
+      selectDirectory();
+      return;
+    }
+
+    // Cmd+/ to show keyboard shortcuts (displayed as ⌘? like Slack)
+    if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+      e.preventDefault();
+      showShortcutsModal = !showShortcutsModal;
+      return;
+    }
+
+    // Escape to close modals, deselect text, blur active element, and clear graph selections
     if (e.key === 'Escape') {
+      // Close modals first
+      if (showShortcutsModal) {
+        showShortcutsModal = false;
+        return;
+      }
+      if (showErrorModal) {
+        showErrorModal = false;
+        return;
+      }
       window.getSelection()?.removeAllRanges();
       (document.activeElement as HTMLElement)?.blur();
       // Clear all graph selections and edge highlights
@@ -1801,6 +1825,13 @@
               disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}
             >
               Debug in VSCode...
+            </button>
+            <div class="menu-divider"></div>
+            <button
+              class="menu-item"
+              onclick={() => { showShortcutsModal = true; titleBarMenuOpen = false; }}
+            >
+              Keyboard Shortcuts
             </button>
           </div>
         {/if}
@@ -2382,6 +2413,60 @@
     </div>
   {/if}
 
+  <!-- Keyboard Shortcuts Modal -->
+  {#if showShortcutsModal}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div class="modal-overlay" onclick={() => showShortcutsModal = false}>
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <div class="modal shortcuts-modal" onclick={(e) => e.stopPropagation()}>
+        <div class="modal-header">
+          <Keyboard size={20} color="#4ec9b0" />
+          <span>Keyboard Shortcuts</span>
+          <button class="modal-close" onclick={() => showShortcutsModal = false}>
+            <X size={18} />
+          </button>
+        </div>
+        <div class="modal-body shortcuts-body">
+          <div class="shortcuts-section">
+            <h4>Global</h4>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>O</kbd></span>
+              <span class="shortcut-desc">Open parser directory</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>?</kbd></span>
+              <span class="shortcut-desc">Show keyboard shortcuts</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>Esc</kbd></span>
+              <span class="shortcut-desc">Clear selection / close modal</span>
+            </div>
+          </div>
+          <div class="shortcuts-section">
+            <h4>Parse Mode</h4>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>P</kbd></span>
+              <span class="shortcut-desc">Parse input</span>
+            </div>
+          </div>
+          <div class="shortcuts-section">
+            <h4>Debug Mode</h4>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>←</kbd></span>
+              <span class="shortcut-desc">Step back</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>→</kbd></span>
+              <span class="shortcut-desc">Step forward</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {/if}
+
 </div>
 
 <style>
@@ -2649,6 +2734,12 @@
   .menu-item:disabled {
     color: #666;
     cursor: not-allowed;
+  }
+
+  .menu-divider {
+    height: 1px;
+    background: #3c3c3c;
+    margin: 4px 0;
   }
 
   /* Command Palette */
@@ -3641,6 +3732,64 @@
 
   .modal-btn:hover {
     background: #1177bb;
+  }
+
+  /* Shortcuts Modal */
+  .shortcuts-modal {
+    min-width: 320px;
+  }
+
+  .shortcuts-body {
+    padding: 8px 16px 16px;
+  }
+
+  .shortcuts-section {
+    margin-bottom: 16px;
+  }
+
+  .shortcuts-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .shortcuts-section h4 {
+    margin: 0 0 8px 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 0.5px;
+  }
+
+  .shortcut-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+  }
+
+  .shortcut-keys {
+    display: flex;
+    gap: 4px;
+  }
+
+  .shortcut-keys kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 22px;
+    padding: 0 6px;
+    background: #3c3c3c;
+    border: 1px solid #555;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 12px;
+    color: #d4d4d4;
+  }
+
+  .shortcut-desc {
+    color: #d4d4d4;
+    font-size: 13px;
   }
 
   /* Spinning animation for loader */
