@@ -24,6 +24,12 @@ impl Definition {
             Definition::Nonterminal(nonterminal) => nonterminal.display_name(),
         }
     }
+    pub fn as_nonterminal(&self) -> &Nonterminal {
+        match self {
+            Definition::Terminal(_) => panic!(),
+            Definition::Nonterminal(nonterminal) => nonterminal,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -150,6 +156,14 @@ impl Nonterminal {
     pub fn is_plus(&self) -> bool {
         match &self.origin {
             Some(s) => matches!(s, Symbol::Plus(_, _)),
+            None => false,
+        }
+    }
+
+    /// Returns true if the nonterminal was generated when converting from an EBNF Star.
+    pub fn is_star(&self) -> bool {
+        match &self.origin {
+            Some(s) => matches!(s, Symbol::Star(_, _)),
             None => false,
         }
     }

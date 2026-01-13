@@ -245,7 +245,7 @@ fn ambiguous_grammar() -> Grammar {
 //   : Identifier ":" {PriorityLevel ">"}* ";"
 //   ;
 // PriorityLevel
-//   : Alternative? ("|" Alternative)*
+//   : { Alternative "|" }*
 //   ;
 // Alternative:
 //   : Symbol*
@@ -276,10 +276,9 @@ fn iggy() -> Grammar {
                 star!(id!("PriorityLevel"), lit!(">")),
                 lit!(";")
             )),
-            // PriorityLevel : Alternative? ("|" Alternative)*
+            // PriorityLevel : { Alternative "|" }*
             syntax_rule!("PriorityLevel" => alternative!(
-                opt!(id!("Alternative")),
-                star!(group!(lit!("|"), id!("Alternative")))
+                star!(id!("Alternative"), lit!("|"))
             )),
             // Alternative : Symbol*
             syntax_rule!("Alternative" => alternative!(

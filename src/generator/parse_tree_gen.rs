@@ -29,10 +29,15 @@ pub fn generate(
     let parse_tree_ref_enum = gen_parse_tree_ref_enum(grammar);
     let parse_tree_ref_impl = gen_parse_tree_ref_impl(grammar);
     let list_node_trait = gen_list_node_trait();
-    let list_node_impls: Vec<_> = grammar
+    let list_node_impls_for_plus: Vec<_> = grammar
         .nonterminals()
         .filter(|n| n.is_plus())
-        .map(|n| gen_list_node_impl(grammar, n))
+        .map(|n| gen_list_node_impl_for_plus(grammar, n))
+        .collect();
+    let list_node_impls_for_star: Vec<_> = grammar
+        .nonterminals()
+        .filter(|n| n.is_star())
+        .map(|n| gen_list_node_impl_for_star(grammar, n))
         .collect();
     let from_for_tree_impls = gen_from_for_tree_impls(grammar);
     let parse_tree_builder_impl = gen_parse_tree_builder_impl(grammar, nonterminal_ids, slot_ids);
@@ -68,7 +73,8 @@ pub fn generate(
         #list_node_trait
         #(#nonterminal_types)*
         #(#nonterminal_types_impl)*
-        #(#list_node_impls)*
+        #(#list_node_impls_for_plus)*
+        #(#list_node_impls_for_star)*
         #token_struct
         #token_impl
         #token_kind_function
@@ -85,7 +91,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
     let parser_name = format_ident!("{}Parser", to_first_uppercase(&grammar.name));
     quote! {
         use core::fmt;
-        use std::fmt::Write;
+        use std::{fmt::Write, vec::IntoIter};
         use iguana::{
             ids::{NonterminalId, SlotId, TerminalId},
             parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
@@ -686,7 +692,7 @@ fn gen_children_method(grammar: &Grammar) -> TokenStream {
         .map(|n| {
             let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
             let var_ident = Ident::new(&to_snake_case(&n.name), Span::call_site());
-            if n.is_plus() {
+            if n.is_plus() || n.is_star() {
                 quote! {
                     ParseTreeRef::#variant(#var_ident) => #var_ident.iter().collect()
                 }
@@ -770,12 +776,12 @@ fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
 fn gen_list_node_trait() -> TokenStream {
     quote! {
         trait ListNode<'a> {
-            fn iter(&'a self) -> impl Iterator<Item = ParseTreeRef<'a>>;
+            fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
         }
     }
 }
 
-fn gen_list_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
+fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
     let alternatives = grammar.alternatives(nonterminal);
     // This method must only be called for list nodes, i.e., * and + nonterminals,
@@ -816,7 +822,7 @@ fn gen_list_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStre
     };
     quote! {
         impl<'a> ListNode<'a> for #ident {
-            fn iter(&'a self) -> impl Iterator<Item = ParseTreeRef<'a>> {
+            fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
                 let mut items = vec![];
                 let mut current = self;
                 loop {
@@ -825,7 +831,38 @@ fn gen_list_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStre
                         #second_arm
                     }
                 }
-                items.into_iter().rev()
+                items.into_iter()
+            }
+        }
+    }
+}
+
+fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
+    let star_ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let alternatives = grammar.alternatives(nonterminal);
+    let def_id = alternatives[0].symbols[0].resolved_def();
+    let nonterminal = grammar.definition(def_id).as_nonterminal();
+    let alternatives = grammar.alternatives(nonterminal);
+    
+    let opt_ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let var_ident = Ident::new(&to_snake_case(&nonterminal.name), Span::call_site());
+    let label = alternative_label(&alternatives[0], 0);
+    let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+    let first_arm = quote! {
+        #opt_ident::#alt_variant(#var_ident, _) => #var_ident.iter(),
+    };
+    let label = alternative_label(&alternatives[1], 1);
+    let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+    let second_arm = quote! {
+        #opt_ident::#alt_variant(_) => vec![].into_iter(),
+    };
+    quote! {
+        impl<'a> ListNode<'a> for #star_ident {
+            fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
+                match &self.0 {
+                    #first_arm
+                    #second_arm
+                }
             }
         }
     }
