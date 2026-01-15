@@ -41,8 +41,10 @@
 
   function handleKeyDown(e: KeyboardEvent) {
     if (e.key === "Escape") {
-      // Clear selections first, close window if nothing selected
-      if (selectedNodeId || (cy && cy.edges('.edge-clicked').length > 0)) {
+      // Close context menu first, then clear selections, then close window
+      if (contextMenu) {
+        contextMenu = null;
+      } else if (selectedNodeId || (cy && cy.edges('.edge-clicked').length > 0)) {
         if (selectedNodeId && cy) {
           cy.getElementById(selectedNodeId).removeClass('selected');
           selectedNodeId = null;
@@ -83,6 +85,8 @@
   let debugGssCurrentNodeId: number | null = $state(null);
   let selectedNodeId: string | null = $state(null);
   let showSpans = $state(false);
+  let contextMenu = $state<{ x: number; y: number; nodeId: string } | null>(null);
+  let subtreeFocused = $state(false);
 
   function getTitle(): string {
     switch (graphType) {
@@ -140,8 +144,9 @@
       cy.destroy();
     }
 
-    // Reset collapsed nodes when rendering new graph
+    // Reset collapsed nodes and focus when rendering new graph
     collapseManager.reset();
+    subtreeFocused = false;
 
     const isGss = graphType === "gss" || graphType === "debugGss";
     const isSppf = graphType === "sppf" || graphType === "debugSppf";
@@ -169,7 +174,7 @@
       });
 
       // Click on node to select and emit span to main window
-      if (graphType === 'debugSppf') {
+      if (isSppf) {
         cy.on('tap', 'node', (event) => {
           const node = event.target;
           const left = node.data('leftExtent');
@@ -191,9 +196,11 @@
           if (left !== undefined && right !== undefined) {
             emit('sppf-node-selected', { left, right, nodeId: node.id() });
           }
+          // Close context menu on regular click
+          contextMenu = null;
         });
 
-        // Click on background to clear selection
+        // Click on background to clear selection and close context menu
         cy.on('tap', (event) => {
           if (event.target === cy) {
             if (selectedNodeId && cy) {
@@ -202,6 +209,7 @@
             }
             if (cy) clearEdgeHighlights(cy);
             emit('sppf-node-selected', { left: null, right: null, nodeId: null });
+            contextMenu = null;
           }
         });
 
@@ -218,8 +226,41 @@
           }
           emit('sppf-node-selected', { left: null, right: null, nodeId: null });
         });
+
+        // Right-click on node to show context menu
+        cy.on('cxttap', 'node', (event) => {
+          const node = event.target;
+          const renderedPos = node.renderedPosition();
+          const containerRect = container.getBoundingClientRect();
+          // Hide tooltip when showing context menu
+          const tooltip = document.querySelector('.graph-tooltip') as HTMLElement;
+          if (tooltip) tooltip.style.display = 'none';
+          contextMenu = {
+            x: containerRect.left + renderedPos.x,
+            y: containerRect.top + renderedPos.y,
+            nodeId: node.id()
+          };
+        });
+
+        // Right-click on background to close context menu
+        cy.on('cxttap', (event) => {
+          if (event.target === cy) {
+            contextMenu = null;
+          }
+        });
       }
     }
+  }
+
+  function handleContextMenuAction(action: 'focus' | 'showAll') {
+    if (action === 'focus' && contextMenu) {
+      collapseManager.focusOnSubtree(contextMenu.nodeId);
+      subtreeFocused = true;
+    } else if (action === 'showAll') {
+      collapseManager.clearFocus();
+      subtreeFocused = false;
+    }
+    contextMenu = null;
   }
 
   // Re-render when data changes
@@ -357,7 +398,8 @@
     <div class="title-bar-right"></div>
   </div>
   <div class="graph-area">
-    <div class="graph-container" bind:this={container}></div>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="graph-container" bind:this={container} oncontextmenu={(e) => e.preventDefault()}></div>
     <div class="graph-controls">
       <button onclick={() => adjustZoom(1.2)} title="Zoom In">
         <ZoomIn size={14} />
@@ -381,6 +423,24 @@
         <Download size={14} />
       </button>
     </div>
+    {#if contextMenu}
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div
+        class="context-menu"
+        style="left: {contextMenu.x}px; top: {contextMenu.y}px;"
+        onmousedown={(e) => e.stopPropagation()}
+      >
+        <button onclick={() => handleContextMenuAction('focus')}>Focus on subtree</button>
+        {#if subtreeFocused}
+          <button onclick={() => handleContextMenuAction('showAll')}>Show all nodes</button>
+        {/if}
+      </div>
+    {/if}
+    {#if subtreeFocused}
+      <button class="show-all-button" onclick={() => handleContextMenuAction('showAll')}>
+        Show all nodes
+      </button>
+    {/if}
   </div>
 </div>
 
@@ -471,5 +531,53 @@
   .graph-controls button:hover {
     background: rgba(80, 80, 80, 0.9);
     color: #fff;
+  }
+
+  /* Context Menu */
+  .context-menu {
+    position: fixed;
+    background: #2d2d2d;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 2px 0;
+    min-width: 130px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 10001;
+  }
+
+  .context-menu button {
+    display: block;
+    width: 100%;
+    padding: 5px 10px;
+    background: none;
+    border: none;
+    color: #d4d4d4;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .context-menu button:hover {
+    background: #3a3a3a;
+  }
+
+  /* Show all nodes button (when subtree is focused) */
+  .show-all-button {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 6px 12px;
+    background: rgba(45, 45, 45, 0.95);
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #d4d4d4;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 100;
+  }
+
+  .show-all-button:hover {
+    background: rgba(60, 60, 60, 0.95);
+    border-color: #888;
   }
 </style>

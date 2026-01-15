@@ -349,6 +349,10 @@
   let sppfSelectedSpan = $state<{ left: number; right: number } | null>(null);
   let sppfSelectedNodeId = $state<string | null>(null);
 
+  // Context menu state for SPPF
+  let sppfContextMenu = $state<{ x: number; y: number; nodeId: string } | null>(null);
+  let sppfSubtreeFocused = $state(false);
+
   // Track if parse result is available
   let parseResultAvailable = $state(false);
 
@@ -403,8 +407,9 @@
   function renderSPPF() {
     if (!sppf || !sppfContainer) return;
 
-    // Reset collapsed nodes when rendering new SPPF
+    // Reset collapsed nodes and focus when rendering new SPPF
     sppfCollapseManager.reset();
+    sppfSubtreeFocused = false;
     // Clear selection when re-rendering
     sppfSelectedSpan = null;
     sppfSelectedNodeId = null;
@@ -417,6 +422,16 @@
 
     // Build a map of node IDs to their ambiguous status for edge coloring
     const nodeAmbiguousMap = new Map<number, boolean>();
+
+    // Count terminal nodes per span to detect shared spans
+    const spanCounts = new Map<string, number>();
+    for (const node of sppf.nodes) {
+      const { name: kindName } = parseNodeKind(node.kind);
+      if (kindName === "Terminal") {
+        const spanKey = `${node.left_extent},${node.right_extent}`;
+        spanCounts.set(spanKey, (spanCounts.get(spanKey) || 0) + 1);
+      }
+    }
 
     const elements: cytoscape.ElementDefinition[] = [
       ...sppf.nodes.map((node) => {
@@ -433,9 +448,12 @@
         const fullLabel = showSpans && kindName !== "Packed"
           ? `${baseLabel}\n${span}`
           : baseLabel;
-        const classes = ambiguous
-          ? `${kindName.toLowerCase()} ambiguous`
-          : kindName.toLowerCase();
+        // Check if this terminal node shares its span with other terminals
+        const spanKey = `${node.left_extent},${node.right_extent}`;
+        const hasSharedSpan = kindName === "Terminal" && (spanCounts.get(spanKey) || 0) > 1;
+        let classes = kindName.toLowerCase();
+        if (ambiguous) classes += ' ambiguous';
+        if (hasSharedSpan) classes += ' shared-span';
         return {
           data: {
             id: `n${node.id}`,
@@ -507,9 +525,11 @@
         node.addClass('selected');
         highlightOutgoingEdges(cy, node.id());
       }
+      // Close context menu on regular click
+      sppfContextMenu = null;
     });
 
-    // Click on background to clear selection
+    // Click on background to clear selection and close context menu
     cy.on('tap', (event) => {
       if (event.target === cy) {
         sppfSelectedSpan = null;
@@ -518,6 +538,7 @@
           sppfSelectedNodeId = null;
         }
         if (cy) clearEdgeHighlights(cy);
+        sppfContextMenu = null;
       }
     });
 
@@ -532,6 +553,39 @@
       sppfSelectedSpan = null;
       if (cy) highlightClickedEdge(cy, edge.id());
     });
+
+    // Right-click on node to show context menu
+    cy.on('cxttap', 'node', (event) => {
+      const node = event.target;
+      const renderedPos = node.renderedPosition();
+      const containerRect = sppfContainer.getBoundingClientRect();
+      // Hide tooltip when showing context menu
+      const tooltip = document.querySelector('.graph-tooltip') as HTMLElement;
+      if (tooltip) tooltip.style.display = 'none';
+      sppfContextMenu = {
+        x: containerRect.left + renderedPos.x,
+        y: containerRect.top + renderedPos.y,
+        nodeId: node.id()
+      };
+    });
+
+    // Right-click on background to close context menu
+    cy.on('cxttap', (event) => {
+      if (event.target === cy) {
+        sppfContextMenu = null;
+      }
+    });
+  }
+
+  function handleSppfContextMenuAction(action: 'focus' | 'showAll') {
+    if (action === 'focus' && sppfContextMenu) {
+      sppfCollapseManager.focusOnSubtree(sppfContextMenu.nodeId);
+      sppfSubtreeFocused = true;
+    } else if (action === 'showAll') {
+      sppfCollapseManager.clearFocus();
+      sppfSubtreeFocused = false;
+    }
+    sppfContextMenu = null;
   }
 
   function renderGSS() {
@@ -1696,7 +1750,12 @@
 
     // Escape to close modals, deselect text, blur active element, and clear graph selections
     if (e.key === 'Escape') {
-      // Close modals first
+      // Close context menu first
+      if (sppfContextMenu) {
+        sppfContextMenu = null;
+        return;
+      }
+      // Close modals
       if (showShortcutsModal) {
         showShortcutsModal = false;
         return;
@@ -1991,7 +2050,8 @@
           {/if}
         {:else if activeTab === "sppf"}
           {#if sppf}
-            <div class="cytoscape-container" bind:this={sppfContainer}></div>
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div class="cytoscape-container" bind:this={sppfContainer} oncontextmenu={(e) => e.preventDefault()}></div>
             <div class="graph-controls">
               <button onclick={zoomIn} title="Zoom in">
                 <ZoomIn size={16} />
@@ -2019,6 +2079,24 @@
                 <Fullscreen size={16} />
               </button>
             </div>
+            {#if sppfContextMenu}
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
+              <div
+                class="context-menu"
+                style="left: {sppfContextMenu.x}px; top: {sppfContextMenu.y}px;"
+                onmousedown={(e) => e.stopPropagation()}
+              >
+                <button onclick={() => handleSppfContextMenuAction('focus')}>Focus on subtree</button>
+                {#if sppfSubtreeFocused}
+                  <button onclick={() => handleSppfContextMenuAction('showAll')}>Show all nodes</button>
+                {/if}
+              </div>
+            {/if}
+            {#if sppfSubtreeFocused}
+              <button class="show-all-button" onclick={() => handleSppfContextMenuAction('showAll')}>
+                Show all nodes
+              </button>
+            {/if}
           {:else}
             <div class="graph-placeholder">Parse input to see SPPF</div>
           {/if}
@@ -3394,6 +3472,54 @@
   }
 
   .graph-controls button:hover {
+    background: rgba(60, 60, 60, 0.95);
+    border-color: #888;
+  }
+
+  /* Context Menu */
+  .context-menu {
+    position: fixed;
+    background: #2d2d2d;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 2px 0;
+    min-width: 130px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 10001;
+  }
+
+  .context-menu button {
+    display: block;
+    width: 100%;
+    padding: 5px 10px;
+    background: none;
+    border: none;
+    color: #d4d4d4;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .context-menu button:hover {
+    background: #3a3a3a;
+  }
+
+  /* Show all nodes button (when subtree is focused) */
+  .show-all-button {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 6px 12px;
+    background: rgba(45, 45, 45, 0.95);
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #d4d4d4;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 100;
+  }
+
+  .show-all-button:hover {
     background: rgba(60, 60, 60, 0.95);
     border-color: #888;
   }

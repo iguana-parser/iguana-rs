@@ -245,6 +245,20 @@ export const sppfNodeStyles: Stylesheet[] = [
       "border-color": nodeColors.ambiguous.selectedBorder,
     },
   },
+  // Shared span styles (nodes with same span as another node - orange-red border)
+  {
+    selector: "node.shared-span",
+    style: {
+      "border-color": "#e07030",
+      "border-width": 2,
+    },
+  },
+  {
+    selector: "node.shared-span.selected",
+    style: {
+      "border-color": "#ff9050",
+    },
+  },
 ];
 
 // GSS node styles

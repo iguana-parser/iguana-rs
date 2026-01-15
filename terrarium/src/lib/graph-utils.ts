@@ -45,6 +45,7 @@ export async function exportGraphPng(graph: Core | null, defaultName: string): P
 export class GraphCollapseManager {
   private cy: Core | null = null;
   private collapsedNodes = new Set<string>();
+  private focusedNodeId: string | null = null;
 
   setCy(cy: Core | null) {
     this.cy = cy;
@@ -52,6 +53,15 @@ export class GraphCollapseManager {
 
   reset() {
     this.collapsedNodes = new Set();
+    this.focusedNodeId = null;
+  }
+
+  isFocused(): boolean {
+    return this.focusedNodeId !== null;
+  }
+
+  getFocusedNodeId(): string | null {
+    return this.focusedNodeId;
   }
 
   isCollapsed(nodeId: string): boolean {
@@ -66,19 +76,21 @@ export class GraphCollapseManager {
     return roots.length > 0 ? roots.first().id() : null;
   }
 
-  private getReachableNodes(): Set<string> {
+  /**
+   * Get all nodes reachable from a starting node, respecting collapsed nodes.
+   */
+  private getReachableFromNode(startNodeId: string): Set<string> {
     if (!this.cy) return new Set();
     const reachable = new Set<string>();
-    const root = this.findRoot();
-    if (!root) return reachable;
 
-    const queue = [root];
+    const queue = [startNodeId];
     while (queue.length > 0) {
       const nodeId = queue.shift()!;
       if (reachable.has(nodeId)) continue;
       reachable.add(nodeId);
 
-      if (this.collapsedNodes.has(nodeId)) continue;
+      // Don't traverse children of collapsed nodes (except the start node itself)
+      if (this.collapsedNodes.has(nodeId) && nodeId !== startNodeId) continue;
 
       const node = this.cy.getElementById(nodeId);
       node.outgoers('node').forEach((child: NodeSingular) => {
@@ -89,6 +101,16 @@ export class GraphCollapseManager {
     }
 
     return reachable;
+  }
+
+  private getReachableNodes(): Set<string> {
+    if (!this.cy) return new Set();
+
+    // If focused on a specific node, show only its subtree
+    const startNode = this.focusedNodeId ?? this.findRoot();
+    if (!startNode) return new Set();
+
+    return this.getReachableFromNode(startNode);
   }
 
   updateVisibility() {
@@ -145,6 +167,39 @@ export class GraphCollapseManager {
     this.collapsedNodes = new Set();
     this.updateVisibility();
   }
+
+  /**
+   * Focus on a subtree rooted at the given node.
+   * Only the node and its descendants will be visible.
+   */
+  focusOnSubtree(nodeId: string) {
+    if (!this.cy) return;
+
+    this.focusedNodeId = nodeId;
+    this.updateVisibility();
+
+    // Fit the view to the visible subtree
+    const visibleNodes = this.cy.nodes().filter((n: NodeSingular) => n.style('display') !== 'none');
+    if (visibleNodes.length > 0) {
+      this.cy.fit(visibleNodes, 50);
+    }
+  }
+
+  /**
+   * Clear focus and show all nodes (respecting collapsed state).
+   */
+  clearFocus() {
+    if (!this.cy) return;
+
+    this.focusedNodeId = null;
+    this.updateVisibility();
+
+    // Fit the view to all visible nodes
+    const visibleNodes = this.cy.nodes().filter((n: NodeSingular) => n.style('display') !== 'none');
+    if (visibleNodes.length > 0) {
+      this.cy.fit(visibleNodes, 50);
+    }
+  }
 }
 
 /**
@@ -186,6 +241,16 @@ export function buildDebugSppfElements(
     return null;
   }
 
+  // Count terminal nodes per span to detect shared spans (only count reachable)
+  const spanCounts = new Map<string, number>();
+  for (const node of nodes) {
+    if (!reachableIds.has(node.id)) continue;
+    if (node.kind === "Terminal") {
+      const spanKey = `${node.left_extent},${node.right_extent}`;
+      spanCounts.set(spanKey, (spanCounts.get(spanKey) || 0) + 1);
+    }
+  }
+
   const elements: ElementDefinition[] = [];
 
   // Add only nodes in the current subtree
@@ -203,6 +268,12 @@ export function buildDebugSppfElements(
       ? `${node.label}\n${span}`
       : node.label;
 
+    // Check if this terminal node shares its span with other terminals
+    const spanKey = `${node.left_extent},${node.right_extent}`;
+    const hasSharedSpan = node.kind === "Terminal" && (spanCounts.get(spanKey) || 0) > 1;
+    let classes = node.kind.toLowerCase();
+    if (hasSharedSpan) classes += ' shared-span';
+
     elements.push({
       data: {
         id: `n${node.id}`,
@@ -212,7 +283,7 @@ export function buildDebugSppfElements(
         leftExtent: node.left_extent,
         rightExtent: node.right_extent,
       },
-      classes: node.kind.toLowerCase(),
+      classes: classes,
     });
   }
 
@@ -242,14 +313,27 @@ export function buildSppfElements(sppf: SPPF): ElementDefinition[] {
   // Build a map of node IDs to their ambiguous status
   const nodeAmbiguousMap = new Map<number, boolean>();
 
+  // Count terminal nodes per span to detect shared spans
+  const spanCounts = new Map<string, number>();
+  for (const node of sppf.nodes) {
+    const { name: kindName } = parseNodeKind(node.kind);
+    if (kindName === "Terminal") {
+      const spanKey = `${node.left_extent},${node.right_extent}`;
+      spanCounts.set(spanKey, (spanCounts.get(spanKey) || 0) + 1);
+    }
+  }
+
   const nodes = sppf.nodes.map((node) => {
     const { name: kindName, ambiguous } = parseNodeKind(node.kind);
     nodeAmbiguousMap.set(node.id, ambiguous);
     const fullLabel = node.label || "";
     const maxLen = kindName === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
-    const classes = ambiguous
-      ? `${kindName.toLowerCase()} ambiguous`
-      : kindName.toLowerCase();
+    // Check if this terminal node shares its span with other terminals
+    const spanKey = `${node.left_extent},${node.right_extent}`;
+    const hasSharedSpan = kindName === "Terminal" && (spanCounts.get(spanKey) || 0) > 1;
+    let classes = kindName.toLowerCase();
+    if (ambiguous) classes += ' ambiguous';
+    if (hasSharedSpan) classes += ' shared-span';
     return {
       data: {
         id: `n${node.id}`,
