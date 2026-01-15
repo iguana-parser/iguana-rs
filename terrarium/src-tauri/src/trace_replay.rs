@@ -29,6 +29,16 @@ pub enum DebugAction {
         gss_node_id: GssNodeId,
         sppf_node_id: Option<SPPFNodeId>,
     },
+    /// Matching leading layout (whitespace before token)
+    MatchingLeadingLayout { input_index: u32 },
+    /// Matching trailing layout (whitespace after token)
+    MatchingTrailingLayout { input_index: u32 },
+    /// Layout matched successfully
+    MatchedLayout { next_index: Option<u32> },
+    /// Attempting to match a terminal
+    MatchingTerminal { terminal_name: String, input_index: u32 },
+    /// Terminal matched successfully
+    MatchSuccess { terminal_name: String, input_index: u32, next_index: u32 },
 }
 
 /// SPPF node for debug visualization, reconstructed incrementally from trace events.
@@ -90,6 +100,19 @@ pub struct ErrorInfo {
     pub input_index: u32,
     /// Name of the terminal that failed to match
     pub terminal_name: String,
+}
+
+/// Entry in the event log.
+#[derive(Debug, Clone, Serialize, Type)]
+pub struct EventLogEntry {
+    /// Index of this event in the trace
+    pub event_index: u32,
+    /// Step index if this event is steppable, None otherwise
+    pub step_index: Option<u32>,
+    /// Formatted message for this event
+    pub message: String,
+    /// Event type for styling (e.g., "processing", "match_success", "match_failed", "gss", "sppf", "layout")
+    pub event_type: String,
 }
 
 /// Symbol table loaded from `--write-symbols` output.
@@ -162,14 +185,19 @@ impl TraceReplay {
 
         let symbols = SymbolTable::load(symbols_path)?;
 
-        // Build index of step events (ProcessingDescriptor, Pop, and MatchFailed)
+        // Build index of step events (ProcessingDescriptor, Pop, MatchFailed, layout events, and terminal matching)
         let step_indices: Vec<usize> = events
             .iter()
             .enumerate()
             .filter_map(|(i, event)| match event {
                 TraceEvent::ProcessingDescriptor(..)
                 | TraceEvent::Pop(..)
-                | TraceEvent::MatchFailed(..) => Some(i),
+                | TraceEvent::MatchFailed(..)
+                | TraceEvent::MatchingLeadingLayout(..)
+                | TraceEvent::MatchingTrailingLayout(..)
+                | TraceEvent::MatchedLayout(..)
+                | TraceEvent::MatchingTerminal(..)
+                | TraceEvent::MatchSuccess(..) => Some(i),
                 _ => None,
             })
             .collect();
@@ -409,6 +437,28 @@ impl TraceReplay {
                 *gss_node_id,
                 *sppf_node_id,
             )),
+            Some(DebugAction::MatchingLeadingLayout { input_index }) => {
+                Some(format!("Matching Leading Layout\n  input index {}", input_index))
+            }
+            Some(DebugAction::MatchingTrailingLayout { input_index }) => {
+                Some(format!("Matching Trailing Layout\n  input index {}", input_index))
+            }
+            Some(DebugAction::MatchedLayout { next_index }) => {
+                if let Some(next) = next_index {
+                    Some(format!("Matched Layout\n  new input index {}", next))
+                } else {
+                    Some("Matched Layout\n  no layout found".to_string())
+                }
+            }
+            Some(DebugAction::MatchingTerminal { terminal_name, input_index }) => {
+                Some(format!("Matching Terminal\n  '{}'\n  input index {}", terminal_name, input_index))
+            }
+            Some(DebugAction::MatchSuccess { terminal_name, input_index, next_index }) => {
+                Some(format!(
+                    "Match Success\n  '{}'\n  input index {}\n  match length {}",
+                    terminal_name, input_index, next_index - input_index
+                ))
+            }
             None => None,
         }
     }
@@ -424,6 +474,11 @@ impl TraceReplay {
                     .map(|node| node.index as usize)
             }
             Some(DebugAction::MatchFailed { input_index, .. }) => Some(*input_index as usize),
+            Some(DebugAction::MatchingLeadingLayout { input_index }) => Some(*input_index as usize),
+            Some(DebugAction::MatchingTrailingLayout { input_index }) => Some(*input_index as usize),
+            Some(DebugAction::MatchedLayout { next_index }) => next_index.map(|i| i as usize),
+            Some(DebugAction::MatchingTerminal { input_index, .. }) => Some(*input_index as usize),
+            Some(DebugAction::MatchSuccess { next_index, .. }) => Some(*next_index as usize),
             None => None,
         }
     }
@@ -598,6 +653,34 @@ impl TraceReplay {
                 // Update current SPPF node from the context
                 self.current_sppf_node_id = sppf_node_id.map(|id| id.0);
             }
+            TraceEvent::MatchingLeadingLayout(input_index) => {
+                self.current_action = Some(DebugAction::MatchingLeadingLayout {
+                    input_index: *input_index,
+                });
+            }
+            TraceEvent::MatchingTrailingLayout(input_index) => {
+                self.current_action = Some(DebugAction::MatchingTrailingLayout {
+                    input_index: *input_index,
+                });
+            }
+            TraceEvent::MatchedLayout(next_index) => {
+                self.current_action = Some(DebugAction::MatchedLayout {
+                    next_index: *next_index,
+                });
+            }
+            TraceEvent::MatchingTerminal(terminal_name, input_index) => {
+                self.current_action = Some(DebugAction::MatchingTerminal {
+                    terminal_name: terminal_name.clone(),
+                    input_index: *input_index,
+                });
+            }
+            TraceEvent::MatchSuccess(terminal_name, input_index, next_index) => {
+                self.current_action = Some(DebugAction::MatchSuccess {
+                    terminal_name: terminal_name.clone(),
+                    input_index: *input_index,
+                    next_index: *next_index,
+                });
+            }
             _ => {}
         }
     }
@@ -629,6 +712,12 @@ impl TraceReplay {
             Some(DebugAction::ProcessingDescriptor(desc)) => Some(desc.gss_node_id.0),
             Some(DebugAction::Pop { gss_node_id, .. }) => Some(gss_node_id.0),
             Some(DebugAction::MatchFailed { gss_node_id, .. }) => Some(gss_node_id.0),
+            // Layout and terminal matching actions don't have an associated GSS node
+            Some(DebugAction::MatchingLeadingLayout { .. })
+            | Some(DebugAction::MatchingTrailingLayout { .. })
+            | Some(DebugAction::MatchedLayout { .. })
+            | Some(DebugAction::MatchingTerminal { .. })
+            | Some(DebugAction::MatchSuccess { .. }) => None,
             None => None,
         };
 
@@ -669,6 +758,12 @@ impl TraceReplay {
                 frames.push(self.symbols.slot(*slot_id).to_string());
                 start_gss_node_id = *gss_node_id;
             }
+            // Layout and terminal matching actions don't have a meaningful stack trace
+            Some(DebugAction::MatchingLeadingLayout { .. })
+            | Some(DebugAction::MatchingTrailingLayout { .. })
+            | Some(DebugAction::MatchedLayout { .. })
+            | Some(DebugAction::MatchingTerminal { .. })
+            | Some(DebugAction::MatchSuccess { .. }) => return None,
             None => return None,
         }
 
@@ -688,5 +783,180 @@ impl TraceReplay {
         }
 
         Some(frames)
+    }
+
+    /// Build the complete event log from all trace events.
+    /// Each entry includes whether it's a steppable event and its step index if so.
+    pub fn build_event_log(&self) -> Vec<EventLogEntry> {
+        let mut step_index_map: std::collections::HashMap<usize, usize> = std::collections::HashMap::new();
+        for (step_idx, &event_idx) in self.step_indices.iter().enumerate() {
+            step_index_map.insert(event_idx, step_idx);
+        }
+
+        self.events
+            .iter()
+            .enumerate()
+            .map(|(i, event)| {
+                let (message, event_type) = self.format_event(event);
+                EventLogEntry {
+                    event_index: i as u32,
+                    step_index: step_index_map.get(&i).map(|&idx| idx as u32),
+                    message,
+                    event_type,
+                }
+            })
+            .collect()
+    }
+
+    /// Format a trace event for the event log.
+    /// Returns (message, event_type).
+    fn format_event(&self, event: &TraceEvent) -> (String, String) {
+        match event {
+            TraceEvent::ProcessingDescriptor(slot_id, input_index, gss_node_id, sppf_node_id) => {
+                let slot_name = self.symbols.slot(*slot_id);
+                let gss_node = self.format_gss_node(*gss_node_id);
+                let sppf_node = match sppf_node_id {
+                    Some(id) => self.format_sppf_node(id.0),
+                    None => "$".to_string(),
+                };
+                (
+                    format!("Processing ({}, {}, {}, {})", slot_name, input_index, gss_node, sppf_node),
+                    "processing".to_string(),
+                )
+            }
+            TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, sppf_node_id) => {
+                let slot_name = self.symbols.slot(*slot_id);
+                let gss_node = self.format_gss_node(*gss_node_id);
+                let sppf_node = match sppf_node_id {
+                    Some(id) => self.format_sppf_node(id.0),
+                    None => "$".to_string(),
+                };
+                (
+                    format!("Descriptor added ({}, {}, {}, {})", slot_name, input_index, gss_node, sppf_node),
+                    "descriptor".to_string(),
+                )
+            }
+            TraceEvent::MatchingLeadingLayout(input_index) => (
+                format!("Matching leading layout at {}", input_index),
+                "layout".to_string(),
+            ),
+            TraceEvent::MatchingTrailingLayout(input_index) => (
+                format!("Matching trailing layout at {}", input_index),
+                "layout".to_string(),
+            ),
+            TraceEvent::MatchingTerminal(terminal_name, input_index) => (
+                format!("Matching '{}' at {}", terminal_name, input_index),
+                "matching".to_string(),
+            ),
+            TraceEvent::MatchSuccess(terminal_name, input_index, next_index) => (
+                format!("Matched '{}' at {} (len {})", terminal_name, input_index, next_index - input_index),
+                "match_success".to_string(),
+            ),
+            TraceEvent::MatchFailed(terminal_name, input_index, ..) => (
+                format!("Match failed '{}' at {}", terminal_name, input_index),
+                "match_failed".to_string(),
+            ),
+            TraceEvent::MatchedLayout(next_index) => {
+                if let Some(next) = next_index {
+                    (format!("Matched layout → {}", next), "layout".to_string())
+                } else {
+                    ("No layout found".to_string(), "layout".to_string())
+                }
+            }
+            TraceEvent::GSSNodeCreated(nonterminal_id, input_index) => {
+                let nt_name = self.symbols.nonterminal(*nonterminal_id);
+                (
+                    format!("GSS node ({}, {}) created", nt_name, input_index),
+                    "gss".to_string(),
+                )
+            }
+            TraceEvent::GSSNodeFound(nonterminal_id, input_index) => {
+                let nt_name = self.symbols.nonterminal(*nonterminal_id);
+                (
+                    format!("GSS node ({}, {}) found", nt_name, input_index),
+                    "gss".to_string(),
+                )
+            }
+            TraceEvent::GSSNodeNotFound(nonterminal_id, input_index) => {
+                let nt_name = self.symbols.nonterminal(*nonterminal_id);
+                (
+                    format!("GSS node ({}, {}) not found", nt_name, input_index),
+                    "gss".to_string(),
+                )
+            }
+            TraceEvent::GSSNodeAdded(src_id, dest_id, return_slot) => {
+                let slot_name = self.symbols.slot(*return_slot);
+                (
+                    format!("GSS edge {} → {} [{}]", src_id.0, dest_id.0, slot_name),
+                    "gss".to_string(),
+                )
+            }
+            TraceEvent::TerminalNodeCreated(terminal_id, span) => {
+                let terminal_name = self.symbols.terminal(terminal_id);
+                (
+                    format!("SPPF terminal ({}, {}, {})", terminal_name, span.left_extent, span.right_extent),
+                    "sppf".to_string(),
+                )
+            }
+            TraceEvent::NonterminalNodeCreated(nonterminal_id, span, _child) => {
+                let nt_name = self.symbols.nonterminal(*nonterminal_id);
+                (
+                    format!("SPPF nonterminal ({}, {}, {})", nt_name, span.left_extent, span.right_extent),
+                    "sppf".to_string(),
+                )
+            }
+            TraceEvent::IntermediateNodeCreated(slot_id, span, ..) => {
+                let slot_name = self.symbols.slot(*slot_id);
+                (
+                    format!("SPPF intermediate ({}, {}, {})", slot_name, span.left_extent, span.right_extent),
+                    "sppf".to_string(),
+                )
+            }
+            TraceEvent::TerminalNodeFound(sppf_node_id) => (
+                format!("SPPF terminal node {} found", sppf_node_id.0),
+                "sppf".to_string(),
+            ),
+            TraceEvent::NonterminalNodeFound(sppf_node_id) => (
+                format!("SPPF nonterminal node {} found", sppf_node_id.0),
+                "sppf".to_string(),
+            ),
+            TraceEvent::IntermediateNodeFound(sppf_node_id) => (
+                format!("SPPF intermediate node {} found", sppf_node_id.0),
+                "sppf".to_string(),
+            ),
+            TraceEvent::Pop(gss_node_id, slot_id, sppf_node_id) => {
+                let gss_node = self.format_gss_node(*gss_node_id);
+                let slot_name = self.symbols.slot(*slot_id);
+                (
+                    format!("Pop {} [{}] with SPPF {}", gss_node, slot_name, sppf_node_id.0),
+                    "pop".to_string(),
+                )
+            }
+            TraceEvent::AddToPoppedElements(gss_node_id, sppf_node_id) => (
+                format!("Add SPPF {} to popped elements of GSS {}", sppf_node_id.0, gss_node_id.0),
+                "pop".to_string(),
+            ),
+            TraceEvent::NodeAlreadyInPoppedElements => (
+                "Node already in popped elements".to_string(),
+                "pop".to_string(),
+            ),
+            TraceEvent::Call(sppf_node_id, gss_node_id, slot_id) => {
+                let gss_node = self.format_gss_node(*gss_node_id);
+                let slot_name = self.symbols.slot(*slot_id);
+                let sppf = sppf_node_id.map(|id| id.0.to_string()).unwrap_or_else(|| "$".to_string());
+                (
+                    format!("Call {} {} [{}]", sppf, gss_node, slot_name),
+                    "call".to_string(),
+                )
+            }
+            TraceEvent::ParseSuccess(duration) => (
+                format!("Parse succeeded in {}ms", duration.as_millis()),
+                "success".to_string(),
+            ),
+            TraceEvent::ParseFailed(duration) => (
+                format!("Parse failed in {}ms", duration.as_millis()),
+                "failed".to_string(),
+            ),
+        }
     }
 }

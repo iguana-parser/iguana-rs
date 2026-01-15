@@ -162,6 +162,14 @@ async getDebugErrors() : Promise<Result<ErrorInfo[], string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async getEventLog() : Promise<Result<EventLogEntry[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_event_log") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -262,6 +270,26 @@ input_index: number;
  * Name of the terminal that failed to match
  */
 terminal_name: string }
+/**
+ * Entry in the event log.
+ */
+export type EventLogEntry = { 
+/**
+ * Index of this event in the trace
+ */
+event_index: number; 
+/**
+ * Step index if this event is steppable, None otherwise
+ */
+step_index: number | null; 
+/**
+ * Formatted message for this event
+ */
+message: string; 
+/**
+ * Event type for styling (e.g., "processing", "match_success", "match_failed", "gss", "sppf", "layout")
+ */
+event_type: string }
 export type GSS = { nodes: GSSDotNode[]; edges: GSSDotEdge[] }
 export type GSSDotEdge = { src: GssNodeId; dest: GssNodeId; label: string }
 export type GSSDotNode = { id: GssNodeId; label: string }

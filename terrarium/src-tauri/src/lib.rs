@@ -10,7 +10,7 @@ use tauri_specta::{collect_commands, Builder};
 use tempfile::{NamedTempFile, TempDir};
 use toml::Value;
 
-use trace_replay::{DebugGSSInfo, DebugSPPFNode, ErrorInfo, TraceReplay};
+use trace_replay::{DebugGSSInfo, DebugSPPFNode, ErrorInfo, EventLogEntry, TraceReplay};
 
 /// Debug SPPF info returned to the frontend.
 #[derive(Clone, Serialize, Type)]
@@ -748,6 +748,18 @@ fn debug_next_error(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo,
 
 #[tauri::command]
 #[specta::specta]
+fn get_event_log(state: tauri::State<Mutex<DebugState>>) -> Result<Vec<EventLogEntry>, String> {
+    let debug_state = state.lock().unwrap();
+    let replay = debug_state
+        .replay
+        .as_ref()
+        .ok_or("No debug session. Load a trace first.")?;
+
+    Ok(replay.build_event_log())
+}
+
+#[tauri::command]
+#[specta::specta]
 fn debug_prev_error(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
     let mut debug_state = state.lock().unwrap();
     let replay = debug_state
@@ -797,7 +809,8 @@ pub fn run() {
         debug_go_to_furthest_error,
         debug_next_error,
         debug_prev_error,
-        get_debug_errors
+        get_debug_errors,
+        get_event_log
     ]);
 
     #[cfg(debug_assertions)]

@@ -1,12 +1,12 @@
 <script lang="ts">
   import { commands, type SPPF, type GSS, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo, type ErrorInfo } from "../bindings";
-  import { listen } from "@tauri-apps/api/event";
+  import { listen, emit } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { createMaximizeToggle } from "$lib/window-utils";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard } from "lucide-svelte";
+  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
   import {
@@ -207,6 +207,22 @@
       }
     });
 
+    // Listen for step changes from event log window (when user clicks an entry)
+    const unlistenDebugStepChanged = listen("debug-step-changed", async () => {
+      // Refresh debug state from backend
+      const result = await commands.getDebugInfo();
+      if (result.status === "ok") {
+        currentStep = result.data.current_step;
+        currentErrorIndex = result.data.current_error_index ?? null;
+        currentAction = result.data.current_action;
+        descriptorSet = result.data.descriptor_set;
+        inputIndex = result.data.input_index ?? null;
+        await fetchStackTrace();
+        await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
+        await notifyDebugGraphWindows();
+      }
+    });
+
     // Close all graph windows when main window closes
     const mainWindow = getCurrentWindow();
     const unlistenMainClose = mainWindow.onCloseRequested(async (event) => {
@@ -224,6 +240,7 @@
       unlistenStepForward.then(fn => fn());
       unlistenNodeSelected.then(fn => fn());
       unlistenSpansToggled.then(fn => fn());
+      unlistenDebugStepChanged.then(fn => fn());
       unlistenMainClose.then(fn => fn());
       window.removeEventListener('resize', handleWindowResize);
     };
@@ -363,6 +380,9 @@
   // Graph window management (separate OS windows)
   type GraphType = 'sppf' | 'gss' | 'debugSppf' | 'debugGss';
   let graphWindows = $state<Map<GraphType, WebviewWindow>>(new Map());
+
+  // Event log window
+  let eventLogWindow = $state<WebviewWindow | null>(null);
 
   // Output panel state
   let outputPanelOpen = $state(false);
@@ -1308,9 +1328,9 @@
 
   function notifyPopupWindowsSpansChanged() {
     // Re-send data to popup windows with updated showSpans
-    for (const [graphType, webview] of graphWindows) {
+    for (const [graphType] of graphWindows) {
       if (graphType === 'debugSppf') {
-        webview.emit('graph-data-debug-sppf', {
+        emit('graph-data-debug-sppf', {
           nodes: debugSppfNodes,
           current_node_id: currentSppfNodeId,
           show_spans: showSpans,
@@ -1359,29 +1379,28 @@
   }
 
   async function sendGraphData(graphType: GraphType) {
-    const webview = graphWindows.get(graphType);
-    if (!webview) return;
+    if (!graphWindows.has(graphType)) return;
 
     switch (graphType) {
       case 'sppf':
         if (sppf) {
-          await webview.emit('graph-data-sppf', sppf);
+          await emit('graph-data-sppf', sppf);
         }
         break;
       case 'gss':
         if (gss) {
-          await webview.emit('graph-data-gss', gss);
+          await emit('graph-data-gss', gss);
         }
         break;
       case 'debugSppf':
-        await webview.emit('graph-data-debug-sppf', {
+        await emit('graph-data-debug-sppf', {
           nodes: debugSppfNodes,
           current_node_id: currentSppfNodeId,
           show_spans: showSpans,
         });
         break;
       case 'debugGss':
-        await webview.emit('graph-data-debug-gss', {
+        await emit('graph-data-debug-gss', {
           nodes: debugGssNodes,
           edges: debugGssEdges,
           current_gss_node_id: currentGssNodeId,
@@ -1398,6 +1417,7 @@
     if (graphWindows.has('debugGss')) {
       await sendGraphData('debugGss');
     }
+    // Event log window polls for updates from the backend
   }
 
   // Close all graph windows
@@ -1406,6 +1426,38 @@
       await webview.close();
     }
     graphWindows.clear();
+    // Also close event log window
+    if (eventLogWindow) {
+      await eventLogWindow.close();
+      eventLogWindow = null;
+    }
+  }
+
+  // Event log window functions
+  async function openEventLogWindow() {
+    // If window already exists, focus it
+    if (eventLogWindow) {
+      await eventLogWindow.setFocus();
+      return;
+    }
+
+    const webview = new WebviewWindow('eventlog', {
+      url: '/eventlog',
+      title: 'Event Log',
+      width: 500,
+      height: 700,
+      center: true,
+      titleBarStyle: 'overlay',
+      hiddenTitle: true,
+    });
+
+    webview.once('tauri://created', () => {
+      eventLogWindow = webview;
+    });
+
+    webview.once('tauri://destroyed', () => {
+      eventLogWindow = null;
+    });
   }
 
   function stopDebug() {
@@ -2290,6 +2342,9 @@
           <button onclick={stepForward} disabled={!debugLoaded || currentStep >= totalSteps - 1} title="Step forward">▶</button>
           {#if debugLoaded}
             <span class="step-counter">Step {currentStep + 1} / {totalSteps}</span>
+            <button onclick={openEventLogWindow} class="event-log-btn" title="Open Event Log">
+              <List size={14} />
+            </button>
           {/if}
         </div>
 
@@ -3455,6 +3510,23 @@
     font-size: 12px;
     color: #888;
     min-width: 80px;
+  }
+
+  .event-log-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    background: #3c3c3c;
+    color: #d4d4d4;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: auto;
+  }
+
+  .event-log-btn:hover {
+    background: #4c4c4c;
   }
 
   /* Error Navigation Row */

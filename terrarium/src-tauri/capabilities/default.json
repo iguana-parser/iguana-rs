@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for main and graph windows",
-  "windows": ["main", "graph-*"],
+  "windows": ["main", "graph-*", "eventlog"],
   "permissions": [
     "core:default",
     "opener:default",
