@@ -5,10 +5,11 @@ use indexmap::{IndexMap, IndexSet};
 use crate::{
     grammar::{
         def::Grammar,
+        regex::{CharClass, Regex},
         slot::Slot,
         symbols::{Nonterminal, Terminal},
     },
-    ids::{NonterminalId, SlotId, TerminalId},
+    ids::{CharClassId, NonterminalId, SlotId, TerminalId},
 };
 
 #[derive(Debug)]
@@ -117,5 +118,56 @@ impl TerminalIds {
     }
     pub fn terminals(&self) -> impl Iterator<Item = &Terminal> {
         self.terminals.iter()
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct CharClassIds {
+    char_classes: IndexSet<CharClass>,
+}
+
+impl CharClassIds {
+    pub fn insert(&mut self, char_class: CharClass) {
+        self.char_classes.insert(char_class);
+    }
+
+    pub fn get_id(&self, char_class: &CharClass) -> Option<CharClassId> {
+        self.char_classes
+            .get_index_of(char_class)
+            .map(|id| CharClassId(id as u16))
+    }
+
+    pub fn ids(&self) -> impl Iterator<Item = CharClassId> {
+        (0..self.len()).map(|id| CharClassId(id as u16))
+    }
+
+    pub fn len(&self) -> usize {
+        self.char_classes.len()
+    }
+
+    pub fn char_classes(&self) -> impl Iterator<Item = &CharClass> {
+        self.char_classes.iter()
+    }
+
+    pub fn get(&self, id: CharClassId) -> &CharClass {
+        &self.char_classes[id.index()]
+    }
+}
+
+/// Collects all character classes from a regex into the CharClassIds set.
+pub fn collect_char_classes(regex: &Regex, char_class_ids: &mut CharClassIds) {
+    match regex {
+        Regex::CharClass(cc) => {
+            char_class_ids.insert(cc.clone());
+        }
+        Regex::Seq(rs) | Regex::Alt(rs) => {
+            for r in rs {
+                collect_char_classes(r, char_class_ids);
+            }
+        }
+        Regex::Star(r) | Regex::Plus(r) => {
+            collect_char_classes(r, char_class_ids);
+        }
+        Regex::Char(_) | Regex::CharRange(_) => {}
     }
 }

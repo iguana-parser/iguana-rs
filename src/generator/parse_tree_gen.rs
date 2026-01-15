@@ -107,18 +107,16 @@ fn gen_nonterminal_type(
     nonterminal: &Nonterminal,
 ) -> TokenStream {
     let alternatives = grammar.alternatives(nonterminal);
-    let nonterminal_name = to_pascal_case(&nonterminal.name);
-    let nonterminal_name_id = Ident::new(&nonterminal_name, Span::call_site());
     if alternatives.len() == 1 {
-        gen_nonterminal_type_with_one_alternative(grammar, &nonterminal_name_id, &alternatives[0])
+        gen_nonterminal_type_with_one_alternative(grammar, nonterminal, &alternatives[0])
     } else {
-        gen_nonterminal_type_with_more_than_one_alternative(grammar, nonterminal, &nonterminal_name_id, alternatives)
+        gen_nonterminal_type_with_more_than_one_alternative(grammar, nonterminal, alternatives)
     }
 }
 
 fn gen_nonterminal_type_with_one_alternative(
     grammar: &Grammar, 
-    nonterminal_name_id: &Ident, 
+    nonterminal: &Nonterminal, 
     alternative: &Alternative
 ) -> TokenStream {
     let fields: Vec<_> = alternative
@@ -133,8 +131,17 @@ fn gen_nonterminal_type_with_one_alternative(
             }
         })
         .collect();
+    let nonterminal_name = &nonterminal.name;
+    let comment = if nonterminal_name != &nonterminal.display_name() {
+        let display_name = nonterminal.display_name();
+        quote! { #[comment = #display_name] }
+    } else {
+        quote! {}
+    };
+    let nonterminal_name_id = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());
     // Add Span as last field
     quote! {
+        #comment
         #[derive(Debug)]
         pub struct #nonterminal_name_id(#(#fields,)* Span);
     }
@@ -143,7 +150,6 @@ fn gen_nonterminal_type_with_one_alternative(
 fn gen_nonterminal_type_with_more_than_one_alternative(
     grammar: &Grammar, 
     nonterminal: &Nonterminal,
-    nonterminal_name_id: &Ident, 
     alternatives: &[Alternative]
 ) -> TokenStream {
         let variants: Vec<_> = alternatives
@@ -181,7 +187,16 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
                 }
             })
             .collect();
+        let nonterminal_name = &nonterminal.name;
+        let comment = if nonterminal_name != &nonterminal.display_name() {
+            let display_name = nonterminal.display_name();
+            quote! { #[comment = #display_name] }
+        } else {
+            quote! {}
+        };
+        let nonterminal_name_id = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());
         quote! {
+            #comment
             #[derive(Debug)]
             pub enum #nonterminal_name_id {
                 #(#variants),*
@@ -831,6 +846,7 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                         #second_arm
                     }
                 }
+                items.reverse();
                 items.into_iter()
             }
         }

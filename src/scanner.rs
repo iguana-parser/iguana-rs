@@ -39,4 +39,13 @@ pub trait Scanner {
         let ch = self.char_at(i)?;
         if ch < s || ch > e { None } else { Some(i + 1) }
     }
+    fn match_char_class(&self, i: u32, ranges: &[(char, char)], negated: bool) -> Option<u32> {
+        let ch = self.char_at(i)?;
+        let in_range = ranges.iter().any(|(s, e)| ch >= *s && ch <= *e);
+        if negated ^ in_range {
+            Some(i + 1)
+        } else {
+            None
+        }
+    }
 }

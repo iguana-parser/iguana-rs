@@ -2,10 +2,11 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    alt, alternative,
+    alt, alternative, c, cc,
     generator::generate,
-    grammar::{def::Grammar, regex::Regex, symbols::Terminal},
-    grammar_def, group, id, lexical_rule, lit, opt, plus, priority_level, star, syntax_rule,
+    grammar::{def::Grammar, symbols::Terminal},
+    grammar_def, group, id, lexical_rule, lit, opt, plus, priority_level, r_alt, r_seq, r_star,
+    star, syntax_rule,
 };
 
 #[derive(Parser)]
@@ -82,7 +83,7 @@ fn grammar2() -> Grammar {
             ))
         ],
         lexical: [
-            lexical_rule!("WS" => Regex::star(Regex::Char(' ')))
+            lexical_rule!("WS" => r_star!(c!(' ')))
         ],
         layout: [
             Terminal::new("WS")
@@ -238,74 +239,140 @@ fn ambiguous_grammar() -> Grammar {
     .into()
 }
 
+// grammar Iggy
+//
 // Grammar
-//   : "grammar" Identifier ";" Rule*
-//   ;
+//   = "grammar" Identifier Rule*
+//
 // Rule
-//   : Identifier ":" {PriorityLevel ">"}* ";"
-//   ;
+//   = Identifier "=" {PriorityLevel ">"}*
+//   | Identifier "=" "/" { Regex+ "|" }* "/"
+//
 // PriorityLevel
-//   : { Alternative "|" }*
-//   ;
-// Alternative:
-//   : Symbol*
-//   ;
+//   = { Alternative "|" }*
+//
+// Alternative
+//   = Symbol*
+//
 // Symbol
-//   : Identifier
-//   ;
-// regex Identifier
-//   : [a-zA-Z_][a-zA-Z_0-9]*
-//   ;
+//   = Symbol "*"
+//   | Symbol "+"
+//   | "(" Symbol "|" Symbol ")"
+//   | "\"" String "\""
+//   | "{" Symbol Symbol "}" "*"
+//   | "{" Symbol Symbol "}" "+"
+//   | "(" Symbol+ ")"
+//   | Identifier
+//
+// Regex
+//   = Regex+
+//   | Regex*
+//   | Regex?
+//   | "(" { Regex+ "|" }* ")"
+//   | CharClass
+//   | Char
+//
+// CharClass
+//   = "!"? "[" (CharRange | Char)+ "]"
+//
+// CharRange
+//   = Char "-" Char
+//
+// Char
+//   = /!['-]/
+//
+// String
+//  = /!["]*/
+//
+// Identifier
+//   = /[a-zA-Z_][a-zA-Z_0-9]*/
+//
 // WS
-//   : [ \n]*
-//   ;
+//   = /[ \n]*/
+//
 fn iggy() -> Grammar {
     grammar_def!("Iggy",
         syntax: [
-            // Grammar : "grammar" Identifier ";" Rule*
+            // Grammar = "grammar" Identifier Rule*
             syntax_rule!("Grammar" => alternative!(
                 lit!("grammar"),
                 id!("Identifier"),
-                lit!(";"),
                 star!(id!("Rule"))
             )),
-            // Rule : Identifier ":" PriorityLevel? (">" PriorityLevel)* ";"
-            syntax_rule!("Rule" => alternative!(
-                id!("Identifier"),
-                lit!(":"),
-                star!(id!("PriorityLevel"), lit!(">")),
-                lit!(";")
+            // Rule = Identifier "=" {PriorityLevel ">"}*
+            //      | Identifier "=" "/" Regex "/"
+            syntax_rule!("Rule" => priority_level!(
+                alternative!(id!("Identifier"), lit!("="), star!(id!("PriorityLevel"), lit!(">"))),
+                alternative!(id!("Identifier"), lit!("="), lit!("/"), id!("Regex"), lit!("/"))
             )),
-            // PriorityLevel : { Alternative "|" }*
+            // PriorityLevel = { Alternative "|" }*
             syntax_rule!("PriorityLevel" => alternative!(
                 star!(id!("Alternative"), lit!("|"))
             )),
-            // Alternative : Symbol*
+            // Alternative = Symbol*
             syntax_rule!("Alternative" => alternative!(
                 star!(id!("Symbol"))
             )),
-            // Symbol : Identifier
-            syntax_rule!("Symbol" => alternative!(
-                id!("Identifier")
-            ))
+            // Symbol
+            //   = Symbol "*"
+            //   | Symbol "+"
+            //   | "(" Symbol "|" Symbol ")"
+            //   | "\"" String "\""
+            //   | "{" Symbol Symbol "}" "*"
+            //   | "{" Symbol Symbol "}" "+"
+            //   | "(" Symbol+ ")"
+            //   | Identifier
+            syntax_rule!("Symbol" => priority_level!(
+                alternative!(id!("Symbol"), lit!("*")),
+                alternative!(id!("Symbol"), lit!("+")),
+                alternative!(lit!("("), id!("Symbol"), lit!("|"), id!("Symbol"), lit!(")")),
+                alternative!(lit!("\""), id!("String"), lit!("\"")),
+                alternative!(lit!("{"), id!("Symbol"), id!("Symbol"), lit!("}"), lit!("*")),
+                alternative!(lit!("{"), id!("Symbol"), id!("Symbol"), lit!("}"), lit!("+")),
+                alternative!(lit!("("), star!(id!("Symbol")), lit!(")")),
+                alternative!(id!("Identifier")),
+            )),
+            // Regex
+            //   = Regex+
+            //   | Regex*
+            //   | Regex?
+            //   | "(" { Regex+ "|" }* ")"
+            //   | CharClass
+            //   | Char
+            syntax_rule!("Regex" => priority_level!(
+                alternative!(id!("Regex"), lit!("+")),
+                alternative!(id!("Regex"), lit!("*")),
+                alternative!(id!("Regex"), lit!("?")),
+                alternative!(lit!("("), star!(plus!(id!("Regex")), lit!("|")), lit!(")")),
+                alternative!(id!("CharClass")),
+                alternative!(id!("Char"))
+            )),
+            // CharClass = "!"? "[" (CharRange | Char)+ "]"
+            syntax_rule!("CharClass" => alternative!(
+                opt!(lit!("!")),
+                lit!("["),
+                plus!(alt!(id!("CharRange"), id!("Char"))),
+                lit!("]")
+            )),
+            // CharRange = Char "-" Char
+            syntax_rule!("CharRange" => alternative!(
+                id!("Char"),
+                lit!("-"),
+                id!("Char")
+            )),
         ],
         lexical: [
-            // regex Identifier : [a-zA-Z_][a-zA-Z_0-9]*
-            lexical_rule!("Identifier" => Regex::Seq(vec![
-                    Regex::Alt(vec![
-                        Regex::CharRange { start: 'a', end: 'z' },
-                        Regex::CharRange { start: 'A', end: 'Z' },
-                        Regex::Char('_'),
-                    ]),
-                    Regex::Star(Box::new(Regex::Alt(vec![
-                        Regex::CharRange { start: 'a', end: 'z' },
-                        Regex::CharRange { start: 'A', end: 'Z' },
-                        Regex::CharRange { start: '0', end: '9' },
-                        Regex::Char('_'),
-                    ]))),
-                ])),
-            // WS : [ \n]*
-            lexical_rule!("WS" => Regex::star(Regex::Alt(vec![Regex::Char(' '), Regex::Char('\n')])))
+            // Identifier = /[a-zA-Z_][a-zA-Z_0-9]*/
+            lexical_rule!("Identifier" => r_seq!(
+                r_alt!(cc!(['a'-'z', 'A'-'Z']), c!('_')),
+                r_star!(r_alt!(cc!(['a'-'z', 'A'-'Z', '0'-'9']), c!('_')))
+            )),
+            // String = /!["]*/
+            lexical_rule!("String" => r_star!(cc!(!['"'-'"']))),
+            // Char = /![']/
+            lexical_rule!("Char" => cc!(!['\''-'\''])),
+            // WS = /[ \n]*/
+            lexical_rule!("WS" => r_star!(r_alt!(c!(' '), c!('\n'))))
         ],
         layout: [
             Terminal::new("WS")

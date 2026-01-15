@@ -1,11 +1,34 @@
+use std::fmt::Display;
+
+use itertools::Itertools;
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Regex {
     Char(char),
-    CharRange { start: char, end: char },
+    CharRange(CharRange),
+    CharClass(CharClass),
     Seq(Vec<Regex>),
     Alt(Vec<Regex>),
     Star(Box<Regex>),
     Plus(Box<Regex>),
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct CharRange {
+    pub start: char,
+    pub end: char,
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct CharClass {
+    pub ranges: Vec<CharRange>,
+    pub negated: bool,
+}
+
+impl Display for CharRange {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}-{}", self.start, self.end)
+    }
 }
 
 impl Regex {
@@ -14,7 +37,7 @@ impl Regex {
     }
 
     pub fn range(start: char, end: char) -> Self {
-        Regex::CharRange { start, end }
+        Regex::CharRange(CharRange { start, end })
     }
 
     pub fn seq(parts: Vec<Regex>) -> Self {
@@ -33,6 +56,10 @@ impl Regex {
         Regex::Plus(Box::new(regex))
     }
 
+    pub fn char_class(ranges: Vec<CharRange>, negated: bool) -> Self {
+        Regex::CharClass(CharClass { ranges, negated })
+    }
+
     pub fn literal(s: &str) -> Self {
         Regex::Seq(s.chars().map(Regex::Char).collect())
     }
@@ -42,7 +69,7 @@ impl std::fmt::Display for Regex {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Regex::Char(c) => write!(f, "{}", c),
-            Regex::CharRange { start, end } => write!(f, "[{}-{}]", start, end),
+            Regex::CharRange(r) => write!(f, "{}", r),
             Regex::Seq(parts) => {
                 for part in parts {
                     write!(f, "{}", part)?;
@@ -73,10 +100,83 @@ impl std::fmt::Display for Regex {
                     write!(f, "{}+", inner)
                 }
             }
+            Regex::CharClass(cc) => {
+                let ranges_to_string = cc.ranges.iter().map(|r| r.to_string()).join(" ");
+                if cc.negated {
+                    write!(f, "![{}]", ranges_to_string)
+                } else {
+                    write!(f, "[{}]", ranges_to_string)
+                }
+            }
         }
     }
 }
 
 fn needs_grouping(regex: &Regex) -> bool {
     matches!(regex, Regex::Seq(_) | Regex::Alt(_))
+}
+
+#[macro_export]
+macro_rules! c {
+    ($c:literal) => {
+        $crate::grammar::regex::Regex::Char($c)
+    };
+}
+
+#[macro_export]
+macro_rules! r {
+    [$start:literal - $end:literal] => {
+        $crate::grammar::regex::Regex::CharRange($crate::grammar::regex::CharRange {
+            start: $start,
+            end: $end,
+        })
+    };
+}
+
+#[macro_export]
+macro_rules! r_seq {
+    ($($part:expr),* $(,)?) => {
+        $crate::grammar::regex::Regex::Seq(vec![$($part),*])
+    };
+}
+
+#[macro_export]
+macro_rules! r_alt {
+    ($($choice:expr),* $(,)?) => {
+        $crate::grammar::regex::Regex::Alt(vec![$($choice),*])
+    };
+}
+
+#[macro_export]
+macro_rules! r_star {
+    ($inner:expr) => {
+        $crate::grammar::regex::Regex::Star(Box::new($inner))
+    };
+}
+
+#[macro_export]
+macro_rules! r_plus {
+    ($inner:expr) => {
+        $crate::grammar::regex::Regex::Plus(Box::new($inner))
+    };
+}
+
+#[macro_export]
+macro_rules! cc {
+    ([$($start:literal - $end:literal),* $(,)?]) => {
+        $crate::grammar::regex::Regex::CharClass($crate::grammar::regex::CharClass {
+            ranges: vec![
+                $($crate::grammar::regex::CharRange { start: $start, end: $end }),*
+            ],
+            negated: false,
+        })
+    };
+    (![$($start:literal - $end:literal),* $(,)?]) => {
+        $crate::grammar::regex::Regex::CharClass($crate::grammar::regex::CharClass {
+            ranges: vec![
+                $($crate::grammar::regex::CharRange { start: $start, end: $end }),*
+            ],
+            negated: true,
+        })
+    };
 }

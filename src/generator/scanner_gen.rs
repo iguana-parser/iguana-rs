@@ -3,18 +3,33 @@ use quote::{format_ident, quote};
 use syn::Ident;
 
 use crate::{
-    generator::id::TerminalIds,
-    grammar::{def::Grammar, regex::Regex, symbols::Terminal},
+    generator::id::{CharClassIds, TerminalIds, collect_char_classes},
+    grammar::{
+        def::Grammar,
+        regex::{CharClass, CharRange, Regex},
+        symbols::Terminal,
+    },
 };
 
 pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
     let grammar_name = &grammar.name;
+
+    // Collect all character classes from lexical rules
+    let mut char_class_ids = CharClassIds::default();
+    for terminal in grammar.terminals() {
+        if let Some(regex) = grammar.lexical_rules(terminal) {
+            collect_char_classes(regex, &mut char_class_ids);
+        }
+    }
+
     let imports = gen_imports();
+    let char_class_consts = gen_char_class_consts(&char_class_ids);
     let scanner_struct = gen_scanner_struct(grammar_name);
-    let scanner_impl = gen_scanner_imp(terminal_ids, grammar);
-    let scanner_trait_impl = gen_scanner_trait_impl(terminal_ids, grammar);
+    let scanner_impl = gen_scanner_imp(grammar, terminal_ids, &char_class_ids);
+    let scanner_trait_impl = gen_scanner_trait_impl(grammar, terminal_ids, &char_class_ids);
     quote! {
         #imports
+        #char_class_consts
         #scanner_struct
         #scanner_impl
         #scanner_trait_impl
@@ -41,12 +56,44 @@ fn gen_scanner_struct(grammar_name: &str) -> TokenStream {
     }
 }
 
-fn gen_scanner_imp(terminal_ids: &TerminalIds, grammar: &Grammar) -> TokenStream {
+fn gen_char_class_consts(char_class_ids: &CharClassIds) -> TokenStream {
+    let consts: Vec<_> = char_class_ids
+        .ids()
+        .map(|id| {
+            let char_class = char_class_ids.get(id);
+            let const_name = format_ident!("CHAR_CLASS_{}", id.index());
+            let len = char_class.ranges.len();
+            let range_tuples: Vec<_> = char_class
+                .ranges
+                .iter()
+                .map(|r| {
+                    let start = r.start;
+                    let end = r.end;
+                    quote! { (#start, #end) }
+                })
+                .collect();
+            quote! {
+                const #const_name: [(char, char); #len] = [#(#range_tuples),*];
+            }
+        })
+        .collect();
+    quote! {
+        #(#consts)*
+    }
+}
+
+fn gen_scanner_imp(
+    grammar: &Grammar,
+    terminal_ids: &TerminalIds,
+    char_class_ids: &CharClassIds,
+) -> TokenStream {
     let name_ident = syn::Ident::new(&format!("{}{}", grammar.name, "Scanner"), Span::call_site());
     let match_terminals: Vec<_> = terminal_ids
         .terminals()
         .enumerate()
-        .map(|(id, terminal)| gen_match_terminal_method(id as u16, terminal, grammar))
+        .map(|(id, terminal)| {
+            gen_match_terminal_method(id as u16, terminal, char_class_ids, grammar)
+        })
         .collect();
     quote! {
         impl<'i> #name_ident<'i> {
@@ -58,7 +105,11 @@ fn gen_scanner_imp(terminal_ids: &TerminalIds, grammar: &Grammar) -> TokenStream
     }
 }
 
-fn gen_scanner_trait_impl(terminal_ids: &TerminalIds, grammar: &Grammar) -> TokenStream {
+fn gen_scanner_trait_impl(
+    grammar: &Grammar,
+    terminal_ids: &TerminalIds,
+    _char_class_ids: &CharClassIds,
+) -> TokenStream {
     let match_token_method = gen_match_token(terminal_ids);
     let char_at_method = gen_char_at_method();
     let match_leading_layout_method = gen_match_layout_method(grammar, terminal_ids, false);
@@ -83,14 +134,17 @@ fn gen_char_at_method() -> TokenStream {
 }
 
 fn gen_match_token(terminal_ids: &TerminalIds) -> TokenStream {
-    let match_terminal_arms: Vec<_> = terminal_ids.ids().map(|id| {
-        let fn_name = format_ident!("match_terminal_{}", id.index() as u16);
-        quote! {
-            #id => {
-                self.#fn_name(input_index)
+    let match_terminal_arms: Vec<_> = terminal_ids
+        .ids()
+        .map(|id| {
+            let fn_name = format_ident!("match_terminal_{}", id.index() as u16);
+            quote! {
+                #id => {
+                    self.#fn_name(input_index)
+                }
             }
-        }
-    }).collect();
+        })
+        .collect();
 
     let match_token = if match_terminal_arms.is_empty() {
         quote! {
@@ -115,13 +169,18 @@ fn gen_match_token(terminal_ids: &TerminalIds) -> TokenStream {
     }
 }
 
-fn gen_match_terminal_method(id: u16, terminal: &Terminal, grammar: &Grammar) -> TokenStream {
+fn gen_match_terminal_method(
+    id: u16,
+    terminal: &Terminal,
+    char_class_ids: &CharClassIds,
+    grammar: &Grammar,
+) -> TokenStream {
     let fn_name = format_ident!("match_terminal_{}", id);
     let terminal_name = &terminal.name;
     let regex = grammar
         .lexical_rules(terminal)
         .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
-    let match_regex = match_regex(regex);
+    let match_regex = match_regex(regex, char_class_ids);
 
     quote! {
         #[comment= #terminal_name]
@@ -173,13 +232,14 @@ fn gen_match_layout_method(
     }
 }
 
-fn match_regex(regex: &Regex) -> TokenStream {
+fn match_regex(regex: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
     match regex {
         Regex::Char(c) => match_char(*c),
-        Regex::CharRange { start, end } => match_char_range(*start, *end),
-        Regex::Seq(rs) => match_seq(rs),
-        Regex::Alt(rs) => match_alt(rs),
-        Regex::Star(r) => match_star(r),
+        Regex::CharRange(range) => match_char_range(*range),
+        Regex::CharClass(cc) => match_char_class(cc, char_class_ids),
+        Regex::Seq(rs) => match_seq(rs, char_class_ids),
+        Regex::Alt(rs) => match_alt(rs, char_class_ids),
+        Regex::Star(r) => match_star(r, char_class_ids),
         _ => todo!(),
     }
 }
@@ -190,19 +250,32 @@ fn match_char(c: char) -> TokenStream {
     }
 }
 
-fn match_char_range(start: char, end: char) -> TokenStream {
+fn match_char_range(range: CharRange) -> TokenStream {
+    let start = range.start;
+    let end = range.end;
     quote! {
         self.match_char_range(i, #start, #end)
     }
 }
 
-fn match_seq(rs: &[Regex]) -> TokenStream {
+fn match_char_class(cc: &CharClass, char_class_ids: &CharClassIds) -> TokenStream {
+    let id = char_class_ids
+        .get_id(cc)
+        .expect("CharClass should have been collected");
+    let char_class_name = format_ident!("CHAR_CLASS_{}", id.index());
+    let negated = cc.negated;
+    quote! {
+        self.match_char_class(i, &#char_class_name, #negated)
+    }
+}
+
+fn match_seq(rs: &[Regex], char_class_ids: &CharClassIds) -> TokenStream {
     if let Some((first, rest)) = rs.split_first() {
-        let match_first = match_regex(first);
+        let match_first = match_regex(first, char_class_ids);
         let rest: Vec<_> = rest
             .iter()
             .map(|r| {
-                let match_r = match_regex(r);
+                let match_r = match_regex(r, char_class_ids);
                 quote! {
                     .and_then(|i| { #match_r })
                 }
@@ -218,13 +291,13 @@ fn match_seq(rs: &[Regex]) -> TokenStream {
     }
 }
 
-fn match_alt(rs: &[Regex]) -> TokenStream {
+fn match_alt(rs: &[Regex], char_class_ids: &CharClassIds) -> TokenStream {
     if let Some((first, rest)) = rs.split_first() {
-        let match_first = match_regex(first);
+        let match_first = match_regex(first, char_class_ids);
         let rest: Vec<_> = rest
             .iter()
             .map(|r| {
-                let match_r = match_regex(r);
+                let match_r = match_regex(r, char_class_ids);
                 quote! {
                     .or_else(|| { #match_r })
                 }
@@ -239,8 +312,8 @@ fn match_alt(rs: &[Regex]) -> TokenStream {
     }
 }
 
-fn match_star(r: &Regex) -> TokenStream {
-    let match_r = match_regex(r);
+fn match_star(r: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
+    let match_r = match_regex(r, char_class_ids);
     quote! {
         let mut j = i;
         while let Some(k) = (|i| { #match_r })(j) {
@@ -258,10 +331,11 @@ mod tests {
 
     use crate::{
         generator::{
-            scanner_gen::{match_alt, match_char, match_char_range, match_star},
+            id::CharClassIds,
+            scanner_gen::{match_alt, match_char, match_char_class, match_char_range, match_star},
             utils::rustfmt,
         },
-        grammar::regex::Regex,
+        grammar::regex::{CharClass, CharRange, Regex}, scanner::Range,
     };
 
     fn format(token_stream: TokenStream) -> String {
@@ -281,19 +355,27 @@ mod tests {
 
     #[test]
     fn test_match_char_range() {
-        let code = format(match_char_range('a', 'z'));
+        let code = format(match_char_range(CharRange {
+            start: 'a',
+            end: 'z',
+        }));
         assert_snapshot!(code);
     }
 
     #[test]
     fn test_match_alt() {
-        let code = format(match_alt(&[Regex::Char('a'), Regex::Char('b')]));
+        let char_class_ids = CharClassIds::default();
+        let code = format(match_alt(
+            &[Regex::Char('a'), Regex::Char('b')],
+            &char_class_ids,
+        ));
         assert_snapshot!(code);
     }
 
     #[test]
     fn test_match_star() {
-        let code = format(match_star(&Regex::Char('a')));
+        let char_class_ids = CharClassIds::default();
+        let code = format(match_star(&Regex::Char('a'), &char_class_ids));
         assert_snapshot!(code);
     }
 }
