@@ -90,7 +90,17 @@ pub const NONTERMINALS: [Nonterminal; 27] = [
         kind: Some(EbnfKind::Star),
     },
     Nonterminal {
-        name: "PriorityLevel_Plus_2",
+        name: "Rule_Plus_3",
+        display: "Regex+",
+        kind: Some(EbnfKind::Plus),
+    },
+    Nonterminal {
+        name: "Rule_Plus_2",
+        display: "{Regex+ \"|\"}+",
+        kind: Some(EbnfKind::Plus),
+    },
+    Nonterminal {
+        name: "PriorityLevel_Plus_4",
         display: "{Alternative \"|\"}+",
         kind: Some(EbnfKind::Plus),
     },
@@ -105,7 +115,7 @@ pub const NONTERMINALS: [Nonterminal; 27] = [
         kind: Some(EbnfKind::Star),
     },
     Nonterminal {
-        name: "Alternative_Plus_3",
+        name: "Alternative_Plus_5",
         display: "Symbol+",
         kind: Some(EbnfKind::Plus),
     },
@@ -118,16 +128,6 @@ pub const NONTERMINALS: [Nonterminal; 27] = [
         name: "Alternative_Star_3",
         display: "Symbol*",
         kind: Some(EbnfKind::Star),
-    },
-    Nonterminal {
-        name: "Regex_Plus_5",
-        display: "Regex+",
-        kind: Some(EbnfKind::Plus),
-    },
-    Nonterminal {
-        name: "Regex_Plus_4",
-        display: "{Regex+ \"|\"}+",
-        kind: Some(EbnfKind::Plus),
     },
     Nonterminal {
         name: "Regex_Opt_4",
@@ -162,11 +162,11 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     NonterminalId(7), "Grammar_Plus_0" => NonterminalId(8), "Grammar_Opt_0" =>
     NonterminalId(9), "Grammar_Star_0" => NonterminalId(10), "Rule_Plus_1" =>
     NonterminalId(11), "Rule_Opt_1" => NonterminalId(12), "Rule_Star_1" =>
-    NonterminalId(13), "PriorityLevel_Plus_2" => NonterminalId(14), "PriorityLevel_Opt_2"
-    => NonterminalId(15), "PriorityLevel_Star_2" => NonterminalId(16),
-    "Alternative_Plus_3" => NonterminalId(17), "Alternative_Opt_3" => NonterminalId(18),
-    "Alternative_Star_3" => NonterminalId(19), "Regex_Plus_5" => NonterminalId(20),
-    "Regex_Plus_4" => NonterminalId(21), "Regex_Opt_4" => NonterminalId(22),
+    NonterminalId(13), "Rule_Plus_3" => NonterminalId(14), "Rule_Plus_2" =>
+    NonterminalId(15), "PriorityLevel_Plus_4" => NonterminalId(16), "PriorityLevel_Opt_2"
+    => NonterminalId(17), "PriorityLevel_Star_2" => NonterminalId(18),
+    "Alternative_Plus_5" => NonterminalId(19), "Alternative_Opt_3" => NonterminalId(20),
+    "Alternative_Star_3" => NonterminalId(21), "Regex_Opt_4" => NonterminalId(22),
     "Regex_Star_4" => NonterminalId(23), "CharClass_Opt_5" => NonterminalId(24),
     "CharClass_Alt_0" => NonterminalId(25), "CharClass_Plus_6" => NonterminalId(26)
 };
@@ -222,22 +222,22 @@ pub const SLOTS: [Slot; 148] = [
         display_name: "Rule : Identifier \"=\" {PriorityLevel \">\"}*.",
     },
     Slot {
-        display_name: "Rule : . Identifier \"=\" \"/\" Regex \"/\"",
+        display_name: "Rule : . Identifier \"=\" \"/\" {Regex+ \"|\"}+ \"/\"",
     },
     Slot {
-        display_name: "Rule : Identifier . \"=\" \"/\" Regex \"/\"",
+        display_name: "Rule : Identifier . \"=\" \"/\" {Regex+ \"|\"}+ \"/\"",
     },
     Slot {
-        display_name: "Rule : Identifier \"=\" . \"/\" Regex \"/\"",
+        display_name: "Rule : Identifier \"=\" . \"/\" {Regex+ \"|\"}+ \"/\"",
     },
     Slot {
-        display_name: "Rule : Identifier \"=\" \"/\" . Regex \"/\"",
+        display_name: "Rule : Identifier \"=\" \"/\" . {Regex+ \"|\"}+ \"/\"",
     },
     Slot {
-        display_name: "Rule : Identifier \"=\" \"/\" Regex . \"/\"",
+        display_name: "Rule : Identifier \"=\" \"/\" {Regex+ \"|\"}+ . \"/\"",
     },
     Slot {
-        display_name: "Rule : Identifier \"=\" \"/\" Regex \"/\".",
+        display_name: "Rule : Identifier \"=\" \"/\" {Regex+ \"|\"}+ \"/\".",
     },
     Slot {
         display_name: "PriorityLevel : . {Alternative \"|\"}*",
@@ -495,6 +495,39 @@ pub const SLOTS: [Slot; 148] = [
         display_name: "{PriorityLevel \">\"}* : {PriorityLevel \">\"}+?.",
     },
     Slot {
+        display_name: "Regex+ : . Regex+ Regex",
+    },
+    Slot {
+        display_name: "Regex+ : Regex+ . Regex",
+    },
+    Slot {
+        display_name: "Regex+ : Regex+ Regex.",
+    },
+    Slot {
+        display_name: "Regex+ : . Regex",
+    },
+    Slot {
+        display_name: "Regex+ : Regex.",
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : . {Regex+ \"|\"}+ \"|\" Regex+",
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ . \"|\" Regex+",
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ \"|\" . Regex+",
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ \"|\" Regex+.",
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : . Regex+",
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : Regex+.",
+    },
+    Slot {
         display_name: "{Alternative \"|\"}+ : . {Alternative \"|\"}+ \"|\" Alternative",
     },
     Slot {
@@ -556,39 +589,6 @@ pub const SLOTS: [Slot; 148] = [
     },
     Slot {
         display_name: "Symbol* : Symbol+?.",
-    },
-    Slot {
-        display_name: "Regex+ : . Regex+ Regex",
-    },
-    Slot {
-        display_name: "Regex+ : Regex+ . Regex",
-    },
-    Slot {
-        display_name: "Regex+ : Regex+ Regex.",
-    },
-    Slot {
-        display_name: "Regex+ : . Regex",
-    },
-    Slot {
-        display_name: "Regex+ : Regex.",
-    },
-    Slot {
-        display_name: "{Regex+ \"|\"}+ : . {Regex+ \"|\"}+ \"|\" Regex+",
-    },
-    Slot {
-        display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ . \"|\" Regex+",
-    },
-    Slot {
-        display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ \"|\" . Regex+",
-    },
-    Slot {
-        display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ \"|\" Regex+.",
-    },
-    Slot {
-        display_name: "{Regex+ \"|\"}+ : . Regex+",
-    },
-    Slot {
-        display_name: "{Regex+ \"|\"}+ : Regex+.",
     },
     Slot {
         display_name: "{Regex+ \"|\"}+? : . {Regex+ \"|\"}+",
@@ -887,7 +887,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //Rule : . Identifier "=" "/" Regex "/"
+            //Rule : . Identifier "=" "/" Rule_Plus_2 "/"
             SlotId(8) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
@@ -906,7 +906,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //Rule : Identifier . "=" "/" Regex "/"
+                        //Rule : Identifier . "=" "/" Rule_Plus_2 "/"
                         let next_slot_id = SlotId(9);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id);
@@ -924,7 +924,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Rule : Identifier . "=" "/" Regex "/"
+            //Rule : Identifier . "=" "/" Rule_Plus_2 "/"
             SlotId(9) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
@@ -943,7 +943,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //Rule : Identifier "=" . "/" Regex "/"
+                        //Rule : Identifier "=" . "/" Rule_Plus_2 "/"
                         let next_slot_id = SlotId(10);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -971,7 +971,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Rule : Identifier "=" . "/" Regex "/"
+            //Rule : Identifier "=" . "/" Rule_Plus_2 "/"
             SlotId(10) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
@@ -990,7 +990,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //Rule : Identifier "=" "/" . Regex "/"
+                        //Rule : Identifier "=" "/" . Rule_Plus_2 "/"
                         let next_slot_id = SlotId(11);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1018,11 +1018,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Rule : Identifier "=" "/" . Regex "/"
+            //Rule : Identifier "=" "/" . Rule_Plus_2 "/"
             SlotId(11) => {
-                self.create(NonterminalId(5), result, gss_node_id, SlotId(12));
+                self.create(NonterminalId(15), result, gss_node_id, SlotId(12));
             }
-            //Rule : Identifier "=" "/" Regex . "/"
+            //Rule : Identifier "=" "/" Rule_Plus_2 . "/"
             SlotId(12) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
@@ -1041,7 +1041,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //Rule : Identifier "=" "/" Regex "/".
+                        //Rule : Identifier "=" "/" Rule_Plus_2 "/".
                         let next_slot_id = SlotId(13);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1069,7 +1069,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     }
                 }
             }
-            //Rule : Identifier "=" "/" Regex "/".
+            //Rule : Identifier "=" "/" Rule_Plus_2 "/".
             SlotId(13) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -1091,7 +1091,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel : . PriorityLevel_Star_2
             SlotId(14) => {
-                self.create(NonterminalId(16), result, gss_node_id, SlotId(15));
+                self.create(NonterminalId(18), result, gss_node_id, SlotId(15));
             }
             //PriorityLevel : PriorityLevel_Star_2.
             SlotId(15) => {
@@ -1115,7 +1115,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative : . Alternative_Star_3
             SlotId(16) => {
-                self.create(NonterminalId(19), result, gss_node_id, SlotId(17));
+                self.create(NonterminalId(21), result, gss_node_id, SlotId(17));
             }
             //Alternative : Alternative_Star_3.
             SlotId(17) => {
@@ -1946,7 +1946,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : "(" . Alternative_Star_3 ")"
             SlotId(47) => {
-                self.create(NonterminalId(19), result, gss_node_id, SlotId(48));
+                self.create(NonterminalId(21), result, gss_node_id, SlotId(48));
             }
             //Symbol : "(" Alternative_Star_3 . ")"
             SlotId(48) => {
@@ -3036,12 +3036,64 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //PriorityLevel_Plus_2 : . PriorityLevel_Plus_2 "|" Alternative
+            //Rule_Plus_3 : . Rule_Plus_3 Regex
             SlotId(99) => {
                 self.create(NonterminalId(14), result, gss_node_id, SlotId(100));
             }
-            //PriorityLevel_Plus_2 : PriorityLevel_Plus_2 . "|" Alternative
+            //Rule_Plus_3 : Rule_Plus_3 . Regex
             SlotId(100) => {
+                self.create(NonterminalId(5), result, gss_node_id, SlotId(101));
+            }
+            //Rule_Plus_3 : Rule_Plus_3 Regex.
+            SlotId(101) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(14);
+                let end_slot_id = SlotId(101);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                }
+            }
+            //Rule_Plus_3 : . Regex
+            SlotId(102) => {
+                self.create(NonterminalId(5), result, gss_node_id, SlotId(103));
+            }
+            //Rule_Plus_3 : Regex.
+            SlotId(103) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(14);
+                let end_slot_id = SlotId(103);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                }
+            }
+            //Rule_Plus_2 : . Rule_Plus_2 "|" Rule_Plus_3
+            SlotId(104) => {
+                self.create(NonterminalId(15), result, gss_node_id, SlotId(105));
+            }
+            //Rule_Plus_2 : Rule_Plus_2 . "|" Rule_Plus_3
+            SlotId(105) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -3059,8 +3111,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //PriorityLevel_Plus_2 : PriorityLevel_Plus_2 "|" . Alternative
-                        let next_slot_id = SlotId(101);
+                        //Rule_Plus_2 : Rule_Plus_2 "|" . Rule_Plus_3
+                        let next_slot_id = SlotId(106);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
@@ -3080,67 +3132,19 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             MatchFailed,
                             "\"|\"",
                             i,
-                            SlotId(100),
+                            SlotId(105),
                             gss_node_id,
                             result
                         );
                     }
                 }
             }
-            //PriorityLevel_Plus_2 : PriorityLevel_Plus_2 "|" . Alternative
-            SlotId(101) => {
-                self.create(NonterminalId(3), result, gss_node_id, SlotId(102));
-            }
-            //PriorityLevel_Plus_2 : PriorityLevel_Plus_2 "|" Alternative.
-            SlotId(102) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(14);
-                let end_slot_id = SlotId(102);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
-            //PriorityLevel_Plus_2 : . Alternative
-            SlotId(103) => {
-                self.create(NonterminalId(3), result, gss_node_id, SlotId(104));
-            }
-            //PriorityLevel_Plus_2 : Alternative.
-            SlotId(104) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(14);
-                let end_slot_id = SlotId(104);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
-            //PriorityLevel_Opt_2 : . PriorityLevel_Plus_2
-            SlotId(105) => {
-                self.create(NonterminalId(14), result, gss_node_id, SlotId(106));
-            }
-            //PriorityLevel_Opt_2 : PriorityLevel_Plus_2.
+            //Rule_Plus_2 : Rule_Plus_2 "|" . Rule_Plus_3
             SlotId(106) => {
+                self.create(NonterminalId(14), result, gss_node_id, SlotId(107));
+            }
+            //Rule_Plus_2 : Rule_Plus_2 "|" Rule_Plus_3.
+            SlotId(107) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -3148,7 +3152,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(15);
-                let end_slot_id = SlotId(106);
+                let end_slot_id = SlotId(107);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -3159,32 +3163,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //PriorityLevel_Opt_2 : .
-            SlotId(107) => {
-                let end_slot_id = SlotId(107);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(21),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
-                let nonterminal_id = NonterminalId(15);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
-            //PriorityLevel_Star_2 : . PriorityLevel_Opt_2
+            //Rule_Plus_2 : . Rule_Plus_3
             SlotId(108) => {
-                self.create(NonterminalId(15), result, gss_node_id, SlotId(109));
+                self.create(NonterminalId(14), result, gss_node_id, SlotId(109));
             }
-            //PriorityLevel_Star_2 : PriorityLevel_Opt_2.
+            //Rule_Plus_2 : Rule_Plus_3.
             SlotId(109) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -3192,7 +3175,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(16);
+                let nonterminal_id = NonterminalId(15);
                 let end_slot_id = SlotId(109);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
@@ -3204,185 +3187,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //Alternative_Plus_3 : . Alternative_Plus_3 Symbol
+            //PriorityLevel_Plus_4 : . PriorityLevel_Plus_4 "|" Alternative
             SlotId(110) => {
-                self.create(NonterminalId(17), result, gss_node_id, SlotId(111));
+                self.create(NonterminalId(16), result, gss_node_id, SlotId(111));
             }
-            //Alternative_Plus_3 : Alternative_Plus_3 . Symbol
+            //PriorityLevel_Plus_4 : PriorityLevel_Plus_4 . "|" Alternative
             SlotId(111) => {
-                self.create(NonterminalId(4), result, gss_node_id, SlotId(112));
-            }
-            //Alternative_Plus_3 : Alternative_Plus_3 Symbol.
-            SlotId(112) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(17);
-                let end_slot_id = SlotId(112);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
-            //Alternative_Plus_3 : . Symbol
-            SlotId(113) => {
-                self.create(NonterminalId(4), result, gss_node_id, SlotId(114));
-            }
-            //Alternative_Plus_3 : Symbol.
-            SlotId(114) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(17);
-                let end_slot_id = SlotId(114);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
-            //Alternative_Opt_3 : . Alternative_Plus_3
-            SlotId(115) => {
-                self.create(NonterminalId(17), result, gss_node_id, SlotId(116));
-            }
-            //Alternative_Opt_3 : Alternative_Plus_3.
-            SlotId(116) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(18);
-                let end_slot_id = SlotId(116);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
-            //Alternative_Opt_3 : .
-            SlotId(117) => {
-                let end_slot_id = SlotId(117);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(21),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
-                let nonterminal_id = NonterminalId(18);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
-            //Alternative_Star_3 : . Alternative_Opt_3
-            SlotId(118) => {
-                self.create(NonterminalId(18), result, gss_node_id, SlotId(119));
-            }
-            //Alternative_Star_3 : Alternative_Opt_3.
-            SlotId(119) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(19);
-                let end_slot_id = SlotId(119);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
-            //Regex_Plus_5 : . Regex_Plus_5 Regex
-            SlotId(120) => {
-                self.create(NonterminalId(20), result, gss_node_id, SlotId(121));
-            }
-            //Regex_Plus_5 : Regex_Plus_5 . Regex
-            SlotId(121) => {
-                self.create(NonterminalId(5), result, gss_node_id, SlotId(122));
-            }
-            //Regex_Plus_5 : Regex_Plus_5 Regex.
-            SlotId(122) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(20);
-                let end_slot_id = SlotId(122);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
-            //Regex_Plus_5 : . Regex
-            SlotId(123) => {
-                self.create(NonterminalId(5), result, gss_node_id, SlotId(124));
-            }
-            //Regex_Plus_5 : Regex.
-            SlotId(124) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(20);
-                let end_slot_id = SlotId(124);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
-                }
-            }
-            //Regex_Plus_4 : . Regex_Plus_4 "|" Regex_Plus_5
-            SlotId(125) => {
-                self.create(NonterminalId(21), result, gss_node_id, SlotId(126));
-            }
-            //Regex_Plus_4 : Regex_Plus_4 . "|" Regex_Plus_5
-            SlotId(126) => {
                 record!(self, MatchingLeadingLayout, input_index);
                 let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
                 record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
@@ -3400,8 +3210,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             leading_layout,
                             trailing_layout,
                         );
-                        //Regex_Plus_4 : Regex_Plus_4 "|" . Regex_Plus_5
-                        let next_slot_id = SlotId(127);
+                        //PriorityLevel_Plus_4 : PriorityLevel_Plus_4 "|" . Alternative
+                        let next_slot_id = SlotId(112);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
@@ -3421,27 +3231,27 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             MatchFailed,
                             "\"|\"",
                             i,
-                            SlotId(126),
+                            SlotId(111),
                             gss_node_id,
                             result
                         );
                     }
                 }
             }
-            //Regex_Plus_4 : Regex_Plus_4 "|" . Regex_Plus_5
-            SlotId(127) => {
-                self.create(NonterminalId(20), result, gss_node_id, SlotId(128));
+            //PriorityLevel_Plus_4 : PriorityLevel_Plus_4 "|" . Alternative
+            SlotId(112) => {
+                self.create(NonterminalId(3), result, gss_node_id, SlotId(113));
             }
-            //Regex_Plus_4 : Regex_Plus_4 "|" Regex_Plus_5.
-            SlotId(128) => {
+            //PriorityLevel_Plus_4 : PriorityLevel_Plus_4 "|" Alternative.
+            SlotId(113) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(21);
-                let end_slot_id = SlotId(128);
+                let nonterminal_id = NonterminalId(16);
+                let end_slot_id = SlotId(113);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -3452,11 +3262,201 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //Regex_Plus_4 : . Regex_Plus_5
+            //PriorityLevel_Plus_4 : . Alternative
+            SlotId(114) => {
+                self.create(NonterminalId(3), result, gss_node_id, SlotId(115));
+            }
+            //PriorityLevel_Plus_4 : Alternative.
+            SlotId(115) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(16);
+                let end_slot_id = SlotId(115);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                }
+            }
+            //PriorityLevel_Opt_2 : . PriorityLevel_Plus_4
+            SlotId(116) => {
+                self.create(NonterminalId(16), result, gss_node_id, SlotId(117));
+            }
+            //PriorityLevel_Opt_2 : PriorityLevel_Plus_4.
+            SlotId(117) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(17);
+                let end_slot_id = SlotId(117);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                }
+            }
+            //PriorityLevel_Opt_2 : .
+            SlotId(118) => {
+                let end_slot_id = SlotId(118);
+                let epsilon_node_id = self.get_or_create_terminal_node(
+                    TerminalId(21),
+                    input_index,
+                    input_index,
+                    vec![],
+                    vec![],
+                );
+                let nonterminal_id = NonterminalId(17);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
+                ) {
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                }
+            }
+            //PriorityLevel_Star_2 : . PriorityLevel_Opt_2
+            SlotId(119) => {
+                self.create(NonterminalId(17), result, gss_node_id, SlotId(120));
+            }
+            //PriorityLevel_Star_2 : PriorityLevel_Opt_2.
+            SlotId(120) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(18);
+                let end_slot_id = SlotId(120);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                }
+            }
+            //Alternative_Plus_5 : . Alternative_Plus_5 Symbol
+            SlotId(121) => {
+                self.create(NonterminalId(19), result, gss_node_id, SlotId(122));
+            }
+            //Alternative_Plus_5 : Alternative_Plus_5 . Symbol
+            SlotId(122) => {
+                self.create(NonterminalId(4), result, gss_node_id, SlotId(123));
+            }
+            //Alternative_Plus_5 : Alternative_Plus_5 Symbol.
+            SlotId(123) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(19);
+                let end_slot_id = SlotId(123);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                }
+            }
+            //Alternative_Plus_5 : . Symbol
+            SlotId(124) => {
+                self.create(NonterminalId(4), result, gss_node_id, SlotId(125));
+            }
+            //Alternative_Plus_5 : Symbol.
+            SlotId(125) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(19);
+                let end_slot_id = SlotId(125);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                }
+            }
+            //Alternative_Opt_3 : . Alternative_Plus_5
+            SlotId(126) => {
+                self.create(NonterminalId(19), result, gss_node_id, SlotId(127));
+            }
+            //Alternative_Opt_3 : Alternative_Plus_5.
+            SlotId(127) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(20);
+                let end_slot_id = SlotId(127);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                }
+            }
+            //Alternative_Opt_3 : .
+            SlotId(128) => {
+                let end_slot_id = SlotId(128);
+                let epsilon_node_id = self.get_or_create_terminal_node(
+                    TerminalId(21),
+                    input_index,
+                    input_index,
+                    vec![],
+                    vec![],
+                );
+                let nonterminal_id = NonterminalId(20);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
+                ) {
+                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                }
+            }
+            //Alternative_Star_3 : . Alternative_Opt_3
             SlotId(129) => {
                 self.create(NonterminalId(20), result, gss_node_id, SlotId(130));
             }
-            //Regex_Plus_4 : Regex_Plus_5.
+            //Alternative_Star_3 : Alternative_Opt_3.
             SlotId(130) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -3476,11 +3476,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //Regex_Opt_4 : . Regex_Plus_4
+            //Regex_Opt_4 : . Rule_Plus_2
             SlotId(131) => {
-                self.create(NonterminalId(21), result, gss_node_id, SlotId(132));
+                self.create(NonterminalId(15), result, gss_node_id, SlotId(132));
             }
-            //Regex_Opt_4 : Regex_Plus_4.
+            //Regex_Opt_4 : Rule_Plus_2.
             SlotId(132) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -3787,7 +3787,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     sppf_node_id: None,
                     gss_node_id,
                 });
-                //Rule : . Identifier "=" "/" Regex "/"
+                //Rule : . Identifier "=" "/" Rule_Plus_2 "/"
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(8),
@@ -4027,43 +4027,33 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                 });
             }
-            //PriorityLevel_Plus_2
+            //Rule_Plus_3
             NonterminalId(14) => {
-                //PriorityLevel_Plus_2 : . PriorityLevel_Plus_2 "|" Alternative
+                //Rule_Plus_3 : . Rule_Plus_3 Regex
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(99),
                     sppf_node_id: None,
                     gss_node_id,
                 });
-                //PriorityLevel_Plus_2 : . Alternative
+                //Rule_Plus_3 : . Regex
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(103),
+                    slot_id: SlotId(102),
                     sppf_node_id: None,
                     gss_node_id,
                 });
             }
-            //PriorityLevel_Opt_2
+            //Rule_Plus_2
             NonterminalId(15) => {
-                //PriorityLevel_Opt_2 : . PriorityLevel_Plus_2
+                //Rule_Plus_2 : . Rule_Plus_2 "|" Rule_Plus_3
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(105),
+                    slot_id: SlotId(104),
                     sppf_node_id: None,
                     gss_node_id,
                 });
-                //PriorityLevel_Opt_2 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(107),
-                    sppf_node_id: None,
-                    gss_node_id,
-                });
-            }
-            //PriorityLevel_Star_2
-            NonterminalId(16) => {
-                //PriorityLevel_Star_2 : . PriorityLevel_Opt_2
+                //Rule_Plus_2 : . Rule_Plus_3
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(108),
@@ -4071,43 +4061,33 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                 });
             }
-            //Alternative_Plus_3
-            NonterminalId(17) => {
-                //Alternative_Plus_3 : . Alternative_Plus_3 Symbol
+            //PriorityLevel_Plus_4
+            NonterminalId(16) => {
+                //PriorityLevel_Plus_4 : . PriorityLevel_Plus_4 "|" Alternative
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(110),
                     sppf_node_id: None,
                     gss_node_id,
                 });
-                //Alternative_Plus_3 : . Symbol
+                //PriorityLevel_Plus_4 : . Alternative
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(113),
+                    slot_id: SlotId(114),
                     sppf_node_id: None,
                     gss_node_id,
                 });
             }
-            //Alternative_Opt_3
-            NonterminalId(18) => {
-                //Alternative_Opt_3 : . Alternative_Plus_3
+            //PriorityLevel_Opt_2
+            NonterminalId(17) => {
+                //PriorityLevel_Opt_2 : . PriorityLevel_Plus_4
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(115),
+                    slot_id: SlotId(116),
                     sppf_node_id: None,
                     gss_node_id,
                 });
-                //Alternative_Opt_3 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(117),
-                    sppf_node_id: None,
-                    gss_node_id,
-                });
-            }
-            //Alternative_Star_3
-            NonterminalId(19) => {
-                //Alternative_Star_3 : . Alternative_Opt_3
+                //PriorityLevel_Opt_2 : .
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(118),
@@ -4115,33 +4095,53 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                 });
             }
-            //Regex_Plus_5
-            NonterminalId(20) => {
-                //Regex_Plus_5 : . Regex_Plus_5 Regex
+            //PriorityLevel_Star_2
+            NonterminalId(18) => {
+                //PriorityLevel_Star_2 : . PriorityLevel_Opt_2
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(120),
-                    sppf_node_id: None,
-                    gss_node_id,
-                });
-                //Regex_Plus_5 : . Regex
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(123),
+                    slot_id: SlotId(119),
                     sppf_node_id: None,
                     gss_node_id,
                 });
             }
-            //Regex_Plus_4
-            NonterminalId(21) => {
-                //Regex_Plus_4 : . Regex_Plus_4 "|" Regex_Plus_5
+            //Alternative_Plus_5
+            NonterminalId(19) => {
+                //Alternative_Plus_5 : . Alternative_Plus_5 Symbol
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(125),
+                    slot_id: SlotId(121),
                     sppf_node_id: None,
                     gss_node_id,
                 });
-                //Regex_Plus_4 : . Regex_Plus_5
+                //Alternative_Plus_5 : . Symbol
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(124),
+                    sppf_node_id: None,
+                    gss_node_id,
+                });
+            }
+            //Alternative_Opt_3
+            NonterminalId(20) => {
+                //Alternative_Opt_3 : . Alternative_Plus_5
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(126),
+                    sppf_node_id: None,
+                    gss_node_id,
+                });
+                //Alternative_Opt_3 : .
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(128),
+                    sppf_node_id: None,
+                    gss_node_id,
+                });
+            }
+            //Alternative_Star_3
+            NonterminalId(21) => {
+                //Alternative_Star_3 : . Alternative_Opt_3
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(129),
@@ -4151,7 +4151,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex_Opt_4
             NonterminalId(22) => {
-                //Regex_Opt_4 : . Regex_Plus_4
+                //Regex_Opt_4 : . Rule_Plus_2
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(131),

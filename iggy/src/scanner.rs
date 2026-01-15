@@ -7,7 +7,16 @@ use iguana::{
 const CHAR_CLASS_0: [(char, char); 2usize] = [('a', 'z'), ('A', 'Z')];
 const CHAR_CLASS_1: [(char, char); 3usize] = [('a', 'z'), ('A', 'Z'), ('0', '9')];
 const CHAR_CLASS_2: [(char, char); 1usize] = [('"', '"')];
-const CHAR_CLASS_3: [(char, char); 1usize] = [('\'', '\'')];
+const CHAR_CLASS_3: [(char, char); 8usize] = [
+    ('\'', '\''),
+    ('-', '-'),
+    ('[', '['),
+    (']', ']'),
+    ('*', '*'),
+    ('+', '+'),
+    ('?', '?'),
+    ('/', '/'),
+];
 pub struct IggyScanner<'i> {
     pub input: &'i Input,
 }

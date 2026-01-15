@@ -81,6 +81,17 @@ pub struct DebugGSSInfo {
     pub current_gss_node_id: Option<u32>,
 }
 
+/// Error info for the dropdown list.
+#[derive(Debug, Clone, Serialize, Type)]
+pub struct ErrorInfo {
+    /// Step index (0-indexed into step_indices)
+    pub step_index: u32,
+    /// Position in the input where the error occurred
+    pub input_index: u32,
+    /// Name of the terminal that failed to match
+    pub terminal_name: String,
+}
+
 /// Symbol table loaded from `--write-symbols` output.
 /// Array indices correspond to IDs.
 #[derive(Debug, Deserialize, Type)]
@@ -121,6 +132,8 @@ pub struct TraceReplay {
     events: Vec<TraceEvent>,
     /// Indices into `events` that are steps (ProcessingDescriptor or Pop)
     step_indices: Vec<usize>,
+    /// Indices into `step_indices` that are error steps (MatchFailed)
+    error_step_indices: Vec<usize>,
     /// Current step (0-indexed into step_indices)
     current_step: usize,
     /// GSS nodes reconstructed from trace
@@ -161,9 +174,23 @@ impl TraceReplay {
             })
             .collect();
 
+        // Build index of error steps (indices into step_indices where event is MatchFailed)
+        let error_step_indices: Vec<usize> = step_indices
+            .iter()
+            .enumerate()
+            .filter_map(|(step_idx, &event_idx)| {
+                if matches!(events[event_idx], TraceEvent::MatchFailed(..)) {
+                    Some(step_idx)
+                } else {
+                    None
+                }
+            })
+            .collect();
+
         let mut replay = Self {
             events,
             step_indices,
+            error_step_indices,
             current_step: 0,
             gss_nodes: Vec::new(),
             descriptor_set: Vec::new(),
@@ -189,6 +216,88 @@ impl TraceReplay {
     /// Current step (0-indexed).
     pub fn current_step(&self) -> usize {
         self.current_step
+    }
+
+    /// Total number of error steps.
+    pub fn total_errors(&self) -> usize {
+        self.error_step_indices.len()
+    }
+
+    /// Get the current error index (1-indexed) if at an error, or None.
+    /// Also returns the index of the nearest error for display purposes.
+    pub fn current_error_index(&self) -> Option<usize> {
+        self.error_step_indices
+            .iter()
+            .position(|&step| step == self.current_step)
+            .map(|i| i + 1) // Convert to 1-indexed
+    }
+
+    /// Get the step index of the first error, if any.
+    pub fn first_error_step(&self) -> Option<usize> {
+        self.error_step_indices.first().copied()
+    }
+
+    /// Get the step index of the last error, if any.
+    pub fn last_error_step(&self) -> Option<usize> {
+        self.error_step_indices.last().copied()
+    }
+
+    /// Get the step index of the next error after current step, if any.
+    pub fn next_error_step(&self) -> Option<usize> {
+        self.error_step_indices
+            .iter()
+            .find(|&&step| step > self.current_step)
+            .copied()
+    }
+
+    /// Get the step index of the previous error before current step, if any.
+    pub fn prev_error_step(&self) -> Option<usize> {
+        self.error_step_indices
+            .iter()
+            .rev()
+            .find(|&&step| step < self.current_step)
+            .copied()
+    }
+
+    /// Get the step index of the error with the largest input index (furthest progress).
+    pub fn furthest_error_step(&self) -> Option<usize> {
+        self.error_step_indices
+            .iter()
+            .max_by_key(|&&step_idx| {
+                let event_idx = self.step_indices[step_idx];
+                if let TraceEvent::MatchFailed(_, input_index, ..) = &self.events[event_idx] {
+                    *input_index
+                } else {
+                    0
+                }
+            })
+            .copied()
+    }
+
+    /// Get all errors sorted by input index (descending) for the dropdown.
+    pub fn get_errors_list(&self) -> Vec<ErrorInfo> {
+        let mut errors: Vec<ErrorInfo> = self
+            .error_step_indices
+            .iter()
+            .filter_map(|&step_idx| {
+                let event_idx = self.step_indices[step_idx];
+                if let TraceEvent::MatchFailed(terminal_name, input_index, ..) =
+                    &self.events[event_idx]
+                {
+                    Some(ErrorInfo {
+                        step_index: step_idx as u32,
+                        input_index: *input_index,
+                        terminal_name: terminal_name.clone(),
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        // Sort by input_index descending (furthest first)
+        errors.sort_by(|a, b| b.input_index.cmp(&a.input_index));
+        errors
     }
 
     /// Format a GSS node as "(Nonterminal, InputIndex)".

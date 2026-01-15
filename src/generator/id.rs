@@ -89,7 +89,7 @@ impl<'a> SlotIds<'a> {
         self.slots.len()
     }
     pub fn display_name(&self, slot_id: &SlotId) -> String {
-        self.slots[slot_id.index()].name(self.grammar)
+        self.slots[slot_id.index()].display_name(self.grammar)
     }
     pub fn slots(&self) -> impl Iterator<Item = &Slot<'a>> {
         self.slots.iter()

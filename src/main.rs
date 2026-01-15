@@ -246,7 +246,7 @@ fn ambiguous_grammar() -> Grammar {
 //
 // Rule
 //   = Identifier "=" {PriorityLevel ">"}*
-//   | Identifier "=" "/" { Regex+ "|" }* "/"
+//   | Identifier "=" "/" { Regex+ "|" }+ "/"
 //
 // PriorityLevel
 //   = { Alternative "|" }*
@@ -279,7 +279,7 @@ fn ambiguous_grammar() -> Grammar {
 //   = Char "-" Char
 //
 // Char
-//   = /!['-]/
+//   = /!['-[]*+?/]/
 //
 // String
 //  = /!["]*/
@@ -300,10 +300,10 @@ fn iggy() -> Grammar {
                 star!(id!("Rule"))
             )),
             // Rule = Identifier "=" {PriorityLevel ">"}*
-            //      | Identifier "=" "/" Regex "/"
+            //      | Identifier "=" "/" { Regex+ "|" }+ "/"
             syntax_rule!("Rule" => priority_level!(
                 alternative!(id!("Identifier"), lit!("="), star!(id!("PriorityLevel"), lit!(">"))),
-                alternative!(id!("Identifier"), lit!("="), lit!("/"), id!("Regex"), lit!("/"))
+                alternative!(id!("Identifier"), lit!("="), lit!("/"), plus!(plus!(id!("Regex")), lit!("|")), lit!("/"))
             )),
             // PriorityLevel = { Alternative "|" }*
             syntax_rule!("PriorityLevel" => alternative!(
@@ -369,8 +369,17 @@ fn iggy() -> Grammar {
             )),
             // String = /!["]*/
             lexical_rule!("String" => r_star!(cc!(!['"'-'"']))),
-            // Char = /![']/
-            lexical_rule!("Char" => cc!(!['\''-'\''])),
+            // Char = /!['-[]*+?/]/
+            lexical_rule!("Char" => cc!(![
+                '\''-'\'', 
+                '-'-'-', 
+                '['-'[', 
+                ']'-']',
+                '*'-'*',
+                '+'-'+',
+                '?'-'?',
+                '/'-'/', 
+            ])),
             // WS = /[ \n]*/
             lexical_rule!("WS" => r_star!(r_alt!(c!(' '), c!('\n'))))
         ],

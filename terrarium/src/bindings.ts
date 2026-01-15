@@ -130,6 +130,38 @@ async getDebugGss() : Promise<Result<DebugGSSInfo, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async debugGoToFurthestError() : Promise<Result<DebugInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("debug_go_to_furthest_error") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async debugNextError() : Promise<Result<DebugInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("debug_next_error") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async debugPrevError() : Promise<Result<DebugInfo, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("debug_prev_error") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getDebugErrors() : Promise<Result<ErrorInfo[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_debug_errors") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -184,6 +216,14 @@ descriptor_set: string[];
  */
 input_index: number | null; 
 /**
+ * Total number of error steps (MatchFailed events)
+ */
+total_errors: number; 
+/**
+ * Current error index (1-indexed) if at an error step, None otherwise
+ */
+current_error_index: number | null; 
+/**
  * Only set on initial load
  */
 input_path: string | null; symbols_path: string | null; trace_path: string | null }
@@ -206,6 +246,22 @@ current_node_id: number | null }
  */
 export type DebugSPPFNode = { id: number; kind: DebugSPPFNodeKind; label: string; left_extent: number; right_extent: number; children: number[] }
 export type DebugSPPFNodeKind = "Terminal" | "Nonterminal" | "Intermediate"
+/**
+ * Error info for the dropdown list.
+ */
+export type ErrorInfo = { 
+/**
+ * Step index (0-indexed into step_indices)
+ */
+step_index: number; 
+/**
+ * Position in the input where the error occurred
+ */
+input_index: number; 
+/**
+ * Name of the terminal that failed to match
+ */
+terminal_name: string }
 export type GSS = { nodes: GSSDotNode[]; edges: GSSDotEdge[] }
 export type GSSDotEdge = { src: GssNodeId; dest: GssNodeId; label: string }
 export type GSSDotNode = { id: GssNodeId; label: string }

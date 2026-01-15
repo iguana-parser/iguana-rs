@@ -10,7 +10,7 @@ use tauri_specta::{collect_commands, Builder};
 use tempfile::{NamedTempFile, TempDir};
 use toml::Value;
 
-use trace_replay::{DebugGSSInfo, DebugSPPFNode, TraceReplay};
+use trace_replay::{DebugGSSInfo, DebugSPPFNode, ErrorInfo, TraceReplay};
 
 /// Debug SPPF info returned to the frontend.
 #[derive(Clone, Serialize, Type)]
@@ -66,6 +66,10 @@ struct DebugInfo {
     descriptor_set: Vec<String>,
     /// Current position in the input (character index)
     input_index: Option<u32>,
+    /// Total number of error steps (MatchFailed events)
+    total_errors: u32,
+    /// Current error index (1-indexed) if at an error step, None otherwise
+    current_error_index: Option<u32>,
     /// Only set on initial load
     input_path: Option<String>,
     symbols_path: Option<String>,
@@ -543,6 +547,8 @@ fn load_debug_trace(
         current_action: replay.current_action_string(),
         descriptor_set: replay.descriptor_set_strings(),
         input_index: replay.current_input_index().map(|i| i as u32),
+        total_errors: replay.total_errors() as u32,
+        current_error_index: replay.current_error_index().map(|i| i as u32),
         input_path: Some(input_file.path().to_string_lossy().to_string()),
         symbols_path: Some(symbols_path.to_string_lossy().to_string()),
         trace_path: Some(trace_path.to_string_lossy().to_string()),
@@ -571,6 +577,8 @@ fn debug_step_forward(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInf
         current_action: replay.current_action_string(),
         descriptor_set: replay.descriptor_set_strings(),
         input_index: replay.current_input_index().map(|i| i as u32),
+        total_errors: replay.total_errors() as u32,
+        current_error_index: replay.current_error_index().map(|i| i as u32),
         input_path: None,
         symbols_path: None,
         trace_path: None,
@@ -594,6 +602,8 @@ fn debug_step_to(target: u32, state: tauri::State<Mutex<DebugState>>) -> Result<
         current_action: replay.current_action_string(),
         descriptor_set: replay.descriptor_set_strings(),
         input_index: replay.current_input_index().map(|i| i as u32),
+        total_errors: replay.total_errors() as u32,
+        current_error_index: replay.current_error_index().map(|i| i as u32),
         input_path: None,
         symbols_path: None,
         trace_path: None,
@@ -615,6 +625,8 @@ fn get_debug_info(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, S
         current_action: replay.current_action_string(),
         descriptor_set: replay.descriptor_set_strings(),
         input_index: replay.current_input_index().map(|i| i as u32),
+        total_errors: replay.total_errors() as u32,
+        current_error_index: replay.current_error_index().map(|i| i as u32),
         input_path: None,
         symbols_path: None,
         trace_path: None,
@@ -662,6 +674,107 @@ fn get_debug_gss(state: tauri::State<Mutex<DebugState>>) -> Result<DebugGSSInfo,
     Ok(replay.get_debug_gss_info())
 }
 
+#[tauri::command]
+#[specta::specta]
+fn debug_go_to_furthest_error(
+    state: tauri::State<Mutex<DebugState>>,
+) -> Result<DebugInfo, String> {
+    let mut debug_state = state.lock().unwrap();
+    let replay = debug_state
+        .replay
+        .as_mut()
+        .ok_or("No debug session. Load a trace first.")?;
+
+    let target = replay
+        .furthest_error_step()
+        .ok_or("No errors in trace.")?;
+
+    replay.step_to(target);
+
+    Ok(DebugInfo {
+        current_step: replay.current_step() as u32,
+        total_steps: replay.total_steps() as u32,
+        current_action: replay.current_action_string(),
+        descriptor_set: replay.descriptor_set_strings(),
+        input_index: replay.current_input_index().map(|i| i as u32),
+        total_errors: replay.total_errors() as u32,
+        current_error_index: replay.current_error_index().map(|i| i as u32),
+        input_path: None,
+        symbols_path: None,
+        trace_path: None,
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
+fn get_debug_errors(state: tauri::State<Mutex<DebugState>>) -> Result<Vec<ErrorInfo>, String> {
+    let debug_state = state.lock().unwrap();
+    let replay = debug_state
+        .replay
+        .as_ref()
+        .ok_or("No debug session. Load a trace first.")?;
+
+    Ok(replay.get_errors_list())
+}
+
+#[tauri::command]
+#[specta::specta]
+fn debug_next_error(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
+    let mut debug_state = state.lock().unwrap();
+    let replay = debug_state
+        .replay
+        .as_mut()
+        .ok_or("No debug session. Load a trace first.")?;
+
+    let target = replay
+        .next_error_step()
+        .ok_or("No more errors after current step.")?;
+
+    replay.step_to(target);
+
+    Ok(DebugInfo {
+        current_step: replay.current_step() as u32,
+        total_steps: replay.total_steps() as u32,
+        current_action: replay.current_action_string(),
+        descriptor_set: replay.descriptor_set_strings(),
+        input_index: replay.current_input_index().map(|i| i as u32),
+        total_errors: replay.total_errors() as u32,
+        current_error_index: replay.current_error_index().map(|i| i as u32),
+        input_path: None,
+        symbols_path: None,
+        trace_path: None,
+    })
+}
+
+#[tauri::command]
+#[specta::specta]
+fn debug_prev_error(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
+    let mut debug_state = state.lock().unwrap();
+    let replay = debug_state
+        .replay
+        .as_mut()
+        .ok_or("No debug session. Load a trace first.")?;
+
+    let target = replay
+        .prev_error_step()
+        .ok_or("No errors before current step.")?;
+
+    replay.step_to(target);
+
+    Ok(DebugInfo {
+        current_step: replay.current_step() as u32,
+        total_steps: replay.total_steps() as u32,
+        current_action: replay.current_action_string(),
+        descriptor_set: replay.descriptor_set_strings(),
+        input_index: replay.current_input_index().map(|i| i as u32),
+        total_errors: replay.total_errors() as u32,
+        current_error_index: replay.current_error_index().map(|i| i as u32),
+        input_path: None,
+        symbols_path: None,
+        trace_path: None,
+    })
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = Builder::<tauri::Wry>::new().commands(collect_commands![
@@ -680,7 +793,11 @@ pub fn run() {
         get_debug_info,
         get_stack_trace,
         get_debug_sppf,
-        get_debug_gss
+        get_debug_gss,
+        debug_go_to_furthest_error,
+        debug_next_error,
+        debug_prev_error,
+        get_debug_errors
     ]);
 
     #[cfg(debug_assertions)]

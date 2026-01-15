@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { commands, type SPPF, type GSS, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo } from "../bindings";
+  import { commands, type SPPF, type GSS, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo, type ErrorInfo } from "../bindings";
   import { listen } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
@@ -286,6 +286,10 @@
   // Playback state
   let currentStep = $state(0);
   let totalSteps = $state(0);
+  let totalErrors = $state(0);
+  let currentErrorIndex = $state<number | null>(null);
+  let errorList = $state<ErrorInfo[]>([]);
+  let errorDropdownOpen = $state(false);
 
   // Parser state
   let currentAction = $state<string | null>(null);
@@ -1408,6 +1412,10 @@
     debugLoaded = false;
     currentStep = 0;
     totalSteps = 0;
+    totalErrors = 0;
+    currentErrorIndex = null;
+    errorList = [];
+    errorDropdownOpen = false;
     currentAction = null;
     descriptorSet = [];
     callStack = [];
@@ -1463,25 +1471,31 @@
     callStack = [];
     currentStep = 0;
     totalSteps = 0;
+    totalErrors = 0;
+    currentErrorIndex = null;
+    errorList = [];
+    errorDropdownOpen = false;
     currentAction = null;
     descriptorSet = [];
     inputIndex = null;
 
     const result = await commands.loadDebugTrace(parserDirectory, inputText, startNonterminal);
     if (result.status === "ok") {
-      const { input_path, symbols_path, trace_path, current_action, descriptor_set, input_index } = result.data;
+      const { input_path, symbols_path, trace_path, current_action, descriptor_set, input_index, total_errors, current_error_index } = result.data;
       logCommand(`${parserName} --write-symbols ${symbols_path}`);
       logCommand(`${parserName} ${input_path} --start ${startNonterminal} --trace ${trace_path} --format json`);
       debugLoaded = true;
       currentStep = result.data.current_step;
       totalSteps = result.data.total_steps;
+      totalErrors = total_errors;
+      currentErrorIndex = current_error_index ?? null;
       currentAction = current_action;
       descriptorSet = descriptor_set;
       inputIndex = input_index ?? null;
-      logOutput(`Loaded ${totalSteps} steps`);
+      logOutput(`Loaded ${totalSteps} steps, ${totalErrors} errors`);
       setStatus(`Loaded ${totalSteps} steps`, "success");
       await fetchStackTrace();
-      await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
+      await Promise.all([fetchDebugSppf(), fetchDebugGSS(), fetchErrorList()]);
       await notifyDebugGraphWindows();
     } else {
       logCommand(`${parserName} --write-symbols <symbols.json>`);
@@ -1498,6 +1512,7 @@
     const result = await commands.debugStepTo(currentStep - 1);
     if (result.status === "ok") {
       currentStep = result.data.current_step;
+      currentErrorIndex = result.data.current_error_index ?? null;
       currentAction = result.data.current_action;
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
@@ -1513,6 +1528,7 @@
     const result = await commands.debugStepForward();
     if (result.status === "ok") {
       currentStep = result.data.current_step;
+      currentErrorIndex = result.data.current_error_index ?? null;
       currentAction = result.data.current_action;
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
@@ -1528,12 +1544,90 @@
     const result = await commands.debugStepTo(target);
     if (result.status === "ok") {
       currentStep = result.data.current_step;
+      currentErrorIndex = result.data.current_error_index ?? null;
       currentAction = result.data.current_action;
       descriptorSet = result.data.descriptor_set;
       inputIndex = result.data.input_index ?? null;
       await fetchStackTrace();
       await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
       await notifyDebugGraphWindows();
+    }
+  }
+
+  async function goToFurthestError() {
+    if (!debugLoaded || totalErrors === 0) return;
+    clearNodeSelection();
+    errorDropdownOpen = false;
+    const result = await commands.debugGoToFurthestError();
+    if (result.status === "ok") {
+      currentStep = result.data.current_step;
+      currentErrorIndex = result.data.current_error_index ?? null;
+      currentAction = result.data.current_action;
+      descriptorSet = result.data.descriptor_set;
+      inputIndex = result.data.input_index ?? null;
+      await fetchStackTrace();
+      await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
+      await notifyDebugGraphWindows();
+    }
+  }
+
+  async function goToError(stepIndex: number) {
+    if (!debugLoaded) return;
+    clearNodeSelection();
+    errorDropdownOpen = false;
+    const result = await commands.debugStepTo(stepIndex);
+    if (result.status === "ok") {
+      currentStep = result.data.current_step;
+      currentErrorIndex = result.data.current_error_index ?? null;
+      currentAction = result.data.current_action;
+      descriptorSet = result.data.descriptor_set;
+      inputIndex = result.data.input_index ?? null;
+      await fetchStackTrace();
+      await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
+      await notifyDebugGraphWindows();
+    }
+  }
+
+  async function nextError() {
+    if (!debugLoaded || totalErrors === 0) return;
+    clearNodeSelection();
+    errorDropdownOpen = false;
+    const result = await commands.debugNextError();
+    if (result.status === "ok") {
+      currentStep = result.data.current_step;
+      currentErrorIndex = result.data.current_error_index ?? null;
+      currentAction = result.data.current_action;
+      descriptorSet = result.data.descriptor_set;
+      inputIndex = result.data.input_index ?? null;
+      await fetchStackTrace();
+      await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
+      await notifyDebugGraphWindows();
+    }
+  }
+
+  async function prevError() {
+    if (!debugLoaded || totalErrors === 0) return;
+    clearNodeSelection();
+    errorDropdownOpen = false;
+    const result = await commands.debugPrevError();
+    if (result.status === "ok") {
+      currentStep = result.data.current_step;
+      currentErrorIndex = result.data.current_error_index ?? null;
+      currentAction = result.data.current_action;
+      descriptorSet = result.data.descriptor_set;
+      inputIndex = result.data.input_index ?? null;
+      await fetchStackTrace();
+      await Promise.all([fetchDebugSppf(), fetchDebugGSS()]);
+      await notifyDebugGraphWindows();
+    }
+  }
+
+  async function fetchErrorList() {
+    const result = await commands.getDebugErrors();
+    if (result.status === "ok") {
+      errorList = result.data;
+    } else {
+      errorList = [];
     }
   }
 
@@ -2171,7 +2265,7 @@
       <!-- Input Area -->
       <div class="input-section">
         {#if debugLoaded}
-          <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:consumed={inputIndex !== null && i < inputIndex} class:current={inputIndex !== null && i === inputIndex} class:selected={selectedSpan !== null && i >= selectedSpan.left && i < selectedSpan.right}>{char}</span>{/each}</div>
+          <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:consumed={inputIndex !== null && i < inputIndex} class:current={inputIndex !== null && i === inputIndex} class:selected={selectedSpan !== null && i >= selectedSpan.left && i < selectedSpan.right} class:whitespace={char === ' ' || char === '\t' || char === '\n'}>{#if char === ' '}<span class="ws-marker">·</span>{:else if char === '\t'}<span class="ws-marker">→</span>{:else if char === '\n'}<span class="ws-marker">↵</span>{'\n'}{:else}{char}{/if}</span>{/each}</div>
         {:else}
           <textarea
             bind:value={inputText}
@@ -2188,12 +2282,51 @@
 
     <!-- Column 2: Stack + Pending -->
     <div class="debug-column debug-col-stack" style={`display: grid; grid-template-rows: auto minmax(80px, ${debugActionHeight ?? 120}px) 4px minmax(100px, 1fr) 4px minmax(80px, ${debugPendingHeight ?? 150}px);`}>
-      <!-- Playback Controls -->
-      <div class="playback-controls">
-        <button onclick={stepBack} disabled={!debugLoaded || currentStep === 0}>◀</button>
-        <button onclick={stepForward} disabled={!debugLoaded || currentStep >= totalSteps - 1}>▶</button>
-        {#if debugLoaded}
-          <span class="step-counter">Step {currentStep + 1} / {totalSteps}</span>
+      <!-- Controls Container (both rows) -->
+      <div class="debug-controls-container">
+        <!-- Playback Controls -->
+        <div class="playback-controls">
+          <button onclick={stepBack} disabled={!debugLoaded || currentStep === 0} title="Step back">◀</button>
+          <button onclick={stepForward} disabled={!debugLoaded || currentStep >= totalSteps - 1} title="Step forward">▶</button>
+          {#if debugLoaded}
+            <span class="step-counter">Step {currentStep + 1} / {totalSteps}</span>
+          {/if}
+        </div>
+
+        <!-- Error Navigation -->
+        {#if debugLoaded && totalErrors > 0}
+          <div class="error-controls">
+            <button onclick={prevError} title="Previous error" class="error-nav-btn">◀</button>
+            <button onclick={goToFurthestError} title="Go to furthest error (max input index)" class="error-nav-btn furthest-btn">Furthest</button>
+            <button onclick={nextError} title="Next error" class="error-nav-btn">▶</button>
+            <span class="error-counter">Error {currentErrorIndex ?? '-'} / {totalErrors}</span>
+
+            <!-- Error Dropdown -->
+            <div class="error-dropdown-container">
+              <button
+                class="error-dropdown-trigger"
+                onclick={() => errorDropdownOpen = !errorDropdownOpen}
+                title="Show all errors"
+              >
+                <ChevronDown size={14} />
+              </button>
+              {#if errorDropdownOpen}
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div class="error-dropdown" onmouseleave={() => errorDropdownOpen = false}>
+                  {#each errorList as error}
+                    <button
+                      class="error-dropdown-item"
+                      class:active={error.step_index === currentStep}
+                      onclick={() => goToError(error.step_index)}
+                    >
+                      <span class="error-index">Index {error.input_index}</span>
+                      <span class="error-terminal">'{error.terminal_name}'</span>
+                    </button>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          </div>
         {/if}
       </div>
 
@@ -3266,6 +3399,10 @@
     color: #d4d4d4;
   }
 
+  .input-char .ws-marker {
+    font-size: 0.9em;
+  }
+
   .input-char.consumed {
     color: #6a9955;
   }
@@ -3280,13 +3417,18 @@
     color: #fff;
   }
 
+  /* Debug Controls Container */
+  .debug-controls-container {
+    border-bottom: 1px solid #3c3c3c;
+    flex-shrink: 0;
+  }
+
   /* Playback Controls */
   .playback-controls {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    border-bottom: 1px solid #3c3c3c;
     background: #2d2d2d;
     flex-shrink: 0;
   }
@@ -3313,6 +3455,112 @@
     font-size: 12px;
     color: #888;
     min-width: 80px;
+  }
+
+  /* Error Navigation Row */
+  .error-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #2a2020;
+    flex-shrink: 0;
+  }
+
+  .error-nav-btn {
+    padding: 4px 12px;
+    background: #4a3030;
+    color: #d4d4d4;
+    border: 1px solid #6a4040;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .error-nav-btn:hover {
+    background: #5a4040;
+  }
+
+  .error-nav-btn.furthest-btn {
+    background: #5a3535;
+    border-color: #8a5050;
+    font-weight: 500;
+  }
+
+  .error-nav-btn.furthest-btn:hover {
+    background: #6a4545;
+  }
+
+  .error-counter {
+    font-size: 12px;
+    color: #e05050;
+    min-width: 80px;
+  }
+
+  /* Error Dropdown */
+  .error-dropdown-container {
+    position: relative;
+    margin-left: auto;
+  }
+
+  .error-dropdown-trigger {
+    padding: 4px 8px;
+    background: #4a3030;
+    color: #d4d4d4;
+    border: 1px solid #6a4040;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+
+  .error-dropdown-trigger:hover {
+    background: #5a4040;
+  }
+
+  .error-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: #2d2d2d;
+    border: 1px solid #555;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+    min-width: 200px;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .error-dropdown-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: #d4d4d4;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font-size: 12px;
+  }
+
+  .error-dropdown-item:hover {
+    background: #3c3c3c;
+  }
+
+  .error-dropdown-item.active {
+    background: #4a3030;
+  }
+
+  .error-index {
+    color: #e05050;
+    font-weight: 500;
+  }
+
+  .error-terminal {
+    color: #ce9178;
   }
 
   /* Sections */
