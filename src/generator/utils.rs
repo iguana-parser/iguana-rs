@@ -34,7 +34,18 @@ pub fn to_pascal_case(s: &str) -> String {
 }
 
 pub fn to_snake_case(s: &str) -> String {
-    s.to_lowercase()
+    let mut result = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if c.is_uppercase() {
+            if i > 0 && !result.ends_with('_') {
+                result.push('_');
+            }
+            result.push(c.to_lowercase().next().unwrap());
+        } else {
+            result.push(c);
+        }
+    }
+    result
 }
 
 pub fn alternative_label(alternative: &Alternative, index: usize) -> Cow<'_, str> {
@@ -61,4 +72,22 @@ pub fn rustfmt(code: &str) -> String {
         .unwrap();
     let output = child.wait_with_output().unwrap();
     String::from_utf8(output.stdout).unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_to_snake_case() {
+        assert_eq!(to_snake_case("camelCase"), "camel_case");
+        assert_eq!(to_snake_case("PascalCase"), "pascal_case");
+        assert_eq!(to_snake_case("A_B_C"), "a_b_c");
+        assert_eq!(to_snake_case("aAbBcC"), "a_ab_bc_c");
+        assert_eq!(to_snake_case("already_snake"), "already_snake");
+        assert_eq!(to_snake_case("lowercase"), "lowercase");
+        assert_eq!(to_snake_case(""), "");
+        assert_eq!(to_snake_case("A"), "a");
+        assert_eq!(to_snake_case("ABC"), "a_b_c");
+    }
 }

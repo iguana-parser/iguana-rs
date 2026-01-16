@@ -11,6 +11,7 @@ pub enum Regex {
     Alt(Vec<Regex>),
     Star(Box<Regex>),
     Plus(Box<Regex>),
+    Opt(Box<Regex>),
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -108,6 +109,13 @@ impl std::fmt::Display for Regex {
                     write!(f, "[{}]", ranges_to_string)
                 }
             }
+            Regex::Opt(inner) => {
+                if needs_grouping(inner) {
+                    write!(f, "({})?", inner)
+                } else {
+                    write!(f, "{}?", inner)
+                }
+            }
         }
     }
 }
@@ -158,6 +166,13 @@ macro_rules! r_star {
 macro_rules! r_plus {
     ($inner:expr) => {
         $crate::grammar::regex::Regex::Plus(Box::new($inner))
+    };
+}
+
+#[macro_export]
+macro_rules! r_opt {
+    ($inner:expr) => {
+        $crate::grammar::regex::Regex::Opt(Box::new($inner))
     };
 }
 

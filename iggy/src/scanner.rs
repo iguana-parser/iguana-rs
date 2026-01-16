@@ -155,6 +155,15 @@ impl<'i> IggyScanner<'i> {
         let i = input_index;
         self.match_char(i, '-')
     }
+    //Layout
+    pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        let mut j = i;
+        while let Some(k) = (|i| self.match_char(i, ' ').or_else(|| self.match_char(i, '\n')))(j) {
+            j = k;
+        }
+        Some(j)
+    }
 }
 impl Scanner for IggyScanner<'_> {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
@@ -180,12 +189,13 @@ impl Scanner for IggyScanner<'_> {
             TerminalId(18) => self.match_terminal_18(input_index),
             TerminalId(19) => self.match_terminal_19(input_index),
             TerminalId(20) => self.match_terminal_20(input_index),
+            TerminalId(21) => self.match_terminal_21(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }
         };
         //Regular expressions should match at least 1 character.
-        res.filter(|next_index| *next_index > input_index)
+        res
     }
     fn char_at(&self, i: u32) -> Option<char> {
         self.input.char_at(i)

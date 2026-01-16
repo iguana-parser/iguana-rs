@@ -59,7 +59,7 @@ impl quote::ToTokens for SlotId {
 ///
 /// This is a type-safe wrapper around an index into the grammar's terminal list.
 /// Uses `u16` since real-world grammars rarely exceed a few hundred terminals.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TerminalId(pub u16);
 
 impl TerminalId {

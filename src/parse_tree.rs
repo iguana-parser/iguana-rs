@@ -20,8 +20,9 @@ impl<T: fmt::Debug> OneOrMany<T> {
                 l.push(r);
                 OneOrMany::Many(l)
             }
-            (OneOrMany::Zero, other) => other,
-            _ => unreachable!(),
+            (OneOrMany::Zero, rhs) => rhs,
+            (lhs, OneOrMany::Zero) => lhs,
+            _ => unreachable!(""),
         }
     }
 
@@ -42,14 +43,14 @@ impl<T: fmt::Debug> OneOrMany<T> {
     }
 }
 
-pub fn visit_sppf<'i, T: fmt::Debug>(
+pub fn visit_sppf<'i, T: fmt::Debug, P: Parser<'i>>(
     node: &SPPFNode,
-    parser: &impl Parser<'i>,
+    parser: &P,
     builder: &impl ParseTreeBuilder<T>,
 ) -> OneOrMany<T> {
     match node {
         SPPFNode::Terminal(t) => {
-            if t.span.left_extent == t.span.right_extent {
+            if t.terminal_id == P::epsilon() {
                 OneOrMany::Zero
             } else {
                 OneOrMany::One(builder.new_token(t))
@@ -61,9 +62,7 @@ pub fn visit_sppf<'i, T: fmt::Debug>(
             }
             let child = parser.sppf_node(n.child);
             let children = visit_sppf(child, parser, builder);
-            let nt = OneOrMany::One(builder.new_nonterminal_node(n, children));
-            println!("nt: {:?}", nt);
-            nt
+            OneOrMany::One(builder.new_nonterminal_node(n, children))
         }
         SPPFNode::Intermediate(i) => {
             if i.ambiguous {
@@ -73,13 +72,7 @@ pub fn visit_sppf<'i, T: fmt::Debug>(
             let left_child = parser.sppf_node(left_child);
             let right_child = parser.sppf_node(right_child);
             println!("{:?},{:?}", left_child, right_child);
-            let res = visit_sppf(left_child, parser, builder).merge(visit_sppf(
-                right_child,
-                parser,
-                builder,
-            ));
-            println!("res: {:?}", res);
-            res
+            visit_sppf(left_child, parser, builder).merge(visit_sppf(right_child, parser, builder))
         }
     }
 }

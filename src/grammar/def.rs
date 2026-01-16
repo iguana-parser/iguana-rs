@@ -4,10 +4,13 @@ use indexmap::IndexMap;
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
 
-use crate::grammar::{
-    regex::Regex,
-    symbols::{Definition, DefinitionId, Identifier, Nonterminal, Symbol, Terminal},
-    transformations::{ebnf_to_bnf, transform_rule},
+use crate::{
+    grammar::{
+        regex::Regex,
+        symbols::{Definition, DefinitionId, Identifier, Nonterminal, Symbol, Terminal},
+        transformations::{ebnf_to_bnf, layout_insertion, transform_rule},
+    },
+    lexical_rule, r_opt,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -159,8 +162,10 @@ pub struct SymbolTable {
 }
 
 impl SymbolTable {
-    pub fn insert(&mut self, name: String, def_id: DefinitionId) {
+    pub fn insert(&mut self, name: String) -> DefinitionId {
+        let def_id = DefinitionId(self.symbol_table.len() as u16);
         self.symbol_table.insert(name, def_id);
+        def_id
     }
     pub fn get(&self, name: &str) -> Option<DefinitionId> {
         self.symbol_table.get(name).copied()
@@ -171,25 +176,19 @@ impl SymbolTable {
 pub fn create_symbol_table(
     syntax_rules: &[SyntaxRule],
     lexical_rules: &[LexicalRule],
-    symbol_table: &mut SymbolTable,
-) -> Vec<Definition> {
+) -> (Vec<Definition>, SymbolTable) {
+    let mut symbol_table = SymbolTable::default();
     let mut definitions = vec![];
     for lexical_rule in lexical_rules {
         let terminal = &lexical_rule.head;
-        symbol_table.insert(
-            terminal.name.clone(),
-            DefinitionId(definitions.len() as u16),
-        );
+        symbol_table.insert(terminal.name.clone());
         definitions.push(Definition::Terminal(terminal.clone()));
     }
     for syntax_rule in syntax_rules {
-        symbol_table.insert(
-            syntax_rule.head.name.clone(),
-            DefinitionId(definitions.len() as u16),
-        );
+        symbol_table.insert(syntax_rule.head.name.clone());
         definitions.push(Definition::Nonterminal(syntax_rule.head.clone()));
     }
-    definitions
+    (definitions, symbol_table)
 }
 
 /// Converts string literals (e.g., `"+"`) in syntax rules into terminal references
@@ -350,24 +349,47 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
 
 impl From<GrammarDef> for Grammar {
     fn from(grammar_def: GrammarDef) -> Self {
-        let mut symbol_table = SymbolTable::default();
         let mut lexical_rules = grammar_def.lexical_rules;
         let syntax_rules = grammar_def.syntax_rules;
-        create_symbol_table(&syntax_rules, &lexical_rules, &mut symbol_table);
         let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules);
-        create_symbol_table(&syntax_rules, &lexical_rules, &mut symbol_table);
+        let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
         let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
-        let (syntax_rules, mut ebnf_symbols) = ebnf_to_bnf::ebnf_to_bnf(syntax_rules);
-        let definitions = create_symbol_table(&syntax_rules, &lexical_rules, &mut symbol_table);
+        let (syntax_rules, mut ebnf_symbols) = ebnf_to_bnf::transform(syntax_rules);
+        let (mut definitions, mut symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
         let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
         ebnf_symbols = ebnf_symbols
             .into_iter()
             .map(|(k, v)| (k, resolve_identifier(v, &symbol_table)))
             .collect();
-        let lexical_rules_map: IndexMap<Terminal, Regex> = lexical_rules
+        let mut lexical_rules_map: IndexMap<Terminal, Regex> = lexical_rules
             .into_iter()
             .map(|r| (r.head, r.regex))
             .collect();
+        // TODO: for now we only support regex layouts.
+        let layout_regex = Regex::Alt(
+            grammar_def
+                .layout_def
+                .iter()
+                .map(|def| {
+                    lexical_rules_map
+                        .get(def)
+                        .expect("Layout should be defined")
+                        .clone()
+                })
+                .collect(),
+        );
+        let layout_rule = lexical_rule!("Layout" => layout_regex);
+        let def_id = symbol_table.insert("Layout".into());
+        let syntax_rules = layout_insertion::transform(
+            syntax_rules,
+            Symbol::Identifier(Identifier {
+                name: "Layout".into(),
+                definition: Some(def_id),
+            }),
+        );
+        let layout_terminal = layout_rule.head;
+        definitions.push(Definition::Terminal(layout_terminal.clone()));
+        lexical_rules_map.insert(layout_terminal, layout_rule.regex);
         let productions: IndexMap<Nonterminal, Vec<Alternative>> =
             syntax_rules
                 .into_iter()

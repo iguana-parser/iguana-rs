@@ -60,7 +60,7 @@ impl Counters {
     }
 }
 
-pub fn ebnf_to_bnf(syntax_rules: Vec<SyntaxRule>) -> (Vec<SyntaxRule>, FxHashMap<Symbol, Symbol>) {
+pub fn transform(syntax_rules: Vec<SyntaxRule>) -> (Vec<SyntaxRule>, FxHashMap<Symbol, Symbol>) {
     let mut counters = Counters::new();
     let mut new_rules = vec![];
     // A map from a symbol to an identifier that refers to the EBNF definition
@@ -217,7 +217,7 @@ fn rewrite_ebnf_symbol(
 
 #[cfg(test)]
 mod tests {
-    use super::ebnf_to_bnf;
+    use super::transform;
     use crate::{
         alt, alternative,
         grammar::def::{SymbolTable, create_symbol_table},
@@ -238,7 +238,7 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let transformed = transform(grammar.syntax_rules);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -257,7 +257,7 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let transformed = transform(grammar.syntax_rules);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -276,7 +276,7 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let transformed = transform(grammar.syntax_rules);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -295,7 +295,7 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let transformed = transform(grammar.syntax_rules);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -314,13 +314,7 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let mut symbol_table = SymbolTable::default();
-        create_symbol_table(
-            &grammar.syntax_rules,
-            &grammar.lexical_rules,
-            &mut symbol_table,
-        );
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let transformed = transform(grammar.syntax_rules);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -340,7 +334,7 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let transformed = transform(grammar.syntax_rules);
 
         println!("Transformed grammar:\n{:?}", transformed);
     }
@@ -361,7 +355,7 @@ mod tests {
 
         println!("Original grammar:\n{}\n", grammar);
 
-        let transformed = ebnf_to_bnf(grammar.syntax_rules);
+        let transformed = transform(grammar.syntax_rules);
 
         println!("Transformed grammar:\n{:?}", transformed);
 

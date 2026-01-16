@@ -240,6 +240,7 @@ fn match_regex(regex: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
         Regex::Seq(rs) => match_seq(rs, char_class_ids),
         Regex::Alt(rs) => match_alt(rs, char_class_ids),
         Regex::Star(r) => match_star(r, char_class_ids),
+        Regex::Opt(r) => match_opt(r, char_class_ids),
         _ => todo!(),
     }
 }
@@ -320,6 +321,13 @@ fn match_star(r: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
             j = k;
         }
         Some(j)
+    }
+}
+
+fn match_opt(r: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
+    let match_r = match_regex(r, char_class_ids);
+    quote! {
+        (|i| { #match_r })(i).or(Some(i))
     }
 }
 

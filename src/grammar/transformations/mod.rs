@@ -4,6 +4,7 @@ use crate::grammar::{
 };
 
 pub mod ebnf_to_bnf;
+pub mod layout_insertion;
 
 pub fn transform_rule<F>(rule: SyntaxRule, mut transform_symbol: F) -> SyntaxRule
 where
@@ -26,11 +27,29 @@ where
             PriorityLevel::new(new_alternatives)
         })
         .collect();
-    let origin = if let Some(s) = rule.head.origin {
-        Some(transform_symbol(s))
-    } else {
-        None
-    };
+    let origin = rule.head.origin.map(transform_symbol);
     let head = Nonterminal { name, origin };
     SyntaxRule::new(head, new_priority_levels)
+}
+
+pub fn transform_rule_by_symbols<F>(rule: SyntaxRule, mut transform_symbol: F) -> SyntaxRule
+where
+    F: FnMut(Vec<Symbol>) -> Vec<Symbol>,
+{
+    let new_priority_levels: Vec<_> = rule
+        .priority_levels
+        .into_iter()
+        .map(|priority_level| {
+            let new_alternatives: Vec<_> = priority_level
+                .alternatives
+                .into_iter()
+                .map(|alt| {
+                    let new_symbols = transform_symbol(alt.symbols);
+                    Alternative::new(new_symbols)
+                })
+                .collect();
+            PriorityLevel::new(new_alternatives)
+        })
+        .collect();
+    SyntaxRule::new(rule.head, new_priority_levels)
 }

@@ -809,16 +809,19 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
             match sep {
                 Some(_) => quote! {
                     // Add _ to ignore the span field at the end
-                    #ident::#alt_variant(rest, sep, item, _) => {
+                    #ident::#alt_variant(rest, layout1, sep, layout2, item, _) => {
                         items.push(item.as_parse_tree_ref());
+                        items.push(layout2.as_parse_tree_ref());
                         items.push(sep.as_parse_tree_ref());
+                        items.push(layout1.as_parse_tree_ref());
                         current = rest;
                     }
                 },
                 None => quote! {
                     // Add _ to ignore the span field at the end
-                    #ident::#alt_variant(rest, item, _) => {
+                    #ident::#alt_variant(rest, layout, item, _) => {
                         items.push(item.as_parse_tree_ref());
+                        items.push(layout.as_parse_tree_ref());
                         current = rest;
                     }
                 },

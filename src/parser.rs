@@ -3,12 +3,7 @@ use std::time::{Duration, Instant};
 use rustc_hash::FxHashMap;
 
 use crate::{
-    descriptor::Descriptor,
-    gss::{EdgeResult, GSSEdge, GSSNode},
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
-    input::Input,
-    record,
-    sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
+    descriptor::Descriptor, grammar::symbols::Terminal, gss::{EdgeResult, GSSEdge, GSSNode}, ids::{GssNodeId, NonterminalId, SlotId, TerminalId}, input::Input, record, sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode}
 };
 
 #[cfg(feature = "debug-trace")]
@@ -30,6 +25,7 @@ pub trait Parser<'i> {
     fn nonterminal_id(name: &str) -> Option<NonterminalId>;
     fn terminal_name(terminal_id: TerminalId) -> &'static str;
     fn slot_name(slot_id: SlotId) -> &'static str;
+    fn epsilon() -> TerminalId;
     fn execute(
         &mut self,
         input_index: u32,
