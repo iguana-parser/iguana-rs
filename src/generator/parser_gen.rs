@@ -309,8 +309,6 @@ fn gen_execute_method<'a>(
                                 TerminalId(#epsilon_id),
                                 input_index,
                                 input_index,
-                                vec![],
-                                vec![]
                             );
                         let nonterminal_id = #nonterminal_id;
                         if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
@@ -432,22 +430,15 @@ fn gen_terminal_slot<'a>(
     quote! {
         #[comment = #current_slot_name]
         #slot_id => {
-            record!(self, MatchingLeadingLayout, input_index);
-            let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-            record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+            let i = input_index;
             record!(self, MatchingTerminal, #terminal_name, i);
             match self.scanner.match_token(#terminal_id, i) {
                 Some(j) => {
                     record!(self, MatchSuccess, #terminal_name, i, j);
-                    record!(self, MatchingTrailingLayout, i);
-                    let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                    record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
                     let right_child_id = self.get_or_create_terminal_node(
                         #terminal_id,
                         i,
                         j,
-                        leading_layout,
-                        trailing_layout
                     );
                     #[comment = #next_slot_name]
                     let next_slot_id = #next_slot_id;

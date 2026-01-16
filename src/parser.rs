@@ -362,8 +362,6 @@ pub trait Parser<'i> {
         terminal_id: TerminalId,
         left_extent: u32,
         right_extent: u32,
-        leading_trivia: Vec<TerminalNode>,
-        trailing_trivia: Vec<TerminalNode>,
     ) -> SPPFNodeId {
         if let Some(existing_node_id) =
             self.lookup_terminal_node(terminal_id, left_extent, right_extent)
@@ -377,8 +375,6 @@ pub trait Parser<'i> {
                 left_extent,
                 right_extent,
             },
-            leading_layout: leading_trivia,
-            trailing_layout: trailing_trivia,
         };
         self.add_terminal_node(terminal_node)
     }

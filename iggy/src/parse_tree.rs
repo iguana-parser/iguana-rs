@@ -2313,8 +2313,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Symbol+ : Symbol.
                     SlotId(125) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
-                        AlternativePlus5::Alt1(Box::new(c0.unwrap_symbol()), nonterminal_node.span)
-                            .into()
+                        AlternativePlus5::Alt1(Box::new(c0.unwrap_symbol()), nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
@@ -2834,3 +2833,4 @@ fn build_json_graph(
     }
     my_id
 }
+

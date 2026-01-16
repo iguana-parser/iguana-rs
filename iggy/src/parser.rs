@@ -673,23 +673,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         match slot_id {
             //Grammar : . "grammar" Identifier Grammar_Star_0
             SlotId(0) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"grammar\"", i);
                 match self.scanner.match_token(TerminalId(4), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"grammar\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(4),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(4), i, j);
                         //Grammar : "grammar" . Identifier Grammar_Star_0
                         let next_slot_id = SlotId(1);
                         let new_node = right_child_id;
@@ -710,23 +699,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar : "grammar" . Identifier Grammar_Star_0
             SlotId(1) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "Identifier", i);
                 match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Identifier", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(0),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(0), i, j);
                         //Grammar : "grammar" Identifier . Grammar_Star_0
                         let next_slot_id = SlotId(2);
                         let left_child_id = result.expect("Result should not be None.");
@@ -781,23 +759,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule : . Identifier "=" Rule_Star_1
             SlotId(4) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "Identifier", i);
                 match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Identifier", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(0),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(0), i, j);
                         //Rule : Identifier . "=" Rule_Star_1
                         let next_slot_id = SlotId(5);
                         let new_node = right_child_id;
@@ -818,23 +785,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule : Identifier . "=" Rule_Star_1
             SlotId(5) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"=\"", i);
                 match self.scanner.match_token(TerminalId(5), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"=\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(5),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(5), i, j);
                         //Rule : Identifier "=" . Rule_Star_1
                         let next_slot_id = SlotId(6);
                         let left_child_id = result.expect("Result should not be None.");
@@ -889,23 +845,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule : . Identifier "=" "/" Rule_Plus_2 "/"
             SlotId(8) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "Identifier", i);
                 match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Identifier", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(0),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(0), i, j);
                         //Rule : Identifier . "=" "/" Rule_Plus_2 "/"
                         let next_slot_id = SlotId(9);
                         let new_node = right_child_id;
@@ -926,23 +871,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule : Identifier . "=" "/" Rule_Plus_2 "/"
             SlotId(9) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"=\"", i);
                 match self.scanner.match_token(TerminalId(5), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"=\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(5),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(5), i, j);
                         //Rule : Identifier "=" . "/" Rule_Plus_2 "/"
                         let next_slot_id = SlotId(10);
                         let left_child_id = result.expect("Result should not be None.");
@@ -973,23 +907,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule : Identifier "=" . "/" Rule_Plus_2 "/"
             SlotId(10) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"/\"", i);
                 match self.scanner.match_token(TerminalId(7), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"/\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(7),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(7), i, j);
                         //Rule : Identifier "=" "/" . Rule_Plus_2 "/"
                         let next_slot_id = SlotId(11);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1024,23 +947,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule : Identifier "=" "/" Rule_Plus_2 . "/"
             SlotId(12) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"/\"", i);
                 match self.scanner.match_token(TerminalId(7), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"/\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(7),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(7), i, j);
                         //Rule : Identifier "=" "/" Rule_Plus_2 "/".
                         let next_slot_id = SlotId(13);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1143,23 +1055,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : Symbol . "*"
             SlotId(19) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"*\"", i);
                 match self.scanner.match_token(TerminalId(9), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"*\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(9),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(9), i, j);
                         //Symbol : Symbol "*".
                         let next_slot_id = SlotId(20);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1214,23 +1115,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : Symbol . "+"
             SlotId(22) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"+\"", i);
                 match self.scanner.match_token(TerminalId(10), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"+\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(10),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(10), i, j);
                         //Symbol : Symbol "+".
                         let next_slot_id = SlotId(23);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1281,23 +1171,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : . "(" Symbol "|" Symbol ")"
             SlotId(24) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"(\"", i);
                 match self.scanner.match_token(TerminalId(11), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"(\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(11),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(11), i, j);
                         //Symbol : "(" . Symbol "|" Symbol ")"
                         let next_slot_id = SlotId(25);
                         let new_node = right_child_id;
@@ -1322,23 +1201,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : "(" Symbol . "|" Symbol ")"
             SlotId(26) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"|\"", i);
                 match self.scanner.match_token(TerminalId(8), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"|\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(8),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(8), i, j);
                         //Symbol : "(" Symbol "|" . Symbol ")"
                         let next_slot_id = SlotId(27);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1373,23 +1241,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : "(" Symbol "|" Symbol . ")"
             SlotId(28) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\")\"", i);
                 match self.scanner.match_token(TerminalId(12), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\")\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(12),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(12), i, j);
                         //Symbol : "(" Symbol "|" Symbol ")".
                         let next_slot_id = SlotId(29);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1440,23 +1297,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : . """ String """
             SlotId(30) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"\"\"", i);
                 match self.scanner.match_token(TerminalId(13), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"\"\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(13),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(13), i, j);
                         //Symbol : """ . String """
                         let next_slot_id = SlotId(31);
                         let new_node = right_child_id;
@@ -1477,23 +1323,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : """ . String """
             SlotId(31) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "String", i);
                 match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "String", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(1),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(1), i, j);
                         //Symbol : """ String . """
                         let next_slot_id = SlotId(32);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1524,23 +1359,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : """ String . """
             SlotId(32) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"\"\"", i);
                 match self.scanner.match_token(TerminalId(13), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"\"\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(13),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(13), i, j);
                         //Symbol : """ String """.
                         let next_slot_id = SlotId(33);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1591,23 +1415,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : . "{" Symbol Symbol "}" "*"
             SlotId(34) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"{\"", i);
                 match self.scanner.match_token(TerminalId(14), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"{\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(14),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(14), i, j);
                         //Symbol : "{" . Symbol Symbol "}" "*"
                         let next_slot_id = SlotId(35);
                         let new_node = right_child_id;
@@ -1636,23 +1449,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : "{" Symbol Symbol . "}" "*"
             SlotId(37) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"}\"", i);
                 match self.scanner.match_token(TerminalId(15), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"}\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(15),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(15), i, j);
                         //Symbol : "{" Symbol Symbol "}" . "*"
                         let next_slot_id = SlotId(38);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1683,23 +1485,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : "{" Symbol Symbol "}" . "*"
             SlotId(38) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"*\"", i);
                 match self.scanner.match_token(TerminalId(9), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"*\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(9),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(9), i, j);
                         //Symbol : "{" Symbol Symbol "}" "*".
                         let next_slot_id = SlotId(39);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1750,23 +1541,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : . "{" Symbol Symbol "}" "+"
             SlotId(40) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"{\"", i);
                 match self.scanner.match_token(TerminalId(14), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"{\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(14),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(14), i, j);
                         //Symbol : "{" . Symbol Symbol "}" "+"
                         let next_slot_id = SlotId(41);
                         let new_node = right_child_id;
@@ -1795,23 +1575,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : "{" Symbol Symbol . "}" "+"
             SlotId(43) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"}\"", i);
                 match self.scanner.match_token(TerminalId(15), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"}\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(15),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(15), i, j);
                         //Symbol : "{" Symbol Symbol "}" . "+"
                         let next_slot_id = SlotId(44);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1842,23 +1611,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : "{" Symbol Symbol "}" . "+"
             SlotId(44) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"+\"", i);
                 match self.scanner.match_token(TerminalId(10), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"+\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(10),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(10), i, j);
                         //Symbol : "{" Symbol Symbol "}" "+".
                         let next_slot_id = SlotId(45);
                         let left_child_id = result.expect("Result should not be None.");
@@ -1909,23 +1667,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : . "(" Alternative_Star_3 ")"
             SlotId(46) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"(\"", i);
                 match self.scanner.match_token(TerminalId(11), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"(\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(11),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(11), i, j);
                         //Symbol : "(" . Alternative_Star_3 ")"
                         let next_slot_id = SlotId(47);
                         let new_node = right_child_id;
@@ -1950,23 +1697,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : "(" Alternative_Star_3 . ")"
             SlotId(48) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\")\"", i);
                 match self.scanner.match_token(TerminalId(12), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\")\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(12),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(12), i, j);
                         //Symbol : "(" Alternative_Star_3 ")".
                         let next_slot_id = SlotId(49);
                         let left_child_id = result.expect("Result should not be None.");
@@ -2017,23 +1753,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol : . Identifier
             SlotId(50) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "Identifier", i);
                 match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Identifier", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(0),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(0), i, j);
                         //Symbol : Identifier.
                         let next_slot_id = SlotId(51);
                         let new_node = right_child_id;
@@ -2078,23 +1803,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : Regex . "+"
             SlotId(53) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"+\"", i);
                 match self.scanner.match_token(TerminalId(10), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"+\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(10),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(10), i, j);
                         //Regex : Regex "+".
                         let next_slot_id = SlotId(54);
                         let left_child_id = result.expect("Result should not be None.");
@@ -2149,23 +1863,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : Regex . "*"
             SlotId(56) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"*\"", i);
                 match self.scanner.match_token(TerminalId(9), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"*\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(9),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(9), i, j);
                         //Regex : Regex "*".
                         let next_slot_id = SlotId(57);
                         let left_child_id = result.expect("Result should not be None.");
@@ -2220,23 +1923,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : Regex . "?"
             SlotId(59) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"?\"", i);
                 match self.scanner.match_token(TerminalId(16), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"?\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(16),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(16), i, j);
                         //Regex : Regex "?".
                         let next_slot_id = SlotId(60);
                         let left_child_id = result.expect("Result should not be None.");
@@ -2287,23 +1979,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : . "(" Regex_Star_4 ")"
             SlotId(61) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"(\"", i);
                 match self.scanner.match_token(TerminalId(11), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"(\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(11),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(11), i, j);
                         //Regex : "(" . Regex_Star_4 ")"
                         let next_slot_id = SlotId(62);
                         let new_node = right_child_id;
@@ -2328,23 +2009,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : "(" Regex_Star_4 . ")"
             SlotId(63) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\")\"", i);
                 match self.scanner.match_token(TerminalId(12), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\")\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(12),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(12), i, j);
                         //Regex : "(" Regex_Star_4 ")".
                         let next_slot_id = SlotId(64);
                         let left_child_id = result.expect("Result should not be None.");
@@ -2419,23 +2089,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : . Char
             SlotId(67) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "Char", i);
                 match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Char", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(2),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
                         //Regex : Char.
                         let next_slot_id = SlotId(68);
                         let new_node = right_child_id;
@@ -2480,23 +2139,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass : CharClass_Opt_5 . "[" CharClass_Plus_6 "]"
             SlotId(70) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"[\"", i);
                 match self.scanner.match_token(TerminalId(18), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"[\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(18),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(18), i, j);
                         //CharClass : CharClass_Opt_5 "[" . CharClass_Plus_6 "]"
                         let next_slot_id = SlotId(71);
                         let left_child_id = result.expect("Result should not be None.");
@@ -2531,23 +2179,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass : CharClass_Opt_5 "[" CharClass_Plus_6 . "]"
             SlotId(72) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"]\"", i);
                 match self.scanner.match_token(TerminalId(19), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"]\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(19),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(19), i, j);
                         //CharClass : CharClass_Opt_5 "[" CharClass_Plus_6 "]".
                         let next_slot_id = SlotId(73);
                         let left_child_id = result.expect("Result should not be None.");
@@ -2598,23 +2235,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharRange : . Char "-" Char
             SlotId(74) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "Char", i);
                 match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Char", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(2),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
                         //CharRange : Char . "-" Char
                         let next_slot_id = SlotId(75);
                         let new_node = right_child_id;
@@ -2635,23 +2261,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharRange : Char . "-" Char
             SlotId(75) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"-\"", i);
                 match self.scanner.match_token(TerminalId(20), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"-\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(20),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(20), i, j);
                         //CharRange : Char "-" . Char
                         let next_slot_id = SlotId(76);
                         let left_child_id = result.expect("Result should not be None.");
@@ -2682,23 +2297,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharRange : Char "-" . Char
             SlotId(76) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "Char", i);
                 match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Char", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(2),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
                         //CharRange : Char "-" Char.
                         let next_slot_id = SlotId(77);
                         let left_child_id = result.expect("Result should not be None.");
@@ -2826,13 +2430,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Grammar_Opt_0 : .
             SlotId(85) => {
                 let end_slot_id = SlotId(85);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(21),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
+                let epsilon_node_id =
+                    self.get_or_create_terminal_node(TerminalId(21), input_index, input_index);
                 let nonterminal_id = NonterminalId(9);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
@@ -2874,23 +2473,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule_Plus_1 : Rule_Plus_1 . ">" PriorityLevel
             SlotId(89) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\">\"", i);
                 match self.scanner.match_token(TerminalId(6), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\">\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(6),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(6), i, j);
                         //Rule_Plus_1 : Rule_Plus_1 ">" . PriorityLevel
                         let next_slot_id = SlotId(90);
                         let left_child_id = result.expect("Result should not be None.");
@@ -2994,13 +2582,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Rule_Opt_1 : .
             SlotId(96) => {
                 let end_slot_id = SlotId(96);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(21),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
+                let epsilon_node_id =
+                    self.get_or_create_terminal_node(TerminalId(21), input_index, input_index);
                 let nonterminal_id = NonterminalId(12);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
@@ -3094,23 +2677,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule_Plus_2 : Rule_Plus_2 . "|" Rule_Plus_3
             SlotId(105) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"|\"", i);
                 match self.scanner.match_token(TerminalId(8), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"|\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(8),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(8), i, j);
                         //Rule_Plus_2 : Rule_Plus_2 "|" . Rule_Plus_3
                         let next_slot_id = SlotId(106);
                         let left_child_id = result.expect("Result should not be None.");
@@ -3193,23 +2765,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Plus_4 : PriorityLevel_Plus_4 . "|" Alternative
             SlotId(111) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"|\"", i);
                 match self.scanner.match_token(TerminalId(8), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"|\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(8),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(8), i, j);
                         //PriorityLevel_Plus_4 : PriorityLevel_Plus_4 "|" . Alternative
                         let next_slot_id = SlotId(112);
                         let left_child_id = result.expect("Result should not be None.");
@@ -3313,13 +2874,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //PriorityLevel_Opt_2 : .
             SlotId(118) => {
                 let end_slot_id = SlotId(118);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(21),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
+                let epsilon_node_id =
+                    self.get_or_create_terminal_node(TerminalId(21), input_index, input_index);
                 let nonterminal_id = NonterminalId(17);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
@@ -3434,13 +2990,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Alternative_Opt_3 : .
             SlotId(128) => {
                 let end_slot_id = SlotId(128);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(21),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
+                let epsilon_node_id =
+                    self.get_or_create_terminal_node(TerminalId(21), input_index, input_index);
                 let nonterminal_id = NonterminalId(20);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
@@ -3503,13 +3054,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Regex_Opt_4 : .
             SlotId(133) => {
                 let end_slot_id = SlotId(133);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(21),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
+                let epsilon_node_id =
+                    self.get_or_create_terminal_node(TerminalId(21), input_index, input_index);
                 let nonterminal_id = NonterminalId(22);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
@@ -3547,23 +3093,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass_Opt_5 : . "!"
             SlotId(136) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "\"!\"", i);
                 match self.scanner.match_token(TerminalId(17), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"!\"", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(17),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(17), i, j);
                         //CharClass_Opt_5 : "!".
                         let next_slot_id = SlotId(137);
                         let new_node = right_child_id;
@@ -3605,13 +3140,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //CharClass_Opt_5 : .
             SlotId(138) => {
                 let end_slot_id = SlotId(138);
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(21),
-                    input_index,
-                    input_index,
-                    vec![],
-                    vec![],
-                );
+                let epsilon_node_id =
+                    self.get_or_create_terminal_node(TerminalId(21), input_index, input_index);
                 let nonterminal_id = NonterminalId(24);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
@@ -3649,23 +3179,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass_Alt_0 : . Char
             SlotId(141) => {
-                record!(self, MatchingLeadingLayout, input_index);
-                let (i, leading_layout) = self.scanner.match_leading_layout(input_index);
-                record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
+                let i = input_index;
                 record!(self, MatchingTerminal, "Char", i);
                 match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Char", i, j);
-                        record!(self, MatchingTrailingLayout, i);
-                        let (i, trailing_layout) = self.scanner.match_trailing_layout(i);
-                        record!(self, MatchedLayout, leading_layout.is_empty().then_some(i));
-                        let right_child_id = self.get_or_create_terminal_node(
-                            TerminalId(2),
-                            i,
-                            j,
-                            leading_layout,
-                            trailing_layout,
-                        );
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
                         //CharClass_Alt_0 : Char.
                         let next_slot_id = SlotId(142);
                         let new_node = right_child_id;
