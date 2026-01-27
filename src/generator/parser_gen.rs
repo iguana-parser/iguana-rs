@@ -34,6 +34,7 @@ pub fn generate<'a>(
     let nonterminal_id_method = gen_nonterminal_id_method();
     let terminal_name_method = gen_terminal_name_method();
     let slot_name_method = gen_slot_name_method();
+    let epsilon_method = gen_epsilon_method();
     let get_gss_node_method = gen_get_gss_node_method();
     let gen_add_gss_node_method = gen_add_gss_node_method();
     let gen_new_gss_node_method = gen_new_gss_node_method();
@@ -73,6 +74,7 @@ pub fn generate<'a>(
             #nonterminal_id_method
             #terminal_name_method
             #slot_name_method
+            #epsilon_method
             #execute_method
             #first_descriptors
             #get_gss_node_method
@@ -506,6 +508,14 @@ fn gen_slot_name_method() -> TokenStream {
     }
 }
 
+fn gen_epsilon_method() -> TokenStream {
+    quote! {
+        fn epsilon() -> TerminalId {
+            TerminalId((TERMINALS.len() - 1) as u16)
+        }
+    }
+}
+
 fn gen_get_gss_node_method() -> TokenStream {
     quote! {
         fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
@@ -805,7 +815,7 @@ fn gen_parser_struct(
             scanner: #scanner_name_ident<'i>,
             descriptors: Vec<Descriptor>,
             gss_nodes: Vec<GSSNode>,
-            #[comment="A vector from nonterminal_ids to a tuple (input_index, gss_node_id)"]
+            #[comment = "A vector from nonterminal_ids to a tuple (input_index, gss_node_id)"]
             gss_nodes_index: [Vec<(u32, GssNodeId)>; #nonterminal_ids_len],
             sppf_nodes: Vec<SPPFNode>,
             stats: Stats,

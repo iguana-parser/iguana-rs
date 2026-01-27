@@ -300,6 +300,12 @@
   let nonterminals = $state<string[]>([]);
   let dropdownOpen = $state(false);
 
+  // Helper to strip "Start" prefix for display
+  function displayNonterminal(nt: string | null): string {
+    if (!nt) return "Select...";
+    return nt.replace(/^Start/, "");
+  }
+
   // Playback state
   let currentStep = $state(0);
   let totalSteps = $state(0);
@@ -2092,7 +2098,7 @@
               onclick={() => dropdownOpen = !dropdownOpen}
               disabled={!parserDirectory || nonterminals.length === 0}
             >
-              <span class="dropdown-value">{startNonterminal || "Select..."}</span>
+              <span class="dropdown-value">{displayNonterminal(startNonterminal)}</span>
               <ChevronDown size={14} class="dropdown-chevron" />
             </button>
             {#if dropdownOpen}
@@ -2103,7 +2109,7 @@
                     class:selected={nt === startNonterminal}
                     onclick={() => { startNonterminal = nt; dropdownOpen = false; }}
                   >
-                    {nt}
+                    {displayNonterminal(nt)}
                   </button>
                 {/each}
               </div>
@@ -2289,7 +2295,7 @@
               onclick={() => dropdownOpen = !dropdownOpen}
               disabled={!parserDirectory || nonterminals.length === 0}
             >
-              <span class="dropdown-value">{startNonterminal || "Select..."}</span>
+              <span class="dropdown-value">{displayNonterminal(startNonterminal)}</span>
               <ChevronDown size={14} class="dropdown-chevron" />
             </button>
             {#if dropdownOpen}
@@ -2300,7 +2306,7 @@
                     class:selected={nt === startNonterminal}
                     onclick={() => { startNonterminal = nt; dropdownOpen = false; }}
                   >
-                    {nt}
+                    {displayNonterminal(nt)}
                   </button>
                 {/each}
               </div>

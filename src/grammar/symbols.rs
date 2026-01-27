@@ -167,6 +167,11 @@ impl Nonterminal {
             None => false,
         }
     }
+
+    /// Returns true if the nonterminal is derived, e.g., from the EBNF to BNF conversion.
+    pub fn is_derived(&self) -> bool {
+        self.origin.is_some()
+    }
 }
 
 impl hash::Hash for Nonterminal {

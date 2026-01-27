@@ -152,14 +152,12 @@ fn gen_match_token(terminal_ids: &TerminalIds) -> TokenStream {
         }
     } else {
         quote! {
-            let res = match terminal_id {
+            match terminal_id {
                 #(#match_terminal_arms)*
                 _ => {
                     unreachable!("Unknown token type: {terminal_id}");
                 }
-            };
-            #[comment = "Regular expressions should match at least 1 character."]
-            res.filter(|next_index| *next_index > input_index)
+            }
         }
     };
     quote! {
@@ -183,7 +181,7 @@ fn gen_match_terminal_method(
     let match_regex = match_regex(regex, char_class_ids);
 
     quote! {
-        #[comment= #terminal_name]
+        #[comment = #terminal_name]
         pub fn #fn_name(&self, input_index: u32) -> Option<u32> {
             let i = input_index;
             #match_regex
@@ -208,7 +206,7 @@ fn gen_match_layout_method(
     };
     let trailing_layout_check = if trailing {
         quote! {
-            #[comment = "// If the last matched character is a newline, do not match further"]
+            #[comment = "If the last matched character is a newline, do not match further"]
             if let Some(last_matched_char) = self.input.char_at(next_index - 1)
                 && last_matched_char == '\n'
             {
@@ -340,10 +338,10 @@ mod tests {
     use crate::{
         generator::{
             id::CharClassIds,
-            scanner_gen::{match_alt, match_char, match_char_class, match_char_range, match_star},
+            scanner_gen::{match_alt, match_char, match_char_range, match_star},
             utils::rustfmt,
         },
-        grammar::regex::{CharClass, CharRange, Regex}, scanner::Range,
+        grammar::regex::{CharRange, Regex},
     };
 
     fn format(token_stream: TokenStream) -> String {

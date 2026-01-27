@@ -44,6 +44,9 @@ fn gen_nonterminal_impl() -> TokenStream {
             pub fn is_ebnf(&self) -> bool {
                 self.kind.is_some()
             }
+            pub fn is_start(&self) -> bool {
+                self.name.starts_with("Start")
+            }
         }
     }
 }

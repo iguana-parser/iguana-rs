@@ -5,12 +5,13 @@ use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
+    alternative,
     grammar::{
         regex::Regex,
         symbols::{Definition, DefinitionId, Identifier, Nonterminal, Symbol, Terminal},
         transformations::{ebnf_to_bnf, layout_insertion, transform_rule},
     },
-    lexical_rule, r_opt,
+    lexical_rule, priority_level,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -355,7 +356,8 @@ impl From<GrammarDef> for Grammar {
         let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
         let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
         let (syntax_rules, mut ebnf_symbols) = ebnf_to_bnf::transform(syntax_rules);
-        let (mut definitions, mut symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
+        let (mut definitions, mut symbol_table) =
+            create_symbol_table(&syntax_rules, &lexical_rules);
         let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
         ebnf_symbols = ebnf_symbols
             .into_iter()
@@ -380,16 +382,21 @@ impl From<GrammarDef> for Grammar {
         );
         let layout_rule = lexical_rule!("Layout" => layout_regex);
         let def_id = symbol_table.insert("Layout".into());
-        let syntax_rules = layout_insertion::transform(
-            syntax_rules,
-            Symbol::Identifier(Identifier {
-                name: "Layout".into(),
-                definition: Some(def_id),
-            }),
-        );
+        let layout_identifier = Symbol::Identifier(Identifier {
+            name: "Layout".into(),
+            definition: Some(def_id),
+        });
+        let mut syntax_rules = layout_insertion::transform(syntax_rules, layout_identifier.clone());
         let layout_terminal = layout_rule.head;
         definitions.push(Definition::Terminal(layout_terminal.clone()));
         lexical_rules_map.insert(layout_terminal, layout_rule.regex);
+
+        let start_rules: Vec<_> = syntax_rules
+            .iter()
+            .filter(|r| !r.head.is_derived())
+            .map(|r| add_start_rule(&r.head.name, &layout_identifier, &symbol_table))
+            .collect();
+        syntax_rules.extend(start_rules);
         let productions: IndexMap<Nonterminal, Vec<Alternative>> =
             syntax_rules
                 .into_iter()
@@ -411,6 +418,28 @@ impl From<GrammarDef> for Grammar {
             layout_defs: grammar_def.layout_def,
             symbol_table,
         }
+    }
+}
+
+fn add_start_rule(
+    nt_name: &str,
+    layout_identifier: &Symbol,
+    symbol_table: &SymbolTable,
+) -> SyntaxRule {
+    let def_id = symbol_table
+        .get(nt_name)
+        .unwrap_or_else(|| panic!("{} is not defined", nt_name));
+    let name = format!("Start{}", nt_name);
+    SyntaxRule {
+        head: Nonterminal { name, origin: None },
+        priority_levels: vec![priority_level!(alternative!(
+            layout_identifier.clone(),
+            Symbol::Identifier(Identifier {
+                name: nt_name.into(),
+                definition: Some(def_id)
+            }),
+            layout_identifier.clone()
+        ))],
     }
 }
 

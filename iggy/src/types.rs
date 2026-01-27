@@ -14,6 +14,9 @@ impl Nonterminal {
     pub fn is_ebnf(&self) -> bool {
         self.kind.is_some()
     }
+    pub fn is_start(&self) -> bool {
+        self.name.starts_with("Start")
+    }
 }
 pub struct Terminal {
     pub name: &'static str,
