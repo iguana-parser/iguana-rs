@@ -44,6 +44,54 @@
     edges: ParseTreeEdge[];
   }
 
+  // Hierarchical tree node for tree view
+  interface TreeNode {
+    id: number;
+    label: string;
+    kind: "Nonterminal" | "Token";
+    start: number;
+    end: number;
+    children: TreeNode[];
+  }
+
+  // Convert flat parse tree to hierarchical structure
+  function buildTree(parseTree: ParseTree): TreeNode | null {
+    if (parseTree.nodes.length === 0) return null;
+
+    // Build adjacency list from edges
+    const childrenMap = new Map<number, number[]>();
+    const hasParent = new Set<number>();
+
+    for (const edge of parseTree.edges) {
+      if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
+      childrenMap.get(edge.src)!.push(edge.dest);
+      hasParent.add(edge.dest);
+    }
+
+    // Find root (node with no parent)
+    const rootNode = parseTree.nodes.find(n => !hasParent.has(n.id));
+    if (!rootNode) return null;
+
+    // Build node lookup for efficient access
+    const nodeMap = new Map(parseTree.nodes.map(n => [n.id, n]));
+
+    // Build tree recursively
+    function buildSubtree(nodeId: number): TreeNode {
+      const node = nodeMap.get(nodeId)!;
+      const childIds = childrenMap.get(nodeId) || [];
+      return {
+        id: node.id,
+        label: node.label,
+        kind: node.kind,
+        start: node.start,
+        end: node.end,
+        children: childIds.map(buildSubtree),
+      };
+    }
+
+    return buildSubtree(rootNode.id);
+  }
+
   cytoscape.use(dagre);
 
   // Event listeners for build progress
@@ -371,6 +419,13 @@
   // Parse tree node selection (for highlighting span in input)
   let parseTreeSelectedSpan = $state<{ start: number; end: number } | null>(null);
   let parseTreeSelectedNodeId = $state<string | null>(null);
+
+  // Parse tree view mode (graph or tree)
+  let parseTreeViewMode = $state<"graph" | "tree">("tree");
+  let treeRoot = $state<TreeNode | null>(null);
+  let expandedNodes = $state(new Set<number>());
+  // svelte-ignore non_reactive_update
+  let treeContainerEl: HTMLDivElement;
 
   // SPPF node selection (for highlighting span in input)
   let sppfSelectedSpan = $state<{ left: number; right: number } | null>(null);
@@ -787,7 +842,7 @@
           renderGSS();
         }
       });
-    } else if (activeTab === "parse-tree" && parseTree) {
+    } else if (activeTab === "parse-tree" && parseTree && parseTreeViewMode === "graph") {
       tick().then(() => {
         if (parseTreeContainer) {
           renderParseTree();
@@ -1222,6 +1277,12 @@
     if (result.status === "ok") {
       try {
         parseTree = JSON.parse(result.data) as ParseTree;
+        // Build hierarchical tree for tree view
+        treeRoot = buildTree(parseTree);
+        // Expand root by default
+        if (treeRoot) {
+          expandedNodes = new Set([treeRoot.id]);
+        }
         logOutput(`Parse Tree: ${parseTree.nodes.length} nodes, ${parseTree.edges.length} edges`);
       } catch (e) {
         logError(`Failed to parse parse tree JSON: ${e}`);
@@ -1330,6 +1391,121 @@
     }
     // Notify popup windows about the change
     notifyPopupWindowsSpansChanged();
+  }
+
+  // Tree view functions
+  function toggleTreeNode(nodeId: number) {
+    if (expandedNodes.has(nodeId)) {
+      expandedNodes.delete(nodeId);
+    } else {
+      expandedNodes.add(nodeId);
+    }
+    expandedNodes = new Set(expandedNodes); // Trigger reactivity
+  }
+
+  function expandAllTreeNodes() {
+    if (!treeRoot) return;
+    const allWithChildren = new Set<number>();
+    function collect(node: TreeNode) {
+      if (node.children.length > 0) {
+        allWithChildren.add(node.id);
+        node.children.forEach(collect);
+      }
+    }
+    collect(treeRoot);
+    expandedNodes = allWithChildren;
+  }
+
+  function collapseAllTreeNodes() {
+    expandedNodes = new Set();
+  }
+
+  function selectTreeNode(node: TreeNode) {
+    parseTreeSelectedSpan = { start: node.start, end: node.end };
+    parseTreeSelectedNodeId = `n${node.id}`;
+    // Scroll selected node into view
+    tick().then(() => {
+      if (treeContainerEl) {
+        const selectedEl = treeContainerEl.querySelector('.tree-item.selected');
+        if (selectedEl) {
+          selectedEl.scrollIntoView({ block: 'nearest' });
+        }
+      }
+    });
+  }
+
+  // Get visible nodes in display order (for keyboard navigation)
+  function getVisibleTreeNodes(): TreeNode[] {
+    if (!treeRoot) return [];
+    const visible: TreeNode[] = [];
+    function collect(node: TreeNode) {
+      visible.push(node);
+      if (expandedNodes.has(node.id)) {
+        node.children.forEach(collect);
+      }
+    }
+    collect(treeRoot);
+    return visible;
+  }
+
+  // Find a TreeNode by ID
+  function findTreeNodeById(nodeId: number): TreeNode | null {
+    if (!treeRoot) return null;
+    function find(node: TreeNode): TreeNode | null {
+      if (node.id === nodeId) return node;
+      for (const child of node.children) {
+        const found = find(child);
+        if (found) return found;
+      }
+      return null;
+    }
+    return find(treeRoot);
+  }
+
+  // Handle keyboard navigation in tree view
+  function handleTreeKeydown(e: KeyboardEvent) {
+    if (!treeRoot) return;
+
+    const visibleNodes = getVisibleTreeNodes();
+    if (visibleNodes.length === 0) return;
+
+    // Get currently selected node ID (strip 'n' prefix)
+    const currentId = parseTreeSelectedNodeId ? parseInt(parseTreeSelectedNodeId.slice(1)) : null;
+    const currentIndex = currentId !== null
+      ? visibleNodes.findIndex(n => n.id === currentId)
+      : -1;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (currentIndex < visibleNodes.length - 1) {
+        selectTreeNode(visibleNodes[currentIndex + 1]);
+      } else if (currentIndex === -1 && visibleNodes.length > 0) {
+        selectTreeNode(visibleNodes[0]);
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (currentIndex > 0) {
+        selectTreeNode(visibleNodes[currentIndex - 1]);
+      } else if (currentIndex === -1 && visibleNodes.length > 0) {
+        selectTreeNode(visibleNodes[visibleNodes.length - 1]);
+      }
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (currentId !== null) {
+        const node = findTreeNodeById(currentId);
+        if (node && node.children.length > 0 && !expandedNodes.has(node.id)) {
+          toggleTreeNode(node.id);
+        }
+      }
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (currentId !== null) {
+        const node = findTreeNodeById(currentId);
+        if (node && node.children.length > 0 && expandedNodes.has(node.id)) {
+          toggleTreeNode(node.id);
+        }
+      }
+    }
   }
 
   function notifyPopupWindowsSpansChanged() {
@@ -2169,34 +2345,102 @@
           onclick={() => activeTab = "gss"}
         >GSS</button>
       </div>
+      {#if activeTab === "parse-tree"}
+        <div class="view-toggle-row">
+          <div class="view-toggle">
+            <button
+              class:active={parseTreeViewMode === "graph"}
+              onclick={() => parseTreeViewMode = "graph"}
+            >Graph</button>
+            <button
+              class:active={parseTreeViewMode === "tree"}
+              onclick={() => parseTreeViewMode = "tree"}
+            >Tree</button>
+          </div>
+        </div>
+      {/if}
       <div class="graph-container">
         {#if activeTab === "parse-tree"}
           {#if parseTree}
-            <div class="cytoscape-container" bind:this={parseTreeContainer}></div>
-            <div class="graph-controls">
-              <button onclick={zoomIn} title="Zoom in">
-                <ZoomIn size={16} />
-              </button>
-              <button onclick={zoomOut} title="Zoom out">
-                <ZoomOut size={16} />
-              </button>
-              <button onclick={resetView} title="Reset view">
-                <Maximize2 size={16} />
-              </button>
-              <button onclick={expandAll} title="Expand all (double-click node to collapse)">
-                <Expand size={16} />
-              </button>
-              <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
-                {#if showSpans}
-                  <FoldHorizontal size={16} />
-                {:else}
-                  <UnfoldHorizontal size={16} />
-                {/if}
-              </button>
-              <button onclick={exportGraph} title="Export as PNG">
-                <Download size={16} />
-              </button>
-            </div>
+            {#if parseTreeViewMode === "graph"}
+              <div class="cytoscape-container" bind:this={parseTreeContainer}></div>
+              <div class="graph-controls">
+                <button onclick={zoomIn} title="Zoom in">
+                  <ZoomIn size={16} />
+                </button>
+                <button onclick={zoomOut} title="Zoom out">
+                  <ZoomOut size={16} />
+                </button>
+                <button onclick={resetView} title="Reset view">
+                  <Maximize2 size={16} />
+                </button>
+                <button onclick={expandAll} title="Expand all (double-click node to collapse)">
+                  <Expand size={16} />
+                </button>
+                <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
+                  {#if showSpans}
+                    <FoldHorizontal size={16} />
+                  {:else}
+                    <UnfoldHorizontal size={16} />
+                  {/if}
+                </button>
+                <button onclick={exportGraph} title="Export as PNG">
+                  <Download size={16} />
+                </button>
+              </div>
+            {:else}
+              <div class="tree-view">
+                <div class="tree-controls">
+                  <button onclick={expandAllTreeNodes} title="Expand All">
+                    <Expand size={16} />
+                  </button>
+                  <button onclick={collapseAllTreeNodes} title="Collapse All">
+                    <Minimize2 size={16} />
+                  </button>
+                </div>
+                <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+                <div class="tree-container" tabindex="0" onkeydown={handleTreeKeydown} bind:this={treeContainerEl}>
+                  {#if treeRoot}
+                    {#snippet treeNode(node: TreeNode, depth: number)}
+                      <!-- svelte-ignore a11y_click_events_have_key_events -->
+                      <!-- svelte-ignore a11y_no_static_element_interactions -->
+                      <div
+                        class="tree-item"
+                        class:selected={parseTreeSelectedNodeId === `n${node.id}`}
+                        style="padding-left: {depth * 16 + 8}px"
+                        onclick={() => selectTreeNode(node)}
+                      >
+                        {#if node.children.length > 0}
+                          <span class="expand-icon" onclick={(e) => { e.stopPropagation(); toggleTreeNode(node.id); }}>
+                            {#if expandedNodes.has(node.id)}
+                              <ChevronDown size={14} />
+                            {:else}
+                              <ChevronRight size={14} />
+                            {/if}
+                          </span>
+                        {:else}
+                          <span class="expand-icon-placeholder"></span>
+                        {/if}
+                        <span
+                          class="tree-label"
+                          class:nonterminal={node.kind === "Nonterminal"}
+                          class:token={node.kind === "Token"}
+                        >
+                          {node.label}
+                        </span>
+                        <span class="tree-span">[{node.start}:{node.end}]</span>
+                      </div>
+                      {#if expandedNodes.has(node.id)}
+                        {#each node.children as child}
+                          {@render treeNode(child, depth + 1)}
+                        {/each}
+                      {/if}
+                    {/snippet}
+                    {@render treeNode(treeRoot, 0)}
+                  {/if}
+                </div>
+              </div>
+            {/if}
           {:else}
             <div class="graph-placeholder">Parse input to see Parse Tree</div>
           {/if}
@@ -3742,6 +3986,154 @@
 
   .tabs button:hover:not(.active) {
     color: #d4d4d4;
+  }
+
+  /* View toggle row (Graph/Tree) */
+  .view-toggle-row {
+    display: flex;
+    padding: 6px 8px;
+    background: #252526;
+    border-bottom: 1px solid #3c3c3c;
+  }
+
+  .view-toggle {
+    display: flex;
+  }
+
+  .view-toggle button {
+    padding: 3px 10px;
+    background: #2d2d2d;
+    color: #888;
+    border: 1px solid #3c3c3c;
+    cursor: pointer;
+    font-size: 11px;
+  }
+
+  .view-toggle button:first-child {
+    border-radius: 3px 0 0 3px;
+  }
+
+  .view-toggle button:last-child {
+    border-radius: 0 3px 3px 0;
+    border-left: none;
+  }
+
+  .view-toggle button.active {
+    background: #0e639c;
+    color: #fff;
+    border-color: #0e639c;
+  }
+
+  .view-toggle button:hover:not(.active) {
+    background: #3c3c3c;
+    color: #d4d4d4;
+  }
+
+  /* Tree View */
+  .tree-view {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .tree-controls {
+    padding: 8px;
+    border-bottom: 1px solid #3c3c3c;
+    display: flex;
+    gap: 4px;
+    background: #252526;
+  }
+
+  .tree-controls button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: #2d2d2d;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    color: #888;
+    cursor: pointer;
+  }
+
+  .tree-controls button:hover {
+    background: #3c3c3c;
+    color: #d4d4d4;
+  }
+
+  .tree-container {
+    flex: 1;
+    overflow: auto;
+    padding: 8px 0;
+    font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+    font-size: 13px;
+    outline: none;
+  }
+
+  .tree-container:focus {
+    outline: 1px solid #0e639c;
+    outline-offset: -1px;
+  }
+
+  .tree-item {
+    display: flex;
+    align-items: center;
+    padding: 2px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .tree-item:hover {
+    background: #2a2d2e;
+  }
+
+  .tree-item.selected {
+    background: #094771;
+  }
+
+  .expand-icon {
+    width: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .expand-icon:hover {
+    color: #d4d4d4;
+  }
+
+  .expand-icon-placeholder {
+    width: 18px;
+    flex-shrink: 0;
+  }
+
+  .tree-label {
+    margin-right: 8px;
+  }
+
+  .tree-label.nonterminal {
+    color: #4ec9b0;
+  }
+
+  .tree-label.token {
+    color: #ce9178;
+  }
+
+  .tree-span {
+    color: #6a9955;
+    font-size: 11px;
+    margin-left: auto;
+    padding-left: 12px;
   }
 
   .graph-container {
