@@ -2409,6 +2409,7 @@
                         class:selected={parseTreeSelectedNodeId === `n${node.id}`}
                         style="padding-left: {depth * 16 + 8}px"
                         onclick={() => selectTreeNode(node)}
+                        ondblclick={() => { if (node.children.length > 0) toggleTreeNode(node.id); }}
                       >
                         {#if node.children.length > 0}
                           <span class="expand-icon" onclick={(e) => { e.stopPropagation(); toggleTreeNode(node.id); }}>
