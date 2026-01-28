@@ -2230,7 +2230,7 @@
   </div>
 
   <!-- Middle Area (activity bar + content) -->
-  <div class="middle-area">
+  <div class="middle-area" class:output-open={outputPanelOpen}>
     <!-- Activity Bar -->
     <div class="activity-bar">
       <button
@@ -2445,8 +2445,6 @@
                 </div>
               </div>
             {/if}
-          {:else}
-            <div class="graph-placeholder">Parse input to see Parse Tree</div>
           {/if}
         {:else if activeTab === "sppf"}
           {#if sppf}
@@ -2497,8 +2495,6 @@
                 Show all nodes
               </button>
             {/if}
-          {:else}
-            <div class="graph-placeholder">Parse input to see SPPF</div>
           {/if}
         {:else if activeTab === "gss"}
           {#if gss}
@@ -2520,8 +2516,6 @@
                 <Fullscreen size={16} />
               </button>
             </div>
-          {:else}
-            <div class="graph-placeholder">Parse input to see GSS</div>
           {/if}
         {/if}
       </div>
@@ -2732,9 +2726,7 @@
       <div class="debug-graph-section" style={debugSppfHeight !== null ? `height: ${debugSppfHeight}px; flex: 0 0 auto` : ''}>
         <div class="section-header">SPPF</div>
         <div class="graph-container">
-          {#if debugSppfNodes.length === 0}
-            <div class="graph-placeholder">No SPPF nodes yet</div>
-          {:else}
+          {#if debugSppfNodes.length > 0}
             <div class="cytoscape-container" bind:this={debugSppfContainer}></div>
             <div class="graph-controls">
               <button onclick={() => adjustZoomGraph(debugSppfCy, 1.2)} title="Zoom in">
@@ -2772,9 +2764,7 @@
       <div class="debug-graph-section">
         <div class="section-header">GSS</div>
         <div class="graph-container">
-          {#if debugGssNodes.length === 0}
-            <div class="graph-placeholder">No GSS nodes yet</div>
-          {:else}
+          {#if debugGssNodes.length > 0}
             <div class="cytoscape-container" bind:this={debugGssContainer}></div>
             <div class="graph-controls">
               <button onclick={() => adjustZoomGraph(debugGssCy, 1.2)} title="Zoom in">
@@ -2846,7 +2836,7 @@
     <div class="output-panel-overlay">
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div class="resize-handle-horizontal" onmousedown={startOutputDrag}></div>
-      <div class="output-panel open">
+      <div class="output-panel">
         <div class="output-header">
           <span class="output-title">Output</span>
           <div class="output-header-buttons">
@@ -3019,6 +3009,15 @@
     flex-direction: row;
     flex: 1;
     min-height: 0;
+  }
+
+  /* Add padding to scrollable areas when output panel is open */
+  .middle-area.output-open .input-section textarea,
+  .middle-area.output-open .input-viewer,
+  .middle-area.output-open .stack-list,
+  .middle-area.output-open .section-content,
+  .middle-area.output-open .tree-container {
+    padding-bottom: 200px;  /* Space for output panel */
   }
 
   /* Activity Bar */
@@ -4344,7 +4343,12 @@
     z-index: 100;
     display: flex;
     flex-direction: column;
-    user-select: none;  /* Contain selection within overlay */
+    pointer-events: none;  /* Let events pass through to content below */
+  }
+
+  /* Re-enable pointer events on interactive children */
+  .output-panel-overlay > * {
+    pointer-events: auto;
   }
 
   /* Output Panel */
