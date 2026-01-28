@@ -4022,9 +4022,9 @@
   }
 
   .view-toggle button.active {
-    background: #0e639c;
+    background: #3c3c3c;
     color: #fff;
-    border-color: #0e639c;
+    border-color: #555;
   }
 
   .view-toggle button:hover:not(.active) {
