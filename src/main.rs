@@ -242,11 +242,10 @@ fn ambiguous_grammar() -> Grammar {
 // grammar Iggy
 //
 // Grammar
-//   = "grammar" Identifier Rule*
+//   = "grammar" Identifier SyntaxRule* RegexBlock?
 //
-// Rule
+// SyntaxRule
 //   = Identifier "=" {PriorityLevel ">"}*
-//   | Identifier "=" "/" { Regex+ "|" }+ "/"
 //
 // PriorityLevel
 //   = { Alternative "|" }*
@@ -257,6 +256,7 @@ fn ambiguous_grammar() -> Grammar {
 // Symbol
 //   = Symbol "*"
 //   | Symbol "+"
+//   | Symbol "?"
 //   | "(" Symbol "|" Symbol ")"
 //   | "\"" String "\""
 //   | "{" Symbol Symbol "}" "*"
@@ -264,46 +264,68 @@ fn ambiguous_grammar() -> Grammar {
 //   | "(" Symbol+ ")"
 //   | Identifier
 //
+// RegexBlock
+//   = regex "{" RegexRule* "}"
+// 
+// RegexRule
+//   = Identifier "=" { Regex+ "|" }+
+//
 // Regex
 //   = Regex+
 //   | Regex*
 //   | Regex?
 //   | "(" { Regex+ "|" }* ")"
 //   | CharClass
-//   | Char
+//   | "\"" Char "\""
 //
 // CharClass
-//   = "!"? "[" (CharRange | Char)+ "]"
+//   = "!"? "[" (Range | RangeChar)+ "]"
 //
-// CharRange
-//   = Char "-" Char
+// Range
+//   = RangeChar "-" RangeChar
 //
-// Char
-//   = /!['-[]*+?/]/
+// regex {
+//   RangeChar
+//     = ![\\ \- \[ \] \t \f \r \n]
+//     | "\\" [\\ \- \[ \] t f r n]
 //
-// String
-//  = /!["]*/
-//
-// Identifier
-//   = /[a-zA-Z_][a-zA-Z_0-9]*/
-//
-// WS
-//   = /[ \n]*/
+//   Char
+//     = "\\" [' " \\ t f r n]
+//     | !['"\\]
+// 
+//   String = (("\\" [' " \\ t f r n]) | !['"\\])*
+//   Identifier = [a-zA-Z_][a-zA-Z_0-9]*
+//   WS = [ \n]*
+// }
 //
 fn iggy() -> Grammar {
     grammar_def!("Iggy",
         syntax: [
-            // Grammar = "grammar" Identifier Rule*
+            // Grammar = "grammar" Identifier SyntaxRule* RegexBlock
             syntax_rule!("Grammar" => alternative!(
                 lit!("grammar"),
                 id!("Identifier"),
-                star!(id!("Rule"))
+                star!(id!("SyntaxRule")),
+                opt!(id!("RegexBlock"))
             )),
-            // Rule = Identifier "=" {PriorityLevel ">"}*
-            //      | Identifier "=" "/" { Regex+ "|" }+ "/"
-            syntax_rule!("Rule" => priority_level!(
-                alternative!(id!("Identifier"), lit!("="), star!(id!("PriorityLevel"), lit!(">"))),
-                alternative!(id!("Identifier"), lit!("="), lit!("/"), plus!(plus!(id!("Regex")), lit!("|")), lit!("/"))
+            // SyntaxRule = Identifier "=" {PriorityLevel ">"}*
+            syntax_rule!("SyntaxRule" => alternative!(
+                id!("Identifier"),
+                lit!("="),
+                star!(id!("PriorityLevel"), lit!(">"))
+            )),
+            // RegexBlock = "regex" "{" RegexRule* "}"
+            syntax_rule!("RegexBlock" => alternative!(
+                lit!("regex"),
+                lit!("{"),
+                star!(id!("RegexRule")),
+                lit!("}")
+            )),
+            // RegexRule = Identifier "=" { Regex+ "|" }+
+            syntax_rule!("RegexRule" => alternative!(
+                id!("Identifier"),
+                lit!("="),
+                plus!(plus!(id!("Regex")), lit!("|"))
             )),
             // PriorityLevel = { Alternative "|" }*
             syntax_rule!("PriorityLevel" => alternative!(
@@ -325,11 +347,12 @@ fn iggy() -> Grammar {
             syntax_rule!("Symbol" => priority_level!(
                 alternative!(id!("Symbol"), lit!("*")),
                 alternative!(id!("Symbol"), lit!("+")),
+                alternative!(id!("Symbol"), lit!("?")),
                 alternative!(lit!("("), id!("Symbol"), lit!("|"), id!("Symbol"), lit!(")")),
                 alternative!(lit!("\""), id!("String"), lit!("\"")),
                 alternative!(lit!("{"), id!("Symbol"), id!("Symbol"), lit!("}"), lit!("*")),
                 alternative!(lit!("{"), id!("Symbol"), id!("Symbol"), lit!("}"), lit!("+")),
-                alternative!(lit!("("), star!(id!("Symbol")), lit!(")")),
+                alternative!(lit!("("), plus!(id!("Symbol")), lit!(")")),
                 alternative!(id!("Identifier")),
             )),
             // Regex
@@ -338,27 +361,27 @@ fn iggy() -> Grammar {
             //   | Regex?
             //   | "(" { Regex+ "|" }* ")"
             //   | CharClass
-            //   | Char
+            //   | "\"" Char "\""
             syntax_rule!("Regex" => priority_level!(
                 alternative!(id!("Regex"), lit!("+")),
                 alternative!(id!("Regex"), lit!("*")),
                 alternative!(id!("Regex"), lit!("?")),
                 alternative!(lit!("("), star!(plus!(id!("Regex")), lit!("|")), lit!(")")),
                 alternative!(id!("CharClass")),
-                alternative!(id!("Char"))
+                alternative!(lit!("\""), id!("Char"), lit!("\""))
             )),
-            // CharClass = "!"? "[" (CharRange | Char)+ "]"
+            // CharClass = "!"? "[" (Range | RangeChar)+ "]"
             syntax_rule!("CharClass" => alternative!(
                 opt!(lit!("!")),
                 lit!("["),
-                plus!(alt!(id!("CharRange"), id!("Char"))),
+                plus!(alt!(id!("Range"), id!("RangeChar"))),
                 lit!("]")
             )),
-            // CharRange = Char "-" Char
-            syntax_rule!("CharRange" => alternative!(
-                id!("Char"),
+            // Range = RangeChar "-" RangeChar
+            syntax_rule!("Range" => alternative!(
+                id!("RangeChar"),
                 lit!("-"),
-                id!("Char")
+                id!("RangeChar")
             )),
         ],
         lexical: [
@@ -367,20 +390,31 @@ fn iggy() -> Grammar {
                 r_alt!(cc!(['a'-'z', 'A'-'Z']), c!('_')),
                 r_star!(r_alt!(cc!(['a'-'z', 'A'-'Z', '0'-'9']), c!('_')))
             )),
-            // String = /!["]*/
-            lexical_rule!("String" => r_star!(cc!(!['"'-'"']))),
-            // Char = /!['-[]*+?/]/
-            lexical_rule!("Char" => cc!(![
-                '\''-'\'', 
-                '-'-'-', 
-                '['-'[', 
-                ']'-']',
-                '*'-'*',
-                '+'-'+',
-                '?'-'?',
-                '/'-'/', 
-            ])),
-            // WS = /[ \n]*/
+            // String = (("\\" [' " \\ t f r n]) | !['"\\])*
+            lexical_rule!("String" => r_star!(r_alt!(
+                r_seq!(c!('\\'), cc!(['\''-'\'', '"'-'"', '\\'-'\\', 't'-'t', 'f'-'f', 'r'-'r', 'n'-'n'])),
+                cc!(!['\''-'\'', '"'-'"', '\\'-'\\'])
+            ))),
+            // RangeChar = ![\\ \- \[ \] \t \f \r \n] | "\\" [\\ \- \[ \] t f r n]
+            lexical_rule!("RangeChar" => r_alt!(
+                cc!(![
+                    '\\'-'\\',
+                    '-'-'-',
+                    '['-'[',
+                    ']'-']',
+                    '\t'-'\t',
+                    '\x0c'-'\x0c',
+                    '\r'-'\r',
+                    '\n'-'\n',
+                ]),
+                r_seq!(c!('\\'), cc!(['\\'-'\\', '-'-'-', '['-'[', ']'-']', 't'-'t', 'f'-'f', 'r'-'r', 'n'-'n']))
+            )),
+            // Char = "\\" [' " \\ t f r n] | !['"\\]
+            lexical_rule!("Char" => r_alt!(
+                r_seq!(c!('\\'), cc!(['\''-'\'', '"'-'"', '\\'-'\\', 't'-'t', 'f'-'f', 'r'-'r', 'n'-'n'])),
+                cc!(!['\''-'\'', '"'-'"', '\\'-'\\'])
+            )),
+            // WS = [ \n]*
             lexical_rule!("WS" => r_star!(r_alt!(c!(' '), c!('\n'))))
         ],
         layout: [
