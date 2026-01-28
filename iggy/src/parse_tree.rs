@@ -963,8 +963,8 @@ pub struct CharRange(Token, Token, Token, Token, Token, Span);
 //Rule+
 #[derive(Debug)]
 pub enum GrammarPlus0 {
-    Alt0(Box<GrammarPlus0>, Token, Rule, Span),
-    Alt1(Rule, Span),
+    Alt0(Box<GrammarPlus0>, Token, Box<Rule>, Span),
+    Alt1(Box<Rule>, Span),
 }
 //Rule+?
 #[derive(Debug)]
@@ -978,8 +978,15 @@ pub struct GrammarStar0(GrammarOpt0, Span);
 //{PriorityLevel ">"}+
 #[derive(Debug)]
 pub enum RulePlus1 {
-    Alt0(Box<RulePlus1>, Token, Token, Token, PriorityLevel, Span),
-    Alt1(PriorityLevel, Span),
+    Alt0(
+        Box<RulePlus1>,
+        Token,
+        Token,
+        Token,
+        Box<PriorityLevel>,
+        Span,
+    ),
+    Alt1(Box<PriorityLevel>, Span),
 }
 //{PriorityLevel ">"}+?
 #[derive(Debug)]
@@ -1010,10 +1017,10 @@ pub enum PriorityLevelPlus4 {
         Token,
         Token,
         Token,
-        Alternative,
+        Box<Alternative>,
         Span,
     ),
-    Alt1(Alternative, Span),
+    Alt1(Box<Alternative>, Span),
 }
 //{Alternative "|"}+?
 #[derive(Debug)]
@@ -2617,7 +2624,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         GrammarPlus0::Alt0(
                             Box::new(c0.unwrap_grammar_plus_0()),
                             c1.unwrap_token(),
-                            c2.unwrap_rule(),
+                            Box::new(c2.unwrap_rule()),
                             nonterminal_node.span,
                         )
                         .into()
@@ -2625,7 +2632,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Rule+ : Rule.
                     SlotId(119) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
-                        GrammarPlus0::Alt1(c0.unwrap_rule(), nonterminal_node.span).into()
+                        GrammarPlus0::Alt1(Box::new(c0.unwrap_rule()), nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
@@ -2669,7 +2676,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                             c1.unwrap_token(),
                             c2.unwrap_token(),
                             c3.unwrap_token(),
-                            c4.unwrap_priority_level(),
+                            Box::new(c4.unwrap_priority_level()),
                             nonterminal_node.span,
                         )
                         .into()
@@ -2677,7 +2684,8 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //{PriorityLevel ">"}+ : PriorityLevel.
                     SlotId(132) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
-                        RulePlus1::Alt1(c0.unwrap_priority_level(), nonterminal_node.span).into()
+                        RulePlus1::Alt1(Box::new(c0.unwrap_priority_level()), nonterminal_node.span)
+                            .into()
                     }
                     _ => unreachable!(),
                 }
@@ -2768,7 +2776,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                             c1.unwrap_token(),
                             c2.unwrap_token(),
                             c3.unwrap_token(),
-                            c4.unwrap_alternative(),
+                            Box::new(c4.unwrap_alternative()),
                             nonterminal_node.span,
                         )
                         .into()
@@ -2776,8 +2784,11 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //{Alternative "|"}+ : Alternative.
                     SlotId(159) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
-                        PriorityLevelPlus4::Alt1(c0.unwrap_alternative(), nonterminal_node.span)
-                            .into()
+                        PriorityLevelPlus4::Alt1(
+                            Box::new(c0.unwrap_alternative()),
+                            nonterminal_node.span,
+                        )
+                        .into()
                     }
                     _ => unreachable!(),
                 }
@@ -3591,3 +3602,4 @@ fn build_json_graph(
     }
     my_id
 }
+

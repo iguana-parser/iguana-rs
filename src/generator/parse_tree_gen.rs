@@ -167,8 +167,8 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
                                 let token = Ident::new("Token", Span::call_site());
                                 quote! { #token }
                             },
-                            Definition::Nonterminal(_) => {
-                                if def.name() == nonterminal.name {
+                            Definition::Nonterminal(nt) => {
+                                if should_be_boxed(nt, nonterminal) {
                                     let name = Ident::new(&to_pascal_case(def.name()), Span::call_site());
                                     quote! { Box<#name> }
                                 } else {
@@ -488,7 +488,6 @@ fn gen_nonterminal_node_method(
         .ids()
         .map(|nonterminal_id| {
             let nonterminal = nonterminal_ids.get_nonterminal(nonterminal_id);
-            let nonterminal_name = &nonterminal.name;
             let slot_cases: Vec<TokenStream> = nonterminal_ids
                 .end_slots(nonterminal_id)
                 .map(|end_slot| {
@@ -509,10 +508,9 @@ fn gen_nonterminal_node_method(
                                 Definition::Terminal(_) => {
                                     (Ident::new("unwrap_token", Span::call_site()), false)
                                 },
-                                Definition::Nonterminal(_) => { 
+                                Definition::Nonterminal(nt) => { 
                                     let ident = format_ident!("unwrap_{}", to_snake_case(def.name()));
-                                    // Pass true if should be boxed.
-                                    (ident, def.name() == nonterminal_name)
+                                    (ident, should_be_boxed(nt, nonterminal))
                                 }
                             }})
                         .collect();
@@ -557,6 +555,7 @@ fn gen_nonterminal_node_method(
                     }
                 })
                 .collect();
+            let nonterminal_name = &nonterminal.name;
             quote! {
                 #[comment = #nonterminal_name]
                 #nonterminal_id => match nonterminal_node.return_slot {
@@ -578,6 +577,29 @@ fn gen_nonterminal_node_method(
                 _ => unreachable!()
             }
         }
+    }
+}
+
+// Returns true if the nonterminal corresponding to a symbol in the body of a rule has 
+// the same name as the nonterminal head, or it's origin symbol.
+// This is to properly Box the generated types for recursive types, e.g., A+ or A*.
+fn should_be_boxed(nonterminal: &Nonterminal, head: &Nonterminal) -> bool {
+    if nonterminal.name == head.name {
+        return true;
+    }
+    match &head.origin {
+        Some(s) => match s {
+            Symbol::Star(symbol, _) => match symbol.as_ref() {
+                Symbol::Identifier(identifier) => identifier.name == nonterminal.name,
+                _ => false,
+            },
+            Symbol::Plus(symbol, _) => match symbol.as_ref() {
+                Symbol::Identifier(identifier) => identifier.name == nonterminal.name,
+                _ => false,
+            },
+            _ => false
+        },
+        None => false,
     }
 }
 

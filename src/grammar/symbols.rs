@@ -39,8 +39,8 @@ pub enum Symbol {
     Group(Vec<Symbol>),
     Opt(Box<Symbol>),
     Alt(Vec<Symbol>),
-    Star(Box<Symbol>, Option<Box<Symbol>>),
-    Plus(Box<Symbol>, Option<Box<Symbol>>),
+    Star(Box<Symbol>, Option<Box<Symbol>>), // symbol, separator
+    Plus(Box<Symbol>, Option<Box<Symbol>>), // symbol, separator
 }
 
 impl Symbol {

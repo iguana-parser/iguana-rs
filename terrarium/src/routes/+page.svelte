@@ -348,7 +348,7 @@
   let nonterminals = $state<string[]>([]);
   let dropdownOpen = $state(false);
 
-  // Helper to strip "Start" prefix for display
+  // Helper for displaying nonterminal (strips "Start" prefix if present for backwards compatibility)
   function displayNonterminal(nt: string | null): string {
     if (!nt) return "Select...";
     return nt.replace(/^Start/, "");
@@ -1181,9 +1181,10 @@
     parseTreeSelectedSpan = null;
     sppfSelectedSpan = null;
 
-    logCommand(`${parserName} <input> --start ${startNonterminal}`);
+    const startSymbol = `Start${startNonterminal}`;
+    logCommand(`${parserName} <input> --start ${startSymbol}`);
 
-    const result = await commands.parse(parserDirectory, inputText, startNonterminal!);
+    const result = await commands.parse(parserDirectory, inputText, startSymbol);
     if (result.status === "error") {
       // Command itself failed (couldn't run parser)
       logError(result.error);
@@ -1238,7 +1239,8 @@
   async function setupVscodeDebug() {
     if (!parserDirectory || !startNonterminal) return;
 
-    const result = await commands.setupVscodeDebug(parserDirectory, inputText, startNonterminal);
+    const startSymbol = `Start${startNonterminal}`;
+    const result = await commands.setupVscodeDebug(parserDirectory, inputText, startSymbol);
     if (result.status === "ok") {
       logOutput(`Debug config: .vscode/launch.json`);
       logOutput(`Debug input: .vscode/debug-input.txt`);
@@ -1713,11 +1715,12 @@
     descriptorSet = [];
     inputIndex = null;
 
-    const result = await commands.loadDebugTrace(parserDirectory, inputText, startNonterminal);
+    const startSymbol = `Start${startNonterminal}`;
+    const result = await commands.loadDebugTrace(parserDirectory, inputText, startSymbol);
     if (result.status === "ok") {
       const { input_path, symbols_path, trace_path, current_action, descriptor_set, input_index, total_errors, current_error_index } = result.data;
       logCommand(`${parserName} --write-symbols ${symbols_path}`);
-      logCommand(`${parserName} ${input_path} --start ${startNonterminal} --trace ${trace_path} --format json`);
+      logCommand(`${parserName} ${input_path} --start ${startSymbol} --trace ${trace_path} --format json`);
       debugLoaded = true;
       currentStep = result.data.current_step;
       totalSteps = result.data.total_steps;
@@ -1733,7 +1736,7 @@
       await notifyDebugGraphWindows();
     } else {
       logCommand(`${parserName} --write-symbols <symbols.json>`);
-      logCommand(`${parserName} <input> --start ${startNonterminal} --trace <trace.json> --format json`);
+      logCommand(`${parserName} <input> --start ${startSymbol} --trace <trace.json> --format json`);
       setStatus("Debug failed", "error");
       logError(result.error);
       outputPanelOpen = true;

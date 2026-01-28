@@ -103,10 +103,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             let cli = Cli::parse();
 
-            // Handle --list-nonterminals: output simple nonterminals and exit
+            // Handle --list-nonterminals: output grammar nonterminals (not EBNF or Start) and exit
             if cli.list_nonterminals {
                 for nt in NONTERMINALS.iter() {
-                    if !nt.is_ebnf() {
+                    if !nt.is_ebnf() && !nt.is_start() {
                         println!("{}", nt.name);
                     }
                 }
