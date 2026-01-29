@@ -34,7 +34,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = iggy();
+    let grammar = expression_grammar();
     generate(&grammar, output)?;
     Ok(())
 }
@@ -45,6 +45,23 @@ fn grammar1() -> Grammar {
     grammar_def!("Test2",
         syntax: [
             syntax_rule!("E" => priority_level!(
+                alternative!(id!("E"), lit!("+"), id!("E")),
+                alternative!(lit!("a"))
+            ))
+        ]
+    )
+    .into()
+}
+
+fn expression_grammar() -> Grammar {
+    // E 
+    //  = E '*' E 
+    //  | E '+' E
+    //  | 'a'
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("E" => priority_level!(
+                alternative!(id!("E"), lit!("*"), id!("E")),
                 alternative!(id!("E"), lit!("+"), id!("E")),
                 alternative!(lit!("a"))
             ))
@@ -286,8 +303,8 @@ fn ambiguous_grammar() -> Grammar {
 //
 // regex {
 //   RangeChar
-//     = ![\\ \- \[ \] \t \f \r \n]
-//     | "\\" [\\ \- \[ \] t f r n]
+//     = ![\\ \- \[ \] \t \f \r \n \ ]
+//     | "\\" [\\ \- \[ \] t f r n \ ]
 //
 //   Char
 //     = "\\" [' " \\ t f r n]
@@ -295,7 +312,7 @@ fn ambiguous_grammar() -> Grammar {
 // 
 //   String = (("\\" [' " \\ t f r n]) | !['"\\])*
 //   Identifier = [a-zA-Z_][a-zA-Z_0-9]*
-//   WS = [ \n]*
+//   WS = [\ \n]*
 // }
 //
 fn iggy() -> Grammar {

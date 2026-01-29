@@ -168,6 +168,6 @@ pub fn collect_char_classes(regex: &Regex, char_class_ids: &mut CharClassIds) {
         Regex::Star(r) | Regex::Plus(r) | Regex::Opt(r) => {
             collect_char_classes(r, char_class_ids);
         }
-        Regex::Char(_) | Regex::CharRange(_) => {}
+        Regex::Char(_) | Regex::CharRange(_) | Regex::Epsilon => {}
     }
 }

@@ -367,20 +367,7 @@ impl From<GrammarDef> for Grammar {
             .into_iter()
             .map(|r| (r.head, r.regex))
             .collect();
-        // TODO: for now we only support regex layouts.
-        let layout_regex = Regex::Alt(
-            grammar_def
-                .layout_def
-                .iter()
-                .map(|def| {
-                    lexical_rules_map
-                        .get(def)
-                        .expect("Layout should be defined")
-                        .clone()
-                })
-                .collect(),
-        );
-        let layout_rule = lexical_rule!("Layout" => layout_regex);
+        let layout_rule = layout_rule(&grammar_def.layout_def, &lexical_rules_map);
         let def_id = symbol_table.insert("Layout".into());
         let layout_identifier = Symbol::Identifier(Identifier {
             name: "Layout".into(),
@@ -419,6 +406,29 @@ impl From<GrammarDef> for Grammar {
             symbol_table,
         }
     }
+}
+
+// TODO: for now we only support regex layouts
+fn layout_rule(
+    layout_def: &[Terminal],
+    lexical_rules_map: &IndexMap<Terminal, Regex>,
+) -> LexicalRule {
+    let layout_regex = match layout_def {
+        [] => Regex::Epsilon,
+        [single] => lexical_rules_map.get(single).unwrap().clone(),
+        multiple => Regex::Alt(
+            multiple
+                .iter()
+                .map(|def| {
+                    lexical_rules_map
+                        .get(def)
+                        .expect("Layout should be defined")
+                        .clone()
+                })
+                .collect(),
+        ),
+    };
+    lexical_rule!("Layout" => layout_regex)
 }
 
 fn add_start_rule(

@@ -239,7 +239,8 @@ fn match_regex(regex: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
         Regex::Alt(rs) => match_alt(rs, char_class_ids),
         Regex::Star(r) => match_star(r, char_class_ids),
         Regex::Opt(r) => match_opt(r, char_class_ids),
-        _ => todo!(),
+        Regex::Plus(r) => match_plus(r, char_class_ids),
+        Regex::Epsilon => match_epsilon(),
     }
 }
 
@@ -322,11 +323,24 @@ fn match_star(r: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
     }
 }
 
+fn match_plus(r: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
+    let match_r = match_regex(r, char_class_ids);
+    let match_star = match_star(r, char_class_ids);
+    quote! {
+        let i = (|i| { #match_r })(i)?;
+        #match_star
+    }
+}
+
 fn match_opt(r: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
     let match_r = match_regex(r, char_class_ids);
     quote! {
         (|i| { #match_r })(i).or(Some(i))
     }
+}
+
+fn match_epsilon() -> TokenStream {
+    quote! { Some(i) }
 }
 
 #[cfg(test)]

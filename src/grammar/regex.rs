@@ -12,6 +12,7 @@ pub enum Regex {
     Star(Box<Regex>),
     Plus(Box<Regex>),
     Opt(Box<Regex>),
+    Epsilon,
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -116,6 +117,7 @@ impl std::fmt::Display for Regex {
                     write!(f, "{}?", inner)
                 }
             }
+            Regex::Epsilon => write!(f, "{}", "ε"),
         }
     }
 }
