@@ -3,8 +3,8 @@ use crate::{
     types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 #[cfg(feature = "debug-trace")]
-use iguana::trace::TraceEvent;
-use iguana::{
+use iguana_runtime::trace::TraceEvent;
+use iguana_runtime::{
     descriptor::Descriptor,
     gss::GSSNode,
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},

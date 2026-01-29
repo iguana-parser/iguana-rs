@@ -1,0 +1,21 @@
+[package]
+name = "iguana-runtime"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+debug-trace = []
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+dot.workspace = true
+log.workspace = true
+proc-macro2.workspace = true
+quote.workspace = true
+rustc-hash.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+specta.workspace = true
+env_logger = "0.11.8"

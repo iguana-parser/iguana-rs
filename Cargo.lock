@@ -254,7 +254,7 @@ dependencies = [
  "clap",
  "dhat",
  "dot",
- "iguana",
+ "iguana-runtime",
  "log",
  "phf",
  "rustc-hash 2.1.1",
@@ -266,9 +266,8 @@ name = "iguana"
 version = "0.1.0"
 dependencies = [
  "clap",
- "dot",
- "env_logger",
  "iggy",
+ "iguana-runtime",
  "indexmap",
  "insta",
  "itertools",
@@ -277,9 +276,23 @@ dependencies = [
  "quote",
  "rustc-hash 2.1.1",
  "serde",
- "serde_json",
  "specta",
  "syn",
+]
+
+[[package]]
+name = "iguana-runtime"
+version = "0.1.0"
+dependencies = [
+ "dot",
+ "env_logger",
+ "log",
+ "proc-macro2",
+ "quote",
+ "rustc-hash 2.1.1",
+ "serde",
+ "serde_json",
+ "specta",
 ]
 
 [[package]]

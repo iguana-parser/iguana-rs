@@ -92,7 +92,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
     quote! {
         use core::fmt;
         use std::{fmt::Write, vec::IntoIter};
-        use iguana::{
+        use iguana_runtime::{
             ids::{NonterminalId, SlotId, TerminalId},
             parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
             parser::Parser,

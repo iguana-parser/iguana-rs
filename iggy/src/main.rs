@@ -4,8 +4,8 @@ use iggy::{
     parser::{IggyParser, NONTERMINALS, SLOTS, TERMINALS},
 };
 #[cfg(feature = "debug-trace")]
-use iguana::trace::TraceEvent;
-use iguana::{
+use iguana_runtime::trace::TraceEvent;
+use iguana_runtime::{
     input::Input,
     parser::{ParseResult, Parser},
     visualization::{

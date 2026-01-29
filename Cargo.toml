@@ -1,34 +1,20 @@
 [workspace]
 # terrarium excluded by default - it's a Tauri app with 500+ dependencies that slows rust-analyzer
-members = ["iggy"]
-# members = ["iggy", "terrarium/src-tauri"]  # uncomment when working on terrarium
+members = ["iguana", "iguana-runtime", "iggy"]
+# members = ["iguana", "iguana-runtime", "iggy", "terrarium/src-tauri"]  # uncomment when working on terrarium
 
-[package]
-name = "iguana"
-version = "0.1.0"
-edition = "2024"
-
-[features]
-debug-trace = ["iggy/debug-trace"]
-
-[lib]
-path = "src/lib.rs"
-
-[dependencies]
-dot = { git = "https://github.com/przygienda/dot-rust.git", rev = "fed06f613a9d72bfde711a12791f96a777b2371e" }
+[workspace.dependencies]
+# Shared dependencies
 clap = { version = "4.5.51", features = ["derive"] }
-env_logger = "0.11.8"
+dot = { git = "https://github.com/przygienda/dot-rust.git", rev = "fed06f613a9d72bfde711a12791f96a777b2371e" }
+log = "0.4"
 proc-macro2 = { version = "1.0.103", features = ["span-locations"] }
 quote = "1.0.41"
-syn = { version = "2.0.108", features = ["full", "parsing"] }
 rustc-hash = "2.1.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 specta = { version = "=2.0.0-rc.22", features = ["derive"] }
-indexmap = "2.12.1"
-itertools = "0.14.0"
-insta = "1.44.3"
-prettyplease = "0.2.37"
 
-[dev-dependencies]
+# Internal crates
+iguana-runtime = { path = "iguana-runtime" }
 iggy = { path = "iggy" }

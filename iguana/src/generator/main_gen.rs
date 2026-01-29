@@ -15,7 +15,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         };
 
         use clap::Parser as ClapParser;
-        use iguana::{
+        use iguana_runtime::{
             input::Input,
             parser::{ParseResult, Parser},
             visualization::{dot::write_svg, gss::{build_gss_dot_graph, render_gss}, sppf::{build_sppf_graph, write_sppf_dot}},
@@ -26,7 +26,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         };
 
         #[cfg(feature = "debug-trace")]
-        use iguana::trace::TraceEvent;
+        use iguana_runtime::trace::TraceEvent;
 
         #[derive(Clone, Copy, Default, clap::ValueEnum)]
         enum TraceFormat {

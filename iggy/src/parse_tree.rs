@@ -1,6 +1,6 @@
 use crate::parser::IggyParser;
 use core::fmt;
-use iguana::{
+use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
     parser::Parser,

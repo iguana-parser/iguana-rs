@@ -113,7 +113,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
     quote! {
         use std::cell::OnceCell;
         use crate::{scanner::#scanner_name, types::{EbnfKind, Nonterminal, Slot, Terminal}};
-        use iguana::{
+        use iguana_runtime::{
             descriptor::Descriptor,
             gss::GSSNode,
             ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -125,7 +125,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
             utils::inline_map::InlineMap,
         };
         #[cfg(feature = "debug-trace")]
-        use iguana::trace::TraceEvent;
+        use iguana_runtime::trace::TraceEvent;
         use rustc_hash::FxHashMap;
         use phf::phf_map;
     }

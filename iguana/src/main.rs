@@ -5,8 +5,8 @@ use iguana::{
     alt, alternative, c, cc,
     generator::generate,
     grammar::{def::Grammar, symbols::Terminal},
-    grammar_def, group, id, lexical_rule, lit, opt, plus, priority_level, r_alt, r_seq, r_star,
-    star, syntax_rule,
+    grammar_def, group, id, iggy::parse_grammar, lexical_rule, lit, opt, plus, priority_level,
+    r_alt, r_seq, r_star, star, syntax_rule,
 };
 
 #[derive(Parser)]
@@ -18,6 +18,11 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     Generate {
+        /// Path to an iggy grammar file. If not provided, uses the built-in iggy grammar.
+        #[arg(short, long)]
+        grammar: Option<PathBuf>,
+
+        /// Output directory for generated parser
         #[arg(short, long)]
         output: PathBuf,
     },
@@ -27,14 +32,20 @@ enum Commands {
 fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
     match cli.command {
-        Commands::Generate { output } => generate_parser(&output)?,
+        Commands::Generate { grammar, output } => generate_parser(grammar.as_deref(), &output)?,
         Commands::Run => todo!(),
     }
     Ok(())
 }
 
-fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = iggy();
+fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Result<()> {
+    let grammar = match grammar_path {
+        Some(path) => {
+            let source = std::fs::read_to_string(path)?;
+            parse_grammar(&source).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
+        }
+        None => iggy(),
+    };
     generate(&grammar, output)?;
     Ok(())
 }

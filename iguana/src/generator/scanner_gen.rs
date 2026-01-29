@@ -38,7 +38,7 @@ pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
 
 fn gen_imports() -> TokenStream {
     quote! {
-        use iguana::{
+        use iguana_runtime::{
             ids::TerminalId,
             input::Input,
             scanner::Scanner,
