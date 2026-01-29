@@ -18,10 +18,16 @@ where
             let new_alternatives: Vec<_> = priority_level
                 .alternatives
                 .into_iter()
-                .map(|alt| {
-                    let new_symbols: Vec<_> =
-                        alt.symbols.into_iter().map(&mut transform_symbol).collect();
-                    Alternative::new(new_symbols)
+                .map(|alternative| {
+                    let new_symbols: Vec<_> = alternative
+                        .symbols
+                        .into_iter()
+                        .map(&mut transform_symbol)
+                        .collect();
+                    Alternative {
+                        symbols: new_symbols,
+                        label: alternative.label,
+                    }
                 })
                 .collect();
             PriorityLevel::new(new_alternatives)
@@ -43,9 +49,12 @@ where
             let new_alternatives: Vec<_> = priority_level
                 .alternatives
                 .into_iter()
-                .map(|alt| {
-                    let new_symbols = transform_symbol(alt.symbols);
-                    Alternative::new(new_symbols)
+                .map(|alternative| {
+                    let new_symbols = transform_symbol(alternative.symbols);
+                    Alternative {
+                        symbols: new_symbols,
+                        label: alternative.label,
+                    }
                 })
                 .collect();
             PriorityLevel::new(new_alternatives)

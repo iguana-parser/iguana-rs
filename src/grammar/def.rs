@@ -21,12 +21,6 @@ pub struct Alternative {
 }
 
 impl Alternative {
-    pub fn new(symbols: Vec<Symbol>) -> Self {
-        Self {
-            symbols,
-            label: None,
-        }
-    }
     pub fn len(&self) -> usize {
         self.symbols.len()
     }
@@ -43,7 +37,11 @@ impl Alternative {
 
 impl Display for Alternative {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.symbols.iter().join(" "))
+        let symbols = self.symbols.iter().join(" ");
+        match &self.label {
+            Some(label) => write!(f, "{} @{}", symbols, label),
+            None => write!(f, "{}", symbols),
+        }
     }
 }
 
@@ -514,7 +512,7 @@ impl Display for Grammar {
 #[macro_export]
 macro_rules! alternative {
     ($($symbol:expr),* $(,)?, @$label:literal) => {
-        $crate::grammar::Alternative {
+        $crate::grammar::def::Alternative {
             symbols: vec![$($symbol),*],
             label: Some($label.to_string()),
         }

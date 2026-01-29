@@ -1089,10 +1089,10 @@ pub struct PriorityLevel(PriorityLevelStar3, Span);
 pub struct Alternative(AlternativeStar4, Span);
 #[derive(Debug)]
 pub enum Symbol {
-    Alt0(Box<Symbol>, Token, Token, Span),
-    Alt1(Box<Symbol>, Token, Token, Span),
-    Alt2(Box<Symbol>, Token, Token, Span),
-    Alt3(
+    Star(Box<Symbol>, Token, Token, Span),
+    Plus(Box<Symbol>, Token, Token, Span),
+    Opt(Box<Symbol>, Token, Token, Span),
+    Alt(
         Token,
         Token,
         Box<Symbol>,
@@ -1104,8 +1104,8 @@ pub enum Symbol {
         Token,
         Span,
     ),
-    Alt4(Token, Token, Token, Token, Token, Span),
-    Alt5(
+    Lit(Token, Token, Token, Token, Token, Span),
+    StarSep(
         Token,
         Token,
         Box<Symbol>,
@@ -1117,7 +1117,7 @@ pub enum Symbol {
         Token,
         Span,
     ),
-    Alt6(
+    PlusSep(
         Token,
         Token,
         Box<Symbol>,
@@ -1129,17 +1129,17 @@ pub enum Symbol {
         Token,
         Span,
     ),
-    Alt7(Token, Token, AlternativePlus6, Token, Token, Span),
-    Alt8(Token, Span),
+    Group(Token, Token, AlternativePlus6, Token, Token, Span),
+    Identifier(Token, Span),
 }
 #[derive(Debug)]
 pub enum Regex {
-    Alt0(Box<Regex>, Token, Token, Span),
-    Alt1(Box<Regex>, Token, Token, Span),
-    Alt2(Box<Regex>, Token, Token, Span),
-    Alt3(Token, Token, RegexStar5, Token, Token, Span),
-    Alt4(CharClass, Span),
-    Alt5(Token, Token, Token, Token, Token, Span),
+    Plus(Box<Regex>, Token, Token, Span),
+    Star(Box<Regex>, Token, Token, Span),
+    Opt(Box<Regex>, Token, Token, Span),
+    Alt(Token, Token, RegexStar5, Token, Token, Span),
+    CharClass(CharClass, Span),
+    Char(Token, Token, Token, Token, Token, Span),
 }
 #[derive(Debug)]
 pub struct CharClass(
@@ -1440,45 +1440,25 @@ impl Alternative {
 impl Symbol {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            Symbol::Alt0(c0, c1, c2, _) => match index {
+            Symbol::Star(c0, c1, c2, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 2 => Some(c2.as_parse_tree_ref()),
                 _ => None,
             },
-            Symbol::Alt1(c0, c1, c2, _) => match index {
+            Symbol::Plus(c0, c1, c2, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 2 => Some(c2.as_parse_tree_ref()),
                 _ => None,
             },
-            Symbol::Alt2(c0, c1, c2, _) => match index {
+            Symbol::Opt(c0, c1, c2, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 2 => Some(c2.as_parse_tree_ref()),
                 _ => None,
             },
-            Symbol::Alt3(c0, c1, c2, c3, c4, c5, c6, c7, c8, _) => match index {
-                0 => Some(c0.as_parse_tree_ref()),
-                1 => Some(c1.as_parse_tree_ref()),
-                2 => Some(c2.as_parse_tree_ref()),
-                3 => Some(c3.as_parse_tree_ref()),
-                4 => Some(c4.as_parse_tree_ref()),
-                5 => Some(c5.as_parse_tree_ref()),
-                6 => Some(c6.as_parse_tree_ref()),
-                7 => Some(c7.as_parse_tree_ref()),
-                8 => Some(c8.as_parse_tree_ref()),
-                _ => None,
-            },
-            Symbol::Alt4(c0, c1, c2, c3, c4, _) => match index {
-                0 => Some(c0.as_parse_tree_ref()),
-                1 => Some(c1.as_parse_tree_ref()),
-                2 => Some(c2.as_parse_tree_ref()),
-                3 => Some(c3.as_parse_tree_ref()),
-                4 => Some(c4.as_parse_tree_ref()),
-                _ => None,
-            },
-            Symbol::Alt5(c0, c1, c2, c3, c4, c5, c6, c7, c8, _) => match index {
+            Symbol::Alt(c0, c1, c2, c3, c4, c5, c6, c7, c8, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 2 => Some(c2.as_parse_tree_ref()),
@@ -1490,7 +1470,15 @@ impl Symbol {
                 8 => Some(c8.as_parse_tree_ref()),
                 _ => None,
             },
-            Symbol::Alt6(c0, c1, c2, c3, c4, c5, c6, c7, c8, _) => match index {
+            Symbol::Lit(c0, c1, c2, c3, c4, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                1 => Some(c1.as_parse_tree_ref()),
+                2 => Some(c2.as_parse_tree_ref()),
+                3 => Some(c3.as_parse_tree_ref()),
+                4 => Some(c4.as_parse_tree_ref()),
+                _ => None,
+            },
+            Symbol::StarSep(c0, c1, c2, c3, c4, c5, c6, c7, c8, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 2 => Some(c2.as_parse_tree_ref()),
@@ -1502,7 +1490,19 @@ impl Symbol {
                 8 => Some(c8.as_parse_tree_ref()),
                 _ => None,
             },
-            Symbol::Alt7(c0, c1, c2, c3, c4, _) => match index {
+            Symbol::PlusSep(c0, c1, c2, c3, c4, c5, c6, c7, c8, _) => match index {
+                0 => Some(c0.as_parse_tree_ref()),
+                1 => Some(c1.as_parse_tree_ref()),
+                2 => Some(c2.as_parse_tree_ref()),
+                3 => Some(c3.as_parse_tree_ref()),
+                4 => Some(c4.as_parse_tree_ref()),
+                5 => Some(c5.as_parse_tree_ref()),
+                6 => Some(c6.as_parse_tree_ref()),
+                7 => Some(c7.as_parse_tree_ref()),
+                8 => Some(c8.as_parse_tree_ref()),
+                _ => None,
+            },
+            Symbol::Group(c0, c1, c2, c3, c4, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 2 => Some(c2.as_parse_tree_ref()),
@@ -1510,7 +1510,7 @@ impl Symbol {
                 4 => Some(c4.as_parse_tree_ref()),
                 _ => None,
             },
-            Symbol::Alt8(c0, _) => match index {
+            Symbol::Identifier(c0, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 _ => None,
             },
@@ -1518,15 +1518,15 @@ impl Symbol {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            Symbol::Alt0(..) => 3usize,
-            Symbol::Alt1(..) => 3usize,
-            Symbol::Alt2(..) => 3usize,
-            Symbol::Alt3(..) => 9usize,
-            Symbol::Alt4(..) => 5usize,
-            Symbol::Alt5(..) => 9usize,
-            Symbol::Alt6(..) => 9usize,
-            Symbol::Alt7(..) => 5usize,
-            Symbol::Alt8(..) => 1usize,
+            Symbol::Star(..) => 3usize,
+            Symbol::Plus(..) => 3usize,
+            Symbol::Opt(..) => 3usize,
+            Symbol::Alt(..) => 9usize,
+            Symbol::Lit(..) => 5usize,
+            Symbol::StarSep(..) => 9usize,
+            Symbol::PlusSep(..) => 9usize,
+            Symbol::Group(..) => 5usize,
+            Symbol::Identifier(..) => 1usize,
         }
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
@@ -1534,40 +1534,40 @@ impl Symbol {
     }
     pub fn span(&self) -> Span {
         match self {
-            Symbol::Alt0(.., span) => *span,
-            Symbol::Alt1(.., span) => *span,
-            Symbol::Alt2(.., span) => *span,
-            Symbol::Alt3(.., span) => *span,
-            Symbol::Alt4(.., span) => *span,
-            Symbol::Alt5(.., span) => *span,
-            Symbol::Alt6(.., span) => *span,
-            Symbol::Alt7(.., span) => *span,
-            Symbol::Alt8(.., span) => *span,
+            Symbol::Star(.., span) => *span,
+            Symbol::Plus(.., span) => *span,
+            Symbol::Opt(.., span) => *span,
+            Symbol::Alt(.., span) => *span,
+            Symbol::Lit(.., span) => *span,
+            Symbol::StarSep(.., span) => *span,
+            Symbol::PlusSep(.., span) => *span,
+            Symbol::Group(.., span) => *span,
+            Symbol::Identifier(.., span) => *span,
         }
     }
 }
 impl Regex {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            Regex::Alt0(c0, c1, c2, _) => match index {
+            Regex::Plus(c0, c1, c2, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 2 => Some(c2.as_parse_tree_ref()),
                 _ => None,
             },
-            Regex::Alt1(c0, c1, c2, _) => match index {
+            Regex::Star(c0, c1, c2, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 2 => Some(c2.as_parse_tree_ref()),
                 _ => None,
             },
-            Regex::Alt2(c0, c1, c2, _) => match index {
+            Regex::Opt(c0, c1, c2, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 2 => Some(c2.as_parse_tree_ref()),
                 _ => None,
             },
-            Regex::Alt3(c0, c1, c2, c3, c4, _) => match index {
+            Regex::Alt(c0, c1, c2, c3, c4, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 2 => Some(c2.as_parse_tree_ref()),
@@ -1575,11 +1575,11 @@ impl Regex {
                 4 => Some(c4.as_parse_tree_ref()),
                 _ => None,
             },
-            Regex::Alt4(c0, _) => match index {
+            Regex::CharClass(c0, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 _ => None,
             },
-            Regex::Alt5(c0, c1, c2, c3, c4, _) => match index {
+            Regex::Char(c0, c1, c2, c3, c4, _) => match index {
                 0 => Some(c0.as_parse_tree_ref()),
                 1 => Some(c1.as_parse_tree_ref()),
                 2 => Some(c2.as_parse_tree_ref()),
@@ -1591,12 +1591,12 @@ impl Regex {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            Regex::Alt0(..) => 3usize,
-            Regex::Alt1(..) => 3usize,
-            Regex::Alt2(..) => 3usize,
-            Regex::Alt3(..) => 5usize,
-            Regex::Alt4(..) => 1usize,
-            Regex::Alt5(..) => 5usize,
+            Regex::Plus(..) => 3usize,
+            Regex::Star(..) => 3usize,
+            Regex::Opt(..) => 3usize,
+            Regex::Alt(..) => 5usize,
+            Regex::CharClass(..) => 1usize,
+            Regex::Char(..) => 5usize,
         }
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
@@ -1604,12 +1604,12 @@ impl Regex {
     }
     pub fn span(&self) -> Span {
         match self {
-            Regex::Alt0(.., span) => *span,
-            Regex::Alt1(.., span) => *span,
-            Regex::Alt2(.., span) => *span,
-            Regex::Alt3(.., span) => *span,
-            Regex::Alt4(.., span) => *span,
-            Regex::Alt5(.., span) => *span,
+            Regex::Plus(.., span) => *span,
+            Regex::Star(.., span) => *span,
+            Regex::Opt(.., span) => *span,
+            Regex::Alt(.., span) => *span,
+            Regex::CharClass(.., span) => *span,
+            Regex::Char(.., span) => *span,
         }
     }
 }
@@ -2864,7 +2864,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Symbol : Symbol Layout "*".
                     SlotId(35) => {
                         let [c0, c1, c2] = <[ParseTree; 3usize]>::try_from(children).unwrap();
-                        Symbol::Alt0(
+                        Symbol::Star(
                             Box::new(c0.unwrap_symbol()),
                             c1.unwrap_token(),
                             c2.unwrap_token(),
@@ -2875,7 +2875,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Symbol : Symbol Layout "+".
                     SlotId(39) => {
                         let [c0, c1, c2] = <[ParseTree; 3usize]>::try_from(children).unwrap();
-                        Symbol::Alt1(
+                        Symbol::Plus(
                             Box::new(c0.unwrap_symbol()),
                             c1.unwrap_token(),
                             c2.unwrap_token(),
@@ -2886,7 +2886,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Symbol : Symbol Layout "?".
                     SlotId(43) => {
                         let [c0, c1, c2] = <[ParseTree; 3usize]>::try_from(children).unwrap();
-                        Symbol::Alt2(
+                        Symbol::Opt(
                             Box::new(c0.unwrap_symbol()),
                             c1.unwrap_token(),
                             c2.unwrap_token(),
@@ -2898,7 +2898,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     SlotId(53) => {
                         let [c0, c1, c2, c3, c4, c5, c6, c7, c8] =
                             <[ParseTree; 9usize]>::try_from(children).unwrap();
-                        Symbol::Alt3(
+                        Symbol::Alt(
                             c0.unwrap_token(),
                             c1.unwrap_token(),
                             Box::new(c2.unwrap_symbol()),
@@ -2916,7 +2916,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     SlotId(59) => {
                         let [c0, c1, c2, c3, c4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
-                        Symbol::Alt4(
+                        Symbol::Lit(
                             c0.unwrap_token(),
                             c1.unwrap_token(),
                             c2.unwrap_token(),
@@ -2930,7 +2930,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     SlotId(69) => {
                         let [c0, c1, c2, c3, c4, c5, c6, c7, c8] =
                             <[ParseTree; 9usize]>::try_from(children).unwrap();
-                        Symbol::Alt5(
+                        Symbol::StarSep(
                             c0.unwrap_token(),
                             c1.unwrap_token(),
                             Box::new(c2.unwrap_symbol()),
@@ -2948,7 +2948,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     SlotId(79) => {
                         let [c0, c1, c2, c3, c4, c5, c6, c7, c8] =
                             <[ParseTree; 9usize]>::try_from(children).unwrap();
-                        Symbol::Alt6(
+                        Symbol::PlusSep(
                             c0.unwrap_token(),
                             c1.unwrap_token(),
                             Box::new(c2.unwrap_symbol()),
@@ -2966,7 +2966,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     SlotId(85) => {
                         let [c0, c1, c2, c3, c4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
-                        Symbol::Alt7(
+                        Symbol::Group(
                             c0.unwrap_token(),
                             c1.unwrap_token(),
                             c2.unwrap_alternative_plus_6(),
@@ -2979,7 +2979,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Symbol : Identifier.
                     SlotId(87) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
-                        Symbol::Alt8(c0.unwrap_token(), nonterminal_node.span).into()
+                        Symbol::Identifier(c0.unwrap_token(), nonterminal_node.span).into()
                     }
                     _ => unreachable!(),
                 }
@@ -2990,7 +2990,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Regex : Regex Layout "+".
                     SlotId(91) => {
                         let [c0, c1, c2] = <[ParseTree; 3usize]>::try_from(children).unwrap();
-                        Regex::Alt0(
+                        Regex::Plus(
                             Box::new(c0.unwrap_regex()),
                             c1.unwrap_token(),
                             c2.unwrap_token(),
@@ -3001,7 +3001,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Regex : Regex Layout "*".
                     SlotId(95) => {
                         let [c0, c1, c2] = <[ParseTree; 3usize]>::try_from(children).unwrap();
-                        Regex::Alt1(
+                        Regex::Star(
                             Box::new(c0.unwrap_regex()),
                             c1.unwrap_token(),
                             c2.unwrap_token(),
@@ -3012,7 +3012,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Regex : Regex Layout "?".
                     SlotId(99) => {
                         let [c0, c1, c2] = <[ParseTree; 3usize]>::try_from(children).unwrap();
-                        Regex::Alt2(
+                        Regex::Opt(
                             Box::new(c0.unwrap_regex()),
                             c1.unwrap_token(),
                             c2.unwrap_token(),
@@ -3024,7 +3024,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     SlotId(105) => {
                         let [c0, c1, c2, c3, c4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
-                        Regex::Alt3(
+                        Regex::Alt(
                             c0.unwrap_token(),
                             c1.unwrap_token(),
                             c2.unwrap_regex_star_5(),
@@ -3037,13 +3037,13 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                     //Regex : CharClass.
                     SlotId(107) => {
                         let [c0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
-                        Regex::Alt4(c0.unwrap_char_class(), nonterminal_node.span).into()
+                        Regex::CharClass(c0.unwrap_char_class(), nonterminal_node.span).into()
                     }
                     //Regex : """ Layout Char Layout """.
                     SlotId(113) => {
                         let [c0, c1, c2, c3, c4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
-                        Regex::Alt5(
+                        Regex::Char(
                             c0.unwrap_token(),
                             c1.unwrap_token(),
                             c2.unwrap_token(),

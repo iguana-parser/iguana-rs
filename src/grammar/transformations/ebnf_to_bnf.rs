@@ -101,7 +101,10 @@ fn rewrite_ebnf_symbol(
             let head = Nonterminal::with_origin(&name, origin.clone());
             let new_rule = SyntaxRule {
                 head,
-                priority_levels: vec![priority_level!(Alternative::new(transformed_symbols))],
+                priority_levels: vec![priority_level!(Alternative {
+                    symbols: transformed_symbols,
+                    label: None
+                })],
             };
             new_rules.push(new_rule);
             Symbol::Identifier(Identifier {

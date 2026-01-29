@@ -152,7 +152,7 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
     nonterminal: &Nonterminal,
     alternatives: &[Alternative]
 ) -> TokenStream {
-        let variants: Vec<_> = alternatives
+        let arms: Vec<_> = alternatives
             .iter()
             .enumerate()
             .map(|(index, alternative)| {
@@ -199,7 +199,7 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
             #comment
             #[derive(Debug)]
             pub enum #nonterminal_name_id {
-                #(#variants),*
+                #(#arms),*
             }
         }
 }
@@ -615,7 +615,7 @@ fn gen_new_token_method() -> TokenStream {
 }
 
 fn gen_parse_tree_enum(grammar: &Grammar) -> TokenStream {
-    let variants: Vec<_> = grammar
+    let arms: Vec<_> = grammar
         .nonterminals()
         .map(|n| {
             let name = to_pascal_case(&n.name);
@@ -630,7 +630,7 @@ fn gen_parse_tree_enum(grammar: &Grammar) -> TokenStream {
     quote! {
         #[derive(Debug)]
         pub enum ParseTree {
-            #(#variants),*,
+            #(#arms),*,
             Token(Token)
         }
     }

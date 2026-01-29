@@ -34,7 +34,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn generate_parser(output: &Path) -> std::io::Result<()> {
-    let grammar = expression_grammar();
+    let grammar = iggy();
     generate(&grammar, output)?;
     Ok(())
 }
@@ -61,9 +61,9 @@ fn expression_grammar() -> Grammar {
     grammar_def!("Test2",
         syntax: [
             syntax_rule!("E" => priority_level!(
-                alternative!(id!("E"), lit!("*"), id!("E")),
-                alternative!(id!("E"), lit!("+"), id!("E")),
-                alternative!(lit!("a"))
+                alternative!(id!("E"), lit!("*"), id!("E"), @"Mul"),
+                alternative!(id!("E"), lit!("+"), id!("E"), @"Add"),
+                alternative!(lit!("a"), @"Lit")
             ))
         ]
     )
@@ -271,15 +271,15 @@ fn ambiguous_grammar() -> Grammar {
 //   = Symbol*
 //
 // Symbol
-//   = Symbol "*"
-//   | Symbol "+"
-//   | Symbol "?"
-//   | "(" Symbol "|" Symbol ")"
-//   | "\"" String "\""
-//   | "{" Symbol Symbol "}" "*"
-//   | "{" Symbol Symbol "}" "+"
-//   | "(" Symbol+ ")"
-//   | Identifier
+//   = Symbol "*"                   @Star
+//   | Symbol "+"                   @Plus
+//   | Symbol "?"                   @Opt
+//   | "(" Symbol "|" Symbol ")"    @Alt
+//   | "\"" String "\""             @Lit
+//   | "{" Symbol Symbol "}" "*"    @StarSep
+//   | "{" Symbol Symbol "}" "+"    @PlusSep
+//   | "(" Symbol+ ")"              @Group
+//   | Identifier                   @Identifier
 //
 // RegexBlock
 //   = regex "{" RegexRule* "}"
@@ -288,12 +288,12 @@ fn ambiguous_grammar() -> Grammar {
 //   = Identifier "=" { Regex+ "|" }+
 //
 // Regex
-//   = Regex+
-//   | Regex*
-//   | Regex?
-//   | "(" { Regex+ "|" }* ")"
-//   | CharClass
-//   | "\"" Char "\""
+//   = Regex+                       @Plus
+//   | Regex*                       @Star
+//   | Regex?                       @Opt
+//   | "(" { Regex+ "|" }* ")"      @Alt
+//   | CharClass                    @CharClass
+//   | "\"" Char "\""               @Char
 //
 // CharClass
 //   = "!"? "[" (Range | RangeChar)+ "]"
@@ -362,15 +362,15 @@ fn iggy() -> Grammar {
             //   | "(" Symbol+ ")"
             //   | Identifier
             syntax_rule!("Symbol" => priority_level!(
-                alternative!(id!("Symbol"), lit!("*")),
-                alternative!(id!("Symbol"), lit!("+")),
-                alternative!(id!("Symbol"), lit!("?")),
-                alternative!(lit!("("), id!("Symbol"), lit!("|"), id!("Symbol"), lit!(")")),
-                alternative!(lit!("\""), id!("String"), lit!("\"")),
-                alternative!(lit!("{"), id!("Symbol"), id!("Symbol"), lit!("}"), lit!("*")),
-                alternative!(lit!("{"), id!("Symbol"), id!("Symbol"), lit!("}"), lit!("+")),
-                alternative!(lit!("("), plus!(id!("Symbol")), lit!(")")),
-                alternative!(id!("Identifier")),
+                alternative!(id!("Symbol"), lit!("*"), @"Star"),
+                alternative!(id!("Symbol"), lit!("+"), @"Plus"),
+                alternative!(id!("Symbol"), lit!("?"), @"Opt"),
+                alternative!(lit!("("), id!("Symbol"), lit!("|"), id!("Symbol"), lit!(")"), @"Alt"),
+                alternative!(lit!("\""), id!("String"), lit!("\""), @"Lit"),
+                alternative!(lit!("{"), id!("Symbol"), id!("Symbol"), lit!("}"), lit!("*"), @"StarSep"),
+                alternative!(lit!("{"), id!("Symbol"), id!("Symbol"), lit!("}"), lit!("+"), @"PlusSep"),
+                alternative!(lit!("("), plus!(id!("Symbol")), lit!(")"), @"Group"),
+                alternative!(id!("Identifier"), @"Identifier"),
             )),
             // Regex
             //   = Regex+
@@ -380,12 +380,12 @@ fn iggy() -> Grammar {
             //   | CharClass
             //   | "\"" Char "\""
             syntax_rule!("Regex" => priority_level!(
-                alternative!(id!("Regex"), lit!("+")),
-                alternative!(id!("Regex"), lit!("*")),
-                alternative!(id!("Regex"), lit!("?")),
-                alternative!(lit!("("), star!(plus!(id!("Regex")), lit!("|")), lit!(")")),
-                alternative!(id!("CharClass")),
-                alternative!(lit!("\""), id!("Char"), lit!("\""))
+                alternative!(id!("Regex"), lit!("+"), @"Plus"),
+                alternative!(id!("Regex"), lit!("*"), @"Star"),
+                alternative!(id!("Regex"), lit!("?"), @"Opt"),
+                alternative!(lit!("("), star!(plus!(id!("Regex")), lit!("|")), lit!(")"), @"Alt"),
+                alternative!(id!("CharClass"), @"CharClass"),
+                alternative!(lit!("\""), id!("Char"), lit!("\""), @"Char")
             )),
             // CharClass = "!"? "[" (Range | RangeChar)+ "]"
             syntax_rule!("CharClass" => alternative!(
