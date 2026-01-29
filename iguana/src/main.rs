@@ -4,9 +4,13 @@ use clap::{Parser, Subcommand};
 use iguana::{
     alt, alternative, c, cc,
     generator::generate,
-    grammar::{def::Grammar, symbols::Terminal},
-    grammar_def, group, id, iggy::parse_grammar, lexical_rule, lit, opt, plus, priority_level,
-    r_alt, r_seq, r_star, star, syntax_rule,
+    grammar::{
+        def::{Grammar, GrammarDef},
+        symbols::Terminal,
+    },
+    grammar_def, group, id,
+    iggy::parse_grammar,
+    lexical_rule, lit, opt, plus, priority_level, r_alt, r_seq, r_star, star, syntax_rule,
 };
 
 #[derive(Parser)]
@@ -46,7 +50,7 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
         }
         None => iggy(),
     };
-    generate(&grammar, output)?;
+    generate(&grammar.into(), output)?;
     Ok(())
 }
 
@@ -65,8 +69,8 @@ fn grammar1() -> Grammar {
 }
 
 fn expression_grammar() -> Grammar {
-    // E 
-    //  = E '*' E 
+    // E
+    //  = E '*' E
     //  | E '+' E
     //  | 'a'
     grammar_def!("Test2",
@@ -294,7 +298,7 @@ fn ambiguous_grammar() -> Grammar {
 //
 // RegexBlock
 //   = regex "{" RegexRule* "}"
-// 
+//
 // RegexRule
 //   = Identifier "=" { Regex+ "|" }+
 //
@@ -320,13 +324,13 @@ fn ambiguous_grammar() -> Grammar {
 //   Char
 //     = "\\" [' " \\ t f r n]
 //     | !['"\\]
-// 
+//
 //   String = (("\\" [' " \\ t f r n]) | !['"\\])*
 //   Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 //   WS = [\ \n]*
 // }
 //
-fn iggy() -> Grammar {
+fn iggy() -> GrammarDef {
     grammar_def!("Iggy",
         syntax: [
             // Grammar = "grammar" Identifier SyntaxRule* RegexBlock
@@ -449,5 +453,4 @@ fn iggy() -> Grammar {
             Terminal::new("WS")
         ]
     )
-    .into()
 }
