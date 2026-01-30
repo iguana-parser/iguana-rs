@@ -34,6 +34,7 @@ fn calc_nullables(grammar: &Grammar) -> HashSet<&Nonterminal> {
 
 fn is_nullable(s: &Symbol, nullables: &HashSet<&Nonterminal>) -> bool {
     match s {
+        Symbol::Labeled { symbol, .. } => is_nullable(symbol, nullables),
         Symbol::Identifier(_) => false,
         Symbol::Literal(_) => false,
         Symbol::Group(symbols) => symbols.iter().all(|s| is_nullable(s, nullables)),

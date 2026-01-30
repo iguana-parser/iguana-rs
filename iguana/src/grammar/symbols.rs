@@ -34,6 +34,7 @@ impl Definition {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Symbol {
+    Labeled { label: String, symbol: Box<Symbol> },
     Identifier(Identifier),
     Literal(String),
     Group(Vec<Symbol>),
@@ -65,6 +66,7 @@ impl Symbol {
 impl Display for Symbol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Symbol::Labeled { label, symbol } => write!(f, "{label}:{symbol}"),
             Symbol::Literal(literal) => write!(f, "\"{literal}\""),
             Symbol::Identifier(identifier) => write!(f, "{}", identifier.name),
             Symbol::Group(symbols) => write!(f, "({})", symbols.iter().join(" ")),
@@ -203,6 +205,16 @@ impl Display for Opt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}?", self.symbol)
     }
+}
+
+#[macro_export]
+macro_rules! labeled {
+    ($label:literal, $symbol:expr) => {
+        $crate::grammar::symbols::Symbol::Labeled {
+            label: $label.into(),
+            symbol: Box::new($symbol),
+        }
+    };
 }
 
 #[macro_export]

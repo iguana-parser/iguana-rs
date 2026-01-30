@@ -217,6 +217,13 @@ fn add_lexical_rules(
     added_terminals: &mut FxHashSet<Terminal>,
 ) -> Symbol {
     match symbol {
+        Symbol::Labeled { label, symbol } => {
+            let transformed = add_lexical_rules(*symbol, lexical_rules, added_terminals);
+            Symbol::Labeled {
+                label,
+                symbol: Box::new(transformed),
+            }
+        }
         Symbol::Literal(name) => {
             let terminal_name = format!("\"{}\"", name);
             let terminal = Terminal::new(terminal_name.clone());
@@ -294,6 +301,13 @@ fn resolve_identifiers(
 
 fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
     match symbol {
+        Symbol::Labeled { label, symbol } => {
+            let transformed = resolve_identifier(*symbol, symbol_table);
+            Symbol::Labeled {
+                label,
+                symbol: Box::new(transformed),
+            }
+        }
         Symbol::Identifier(identifier) => {
             if let Some(definition_id) = symbol_table.get(&identifier.name) {
                 Symbol::Identifier(Identifier {

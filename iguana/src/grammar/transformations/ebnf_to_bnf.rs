@@ -91,6 +91,14 @@ fn rewrite_ebnf_symbol(
     }
     let origin = symbol.clone();
     let res = match symbol {
+        // Preserve label, transform inner symbol
+        Symbol::Labeled { label, symbol } => {
+            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+            Symbol::Labeled {
+                label,
+                symbol: Box::new(transformed),
+            }
+        }
         // Transform (A B C) into: S_Group0 ::= A B C
         Symbol::Group(symbols) => {
             let name = counters.next_group(parent_name);

@@ -55,7 +55,7 @@ fn parse(source: &str) -> Result<StartGrammar, Error> {
 }
 
 /// Convert an iggy parse tree to an iguana Grammar.
-fn build_grammar(start_grammar: &StartGrammar) -> Result<GrammarDef, Error> {
-    let grammar = start_grammar.grammar();
+fn build_grammar(_start_grammar: &StartGrammar) -> Result<GrammarDef, Error> {
+    // TODO: implement parse tree traversal once fields are accessible
     todo!("build grammar from parse tree")
 }
