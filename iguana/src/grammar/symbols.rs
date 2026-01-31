@@ -48,13 +48,23 @@ impl Symbol {
     pub fn literal(name: impl Into<String>) -> Self {
         Symbol::Literal(name.into())
     }
+
+    pub fn label(&self) -> Option<&str> {
+        match self {
+            Symbol::Labeled { label, .. } => Some(label),
+            _ => None,
+        }
+    }
+
     pub fn resolved_def(&self) -> DefinitionId {
         let ident = match self {
+            Symbol::Labeled { symbol, .. } => symbol.as_identifier(),
             Symbol::Identifier(name) => name,
             _ => panic!("Expected identifier, got {:?}", self),
         };
         ident.definition.expect("Symbol should be resolved")
     }
+
     pub fn as_identifier(&self) -> &Identifier {
         match self {
             Symbol::Identifier(identifier) => identifier,
