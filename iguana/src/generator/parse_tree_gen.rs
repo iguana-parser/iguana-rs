@@ -163,15 +163,15 @@ fn gen_field_name(symbol: &Symbol, position: usize) -> String {
     } else {
         let base = to_snake_case(&symbol.as_identifier().name);
         if is_valid_rust_ident(&base) {
-            format!("{}{}", base, position)
+            format!("{}_{}", base, position)
         } else {
-            format!("lit{}", position)
+            format!("lit_{}", position)
         }
     }
 }
 
 fn gen_nonterminal_type_with_more_than_one_alternative(
-    grammar: &Grammar, 
+    grammar: &Grammar,
     nonterminal: &Nonterminal,
     alternatives: &[Alternative]
 ) -> TokenStream {
@@ -179,13 +179,16 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
             .iter()
             .enumerate()
             .map(|(index, alternative)| {
-                let children: Vec<_> = alternative
+                let fields: Vec<_> = alternative
                     .symbols
                     .iter()
-                    .map(|s| {
+                    .enumerate()
+                    .map(|(i, s)| {
+                        let field_name = gen_field_name(s, i);
+                        let field_ident = Ident::new(&field_name, Span::call_site());
                         let def_id = s.resolved_def();
                         let def = grammar.definition(def_id);
-                        match def {
+                        let type_token = match def {
                             Definition::Terminal(_) => {
                                 let token = Ident::new("Token", Span::call_site());
                                 quote! { #token }
@@ -199,14 +202,15 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
                                     quote! { #name }
                                 }
                             },
-                        }
+                        };
+                        quote! { #field_ident: #type_token }
                     })
                     .collect();
                 let label = alternative_label(alternative, index);
                 let variant_name = Ident::new(&label, Span::call_site());
                 // Add Span as last field in each variant
                 quote! {
-                    #variant_name(#(#children,)* Span)
+                    #variant_name { #(#fields,)* span: Span }
                 }
             })
             .collect();
@@ -256,7 +260,7 @@ fn gen_span_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream 
             let label = alternative_label(alternative, i);
             let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
             quote! {
-                #ident::#alt_variant(.., span) => *span
+                #ident::#alt_variant { span, .. } => *span
             }
         }).collect();
         quote! {
@@ -296,11 +300,11 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
         let arms: Vec<_> = alternatives.iter().enumerate().map(|(i, alternative)| {
             let label = alternative_label(alternative, i);
             let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-            let children_names = children_names(alternative);
+            let field_names = children_names(alternative);
             let body = child_by_index(alternative, false);
-            // Add _ to ignore the span field at the end
+            // Use struct pattern with .. to ignore the span field
             quote! {
-                #ident::#alt_variant(#(#children_names,)* _) => #body
+                #ident::#alt_variant { #(#field_names,)* .. } => #body
             }
         }).collect();
         quote! {
@@ -315,26 +319,25 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
 fn child_by_index(alternative: &Alternative, single_rule: bool) -> TokenStream {
     let cases: Vec<_> = alternative.symbols.iter().enumerate().map(|(i, s)| {
         let i_lit = Literal::usize_unsuffixed(i);
+        let field_name = Ident::new(&gen_field_name(s, i), Span::call_site());
         // For nonterminals with only one body, i.e., no alternatives,
         // generate the arms as 0 => Some(self.field_name.as_parse_tree_ref())
         // As, we can access the children by field name directly.
         if single_rule {
-            let field_name = Ident::new(&gen_field_name(s, i), Span::call_site());
             quote! {
                 #i_lit => Some(self.#field_name.as_parse_tree_ref())
             }
         } else {
             // For nonterminals with alternatives, we need to return the exact child:
-            // case E::Plus(c0, c1, c2) {
+            // case E::Plus { symbol, layout1, lit2, .. } {
             //     match index {
-            //         0 => Some(c0.as_parse_tree_ref()),
-            //         1 => Some(c1.as_parse_tree_ref()),
-            //         2 => Some(c2.as_parse_tree_ref()),
-            //         _ => unreachable!()
+            //         0 => Some(symbol.as_parse_tree_ref()),
+            //         1 => Some(layout1.as_parse_tree_ref()),
+            //         2 => Some(lit2.as_parse_tree_ref()),
+            //         _ => None
             // }
-            let child_name = format_ident!("c{}", i);
             quote! {
-                #i_lit => Some(#child_name.as_parse_tree_ref())
+                #i_lit => Some(#field_name.as_parse_tree_ref())
             }
         }
     }).collect();
@@ -366,9 +369,9 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
             let label = alternative_label(alternative, i);
             let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
             let count_symbols = alternative.symbols.len();
-            // Use .. to match any fields (including span)
+            // Use { .. } to match any fields (including span)
             quote! {
-                #ident::#alt_variant(..) => #count_symbols
+                #ident::#alt_variant { .. } => #count_symbols
             }
         }).collect();
         quote! {
@@ -491,9 +494,11 @@ fn gen_parse_tree_builder_impl(
 }
 
 fn children_names(alternative: &Alternative) -> Vec<Ident> {
-    let num_symbols = alternative.len();
-    (0..num_symbols)
-        .map(|i| Ident::new(&format!("c{i}"), Span::call_site()))
+    alternative
+        .symbols
+        .iter()
+        .enumerate()
+        .map(|(i, s)| Ident::new(&gen_field_name(s, i), Span::call_site()))
         .collect::<Vec<_>>()
 }
 
@@ -548,10 +553,10 @@ fn gen_nonterminal_node_method(
                         .collect();
                     let nonterminal_type = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
                     let num_alternatives = grammar.alternatives(nonterminal).len();
+                    let field_names: Vec<_> = alternative.symbols.iter().enumerate()
+                        .map(|(i, s)| Ident::new(&gen_field_name(s, i), Span::call_site()))
+                        .collect();
                     let construction = if num_alternatives == 1 {
-                        let field_names: Vec<_> = alternative.symbols.iter().enumerate()
-                            .map(|(i, s)| Ident::new(&gen_field_name(s, i), Span::call_site()))
-                            .collect();
                         quote! {
                             #nonterminal_type {
                                 #(#field_names: #method_calls,)*
@@ -564,7 +569,10 @@ fn gen_nonterminal_node_method(
                             Span::call_site()
                         );
                         quote! {
-                            #nonterminal_type::#variant(#(#method_calls,)* nonterminal_node.span)
+                            #nonterminal_type::#variant {
+                                #(#field_names: #method_calls,)*
+                                span: nonterminal_node.span,
+                            }
                         }
                     };
                     quote! {
@@ -847,25 +855,30 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     assert_eq!(alternatives.len(), 2);
     let label = alternative_label(&alternatives[0], 0);
     let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+    let first_alt_fields = children_names(&alternatives[0]);
     let first_arm = match &nonterminal.origin {
         Some(Symbol::Plus(_symbol, sep)) => {
             match sep {
-                Some(_) => quote! {
-                    // Add _ to ignore the span field at the end
-                    #ident::#alt_variant(rest, layout1, sep, layout2, item, _) => {
-                        items.push(item.as_parse_tree_ref());
-                        items.push(layout2.as_parse_tree_ref());
-                        items.push(sep.as_parse_tree_ref());
-                        items.push(layout1.as_parse_tree_ref());
-                        current = rest;
+                Some(_) => {
+                    let (f0, f1, f2, f3, f4) = (&first_alt_fields[0], &first_alt_fields[1], &first_alt_fields[2], &first_alt_fields[3], &first_alt_fields[4]);
+                    quote! {
+                        #ident::#alt_variant { #f0: rest, #f1: layout1, #f2: sep, #f3: layout2, #f4: item, .. } => {
+                            items.push(item.as_parse_tree_ref());
+                            items.push(layout2.as_parse_tree_ref());
+                            items.push(sep.as_parse_tree_ref());
+                            items.push(layout1.as_parse_tree_ref());
+                            current = rest;
+                        }
                     }
                 },
-                None => quote! {
-                    // Add _ to ignore the span field at the end
-                    #ident::#alt_variant(rest, layout, item, _) => {
-                        items.push(item.as_parse_tree_ref());
-                        items.push(layout.as_parse_tree_ref());
-                        current = rest;
+                None => {
+                    let (f0, f1, f2) = (&first_alt_fields[0], &first_alt_fields[1], &first_alt_fields[2]);
+                    quote! {
+                        #ident::#alt_variant { #f0: rest, #f1: layout, #f2: item, .. } => {
+                            items.push(item.as_parse_tree_ref());
+                            items.push(layout.as_parse_tree_ref());
+                            current = rest;
+                        }
                     }
                 },
             }
@@ -874,9 +887,10 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     };
     let label = alternative_label(&alternatives[1], 1);
     let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+    let second_alt_fields = children_names(&alternatives[1]);
+    let f0 = &second_alt_fields[0];
     let second_arm = quote! {
-        // Add _ to ignore the span field at the end
-        #ident::#alt_variant(item, _) => {
+        #ident::#alt_variant { #f0: item, .. } => {
             items.push(item.as_parse_tree_ref());
             break;
         }
@@ -912,13 +926,15 @@ fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let var_ident = Ident::new(&to_snake_case(&nonterminal.name), Span::call_site());
     let label = alternative_label(&alternatives[0], 0);
     let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+    let first_alt_fields = children_names(&alternatives[0]);
+    let f0 = &first_alt_fields[0];
     let first_arm = quote! {
-        #opt_ident::#alt_variant(#var_ident, _) => #var_ident.iter(),
+        #opt_ident::#alt_variant { #f0: #var_ident, .. } => #var_ident.iter(),
     };
     let label = alternative_label(&alternatives[1], 1);
     let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
     let second_arm = quote! {
-        #opt_ident::#alt_variant(_) => vec![].into_iter(),
+        #opt_ident::#alt_variant { .. } => vec![].into_iter(),
     };
     quote! {
         impl<'a> ListNode<'a> for #star_ident {
