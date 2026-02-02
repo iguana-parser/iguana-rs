@@ -1,13 +1,24 @@
 use iggy::{
-    parse_tree::{Grammar, IggyParseTreeBuilder, ParseTree, StartGrammar, create_parse_tree},
+    parse_tree::{
+        Alternative as PtAlternative, CharClass as PtCharClass, CharClassAlt0, CharClassOpt7,
+        CharClassPlus7, Grammar as PtGrammar, GrammarOpt1, IggyParseTreeBuilder, ParseTree,
+        PriorityLevel as PtPriorityLevel, Range as PtRange, Regex as PtRegex, RegexBlock,
+        RegexRule as PtRegexRule, RegexRulePlus3, RegexRulePlus4, StartGrammar,
+        Symbol as PtSymbol, SyntaxRule as PtSyntaxRule, create_parse_tree,
+    },
     parser::IggyParser,
 };
 use iguana_runtime::{
     input::Input,
     parser::{ParseResult, Parser},
+    sppf::Span,
 };
 
-use crate::grammar::def::GrammarDef;
+use crate::grammar::{
+    def::{Alternative, GrammarDef, LexicalRule, PriorityLevel, SyntaxRule},
+    regex::{CharClass, CharRange, Regex},
+    symbols::{Identifier, Nonterminal, Symbol, Terminal},
+};
 
 #[derive(Debug)]
 pub struct Error {
@@ -23,15 +34,15 @@ impl std::fmt::Display for Error {
 impl std::error::Error for Error {}
 
 pub fn parse_grammar(source: &str) -> Result<GrammarDef, Error> {
-    let parse_tree = parse(source)?;
-    build_grammar(&parse_tree)
+    let input = Input::from(source);
+    let parse_tree = parse(&input)?;
+    build_grammar(&parse_tree, &input)
 }
 
-fn parse(source: &str) -> Result<StartGrammar, Error> {
+fn parse(input: &Input) -> Result<StartGrammar, Error> {
     let start_nonterminal_name = "StartGrammar";
     let start_nonterminal_id = IggyParser::nonterminal_id(start_nonterminal_name).unwrap();
-    let input = Input::from(source);
-    let mut parser = IggyParser::new(&input, start_nonterminal_id);
+    let mut parser = IggyParser::new(input, start_nonterminal_id);
     let result = parser.run();
     match result {
         ParseResult::Success(success) => {
@@ -52,7 +63,7 @@ fn parse(source: &str) -> Result<StartGrammar, Error> {
     }
 }
 
-fn build_grammar(start_grammar: &StartGrammar) -> Result<GrammarDef, Error> {
+fn build_grammar(start_grammar: &StartGrammar, input: &Input) -> Result<GrammarDef, Error> {
     // TODO: implement parse tree traversal once fields are accessible
     todo!("build grammar from parse tree")
 }

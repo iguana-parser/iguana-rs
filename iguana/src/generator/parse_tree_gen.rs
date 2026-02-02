@@ -39,6 +39,17 @@ pub fn generate(
         .filter(|n| n.is_star())
         .map(|n| gen_list_node_impl_for_star(grammar, n))
         .collect();
+    let opt_node_trait = gen_opt_node_trait();
+    let opt_node_impls: Vec<_> = grammar
+        .nonterminals()
+        .filter(|n| matches!(&n.origin, Some(Symbol::Opt(_))))
+        .map(|n| gen_opt_node_impl(grammar, n))
+        .collect();
+    let alt_accessor_impls: Vec<TokenStream> = grammar
+        .nonterminals()
+        .filter(|n| matches!(&n.origin, Some(Symbol::Alt(_))))
+        .map(|n| gen_alt_accessors(grammar, n))
+        .collect();
     let from_for_tree_impls = gen_from_for_tree_impls(grammar);
     let parse_tree_builder_impl = gen_parse_tree_builder_impl(grammar, nonterminal_ids, slot_ids);
     let create_parse_tree_function = gen_create_parse_tree_function(grammar);
@@ -71,10 +82,13 @@ pub fn generate(
         #parse_tree_ref_impl
         #from_for_tree_impls
         #list_node_trait
+        #opt_node_trait
         #(#nonterminal_types)*
         #(#nonterminal_types_impl)*
         #(#list_node_impls_for_plus)*
         #(#list_node_impls_for_star)*
+        #(#opt_node_impls)*
+        #(#alt_accessor_impls)*
         #token_struct
         #token_impl
         #token_kind_function
@@ -901,6 +915,83 @@ fn gen_list_node_trait() -> TokenStream {
     quote! {
         trait ListNode<'a> {
             fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
+        }
+    }
+}
+
+fn gen_opt_node_trait() -> TokenStream {
+    quote! {
+        pub trait OptNode {
+            type Inner;
+            fn value(&self) -> Option<&Self::Inner>;
+        }
+    }
+}
+
+fn gen_opt_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
+    let opt_type = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let alternatives = grammar.alternatives(nonterminal);
+    let alt0 = &alternatives[0];
+    let inner_symbol = &alt0.symbols[0];
+    let inner_def = grammar.definition(inner_symbol.resolved_def());
+    let inner_type = match inner_def {
+        Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
+        Definition::Nonterminal(_) => Ident::new(&to_pascal_case(inner_def.name()), Span::call_site()),
+    };
+    let field_name = Ident::new(&gen_field_name(grammar, inner_symbol, 0), Span::call_site());
+
+    quote! {
+        impl OptNode for #opt_type {
+            type Inner = #inner_type;
+            fn value(&self) -> Option<&Self::Inner> {
+                match self {
+                    #opt_type::Alt0 { #field_name, .. } => Some(#field_name),
+                    #opt_type::Alt1 { .. } => None,
+                }
+            }
+        }
+    }
+}
+
+fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
+    let alt_type = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let alternatives = grammar.alternatives(nonterminal);
+
+    let accessors: Vec<_> = alternatives
+        .iter()
+        .enumerate()
+        .map(|(i, alt)| {
+            let symbol = &alt.symbols[0];
+            let def = grammar.definition(symbol.resolved_def());
+            let (method_name, return_type) = match def {
+                Definition::Terminal(t) => {
+                    let method = format_ident!("as_{}", to_snake_case(&t.name));
+                    let ret = Ident::new("Token", Span::call_site());
+                    (method, ret)
+                }
+                Definition::Nonterminal(nt) => {
+                    let method = format_ident!("as_{}", to_snake_case(&nt.name));
+                    let ret = Ident::new(&to_pascal_case(&nt.name), Span::call_site());
+                    (method, ret)
+                }
+            };
+            let variant = format_ident!("Alt{}", i);
+            let field_name = Ident::new(&gen_field_name(grammar, symbol, 0), Span::call_site());
+
+            quote! {
+                pub fn #method_name(&self) -> Option<&#return_type> {
+                    match self {
+                        #alt_type::#variant { #field_name, .. } => Some(#field_name),
+                        _ => None,
+                    }
+                }
+            }
+        })
+        .collect();
+
+    quote! {
+        impl #alt_type {
+            #(#accessors)*
         }
     }
 }

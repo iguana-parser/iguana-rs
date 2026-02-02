@@ -1057,6 +1057,10 @@ impl From<StartRange> for ParseTree {
 trait ListNode<'a> {
     fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
 }
+pub trait OptNode {
+    type Inner;
+    fn value(&self) -> Option<&Self::Inner>;
+}
 #[derive(Debug)]
 pub struct Grammar {
     pub lit_0: Token,
@@ -3208,6 +3212,97 @@ impl<'a> ListNode<'a> for RegexStar5 {
                 ..
             } => regex_opt_6.iter(),
             RegexOpt6::Alt1 { .. } => vec![].into_iter(),
+        }
+    }
+}
+impl OptNode for GrammarOpt0 {
+    type Inner = GrammarPlus0;
+    fn value(&self) -> Option<&Self::Inner> {
+        match self {
+            GrammarOpt0::Alt0 { syntax_rules, .. } => Some(syntax_rules),
+            GrammarOpt0::Alt1 { .. } => None,
+        }
+    }
+}
+impl OptNode for GrammarOpt1 {
+    type Inner = RegexBlock;
+    fn value(&self) -> Option<&Self::Inner> {
+        match self {
+            GrammarOpt1::Alt0 { regex_block_0, .. } => Some(regex_block_0),
+            GrammarOpt1::Alt1 { .. } => None,
+        }
+    }
+}
+impl OptNode for SyntaxRuleOpt2 {
+    type Inner = SyntaxRulePlus1;
+    fn value(&self) -> Option<&Self::Inner> {
+        match self {
+            SyntaxRuleOpt2::Alt0 {
+                priority_levels, ..
+            } => Some(priority_levels),
+            SyntaxRuleOpt2::Alt1 { .. } => None,
+        }
+    }
+}
+impl OptNode for RegexBlockOpt3 {
+    type Inner = RegexBlockPlus2;
+    fn value(&self) -> Option<&Self::Inner> {
+        match self {
+            RegexBlockOpt3::Alt0 { regex_rules, .. } => Some(regex_rules),
+            RegexBlockOpt3::Alt1 { .. } => None,
+        }
+    }
+}
+impl OptNode for PriorityLevelOpt4 {
+    type Inner = PriorityLevelPlus5;
+    fn value(&self) -> Option<&Self::Inner> {
+        match self {
+            PriorityLevelOpt4::Alt0 { alternatives, .. } => Some(alternatives),
+            PriorityLevelOpt4::Alt1 { .. } => None,
+        }
+    }
+}
+impl OptNode for AlternativeOpt5 {
+    type Inner = AlternativePlus6;
+    fn value(&self) -> Option<&Self::Inner> {
+        match self {
+            AlternativeOpt5::Alt0 { symbols, .. } => Some(symbols),
+            AlternativeOpt5::Alt1 { .. } => None,
+        }
+    }
+}
+impl OptNode for RegexOpt6 {
+    type Inner = RegexRulePlus3;
+    fn value(&self) -> Option<&Self::Inner> {
+        match self {
+            RegexOpt6::Alt0 {
+                regex_rule_plus_3_0,
+                ..
+            } => Some(regex_rule_plus_3_0),
+            RegexOpt6::Alt1 { .. } => None,
+        }
+    }
+}
+impl OptNode for CharClassOpt7 {
+    type Inner = Token;
+    fn value(&self) -> Option<&Self::Inner> {
+        match self {
+            CharClassOpt7::Alt0 { lit_0, .. } => Some(lit_0),
+            CharClassOpt7::Alt1 { .. } => None,
+        }
+    }
+}
+impl CharClassAlt0 {
+    pub fn as_range(&self) -> Option<&Range> {
+        match self {
+            CharClassAlt0::Alt0 { range_0, .. } => Some(range_0),
+            _ => None,
+        }
+    }
+    pub fn as_range_char(&self) -> Option<&Token> {
+        match self {
+            CharClassAlt0::Alt1 { range_char_0, .. } => Some(range_char_0),
+            _ => None,
         }
     }
 }
