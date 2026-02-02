@@ -10,7 +10,7 @@ use iguana::{
     },
     grammar_def, group, id,
     iggy::parse_grammar,
-    lexical_rule, lit, opt, plus, priority_level, r_alt, r_seq, r_star, star, syntax_rule,
+    labeled, lexical_rule, lit, opt, plus, priority_level, r_alt, r_seq, r_star, star, syntax_rule,
 };
 
 #[derive(Parser)]
@@ -274,10 +274,10 @@ fn ambiguous_grammar() -> Grammar {
 // grammar Iggy
 //
 // Grammar
-//   = "grammar" Identifier SyntaxRule* RegexBlock?
+//   = "grammar" name:Identifier syntax_rules:SyntaxRule* regex_block:RegexBlock?
 //
 // SyntaxRule
-//   = Identifier "=" {PriorityLevel ">"}*
+//   = head:Identifier "=" priority_levels:{PriorityLevel ">"}*
 //
 // PriorityLevel
 //   = { Alternative "|" }*
@@ -333,16 +333,16 @@ fn ambiguous_grammar() -> Grammar {
 fn iggy() -> GrammarDef {
     grammar_def!("Iggy",
         syntax: [
-            // Grammar = "grammar" Identifier SyntaxRule* RegexBlock
+            // Grammar = "grammar" name:Identifier SyntaxRule* RegexBlock?
             syntax_rule!("Grammar" => alternative!(
                 lit!("grammar"),
-                id!("Identifier"),
+                labeled!("name", id!("Identifier")),
                 star!(id!("SyntaxRule")),
                 opt!(id!("RegexBlock"))
             )),
-            // SyntaxRule = Identifier "=" {PriorityLevel ">"}*
+            // SyntaxRule = head:Identifier "=" {PriorityLevel ">"}*
             syntax_rule!("SyntaxRule" => alternative!(
-                id!("Identifier"),
+                labeled!("head", id!("Identifier")),
                 lit!("="),
                 star!(id!("PriorityLevel"), lit!(">"))
             )),

@@ -124,7 +124,7 @@ fn gen_nonterminal_type_with_one_alternative(
         .iter()
         .enumerate()
         .map(|(i, s)| {
-            let field_name = gen_field_name(s, i);
+            let field_name = gen_field_name(grammar, s, i);
             let field_ident = Ident::new(&field_name, Span::call_site());
             let def = grammar.definition(s.resolved_def());
             let type_ident = match def {
@@ -152,21 +152,77 @@ fn gen_nonterminal_type_with_one_alternative(
     }
 }
 
-fn gen_field_name(symbol: &Symbol, position: usize) -> String {
+fn gen_field_name(grammar: &Grammar, symbol: &Symbol, position: usize) -> String {
     if let Some(label) = symbol.label() {
-        let name = to_snake_case(label);
-        if is_rust_keyword(&name) {
-            format!("r#{}", name)
-        } else {
-            name
+        return to_snake_case(label);
+    }
+
+    let field_name = match symbol {
+        Symbol::Star(inner, _) | Symbol::Plus(inner, _) => {
+            if let Symbol::Identifier(ident) = inner.as_ref() {
+                let snake = to_snake_case(&ident.name);
+                if is_valid_rust_ident(&snake) {
+                    pluralize(&snake)
+                } else {
+                    format!("field_{}", position)
+                }
+            } else {
+                format!("field_{}", position)
+            }
         }
+        Symbol::Opt(inner) => {
+            if let Symbol::Identifier(ident) = inner.as_ref() {
+                let snake = to_snake_case(&ident.name);
+                if is_valid_rust_ident(&snake) {
+                    snake
+                } else {
+                    format!("field_{}", position)
+                }
+            } else {
+                format!("field_{}", position)
+            }
+        }
+        Symbol::Identifier(ident) => {
+            // Check if this identifier points to a derived nonterminal (Star/Plus/Opt)
+            if let Some(def_id) = ident.definition {
+                if let Definition::Nonterminal(nt) = grammar.definition(def_id) {
+                    if let Some(origin) = &nt.origin {
+                        match origin {
+                            Symbol::Star(inner, _) | Symbol::Plus(inner, _) => {
+                                if let Symbol::Identifier(inner_ident) = inner.as_ref() {
+                                    let snake = to_snake_case(&inner_ident.name);
+                                    if is_valid_rust_ident(&snake) {
+                                        return pluralize(&snake);
+                                    }
+                                }
+                            }
+                            Symbol::Opt(inner) => {
+                                if let Symbol::Identifier(inner_ident) = inner.as_ref() {
+                                    let snake = to_snake_case(&inner_ident.name);
+                                    if is_valid_rust_ident(&snake) {
+                                        return snake;
+                                    }
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+            let snake = to_snake_case(&ident.name);
+            if is_valid_rust_ident(&snake) {
+                format!("{}_{}", snake, position)
+            } else {
+                format!("lit_{}", position)
+            }
+        }
+        _ => format!("field_{}", position),
+    };
+
+    if is_rust_keyword(&field_name) {
+        format!("r#{}", field_name)
     } else {
-        let base = to_snake_case(&symbol.as_identifier().name);
-        if is_valid_rust_ident(&base) {
-            format!("{}_{}", base, position)
-        } else {
-            format!("lit_{}", position)
-        }
+        field_name
     }
 }
 
@@ -184,7 +240,7 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
                     .iter()
                     .enumerate()
                     .map(|(i, s)| {
-                        let field_name = gen_field_name(s, i);
+                        let field_name = gen_field_name(grammar, s, i);
                         let field_ident = Ident::new(&field_name, Span::call_site());
                         let def_id = s.resolved_def();
                         let def = grammar.definition(def_id);
@@ -240,12 +296,14 @@ fn gen_nonterminal_type_impl(
     let child_count_method = gen_child_count_method(grammar, nonterminal);
     let as_node_ref_method = gen_as_parse_tree_ref_method(&nonterminal.name);
     let span_method = gen_span_method(grammar, nonterminal);
+    let typed_accessor = gen_typed_accessor(nonterminal);
     quote! {
         impl #nonterminal_name {
             #child_method
             #child_count_method
             #as_node_ref_method
             #span_method
+            #typed_accessor
         }
     }
 }
@@ -290,7 +348,7 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
     let alternatives = grammar.alternatives(nonterminal);
     if alternatives.len() == 1 {
         let alternative = &alternatives[0];
-        let body = child_by_index(alternative, true);
+        let body = child_by_index(grammar, alternative, true);
         quote! {
             match index {
                 #body
@@ -300,8 +358,8 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
         let arms: Vec<_> = alternatives.iter().enumerate().map(|(i, alternative)| {
             let label = alternative_label(alternative, i);
             let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-            let field_names = children_names(alternative);
-            let body = child_by_index(alternative, false);
+            let field_names = children_names(grammar, alternative);
+            let body = child_by_index(grammar, alternative, false);
             // Use struct pattern with .. to ignore the span field
             quote! {
                 #ident::#alt_variant { #(#field_names,)* .. } => #body
@@ -316,10 +374,10 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
 }
 
 // TODO: simplify the single_rule logic here:
-fn child_by_index(alternative: &Alternative, single_rule: bool) -> TokenStream {
+fn child_by_index(grammar: &Grammar, alternative: &Alternative, single_rule: bool) -> TokenStream {
     let cases: Vec<_> = alternative.symbols.iter().enumerate().map(|(i, s)| {
         let i_lit = Literal::usize_unsuffixed(i);
-        let field_name = Ident::new(&gen_field_name(s, i), Span::call_site());
+        let field_name = Ident::new(&gen_field_name(grammar, s, i), Span::call_site());
         // For nonterminals with only one body, i.e., no alternatives,
         // generate the arms as 0 => Some(self.field_name.as_parse_tree_ref())
         // As, we can access the children by field name directly.
@@ -493,12 +551,12 @@ fn gen_parse_tree_builder_impl(
     }
 }
 
-fn children_names(alternative: &Alternative) -> Vec<Ident> {
+fn children_names(grammar: &Grammar, alternative: &Alternative) -> Vec<Ident> {
     alternative
         .symbols
         .iter()
         .enumerate()
-        .map(|(i, s)| Ident::new(&gen_field_name(s, i), Span::call_site()))
+        .map(|(i, s)| Ident::new(&gen_field_name(grammar, s, i), Span::call_site()))
         .collect::<Vec<_>>()
 }
 
@@ -520,7 +578,7 @@ fn gen_nonterminal_node_method(
                     let end_slot_id = end_slot.slot_id;
                     let slot_name = slot_ids.display_name(&end_slot.slot_id);
                     let num_symbols = alternative.len();
-                    let children_names = children_names(alternative);
+                    let children_names = children_names(grammar, alternative);
                     let methods: Vec<_> = alternative
                         .symbols
                         .iter()
@@ -554,7 +612,7 @@ fn gen_nonterminal_node_method(
                     let nonterminal_type = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
                     let num_alternatives = grammar.alternatives(nonterminal).len();
                     let field_names: Vec<_> = alternative.symbols.iter().enumerate()
-                        .map(|(i, s)| Ident::new(&gen_field_name(s, i), Span::call_site()))
+                        .map(|(i, s)| Ident::new(&gen_field_name(grammar, s, i), Span::call_site()))
                         .collect();
                     let construction = if num_alternatives == 1 {
                         quote! {
@@ -847,6 +905,42 @@ fn gen_list_node_trait() -> TokenStream {
     }
 }
 
+/// Generates a typed accessor for Plus/Star nonterminals that returns
+/// an iterator over the direct children. Relies on the iter() method
+/// that returns all children including layout.
+fn gen_typed_accessor(nonterminal: &Nonterminal) -> Option<TokenStream> {
+    let child_name = match &nonterminal.origin {
+        Some(Symbol::Plus(symbol, _)) | Some(Symbol::Star(symbol, _)) => match symbol.as_ref() {
+            Symbol::Identifier(ident) => &ident.name,
+            _ => return None, // Skip complex nested EBNF for now
+        },
+        _ => return None,
+    };
+
+    let child_type = Ident::new(&to_pascal_case(child_name), Span::call_site());
+    let method_name = format_ident!("{}", pluralize(&to_snake_case(child_name)));
+    let variant = Ident::new(&to_pascal_case(child_name), Span::call_site());
+
+    Some(quote! {
+        pub fn #method_name(&self) -> impl Iterator<Item = &#child_type> {
+            self.iter().filter_map(|node| match node {
+                ParseTreeRef::#variant(r) => Some(r),
+                _ => None,
+            })
+        }
+    })
+}
+
+fn pluralize(word: &str) -> String {
+    if word.ends_with("s") || word.ends_with("x") || word.ends_with("ch") || word.ends_with("sh") {
+        format!("{}es", word)
+    } else if word.ends_with("y") && !word.ends_with("ay") && !word.ends_with("ey") && !word.ends_with("oy") && !word.ends_with("uy") {
+        format!("{}ies", &word[..word.len() - 1])
+    } else {
+        format!("{}s", word)
+    }
+}
+
 fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
     let alternatives = grammar.alternatives(nonterminal);
@@ -855,7 +949,7 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     assert_eq!(alternatives.len(), 2);
     let label = alternative_label(&alternatives[0], 0);
     let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-    let first_alt_fields = children_names(&alternatives[0]);
+    let first_alt_fields = children_names(grammar, &alternatives[0]);
     let first_arm = match &nonterminal.origin {
         Some(Symbol::Plus(_symbol, sep)) => {
             match sep {
@@ -887,7 +981,7 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     };
     let label = alternative_label(&alternatives[1], 1);
     let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-    let second_alt_fields = children_names(&alternatives[1]);
+    let second_alt_fields = children_names(grammar, &alternatives[1]);
     let f0 = &second_alt_fields[0];
     let second_arm = quote! {
         #ident::#alt_variant { #f0: item, .. } => {
@@ -917,7 +1011,7 @@ fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let star_ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
     let alternatives = grammar.alternatives(nonterminal);
     let first_symbol = &alternatives[0].symbols[0];
-    let field_name = Ident::new(&gen_field_name(first_symbol, 0), Span::call_site());
+    let field_name = Ident::new(&gen_field_name(grammar, first_symbol, 0), Span::call_site());
     let def_id = first_symbol.resolved_def();
     let nonterminal = grammar.definition(def_id).as_nonterminal();
     let alternatives = grammar.alternatives(nonterminal);
@@ -926,7 +1020,7 @@ fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let var_ident = Ident::new(&to_snake_case(&nonterminal.name), Span::call_site());
     let label = alternative_label(&alternatives[0], 0);
     let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-    let first_alt_fields = children_names(&alternatives[0]);
+    let first_alt_fields = children_names(grammar, &alternatives[0]);
     let f0 = &first_alt_fields[0];
     let first_arm = quote! {
         #opt_ident::#alt_variant { #f0: #var_ident, .. } => #var_ident.iter(),

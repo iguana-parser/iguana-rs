@@ -456,10 +456,13 @@ fn add_start_rule(
         head: Nonterminal { name, origin: None },
         priority_levels: vec![priority_level!(alternative!(
             layout_identifier.clone(),
-            Symbol::Identifier(Identifier {
-                name: nt_name.into(),
-                definition: Some(def_id)
-            }),
+            Symbol::Labeled {
+                label: "start".into(),
+                symbol: Box::new(Symbol::Identifier(Identifier {
+                    name: nt_name.into(),
+                    definition: Some(def_id)
+                }))
+            },
             layout_identifier.clone()
         ))],
     }

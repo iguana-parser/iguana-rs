@@ -22,13 +22,11 @@ impl std::fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-/// Parse an iggy grammar source string and convert to Grammar.
 pub fn parse_grammar(source: &str) -> Result<GrammarDef, Error> {
     let parse_tree = parse(source)?;
     build_grammar(&parse_tree)
 }
 
-/// Parse iggy source into a parse tree.
 fn parse(source: &str) -> Result<StartGrammar, Error> {
     let start_nonterminal_name = "StartGrammar";
     let start_nonterminal_id = IggyParser::nonterminal_id(start_nonterminal_name).unwrap();
@@ -54,8 +52,7 @@ fn parse(source: &str) -> Result<StartGrammar, Error> {
     }
 }
 
-/// Convert an iggy parse tree to an iguana Grammar.
-fn build_grammar(_start_grammar: &StartGrammar) -> Result<GrammarDef, Error> {
+fn build_grammar(start_grammar: &StartGrammar) -> Result<GrammarDef, Error> {
     // TODO: implement parse tree traversal once fields are accessible
     todo!("build grammar from parse tree")
 }
