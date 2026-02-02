@@ -127,14 +127,14 @@ fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternat
 
 fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
     match symbol {
-        parse_tree::Symbol::Star { symbol_0, .. } => {
-            Symbol::Star(Box::new(convert_symbol(symbol_0, input)), None)
+        parse_tree::Symbol::Star { symbol, .. } => {
+            Symbol::Star(Box::new(convert_symbol(symbol, input)), None)
         }
-        parse_tree::Symbol::Plus { symbol_0, .. } => {
-            Symbol::Plus(Box::new(convert_symbol(symbol_0, input)), None)
+        parse_tree::Symbol::Plus { symbol, .. } => {
+            Symbol::Plus(Box::new(convert_symbol(symbol, input)), None)
         }
-        parse_tree::Symbol::Opt { symbol_0, .. } => {
-            Symbol::Opt(Box::new(convert_symbol(symbol_0, input)))
+        parse_tree::Symbol::Opt { symbol, .. } => {
+            Symbol::Opt(Box::new(convert_symbol(symbol, input)))
         }
         parse_tree::Symbol::Alt {
             symbol_2,
@@ -144,7 +144,7 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             convert_symbol(symbol_2, input),
             convert_symbol(symbol_6, input),
         ]),
-        parse_tree::Symbol::Lit { string_2, .. } => Symbol::Literal(text(input, string_2.span())),
+        parse_tree::Symbol::Lit { string, .. } => Symbol::Literal(text(input, string.span())),
         parse_tree::Symbol::StarSep {
             symbol_2,
             symbol_4,
@@ -164,8 +164,8 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
         parse_tree::Symbol::Group { symbols, .. } => {
             Symbol::Group(symbols.symbols().map(|s| convert_symbol(s, input)).collect())
         }
-        parse_tree::Symbol::Identifier { identifier_0, .. } => Symbol::Identifier(Identifier {
-            name: text(input, identifier_0.span()),
+        parse_tree::Symbol::Identifier { identifier, .. } => Symbol::Identifier(Identifier {
+            name: text(input, identifier.span()),
             definition: None,
         }),
     }
@@ -180,10 +180,10 @@ fn convert_regex_block(block: &parse_tree::RegexBlock, input: &Input) -> Vec<Lex
 }
 
 fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRule {
-    let name = text(input, rule.identifier_0.span());
+    let name = text(input, rule.identifier.span());
     let head = Terminal::new(name);
 
-    let alternatives = collect_regex_alternatives(&rule.regex_rule_plus_3_4, input);
+    let alternatives = collect_regex_alternatives(&rule.regex_rule_plus_3, input);
 
     let regex = if alternatives.len() == 1 {
         alternatives.into_iter().next().unwrap()
@@ -200,11 +200,11 @@ fn collect_regex_alternatives(
 ) -> Vec<Regex> {
     match plus3 {
         parse_tree::RegexRulePlus3::Alt0 {
-            regex_rule_plus_3_0,
+            regex_rule_plus_3,
             regexes,
             ..
         } => {
-            let mut alts = collect_regex_alternatives(regex_rule_plus_3_0, input);
+            let mut alts = collect_regex_alternatives(regex_rule_plus_3, input);
             alts.push(collect_regex_sequence(regexes, input));
             alts
         }
@@ -226,17 +226,17 @@ fn collect_regex_sequence(plus4: &parse_tree::RegexRulePlus4, input: &Input) -> 
 
 fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
     match regex {
-        parse_tree::Regex::Plus { regex_0, .. } => {
-            Regex::Plus(Box::new(convert_regex(regex_0, input)))
+        parse_tree::Regex::Plus { regex, .. } => {
+            Regex::Plus(Box::new(convert_regex(regex, input)))
         }
-        parse_tree::Regex::Star { regex_0, .. } => {
-            Regex::Star(Box::new(convert_regex(regex_0, input)))
+        parse_tree::Regex::Star { regex, .. } => {
+            Regex::Star(Box::new(convert_regex(regex, input)))
         }
-        parse_tree::Regex::Opt { regex_0, .. } => {
-            Regex::Opt(Box::new(convert_regex(regex_0, input)))
+        parse_tree::Regex::Opt { regex, .. } => {
+            Regex::Opt(Box::new(convert_regex(regex, input)))
         }
-        parse_tree::Regex::Alt { regex_star_5_2, .. } => {
-            let alternatives = collect_regex_star5_alternatives(regex_star_5_2, input);
+        parse_tree::Regex::Alt { regex_star_5, .. } => {
+            let alternatives = collect_regex_star5_alternatives(regex_star_5, input);
             if alternatives.is_empty() {
                 Regex::Epsilon
             } else if alternatives.len() == 1 {
@@ -245,9 +245,9 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
                 Regex::Alt(alternatives)
             }
         }
-        parse_tree::Regex::CharClass { char_class_0, .. } => convert_char_class(char_class_0, input),
-        parse_tree::Regex::Char { char_2, .. } => {
-            Regex::Char(parse_char(&text(input, char_2.span())))
+        parse_tree::Regex::CharClass { char_class, .. } => convert_char_class(char_class, input),
+        parse_tree::Regex::Char { char, .. } => {
+            Regex::Char(parse_char(&text(input, char.span())))
         }
     }
 }
@@ -256,15 +256,15 @@ fn collect_regex_star5_alternatives(
     star5: &parse_tree::RegexStar5,
     input: &Input,
 ) -> Vec<Regex> {
-    match star5.regex_opt_6_0.value() {
+    match star5.regex_opt_6.value() {
         Some(plus3) => collect_regex_alternatives(plus3, input),
         None => vec![],
     }
 }
 
 fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Regex {
-    let negated = char_class.char_class_opt_7_0.value().is_some();
-    let ranges = collect_char_class_ranges(&char_class.char_class_plus_7_4, input);
+    let negated = char_class.char_class_opt_7.value().is_some();
+    let ranges = collect_char_class_ranges(&char_class.char_class_plus_7, input);
 
     Regex::CharClass(CharClass { ranges, negated })
 }
@@ -272,21 +272,21 @@ fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Rege
 fn collect_char_class_ranges(plus7: &parse_tree::CharClassPlus7, input: &Input) -> Vec<CharRange> {
     match plus7 {
         parse_tree::CharClassPlus7::Alt0 {
-            char_class_plus_7_0,
-            char_class_alt_0_2,
+            char_class_plus_7,
+            char_class_alt_0,
             ..
         } => {
-            let mut ranges = collect_char_class_ranges(char_class_plus_7_0, input);
-            if let Some(range) = convert_char_class_alt0(char_class_alt_0_2, input) {
+            let mut ranges = collect_char_class_ranges(char_class_plus_7, input);
+            if let Some(range) = convert_char_class_alt0(char_class_alt_0, input) {
                 ranges.push(range);
             }
             ranges
         }
         parse_tree::CharClassPlus7::Alt1 {
-            char_class_alt_0_0, ..
+            char_class_alt_0, ..
         } => {
             let mut ranges = Vec::new();
-            if let Some(range) = convert_char_class_alt0(char_class_alt_0_0, input) {
+            if let Some(range) = convert_char_class_alt0(char_class_alt_0, input) {
                 ranges.push(range);
             }
             ranges
@@ -299,13 +299,13 @@ fn convert_char_class_alt0(
     input: &Input,
 ) -> Option<CharRange> {
     match alt0 {
-        parse_tree::CharClassAlt0::Alt0 { range_0, .. } => {
-            let start = parse_range_char(&text(input, range_0.range_char_0.span()));
-            let end = parse_range_char(&text(input, range_0.range_char_4.span()));
+        parse_tree::CharClassAlt0::Alt0 { range, .. } => {
+            let start = parse_range_char(&text(input, range.range_char_0.span()));
+            let end = parse_range_char(&text(input, range.range_char_4.span()));
             Some(CharRange { start, end })
         }
-        parse_tree::CharClassAlt0::Alt1 { range_char_0, .. } => {
-            let ch = parse_range_char(&text(input, range_char_0.span()));
+        parse_tree::CharClassAlt0::Alt1 { range_char, .. } => {
+            let ch = parse_range_char(&text(input, range_char.span()));
             Some(CharRange { start: ch, end: ch })
         }
     }
