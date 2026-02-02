@@ -756,7 +756,7 @@ fn gen_nonterminal_node_method(
     }
 }
 
-// Returns true if the nonterminal corresponding to a symbol in the body of a rule has 
+// Returns true if the nonterminal corresponding to a symbol in the body of a rule has
 // the same name as the nonterminal head, or it's origin symbol.
 // This is to properly Box the generated types for recursive types, e.g., A+ or A*.
 fn should_be_boxed(nonterminal: &Nonterminal, head: &Nonterminal) -> bool {
@@ -765,17 +765,31 @@ fn should_be_boxed(nonterminal: &Nonterminal, head: &Nonterminal) -> bool {
     }
     match &head.origin {
         Some(s) => match s {
-            Symbol::Star(symbol, _) => match symbol.as_ref() {
-                Symbol::Identifier(identifier) => identifier.name == nonterminal.name,
-                _ => false,
-            },
-            Symbol::Plus(symbol, _) => match symbol.as_ref() {
-                Symbol::Identifier(identifier) => identifier.name == nonterminal.name,
-                _ => false,
-            },
+            Symbol::Star(symbol, _) => symbol_contains_nonterminal(symbol, &nonterminal.name),
+            Symbol::Plus(symbol, _) => symbol_contains_nonterminal(symbol, &nonterminal.name),
             _ => false
         },
         None => false,
+    }
+}
+
+// Recursively checks if a symbol contains a reference to a nonterminal with the given name.
+fn symbol_contains_nonterminal(symbol: &Symbol, name: &str) -> bool {
+    match symbol {
+        Symbol::Identifier(identifier) => identifier.name == name,
+        Symbol::Group(symbols) => symbols.iter().any(|s| symbol_contains_nonterminal(s, name)),
+        Symbol::Labeled { symbol, .. } => symbol_contains_nonterminal(symbol, name),
+        Symbol::Opt(inner) => symbol_contains_nonterminal(inner, name),
+        Symbol::Alt(symbols) => symbols.iter().any(|s| symbol_contains_nonterminal(s, name)),
+        Symbol::Star(inner, sep) => {
+            symbol_contains_nonterminal(inner, name)
+                || sep.as_ref().map_or(false, |s| symbol_contains_nonterminal(s, name))
+        },
+        Symbol::Plus(inner, sep) => {
+            symbol_contains_nonterminal(inner, name)
+                || sep.as_ref().map_or(false, |s| symbol_contains_nonterminal(s, name))
+        },
+        Symbol::Literal(_) => false,
     }
 }
 
@@ -988,7 +1002,7 @@ fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
 
 fn gen_list_node_trait() -> TokenStream {
     quote! {
-        trait ListNode<'a> {
+        pub trait ListNode<'a> {
             fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
         }
     }

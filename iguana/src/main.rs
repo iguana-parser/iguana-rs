@@ -274,10 +274,10 @@ fn ambiguous_grammar() -> Grammar {
 // grammar Iggy
 //
 // Grammar
-//   = "grammar" name:Identifier syntax_rules:SyntaxRule* regex_block:RegexBlock?
+//   = "grammar" name:Identifier SyntaxRule* RegexBlock?
 //
 // SyntaxRule
-//   = head:Identifier "=" priority_levels:{PriorityLevel ">"}*
+//   = head:Identifier "=" {PriorityLevel ">"}*
 //
 // PriorityLevel
 //   = { Alternative "|" }*
@@ -286,15 +286,15 @@ fn ambiguous_grammar() -> Grammar {
 //   = Symbol*
 //
 // Symbol
-//   = Symbol "*"                   @Star
-//   | Symbol "+"                   @Plus
-//   | Symbol "?"                   @Opt
-//   | "(" Symbol "|" Symbol ")"    @Alt
-//   | "\"" String "\""             @Lit
-//   | "{" Symbol Symbol "}" "*"    @StarSep
-//   | "{" Symbol Symbol "}" "+"    @PlusSep
-//   | "(" Symbol+ ")"              @Group
-//   | Identifier                   @Identifier
+//   = Symbol "*"                               @Star
+//   | Symbol "+"                               @Plus
+//   | Symbol "?"                               @Opt
+//   | "(" first:Symbol rest:("|" Symbol)+ ")"  @Alt
+//   | "\"" String "\""                         @Lit
+//   | "{" symbol:Symbol sep:Symbol "}" "*"     @StarSep
+//   | "{" symbol:Symbol sep:Symbol "}" "+"     @PlusSep
+//   | "(" Symbol+ ")"                          @Group
+//   | Identifier                               @Identifier
 //
 // RegexBlock
 //   = regex "{" RegexRule* "}"
@@ -303,9 +303,9 @@ fn ambiguous_grammar() -> Grammar {
 //   = Identifier "=" { Regex+ "|" }+
 //
 // Regex
-//   = Regex+                       @Plus
-//   | Regex*                       @Star
-//   | Regex?                       @Opt
+//   = Regex "+"                    @Plus
+//   | Regex "*"                    @Star
+//   | Regex "?"                    @Opt
 //   | "(" { Regex+ "|" }* ")"      @Alt
 //   | CharClass                    @CharClass
 //   | "\"" Char "\""               @Char
@@ -368,32 +368,33 @@ fn iggy() -> GrammarDef {
                 star!(id!("Symbol"))
             )),
             // Symbol
-            //   = Symbol "*"
-            //   | Symbol "+"
-            //   | "(" Symbol "|" Symbol ")"
-            //   | "\"" String "\""
-            //   | "{" Symbol Symbol "}" "*"
-            //   | "{" Symbol Symbol "}" "+"
-            //   | "(" Symbol+ ")"
-            //   | Identifier
+            //   = Symbol "*"                               @Star
+            //   | Symbol "+"                               @Plus
+            //   | Symbol "?"                               @Opt
+            //   | "(" first:Symbol rest:("|" Symbol)+ ")"  @Alt
+            //   | "\"" String "\""                         @Lit
+            //   | "{" symbol:Symbol sep:Symbol "}" "*"     @StarSep
+            //   | "{" symbol:Symbol sep:Symbol "}" "+"     @PlusSep
+            //   | "(" Symbol+ ")"                          @Group
+            //   | Identifier                               @Identifier
             syntax_rule!("Symbol" => priority_level!(
                 alternative!(id!("Symbol"), lit!("*"), @"Star"),
                 alternative!(id!("Symbol"), lit!("+"), @"Plus"),
                 alternative!(id!("Symbol"), lit!("?"), @"Opt"),
-                alternative!(lit!("("), id!("Symbol"), lit!("|"), id!("Symbol"), lit!(")"), @"Alt"),
+                alternative!(lit!("("), labeled!("first", id!("Symbol")), labeled!("rest", plus!(group!(lit!("|"), id!("Symbol")))), lit!(")"), @"Alt"),
                 alternative!(lit!("\""), id!("String"), lit!("\""), @"Lit"),
-                alternative!(lit!("{"), id!("Symbol"), id!("Symbol"), lit!("}"), lit!("*"), @"StarSep"),
-                alternative!(lit!("{"), id!("Symbol"), id!("Symbol"), lit!("}"), lit!("+"), @"PlusSep"),
+                alternative!(lit!("{"), labeled!("symbol", id!("Symbol")), labeled!("sep", id!("Symbol")), lit!("}"), lit!("*"), @"StarSep"),
+                alternative!(lit!("{"), labeled!("symbol", id!("Symbol")), labeled!("sep", id!("Symbol")), lit!("}"), lit!("+"), @"PlusSep"),
                 alternative!(lit!("("), plus!(id!("Symbol")), lit!(")"), @"Group"),
                 alternative!(id!("Identifier"), @"Identifier"),
             )),
             // Regex
-            //   = Regex+
-            //   | Regex*
-            //   | Regex?
-            //   | "(" { Regex+ "|" }* ")"
-            //   | CharClass
-            //   | "\"" Char "\""
+            //   = Regex "+"                    @Plus
+            //   | Regex "*"                    @Star
+            //   | Regex "?"                    @Opt
+            //   | "(" { Regex+ "|" }* ")"      @Alt
+            //   | CharClass                    @CharClass
+            //   | "\"" Char "\""               @Char
             syntax_rule!("Regex" => priority_level!(
                 alternative!(id!("Regex"), lit!("+"), @"Plus"),
                 alternative!(id!("Regex"), lit!("*"), @"Star"),
