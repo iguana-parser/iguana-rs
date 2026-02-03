@@ -69,7 +69,7 @@ fn build_grammar(
     input: &Input,
 ) -> Result<GrammarDef, Error> {
     let grammar = &start_grammar.start;
-    let name = text(input, grammar.name.span());
+    let name = text(input, grammar.identifier.span());
 
     let syntax_rules: Vec<SyntaxRule> = grammar
         .syntax_rules
@@ -92,7 +92,7 @@ fn build_grammar(
 }
 
 fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRule {
-    let head_name = text(input, rule.head.span());
+    let head_name = text(input, rule.identifier.span());
     let head = Nonterminal::new(head_name);
 
     let priority_levels: Vec<PriorityLevel> = rule
@@ -181,7 +181,7 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
     let name = text(input, rule.identifier.span());
     let head = Terminal::new(name);
 
-    let alternatives = collect_regex_alternatives(&rule.regex_rule_plus_3, input);
+    let alternatives = collect_regex_alternatives(&rule.body, input);
 
     let regex = if alternatives.len() == 1 {
         alternatives.into_iter().next().unwrap()
@@ -229,7 +229,14 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
         }
         parse_tree::Regex::CharClass { char_class, .. } => convert_char_class(char_class, input),
         parse_tree::Regex::Char { char, .. } => Regex::Char(parse_char(&text(input, char.span()))),
-        parse_tree::Regex::Group { lit_0, layout_1, regexes, layout_3, lit_4, span } => todo!(),
+        parse_tree::Regex::Group {
+            lit_0,
+            layout_1,
+            regexes,
+            layout_3,
+            lit_4,
+            span,
+        } => todo!(),
     }
 }
 

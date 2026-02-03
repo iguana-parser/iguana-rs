@@ -274,10 +274,10 @@ fn ambiguous_grammar() -> Grammar {
 // grammar Iggy
 //
 // Grammar
-//   = "grammar" name:Identifier SyntaxRule* RegexBlock?
+//   = "grammar" Identifier SyntaxRule* RegexBlock?
 //
 // SyntaxRule
-//   = head:Identifier "=" {PriorityLevel ">"}*
+//   = Identifier "=" {PriorityLevel ">"}*
 //
 // PriorityLevel
 //   = { Alternative "|" }*
@@ -300,7 +300,7 @@ fn ambiguous_grammar() -> Grammar {
 //   = regex "{" RegexRule* "}"
 //
 // RegexRule
-//   = Identifier "=" { Regex+ "|" }+
+//   = Identifier "=" body:{ Regex+ "|" }+
 //
 // Regex
 //   = Regex "+"                                 @Plus
@@ -334,16 +334,16 @@ fn ambiguous_grammar() -> Grammar {
 fn iggy() -> GrammarDef {
     grammar_def!("Iggy",
         syntax: [
-            // Grammar = "grammar" name:Identifier SyntaxRule* RegexBlock?
+            // Grammar = "grammar" Identifier SyntaxRule* RegexBlock?
             syntax_rule!("Grammar" => alternative!(
                 lit!("grammar"),
-                labeled!("name", id!("Identifier")),
+                id!("Identifier"),
                 star!(id!("SyntaxRule")),
                 opt!(id!("RegexBlock"))
             )),
-            // SyntaxRule = head:Identifier "=" {PriorityLevel ">"}*
+            // SyntaxRule = Identifier "=" {PriorityLevel ">"}*
             syntax_rule!("SyntaxRule" => alternative!(
-                labeled!("head", id!("Identifier")),
+                id!("Identifier"),
                 lit!("="),
                 star!(id!("PriorityLevel"), lit!(">"))
             )),
@@ -354,11 +354,11 @@ fn iggy() -> GrammarDef {
                 star!(id!("RegexRule")),
                 lit!("}")
             )),
-            // RegexRule = Identifier "=" { Regex+ "|" }+
+            // RegexRule = Identifier "=" body:{ Regex+ "|" }+
             syntax_rule!("RegexRule" => alternative!(
                 id!("Identifier"),
                 lit!("="),
-                plus!(plus!(id!("Regex")), lit!("|"))
+                labeled!("body", plus!(plus!(id!("Regex")), lit!("|")))
             )),
             // PriorityLevel = { Alternative "|" }*
             syntax_rule!("PriorityLevel" => alternative!(

@@ -1081,22 +1081,22 @@ pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
 }
-//Grammar = "grammar" Layout name:Identifier Layout SyntaxRule* Layout RegexBlock?
+//Grammar = "grammar" Layout Identifier Layout SyntaxRule* Layout RegexBlock?
 #[derive(Debug)]
 pub struct Grammar {
     pub lit_0: Token,
     pub layout_1: Token,
-    pub name: Token,
+    pub identifier: Token,
     pub layout_3: Token,
     pub syntax_rules: GrammarStar0,
     pub layout_5: Token,
     pub regex_block: GrammarOpt1,
     pub span: Span,
 }
-//SyntaxRule = head:Identifier Layout "=" Layout {PriorityLevel ">"}*
+//SyntaxRule = Identifier Layout "=" Layout {PriorityLevel ">"}*
 #[derive(Debug)]
 pub struct SyntaxRule {
-    pub head: Token,
+    pub identifier: Token,
     pub layout_1: Token,
     pub lit_2: Token,
     pub layout_3: Token,
@@ -1115,14 +1115,14 @@ pub struct RegexBlock {
     pub lit_6: Token,
     pub span: Span,
 }
-//RegexRule = Identifier Layout "=" Layout {Regex+ "|"}+
+//RegexRule = Identifier Layout "=" Layout body:{Regex+ "|"}+
 #[derive(Debug)]
 pub struct RegexRule {
     pub identifier: Token,
     pub layout_1: Token,
     pub lit_2: Token,
     pub layout_3: Token,
-    pub regex_rule_plus_3: RegexRulePlus3,
+    pub body: RegexRulePlus3,
     pub span: Span,
 }
 //PriorityLevel = {Alternative "|"}*
@@ -1692,7 +1692,7 @@ impl Grammar {
         match index {
             0 => Some(self.lit_0.as_parse_tree_ref()),
             1 => Some(self.layout_1.as_parse_tree_ref()),
-            2 => Some(self.name.as_parse_tree_ref()),
+            2 => Some(self.identifier.as_parse_tree_ref()),
             3 => Some(self.layout_3.as_parse_tree_ref()),
             4 => Some(self.syntax_rules.as_parse_tree_ref()),
             5 => Some(self.layout_5.as_parse_tree_ref()),
@@ -1713,7 +1713,7 @@ impl Grammar {
 impl SyntaxRule {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.head.as_parse_tree_ref()),
+            0 => Some(self.identifier.as_parse_tree_ref()),
             1 => Some(self.layout_1.as_parse_tree_ref()),
             2 => Some(self.lit_2.as_parse_tree_ref()),
             3 => Some(self.layout_3.as_parse_tree_ref()),
@@ -1761,7 +1761,7 @@ impl RegexRule {
             1 => Some(self.layout_1.as_parse_tree_ref()),
             2 => Some(self.lit_2.as_parse_tree_ref()),
             3 => Some(self.layout_3.as_parse_tree_ref()),
-            4 => Some(self.regex_rule_plus_3.as_parse_tree_ref()),
+            4 => Some(self.body.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -2206,6 +2206,11 @@ impl GrammarOpt0 {
             GrammarOpt0::Alt1 { span, .. } => *span,
         }
     }
+    pub fn syntax_rules(&self) -> impl Iterator<Item = &SyntaxRule> {
+        self.value()
+            .into_iter()
+            .flat_map(|inner| inner.syntax_rules())
+    }
 }
 impl GrammarStar0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -2224,10 +2229,12 @@ impl GrammarStar0 {
         self.span
     }
     pub fn syntax_rules(&self) -> impl Iterator<Item = &SyntaxRule> {
-        self.iter().filter_map(|node| match node {
-            ParseTreeRef::SyntaxRule(r) => Some(r),
-            _ => None,
-        })
+        self.iter()
+            .filter_map(|node| match node {
+                ParseTreeRef::GrammarOpt0(r) => Some(r),
+                _ => None,
+            })
+            .flat_map(|r| r.syntax_rules())
     }
 }
 impl GrammarOpt1 {
@@ -2333,6 +2340,11 @@ impl SyntaxRuleOpt2 {
             SyntaxRuleOpt2::Alt1 { span, .. } => *span,
         }
     }
+    pub fn priority_levels(&self) -> impl Iterator<Item = &PriorityLevel> {
+        self.value()
+            .into_iter()
+            .flat_map(|inner| inner.priority_levels())
+    }
 }
 impl SyntaxRuleStar1 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -2351,10 +2363,12 @@ impl SyntaxRuleStar1 {
         self.span
     }
     pub fn priority_levels(&self) -> impl Iterator<Item = &PriorityLevel> {
-        self.iter().filter_map(|node| match node {
-            ParseTreeRef::PriorityLevel(r) => Some(r),
-            _ => None,
-        })
+        self.iter()
+            .filter_map(|node| match node {
+                ParseTreeRef::SyntaxRuleOpt2(r) => Some(r),
+                _ => None,
+            })
+            .flat_map(|r| r.priority_levels())
     }
 }
 impl RegexBlockPlus2 {
@@ -2426,6 +2440,11 @@ impl RegexBlockOpt3 {
             RegexBlockOpt3::Alt1 { span, .. } => *span,
         }
     }
+    pub fn regex_rules(&self) -> impl Iterator<Item = &RegexRule> {
+        self.value()
+            .into_iter()
+            .flat_map(|inner| inner.regex_rules())
+    }
 }
 impl RegexBlockStar2 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -2444,10 +2463,12 @@ impl RegexBlockStar2 {
         self.span
     }
     pub fn regex_rules(&self) -> impl Iterator<Item = &RegexRule> {
-        self.iter().filter_map(|node| match node {
-            ParseTreeRef::RegexRule(r) => Some(r),
-            _ => None,
-        })
+        self.iter()
+            .filter_map(|node| match node {
+                ParseTreeRef::RegexBlockOpt3(r) => Some(r),
+                _ => None,
+            })
+            .flat_map(|r| r.regex_rules())
     }
 }
 impl RegexRulePlus4 {
@@ -2531,6 +2552,14 @@ impl RegexRulePlus3 {
             RegexRulePlus3::Alt1 { span, .. } => *span,
         }
     }
+    pub fn regexes(&self) -> impl Iterator<Item = &Regex> {
+        self.iter()
+            .filter_map(|node| match node {
+                ParseTreeRef::RegexRulePlus4(r) => Some(r),
+                _ => None,
+            })
+            .flat_map(|r| r.regexes())
+    }
 }
 impl PriorityLevelPlus5 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -2605,6 +2634,11 @@ impl PriorityLevelOpt4 {
             PriorityLevelOpt4::Alt1 { span, .. } => *span,
         }
     }
+    pub fn alternatives(&self) -> impl Iterator<Item = &Alternative> {
+        self.value()
+            .into_iter()
+            .flat_map(|inner| inner.alternatives())
+    }
 }
 impl PriorityLevelStar3 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -2623,10 +2657,12 @@ impl PriorityLevelStar3 {
         self.span
     }
     pub fn alternatives(&self) -> impl Iterator<Item = &Alternative> {
-        self.iter().filter_map(|node| match node {
-            ParseTreeRef::Alternative(r) => Some(r),
-            _ => None,
-        })
+        self.iter()
+            .filter_map(|node| match node {
+                ParseTreeRef::PriorityLevelOpt4(r) => Some(r),
+                _ => None,
+            })
+            .flat_map(|r| r.alternatives())
     }
 }
 impl AlternativePlus6 {
@@ -2698,6 +2734,9 @@ impl AlternativeOpt5 {
             AlternativeOpt5::Alt1 { span, .. } => *span,
         }
     }
+    pub fn symbols(&self) -> impl Iterator<Item = &Symbol> {
+        self.value().into_iter().flat_map(|inner| inner.symbols())
+    }
 }
 impl AlternativeStar4 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -2716,10 +2755,12 @@ impl AlternativeStar4 {
         self.span
     }
     pub fn symbols(&self) -> impl Iterator<Item = &Symbol> {
-        self.iter().filter_map(|node| match node {
-            ParseTreeRef::Symbol(r) => Some(r),
-            _ => None,
-        })
+        self.iter()
+            .filter_map(|node| match node {
+                ParseTreeRef::AlternativeOpt5(r) => Some(r),
+                _ => None,
+            })
+            .flat_map(|r| r.symbols())
     }
 }
 impl SymbolGroup0 {
@@ -3622,7 +3663,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         let [
                             lit_0,
                             layout_1,
-                            name,
+                            identifier,
                             layout_3,
                             syntax_rules,
                             layout_5,
@@ -3631,7 +3672,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         Grammar {
                             lit_0: lit_0.unwrap_token(),
                             layout_1: layout_1.unwrap_token(),
-                            name: name.unwrap_token(),
+                            identifier: identifier.unwrap_token(),
                             layout_3: layout_3.unwrap_token(),
                             syntax_rules: syntax_rules.unwrap_grammar_star_0(),
                             layout_5: layout_5.unwrap_token(),
@@ -3648,10 +3689,10 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //SyntaxRule : Identifier Layout "=" Layout {PriorityLevel ">"}*.
                     SlotId(13) => {
-                        let [head, layout_1, lit_2, layout_3, priority_levels] =
+                        let [identifier, layout_1, lit_2, layout_3, priority_levels] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         SyntaxRule {
-                            head: head.unwrap_token(),
+                            identifier: identifier.unwrap_token(),
                             layout_1: layout_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
                             layout_3: layout_3.unwrap_token(),
@@ -3697,14 +3738,14 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //RegexRule : Identifier Layout "=" Layout {Regex+ "|"}+.
                     SlotId(27) => {
-                        let [identifier, layout_1, lit_2, layout_3, regex_rule_plus_3] =
+                        let [identifier, layout_1, lit_2, layout_3, body] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         RegexRule {
                             identifier: identifier.unwrap_token(),
                             layout_1: layout_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
                             layout_3: layout_3.unwrap_token(),
-                            regex_rule_plus_3: regex_rule_plus_3.unwrap_regex_rule_plus_3(),
+                            body: body.unwrap_regex_rule_plus_3(),
                             span: nonterminal_node.span,
                         }
                         .into()

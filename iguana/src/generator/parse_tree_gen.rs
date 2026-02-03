@@ -393,7 +393,7 @@ fn gen_nonterminal_type_impl(
     let child_count_method = gen_child_count_method(grammar, nonterminal);
     let as_node_ref_method = gen_as_parse_tree_ref_method(&nonterminal.name);
     let span_method = gen_span_method(grammar, nonterminal);
-    let typed_accessor = gen_typed_accessor(nonterminal);
+    let typed_accessor = gen_typed_accessor(grammar, nonterminal);
     quote! {
         impl #nonterminal_name {
             #child_method
@@ -659,7 +659,7 @@ fn field_names(grammar: &Grammar, alternative: &Alternative) -> Vec<Ident> {
         .enumerate()
         .map(|(i, s)| {
             let base_name = get_symbol_base_name(grammar, s);
-            let needs_index = base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
+            let needs_index = base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
             Ident::new(&gen_field_name(grammar, s, i, needs_index), Span::call_site())
         })
         .collect::<Vec<_>>()
@@ -1105,30 +1105,123 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
     }
 }
 
-/// Generates a typed accessor for Plus/Star nonterminals that returns
-/// an iterator over the direct children. Relies on the iter() method
-/// that returns all children including layout.
-fn gen_typed_accessor(nonterminal: &Nonterminal) -> Option<TokenStream> {
-    let child_name = match &nonterminal.origin {
-        Some(Symbol::Plus(symbol, _)) | Some(Symbol::Star(symbol, _)) => match symbol.as_ref() {
-            Symbol::Identifier(ident) => &ident.name,
-            _ => return None, // Skip complex nested EBNF for now
-        },
-        _ => return None,
-    };
+/// Generates a typed accessor for Plus/Star/Opt nonterminals that returns
+/// an iterator over the innermost element type. For nested Plus/Star like
+/// `{Regex+ "|"}+`, this flattens through intermediate types.
+/// Generates a typed accessor method for Plus/Star/Opt nonterminals.
+///
+/// These accessors provide a convenient way to iterate over the innermost elements
+/// without manually navigating through intermediate wrapper types. The method name
+/// is the pluralized snake_case form of the innermost element (e.g., `symbols()` for `Symbol+`).
+///
+/// # Type Hierarchy
+///
+/// EBNF operators desugar into a type hierarchy:
+/// - `Symbol*` → Star (struct wrapping `Symbol+?`)
+/// - `Symbol+?` → Opt (enum: None | Some(Symbol+))
+/// - `Symbol+` → Plus (recursive enum: Base(Symbol) | Rec(Symbol+, Symbol))
+///
+/// # Generated Accessors
+///
+/// For `Symbol+` (Plus):
+/// ```ignore
+/// pub fn symbols(&self) -> impl Iterator<Item = &Symbol> { ... }
+/// ```
+///
+/// For `Symbol+?` (Opt wrapping Plus):
+/// ```ignore
+/// pub fn symbols(&self) -> impl Iterator<Item = &Symbol> {
+///     self.value().into_iter().flat_map(|inner| inner.symbols())
+/// }
+/// ```
+///
+/// For `Symbol*` (Star):
+/// ```ignore
+/// pub fn symbols(&self) -> impl Iterator<Item = &Symbol> {
+///     // delegates to the inner Opt type's accessor
+/// }
+/// ```
+///
+/// # Nested Types
+///
+/// For nested constructs like `{Symbol+ ","}+` (Plus of Plus with separator),
+/// the accessor flattens the structure to return the innermost elements:
+/// ```ignore
+/// pub fn symbols(&self) -> impl Iterator<Item = &Symbol> {
+///     self.iter().filter_map(...).flat_map(|r| r.symbols())
+/// }
+/// ```
+fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<TokenStream> {
+    match &nonterminal.origin {
+        Some(Symbol::Plus(inner, _)) | Some(Symbol::Star(inner, _)) => {
+            let innermost_name = get_innermost_element_name(inner)?;
+            let child_name = get_element_type_name(grammar, nonterminal)?;
 
-    let child_type = Ident::new(&to_pascal_case(child_name), Span::call_site());
-    let method_name = format_ident!("{}", pluralize(&to_snake_case(child_name)));
-    let variant = Ident::new(&to_pascal_case(child_name), Span::call_site());
+            let method_name = format_ident!("{}", pluralize(&to_snake_case(&innermost_name)));
+            let innermost_type = Ident::new(&to_pascal_case(&innermost_name), Span::call_site());
+            let filter_variant = Ident::new(&to_pascal_case(child_name), Span::call_site());
 
-    Some(quote! {
-        pub fn #method_name(&self) -> impl Iterator<Item = &#child_type> {
-            self.iter().filter_map(|node| match node {
-                ParseTreeRef::#variant(r) => Some(r),
-                _ => None,
+            if child_name == innermost_name {
+                // Simple case: e.g., `Regex+` where child is already the innermost element.
+                Some(quote! {
+                    pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
+                        self.iter().filter_map(|node| match node {
+                            ParseTreeRef::#filter_variant(r) => Some(r),
+                            _ => None,
+                        })
+                    }
+                })
+            } else {
+                // Nested case: child is an intermediate type (Plus/Star/Opt) with accessor.
+                Some(quote! {
+                    pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
+                        self.iter().filter_map(|node| match node {
+                            ParseTreeRef::#filter_variant(r) => Some(r),
+                            _ => None,
+                        }).flat_map(|r| r.#method_name())
+                    }
+                })
+            }
+        }
+        Some(Symbol::Opt(inner)) => {
+            // Only generate accessor for Opt types that wrap Plus/Star (e.g., `SyntaxRule+?`)
+            // Use OptNode::value() to get the inner Plus/Star, then delegate to its accessor.
+            let inner_inner = match inner.as_ref() {
+                Symbol::Plus(s, _) | Symbol::Star(s, _) => s.as_ref(),
+                _ => return None,
+            };
+
+            let innermost_name = get_innermost_element_name(inner_inner)?;
+            let method_name = format_ident!("{}", pluralize(&to_snake_case(&innermost_name)));
+            let innermost_type = Ident::new(&to_pascal_case(&innermost_name), Span::call_site());
+
+            Some(quote! {
+                pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
+                    self.value().into_iter().flat_map(|inner| inner.#method_name())
+                }
             })
         }
-    })
+        _ => None,
+    }
+}
+
+/// Gets the element type name from the base alternative of a Plus/Star nonterminal.
+fn get_element_type_name<'a>(grammar: &'a Grammar, nonterminal: &Nonterminal) -> Option<&'a str> {
+    let alternatives = grammar.alternatives(nonterminal);
+    let base_alt = if alternatives.len() == 1 { &alternatives[0] } else { &alternatives[1] };
+    let child_symbol = base_alt.symbols.first()?;
+    let child_def = grammar.definition(child_symbol.resolved_def());
+    Some(child_def.name())
+}
+
+/// Recursively finds the innermost element name by walking through nested Plus/Star symbols.
+/// For `Regex+` returns "Regex". For `{Regex+ "|"}+` also returns "Regex".
+fn get_innermost_element_name(symbol: &Symbol) -> Option<String> {
+    match symbol {
+        Symbol::Identifier(ident) => Some(ident.name.clone()),
+        Symbol::Plus(inner, _) | Symbol::Star(inner, _) => get_innermost_element_name(inner),
+        _ => None,
+    }
 }
 
 fn pluralize(word: &str) -> String {
