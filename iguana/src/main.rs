@@ -303,12 +303,13 @@ fn ambiguous_grammar() -> Grammar {
 //   = Identifier "=" { Regex+ "|" }+
 //
 // Regex
-//   = Regex "+"                    @Plus
-//   | Regex "*"                    @Star
-//   | Regex "?"                    @Opt
-//   | "(" { Regex+ "|" }* ")"      @Alt
-//   | CharClass                    @CharClass
-//   | "\"" Char "\""               @Char
+//   = Regex "+"                                 @Plus
+//   | Regex "*"                                 @Star
+//   | Regex "?"                                 @Opt
+//   | "(" first:Regex rest:("|" Regex)+ ")"     @Alt
+//   | "(" Regex+ ")"                            @Group
+//   | CharClass                                 @CharClass
+//   | "\"" Char "\""                            @Char
 //
 // CharClass
 //   = "!"? "[" (Range | RangeChar)+ "]"
@@ -389,17 +390,19 @@ fn iggy() -> GrammarDef {
                 alternative!(id!("Identifier"), @"Identifier"),
             )),
             // Regex
-            //   = Regex "+"                    @Plus
-            //   | Regex "*"                    @Star
-            //   | Regex "?"                    @Opt
-            //   | "(" { Regex+ "|" }* ")"      @Alt
-            //   | CharClass                    @CharClass
-            //   | "\"" Char "\""               @Char
+            //   = Regex "+"                                 @Plus
+            //   | Regex "*"                                 @Star
+            //   | Regex "?"                                 @Opt
+            //   | "(" first:Regex rest:("|" Regex)+ ")"     @Alt
+            //   | "(" Regex+ ")"                            @Group
+            //   | CharClass                                 @CharClass
+            //   | "\"" Char "\""                            @Char
             syntax_rule!("Regex" => priority_level!(
                 alternative!(id!("Regex"), lit!("+"), @"Plus"),
                 alternative!(id!("Regex"), lit!("*"), @"Star"),
                 alternative!(id!("Regex"), lit!("?"), @"Opt"),
-                alternative!(lit!("("), star!(plus!(id!("Regex")), lit!("|")), lit!(")"), @"Alt"),
+                alternative!(lit!("("), labeled!("first", id!("Regex")), labeled!("rest", plus!(group!(lit!("|"), id!("Regex")))), lit!(")"), @"Alt"),
+                alternative!(lit!("("), plus!(id!("Regex")), lit!(")"), @"Group"),
                 alternative!(id!("CharClass"), @"CharClass"),
                 alternative!(lit!("\""), id!("Char"), lit!("\""), @"Char")
             )),

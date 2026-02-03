@@ -1,6 +1,8 @@
 use iggy::{
     parse_tree,
-    parse_tree::{IggyParseTreeBuilder, ListNode, OptNode, ParseTree, StartGrammar, create_parse_tree},
+    parse_tree::{
+        IggyParseTreeBuilder, ListNode, OptNode, ParseTree, StartGrammar, create_parse_tree,
+    },
     parser::IggyParser,
 };
 use iguana_runtime::{
@@ -137,9 +139,7 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             Symbol::Opt(Box::new(convert_symbol(symbol, input)))
         }
         // TODO: Update the generator to produce a symbols() method that bypasses the group level
-        parse_tree::Symbol::Alt {
-            first, rest, ..
-        } => {
+        parse_tree::Symbol::Alt { first, rest, .. } => {
             let mut symbols = vec![convert_symbol(first, input)];
             symbols.extend(rest.iter().filter_map(|node| match node {
                 parse_tree::ParseTreeRef::SymbolGroup0(g) => Some(convert_symbol(&g.symbol, input)),
@@ -224,49 +224,36 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
         parse_tree::Regex::Plus { regex, .. } => Regex::Plus(Box::new(convert_regex(regex, input))),
         parse_tree::Regex::Star { regex, .. } => Regex::Star(Box::new(convert_regex(regex, input))),
         parse_tree::Regex::Opt { regex, .. } => Regex::Opt(Box::new(convert_regex(regex, input))),
-        parse_tree::Regex::Alt { regex_star_5, .. } => {
-            let alternatives = collect_regex_star5_alternatives(regex_star_5, input);
-            if alternatives.is_empty() {
-                Regex::Epsilon
-            } else if alternatives.len() == 1 {
-                alternatives.into_iter().next().unwrap()
-            } else {
-                Regex::Alt(alternatives)
-            }
+        parse_tree::Regex::Alt { first, rest, .. } => {
+            todo!()
         }
         parse_tree::Regex::CharClass { char_class, .. } => convert_char_class(char_class, input),
         parse_tree::Regex::Char { char, .. } => Regex::Char(parse_char(&text(input, char.span()))),
-    }
-}
-
-fn collect_regex_star5_alternatives(star5: &parse_tree::RegexStar5, input: &Input) -> Vec<Regex> {
-    match star5.regex_opt_6.value() {
-        Some(plus3) => collect_regex_alternatives(plus3, input),
-        None => vec![],
+        parse_tree::Regex::Group { lit_0, layout_1, regexes, layout_3, lit_4, span } => todo!(),
     }
 }
 
 fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Regex {
-    let negated = char_class.char_class_opt_7.value().is_some();
-    let ranges = collect_char_class_ranges(&char_class.char_class_plus_8, input);
+    let negated = char_class.char_class_opt_6.value().is_some();
+    let ranges = collect_char_class_ranges(&char_class.char_class_plus_9, input);
 
     Regex::CharClass(CharClass { ranges, negated })
 }
 
-fn collect_char_class_ranges(plus7: &parse_tree::CharClassPlus8, input: &Input) -> Vec<CharRange> {
+fn collect_char_class_ranges(plus7: &parse_tree::CharClassPlus9, input: &Input) -> Vec<CharRange> {
     match plus7 {
-        parse_tree::CharClassPlus8::Alt0 {
-            char_class_plus_8,
+        parse_tree::CharClassPlus9::Alt0 {
+            char_class_plus_9,
             char_class_alt_0,
             ..
         } => {
-            let mut ranges = collect_char_class_ranges(char_class_plus_8, input);
+            let mut ranges = collect_char_class_ranges(char_class_plus_9, input);
             if let Some(range) = convert_char_class_alt0(char_class_alt_0, input) {
                 ranges.push(range);
             }
             ranges
         }
-        parse_tree::CharClassPlus8::Alt1 {
+        parse_tree::CharClassPlus9::Alt1 {
             char_class_alt_0, ..
         } => {
             let mut ranges = Vec::new();

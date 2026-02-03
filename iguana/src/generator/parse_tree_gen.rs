@@ -146,11 +146,21 @@ fn gen_nonterminal_type_with_one_alternative(
             let field_name = gen_field_name(grammar, s, i, needs_index);
             let field_ident = Ident::new(&field_name, Span::call_site());
             let def = grammar.definition(s.resolved_def());
-            let type_ident = match def {
-                Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
-                Definition::Nonterminal(_) => Ident::new(&to_pascal_case(def.name()), Span::call_site()),
+            let field_type = match def {
+                Definition::Terminal(_) => {
+                    let token = Ident::new("Token", Span::call_site());
+                    quote! { #token }
+                },
+                Definition::Nonterminal(nt) => {
+                    let name = Ident::new(&to_pascal_case(def.name()), Span::call_site());
+                    if should_be_boxed(nt, nonterminal) {
+                        quote! { Box<#name> }
+                    } else {
+                        quote! { #name }
+                    }
+                },
             };
-            quote! { pub #field_ident: #type_ident }
+            quote! { pub #field_ident: #field_type }
         })
         .collect();
     let nonterminal_name = &nonterminal.name;
@@ -767,6 +777,9 @@ fn should_be_boxed(nonterminal: &Nonterminal, head: &Nonterminal) -> bool {
         Some(s) => match s {
             Symbol::Star(symbol, _) => symbol_contains_nonterminal(symbol, &nonterminal.name),
             Symbol::Plus(symbol, _) => symbol_contains_nonterminal(symbol, &nonterminal.name),
+            Symbol::Group(symbols) => symbols.iter().any(|s| symbol_contains_nonterminal(s, &nonterminal.name)),
+            Symbol::Opt(symbol) => symbol_contains_nonterminal(symbol, &nonterminal.name),
+            Symbol::Alt(symbols) => symbols.iter().any(|s| symbol_contains_nonterminal(s, &nonterminal.name)),
             _ => false
         },
         None => false,
