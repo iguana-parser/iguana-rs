@@ -1101,6 +1101,7 @@ pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
 }
+//Grammar = "grammar" Layout name:Identifier Layout Grammar_Star_0 Layout Grammar_Opt_1
 #[derive(Debug)]
 pub struct Grammar {
     pub lit_0: Token,
@@ -1112,6 +1113,7 @@ pub struct Grammar {
     pub regex_block: GrammarOpt1,
     pub span: Span,
 }
+//SyntaxRule = head:Identifier Layout "=" Layout SyntaxRule_Star_1
 #[derive(Debug)]
 pub struct SyntaxRule {
     pub head: Token,
@@ -1121,6 +1123,7 @@ pub struct SyntaxRule {
     pub priority_levels: SyntaxRuleStar1,
     pub span: Span,
 }
+//RegexBlock = "regex" Layout "{" Layout RegexBlock_Star_2 Layout "}"
 #[derive(Debug)]
 pub struct RegexBlock {
     pub lit_0: Token,
@@ -1132,6 +1135,7 @@ pub struct RegexBlock {
     pub lit_6: Token,
     pub span: Span,
 }
+//RegexRule = Identifier Layout "=" Layout RegexRule_Plus_3
 #[derive(Debug)]
 pub struct RegexRule {
     pub identifier: Token,
@@ -1141,36 +1145,43 @@ pub struct RegexRule {
     pub regex_rule_plus_3: RegexRulePlus3,
     pub span: Span,
 }
+//PriorityLevel = PriorityLevel_Star_3
 #[derive(Debug)]
 pub struct PriorityLevel {
     pub alternatives: PriorityLevelStar3,
     pub span: Span,
 }
+//Alternative = Alternative_Star_4
 #[derive(Debug)]
 pub struct Alternative {
     pub symbols: AlternativeStar4,
     pub span: Span,
 }
+//Symbol
 #[derive(Debug)]
 pub enum Symbol {
+    //Symbol Layout "*" @Star
     Star {
         symbol: Box<Symbol>,
         layout: Token,
         lit_2: Token,
         span: Span,
     },
+    //Symbol Layout "+" @Plus
     Plus {
         symbol: Box<Symbol>,
         layout: Token,
         lit_2: Token,
         span: Span,
     },
+    //Symbol Layout "?" @Opt
     Opt {
         symbol: Box<Symbol>,
         layout: Token,
         lit_2: Token,
         span: Span,
     },
+    //"(" Layout first:Symbol Layout rest:Symbol_Plus_7 Layout ")" @Alt
     Alt {
         lit_0: Token,
         layout_1: Token,
@@ -1181,6 +1192,7 @@ pub enum Symbol {
         lit_6: Token,
         span: Span,
     },
+    //""" Layout String Layout """ @Lit
     Lit {
         lit_0: Token,
         layout_1: Token,
@@ -1189,6 +1201,7 @@ pub enum Symbol {
         lit_4: Token,
         span: Span,
     },
+    //"{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "*" @StarSep
     StarSep {
         lit_0: Token,
         layout_1: Token,
@@ -1201,6 +1214,7 @@ pub enum Symbol {
         lit_8: Token,
         span: Span,
     },
+    //"{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "+" @PlusSep
     PlusSep {
         lit_0: Token,
         layout_1: Token,
@@ -1213,6 +1227,7 @@ pub enum Symbol {
         lit_8: Token,
         span: Span,
     },
+    //"(" Layout Alternative_Plus_6 Layout ")" @Group
     Group {
         lit_0: Token,
         layout_1: Token,
@@ -1221,31 +1236,37 @@ pub enum Symbol {
         lit_4: Token,
         span: Span,
     },
+    //Identifier @Identifier
     Identifier {
         identifier: Token,
         span: Span,
     },
 }
+//Regex
 #[derive(Debug)]
 pub enum Regex {
+    //Regex Layout "+" @Plus
     Plus {
         regex: Box<Regex>,
         layout: Token,
         lit_2: Token,
         span: Span,
     },
+    //Regex Layout "*" @Star
     Star {
         regex: Box<Regex>,
         layout: Token,
         lit_2: Token,
         span: Span,
     },
+    //Regex Layout "?" @Opt
     Opt {
         regex: Box<Regex>,
         layout: Token,
         lit_2: Token,
         span: Span,
     },
+    //"(" Layout first:Regex Layout rest:Regex_Plus_8 Layout ")" @Alt
     Alt {
         lit_0: Token,
         layout_1: Token,
@@ -1256,6 +1277,7 @@ pub enum Regex {
         lit_6: Token,
         span: Span,
     },
+    //"(" Layout RegexRule_Plus_4 Layout ")" @Group
     Group {
         lit_0: Token,
         layout_1: Token,
@@ -1264,10 +1286,12 @@ pub enum Regex {
         lit_4: Token,
         span: Span,
     },
+    //CharClass @CharClass
     CharClass {
         char_class: CharClass,
         span: Span,
     },
+    //""" Layout Char Layout """ @Char
     Char {
         lit_0: Token,
         layout_1: Token,
@@ -1277,6 +1301,7 @@ pub enum Regex {
         span: Span,
     },
 }
+//CharClass = CharClass_Opt_6 Layout "[" Layout CharClass_Plus_9 Layout "]"
 #[derive(Debug)]
 pub struct CharClass {
     pub char_class_opt_6: CharClassOpt6,
@@ -1288,6 +1313,7 @@ pub struct CharClass {
     pub lit_6: Token,
     pub span: Span,
 }
+//Range = RangeChar Layout "-" Layout RangeChar
 #[derive(Debug)]
 pub struct Range {
     pub range_char_0: Token,
@@ -1300,12 +1326,14 @@ pub struct Range {
 //SyntaxRule+
 #[derive(Debug)]
 pub enum GrammarPlus0 {
+    //Grammar_Plus_0 Layout SyntaxRule
     Alt0 {
         syntax_rules: Box<GrammarPlus0>,
         layout: Token,
         syntax_rule_2: Box<SyntaxRule>,
         span: Span,
     },
+    //SyntaxRule
     Alt1 {
         syntax_rule: Box<SyntaxRule>,
         span: Span,
@@ -1314,10 +1342,12 @@ pub enum GrammarPlus0 {
 //SyntaxRule+?
 #[derive(Debug)]
 pub enum GrammarOpt0 {
+    //Grammar_Plus_0
     Alt0 {
         syntax_rules: GrammarPlus0,
         span: Span,
     },
+    //
     Alt1 {
         span: Span,
     },
@@ -1331,10 +1361,12 @@ pub struct GrammarStar0 {
 //RegexBlock?
 #[derive(Debug)]
 pub enum GrammarOpt1 {
+    //RegexBlock
     Alt0 {
         regex_block: Box<RegexBlock>,
         span: Span,
     },
+    //
     Alt1 {
         span: Span,
     },
@@ -1342,6 +1374,7 @@ pub enum GrammarOpt1 {
 //{PriorityLevel ">"}+
 #[derive(Debug)]
 pub enum SyntaxRulePlus1 {
+    //SyntaxRule_Plus_1 Layout ">" Layout PriorityLevel
     Alt0 {
         priority_levels: Box<SyntaxRulePlus1>,
         layout_1: Token,
@@ -1350,6 +1383,7 @@ pub enum SyntaxRulePlus1 {
         priority_level_4: Box<PriorityLevel>,
         span: Span,
     },
+    //PriorityLevel
     Alt1 {
         priority_level: Box<PriorityLevel>,
         span: Span,
@@ -1358,10 +1392,12 @@ pub enum SyntaxRulePlus1 {
 //{PriorityLevel ">"}+?
 #[derive(Debug)]
 pub enum SyntaxRuleOpt2 {
+    //SyntaxRule_Plus_1
     Alt0 {
         priority_levels: SyntaxRulePlus1,
         span: Span,
     },
+    //
     Alt1 {
         span: Span,
     },
@@ -1375,12 +1411,14 @@ pub struct SyntaxRuleStar1 {
 //RegexRule+
 #[derive(Debug)]
 pub enum RegexBlockPlus2 {
+    //RegexBlock_Plus_2 Layout RegexRule
     Alt0 {
         regex_rules: Box<RegexBlockPlus2>,
         layout: Token,
         regex_rule_2: Box<RegexRule>,
         span: Span,
     },
+    //RegexRule
     Alt1 {
         regex_rule: Box<RegexRule>,
         span: Span,
@@ -1389,10 +1427,12 @@ pub enum RegexBlockPlus2 {
 //RegexRule+?
 #[derive(Debug)]
 pub enum RegexBlockOpt3 {
+    //RegexBlock_Plus_2
     Alt0 {
         regex_rules: RegexBlockPlus2,
         span: Span,
     },
+    //
     Alt1 {
         span: Span,
     },
@@ -1406,12 +1446,14 @@ pub struct RegexBlockStar2 {
 //Regex+
 #[derive(Debug)]
 pub enum RegexRulePlus4 {
+    //RegexRule_Plus_4 Layout Regex
     Alt0 {
         regexes: Box<RegexRulePlus4>,
         layout: Token,
         regex_2: Box<Regex>,
         span: Span,
     },
+    //Regex
     Alt1 {
         regex: Box<Regex>,
         span: Span,
@@ -1420,6 +1462,7 @@ pub enum RegexRulePlus4 {
 //{Regex+ "|"}+
 #[derive(Debug)]
 pub enum RegexRulePlus3 {
+    //RegexRule_Plus_3 Layout "|" Layout RegexRule_Plus_4
     Alt0 {
         regex_rule_plus_3: Box<RegexRulePlus3>,
         layout_1: Token,
@@ -1428,6 +1471,7 @@ pub enum RegexRulePlus3 {
         regexes: RegexRulePlus4,
         span: Span,
     },
+    //RegexRule_Plus_4
     Alt1 {
         regexes: RegexRulePlus4,
         span: Span,
@@ -1436,6 +1480,7 @@ pub enum RegexRulePlus3 {
 //{Alternative "|"}+
 #[derive(Debug)]
 pub enum PriorityLevelPlus5 {
+    //PriorityLevel_Plus_5 Layout "|" Layout Alternative
     Alt0 {
         alternatives: Box<PriorityLevelPlus5>,
         layout_1: Token,
@@ -1444,6 +1489,7 @@ pub enum PriorityLevelPlus5 {
         alternative_4: Box<Alternative>,
         span: Span,
     },
+    //Alternative
     Alt1 {
         alternative: Box<Alternative>,
         span: Span,
@@ -1452,10 +1498,12 @@ pub enum PriorityLevelPlus5 {
 //{Alternative "|"}+?
 #[derive(Debug)]
 pub enum PriorityLevelOpt4 {
+    //PriorityLevel_Plus_5
     Alt0 {
         alternatives: PriorityLevelPlus5,
         span: Span,
     },
+    //
     Alt1 {
         span: Span,
     },
@@ -1469,12 +1517,14 @@ pub struct PriorityLevelStar3 {
 //Symbol+
 #[derive(Debug)]
 pub enum AlternativePlus6 {
+    //Alternative_Plus_6 Layout Symbol
     Alt0 {
         symbols: Box<AlternativePlus6>,
         layout: Token,
         symbol_2: Box<Symbol>,
         span: Span,
     },
+    //Symbol
     Alt1 {
         symbol: Box<Symbol>,
         span: Span,
@@ -1483,10 +1533,12 @@ pub enum AlternativePlus6 {
 //Symbol+?
 #[derive(Debug)]
 pub enum AlternativeOpt5 {
+    //Alternative_Plus_6
     Alt0 {
         symbols: AlternativePlus6,
         span: Span,
     },
+    //
     Alt1 {
         span: Span,
     },
@@ -1508,12 +1560,14 @@ pub struct SymbolGroup0 {
 //("|" Symbol)+
 #[derive(Debug)]
 pub enum SymbolPlus7 {
+    //Symbol_Plus_7 Layout Symbol_Group_0
     Alt0 {
         symbol_plus_7: Box<SymbolPlus7>,
         layout: Token,
         symbol_group_0: SymbolGroup0,
         span: Span,
     },
+    //Symbol_Group_0
     Alt1 {
         symbol_group_0: SymbolGroup0,
         span: Span,
@@ -1530,12 +1584,14 @@ pub struct RegexGroup1 {
 //("|" Regex)+
 #[derive(Debug)]
 pub enum RegexPlus8 {
+    //Regex_Plus_8 Layout Regex_Group_1
     Alt0 {
         regex_plus_8: Box<RegexPlus8>,
         layout: Token,
         regex_group_1: RegexGroup1,
         span: Span,
     },
+    //Regex_Group_1
     Alt1 {
         regex_group_1: RegexGroup1,
         span: Span,
@@ -1544,29 +1600,36 @@ pub enum RegexPlus8 {
 //"!"?
 #[derive(Debug)]
 pub enum CharClassOpt6 {
+    //"!"
     Alt0 { lit_0: Token, span: Span },
+    //
     Alt1 { span: Span },
 }
 //(Range | RangeChar)
 #[derive(Debug)]
 pub enum CharClassAlt0 {
+    //Range
     Alt0 { range: Box<Range>, span: Span },
+    //RangeChar
     Alt1 { range_char: Token, span: Span },
 }
 //(Range | RangeChar)+
 #[derive(Debug)]
 pub enum CharClassPlus9 {
+    //CharClass_Plus_9 Layout CharClass_Alt_0
     Alt0 {
         char_class_plus_9: Box<CharClassPlus9>,
         layout: Token,
         char_class_alt_0: CharClassAlt0,
         span: Span,
     },
+    //CharClass_Alt_0
     Alt1 {
         char_class_alt_0: CharClassAlt0,
         span: Span,
     },
 }
+//StartGrammar = Layout start:Grammar Layout
 #[derive(Debug)]
 pub struct StartGrammar {
     pub layout_0: Token,
@@ -1574,6 +1637,7 @@ pub struct StartGrammar {
     pub layout_2: Token,
     pub span: Span,
 }
+//StartSyntaxRule = Layout start:SyntaxRule Layout
 #[derive(Debug)]
 pub struct StartSyntaxRule {
     pub layout_0: Token,
@@ -1581,6 +1645,7 @@ pub struct StartSyntaxRule {
     pub layout_2: Token,
     pub span: Span,
 }
+//StartRegexBlock = Layout start:RegexBlock Layout
 #[derive(Debug)]
 pub struct StartRegexBlock {
     pub layout_0: Token,
@@ -1588,6 +1653,7 @@ pub struct StartRegexBlock {
     pub layout_2: Token,
     pub span: Span,
 }
+//StartRegexRule = Layout start:RegexRule Layout
 #[derive(Debug)]
 pub struct StartRegexRule {
     pub layout_0: Token,
@@ -1595,6 +1661,7 @@ pub struct StartRegexRule {
     pub layout_2: Token,
     pub span: Span,
 }
+//StartPriorityLevel = Layout start:PriorityLevel Layout
 #[derive(Debug)]
 pub struct StartPriorityLevel {
     pub layout_0: Token,
@@ -1602,6 +1669,7 @@ pub struct StartPriorityLevel {
     pub layout_2: Token,
     pub span: Span,
 }
+//StartAlternative = Layout start:Alternative Layout
 #[derive(Debug)]
 pub struct StartAlternative {
     pub layout_0: Token,
@@ -1609,6 +1677,7 @@ pub struct StartAlternative {
     pub layout_2: Token,
     pub span: Span,
 }
+//StartSymbol = Layout start:Symbol Layout
 #[derive(Debug)]
 pub struct StartSymbol {
     pub layout_0: Token,
@@ -1616,6 +1685,7 @@ pub struct StartSymbol {
     pub layout_2: Token,
     pub span: Span,
 }
+//StartRegex = Layout start:Regex Layout
 #[derive(Debug)]
 pub struct StartRegex {
     pub layout_0: Token,
@@ -1623,6 +1693,7 @@ pub struct StartRegex {
     pub layout_2: Token,
     pub span: Span,
 }
+//StartCharClass = Layout start:CharClass Layout
 #[derive(Debug)]
 pub struct StartCharClass {
     pub layout_0: Token,
@@ -1630,6 +1701,7 @@ pub struct StartCharClass {
     pub layout_2: Token,
     pub span: Span,
 }
+//StartRange = Layout start:Range Layout
 #[derive(Debug)]
 pub struct StartRange {
     pub layout_0: Token,

@@ -164,11 +164,12 @@ fn gen_nonterminal_type_with_one_alternative(
         })
         .collect();
     let nonterminal_name = &nonterminal.name;
-    let comment = if nonterminal_name != &nonterminal.display_name() {
+    let comment = if nonterminal.is_derived() {
         let display_name = nonterminal.display_name();
         quote! { #[comment = #display_name] }
     } else {
-        quote! {}
+        let rule = format!("{} = {}", nonterminal_name, alternative);
+        quote! { #[comment = #rule] }
     };
     let nonterminal_name_id = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());
     quote! {
@@ -358,14 +359,16 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
                     .collect();
                 let label = alternative_label(alternative, index);
                 let variant_name = Ident::new(&label, Span::call_site());
+                let variant_comment = alternative.to_string();
                 // Add Span as last field in each variant
                 quote! {
+                    #[comment = #variant_comment]
                     #variant_name { #(#fields,)* span: Span }
                 }
             })
             .collect();
         let nonterminal_name = &nonterminal.name;
-        let comment = if nonterminal_name != &nonterminal.display_name() {
+        let comment = if nonterminal.is_derived() {
             let display_name = nonterminal.display_name();
             quote! { #[comment = #display_name] }
         } else {
