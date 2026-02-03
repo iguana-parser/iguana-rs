@@ -33,6 +33,22 @@ impl Alternative {
             label: None,
         }
     }
+
+    pub fn display_name(&self, grammar: &Grammar) -> String {
+        let symbols: Vec<String> = self.symbols.iter().map(|s| {
+            let def_id = s.resolved_def();
+            let name = grammar.definition(def_id).display_name();
+            match s.label() {
+                Some(label) => format!("{}:{}", label, name),
+                None => name,
+            }
+        }).collect();
+        let symbols_str = symbols.join(" ");
+        match &self.label {
+            Some(label) => format!("{} @{}", symbols_str, label),
+            None => symbols_str,
+        }
+    }
 }
 
 impl Display for Alternative {

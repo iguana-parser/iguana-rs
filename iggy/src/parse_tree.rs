@@ -88,25 +88,15 @@ impl TokenKind {
 }
 #[derive(Debug)]
 pub enum ParseTree {
-    //Grammar
     Grammar(Grammar),
-    //SyntaxRule
     SyntaxRule(SyntaxRule),
-    //RegexBlock
     RegexBlock(RegexBlock),
-    //RegexRule
     RegexRule(RegexRule),
-    //PriorityLevel
     PriorityLevel(PriorityLevel),
-    //Alternative
     Alternative(Alternative),
-    //Symbol
     Symbol(Symbol),
-    //Regex
     Regex(Regex),
-    //CharClass
     CharClass(CharClass),
-    //Range
     Range(Range),
     //SyntaxRule+
     GrammarPlus0(GrammarPlus0),
@@ -158,25 +148,15 @@ pub enum ParseTree {
     CharClassAlt0(CharClassAlt0),
     //(Range | RangeChar)+
     CharClassPlus9(CharClassPlus9),
-    //StartGrammar
     StartGrammar(StartGrammar),
-    //StartSyntaxRule
     StartSyntaxRule(StartSyntaxRule),
-    //StartRegexBlock
     StartRegexBlock(StartRegexBlock),
-    //StartRegexRule
     StartRegexRule(StartRegexRule),
-    //StartPriorityLevel
     StartPriorityLevel(StartPriorityLevel),
-    //StartAlternative
     StartAlternative(StartAlternative),
-    //StartSymbol
     StartSymbol(StartSymbol),
-    //StartRegex
     StartRegex(StartRegex),
-    //StartCharClass
     StartCharClass(StartCharClass),
-    //StartRange
     StartRange(StartRange),
     Token(Token),
 }
@@ -1101,7 +1081,7 @@ pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
 }
-//Grammar = "grammar" Layout name:Identifier Layout Grammar_Star_0 Layout Grammar_Opt_1
+//Grammar = "grammar" Layout name:Identifier Layout SyntaxRule* Layout RegexBlock?
 #[derive(Debug)]
 pub struct Grammar {
     pub lit_0: Token,
@@ -1113,7 +1093,7 @@ pub struct Grammar {
     pub regex_block: GrammarOpt1,
     pub span: Span,
 }
-//SyntaxRule = head:Identifier Layout "=" Layout SyntaxRule_Star_1
+//SyntaxRule = head:Identifier Layout "=" Layout {PriorityLevel ">"}*
 #[derive(Debug)]
 pub struct SyntaxRule {
     pub head: Token,
@@ -1123,7 +1103,7 @@ pub struct SyntaxRule {
     pub priority_levels: SyntaxRuleStar1,
     pub span: Span,
 }
-//RegexBlock = "regex" Layout "{" Layout RegexBlock_Star_2 Layout "}"
+//RegexBlock = "regex" Layout "{" Layout RegexRule* Layout "}"
 #[derive(Debug)]
 pub struct RegexBlock {
     pub lit_0: Token,
@@ -1135,7 +1115,7 @@ pub struct RegexBlock {
     pub lit_6: Token,
     pub span: Span,
 }
-//RegexRule = Identifier Layout "=" Layout RegexRule_Plus_3
+//RegexRule = Identifier Layout "=" Layout {Regex+ "|"}+
 #[derive(Debug)]
 pub struct RegexRule {
     pub identifier: Token,
@@ -1145,19 +1125,18 @@ pub struct RegexRule {
     pub regex_rule_plus_3: RegexRulePlus3,
     pub span: Span,
 }
-//PriorityLevel = PriorityLevel_Star_3
+//PriorityLevel = {Alternative "|"}*
 #[derive(Debug)]
 pub struct PriorityLevel {
     pub alternatives: PriorityLevelStar3,
     pub span: Span,
 }
-//Alternative = Alternative_Star_4
+//Alternative = Symbol*
 #[derive(Debug)]
 pub struct Alternative {
     pub symbols: AlternativeStar4,
     pub span: Span,
 }
-//Symbol
 #[derive(Debug)]
 pub enum Symbol {
     //Symbol Layout "*" @Star
@@ -1181,7 +1160,7 @@ pub enum Symbol {
         lit_2: Token,
         span: Span,
     },
-    //"(" Layout first:Symbol Layout rest:Symbol_Plus_7 Layout ")" @Alt
+    //"(" Layout first:Symbol Layout rest:("|" Symbol)+ Layout ")" @Alt
     Alt {
         lit_0: Token,
         layout_1: Token,
@@ -1227,7 +1206,7 @@ pub enum Symbol {
         lit_8: Token,
         span: Span,
     },
-    //"(" Layout Alternative_Plus_6 Layout ")" @Group
+    //"(" Layout Symbol+ Layout ")" @Group
     Group {
         lit_0: Token,
         layout_1: Token,
@@ -1242,7 +1221,6 @@ pub enum Symbol {
         span: Span,
     },
 }
-//Regex
 #[derive(Debug)]
 pub enum Regex {
     //Regex Layout "+" @Plus
@@ -1266,7 +1244,7 @@ pub enum Regex {
         lit_2: Token,
         span: Span,
     },
-    //"(" Layout first:Regex Layout rest:Regex_Plus_8 Layout ")" @Alt
+    //"(" Layout first:Regex Layout rest:("|" Regex)+ Layout ")" @Alt
     Alt {
         lit_0: Token,
         layout_1: Token,
@@ -1277,7 +1255,7 @@ pub enum Regex {
         lit_6: Token,
         span: Span,
     },
-    //"(" Layout RegexRule_Plus_4 Layout ")" @Group
+    //"(" Layout Regex+ Layout ")" @Group
     Group {
         lit_0: Token,
         layout_1: Token,
@@ -1301,7 +1279,7 @@ pub enum Regex {
         span: Span,
     },
 }
-//CharClass = CharClass_Opt_6 Layout "[" Layout CharClass_Plus_9 Layout "]"
+//CharClass = "!"? Layout "[" Layout (Range | RangeChar)+ Layout "]"
 #[derive(Debug)]
 pub struct CharClass {
     pub char_class_opt_6: CharClassOpt6,
@@ -1326,7 +1304,7 @@ pub struct Range {
 //SyntaxRule+
 #[derive(Debug)]
 pub enum GrammarPlus0 {
-    //Grammar_Plus_0 Layout SyntaxRule
+    //SyntaxRule+ Layout SyntaxRule
     Alt0 {
         syntax_rules: Box<GrammarPlus0>,
         layout: Token,
@@ -1342,7 +1320,7 @@ pub enum GrammarPlus0 {
 //SyntaxRule+?
 #[derive(Debug)]
 pub enum GrammarOpt0 {
-    //Grammar_Plus_0
+    //SyntaxRule+
     Alt0 {
         syntax_rules: GrammarPlus0,
         span: Span,
@@ -1374,7 +1352,7 @@ pub enum GrammarOpt1 {
 //{PriorityLevel ">"}+
 #[derive(Debug)]
 pub enum SyntaxRulePlus1 {
-    //SyntaxRule_Plus_1 Layout ">" Layout PriorityLevel
+    //{PriorityLevel ">"}+ Layout ">" Layout PriorityLevel
     Alt0 {
         priority_levels: Box<SyntaxRulePlus1>,
         layout_1: Token,
@@ -1392,7 +1370,7 @@ pub enum SyntaxRulePlus1 {
 //{PriorityLevel ">"}+?
 #[derive(Debug)]
 pub enum SyntaxRuleOpt2 {
-    //SyntaxRule_Plus_1
+    //{PriorityLevel ">"}+
     Alt0 {
         priority_levels: SyntaxRulePlus1,
         span: Span,
@@ -1411,7 +1389,7 @@ pub struct SyntaxRuleStar1 {
 //RegexRule+
 #[derive(Debug)]
 pub enum RegexBlockPlus2 {
-    //RegexBlock_Plus_2 Layout RegexRule
+    //RegexRule+ Layout RegexRule
     Alt0 {
         regex_rules: Box<RegexBlockPlus2>,
         layout: Token,
@@ -1427,7 +1405,7 @@ pub enum RegexBlockPlus2 {
 //RegexRule+?
 #[derive(Debug)]
 pub enum RegexBlockOpt3 {
-    //RegexBlock_Plus_2
+    //RegexRule+
     Alt0 {
         regex_rules: RegexBlockPlus2,
         span: Span,
@@ -1446,7 +1424,7 @@ pub struct RegexBlockStar2 {
 //Regex+
 #[derive(Debug)]
 pub enum RegexRulePlus4 {
-    //RegexRule_Plus_4 Layout Regex
+    //Regex+ Layout Regex
     Alt0 {
         regexes: Box<RegexRulePlus4>,
         layout: Token,
@@ -1462,7 +1440,7 @@ pub enum RegexRulePlus4 {
 //{Regex+ "|"}+
 #[derive(Debug)]
 pub enum RegexRulePlus3 {
-    //RegexRule_Plus_3 Layout "|" Layout RegexRule_Plus_4
+    //{Regex+ "|"}+ Layout "|" Layout Regex+
     Alt0 {
         regex_rule_plus_3: Box<RegexRulePlus3>,
         layout_1: Token,
@@ -1471,7 +1449,7 @@ pub enum RegexRulePlus3 {
         regexes: RegexRulePlus4,
         span: Span,
     },
-    //RegexRule_Plus_4
+    //Regex+
     Alt1 {
         regexes: RegexRulePlus4,
         span: Span,
@@ -1480,7 +1458,7 @@ pub enum RegexRulePlus3 {
 //{Alternative "|"}+
 #[derive(Debug)]
 pub enum PriorityLevelPlus5 {
-    //PriorityLevel_Plus_5 Layout "|" Layout Alternative
+    //{Alternative "|"}+ Layout "|" Layout Alternative
     Alt0 {
         alternatives: Box<PriorityLevelPlus5>,
         layout_1: Token,
@@ -1498,7 +1476,7 @@ pub enum PriorityLevelPlus5 {
 //{Alternative "|"}+?
 #[derive(Debug)]
 pub enum PriorityLevelOpt4 {
-    //PriorityLevel_Plus_5
+    //{Alternative "|"}+
     Alt0 {
         alternatives: PriorityLevelPlus5,
         span: Span,
@@ -1517,7 +1495,7 @@ pub struct PriorityLevelStar3 {
 //Symbol+
 #[derive(Debug)]
 pub enum AlternativePlus6 {
-    //Alternative_Plus_6 Layout Symbol
+    //Symbol+ Layout Symbol
     Alt0 {
         symbols: Box<AlternativePlus6>,
         layout: Token,
@@ -1533,7 +1511,7 @@ pub enum AlternativePlus6 {
 //Symbol+?
 #[derive(Debug)]
 pub enum AlternativeOpt5 {
-    //Alternative_Plus_6
+    //Symbol+
     Alt0 {
         symbols: AlternativePlus6,
         span: Span,
@@ -1560,14 +1538,14 @@ pub struct SymbolGroup0 {
 //("|" Symbol)+
 #[derive(Debug)]
 pub enum SymbolPlus7 {
-    //Symbol_Plus_7 Layout Symbol_Group_0
+    //("|" Symbol)+ Layout ("|" Symbol)
     Alt0 {
         symbol_plus_7: Box<SymbolPlus7>,
         layout: Token,
         symbol_group_0: SymbolGroup0,
         span: Span,
     },
-    //Symbol_Group_0
+    //("|" Symbol)
     Alt1 {
         symbol_group_0: SymbolGroup0,
         span: Span,
@@ -1584,14 +1562,14 @@ pub struct RegexGroup1 {
 //("|" Regex)+
 #[derive(Debug)]
 pub enum RegexPlus8 {
-    //Regex_Plus_8 Layout Regex_Group_1
+    //("|" Regex)+ Layout ("|" Regex)
     Alt0 {
         regex_plus_8: Box<RegexPlus8>,
         layout: Token,
         regex_group_1: RegexGroup1,
         span: Span,
     },
-    //Regex_Group_1
+    //("|" Regex)
     Alt1 {
         regex_group_1: RegexGroup1,
         span: Span,
@@ -1616,14 +1594,14 @@ pub enum CharClassAlt0 {
 //(Range | RangeChar)+
 #[derive(Debug)]
 pub enum CharClassPlus9 {
-    //CharClass_Plus_9 Layout CharClass_Alt_0
+    //(Range | RangeChar)+ Layout (Range | RangeChar)
     Alt0 {
         char_class_plus_9: Box<CharClassPlus9>,
         layout: Token,
         char_class_alt_0: CharClassAlt0,
         span: Span,
     },
-    //CharClass_Alt_0
+    //(Range | RangeChar)
     Alt1 {
         char_class_alt_0: CharClassAlt0,
         span: Span,

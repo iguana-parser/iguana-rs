@@ -168,7 +168,7 @@ fn gen_nonterminal_type_with_one_alternative(
         let display_name = nonterminal.display_name();
         quote! { #[comment = #display_name] }
     } else {
-        let rule = format!("{} = {}", nonterminal_name, alternative);
+        let rule = format!("{} = {}", nonterminal_name, alternative.display_name(grammar));
         quote! { #[comment = #rule] }
     };
     let nonterminal_name_id = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());
@@ -359,7 +359,7 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
                     .collect();
                 let label = alternative_label(alternative, index);
                 let variant_name = Ident::new(&label, Span::call_site());
-                let variant_comment = alternative.to_string();
+                let variant_comment = alternative.display_name(grammar);
                 // Add Span as last field in each variant
                 quote! {
                     #[comment = #variant_comment]
@@ -825,11 +825,15 @@ fn gen_parse_tree_enum(grammar: &Grammar) -> TokenStream {
         .nonterminals()
         .map(|n| {
             let name = to_pascal_case(&n.name);
-            let display_name = n.display_name();
             let ident = Ident::new(&name, Span::call_site());
-            quote! { 
-                #[comment = #display_name]
-                #ident(#ident) 
+            if n.is_derived() {
+                let display_name = n.display_name();
+                quote! {
+                    #[comment = #display_name]
+                    #ident(#ident)
+                }
+            } else {
+                quote! { #ident(#ident) }
             }
         })
         .collect();
