@@ -180,6 +180,14 @@ impl Nonterminal {
         }
     }
 
+    /// Returns true if the nonterminal was generated when converting from an EBNF Group.
+    pub fn is_group(&self) -> bool {
+        match &self.origin {
+            Some(s) => matches!(s, Symbol::Group(_)),
+            None => false,
+        }
+    }
+
     /// Returns true if the nonterminal is derived, e.g., from the EBNF to BNF conversion.
     pub fn is_derived(&self) -> bool {
         self.origin.is_some()

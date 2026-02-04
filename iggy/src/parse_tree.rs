@@ -2229,12 +2229,7 @@ impl GrammarStar0 {
         self.span
     }
     pub fn syntax_rules(&self) -> impl Iterator<Item = &SyntaxRule> {
-        self.iter()
-            .filter_map(|node| match node {
-                ParseTreeRef::GrammarOpt0(r) => Some(r),
-                _ => None,
-            })
-            .flat_map(|r| r.syntax_rules())
+        self.grammar_opt_0.syntax_rules()
     }
 }
 impl GrammarOpt1 {
@@ -2363,12 +2358,7 @@ impl SyntaxRuleStar1 {
         self.span
     }
     pub fn priority_levels(&self) -> impl Iterator<Item = &PriorityLevel> {
-        self.iter()
-            .filter_map(|node| match node {
-                ParseTreeRef::SyntaxRuleOpt2(r) => Some(r),
-                _ => None,
-            })
-            .flat_map(|r| r.priority_levels())
+        self.syntax_rule_opt_2.priority_levels()
     }
 }
 impl RegexBlockPlus2 {
@@ -2463,12 +2453,7 @@ impl RegexBlockStar2 {
         self.span
     }
     pub fn regex_rules(&self) -> impl Iterator<Item = &RegexRule> {
-        self.iter()
-            .filter_map(|node| match node {
-                ParseTreeRef::RegexBlockOpt3(r) => Some(r),
-                _ => None,
-            })
-            .flat_map(|r| r.regex_rules())
+        self.regex_block_opt_3.regex_rules()
     }
 }
 impl RegexRulePlus4 {
@@ -2552,13 +2537,11 @@ impl RegexRulePlus3 {
             RegexRulePlus3::Alt1 { span, .. } => *span,
         }
     }
-    pub fn regexes(&self) -> impl Iterator<Item = &Regex> {
-        self.iter()
-            .filter_map(|node| match node {
-                ParseTreeRef::RegexRulePlus4(r) => Some(r),
-                _ => None,
-            })
-            .flat_map(|r| r.regexes())
+    pub fn regexes(&self) -> impl Iterator<Item = impl Iterator<Item = &Regex> + '_> {
+        self.iter().filter_map(|node| match node {
+            ParseTreeRef::RegexRulePlus4(r) => Some(r.regexes()),
+            _ => None,
+        })
     }
 }
 impl PriorityLevelPlus5 {
@@ -2657,12 +2640,7 @@ impl PriorityLevelStar3 {
         self.span
     }
     pub fn alternatives(&self) -> impl Iterator<Item = &Alternative> {
-        self.iter()
-            .filter_map(|node| match node {
-                ParseTreeRef::PriorityLevelOpt4(r) => Some(r),
-                _ => None,
-            })
-            .flat_map(|r| r.alternatives())
+        self.priority_level_opt_4.alternatives()
     }
 }
 impl AlternativePlus6 {
@@ -2755,12 +2733,7 @@ impl AlternativeStar4 {
         self.span
     }
     pub fn symbols(&self) -> impl Iterator<Item = &Symbol> {
-        self.iter()
-            .filter_map(|node| match node {
-                ParseTreeRef::AlternativeOpt5(r) => Some(r),
-                _ => None,
-            })
-            .flat_map(|r| r.symbols())
+        self.alternative_opt_5.symbols()
     }
 }
 impl SymbolGroup0 {
@@ -2780,6 +2753,12 @@ impl SymbolGroup0 {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn symbol(&self) -> Option<&Symbol> {
+        self.iter().find_map(|node| match node {
+            ParseTreeRef::Symbol(inner) => Some(inner),
+            _ => None,
+        })
     }
 }
 impl SymbolPlus7 {
@@ -2817,6 +2796,12 @@ impl SymbolPlus7 {
             SymbolPlus7::Alt1 { span, .. } => *span,
         }
     }
+    pub fn symbols(&self) -> impl Iterator<Item = &Symbol> {
+        self.iter().filter_map(|node| match node {
+            ParseTreeRef::SymbolGroup0(r) => Some(r.symbol.as_ref()),
+            _ => None,
+        })
+    }
 }
 impl RegexGroup1 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -2835,6 +2820,12 @@ impl RegexGroup1 {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn regex(&self) -> Option<&Regex> {
+        self.iter().find_map(|node| match node {
+            ParseTreeRef::Regex(inner) => Some(inner),
+            _ => None,
+        })
     }
 }
 impl RegexPlus8 {
@@ -2871,6 +2862,12 @@ impl RegexPlus8 {
             RegexPlus8::Alt0 { span, .. } => *span,
             RegexPlus8::Alt1 { span, .. } => *span,
         }
+    }
+    pub fn regexes(&self) -> impl Iterator<Item = &Regex> {
+        self.iter().filter_map(|node| match node {
+            ParseTreeRef::RegexGroup1(r) => Some(r.regex.as_ref()),
+            _ => None,
+        })
     }
 }
 impl CharClassOpt6 {
@@ -3501,6 +3498,24 @@ impl<'a> ListNode<'a> for AlternativeStar4 {
             } => alternative_opt_5.iter(),
             AlternativeOpt5::Alt1 { .. } => vec![].into_iter(),
         }
+    }
+}
+impl<'a> ListNode<'a> for SymbolGroup0 {
+    fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
+        let mut items = vec![];
+        items.push(self.lit_0.as_parse_tree_ref());
+        items.push(self.layout.as_parse_tree_ref());
+        items.push(self.symbol.as_parse_tree_ref());
+        items.into_iter()
+    }
+}
+impl<'a> ListNode<'a> for RegexGroup1 {
+    fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
+        let mut items = vec![];
+        items.push(self.lit_0.as_parse_tree_ref());
+        items.push(self.layout.as_parse_tree_ref());
+        items.push(self.regex.as_parse_tree_ref());
+        items.into_iter()
     }
 }
 impl OptNode for GrammarOpt0 {

@@ -41,6 +41,11 @@ pub fn generate(
         .filter(|n| n.is_star())
         .map(|n| gen_list_node_impl_for_star(grammar, n))
         .collect();
+    let list_node_impls_for_group: Vec<_> = grammar
+        .nonterminals()
+        .filter(|n| n.is_group())
+        .map(|n| gen_list_node_impl_for_group(grammar, n))
+        .collect();
     let opt_node_trait = gen_opt_node_trait();
     let opt_node_impls: Vec<_> = grammar
         .nonterminals()
@@ -89,6 +94,7 @@ pub fn generate(
         #(#nonterminal_types_impl)*
         #(#list_node_impls_for_plus)*
         #(#list_node_impls_for_star)*
+        #(#list_node_impls_for_group)*
         #(#opt_node_impls)*
         #(#alt_accessor_impls)*
         #token_struct
@@ -1105,14 +1111,11 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
     }
 }
 
-/// Generates a typed accessor for Plus/Star/Opt nonterminals that returns
-/// an iterator over the innermost element type. For nested Plus/Star like
-/// `{Regex+ "|"}+`, this flattens through intermediate types.
 /// Generates a typed accessor method for Plus/Star/Opt nonterminals.
 ///
-/// These accessors provide a convenient way to iterate over the innermost elements
-/// without manually navigating through intermediate wrapper types. The method name
-/// is the pluralized snake_case form of the innermost element (e.g., `symbols()` for `Symbol+`).
+/// These accessors provide a convenient way to iterate over elements
+/// without manually navigating through wrapper types. The method name
+/// is the pluralized snake_case form of the child element type.
 ///
 /// # Type Hierarchy
 ///
@@ -1138,23 +1141,27 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
 /// For `Symbol*` (Star):
 /// ```ignore
 /// pub fn symbols(&self) -> impl Iterator<Item = &Symbol> {
-///     // delegates to the inner Opt type's accessor
+///     self.symbol_opt.symbols()  // delegates to inner Opt's accessor
 /// }
 /// ```
 ///
 /// # Nested Types
 ///
-/// For nested constructs like `{Symbol+ ","}+` (Plus of Plus with separator),
-/// the accessor flattens the structure to return the innermost elements:
+/// For nested constructs like `{Regex+ "|"}+` (Plus of Plus with separator),
+/// the accessor returns an iterator of iterators to preserve the grouping structure:
 /// ```ignore
-/// pub fn symbols(&self) -> impl Iterator<Item = &Symbol> {
-///     self.iter().filter_map(...).flat_map(|r| r.symbols())
+/// // For {Regex+ "|"}+, returns iterator over groups, each group is an iterator over Regex
+/// pub fn regexes(&self) -> impl Iterator<Item = impl Iterator<Item = &Regex>> {
+///     self.iter().filter_map(|node| match node {
+///         ParseTreeRef::RegexPlus(r) => Some(r.regexes()),
+///         _ => None,
+///     })
 /// }
 /// ```
 fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<TokenStream> {
     match &nonterminal.origin {
-        Some(Symbol::Plus(inner, _)) | Some(Symbol::Star(inner, _)) => {
-            let innermost_name = get_innermost_element_name(inner)?;
+        Some(Symbol::Plus(inner, _)) => {
+            let innermost_name = get_innermost_element_name(grammar, inner)?;
             let child_name = get_element_type_name(grammar, nonterminal)?;
 
             let method_name = format_ident!("{}", pluralize(&to_snake_case(&innermost_name)));
@@ -1171,17 +1178,47 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
                         })
                     }
                 })
-            } else {
-                // Nested case: child is an intermediate type (Plus/Star/Opt) with accessor.
+            } else if let Symbol::Group(_) = inner.as_ref() {
+                // Group case: e.g., `("|" Regex)+` where child is a Group struct.
+                // Access the field directly from the group struct.
+                let field_name = format_ident!("{}", to_snake_case(&innermost_name));
                 Some(quote! {
                     pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
                         self.iter().filter_map(|node| match node {
-                            ParseTreeRef::#filter_variant(r) => Some(r),
+                            ParseTreeRef::#filter_variant(r) => Some(r.#field_name.as_ref()),
                             _ => None,
-                        }).flat_map(|r| r.#method_name())
+                        })
+                    }
+                })
+            } else {
+                // Nested case: e.g., `{Regex+ "|"}+` where child is an intermediate Plus/Star type.
+                // Return Iterator<Item = impl Iterator<Item = &Regex>> to preserve grouping.
+                Some(quote! {
+                    pub fn #method_name(&self) -> impl Iterator<Item = impl Iterator<Item = &#innermost_type> + '_> {
+                        self.iter().filter_map(|node| match node {
+                            ParseTreeRef::#filter_variant(r) => Some(r.#method_name()),
+                            _ => None,
+                        })
                     }
                 })
             }
+        }
+        Some(Symbol::Star(inner, _)) => {
+            // Star is a struct that wraps an Opt type. Delegate to the inner Opt's accessor.
+            let innermost_name = get_innermost_element_name(grammar, inner)?;
+            let method_name = format_ident!("{}", pluralize(&to_snake_case(&innermost_name)));
+            let innermost_type = Ident::new(&to_pascal_case(&innermost_name), Span::call_site());
+
+            // Get the field name of the inner Opt type
+            let alternatives = grammar.alternatives(nonterminal);
+            let opt_symbol = alternatives[0].symbols.first()?;
+            let opt_field_name = Ident::new(&gen_field_name(grammar, opt_symbol, 0, false), Span::call_site());
+
+            Some(quote! {
+                pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
+                    self.#opt_field_name.#method_name()
+                }
+            })
         }
         Some(Symbol::Opt(inner)) => {
             // Only generate accessor for Opt types that wrap Plus/Star (e.g., `SyntaxRule+?`)
@@ -1191,7 +1228,7 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
                 _ => return None,
             };
 
-            let innermost_name = get_innermost_element_name(inner_inner)?;
+            let innermost_name = get_innermost_element_name(grammar, inner_inner)?;
             let method_name = format_ident!("{}", pluralize(&to_snake_case(&innermost_name)));
             let innermost_type = Ident::new(&to_pascal_case(&innermost_name), Span::call_site());
 
@@ -1200,6 +1237,65 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
                     self.value().into_iter().flat_map(|inner| inner.#method_name())
                 }
             })
+        }
+        Some(Symbol::Group(elements)) => {
+            // Group case: e.g., `("|" Regex)` with exactly one nonterminal.
+            // Generate a typed accessor that uses iter() and filters for the nonterminal type.
+            let nonterminals: Vec<_> = elements
+                .iter()
+                .filter_map(|elem| get_innermost_element_name(grammar, elem))
+                .collect();
+            if nonterminals.len() != 1 {
+                return None;
+            }
+            let innermost_name = &nonterminals[0];
+            let method_name = format_ident!("{}", to_snake_case(innermost_name));
+            let innermost_type = Ident::new(&to_pascal_case(innermost_name), Span::call_site());
+
+            Some(quote! {
+                pub fn #method_name(&self) -> Option<&#innermost_type> {
+                    self.iter().find_map(|node| match node {
+                        ParseTreeRef::#innermost_type(inner) => Some(inner),
+                        _ => None,
+                    })
+                }
+            })
+        }
+        _ => None,
+    }
+}
+
+/// Recursively finds the innermost nonterminal element name by walking through nested Plus/Star/Group symbols.
+/// For `Regex+` returns "Regex". For `{Regex+ "|"}+` also returns "Regex".
+/// For `("|" Regex)+` returns "Regex" (the single nonterminal in the group).
+///
+/// Note: After `add_lexical_rules_for_literals` transformation, string literals like `"|"` are
+/// converted to Identifier symbols referencing terminal definitions. We use the Grammar to
+/// distinguish terminals from nonterminals, returning None for terminals.
+fn get_innermost_element_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
+    match symbol {
+        Symbol::Identifier(ident) => {
+            // Check if this identifier refers to a terminal (e.g., a string literal like "|")
+            // Terminals should not be considered as the "innermost element" for typed accessors
+            if let Some(def_id) = ident.definition {
+                if matches!(grammar.definition(def_id), Definition::Terminal(_)) {
+                    return None;
+                }
+            }
+            Some(ident.name.clone())
+        }
+        Symbol::Plus(inner, _) | Symbol::Star(inner, _) => get_innermost_element_name(grammar, inner),
+        Symbol::Group(elements) => {
+            // Find groups with exactly one nonterminal (e.g., ("|" Regex))
+            let nonterminals: Vec<_> = elements
+                .iter()
+                .filter_map(|elem| get_innermost_element_name(grammar, elem))
+                .collect();
+            if nonterminals.len() == 1 {
+                nonterminals.into_iter().next()
+            } else {
+                None
+            }
         }
         _ => None,
     }
@@ -1212,16 +1308,6 @@ fn get_element_type_name<'a>(grammar: &'a Grammar, nonterminal: &Nonterminal) ->
     let child_symbol = base_alt.symbols.first()?;
     let child_def = grammar.definition(child_symbol.resolved_def());
     Some(child_def.name())
-}
-
-/// Recursively finds the innermost element name by walking through nested Plus/Star symbols.
-/// For `Regex+` returns "Regex". For `{Regex+ "|"}+` also returns "Regex".
-fn get_innermost_element_name(symbol: &Symbol) -> Option<String> {
-    match symbol {
-        Symbol::Identifier(ident) => Some(ident.name.clone()),
-        Symbol::Plus(inner, _) | Symbol::Star(inner, _) => get_innermost_element_name(inner),
-        _ => None,
-    }
 }
 
 fn pluralize(word: &str) -> String {
@@ -1330,6 +1416,35 @@ fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                     #first_arm
                     #second_arm
                 }
+            }
+        }
+    }
+}
+
+fn gen_list_node_impl_for_group(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
+    let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let alternatives = grammar.alternatives(nonterminal);
+    // Groups always have exactly one alternative
+    assert_eq!(alternatives.len(), 1);
+    let alternative = &alternatives[0];
+    let fields = field_names(grammar, alternative);
+
+    // Generate code to collect each field into the items vector
+    let field_refs: Vec<_> = fields
+        .iter()
+        .map(|field| {
+            quote! {
+                items.push(self.#field.as_parse_tree_ref());
+            }
+        })
+        .collect();
+
+    quote! {
+        impl<'a> ListNode<'a> for #ident {
+            fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
+                let mut items = vec![];
+                #(#field_refs)*
+                items.into_iter()
             }
         }
     }

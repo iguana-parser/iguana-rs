@@ -181,42 +181,14 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
     let name = text(input, rule.identifier.span());
     let head = Terminal::new(name);
 
-    let alternatives = collect_regex_alternatives(&rule.body, input);
-
-    let regex = if alternatives.len() == 1 {
-        alternatives.into_iter().next().unwrap()
-    } else {
-        Regex::Alt(alternatives)
-    };
-
+    // TODO: add simplification rules to convert Alt(regex) to regex, and Seq(regex) to regex.
+    let regex = Regex::Alt(
+        rule.body
+            .regexes()
+            .map(|inner| Regex::Seq(inner.map(|r| convert_regex(r, input)).collect()))
+            .collect(),
+    );
     LexicalRule { head, regex }
-}
-
-fn collect_regex_alternatives(plus3: &parse_tree::RegexRulePlus3, input: &Input) -> Vec<Regex> {
-    match plus3 {
-        parse_tree::RegexRulePlus3::Alt0 {
-            regex_rule_plus_3,
-            regexes,
-            ..
-        } => {
-            let mut alts = collect_regex_alternatives(regex_rule_plus_3, input);
-            alts.push(collect_regex_sequence(regexes, input));
-            alts
-        }
-        parse_tree::RegexRulePlus3::Alt1 { regexes, .. } => {
-            vec![collect_regex_sequence(regexes, input)]
-        }
-    }
-}
-
-fn collect_regex_sequence(plus4: &parse_tree::RegexRulePlus4, input: &Input) -> Regex {
-    let regexes: Vec<Regex> = plus4.regexes().map(|r| convert_regex(r, input)).collect();
-
-    if regexes.len() == 1 {
-        regexes.into_iter().next().unwrap()
-    } else {
-        Regex::Seq(regexes)
-    }
 }
 
 fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
@@ -225,7 +197,11 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
         parse_tree::Regex::Star { regex, .. } => Regex::Star(Box::new(convert_regex(regex, input))),
         parse_tree::Regex::Opt { regex, .. } => Regex::Opt(Box::new(convert_regex(regex, input))),
         parse_tree::Regex::Alt { first, rest, .. } => {
-            todo!()
+            let mut regexes = vec![convert_regex(first, input)];
+            let rest_regexes: Vec<Regex> =
+                rest.regexes().map(|r| convert_regex(r, input)).collect();
+            regexes.extend(rest_regexes);
+            Regex::Alt(regexes)
         }
         parse_tree::Regex::CharClass { char_class, .. } => convert_char_class(char_class, input),
         parse_tree::Regex::Char { char, .. } => Regex::Char(parse_char(&text(input, char.span()))),
