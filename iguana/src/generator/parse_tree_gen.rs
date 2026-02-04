@@ -54,7 +54,7 @@ pub fn generate(
         .collect();
     let alt_accessor_impls: Vec<TokenStream> = grammar
         .nonterminals()
-        .filter(|n| matches!(&n.origin, Some(Symbol::Alt(_))))
+        .filter(|n| is_single_symbol_alternation(grammar, n))
         .map(|n| gen_alt_accessors(grammar, n))
         .collect();
     let from_for_tree_impls = gen_from_for_tree_impls(grammar);
@@ -1068,6 +1068,33 @@ fn gen_opt_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
     }
 }
 
+/// Returns true if the nonterminal is an alternation where each alternative has exactly one symbol.
+/// This includes both anonymous inline alternations (Symbol::Alt origin) and named nonterminals
+/// like `RangeElement = Range | RangeChar`.
+fn is_single_symbol_alternation(grammar: &Grammar, nonterminal: &Nonterminal) -> bool {
+    // Anonymous inline alternations always qualify
+    if matches!(&nonterminal.origin, Some(Symbol::Alt(_))) {
+        return true;
+    }
+    // Named nonterminals: check if they have multiple alternatives, each with exactly one symbol
+    let alternatives = grammar.alternatives(nonterminal);
+    alternatives.len() > 1 && alternatives.iter().all(|alt| alt.symbols.len() == 1)
+}
+
+/// Generates `as_xxx` accessor methods for single-symbol alternation nonterminals.
+///
+/// For alternations where each alternative contains exactly one symbol (terminal or nonterminal),
+/// this generates accessor methods that return `Option<&T>` for each variant.
+///
+/// # Example
+///
+/// For `RangeElement = Range | RangeChar`, generates:
+/// ```ignore
+/// impl RangeElement {
+///     pub fn as_range(&self) -> Option<&Range> { ... }
+///     pub fn as_range_char(&self) -> Option<&Token> { ... }
+/// }
+/// ```
 fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let alt_type = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
     let alternatives = grammar.alternatives(nonterminal);

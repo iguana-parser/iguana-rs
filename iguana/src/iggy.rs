@@ -1,8 +1,6 @@
 use iggy::{
     parse_tree,
-    parse_tree::{
-        IggyParseTreeBuilder, ListNode, OptNode, ParseTree, StartGrammar, create_parse_tree,
-    },
+    parse_tree::{IggyParseTreeBuilder, OptNode, ParseTree, StartGrammar, create_parse_tree},
     parser::IggyParser,
 };
 use iguana_runtime::{
@@ -69,7 +67,7 @@ fn build_grammar(
     input: &Input,
 ) -> Result<GrammarDef, Error> {
     let grammar = &start_grammar.start;
-    let name = text(input, grammar.identifier.span());
+    let name = text(input, grammar.name.span());
 
     let syntax_rules: Vec<SyntaxRule> = grammar
         .syntax_rules
@@ -92,7 +90,7 @@ fn build_grammar(
 }
 
 fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRule {
-    let head_name = text(input, rule.identifier.span());
+    let head_name = text(input, rule.head.span());
     let head = Nonterminal::new(head_name);
 
     let priority_levels: Vec<PriorityLevel> = rule
@@ -138,13 +136,10 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
         parse_tree::Symbol::Opt { symbol, .. } => {
             Symbol::Opt(Box::new(convert_symbol(symbol, input)))
         }
-        // TODO: Update the generator to produce a symbols() method that bypasses the group level
         parse_tree::Symbol::Alt { first, rest, .. } => {
             let mut symbols = vec![convert_symbol(first, input)];
-            symbols.extend(rest.iter().filter_map(|node| match node {
-                parse_tree::ParseTreeRef::SymbolGroup0(g) => Some(convert_symbol(&g.symbol, input)),
-                _ => None,
-            }));
+            let rest: Vec<Symbol> = rest.symbols().map(|s| convert_symbol(s, input)).collect();
+            symbols.extend(rest);
             Symbol::Alt(symbols)
         }
         parse_tree::Symbol::Lit { string, .. } => Symbol::Literal(text(input, string.span())),
@@ -205,61 +200,31 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
         }
         parse_tree::Regex::CharClass { char_class, .. } => convert_char_class(char_class, input),
         parse_tree::Regex::Char { char, .. } => Regex::Char(parse_char(&text(input, char.span()))),
-        parse_tree::Regex::Group {
-            lit_0,
-            layout_1,
-            regexes,
-            layout_3,
-            lit_4,
-            span,
-        } => todo!(),
+        parse_tree::Regex::Group { regexes, .. } => {
+            Regex::Seq(regexes.regexes().map(|r| convert_regex(r, input)).collect())
+        }
     }
 }
 
 fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Regex {
-    let negated = char_class.char_class_opt_6.value().is_some();
-    let ranges = collect_char_class_ranges(&char_class.char_class_plus_9, input);
-
+    let negated = char_class.neg.value().is_some();
+    let ranges = char_class
+        .ranges
+        .range_elements()
+        .map(|e| {
+            if let Some(range) = e.as_range() {
+                let start = parse_range_char(&text(input, range.start.span()));
+                let end = parse_range_char(&text(input, range.end.span()));
+                CharRange { start, end }
+            } else if let Some(range_char) = e.as_range_char() {
+                let ch = parse_range_char(&text(input, range_char.span()));
+                CharRange { start: ch, end: ch }
+            } else {
+                unreachable!()
+            }
+        })
+        .collect();
     Regex::CharClass(CharClass { ranges, negated })
-}
-
-fn collect_char_class_ranges(plus7: &parse_tree::CharClassPlus9, input: &Input) -> Vec<CharRange> {
-    match plus7 {
-        parse_tree::CharClassPlus9::Alt0 {
-            char_class_plus_9,
-            char_class_alt_0,
-            ..
-        } => {
-            let mut ranges = collect_char_class_ranges(char_class_plus_9, input);
-            if let Some(range) = convert_char_class_alt0(char_class_alt_0, input) {
-                ranges.push(range);
-            }
-            ranges
-        }
-        parse_tree::CharClassPlus9::Alt1 {
-            char_class_alt_0, ..
-        } => {
-            let mut ranges = Vec::new();
-            if let Some(range) = convert_char_class_alt0(char_class_alt_0, input) {
-                ranges.push(range);
-            }
-            ranges
-        }
-    }
-}
-
-fn convert_char_class_alt0(alt0: &parse_tree::CharClassAlt0, input: &Input) -> Option<CharRange> {
-    match alt0 {
-        parse_tree::CharClassAlt0::Alt0 { range, .. } => {
-            let start = parse_range_char(&text(input, range.range_char_0.span()));
-            let end = parse_range_char(&text(input, range.range_char_4.span()));
-            Some(CharRange { start, end })
-        }
-        parse_tree::CharClassAlt0::Alt1 { range_char, .. } => {
-            let ch = parse_range_char(&text(input, range_char.span()));
-            Some(CharRange { start: ch, end: ch })
-        }
-    }
 }
 
 fn parse_char(s: &str) -> char {

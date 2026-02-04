@@ -274,10 +274,10 @@ fn ambiguous_grammar() -> Grammar {
 // grammar Iggy
 //
 // Grammar
-//   = "grammar" Identifier SyntaxRule* RegexBlock?
+//   = "grammar" name:Identifier SyntaxRule* RegexBlock?
 //
 // SyntaxRule
-//   = Identifier "=" {PriorityLevel ">"}*
+//   = head:Identifier "=" {PriorityLevel ">"}*
 //
 // PriorityLevel
 //   = { Alternative "|" }*
@@ -312,10 +312,14 @@ fn ambiguous_grammar() -> Grammar {
 //   | "\"" Char "\""                            @Char
 //
 // CharClass
-//   = "!"? "[" (Range | RangeChar)+ "]"
+//   = neg:"!"? "[" ranges:RangeElement+ "]"
+//
+// RangeElement
+//   = Range 
+//   | RangeChar
 //
 // Range
-//   = RangeChar "-" RangeChar
+//   = start:RangeChar "-" end:RangeChar
 //
 // regex {
 //   RangeChar
@@ -334,16 +338,16 @@ fn ambiguous_grammar() -> Grammar {
 fn iggy() -> GrammarDef {
     grammar_def!("Iggy",
         syntax: [
-            // Grammar = "grammar" Identifier SyntaxRule* RegexBlock?
+            // Grammar = "grammar" name:Identifier SyntaxRule* RegexBlock?
             syntax_rule!("Grammar" => alternative!(
                 lit!("grammar"),
-                id!("Identifier"),
+                labeled!("name", id!("Identifier")),
                 star!(id!("SyntaxRule")),
                 opt!(id!("RegexBlock"))
             )),
-            // SyntaxRule = Identifier "=" {PriorityLevel ">"}*
+            // SyntaxRule = head:Identifier "=" {PriorityLevel ">"}*
             syntax_rule!("SyntaxRule" => alternative!(
-                id!("Identifier"),
+                labeled!("head", id!("Identifier")),
                 lit!("="),
                 star!(id!("PriorityLevel"), lit!(">"))
             )),
@@ -406,18 +410,23 @@ fn iggy() -> GrammarDef {
                 alternative!(id!("CharClass"), @"CharClass"),
                 alternative!(lit!("\""), id!("Char"), lit!("\""), @"Char")
             )),
-            // CharClass = "!"? "[" (Range | RangeChar)+ "]"
+            // CharClass = neg:"!"? "[" ranges:RangeElement+ "]"
             syntax_rule!("CharClass" => alternative!(
-                opt!(lit!("!")),
+                labeled!("neg", opt!(lit!("!"))),
                 lit!("["),
-                plus!(alt!(id!("Range"), id!("RangeChar"))),
+                labeled!("ranges", plus!(id!("RangeElement"))),
                 lit!("]")
             )),
-            // Range = RangeChar "-" RangeChar
+            // RangeElement = Range | RangeChar
+            syntax_rule!("RangeElement" => priority_level!(
+                alternative!(id!("Range")),
+                alternative!(id!("RangeChar"))
+            )),
+            // Range = start:RangeChar "-" end:RangeChar
             syntax_rule!("Range" => alternative!(
-                id!("RangeChar"),
+                labeled!("start", id!("RangeChar")),
                 lit!("-"),
-                id!("RangeChar")
+                labeled!("end", id!("RangeChar"))
             )),
         ],
         lexical: [
@@ -431,7 +440,7 @@ fn iggy() -> GrammarDef {
                 r_seq!(c!('\\'), cc!(['\''-'\'', '"'-'"', '\\'-'\\', 't'-'t', 'f'-'f', 'r'-'r', 'n'-'n'])),
                 cc!(!['\''-'\'', '"'-'"', '\\'-'\\'])
             ))),
-            // RangeChar = ![\\ \- \[ \] \t \f \r \n] | "\\" [\\ \- \[ \] t f r n]
+            // RangeChar = ![\\ \- \[ \] \t \f \r \n \ ] | "\\" [\\ \- \[ \] t f r n \ ]
             lexical_rule!("RangeChar" => r_alt!(
                 cc!(![
                     '\\'-'\\',
@@ -442,8 +451,9 @@ fn iggy() -> GrammarDef {
                     '\x0c'-'\x0c',
                     '\r'-'\r',
                     '\n'-'\n',
+                    ' '-' ',
                 ]),
-                r_seq!(c!('\\'), cc!(['\\'-'\\', '-'-'-', '['-'[', ']'-']', 't'-'t', 'f'-'f', 'r'-'r', 'n'-'n']))
+                r_seq!(c!('\\'), cc!(['\\'-'\\', '-'-'-', '['-'[', ']'-']', 't'-'t', 'f'-'f', 'r'-'r', 'n'-'n', ' '-' ']))
             )),
             // Char = "\\" [' " \\ t f r n] | !['"\\]
             lexical_rule!("Char" => r_alt!(

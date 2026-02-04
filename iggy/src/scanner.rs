@@ -16,7 +16,7 @@ const CHAR_CLASS_2: [(char, char); 7usize] = [
     ('n', 'n'),
 ];
 const CHAR_CLASS_3: [(char, char); 3usize] = [('\'', '\''), ('"', '"'), ('\\', '\\')];
-const CHAR_CLASS_4: [(char, char); 8usize] = [
+const CHAR_CLASS_4: [(char, char); 9usize] = [
     ('\\', '\\'),
     ('-', '-'),
     ('[', '['),
@@ -25,8 +25,9 @@ const CHAR_CLASS_4: [(char, char); 8usize] = [
     ('\u{c}', '\u{c}'),
     ('\r', '\r'),
     ('\n', '\n'),
+    (' ', ' '),
 ];
-const CHAR_CLASS_5: [(char, char); 8usize] = [
+const CHAR_CLASS_5: [(char, char); 9usize] = [
     ('\\', '\\'),
     ('-', '-'),
     ('[', '['),
@@ -35,6 +36,7 @@ const CHAR_CLASS_5: [(char, char); 8usize] = [
     ('f', 'f'),
     ('r', 'r'),
     ('n', 'n'),
+    (' ', ' '),
 ];
 pub struct IggyScanner<'i> {
     pub input: &'i Input,
