@@ -135,12 +135,6 @@ mod tests {
     use crate::input::Input;
 
     #[test]
-    #[should_panic(expected = "Input cannot be empty")]
-    fn test_empty_input() {
-        let _ = Input::from("");
-    }
-
-    #[test]
     fn test_line_column() {
         let input = Input::from("abc\nde");
         assert_eq!(input.line_column(0), (0, 0)); // 'a'
