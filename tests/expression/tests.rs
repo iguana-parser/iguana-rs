@@ -9,15 +9,15 @@ fn check(start_nonterminal: &str, input: &str, test_name: &str) {
 
 #[test]
 fn test_lit() {
-    check("StartE", "a", "lit");
+    check("E", "a", "lit");
 }
 
 #[test]
 fn test_add() {
-    check("StartE", "a+a", "add");
+    check("E", "a+a", "add");
 }
 
 #[test]
 fn test_mul() {
-    check("StartE", "a*a", "mul");
+    check("E", "a*a", "mul");
 }

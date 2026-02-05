@@ -1,7 +1,3 @@
-(StartE
-  Layout
-  (E
-    "a"
-  )
-  Layout
+(E
+  "a"
 )

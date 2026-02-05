@@ -1,15 +1,11 @@
-(StartE
-  Layout
+(E
   (E
-    (E
-      "a"
-    )
-    Layout
-    "+"
-    Layout
-    (E
-      "a"
-    )
+    "a"
   )
   Layout
+  "+"
+  Layout
+  (E
+    "a"
+  )
 )
