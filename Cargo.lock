@@ -250,6 +250,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e629b9b98ef3dd8afe6ca2bd0f89306cec16d43d907889945bc5d6687f2f13c7"
 
 [[package]]
+name = "group"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -459,6 +473,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
+name = "opt"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
+]
+
+[[package]]
 name = "parking_lot"
 version = "0.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -521,6 +549,48 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67eabc2ef2a60eb7faa00097bd1ffdb5bd28e62bf39990626a582201b7a754e5"
 dependencies = [
  "siphasher",
+]
+
+[[package]]
+name = "plus"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
+]
+
+[[package]]
+name = "plus_group"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
+]
+
+[[package]]
+name = "plus_with_sep"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
 ]
 
 [[package]]
@@ -699,6 +769,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbbb5d9659141646ae647b42fe094daf6c6192d1620870b449d9557f748b2daa"
 
 [[package]]
+name = "simple_alt"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
+]
+
+[[package]]
 name = "siphasher"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -730,6 +814,34 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "star"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
+]
+
+[[package]]
+name = "star_with_sep"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
 ]
 
 [[package]]

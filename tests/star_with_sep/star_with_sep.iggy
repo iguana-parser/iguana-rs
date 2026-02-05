@@ -1,0 +1,5 @@
+grammar StarWithSep
+
+S = {A ","}*
+
+A = "a"

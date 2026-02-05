@@ -1,0 +1,5 @@
+grammar Plus
+
+S = A+
+
+A = "a"

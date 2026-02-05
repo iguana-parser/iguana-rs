@@ -1,7 +1,7 @@
 use clap::Parser as ClapParser;
-use iggy::{
-    parse_tree::{IggyParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
-    parser::{IggyParser, NONTERMINALS, SLOTS, TERMINALS},
+use group::{
+    parse_tree::{GroupParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
+    parser::{GroupParser, NONTERMINALS, SLOTS, TERMINALS},
     types::Nonterminal,
 };
 #[cfg(feature = "debug-trace")]
@@ -123,18 +123,18 @@ fn main() -> Result<(), io::Error> {
     }
     let input = Input::try_from(file.as_path())?;
     let start_nonterminal_id =
-        IggyParser::nonterminal_id(&start_nonterminal_name).ok_or_else(|| {
+        GroupParser::nonterminal_id(&start_nonterminal_name).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 format!("Unknown nonterminal: '{}'", start_nonterminal_name),
             )
         })?;
-    let mut parser = IggyParser::new(&input, start_nonterminal_id);
+    let mut parser = GroupParser::new(&input, start_nonterminal_id);
     #[cfg(feature = "debug-trace")]
     if cli.trace.is_some() {
         parser.trace_events = Some(vec![]);
     }
-    let parse_tree_builder = IggyParseTreeBuilder;
+    let parse_tree_builder = GroupParseTreeBuilder;
     let result = parser.run();
     #[cfg(feature = "debug-trace")]
     if let Some(ref trace_events) = parser.trace_events {

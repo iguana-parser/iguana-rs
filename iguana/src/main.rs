@@ -2,12 +2,12 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    alt, alternative, c,
+    alternative,
     generator::generate,
-    grammar::{def::Grammar, symbols::Terminal},
-    grammar_def, group, id,
+    grammar::def::Grammar,
+    grammar_def, id,
     iggy::parse_grammar,
-    lexical_rule, lit, opt, plus, priority_level, r_star, star, syntax_rule,
+    lit, opt, priority_level, syntax_rule,
 };
 
 #[derive(Parser)]
@@ -217,6 +217,21 @@ fn generate_all_tests() -> std::io::Result<()> {
                 print!("Generating {}... ", name);
                 std::io::stdout().flush()?;
                 generate_parser(Some(&grammar_file), &path)?;
+
+                // Re-add [[test]] section if tests.rs exists
+                let tests_rs = path.join("tests.rs");
+                if tests_rs.exists() {
+                    let cargo_toml = path.join("Cargo.toml");
+                    let cargo_content = std::fs::read_to_string(&cargo_toml)?;
+                    if !cargo_content.contains("[[test]]") {
+                        let updated = cargo_content.replace(
+                            "[features]",
+                            "[[test]]\nname = \"tests\"\npath = \"tests.rs\"\n\n[features]",
+                        );
+                        std::fs::write(&cargo_toml, updated)?;
+                    }
+                }
+
                 println!("done");
             }
         }
@@ -250,31 +265,6 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
 }
 
 #[allow(dead_code)]
-fn grammar2() -> Grammar {
-    // P -> S+
-    // S -> E ";"
-    // E -> E '+' E | 'a'
-    // WS -> ' '*
-    grammar_def!("Test2",
-        syntax: [
-            syntax_rule!("P" => alternative!(plus!(id!("S")))),
-            syntax_rule!("S" => alternative!(id!("E"))),
-            syntax_rule!("E" => priority_level!(
-                alternative!(id!("E"), lit!("+"), id!("E")),
-                alternative!(lit!("a"))
-            ))
-        ],
-        lexical: [
-            lexical_rule!("WS" => r_star!(c!(' ')))
-        ],
-        layout: [
-            Terminal::new("WS")
-        ]
-    )
-    .into()
-}
-
-#[allow(dead_code)]
 fn grammar3() -> Grammar {
     // S : S S S | S S | b
     grammar_def!("Test2",
@@ -289,126 +279,8 @@ fn grammar3() -> Grammar {
     .into()
 }
 
-#[allow(dead_code)]
-fn grammar4() -> Grammar {
-    // S : A+
-    // A : 'a'
-    grammar_def!("Test2",
-        syntax: [
-            syntax_rule!("S" => alternative!(plus!(id!("A")))),
-            syntax_rule!("A" => alternative!(lit!("a")))
-        ]
-    )
-    .into()
-}
 
 #[allow(dead_code)]
-fn grammar5() -> Grammar {
-    // S : (A B C)+
-    // A : 'a'
-    // B: 'b'
-    // C : 'c'
-    grammar_def!("Test2",
-        syntax: [
-            syntax_rule!("S" => alternative!(plus!(group!(id!("A"), id!("B"), id!("C"))))),
-            syntax_rule!("A" => alternative!(lit!("a"))),
-            syntax_rule!("B" => alternative!(lit!("b"))),
-            syntax_rule!("C" => alternative!(lit!("c")))
-        ]
-    )
-    .into()
-}
-
-fn star_grammar() -> Grammar {
-    // S : A*
-    // A : "a"
-    grammar_def!("Test2",
-        syntax: [
-            syntax_rule!("S" => alternative!(star!(id!("A")))),
-            syntax_rule!("A" => alternative!(lit!("a")))
-        ]
-    )
-    .into()
-}
-
-fn star_with_sep() -> Grammar {
-    // S : {A ","}*
-    // A : "a"
-    grammar_def!("Test2",
-        syntax: [
-            syntax_rule!("S" => alternative!(star!(id!("A"), lit!(",")))),
-            syntax_rule!("A" => alternative!(lit!("a")))
-        ]
-    )
-    .into()
-}
-
-fn plus_with_sep() -> Grammar {
-    // S : {A ","}+
-    // A : "a"
-    grammar_def!("Test2",
-        syntax: [
-            syntax_rule!("S" => alternative!(plus!(id!("A"), lit!(",")))),
-            syntax_rule!("A" => alternative!(lit!("a")))
-        ]
-    )
-    .into()
-}
-
-fn group() -> Grammar {
-    // A: (B C D);
-    // B: 'b'
-    // C: 'c'
-    // D: 'd'
-    grammar_def!("Test2",
-        syntax: [
-            syntax_rule!("A" => alternative!(group!(id!("B"), id!("C"), id!("D")))),
-            syntax_rule!("B" => alternative!(lit!("b"))),
-            syntax_rule!("C" => alternative!(lit!("c"))),
-            syntax_rule!("D" => alternative!(lit!("d"))),
-        ]
-    )
-    .into()
-}
-
-fn simple_alt() -> Grammar {
-    // A: B (C | D);
-    // B: 'b'
-    // C: 'c'
-    // D: 'd'
-    grammar_def!("Test2",
-        syntax: [
-            syntax_rule!("A" => alternative!(id!("B"), alt!(id!("C"), id!("D")))),
-            syntax_rule!("B" => alternative!(lit!("b"))),
-            syntax_rule!("C" => alternative!(lit!("c"))),
-            syntax_rule!("D" => alternative!(lit!("d"))),
-        ]
-    )
-    .into()
-}
-
-fn empty() -> Grammar {
-    // A: ;
-    grammar_def!("Test2",
-        syntax: [
-            syntax_rule!("A" => alternative!()),
-        ]
-    )
-    .into()
-}
-
-fn opt() -> Grammar {
-    // S: A?;
-    // A: "a";
-    grammar_def!("Test2",
-        syntax: [
-            syntax_rule!("S" => alternative!(opt!(id!("A")))),
-            syntax_rule!("A" => alternative!(lit!("a")))
-        ]
-    )
-    .into()
-}
-
 fn ambiguous_grammar() -> Grammar {
     // S: A? | ;
     // A: "a";

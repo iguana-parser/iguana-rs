@@ -1,9 +1,4 @@
 use clap::Parser as ClapParser;
-use iggy::{
-    parse_tree::{IggyParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
-    parser::{IggyParser, NONTERMINALS, SLOTS, TERMINALS},
-    types::Nonterminal,
-};
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
@@ -14,6 +9,11 @@ use iguana_runtime::{
         gss::{build_gss_dot_graph, render_gss},
         sppf::{build_sppf_graph, write_sppf_dot},
     },
+};
+use plus::{
+    parse_tree::{PlusParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
+    parser::{NONTERMINALS, PlusParser, SLOTS, TERMINALS},
+    types::Nonterminal,
 };
 use std::{
     fs::File,
@@ -123,18 +123,18 @@ fn main() -> Result<(), io::Error> {
     }
     let input = Input::try_from(file.as_path())?;
     let start_nonterminal_id =
-        IggyParser::nonterminal_id(&start_nonterminal_name).ok_or_else(|| {
+        PlusParser::nonterminal_id(&start_nonterminal_name).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 format!("Unknown nonterminal: '{}'", start_nonterminal_name),
             )
         })?;
-    let mut parser = IggyParser::new(&input, start_nonterminal_id);
+    let mut parser = PlusParser::new(&input, start_nonterminal_id);
     #[cfg(feature = "debug-trace")]
     if cli.trace.is_some() {
         parser.trace_events = Some(vec![]);
     }
-    let parse_tree_builder = IggyParseTreeBuilder;
+    let parse_tree_builder = PlusParseTreeBuilder;
     let result = parser.run();
     #[cfg(feature = "debug-trace")]
     if let Some(ref trace_events) = parser.trace_events {

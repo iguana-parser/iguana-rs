@@ -1,0 +1,9 @@
+grammar Group
+
+A = (B C D)
+
+B = "b"
+
+C = "c"
+
+D = "d"

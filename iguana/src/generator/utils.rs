@@ -78,6 +78,16 @@ pub fn is_rust_keyword(s: &str) -> bool {
     RUST_KEYWORDS.contains(&s)
 }
 
+/// Creates an identifier that is safe to use in generated Rust code.
+/// If the name is a Rust keyword, uses raw identifier syntax (r#keyword).
+pub fn safe_ident(name: &str) -> proc_macro2::Ident {
+    if is_rust_keyword(name) {
+        proc_macro2::Ident::new_raw(name, proc_macro2::Span::call_site())
+    } else {
+        proc_macro2::Ident::new(name, proc_macro2::Span::call_site())
+    }
+}
+
 pub fn rustfmt(code: &str) -> String {
     let mut child = Command::new("rustfmt")
         .arg("--edition")

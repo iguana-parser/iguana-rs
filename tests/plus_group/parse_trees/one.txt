@@ -1,0 +1,17 @@
+(S
+  ((A B C)+
+    ((A B C)
+      (A
+        "a"
+      )
+      Layout
+      (B
+        "b"
+      )
+      Layout
+      (C
+        "c"
+      )
+    )
+  )
+)

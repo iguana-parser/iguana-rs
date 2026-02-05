@@ -1,0 +1,5 @@
+grammar PlusWithSep
+
+S = {A ","}+
+
+A = "a"
