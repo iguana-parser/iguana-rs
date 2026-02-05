@@ -1,11 +1,5 @@
-use crate::{generator::utils::to_snake_case, grammar::def::Grammar};
-
-pub fn generate(grammar: &Grammar) -> String {
-    let grammar_name = &grammar.name;
-    format!(
-        r#"
 [package]
-name = "{}"
+name = "left_recursive_list"
 version = "0.1.0"
 edition = "2024"
 
@@ -24,13 +18,8 @@ log.workspace = true
 rustc-hash.workspace = true
 serde_json.workspace = true
 dhat = "0.3"
-phf = {{ version = "0.11", features = ["macros"] }}
+phf = { version = "0.11", features = ["macros"] }
 
 [features]
 dhat-heap = []
 debug-trace = ["iguana-runtime/debug-trace"]
-    "#,
-        to_snake_case(grammar_name)
-    )
-    .trim().to_owned()
-}

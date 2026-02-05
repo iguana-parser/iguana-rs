@@ -2,6 +2,7 @@ use clap::Parser as ClapParser;
 use expression::{
     parse_tree::{ExpressionParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     parser::{ExpressionParser, NONTERMINALS, SLOTS, TERMINALS},
+    types::Nonterminal,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

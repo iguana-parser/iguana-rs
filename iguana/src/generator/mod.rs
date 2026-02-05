@@ -51,7 +51,7 @@ pub fn generate(grammar: &Grammar, output_dir: &Path) -> std::io::Result<()> {
         fs::create_dir(&src_dir)?;
     }
     write_file(
-        to_string(lib_gen::generate()),
+        to_string(lib_gen::generate(grammar)),
         &src_dir.join("lib.rs"),
         FileFormat::Rust,
     )?;

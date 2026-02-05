@@ -1,10 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use crate::{generator::utils::to_first_uppercase, grammar::def::Grammar};
+use crate::{generator::utils::{to_first_uppercase, to_snake_case}, grammar::def::Grammar};
 
 pub fn generate(grammar: &Grammar) -> TokenStream {
-    let grammar_name = format_ident!("{}", grammar.name.to_lowercase());
+    let grammar_name = format_ident!("{}", to_snake_case(&grammar.name));
     let parse_tree_builder = format_ident!("{}ParseTreeBuilder", to_first_uppercase(&grammar.name));
     let parser = format_ident!("{}Parser", to_first_uppercase(&grammar.name));
     quote! {
@@ -23,6 +23,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         use #grammar_name::{
             parse_tree::{#parse_tree_builder, create_parse_tree, to_json, to_sexpr},
             parser::{#parser, NONTERMINALS, SLOTS, TERMINALS},
+            types::Nonterminal,
         };
 
         #[cfg(feature = "debug-trace")]

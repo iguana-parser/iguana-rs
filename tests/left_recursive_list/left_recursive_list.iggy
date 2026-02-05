@@ -1,0 +1,5 @@
+grammar LeftRecursiveList
+
+A = 
+  A "a"
+  | "a"

@@ -754,7 +754,7 @@ fn gen_nonterminal_node_method(
             quote! {
                 #[comment = #nonterminal_name]
                 #nonterminal_id => match nonterminal_node.return_slot {
-                    #(#slot_cases),*,
+                    #(#slot_cases,)*
                     _ => unreachable!()
                 }
             }
@@ -846,7 +846,7 @@ fn gen_parse_tree_enum(grammar: &Grammar) -> TokenStream {
     quote! {
         #[derive(Debug)]
         pub enum ParseTree {
-            #(#arms),*,
+            #(#arms,)*
             Token(Token)
         }
     }
@@ -879,7 +879,7 @@ fn gen_as_parse_tree_ref_method_for_parse_tree(grammar: &Grammar) -> TokenStream
     quote! {
         pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
             match self {
-                #(#arms),*,
+                #(#arms,)*
                 ParseTree::Token(token) => token.as_parse_tree_ref(),
             }
         }
@@ -918,7 +918,7 @@ fn gen_parse_tree_ref_enum(grammar: &Grammar) -> TokenStream {
     quote! {
         #[derive(Clone, Copy)]
         pub enum ParseTreeRef<'a> {
-            #(#variants),*,
+            #(#variants,)*
             Token(&'a Token),
         }
     }
@@ -961,7 +961,7 @@ fn gen_children_method(grammar: &Grammar) -> TokenStream {
     quote! {
         pub fn children(&self) -> Vec<ParseTreeRef<'a>> {
             match self {
-                #(#arms),*,
+                #(#arms,)*
                 ParseTreeRef::Token(_) => vec![],
             }
         }
@@ -977,7 +977,7 @@ fn gen_name_method(grammar: &Grammar) -> TokenStream {
     quote! {
         pub fn display_name(&self) -> &'static str {
             match self {
-                #(#arms),*,
+                #(#arms,)*
                 ParseTreeRef::Token(token) => token.kind.name(),
             }
         }
@@ -998,7 +998,7 @@ fn gen_child_count_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
     quote! {
         pub fn child_count(&self) -> usize {
             match self {
-                #(#arms),*,
+                #(#arms,)*
                 ParseTreeRef::Token(_) => 0,
             }
         }
@@ -1019,7 +1019,7 @@ fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
     quote! {
         pub fn span(&self) -> Span {
             match self {
-                #(#arms),*,
+                #(#arms,)*
                 ParseTreeRef::Token(token) => token.span(),
             }
         }
@@ -1516,7 +1516,7 @@ fn gen_create_parse_tree_function(grammar: &Grammar) -> TokenStream {
             builder: &#builder_name_ident,
         ) -> ParseTree {
             match name {
-                #(#arms),*,
+                #(#arms,)*
                 _ => panic!()
             }
         }

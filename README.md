@@ -81,3 +81,62 @@ cargo run -p iggy -- --start Grammar file.iggy --vis sppf
 ```bash
 cargo test
 ```
+
+### Adding Grammar Tests
+
+Grammar tests live in `tests/<grammar-name>/` with parse tree golden files for verification.
+
+**Create a new grammar test:**
+
+```bash
+# Initialize test (creates grammar, generates parser, sets up test infrastructure)
+cargo run -p iguana -- test init mygrammar
+
+# Edit tests/mygrammar/mygrammar.iggy with your grammar rules
+# Edit tests/mygrammar/tests.rs with test cases
+
+# Regenerate parser after grammar changes
+cargo run -p iguana -- generate --grammar tests/mygrammar/mygrammar.iggy --output tests/mygrammar
+
+# Update golden files and run tests
+REGENERATE=1 cargo test -p mygrammar
+```
+
+**Test commands:**
+
+```bash
+cargo run -p iguana -- test init <name>         # Create new grammar test
+cargo run -p iguana -- test delete <name>       # Delete grammar test (alias: rm)
+cargo run -p iguana -- test generate-all        # Regenerate all test parsers
+```
+
+**Test structure:**
+
+```
+tests/mygrammar/
+├── mygrammar.iggy     # Grammar definition
+├── tests.rs           # Test cases
+├── parse_trees/       # Golden files (generated)
+├── Cargo.toml
+└── src/               # Generated parser
+```
+
+**Writing tests:**
+
+```rust
+use mygrammar::{parse, parse_tree::to_sexpr};
+use iguana_runtime::testing::{check_golden_file, golden_path};
+
+fn check(start_nonterminal: &str, input: &str, test_name: &str) {
+    let tree = parse(input, start_nonterminal).expect("Parse failed");
+    let actual = to_sexpr(tree.as_parse_tree_ref());
+    check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
+}
+
+#[test]
+fn test_example() {
+    check("StartMygrammar", "input text", "example");
+}
+```
+
+Run with `REGENERATE=1` to create/update golden files.

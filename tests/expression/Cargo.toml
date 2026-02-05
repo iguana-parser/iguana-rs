@@ -6,6 +6,10 @@ edition = "2024"
 [lib]
 path = "src/lib.rs"
 
+[[test]]
+name = "tests"
+path = "tests.rs"
+
 [dependencies]
 iguana-runtime.workspace = true
 clap.workspace = true
