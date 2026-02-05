@@ -274,7 +274,10 @@ fn ambiguous_grammar() -> Grammar {
 // grammar Iggy
 //
 // Grammar
-//   = "grammar" name:Identifier SyntaxRule* RegexBlock?
+//   = "grammar" name:Identifier LayoutDef? SyntaxRule* RegexBlock?
+//
+// LayoutDef
+//   = "layout" Identifier*
 //
 // SyntaxRule
 //   = head:Identifier "=" {PriorityLevel ">"}*
@@ -283,7 +286,7 @@ fn ambiguous_grammar() -> Grammar {
 //   = { Alternative "|" }*
 //
 // Alternative
-//   = Symbol*
+//   = Symbol* Label?
 //
 // Symbol
 //   = Symbol "*"                               @Star
@@ -294,6 +297,7 @@ fn ambiguous_grammar() -> Grammar {
 //   | "{" symbol:Symbol sep:Symbol "}" "*"     @StarSep
 //   | "{" symbol:Symbol sep:Symbol "}" "+"     @PlusSep
 //   | "(" Symbol+ ")"                          @Group
+//   | label:Identifier ":" Symbol              @Labeled
 //   | Identifier                               @Identifier
 //
 // RegexBlock
@@ -338,12 +342,18 @@ fn ambiguous_grammar() -> Grammar {
 fn iggy() -> GrammarDef {
     grammar_def!("Iggy",
         syntax: [
-            // Grammar = "grammar" name:Identifier SyntaxRule* RegexBlock?
+            // Grammar = "grammar" name:Identifier LayoutDef? SyntaxRule* RegexBlock?
             syntax_rule!("Grammar" => alternative!(
                 lit!("grammar"),
                 labeled!("name", id!("Identifier")),
+                opt!(id!("LayoutDef")),
                 star!(id!("SyntaxRule")),
                 opt!(id!("RegexBlock"))
+            )),
+            // LayoutDef = "layout" Identifier*
+            syntax_rule!("LayoutDef" => alternative!(
+                lit!("layout"),
+                star!(id!("Identifier"))
             )),
             // SyntaxRule = head:Identifier "=" {PriorityLevel ">"}*
             syntax_rule!("SyntaxRule" => alternative!(
@@ -368,15 +378,16 @@ fn iggy() -> GrammarDef {
             syntax_rule!("PriorityLevel" => alternative!(
                 star!(id!("Alternative"), lit!("|"))
             )),
-            // Alternative = Symbol*
+            // Alternative = Symbol* Label?
             syntax_rule!("Alternative" => alternative!(
-                star!(id!("Symbol"))
+                star!(id!("Symbol")),
+                opt!(id!("Label"))
             )),
             // Symbol
             //   = Symbol "*"                               @Star
             //   | Symbol "+"                               @Plus
             //   | Symbol "?"                               @Opt
-            //   | "(" first:Symbol rest:("|" Symbol)+ ")"  @Alt
+            //   | "(" first:Symbol ("|" Symbol)+ ")"  @Alt
             //   | "\"" String "\""                         @Lit
             //   | "{" symbol:Symbol sep:Symbol "}" "*"     @StarSep
             //   | "{" symbol:Symbol sep:Symbol "}" "+"     @PlusSep
@@ -386,18 +397,19 @@ fn iggy() -> GrammarDef {
                 alternative!(id!("Symbol"), lit!("*"), @"Star"),
                 alternative!(id!("Symbol"), lit!("+"), @"Plus"),
                 alternative!(id!("Symbol"), lit!("?"), @"Opt"),
-                alternative!(lit!("("), labeled!("first", id!("Symbol")), labeled!("rest", plus!(group!(lit!("|"), id!("Symbol")))), lit!(")"), @"Alt"),
+                alternative!(lit!("("), labeled!("first", id!("Symbol")), plus!(group!(lit!("|"), id!("Symbol"))), lit!(")"), @"Alt"),
                 alternative!(lit!("\""), id!("String"), lit!("\""), @"Lit"),
                 alternative!(lit!("{"), labeled!("symbol", id!("Symbol")), labeled!("sep", id!("Symbol")), lit!("}"), lit!("*"), @"StarSep"),
                 alternative!(lit!("{"), labeled!("symbol", id!("Symbol")), labeled!("sep", id!("Symbol")), lit!("}"), lit!("+"), @"PlusSep"),
                 alternative!(lit!("("), plus!(id!("Symbol")), lit!(")"), @"Group"),
+                alternative!(labeled!("label", id!("Identifier")), lit!(":"), id!("Symbol"), @"Labeled"),
                 alternative!(id!("Identifier"), @"Identifier"),
             )),
             // Regex
             //   = Regex "+"                                 @Plus
             //   | Regex "*"                                 @Star
             //   | Regex "?"                                 @Opt
-            //   | "(" first:Regex rest:("|" Regex)+ ")"     @Alt
+            //   | "(" first:Regex ("|" Regex)+ ")"     @Alt
             //   | "(" Regex+ ")"                            @Group
             //   | CharClass                                 @CharClass
             //   | "\"" Char "\""                            @Char
@@ -405,16 +417,16 @@ fn iggy() -> GrammarDef {
                 alternative!(id!("Regex"), lit!("+"), @"Plus"),
                 alternative!(id!("Regex"), lit!("*"), @"Star"),
                 alternative!(id!("Regex"), lit!("?"), @"Opt"),
-                alternative!(lit!("("), labeled!("first", id!("Regex")), labeled!("rest", plus!(group!(lit!("|"), id!("Regex")))), lit!(")"), @"Alt"),
+                alternative!(lit!("("), labeled!("first", id!("Regex")), plus!(group!(lit!("|"), id!("Regex"))), lit!(")"), @"Alt"),
                 alternative!(lit!("("), plus!(id!("Regex")), lit!(")"), @"Group"),
                 alternative!(id!("CharClass"), @"CharClass"),
                 alternative!(lit!("\""), id!("Char"), lit!("\""), @"Char")
             )),
-            // CharClass = neg:"!"? "[" ranges:RangeElement+ "]"
+            // CharClass = "!"? "[" RangeElement+ "]"
             syntax_rule!("CharClass" => alternative!(
-                labeled!("neg", opt!(lit!("!"))),
+                opt!(lit!("!")),
                 lit!("["),
-                labeled!("ranges", plus!(id!("RangeElement"))),
+                plus!(id!("RangeElement")),
                 lit!("]")
             )),
             // RangeElement = Range | RangeChar
@@ -459,6 +471,12 @@ fn iggy() -> GrammarDef {
             lexical_rule!("Char" => r_alt!(
                 r_seq!(c!('\\'), cc!(['\''-'\'', '"'-'"', '\\'-'\\', 't'-'t', 'f'-'f', 'r'-'r', 'n'-'n'])),
                 cc!(!['\''-'\'', '"'-'"', '\\'-'\\'])
+            )),
+            // Label = "@" [a-zA-Z_][a-zA-Z_0-9]*
+            lexical_rule!("Label" => r_seq!(
+                c!('@'),
+                r_alt!(cc!(['a'-'z', 'A'-'Z']), c!('_')),
+                r_star!(r_alt!(cc!(['a'-'z', 'A'-'Z', '0'-'9']), c!('_')))
             )),
             // WS = [ \n]*
             lexical_rule!("WS" => r_star!(r_alt!(c!(' '), c!('\n'))))

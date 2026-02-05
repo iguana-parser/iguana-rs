@@ -564,7 +564,7 @@ fn gen_token_struct() -> TokenStream {
     quote! {
         #[derive(Debug)]
         pub struct Token {
-            kind: TokenKind,
+            pub kind: TokenKind,
             span: Span,
         }
     }
@@ -594,7 +594,7 @@ fn gen_token_kind_enum(terminals: &[(TerminalId, String)]) -> TokenStream {
     }).collect();
     quote! {
         #[derive(Debug)]
-        enum TokenKind {
+        pub enum TokenKind {
             #(#terminal_ids),*
         }
     }

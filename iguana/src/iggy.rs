@@ -1,6 +1,9 @@
 use iggy::{
     parse_tree,
-    parse_tree::{IggyParseTreeBuilder, OptNode, ParseTree, StartGrammar, create_parse_tree},
+    parse_tree::{
+        IggyParseTreeBuilder, ListNode, OptNode, ParseTree, ParseTreeRef, StartGrammar,
+        create_parse_tree,
+    },
     parser::IggyParser,
 };
 use iguana_runtime::{
@@ -81,11 +84,28 @@ fn build_grammar(
         .map(|block| convert_regex_block(block, input))
         .unwrap_or_default();
 
+    let layout_def: Vec<Terminal> = grammar
+        .layout_def
+        .value()
+        .map(|layout_def| {
+            layout_def
+                .identifiers
+                .iter()
+                .filter_map(|node| match node {
+                    ParseTreeRef::Token(t) if t.kind.name() == "Identifier" => {
+                        Some(Terminal::new(text(input, t.span())))
+                    }
+                    _ => None,
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
     Ok(GrammarDef {
         name,
         syntax_rules,
         lexical_rules,
-        layout_def: vec![],
+        layout_def,
     })
 }
 
@@ -119,10 +139,13 @@ fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternat
         .map(|sym| convert_symbol(sym, input))
         .collect();
 
-    Alternative {
-        symbols,
-        label: None,
-    }
+    // Extract label, stripping the @ prefix
+    let label = alt.label.value().map(|token| {
+        let label_text = text(input, token.span());
+        label_text.strip_prefix('@').unwrap_or(&label_text).to_string()
+    });
+
+    Alternative { symbols, label }
 }
 
 fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
@@ -136,9 +159,9 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
         parse_tree::Symbol::Opt { symbol, .. } => {
             Symbol::Opt(Box::new(convert_symbol(symbol, input)))
         }
-        parse_tree::Symbol::Alt { first, rest, .. } => {
+        parse_tree::Symbol::Alt { first, symbol_plus_8, .. } => {
             let mut symbols = vec![convert_symbol(first, input)];
-            let rest: Vec<Symbol> = rest.symbols().map(|s| convert_symbol(s, input)).collect();
+            let rest: Vec<Symbol> = symbol_plus_8.symbols().map(|s| convert_symbol(s, input)).collect();
             symbols.extend(rest);
             Symbol::Alt(symbols)
         }
@@ -157,6 +180,10 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 .map(|s| convert_symbol(s, input))
                 .collect(),
         ),
+        parse_tree::Symbol::Labeled { label, symbol, .. } => Symbol::Labeled {
+            label: text(input, label.span()),
+            symbol: Box::new(convert_symbol(symbol, input)),
+        },
         parse_tree::Symbol::Identifier { identifier, .. } => Symbol::Identifier(Identifier {
             name: text(input, identifier.span()),
             definition: None,
@@ -191,10 +218,10 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
         parse_tree::Regex::Plus { regex, .. } => Regex::Plus(Box::new(convert_regex(regex, input))),
         parse_tree::Regex::Star { regex, .. } => Regex::Star(Box::new(convert_regex(regex, input))),
         parse_tree::Regex::Opt { regex, .. } => Regex::Opt(Box::new(convert_regex(regex, input))),
-        parse_tree::Regex::Alt { first, rest, .. } => {
+        parse_tree::Regex::Alt { first, regex_plus_9, .. } => {
             let mut regexes = vec![convert_regex(first, input)];
             let rest_regexes: Vec<Regex> =
-                rest.regexes().map(|r| convert_regex(r, input)).collect();
+                regex_plus_9.regexes().map(|r| convert_regex(r, input)).collect();
             regexes.extend(rest_regexes);
             Regex::Alt(regexes)
         }
@@ -207,9 +234,9 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
 }
 
 fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Regex {
-    let negated = char_class.neg.value().is_some();
+    let negated = char_class.char_class_opt_9.value().is_some();
     let ranges = char_class
-        .ranges
+        .range_elements
         .range_elements()
         .map(|e| {
             if let Some(range) = e.as_range() {

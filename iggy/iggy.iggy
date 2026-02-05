@@ -1,0 +1,70 @@
+grammar Iggy
+
+layout WS
+
+Grammar
+  = "grammar" name:Identifier LayoutDef? SyntaxRule* RegexBlock?
+
+LayoutDef
+  = "layout" Identifier*
+
+SyntaxRule
+  = head:Identifier "=" {PriorityLevel ">"}*
+
+PriorityLevel
+  = { Alternative "|" }*
+
+Alternative
+  = Symbol* Label?
+
+Symbol
+  = Symbol "*"                               @Star
+  | Symbol "+"                               @Plus
+  | Symbol "?"                               @Opt
+  | "(" first:Symbol ("|" Symbol)+ ")"  @Alt
+  | "\"" String "\""                         @Lit
+  | "{" symbol:Symbol sep:Symbol "}" "*"     @StarSep
+  | "{" symbol:Symbol sep:Symbol "}" "+"     @PlusSep
+  | "(" Symbol+ ")"                          @Group
+  | label:Identifier ":" Symbol              @Labeled
+  | Identifier                               @Identifier
+
+RegexBlock
+  = "regex" "{" RegexRule* "}"
+
+RegexRule
+  = Identifier "=" body:{ Regex+ "|" }+
+
+Regex
+  = Regex "+"                                 @Plus
+  | Regex "*"                                 @Star
+  | Regex "?"                                 @Opt
+  | "(" first:Regex ("|" Regex)+ ")"     @Alt
+  | "(" Regex+ ")"                            @Group
+  | CharClass                                 @CharClass
+  | "\"" Char "\""                            @Char
+
+CharClass
+  = "!"? "[" RangeElement+ "]"
+
+RangeElement
+  = Range
+  | RangeChar
+
+Range
+  = start:RangeChar "-" end:RangeChar
+
+regex {
+  RangeChar
+    = ![\\ \- \[ \] \t \f \r \n \ ]
+    | "\\" [\\ \- \[ \] t f r n \ ]
+
+  Char
+    = "\\" [' " \\ t f r n]
+    | !['"\\]
+
+  String = (("\\" [' " \\ t f r n]) | !['"\\])*
+  Identifier = [a-zA-Z_][a-zA-Z_0-9]*
+  Label = "@" [a-zA-Z_][a-zA-Z_0-9]*
+  WS = [\ \n]*
+}
