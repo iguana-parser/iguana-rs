@@ -106,7 +106,10 @@ fn init_test(name: &str) -> std::io::Result<()> {
     // Create tests.rs if not present
     if !tests_rs.exists() {
         let tests_content = format!(
-            r#"use {name}::{{parse, parse_tree::to_sexpr}};
+            r#"// To regenerate parser:  cargo run -p iguana -- generate --grammar {grammar_file} --output {test_dir}
+// To update golden files: REGENERATE=1 cargo test -p {name}
+
+use {name}::{{parse, parse_tree::to_sexpr}};
 use iguana_runtime::testing::{{check_golden_file, golden_path}};
 
 fn check(start_nonterminal: &str, input: &str, test_name: &str) {{
@@ -119,7 +122,10 @@ fn check(start_nonterminal: &str, input: &str, test_name: &str) {{
 fn test_example() {{
     // check("Start", "input", "example");
 }}
-"#
+"#,
+            grammar_file = grammar_file.display(),
+            test_dir = test_dir.display(),
+            name = name
         );
         std::fs::write(&tests_rs, tests_content)?;
     }

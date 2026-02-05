@@ -1,3 +1,6 @@
+// To regenerate parser:  cargo run -p iguana -- generate --grammar tests/left_recursive_list/left_recursive_list.iggy --output tests/left_recursive_list
+// To update golden files: REGENERATE=1 cargo test -p left_recursive_list
+
 use left_recursive_list::{parse, parse_tree::to_sexpr};
 use iguana_runtime::testing::{check_golden_file, golden_path};
 

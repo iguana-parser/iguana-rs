@@ -1,3 +1,6 @@
+// To regenerate parser:  cargo run -p iguana -- generate --grammar tests/expression/expression.iggy --output tests/expression
+// To update golden files: REGENERATE=1 cargo test -p expression
+
 use expression::{parse, parse_tree::to_sexpr};
 use iguana_runtime::testing::{check_golden_file, golden_path};
 
