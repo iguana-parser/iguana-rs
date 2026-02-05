@@ -11,6 +11,12 @@ LayoutDef
 SyntaxRule
   = head:Identifier "=" {PriorityLevel ">"}*
 
+RegexBlock
+  = "regex" "{" RegexRule* "}"
+
+RegexRule
+  = Identifier "=" body:{ Regex+ "|" }+
+
 PriorityLevel
   = { Alternative "|" }*
 
@@ -28,12 +34,6 @@ Symbol
   | "(" Symbol+ ")"                          @Group
   | label:Identifier ":" Symbol              @Labeled
   | Identifier                               @Identifier
-
-RegexBlock
-  = "regex" "{" RegexRule* "}"
-
-RegexRule
-  = Identifier "=" body:{ Regex+ "|" }+
 
 Regex
   = Regex "+"                                 @Plus
@@ -55,6 +55,9 @@ Range
   = start:RangeChar "-" end:RangeChar
 
 regex {
+  Identifier = [a-zA-Z_][a-zA-Z_0-9]*
+  String = (("\\" [' " \\ t f r n]) | !['"\\])*
+
   RangeChar
     = ![\\ \- \[ \] \t \f \r \n \ ]
     | "\\" [\\ \- \[ \] t f r n \ ]
@@ -63,8 +66,6 @@ regex {
     = "\\" [' " \\ t f r n]
     | !['"\\]
 
-  String = (("\\" [' " \\ t f r n]) | !['"\\])*
-  Identifier = [a-zA-Z_][a-zA-Z_0-9]*
   Label = "@" [a-zA-Z_][a-zA-Z_0-9]*
   WS = [\ \n]*
 }

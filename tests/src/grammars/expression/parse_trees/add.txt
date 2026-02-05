@@ -1,0 +1,15 @@
+(StartE
+  Layout
+  (E
+    (E
+      "a"
+    )
+    Layout
+    "+"
+    Layout
+    (E
+      "a"
+    )
+  )
+  Layout
+)

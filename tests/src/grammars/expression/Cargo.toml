@@ -1,0 +1,21 @@
+[package]
+name = "expression"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+iguana-runtime.workspace = true
+clap.workspace = true
+dot.workspace = true
+log.workspace = true
+rustc-hash.workspace = true
+serde_json.workspace = true
+dhat = "0.3"
+phf = { version = "0.11", features = ["macros"] }
+
+[features]
+dhat-heap = []
+debug-trace = ["iguana-runtime/debug-trace"]

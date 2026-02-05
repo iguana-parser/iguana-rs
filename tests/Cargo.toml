@@ -1,0 +1,10 @@
+[package]
+name = "iguana-tests"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+iguana-runtime.workspace = true
+expression = { path = "src/grammars/expression" }
+
+[dev-dependencies]

@@ -73,7 +73,6 @@ pub fn visit_sppf<'i, T: fmt::Debug, P: Parser<'i>>(
             let (left_child, right_child) = i.child;
             let left_child = parser.sppf_node(left_child);
             let right_child = parser.sppf_node(right_child);
-            println!("{:?},{:?}", left_child, right_child);
             visit_sppf(left_child, parser, builder).merge(visit_sppf(right_child, parser, builder))
         }
     }

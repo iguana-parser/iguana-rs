@@ -165,7 +165,9 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             symbols.extend(rest);
             Symbol::Alt(symbols)
         }
-        parse_tree::Symbol::Lit { string, .. } => Symbol::Literal(text(input, string.span())),
+        parse_tree::Symbol::Lit { string, .. } => {
+            Symbol::Literal(unescape_string(&text(input, string.span())))
+        }
         parse_tree::Symbol::StarSep { symbol, sep, .. } => Symbol::Star(
             Box::new(convert_symbol(symbol, input)),
             Some(Box::new(convert_symbol(sep, input))),
@@ -254,12 +256,39 @@ fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Rege
     Regex::CharClass(CharClass { ranges, negated })
 }
 
+fn unescape_string(s: &str) -> String {
+    let mut result = String::new();
+    let mut chars = s.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            if let Some(&next) = chars.peek() {
+                let escaped = match next {
+                    'n' => '\n',
+                    'r' => '\r',
+                    't' => '\t',
+                    'f' => '\x0c', // form feed
+                    '\\' => '\\',
+                    '"' => '"',
+                    '\'' => '\'',
+                    other => other,
+                };
+                result.push(escaped);
+                chars.next();
+            }
+        } else {
+            result.push(c);
+        }
+    }
+    result
+}
+
 fn parse_char(s: &str) -> char {
     if s.starts_with('\\') && s.len() > 1 {
         match s.chars().nth(1) {
             Some('n') => '\n',
             Some('r') => '\r',
             Some('t') => '\t',
+            Some('f') => '\x0c', // form feed
             Some('\\') => '\\',
             Some('"') => '"',
             Some(c) => c,

@@ -444,8 +444,8 @@ fn iggy() -> GrammarDef {
         lexical: [
             // Identifier = /[a-zA-Z_][a-zA-Z_0-9]*/
             lexical_rule!("Identifier" => r_seq!(
-                r_alt!(cc!(['a'-'z', 'A'-'Z']), c!('_')),
-                r_star!(r_alt!(cc!(['a'-'z', 'A'-'Z', '0'-'9']), c!('_')))
+                cc!(['a'-'z', 'A'-'Z', '_'-'_']),
+                r_star!(cc!(['a'-'z', 'A'-'Z', '_'-'_', '0'-'9']))
             )),
             // String = (("\\" [' " \\ t f r n]) | !['"\\])*
             lexical_rule!("String" => r_star!(r_alt!(

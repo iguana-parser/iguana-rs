@@ -423,12 +423,12 @@ pub trait Parser<'i> {
 }
 
 pub fn init_logger() {
-    env_logger::Builder::from_default_env()
+    let _ = env_logger::Builder::from_default_env()
         .format(|buf, record| {
             use std::io::Write;
             writeln!(buf, "{}: {}", record.level(), record.args())
         })
-        .init();
+        .try_init();
 }
 
 #[derive(Default, Debug, Clone)]
