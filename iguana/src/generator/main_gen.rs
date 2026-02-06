@@ -23,7 +23,6 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         use #grammar_name::{
             parse_tree::{#parse_tree_builder, create_parse_tree, to_json, to_sexpr},
             parser::{#parser, NONTERMINALS, SLOTS, TERMINALS},
-            types::Nonterminal,
         };
 
         #[cfg(feature = "debug-trace")]

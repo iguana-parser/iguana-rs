@@ -351,6 +351,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                     slot_id: SlotId(0),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //A : . "a"
                 self.add_descriptor(Descriptor {
@@ -358,6 +359,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                     slot_id: SlotId(4),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartA
@@ -368,6 +370,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                     slot_id: SlotId(6),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             _ => {

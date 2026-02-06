@@ -1,6 +1,9 @@
+use serde::{Deserialize, Serialize};
+use specta::Type;
+
 use crate::utils::inline_vec::InlineVec;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Type)]
 pub struct EnvId(pub u32);
 
 #[derive(Clone, Debug, Default)]

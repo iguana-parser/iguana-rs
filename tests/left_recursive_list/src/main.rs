@@ -13,7 +13,6 @@ use iguana_runtime::{
 use left_recursive_list::{
     parse_tree::{LeftRecursiveListParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     parser::{LeftRecursiveListParser, NONTERMINALS, SLOTS, TERMINALS},
-    types::Nonterminal,
 };
 use std::{
     fs::File,

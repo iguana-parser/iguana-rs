@@ -159,6 +159,7 @@ fn gen_add_first_descriptors_method<'a>(
                     slot_id: #first_slot_id,
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             });
         }

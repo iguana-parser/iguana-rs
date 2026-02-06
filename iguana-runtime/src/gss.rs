@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 
 use crate::{
+    env::EnvId,
     ids::{GssNodeId, NonterminalId, SlotId},
     sppf::SPPFNodeId,
     utils::{inline_set::InlineSet, inline_vec::InlineVec},
@@ -67,14 +68,5 @@ pub struct GSSEdge {
     pub result: Option<EdgeResult>,
     pub return_slot: SlotId,
     pub dest_id: GssNodeId,
-}
-
-impl GSSEdge {
-    pub fn new(result: Option<EdgeResult>, return_slot: SlotId, dest_id: GssNodeId) -> Self {
-        Self {
-            result,
-            return_slot,
-            dest_id,
-        }
-    }
+    pub env: Option<EnvId>,
 }

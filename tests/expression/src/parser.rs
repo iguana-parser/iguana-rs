@@ -553,6 +553,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                     slot_id: SlotId(0),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //E : . E Layout "+" Layout E
                 self.add_descriptor(Descriptor {
@@ -560,6 +561,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                     slot_id: SlotId(6),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //E : . "a"
                 self.add_descriptor(Descriptor {
@@ -567,6 +569,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                     slot_id: SlotId(12),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartE
@@ -577,6 +580,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                     slot_id: SlotId(14),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             _ => {

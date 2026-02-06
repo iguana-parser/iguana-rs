@@ -13,7 +13,6 @@ use iguana_runtime::{
 use simple_alt::{
     parse_tree::{SimpleAltParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     parser::{NONTERMINALS, SLOTS, SimpleAltParser, TERMINALS},
-    types::Nonterminal,
 };
 use std::{
     fs::File,

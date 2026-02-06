@@ -151,6 +151,7 @@ pub trait Parser<'i> {
                         slot_id: return_slot,
                         sppf_node_id: Some(new_node),
                         gss_node_id,
+                        env: None,
                     });
                 }
             }
@@ -174,7 +175,12 @@ pub trait Parser<'i> {
         return_slot: SlotId,
     ) {
         let origin = self.gss_node_mut(origin_gss_node_id);
-        let gss_edge = GSSEdge::new(result, return_slot, dest_gss_node_id);
+        let gss_edge = GSSEdge {
+            result,
+            return_slot,
+            dest_id: dest_gss_node_id,
+            env: None,
+        };
         origin.add_edge(gss_edge);
         record!(
             self,
@@ -211,6 +217,7 @@ pub trait Parser<'i> {
                     slot_id: edge.return_slot,
                     sppf_node_id: Some(new_node_id),
                     gss_node_id: edge.dest_id,
+                    env: None,
                 });
             }
         }

@@ -8257,6 +8257,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(0),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //LayoutDef
@@ -8267,6 +8268,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(10),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //SyntaxRule
@@ -8277,6 +8279,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(14),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //RegexBlock
@@ -8287,6 +8290,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(20),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //RegexRule
@@ -8297,6 +8301,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(28),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //PriorityLevel
@@ -8307,6 +8312,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(34),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Alternative
@@ -8317,6 +8323,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(36),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Symbol
@@ -8327,6 +8334,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(40),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Symbol : . Symbol Layout "+"
                 self.add_descriptor(Descriptor {
@@ -8334,6 +8342,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(44),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Symbol : . Symbol Layout "?"
                 self.add_descriptor(Descriptor {
@@ -8341,6 +8350,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(48),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Symbol : . "(" Layout Symbol Layout Symbol_Plus_8 Layout ")"
                 self.add_descriptor(Descriptor {
@@ -8348,6 +8358,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(52),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Symbol : . """ Layout String Layout """
                 self.add_descriptor(Descriptor {
@@ -8355,6 +8366,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(60),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Symbol : . "{" Layout Symbol Layout Symbol Layout "}" Layout "*"
                 self.add_descriptor(Descriptor {
@@ -8362,6 +8374,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(66),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Symbol : . "{" Layout Symbol Layout Symbol Layout "}" Layout "+"
                 self.add_descriptor(Descriptor {
@@ -8369,6 +8382,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(76),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Symbol : . "(" Layout Alternative_Plus_7 Layout ")"
                 self.add_descriptor(Descriptor {
@@ -8376,6 +8390,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(86),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Symbol : . Identifier Layout ":" Layout Symbol
                 self.add_descriptor(Descriptor {
@@ -8383,6 +8398,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(92),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Symbol : . Identifier
                 self.add_descriptor(Descriptor {
@@ -8390,6 +8406,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(98),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Regex
@@ -8400,6 +8417,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(100),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Regex : . Regex Layout "*"
                 self.add_descriptor(Descriptor {
@@ -8407,6 +8425,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(104),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Regex : . Regex Layout "?"
                 self.add_descriptor(Descriptor {
@@ -8414,6 +8433,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(108),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Regex : . "(" Layout Regex Layout Regex_Plus_9 Layout ")"
                 self.add_descriptor(Descriptor {
@@ -8421,6 +8441,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(112),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Regex : . "(" Layout RegexRule_Plus_5 Layout ")"
                 self.add_descriptor(Descriptor {
@@ -8428,6 +8449,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(120),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Regex : . CharClass
                 self.add_descriptor(Descriptor {
@@ -8435,6 +8457,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(126),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Regex : . """ Layout Char Layout """
                 self.add_descriptor(Descriptor {
@@ -8442,6 +8465,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(128),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //CharClass
@@ -8452,6 +8476,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(134),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //RangeElement
@@ -8462,6 +8487,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(142),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //RangeElement : . RangeChar
                 self.add_descriptor(Descriptor {
@@ -8469,6 +8495,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(144),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Range
@@ -8479,6 +8506,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(146),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Grammar_Opt_0
@@ -8489,6 +8517,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(152),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Grammar_Opt_0 : .
                 self.add_descriptor(Descriptor {
@@ -8496,6 +8525,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(154),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Grammar_Plus_0
@@ -8506,6 +8536,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(155),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Grammar_Plus_0 : . SyntaxRule
                 self.add_descriptor(Descriptor {
@@ -8513,6 +8544,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(159),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Grammar_Opt_1
@@ -8523,6 +8555,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(161),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Grammar_Opt_1 : .
                 self.add_descriptor(Descriptor {
@@ -8530,6 +8563,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(163),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Grammar_Star_0
@@ -8540,6 +8574,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(164),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Grammar_Opt_2
@@ -8550,6 +8585,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(166),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Grammar_Opt_2 : .
                 self.add_descriptor(Descriptor {
@@ -8557,6 +8593,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(168),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //LayoutDef_Plus_1
@@ -8567,6 +8604,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(169),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //LayoutDef_Plus_1 : . Identifier
                 self.add_descriptor(Descriptor {
@@ -8574,6 +8612,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(173),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //LayoutDef_Opt_3
@@ -8584,6 +8623,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(175),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //LayoutDef_Opt_3 : .
                 self.add_descriptor(Descriptor {
@@ -8591,6 +8631,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(177),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //LayoutDef_Star_1
@@ -8601,6 +8642,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(178),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //SyntaxRule_Plus_2
@@ -8611,6 +8653,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(180),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //SyntaxRule_Plus_2 : . PriorityLevel
                 self.add_descriptor(Descriptor {
@@ -8618,6 +8661,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(186),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //SyntaxRule_Opt_4
@@ -8628,6 +8672,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(188),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //SyntaxRule_Opt_4 : .
                 self.add_descriptor(Descriptor {
@@ -8635,6 +8680,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(190),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //SyntaxRule_Star_2
@@ -8645,6 +8691,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(191),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //RegexBlock_Plus_3
@@ -8655,6 +8702,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(193),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //RegexBlock_Plus_3 : . RegexRule
                 self.add_descriptor(Descriptor {
@@ -8662,6 +8710,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(197),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //RegexBlock_Opt_5
@@ -8672,6 +8721,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(199),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //RegexBlock_Opt_5 : .
                 self.add_descriptor(Descriptor {
@@ -8679,6 +8729,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(201),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //RegexBlock_Star_3
@@ -8689,6 +8740,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(202),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //RegexRule_Plus_5
@@ -8699,6 +8751,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(204),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //RegexRule_Plus_5 : . Regex
                 self.add_descriptor(Descriptor {
@@ -8706,6 +8759,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(208),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //RegexRule_Plus_4
@@ -8716,6 +8770,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(210),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //RegexRule_Plus_4 : . RegexRule_Plus_5
                 self.add_descriptor(Descriptor {
@@ -8723,6 +8778,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(216),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //PriorityLevel_Plus_6
@@ -8733,6 +8789,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(218),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //PriorityLevel_Plus_6 : . Alternative
                 self.add_descriptor(Descriptor {
@@ -8740,6 +8797,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(224),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //PriorityLevel_Opt_6
@@ -8750,6 +8808,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(226),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //PriorityLevel_Opt_6 : .
                 self.add_descriptor(Descriptor {
@@ -8757,6 +8816,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(228),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //PriorityLevel_Star_4
@@ -8767,6 +8827,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(229),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Alternative_Plus_7
@@ -8777,6 +8838,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(231),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Alternative_Plus_7 : . Symbol
                 self.add_descriptor(Descriptor {
@@ -8784,6 +8846,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(235),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Alternative_Opt_7
@@ -8794,6 +8857,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(237),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Alternative_Opt_7 : .
                 self.add_descriptor(Descriptor {
@@ -8801,6 +8865,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(239),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Alternative_Star_5
@@ -8811,6 +8876,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(240),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Alternative_Opt_8
@@ -8821,6 +8887,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(242),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Alternative_Opt_8 : .
                 self.add_descriptor(Descriptor {
@@ -8828,6 +8895,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(244),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Symbol_Group_0
@@ -8838,6 +8906,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(245),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Symbol_Plus_8
@@ -8848,6 +8917,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(249),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Symbol_Plus_8 : . Symbol_Group_0
                 self.add_descriptor(Descriptor {
@@ -8855,6 +8925,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(253),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Regex_Group_1
@@ -8865,6 +8936,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(255),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //Regex_Plus_9
@@ -8875,6 +8947,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(259),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //Regex_Plus_9 : . Regex_Group_1
                 self.add_descriptor(Descriptor {
@@ -8882,6 +8955,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(263),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //CharClass_Opt_9
@@ -8892,6 +8966,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(265),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //CharClass_Opt_9 : .
                 self.add_descriptor(Descriptor {
@@ -8899,6 +8974,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(267),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //CharClass_Plus_10
@@ -8909,6 +8985,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(268),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //CharClass_Plus_10 : . RangeElement
                 self.add_descriptor(Descriptor {
@@ -8916,6 +8993,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(272),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartGrammar
@@ -8926,6 +9004,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(274),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartLayoutDef
@@ -8936,6 +9015,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(278),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartSyntaxRule
@@ -8946,6 +9026,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(282),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartRegexBlock
@@ -8956,6 +9037,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(286),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartRegexRule
@@ -8966,6 +9048,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(290),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartPriorityLevel
@@ -8976,6 +9059,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(294),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartAlternative
@@ -8986,6 +9070,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(298),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartSymbol
@@ -8996,6 +9081,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(302),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartRegex
@@ -9006,6 +9092,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(306),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartCharClass
@@ -9016,6 +9103,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(310),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartRangeElement
@@ -9026,6 +9114,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(314),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartRange
@@ -9036,6 +9125,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     slot_id: SlotId(318),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             _ => {

@@ -13,7 +13,6 @@ use iguana_runtime::{
 use plus_with_sep::{
     parse_tree::{PlusWithSepParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     parser::{NONTERMINALS, PlusWithSepParser, SLOTS, TERMINALS},
-    types::Nonterminal,
 };
 use std::{
     fs::File,

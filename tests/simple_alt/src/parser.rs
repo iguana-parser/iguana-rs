@@ -817,6 +817,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     slot_id: SlotId(0),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //B
@@ -827,6 +828,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     slot_id: SlotId(4),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //C
@@ -837,6 +839,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     slot_id: SlotId(6),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //D
@@ -847,6 +850,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     slot_id: SlotId(8),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //A_Alt_0
@@ -857,6 +861,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     slot_id: SlotId(10),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
                 //A_Alt_0 : . D
                 self.add_descriptor(Descriptor {
@@ -864,6 +869,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     slot_id: SlotId(12),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartA
@@ -874,6 +880,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     slot_id: SlotId(14),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartB
@@ -884,6 +891,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     slot_id: SlotId(18),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartC
@@ -894,6 +902,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     slot_id: SlotId(22),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             //StartD
@@ -904,6 +913,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     slot_id: SlotId(26),
                     sppf_node_id: None,
                     gss_node_id,
+                    env: None,
                 });
             }
             _ => {
