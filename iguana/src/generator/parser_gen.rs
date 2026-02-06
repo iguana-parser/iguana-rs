@@ -9,6 +9,7 @@ use crate::generator::id::NonterminalIds;
 use crate::generator::id::SlotIds;
 use crate::generator::id::TerminalIds;
 use crate::generator::utils::to_first_uppercase;
+use crate::generator::utils::to_snake_case;
 use crate::grammar::def::Grammar;
 use crate::grammar::slot::Slot;
 use crate::grammar::symbols::Definition;
@@ -277,13 +278,7 @@ fn gen_execute_method<'a>(
         for (index, alternative) in alternatives.iter().enumerate() {
             for pos in 0..alternative.symbols.len() {
                 let slot = Slot::new(nonterminal, alternative, pos);
-                slot_quotes.push(gen_slot_code(
-                    grammar,
-                    slot,
-                    nonterminal_ids,
-                    terminal_ids,
-                    slot_ids,
-                ));
+                slot_quotes.push(gen_slot_code(grammar, slot, terminal_ids, slot_ids));
             }
             // Handle the last grammar slot
             let last_symbol_index = alternative.symbols.len();
@@ -374,7 +369,6 @@ fn gen_execute_method<'a>(
 fn gen_slot_code<'a>(
     grammar: &'a Grammar,
     slot: Slot<'a>,
-    nonterminal_ids: &NonterminalIds,
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
@@ -385,7 +379,7 @@ fn gen_slot_code<'a>(
             gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids)
         }
         Definition::Nonterminal(nonterminal) => {
-            gen_nonterminal_slot(grammar, nonterminal, slot, nonterminal_ids, slot_ids)
+            gen_nonterminal_slot(grammar, nonterminal, slot, slot_ids)
         }
     }
 }
@@ -458,20 +452,17 @@ fn gen_nonterminal_slot<'a>(
     grammar: &'a Grammar,
     nonterminal: &'a Nonterminal,
     slot: Slot<'a>,
-    nonterminal_ids: &NonterminalIds,
     slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
-    let nonterminal_id = nonterminal_ids
-        .get_id(nonterminal)
-        .unwrap_or_else(|| panic!("nonterminal {} is not defined", nonterminal.name));
     let slot_id = slot_ids.id(&slot);
     let slot_name = slot.name(grammar);
     let next_slot = slot.next();
     let return_slot_id = slot_ids.id(&next_slot);
+    let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
     quote! {
         #[comment = #slot_name]
         #slot_id => {
-            self.create(#nonterminal_id, result, gss_node_id, #return_slot_id);
+            self.#method_name(result, gss_node_id, #return_slot_id);
         }
     }
 }
@@ -840,9 +831,30 @@ fn gen_parser_impl(
 ) -> TokenStream {
     let new_method = gen_new_method(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let name_ident = syn::Ident::new(&format!("{}{}", grammar_name, "Parser"), Span::call_site());
+    let create_methods: Vec<_> = nonterminal_ids
+        .nonterminals()
+        .enumerate()
+        .map(|(i, n)| gen_create_method(n, i))
+        .collect();
     quote! {
         impl<'i> #name_ident<'i> {
             #new_method
+            #(#create_methods)*
+        }
+    }
+}
+
+fn gen_create_method(n: &Nonterminal, id: usize) -> TokenStream {
+    let method_name = format_ident!("create_{}", to_snake_case(&n.name));
+    let id = Literal::usize_unsuffixed(id);
+    quote! {
+        fn #method_name(
+            &mut self,
+            sppf_node_id: Option<SPPFNodeId>,
+            gss_node_id: GssNodeId,
+            return_slot: SlotId,
+        ) {
+            self.create(NonterminalId(#id), sppf_node_id, gss_node_id, return_slot);
         }
     }
 }

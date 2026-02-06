@@ -2,7 +2,6 @@ use clap::Parser as ClapParser;
 use iggy::{
     parse_tree::{IggyParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     parser::{IggyParser, NONTERMINALS, SLOTS, TERMINALS},
-    types::Nonterminal,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
@@ -247,4 +246,3 @@ fn write_trace_events<'i>(
     }
     Ok(())
 }
-
