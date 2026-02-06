@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand};
 use iguana::{
     alternative,
     generator::generate,
-    grammar::def::Grammar,
+    grammar::def::{Grammar, GrammarDef},
     grammar_def, id,
     iggy::parse_grammar,
     lit, opt, priority_level, syntax_rule,
@@ -258,7 +258,7 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
             let source = std::fs::read_to_string(path)?;
             parse_grammar(&source).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
         }
-        None => panic!(),
+        None => nonterminal_parameters(),
     };
     generate(&grammar.into(), output)?;
     Ok(())
@@ -279,7 +279,6 @@ fn grammar3() -> Grammar {
     .into()
 }
 
-
 #[allow(dead_code)]
 fn ambiguous_grammar() -> Grammar {
     // S: A? | ;
@@ -291,4 +290,13 @@ fn ambiguous_grammar() -> Grammar {
         ]
     )
     .into()
+}
+
+fn nonterminal_parameters() -> GrammarDef {
+    // A(p) = "a"
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("A"("p": U16) => alternative!(lit!("a"))),
+        ]
+    )
 }

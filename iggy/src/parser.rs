@@ -9690,3 +9690,4 @@ impl<'i> IggyParser<'i> {
         self.create(NonterminalId(52), sppf_node_id, gss_node_id, return_slot);
     }
 }
+

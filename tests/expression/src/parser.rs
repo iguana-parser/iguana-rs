@@ -130,7 +130,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
         match slot_id {
             //E : . E Layout "*" Layout E
             SlotId(0) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(1));
+                self.create_e(result, gss_node_id, SlotId(1));
             }
             //E : E . Layout "*" Layout E
             SlotId(1) => {
@@ -242,7 +242,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             }
             //E : E Layout "*" Layout . E
             SlotId(4) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(5));
+                self.create_e(result, gss_node_id, SlotId(5));
             }
             //E : E Layout "*" Layout E.
             SlotId(5) => {
@@ -266,7 +266,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             }
             //E : . E Layout "+" Layout E
             SlotId(6) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(7));
+                self.create_e(result, gss_node_id, SlotId(7));
             }
             //E : E . Layout "+" Layout E
             SlotId(7) => {
@@ -378,7 +378,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             }
             //E : E Layout "+" Layout . E
             SlotId(10) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(11));
+                self.create_e(result, gss_node_id, SlotId(11));
             }
             //E : E Layout "+" Layout E.
             SlotId(11) => {
@@ -474,7 +474,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             }
             //StartE : Layout . E Layout
             SlotId(15) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(16));
+                self.create_e(result, gss_node_id, SlotId(16));
             }
             //StartE : Layout E . Layout
             SlotId(16) => {
@@ -805,6 +805,22 @@ impl<'i> ExpressionParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
+    }
+    fn create_e(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_start_e(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
     }
 }
 

@@ -170,7 +170,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
         match slot_id {
             //S : . S_Star_0
             SlotId(0) => {
-                self.create(NonterminalId(4), result, gss_node_id, SlotId(1));
+                self.create_s_star_0(result, gss_node_id, SlotId(1));
             }
             //S : S_Star_0.
             SlotId(1) => {
@@ -240,7 +240,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             //S_Plus_0 : . S_Plus_0 Layout A
             SlotId(4) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(5));
+                self.create_s_plus_0(result, gss_node_id, SlotId(5));
             }
             //S_Plus_0 : S_Plus_0 . Layout A
             SlotId(5) => {
@@ -280,7 +280,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             //S_Plus_0 : S_Plus_0 Layout . A
             SlotId(6) => {
-                self.create(NonterminalId(1), result, gss_node_id, SlotId(7));
+                self.create_a(result, gss_node_id, SlotId(7));
             }
             //S_Plus_0 : S_Plus_0 Layout A.
             SlotId(7) => {
@@ -304,7 +304,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             //S_Plus_0 : . A
             SlotId(8) => {
-                self.create(NonterminalId(1), result, gss_node_id, SlotId(9));
+                self.create_a(result, gss_node_id, SlotId(9));
             }
             //S_Plus_0 : A.
             SlotId(9) => {
@@ -328,7 +328,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             //S_Opt_0 : . S_Plus_0
             SlotId(10) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(11));
+                self.create_s_plus_0(result, gss_node_id, SlotId(11));
             }
             //S_Opt_0 : S_Plus_0.
             SlotId(11) => {
@@ -368,7 +368,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             //S_Star_0 : . S_Opt_0
             SlotId(13) => {
-                self.create(NonterminalId(3), result, gss_node_id, SlotId(14));
+                self.create_s_opt_0(result, gss_node_id, SlotId(14));
             }
             //S_Star_0 : S_Opt_0.
             SlotId(14) => {
@@ -418,7 +418,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             //StartS : Layout . S Layout
             SlotId(16) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(17));
+                self.create_s(result, gss_node_id, SlotId(17));
             }
             //StartS : Layout S . Layout
             SlotId(17) => {
@@ -504,7 +504,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             //StartA : Layout . A Layout
             SlotId(20) => {
-                self.create(NonterminalId(1), result, gss_node_id, SlotId(21));
+                self.create_a(result, gss_node_id, SlotId(21));
             }
             //StartA : Layout A . Layout
             SlotId(21) => {
@@ -885,6 +885,62 @@ impl<'i> StarParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
+    }
+    fn create_s(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_a(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_s_plus_0(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_s_opt_0(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_s_star_0(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_start_s(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(5), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_start_a(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(6), sppf_node_id, gss_node_id, return_slot);
     }
 }
 

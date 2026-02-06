@@ -134,6 +134,18 @@ impl Display for Terminal {
 pub struct Nonterminal {
     pub name: String,
     pub origin: Option<Symbol>,
+    pub parameters: Vec<Parameter>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Parameter {
+    pub name: String,
+    pub ty: ParamType,
+}
+
+#[derive(Debug, Clone)]
+pub enum ParamType {
+    U16,
 }
 
 impl Nonterminal {
@@ -141,6 +153,15 @@ impl Nonterminal {
         Self {
             name: name.into(),
             origin: None,
+            parameters: vec![],
+        }
+    }
+
+    pub fn with_params(name: impl Into<String>, parameters: Vec<Parameter>) -> Self {
+        Self {
+            name: name.into(),
+            origin: None,
+            parameters,
         }
     }
 
@@ -148,6 +169,7 @@ impl Nonterminal {
         Self {
             name: name.into(),
             origin: Some(origin),
+            parameters: vec![],
         }
     }
     // For normal nonterminals, i.e., the ones that are defined by the user directly,

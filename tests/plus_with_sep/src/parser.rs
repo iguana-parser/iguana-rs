@@ -151,7 +151,7 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
         match slot_id {
             //S : . S_Plus_0
             SlotId(0) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(1));
+                self.create_s_plus_0(result, gss_node_id, SlotId(1));
             }
             //S : S_Plus_0.
             SlotId(1) => {
@@ -221,7 +221,7 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             //S_Plus_0 : . S_Plus_0 Layout "," Layout A
             SlotId(4) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(5));
+                self.create_s_plus_0(result, gss_node_id, SlotId(5));
             }
             //S_Plus_0 : S_Plus_0 . Layout "," Layout A
             SlotId(5) => {
@@ -333,7 +333,7 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             //S_Plus_0 : S_Plus_0 Layout "," Layout . A
             SlotId(8) => {
-                self.create(NonterminalId(1), result, gss_node_id, SlotId(9));
+                self.create_a(result, gss_node_id, SlotId(9));
             }
             //S_Plus_0 : S_Plus_0 Layout "," Layout A.
             SlotId(9) => {
@@ -357,7 +357,7 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             //S_Plus_0 : . A
             SlotId(10) => {
-                self.create(NonterminalId(1), result, gss_node_id, SlotId(11));
+                self.create_a(result, gss_node_id, SlotId(11));
             }
             //S_Plus_0 : A.
             SlotId(11) => {
@@ -407,7 +407,7 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             //StartS : Layout . S Layout
             SlotId(13) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(14));
+                self.create_s(result, gss_node_id, SlotId(14));
             }
             //StartS : Layout S . Layout
             SlotId(14) => {
@@ -493,7 +493,7 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             //StartA : Layout . A Layout
             SlotId(17) => {
-                self.create(NonterminalId(1), result, gss_node_id, SlotId(18));
+                self.create_a(result, gss_node_id, SlotId(18));
             }
             //StartA : Layout A . Layout
             SlotId(18) => {
@@ -847,6 +847,46 @@ impl<'i> PlusWithSepParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
+    }
+    fn create_s(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_a(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_s_plus_0(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_start_s(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_start_a(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot);
     }
 }
 

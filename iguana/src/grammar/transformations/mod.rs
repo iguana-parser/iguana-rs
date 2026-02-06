@@ -34,7 +34,11 @@ where
         })
         .collect();
     let origin = rule.head.origin.map(transform_symbol);
-    let head = Nonterminal { name, origin };
+    let head = Nonterminal {
+        name,
+        origin,
+        parameters: rule.head.parameters,
+    };
     SyntaxRule::new(head, new_priority_levels)
 }
 

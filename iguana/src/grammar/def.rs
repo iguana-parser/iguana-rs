@@ -35,14 +35,18 @@ impl Alternative {
     }
 
     pub fn display_name(&self, grammar: &Grammar) -> String {
-        let symbols: Vec<String> = self.symbols.iter().map(|s| {
-            let def_id = s.resolved_def();
-            let name = grammar.definition(def_id).display_name();
-            match s.label() {
-                Some(label) => format!("{}:{}", label, name),
-                None => name,
-            }
-        }).collect();
+        let symbols: Vec<String> = self
+            .symbols
+            .iter()
+            .map(|s| {
+                let def_id = s.resolved_def();
+                let name = grammar.definition(def_id).display_name();
+                match s.label() {
+                    Some(label) => format!("{}:{}", label, name),
+                    None => name,
+                }
+            })
+            .collect();
         let symbols_str = symbols.join(" ");
         match &self.label {
             Some(label) => format!("{} @{}", symbols_str, label),
@@ -469,7 +473,11 @@ fn add_start_rule(
         .unwrap_or_else(|| panic!("{} is not defined", nt_name));
     let name = format!("Start{}", nt_name);
     SyntaxRule {
-        head: Nonterminal { name, origin: None },
+        head: Nonterminal {
+            name,
+            origin: None,
+            parameters: vec![],
+        },
         priority_levels: vec![priority_level!(alternative!(
             layout_identifier.clone(),
             Symbol::Labeled {
@@ -569,6 +577,18 @@ macro_rules! priority_level {
 
 #[macro_export]
 macro_rules! syntax_rule {
+    ($head:literal ( $( $pname:literal : $pty:ident ),* $(,)? ) => $($level:expr),* $(,)?) => {
+        $crate::grammar::def::SyntaxRule {
+            head: $crate::grammar::symbols::Nonterminal::with_params(
+                $head,
+                vec![$($crate::grammar::symbols::Parameter {
+                    name: $pname.into(),
+                    ty: $crate::grammar::symbols::ParamType::$pty,
+                }),*],
+            ),
+            priority_levels: vec![$($level.into()),*],
+        }
+    };
     ($head:literal => $($level:expr),* $(,)?) => {
         $crate::grammar::def::SyntaxRule {
             head: $crate::grammar::symbols::Nonterminal::new($head),
