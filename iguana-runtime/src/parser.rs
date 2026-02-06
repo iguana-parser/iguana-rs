@@ -3,7 +3,13 @@ use std::time::{Duration, Instant};
 use rustc_hash::FxHashMap;
 
 use crate::{
-    descriptor::Descriptor, gss::{EdgeResult, GSSEdge, GSSNode}, ids::{GssNodeId, NonterminalId, SlotId, TerminalId}, input::Input, record, sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode}
+    descriptor::Descriptor,
+    env::EnvId,
+    gss::{EdgeResult, GSSEdge, GSSNode},
+    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    input::Input,
+    record,
+    sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
 };
 
 #[cfg(feature = "debug-trace")]
@@ -417,6 +423,8 @@ pub trait Parser<'i> {
     ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>;
 
     fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>;
+
+    fn new_env(&mut self) -> EnvId;
 
     #[cfg(feature = "debug-trace")]
     fn add_trace_event(&mut self, event: TraceEvent);

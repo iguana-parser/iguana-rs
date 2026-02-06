@@ -6,6 +6,7 @@ use crate::{
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
     descriptor::Descriptor,
+    env::{Env, EnvId},
     gss::GSSNode,
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
@@ -844,6 +845,11 @@ impl<'i> Parser<'i> for StarParser<'i> {
     fn start_nonterminal(&self) -> NonterminalId {
         self.start_nonterminal
     }
+    fn new_env(&mut self) -> EnvId {
+        let id = EnvId(self.envs.len() as u32);
+        self.envs.push(Env::default());
+        id
+    }
 }
 pub struct StarParser<'i> {
     start_nonterminal: NonterminalId,
@@ -861,6 +867,7 @@ pub struct StarParser<'i> {
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
+    envs: Vec<Env>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -882,6 +889,7 @@ impl<'i> StarParser<'i> {
             intermediate_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_children: vec![],
             nonterminal_nodes_children_map: OnceCell::new(),
+            envs: vec![],
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }

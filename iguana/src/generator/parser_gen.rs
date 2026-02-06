@@ -14,6 +14,8 @@ use crate::grammar::def::Grammar;
 use crate::grammar::slot::Slot;
 use crate::grammar::symbols::Definition;
 use crate::grammar::symbols::Nonterminal;
+use crate::grammar::symbols::ParamType;
+use crate::grammar::symbols::Parameter;
 use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
 
@@ -61,6 +63,7 @@ pub fn generate<'a>(
     let nonterminal_nodes_children_method = gen_nonterminal_nodes_children_map_method();
     let add_trace_event_method = gen_add_trace_event_method();
     let start_nonterminal_method = gen_start_nonterminal_method();
+    let new_env_method = gen_new_env_method();
     let parser_struct = gen_parser_struct(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let parser_impl = gen_parser_impl(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
@@ -103,6 +106,7 @@ pub fn generate<'a>(
             #nonterminal_nodes_children_method
             #add_trace_event_method
             #start_nonterminal_method
+            #new_env_method
         }
         #parser_struct
         #parser_impl
@@ -116,6 +120,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         use crate::{scanner::#scanner_name, types::{EbnfKind, Nonterminal, Slot, Terminal}};
         use iguana_runtime::{
             descriptor::Descriptor,
+            env::{Env, EnvId},
             gss::GSSNode,
             ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
             input::Input,
@@ -817,6 +822,7 @@ fn gen_parser_struct(
             intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
             nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
             nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
+            envs: Vec<Env>,
             #[cfg(feature = "debug-trace")]
             pub trace_events: Option<Vec<TraceEvent>>,
         }
@@ -847,12 +853,24 @@ fn gen_parser_impl(
 fn gen_create_method(n: &Nonterminal, id: usize) -> TokenStream {
     let method_name = format_ident!("create_{}", to_snake_case(&n.name));
     let id = Literal::usize_unsuffixed(id);
+    let parameters: Vec<_> = n
+        .parameters
+        .iter()
+        .map(|Parameter { name, ty }| {
+            let name = format_ident!("{}", name);
+            let ty = match ty {
+                ParamType::U16 => quote! { u16 },
+            };
+            quote! { #name: #ty }
+        })
+        .collect();
     quote! {
         fn #method_name(
             &mut self,
             sppf_node_id: Option<SPPFNodeId>,
             gss_node_id: GssNodeId,
             return_slot: SlotId,
+            #(#parameters,)*
         ) {
             self.create(NonterminalId(#id), sppf_node_id, gss_node_id, return_slot);
         }
@@ -888,6 +906,7 @@ fn gen_new_method(
                 intermediate_nodes_children_map: OnceCell::new(),
                 nonterminal_nodes_children: vec![],
                 nonterminal_nodes_children_map: OnceCell::new(),
+                envs: vec![],
                 #[cfg(feature = "debug-trace")]
                 trace_events: None,
             }
@@ -927,6 +946,16 @@ fn gen_start_nonterminal_method() -> TokenStream {
     quote! {
         fn start_nonterminal(&self) -> NonterminalId {
             self.start_nonterminal
+        }
+    }
+}
+
+fn gen_new_env_method() -> TokenStream {
+    quote! {
+        fn new_env(&mut self) -> EnvId {
+            let id = EnvId(self.envs.len() as u32);
+            self.envs.push(Env::default());
+            id
         }
     }
 }

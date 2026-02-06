@@ -1,0 +1,24 @@
+use crate::utils::inline_vec::InlineVec;
+
+#[derive(Clone, Copy, Debug)]
+pub struct EnvId(pub u32);
+
+#[derive(Clone, Debug, Default)]
+pub struct Env {
+    bindings: InlineVec<(&'static str, u16)>,
+}
+
+impl Env {
+    pub fn bind(&mut self, name: &'static str, value: u16) {
+        self.bindings.push((name, value));
+    }
+
+    pub fn get(&self, name: &str) -> u16 {
+        for (n, v) in self.bindings.iter() {
+            if *n == name {
+                return *v;
+            }
+        }
+        panic!("binding not found: {name}")
+    }
+}
