@@ -1,4 +1,4 @@
-use crate::{ids::TerminalId, sppf::TerminalNode};
+use crate::ids::TerminalId;
 
 pub struct Token {
     pub token_type: TerminalId,
@@ -25,12 +25,6 @@ pub trait Scanner {
         None
     }
     fn char_at(&self, i: u32) -> Option<char>;
-    /// Matches layout definitions, usually whitespace and comments, before a token
-    fn match_leading_layout(&self, input_index: u32) -> (u32, Vec<TerminalNode>);
-    /// Matches layout definitions, usually whitespace and comments, before a token
-    /// Stops matching if the last matched token ends with a newline ('\n') character.
-    /// This is a heuristic where to attach each token.
-    fn match_trailing_layout(&self, input_index: u32) -> (u32, Vec<TerminalNode>);
     fn match_char(&self, i: u32, c: char) -> Option<u32> {
         let ch = self.char_at(i)?;
         if ch == c { Some(i + 1) } else { None }

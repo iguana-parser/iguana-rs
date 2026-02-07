@@ -1,6 +1,5 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
-use syn::Ident;
 
 use crate::{
     generator::id::{CharClassIds, TerminalIds, collect_char_classes},
@@ -112,15 +111,11 @@ fn gen_scanner_trait_impl(
 ) -> TokenStream {
     let match_token_method = gen_match_token(terminal_ids);
     let char_at_method = gen_char_at_method();
-    let match_leading_layout_method = gen_match_layout_method(grammar, terminal_ids, false);
-    let match_trailing_layout_method = gen_match_layout_method(grammar, terminal_ids, true);
     let scanner_name = format_ident!("{}Scanner", grammar.name);
     quote! {
         impl Scanner for #scanner_name<'_> {
             #match_token_method
             #char_at_method
-            #match_leading_layout_method
-            #match_trailing_layout_method
         }
     }
 }
@@ -185,47 +180,6 @@ fn gen_match_terminal_method(
         pub fn #fn_name(&self, input_index: u32) -> Option<u32> {
             let i = input_index;
             #match_regex
-        }
-    }
-}
-
-fn gen_match_layout_method(
-    grammar: &Grammar,
-    terminal_ids: &TerminalIds,
-    trailing: bool,
-) -> TokenStream {
-    let layout_def_ids: Vec<_> = grammar
-        .layout_defs
-        .iter()
-        .map(|t| terminal_ids.get_id(t))
-        .collect();
-    let method_name = if trailing {
-        Ident::new("match_trailing_layout", Span::call_site())
-    } else {
-        Ident::new("match_leading_layout", Span::call_site())
-    };
-    let trailing_layout_check = if trailing {
-        quote! {
-            #[comment = "If the last matched character is a newline, do not match further"]
-            if let Some(last_matched_char) = self.input.char_at(next_index - 1)
-                && last_matched_char == '\n'
-            {
-                break;
-            }
-        }
-    } else {
-        quote! {}
-    };
-    quote! {
-        fn #method_name(&self, input_index: u32) -> (u32, Vec<TerminalNode>) {
-            let mut i = input_index;
-            let mut layout_nodes = vec![];
-            while let Some((next_index, terminal_id)) = self.match_any(&vec![#(#layout_def_ids),*], i) {
-                layout_nodes.push(TerminalNode::new(terminal_id, Span::new(i, next_index)));
-                i = next_index;
-                #trailing_layout_check
-            }
-            (i, layout_nodes)
         }
     }
 }

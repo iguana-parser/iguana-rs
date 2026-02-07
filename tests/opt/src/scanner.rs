@@ -35,29 +35,5 @@ impl Scanner for OptScanner<'_> {
     fn char_at(&self, i: u32) -> Option<char> {
         self.input.char_at(i)
     }
-    fn match_leading_layout(&self, input_index: u32) -> (u32, Vec<TerminalNode>) {
-        let mut i = input_index;
-        let mut layout_nodes = vec![];
-        while let Some((next_index, terminal_id)) = self.match_any(&vec![], i) {
-            layout_nodes.push(TerminalNode::new(terminal_id, Span::new(i, next_index)));
-            i = next_index;
-        }
-        (i, layout_nodes)
-    }
-    fn match_trailing_layout(&self, input_index: u32) -> (u32, Vec<TerminalNode>) {
-        let mut i = input_index;
-        let mut layout_nodes = vec![];
-        while let Some((next_index, terminal_id)) = self.match_any(&vec![], i) {
-            layout_nodes.push(TerminalNode::new(terminal_id, Span::new(i, next_index)));
-            i = next_index;
-            //If the last matched character is a newline, do not match further
-            if let Some(last_matched_char) = self.input.char_at(next_index - 1)
-                && last_matched_char == '\n'
-            {
-                break;
-            }
-        }
-        (i, layout_nodes)
-    }
 }
 
