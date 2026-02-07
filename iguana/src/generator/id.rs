@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use indexmap::{IndexMap, IndexSet};
+use itertools::Itertools;
 
 use crate::{
     grammar::{
@@ -18,19 +19,35 @@ pub struct EndSlot {
     pub index: usize,
 }
 
-#[derive(Default)]
 pub struct NonterminalIds {
     // nonterminals[i] = the nonterminal with id i
     nonterminals: IndexSet<Nonterminal>,
     // Indexed by nonterminal ids to a list of their end grammar slots.
     // end_slots[nonterminal_id] = end slots for the nonterminal's alternatives.
     alternatives: IndexMap<NonterminalId, Vec<EndSlot>>,
+    // The id of the first data-dependent nonterminal.
+    dd_id_start: usize,
 }
 
 impl NonterminalIds {
-    pub fn insert(&mut self, nonterminal: Nonterminal) {
-        self.nonterminals.insert(nonterminal);
+    pub fn new(nonterminals: impl Iterator<Item = Nonterminal>) -> Self {
+        // We sort the nonterminals so that nonterminals without parameters come first.
+        // This is because we use a single vector `gss_nodes_index` for such nonterminals.
+        // For data-dependent nonterminals which have parameters, we generate a separate
+        let nonterminals: IndexSet<_> = nonterminals
+            .sorted_by_key(|nt| !nt.parameters.is_empty())
+            .collect();
+        let dd_id_start = nonterminals
+            .iter()
+            .position(|nt| !nt.parameters.is_empty())
+            .unwrap_or(nonterminals.len());
+        Self {
+            nonterminals,
+            alternatives: IndexMap::default(),
+            dd_id_start,
+        }
     }
+
     pub fn get_id(&self, nonterminal: &Nonterminal) -> Option<NonterminalId> {
         let id = self.nonterminals.get_index_of(nonterminal);
         id.map(|id| NonterminalId(id as u16))
@@ -38,11 +55,20 @@ impl NonterminalIds {
     pub fn len(&self) -> usize {
         self.nonterminals.len()
     }
+    pub fn num_regular_nts(&self) -> usize {
+        self.dd_id_start
+    }
+    pub fn num_data_dependent_nts(&self) -> usize {
+        self.len() - self.dd_id_start
+    }
     pub fn ids(&self) -> impl Iterator<Item = NonterminalId> {
         (0..self.len()).map(|id| NonterminalId(id as u16))
     }
     pub fn nonterminals(&self) -> impl Iterator<Item = &Nonterminal> {
         self.nonterminals.iter()
+    }
+    pub fn dd_nonterminals(&self) -> impl Iterator<Item = &Nonterminal> {
+        self.nonterminals.iter().skip(self.dd_id_start)
     }
     pub fn add_end_slot(&mut self, nonterminal_id: NonterminalId, alternative: EndSlot) {
         self.alternatives

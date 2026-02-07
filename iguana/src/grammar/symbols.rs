@@ -2,6 +2,7 @@ use core::hash;
 use std::{fmt::Display, hash::Hasher};
 
 use itertools::Itertools;
+use quote::{ToTokens, quote};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
@@ -146,6 +147,15 @@ pub struct Parameter {
 #[derive(Debug, Clone)]
 pub enum ParamType {
     U16,
+}
+
+impl ToTokens for ParamType {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let quote = match self {
+            ParamType::U16 => quote! { u16 },
+        };
+        tokens.extend(quote);
+    }
 }
 
 impl Nonterminal {

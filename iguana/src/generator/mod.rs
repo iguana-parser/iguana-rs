@@ -26,10 +26,8 @@ enum FileFormat {
 }
 
 pub fn generate(grammar: &Grammar, output_dir: &Path) -> std::io::Result<()> {
-    let mut nonterminal_ids = NonterminalIds::default();
-    for nonterminal in grammar.nonterminals() {
-        nonterminal_ids.insert(nonterminal.clone());
-    }
+    let mut nonterminal_ids = NonterminalIds::new(grammar.nonterminals().cloned());
+    // TODO: also do the same for terminal ids to pass things via constructor
     let mut terminal_ids = TerminalIds::default();
     for terminal in grammar.terminals() {
         terminal_ids.insert(terminal.clone());

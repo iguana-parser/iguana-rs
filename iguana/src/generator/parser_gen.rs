@@ -1,5 +1,4 @@
 use proc_macro2::Literal;
-use proc_macro2::Span;
 use proc_macro2::TokenStream;
 use quote::format_ident;
 use quote::quote;
@@ -14,7 +13,6 @@ use crate::grammar::def::Grammar;
 use crate::grammar::slot::Slot;
 use crate::grammar::symbols::Definition;
 use crate::grammar::symbols::Nonterminal;
-use crate::grammar::symbols::ParamType;
 use crate::grammar::symbols::Parameter;
 use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
@@ -800,12 +798,15 @@ fn gen_parser_struct(
     slot_ids: &SlotIds,
 ) -> TokenStream {
     let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.len());
+    let num_regular_nonterminal = Literal::usize_unsuffixed(nonterminal_ids.num_regular_nts());
     let terminal_ids_len = Literal::usize_unsuffixed(terminal_ids.len() + 1);
+    let gss_nodes_index_fields: Vec<_> = nonterminal_ids
+        .dd_nonterminals()
+        .map(gen_gss_nodes_index_field_for_data_dependent_nt)
+        .collect();
     let slot_ids_len = Literal::usize_unsuffixed(slot_ids.len());
-    let parser_name_ident =
-        syn::Ident::new(&format!("{}{}", grammar_name, "Parser"), Span::call_site());
-    let scanner_name_ident =
-        syn::Ident::new(&format!("{}{}", grammar_name, "Scanner"), Span::call_site());
+    let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
+    let scanner_name_ident = format_ident!("{}{}", grammar_name, "Scanner");
     quote! {
         pub struct #parser_name_ident<'i> {
             start_nonterminal: NonterminalId,
@@ -813,7 +814,8 @@ fn gen_parser_struct(
             descriptors: Vec<Descriptor>,
             gss_nodes: Vec<GSSNode>,
             #[comment = "A vector from nonterminal_ids to a tuple (input_index, gss_node_id)"]
-            gss_nodes_index: [Vec<(u32, GssNodeId)>; #nonterminal_ids_len],
+            gss_nodes_index: [Vec<(u32, GssNodeId)>; #num_regular_nonterminal],
+            #(#gss_nodes_index_fields,)*
             sppf_nodes: Vec<SPPFNode>,
             stats: Stats,
             nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #nonterminal_ids_len],
@@ -837,7 +839,7 @@ fn gen_parser_impl(
     slot_ids: &SlotIds,
 ) -> TokenStream {
     let new_method = gen_new_method(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
-    let name_ident = syn::Ident::new(&format!("{}{}", grammar_name, "Parser"), Span::call_site());
+    let name_ident = format_ident!("{}{}", grammar_name, "Parser");
     let create_methods: Vec<_> = nonterminal_ids
         .nonterminals()
         .enumerate()
@@ -859,9 +861,6 @@ fn gen_create_method(n: &Nonterminal, id: usize) -> TokenStream {
         .iter()
         .map(|Parameter { name, ty }| {
             let name = format_ident!("{}", name);
-            let ty = match ty {
-                ParamType::U16 => quote! { u16 },
-            };
             quote! { #name: #ty }
         })
         .collect();
@@ -884,8 +883,12 @@ fn gen_new_method(
     terminal_ids: &TerminalIds,
     slot_ids: &SlotIds,
 ) -> TokenStream {
-    let name_ident = syn::Ident::new(&format!("{}{}", grammar_name, "Scanner"), Span::call_site());
+    let name_ident = format_ident!("{}{}", grammar_name, "Scanner");
     let gss_nodes_index_field = gen_gss_nodes_index_field(nonterminal_ids);
+    let gss_nodes_index_fields: Vec<_> = nonterminal_ids
+        .dd_nonterminals()
+        .map(gen_gss_nodes_index_field_init_for_data_dependent_nt)
+        .collect();
     let nonterminal_nodes_index_field = gen_nonterminal_nodes_index_field(nonterminal_ids);
     let intermediate_nodes_index_field = gen_intermediate_nodes_index_field(slot_ids);
     let terminal_nodes_index_field = gen_terminal_nodes_index_field(terminal_ids);
@@ -896,6 +899,7 @@ fn gen_new_method(
                 start_nonterminal,
                 scanner: #name_ident::new(input),
                 #gss_nodes_index_field,
+                #(#gss_nodes_index_fields,)*
                 descriptors: vec![],
                 gss_nodes: vec![],
                 sppf_nodes: vec![],
@@ -916,9 +920,26 @@ fn gen_new_method(
 }
 
 fn gen_gss_nodes_index_field(nonterminal_ids: &NonterminalIds) -> TokenStream {
-    let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.len());
+    let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.num_regular_nts());
     quote! {
         gss_nodes_index: [const { vec![] }; #nonterminal_ids_len]
+    }
+}
+
+fn gen_gss_nodes_index_field_for_data_dependent_nt(nt: &Nonterminal) -> TokenStream {
+    let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
+    let types: Vec<_> = nt.parameters.iter().map(|p| &p.ty).collect();
+    let comment = format!("GSS index for nonterminal {}", nt.name);
+    quote! {
+        #[comment = #comment]
+        #field_name: Vec<(u32, GssNodeId, #(#types,)*)>
+    }
+}
+
+fn gen_gss_nodes_index_field_init_for_data_dependent_nt(nt: &Nonterminal) -> TokenStream {
+    let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
+    quote! {
+        #field_name: vec![]
     }
 }
 
