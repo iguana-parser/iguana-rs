@@ -119,6 +119,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
         slot_id: SlotId,
         result: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
+        env: Option<EnvId>,
     ) {
         record!(
             self,
@@ -153,7 +154,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -189,7 +190,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -225,7 +226,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -289,7 +290,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -325,7 +326,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -361,7 +362,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -412,7 +413,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                         //E : "a".
                         let next_slot_id = SlotId(13);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -458,7 +459,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                         //StartE : Layout . E Layout
                         let next_slot_id = SlotId(15);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -497,7 +498,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -543,6 +544,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
         nonterminal_id: NonterminalId,
         input_index: u32,
         gss_node_id: GssNodeId,
+        env: Option<EnvId>,
     ) {
         match nonterminal_id {
             //E
@@ -769,10 +771,10 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
     fn start_nonterminal(&self) -> NonterminalId {
         self.start_nonterminal
     }
-    fn new_env(&mut self) -> EnvId {
+    fn new_env(&mut self) -> (EnvId, &mut Env) {
         let id = EnvId(self.envs.len() as u32);
         self.envs.push(Env::default());
-        id
+        (id, &mut self.envs[id.index()])
     }
 }
 pub struct ExpressionParser<'i> {

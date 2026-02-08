@@ -6,6 +6,12 @@ use crate::utils::inline_vec::InlineVec;
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Type)]
 pub struct EnvId(pub u32);
 
+impl EnvId {
+    pub fn index(&self) -> usize {
+        self.0 as usize
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Env {
     bindings: InlineVec<(&'static str, u16)>,

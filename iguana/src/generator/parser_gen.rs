@@ -173,7 +173,8 @@ fn gen_add_first_descriptors_method<'a>(
             &mut self,
             nonterminal_id: NonterminalId,
             input_index: u32,
-            gss_node_id: GssNodeId
+            gss_node_id: GssNodeId,
+            env: Option<EnvId>,
         ) {
             match nonterminal_id {
                 #( #nonterminal_quotes)*
@@ -357,7 +358,8 @@ fn gen_execute_method<'a>(
             input_index: u32,
             slot_id: SlotId,
             result: Option<SPPFNodeId>,
-            gss_node_id: GssNodeId
+            gss_node_id: GssNodeId,
+            env: Option<EnvId>,
         ) {
             record!(self, ProcessingDescriptor, input_index, slot_id, result, gss_node_id);
             match slot_id {
@@ -405,7 +407,7 @@ fn gen_terminal_slot<'a>(
     let new_node = if slot.pos == 0 {
         quote! {
             let new_node = right_child_id;
-            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
         }
     } else {
         quote! {
@@ -419,7 +421,7 @@ fn gen_terminal_slot<'a>(
                 left_child_id,
                 right_child_id,
             ) {
-                self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
             }
         }
     };
@@ -974,10 +976,10 @@ fn gen_start_nonterminal_method() -> TokenStream {
 
 fn gen_new_env_method() -> TokenStream {
     quote! {
-        fn new_env(&mut self) -> EnvId {
+        fn new_env(&mut self) -> (EnvId, &mut Env) {
             let id = EnvId(self.envs.len() as u32);
             self.envs.push(Env::default());
-            id
+            (id, &mut self.envs[id.index()])
         }
     }
 }

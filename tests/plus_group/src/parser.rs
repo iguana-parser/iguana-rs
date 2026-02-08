@@ -216,6 +216,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
         slot_id: SlotId,
         result: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
+        env: Option<EnvId>,
     ) {
         record!(
             self,
@@ -261,7 +262,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                         //A : "a".
                         let next_slot_id = SlotId(3);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -307,7 +308,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                         //B : "b".
                         let next_slot_id = SlotId(5);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -353,7 +354,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                         //C : "c".
                         let next_slot_id = SlotId(7);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -412,7 +413,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -452,7 +453,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -516,7 +517,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -591,7 +592,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                         //StartS : Layout . S Layout
                         let next_slot_id = SlotId(21);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -630,7 +631,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -677,7 +678,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                         //StartA : Layout . A Layout
                         let next_slot_id = SlotId(25);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -716,7 +717,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -763,7 +764,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                         //StartB : Layout . B Layout
                         let next_slot_id = SlotId(29);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -802,7 +803,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -849,7 +850,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                         //StartC : Layout . C Layout
                         let next_slot_id = SlotId(33);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -888,7 +889,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -934,6 +935,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
         nonterminal_id: NonterminalId,
         input_index: u32,
         gss_node_id: GssNodeId,
+        env: Option<EnvId>,
     ) {
         match nonterminal_id {
             //S
@@ -1240,10 +1242,10 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
     fn start_nonterminal(&self) -> NonterminalId {
         self.start_nonterminal
     }
-    fn new_env(&mut self) -> EnvId {
+    fn new_env(&mut self) -> (EnvId, &mut Env) {
         let id = EnvId(self.envs.len() as u32);
         self.envs.push(Env::default());
-        id
+        (id, &mut self.envs[id.index()])
     }
 }
 pub struct PlusGroupParser<'i> {

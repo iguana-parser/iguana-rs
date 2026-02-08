@@ -159,6 +159,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
         slot_id: SlotId,
         result: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
+        env: Option<EnvId>,
     ) {
         record!(
             self,
@@ -204,7 +205,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
                         //A : "a".
                         let next_slot_id = SlotId(3);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -263,7 +264,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -402,7 +403,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
                         //StartS : Layout . S Layout
                         let next_slot_id = SlotId(16);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -441,7 +442,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -488,7 +489,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
                         //StartA : Layout . A Layout
                         let next_slot_id = SlotId(20);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -527,7 +528,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -573,6 +574,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
         nonterminal_id: NonterminalId,
         input_index: u32,
         gss_node_id: GssNodeId,
+        env: Option<EnvId>,
     ) {
         match nonterminal_id {
             //S
@@ -854,10 +856,10 @@ impl<'i> Parser<'i> for StarParser<'i> {
     fn start_nonterminal(&self) -> NonterminalId {
         self.start_nonterminal
     }
-    fn new_env(&mut self) -> EnvId {
+    fn new_env(&mut self) -> (EnvId, &mut Env) {
         let id = EnvId(self.envs.len() as u32);
         self.envs.push(Env::default());
-        id
+        (id, &mut self.envs[id.index()])
     }
 }
 pub struct StarParser<'i> {

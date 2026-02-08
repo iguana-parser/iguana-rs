@@ -4,7 +4,7 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     descriptor::Descriptor,
-    env::EnvId,
+    env::{Env, EnvId},
     gss::{EdgeResult, GSSEdge, GSSNode},
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
@@ -38,12 +38,14 @@ pub trait Parser<'i> {
         slot_id: SlotId,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
+        env: Option<EnvId>,
     );
     fn add_first_descriptors(
         &mut self,
         nonterminal_id: NonterminalId,
         input_index: u32,
         gss_node_id: GssNodeId,
+        env: Option<EnvId>,
     );
     fn start_nonterminal(&self) -> NonterminalId;
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId>;
@@ -157,12 +159,18 @@ pub trait Parser<'i> {
             }
             *self.gss_node_mut(exiting_gss_node_id).popped_elements_mut() = popped_elements;
 
-            self.add_gss_edge(exiting_gss_node_id, gss_node_id, edge_result, return_slot);
+            self.add_gss_edge(
+                exiting_gss_node_id,
+                gss_node_id,
+                edge_result,
+                return_slot,
+                None,
+            );
         } else {
             record!(self, GSSNodeNotFound, nonterminal_id, i);
             let new_gss_node_id = self.new_gss_node(nonterminal_id, i);
-            self.add_gss_edge(new_gss_node_id, gss_node_id, edge_result, return_slot);
-            self.add_first_descriptors(nonterminal_id, i, new_gss_node_id);
+            self.add_gss_edge(new_gss_node_id, gss_node_id, edge_result, return_slot, None);
+            self.add_first_descriptors(nonterminal_id, i, new_gss_node_id, None);
             self.add_gss_node(nonterminal_id, i, new_gss_node_id);
         }
     }
@@ -173,13 +181,14 @@ pub trait Parser<'i> {
         dest_gss_node_id: GssNodeId,
         result: Option<EdgeResult>,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
         let origin = self.gss_node_mut(origin_gss_node_id);
         let gss_edge = GSSEdge {
             result,
             return_slot,
             dest_id: dest_gss_node_id,
-            env: None,
+            env,
         };
         origin.add_edge(gss_edge);
         record!(
@@ -399,7 +408,12 @@ pub trait Parser<'i> {
         let start_input_index = 0;
         let start_nonterminal_id = self.start_nonterminal();
         let start_gss_node_id = self.new_gss_node(start_nonterminal_id, start_input_index);
-        self.add_first_descriptors(start_nonterminal_id, start_input_index, start_gss_node_id);
+        self.add_first_descriptors(
+            start_nonterminal_id,
+            start_input_index,
+            start_gss_node_id,
+            None,
+        );
         self.add_gss_node(start_nonterminal_id, start_input_index, start_gss_node_id);
         while let Some(descriptor) = self.next_descriptor() {
             self.execute(
@@ -407,6 +421,7 @@ pub trait Parser<'i> {
                 descriptor.slot_id,
                 descriptor.sppf_node_id,
                 descriptor.gss_node_id,
+                descriptor.env,
             );
         }
         let duration = start.elapsed();
@@ -431,7 +446,7 @@ pub trait Parser<'i> {
 
     fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>;
 
-    fn new_env(&mut self) -> EnvId;
+    fn new_env(&mut self) -> (EnvId, &mut Env);
 
     #[cfg(feature = "debug-trace")]
     fn add_trace_event(&mut self, event: TraceEvent);

@@ -1335,6 +1335,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         slot_id: SlotId,
         result: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
+        env: Option<EnvId>,
     ) {
         record!(
             self,
@@ -1356,7 +1357,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Grammar : "grammar" . Layout Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0 Layout Grammar_Opt_2
                         let next_slot_id = SlotId(1);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -1391,7 +1392,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1427,7 +1428,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1463,7 +1464,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1503,7 +1504,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1543,7 +1544,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1594,7 +1595,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //LayoutDef : "layout" . Layout LayoutDef_Star_1
                         let next_slot_id = SlotId(11);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -1629,7 +1630,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1680,7 +1681,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //SyntaxRule : Identifier . Layout "=" Layout SyntaxRule_Star_2
                         let next_slot_id = SlotId(15);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -1715,7 +1716,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1751,7 +1752,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1787,7 +1788,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1838,7 +1839,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //RegexBlock : "regex" . Layout "{" Layout RegexBlock_Star_3 Layout "}"
                         let next_slot_id = SlotId(21);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -1873,7 +1874,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1909,7 +1910,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1945,7 +1946,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -1985,7 +1986,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2021,7 +2022,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2068,7 +2069,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //RegexRule : Identifier . Layout "=" Layout RegexRule_Plus_4
                         let next_slot_id = SlotId(29);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -2103,7 +2104,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2139,7 +2140,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2175,7 +2176,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2263,7 +2264,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2327,7 +2328,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2363,7 +2364,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2423,7 +2424,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2459,7 +2460,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2519,7 +2520,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2555,7 +2556,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2602,7 +2603,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Symbol : "(" . Layout Symbol Layout Symbol_Plus_8 Layout ")"
                         let next_slot_id = SlotId(53);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -2637,7 +2638,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2677,7 +2678,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2717,7 +2718,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2753,7 +2754,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2800,7 +2801,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Symbol : """ . Layout String Layout """
                         let next_slot_id = SlotId(61);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -2835,7 +2836,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2871,7 +2872,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2907,7 +2908,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2943,7 +2944,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -2990,7 +2991,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Symbol : "{" . Layout Symbol Layout Symbol Layout "}" Layout "*"
                         let next_slot_id = SlotId(67);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -3025,7 +3026,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3065,7 +3066,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3105,7 +3106,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3141,7 +3142,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3177,7 +3178,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3213,7 +3214,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3260,7 +3261,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Symbol : "{" . Layout Symbol Layout Symbol Layout "}" Layout "+"
                         let next_slot_id = SlotId(77);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -3295,7 +3296,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3335,7 +3336,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3375,7 +3376,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3411,7 +3412,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3447,7 +3448,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3483,7 +3484,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3530,7 +3531,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Symbol : "(" . Layout Alternative_Plus_7 Layout ")"
                         let next_slot_id = SlotId(87);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -3565,7 +3566,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3605,7 +3606,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3641,7 +3642,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3688,7 +3689,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Symbol : Identifier . Layout ":" Layout Symbol
                         let next_slot_id = SlotId(93);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -3723,7 +3724,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3759,7 +3760,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3795,7 +3796,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3846,7 +3847,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Symbol : Identifier.
                         let next_slot_id = SlotId(99);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -3905,7 +3906,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -3941,7 +3942,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4001,7 +4002,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4037,7 +4038,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4097,7 +4098,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4133,7 +4134,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4180,7 +4181,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Regex : "(" . Layout Regex Layout Regex_Plus_9 Layout ")"
                         let next_slot_id = SlotId(113);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -4215,7 +4216,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4255,7 +4256,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4295,7 +4296,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4331,7 +4332,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4378,7 +4379,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Regex : "(" . Layout RegexRule_Plus_5 Layout ")"
                         let next_slot_id = SlotId(121);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -4413,7 +4414,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4453,7 +4454,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4489,7 +4490,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4560,7 +4561,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Regex : """ . Layout Char Layout """
                         let next_slot_id = SlotId(129);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -4595,7 +4596,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4631,7 +4632,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4667,7 +4668,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4703,7 +4704,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4763,7 +4764,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4799,7 +4800,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4835,7 +4836,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4875,7 +4876,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4911,7 +4912,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -4982,7 +4983,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //RangeElement : RangeChar.
                         let next_slot_id = SlotId(145);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -5028,7 +5029,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Range : RangeChar . Layout "-" Layout RangeChar
                         let next_slot_id = SlotId(147);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -5063,7 +5064,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -5099,7 +5100,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -5135,7 +5136,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -5171,7 +5172,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -5271,7 +5272,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -5463,7 +5464,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -5499,7 +5500,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -5546,7 +5547,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //LayoutDef_Plus_1 : Identifier.
                         let next_slot_id = SlotId(174);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -5669,7 +5670,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -5705,7 +5706,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -5741,7 +5742,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -5893,7 +5894,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6045,7 +6046,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6133,7 +6134,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6169,7 +6170,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6205,7 +6206,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6293,7 +6294,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6329,7 +6330,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6365,7 +6366,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6517,7 +6518,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6656,7 +6657,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Alternative_Opt_8 : Label.
                         let next_slot_id = SlotId(243);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -6718,7 +6719,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Symbol_Group_0 : "|" . Layout Symbol
                         let next_slot_id = SlotId(246);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -6753,7 +6754,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6817,7 +6818,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6892,7 +6893,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //Regex_Group_1 : "|" . Layout Regex
                         let next_slot_id = SlotId(256);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -6927,7 +6928,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -6991,7 +6992,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -7066,7 +7067,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //CharClass_Opt_9 : "!".
                         let next_slot_id = SlotId(266);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -7141,7 +7142,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -7216,7 +7217,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartGrammar : Layout . Grammar Layout
                         let next_slot_id = SlotId(275);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -7255,7 +7256,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -7302,7 +7303,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartLayoutDef : Layout . LayoutDef Layout
                         let next_slot_id = SlotId(279);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -7341,7 +7342,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -7388,7 +7389,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartSyntaxRule : Layout . SyntaxRule Layout
                         let next_slot_id = SlotId(283);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -7427,7 +7428,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -7474,7 +7475,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartRegexBlock : Layout . RegexBlock Layout
                         let next_slot_id = SlotId(287);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -7513,7 +7514,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -7560,7 +7561,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartRegexRule : Layout . RegexRule Layout
                         let next_slot_id = SlotId(291);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -7599,7 +7600,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -7646,7 +7647,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartPriorityLevel : Layout . PriorityLevel Layout
                         let next_slot_id = SlotId(295);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -7685,7 +7686,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -7732,7 +7733,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartAlternative : Layout . Alternative Layout
                         let next_slot_id = SlotId(299);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -7771,7 +7772,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -7818,7 +7819,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartSymbol : Layout . Symbol Layout
                         let next_slot_id = SlotId(303);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -7857,7 +7858,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -7904,7 +7905,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartRegex : Layout . Regex Layout
                         let next_slot_id = SlotId(307);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -7943,7 +7944,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -7990,7 +7991,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartCharClass : Layout . CharClass Layout
                         let next_slot_id = SlotId(311);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -8029,7 +8030,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -8076,7 +8077,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartRangeElement : Layout . RangeElement Layout
                         let next_slot_id = SlotId(315);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -8115,7 +8116,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -8162,7 +8163,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         //StartRange : Layout . Range Layout
                         let next_slot_id = SlotId(319);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -8201,7 +8202,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             left_child_id,
                             right_child_id,
                         ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id);
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -8247,6 +8248,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         nonterminal_id: NonterminalId,
         input_index: u32,
         gss_node_id: GssNodeId,
+        env: Option<EnvId>,
     ) {
         match nonterminal_id {
             //Grammar
@@ -9314,10 +9316,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     fn start_nonterminal(&self) -> NonterminalId {
         self.start_nonterminal
     }
-    fn new_env(&mut self) -> EnvId {
+    fn new_env(&mut self) -> (EnvId, &mut Env) {
         let id = EnvId(self.envs.len() as u32);
         self.envs.push(Env::default());
-        id
+        (id, &mut self.envs[id.index()])
     }
 }
 pub struct IggyParser<'i> {
