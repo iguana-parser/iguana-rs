@@ -131,37 +131,12 @@ pub trait Parser<'i> {
         // If there is already a GSS node for this call, just add the edge
         if let Some(exiting_gss_node_id) = self.get_gss_node(nonterminal_id, i) {
             record!(self, GSSNodeFound, nonterminal_id, i);
-            let popped_elements =
-                std::mem::take(self.gss_node_mut(exiting_gss_node_id).popped_elements_mut());
-
-            // For each popped element of the current GSS node add a descriptor with the return label.
-            for popped_element in popped_elements.iter() {
-                let popped_node = self.sppf_node(*popped_element);
-                let right_extent = popped_node.right_extent();
-                if let Some(new_node) = self.merge(
-                    sppf_node_id,
-                    *popped_element,
-                    return_slot,
-                    left_extent,
-                    right_extent,
-                ) {
-                    self.add_descriptor(Descriptor {
-                        input_index: right_extent,
-                        slot_id: return_slot,
-                        sppf_node_id: Some(new_node),
-                        gss_node_id,
-                        env: None,
-                    });
-                }
-            }
-            *self.gss_node_mut(exiting_gss_node_id).popped_elements_mut() = popped_elements;
-
-            self.add_gss_edge(
+            self.add_edge_to_existing_gss_node(
                 exiting_gss_node_id,
                 gss_node_id,
                 sppf_node_id,
+                left_extent,
                 return_slot,
-                None,
             );
         } else {
             record!(self, GSSNodeNotFound, nonterminal_id, i);
@@ -176,6 +151,41 @@ pub trait Parser<'i> {
             self.add_first_descriptors(nonterminal_id, i, new_gss_node_id, None);
             self.add_gss_node(nonterminal_id, i, new_gss_node_id);
         }
+    }
+
+    fn add_edge_to_existing_gss_node(
+        &mut self,
+        existing_gss_node_id: GssNodeId,
+        gss_node_id: GssNodeId,
+        sppf_node_id: Option<SPPFNodeId>,
+        left_extent: Option<u32>,
+        return_slot: SlotId,
+    ) {
+        let popped_elements = std::mem::take(self.gss_node_mut(existing_gss_node_id).popped_elements_mut());
+
+        // For each popped element of the current GSS node add a descriptor with the return label.
+        for popped_element in popped_elements.iter() {
+            let popped_node = self.sppf_node(*popped_element);
+            let right_extent = popped_node.right_extent();
+            if let Some(new_node) = self.merge(
+                sppf_node_id,
+                *popped_element,
+                return_slot,
+                left_extent,
+                right_extent,
+            ) {
+                self.add_descriptor(Descriptor {
+                    input_index: right_extent,
+                    slot_id: return_slot,
+                    sppf_node_id: Some(new_node),
+                    gss_node_id,
+                    env: None,
+                });
+            }
+        }
+        *self.gss_node_mut(existing_gss_node_id).popped_elements_mut() = popped_elements;
+
+        self.add_gss_edge(existing_gss_node_id, gss_node_id, sppf_node_id, return_slot, None);
     }
 
     fn add_gss_edge(
