@@ -522,6 +522,42 @@ fn gen_get_gss_node_method() -> TokenStream {
     }
 }
 
+fn gen_get_gss_node_method_with_parameters(nt: &Nonterminal) -> TokenStream {
+    let method_name = format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
+    let parameters: Vec<_> = nt
+        .parameters
+        .iter()
+        .map(|Parameter { name, ty }| {
+            let name = format_ident!("{}", name);
+            quote! { #name: #ty }
+        })
+        .collect();
+    let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
+    let args: Vec<_> = (0..parameters.len())
+        .map(|i| format_ident!("a{i}"))
+        .collect();
+    let comparisons: Vec<_> = nt
+        .parameters
+        .iter()
+        .enumerate()
+        .map(|(i, p)| {
+            let lhs = format_ident!("a{}", i);
+            let rhs = format_ident!("{}", p.name);
+            quote! { *#lhs == #rhs }
+        })
+        .collect();
+    // Calculate the gss_node_id index: 1 (input_index) + the number of parameters
+    let index = Literal::usize_unsuffixed(1 + nt.parameters.len());
+    quote! {
+        fn #method_name(&self, input_index: u32, #(#parameters),*) -> Option<GssNodeId> {
+            self.#field_name
+                .iter()
+                .find(|(i, #(#args,)* _)| *i == input_index && #(#comparisons)&&*)
+                .map(|x| x.#index)
+        }
+    }
+}
+
 fn gen_add_gss_node_method() -> TokenStream {
     quote! {
         fn add_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32, gss_node_id: GssNodeId) {
@@ -847,34 +883,91 @@ fn gen_parser_impl(
         .enumerate()
         .map(|(i, n)| gen_create_method(n, i))
         .collect();
+    let get_gss_node_methods: Vec<_> = nonterminal_ids
+        .dd_nonterminals()
+        .map(gen_get_gss_node_method_with_parameters)
+        .collect();
     quote! {
         impl<'i> #name_ident<'i> {
             #new_method
             #(#create_methods)*
+            #(#get_gss_node_methods)*
         }
     }
 }
 
-fn gen_create_method(n: &Nonterminal, id: usize) -> TokenStream {
-    let method_name = format_ident!("create_{}", to_snake_case(&n.name));
+fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
+    let create_method_name = format_ident!("create_{}", to_snake_case(&nt.name));
     let id = Literal::usize_unsuffixed(id);
-    let parameters: Vec<_> = n
-        .parameters
-        .iter()
-        .map(|Parameter { name, ty }| {
-            let name = format_ident!("{}", name);
-            quote! { #name: #ty }
-        })
-        .collect();
-    quote! {
-        fn #method_name(
-            &mut self,
-            sppf_node_id: Option<SPPFNodeId>,
-            gss_node_id: GssNodeId,
-            return_slot: SlotId,
-            #(#parameters,)*
-        ) {
-            self.create(NonterminalId(#id), sppf_node_id, gss_node_id, return_slot);
+    if nt.parameters.is_empty() {
+        quote! {
+            fn #create_method_name(
+                &mut self,
+                sppf_node_id: Option<SPPFNodeId>,
+                gss_node_id: GssNodeId,
+                return_slot: SlotId,
+            ) {
+                self.create(NonterminalId(#id), sppf_node_id, gss_node_id, return_slot);
+            }
+        }
+    } else {
+        let get_gss_node_method_name = format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
+        let parameters: Vec<_> = nt
+            .parameters
+            .iter()
+            .map(|Parameter { name, ty }| {
+                let name = format_ident!("{}", name);
+                quote! { #name: #ty }
+            })
+            .collect();
+        let bindings: Vec<_> = nt
+            .parameters
+            .iter()
+            .map(|p| {
+                let key = &p.name;
+                let value = format_ident!("{}", p.name);
+                quote! {
+                    env.bind(#key, #value);
+                }
+            })
+            .collect();
+        let param_names: Vec<_> = nt
+            .parameters
+            .iter()
+            .map(|p| format_ident!("{}", p.name))
+            .collect();
+        quote! {
+            fn #create_method_name(
+                &mut self,
+                sppf_node_id: Option<SPPFNodeId>,
+                gss_node_id: GssNodeId,
+                return_slot: SlotId,
+                env: Option<EnvId>,
+                #(#parameters,)*
+            ) {
+                record!(self, Call, sppf_node_id, gss_node_id, return_slot);
+                let sppf_node = sppf_node_id.map(|id| self.sppf_node(id));
+                let left_extent = sppf_node.map(|n| n.left_extent());
+                let gss_node = self.gss_node(gss_node_id);
+                let i = match sppf_node {
+                    Some(node) => node.right_extent(),
+                    None => gss_node.index,
+                };
+                #[comment = "If there is already a GSS node for this call, add an edge."]
+                if let Some(existing_gss_node_id) = self.#get_gss_node_method_name(i, #(#param_names),*) {
+                    record!(self, GSSNodeFound, NonterminalId(#id), i);
+                    self.add_edge_to_existing_gss_node(existing_gss_node_id, gss_node_id, sppf_node_id, left_extent, return_slot);
+                } else {
+                    record!(self, GSSNodeNotFound, NonterminalId(#id), i);
+                    let new_gss_node_id = self.new_gss_node(NonterminalId(#id), i);
+                    self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
+                    // Create a new environment to bind the parameter.
+                    let (env_id, env) = self.new_env();
+                    #(#bindings)*
+                    self.add_first_descriptors(NonterminalId(#id), i, new_gss_node_id, Some(env_id));
+                    self.add_gss_node(NonterminalId(#id), i, new_gss_node_id);
+                }
+            }
         }
     }
 }
@@ -934,7 +1027,7 @@ fn gen_gss_nodes_index_field_for_data_dependent_nt(nt: &Nonterminal) -> TokenStr
     let comment = format!("GSS index for nonterminal {}", nt.name);
     quote! {
         #[comment = #comment]
-        #field_name: Vec<(u32, GssNodeId, #(#types,)*)>
+        #field_name: Vec<(u32, #(#types,)* GssNodeId)>
     }
 }
 
