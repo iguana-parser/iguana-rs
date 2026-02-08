@@ -946,7 +946,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                     slot_id: SlotId(0),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //A
@@ -957,7 +957,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                     slot_id: SlotId(2),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //B
@@ -968,7 +968,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                     slot_id: SlotId(4),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //C
@@ -979,7 +979,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                     slot_id: SlotId(6),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //S_Group_0
@@ -990,7 +990,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                     slot_id: SlotId(8),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //S_Plus_0
@@ -1001,7 +1001,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                     slot_id: SlotId(14),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
                 //S_Plus_0 : . S_Group_0
                 self.add_descriptor(Descriptor {
@@ -1009,7 +1009,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                     slot_id: SlotId(18),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //StartS
@@ -1020,7 +1020,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                     slot_id: SlotId(20),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //StartA
@@ -1031,7 +1031,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                     slot_id: SlotId(24),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //StartB
@@ -1042,7 +1042,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                     slot_id: SlotId(28),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //StartC
@@ -1053,7 +1053,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                     slot_id: SlotId(32),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             _ => {

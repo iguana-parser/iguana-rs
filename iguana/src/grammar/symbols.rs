@@ -35,7 +35,10 @@ impl Definition {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Symbol {
-    Labeled { label: String, symbol: Box<Symbol> },
+    Labeled {
+        label: String,
+        symbol: Box<Symbol>,
+    },
     Identifier(Identifier),
     Literal(String),
     Group(Vec<Symbol>),
@@ -43,6 +46,23 @@ pub enum Symbol {
     Alt(Vec<Symbol>),
     Star(Box<Symbol>, Option<Box<Symbol>>), // symbol, separator
     Plus(Box<Symbol>, Option<Box<Symbol>>), // symbol, separator
+    Call {
+        name: Identifier,
+        arguments: Vec<Expr>,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Expr {
+    Int(i64),
+}
+
+impl Display for Expr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Expr::Int(i) => write!(f, "{i}"),
+        }
+    }
 }
 
 impl Symbol {
@@ -91,6 +111,9 @@ impl Display for Symbol {
                 Some(sep) => write!(f, "{{{symbol} {sep}}}+"),
                 None => write!(f, "{symbol}+"),
             },
+            Symbol::Call { name, arguments } => {
+                write!(f, "{}({})", name, arguments.iter().join(", "))
+            }
         }
     }
 }

@@ -5,8 +5,18 @@ use syn::Ident;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    generator::{id::{NonterminalIds, SlotIds, TerminalIds}, utils::{alternative_label, is_rust_keyword, is_valid_rust_ident, safe_ident, to_first_uppercase, to_pascal_case, to_snake_case}},
-    grammar::{def::{Alternative, Grammar}, symbols::{Definition, Nonterminal, Symbol}}, ids::TerminalId,
+    generator::{
+        id::{NonterminalIds, SlotIds, TerminalIds},
+        utils::{
+            alternative_label, is_rust_keyword, is_valid_rust_ident, safe_ident,
+            to_first_uppercase, to_pascal_case, to_snake_case,
+        },
+    },
+    grammar::{
+        def::{Alternative, Grammar},
+        symbols::{Definition, Nonterminal, Symbol},
+    },
+    ids::TerminalId,
 };
 
 pub fn generate(
@@ -124,10 +134,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
     }
 }
 
-fn gen_nonterminal_type(
-    grammar: &Grammar,
-    nonterminal: &Nonterminal,
-) -> TokenStream {
+fn gen_nonterminal_type(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let alternatives = grammar.alternatives(nonterminal);
     if alternatives.len() == 1 {
         gen_nonterminal_type_with_one_alternative(grammar, nonterminal, &alternatives[0])
@@ -139,7 +146,7 @@ fn gen_nonterminal_type(
 fn gen_nonterminal_type_with_one_alternative(
     grammar: &Grammar,
     nonterminal: &Nonterminal,
-    alternative: &Alternative
+    alternative: &Alternative,
 ) -> TokenStream {
     let counts = count_symbol_occurrences(grammar, &alternative.symbols);
     let fields: Vec<_> = alternative
@@ -148,7 +155,8 @@ fn gen_nonterminal_type_with_one_alternative(
         .enumerate()
         .map(|(i, s)| {
             let base_name = get_symbol_base_name(grammar, s);
-            let needs_index = base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
+            let needs_index =
+                base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
             let field_name = gen_field_name(grammar, s, i, needs_index);
             let field_ident = safe_ident(&field_name);
             let def = grammar.definition(s.resolved_def());
@@ -156,7 +164,7 @@ fn gen_nonterminal_type_with_one_alternative(
                 Definition::Terminal(_) => {
                     let token = Ident::new("Token", Span::call_site());
                     quote! { #token }
-                },
+                }
                 Definition::Nonterminal(nt) => {
                     let name = Ident::new(&to_pascal_case(def.name()), Span::call_site());
                     if should_be_boxed(nt, nonterminal) {
@@ -164,7 +172,7 @@ fn gen_nonterminal_type_with_one_alternative(
                     } else {
                         quote! { #name }
                     }
-                },
+                }
             };
             quote! { pub #field_ident: #field_type }
         })
@@ -174,7 +182,11 @@ fn gen_nonterminal_type_with_one_alternative(
         let display_name = nonterminal.display_name();
         quote! { #[comment = #display_name] }
     } else {
-        let rule = format!("{} = {}", nonterminal_name, alternative.display_name(grammar));
+        let rule = format!(
+            "{} = {}",
+            nonterminal_name,
+            alternative.display_name(grammar)
+        );
         quote! { #[comment = #rule] }
     };
     let nonterminal_name_id = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());
@@ -210,7 +222,9 @@ fn get_symbol_base_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
                 if let Definition::Nonterminal(nt) = grammar.definition(def_id) {
                     if let Some(origin) = &nt.origin {
                         match origin {
-                            Symbol::Star(inner, _) | Symbol::Plus(inner, _) | Symbol::Opt(inner) => {
+                            Symbol::Star(inner, _)
+                            | Symbol::Plus(inner, _)
+                            | Symbol::Opt(inner) => {
                                 if let Symbol::Identifier(inner_ident) = inner.as_ref() {
                                     let snake = to_snake_case(&inner_ident.name);
                                     if is_valid_rust_ident(&snake) {
@@ -246,7 +260,12 @@ fn count_symbol_occurrences(grammar: &Grammar, symbols: &[Symbol]) -> FxHashMap<
     counts
 }
 
-fn gen_field_name(grammar: &Grammar, symbol: &Symbol, position: usize, needs_index: bool) -> String {
+fn gen_field_name(
+    grammar: &Grammar,
+    symbol: &Symbol,
+    position: usize,
+    needs_index: bool,
+) -> String {
     if let Some(label) = symbol.label() {
         return to_snake_case(label);
     }
@@ -327,73 +346,73 @@ fn gen_field_name(grammar: &Grammar, symbol: &Symbol, position: usize, needs_ind
 fn gen_nonterminal_type_with_more_than_one_alternative(
     grammar: &Grammar,
     nonterminal: &Nonterminal,
-    alternatives: &[Alternative]
+    alternatives: &[Alternative],
 ) -> TokenStream {
-        let arms: Vec<_> = alternatives
-            .iter()
-            .enumerate()
-            .map(|(index, alternative)| {
-                let counts = count_symbol_occurrences(grammar, &alternative.symbols);
-                let fields: Vec<_> = alternative
-                    .symbols
-                    .iter()
-                    .enumerate()
-                    .map(|(i, s)| {
-                        let base_name = get_symbol_base_name(grammar, s);
-                        let needs_index = base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
-                        let field_name = gen_field_name(grammar, s, i, needs_index);
-                        let field_ident = safe_ident(&field_name);
-                        let def_id = s.resolved_def();
-                        let def = grammar.definition(def_id);
-                        let type_token = match def {
-                            Definition::Terminal(_) => {
-                                let token = Ident::new("Token", Span::call_site());
-                                quote! { #token }
-                            },
-                            Definition::Nonterminal(nt) => {
-                                if should_be_boxed(nt, nonterminal) {
-                                    let name = Ident::new(&to_pascal_case(def.name()), Span::call_site());
-                                    quote! { Box<#name> }
-                                } else {
-                                    let name = Ident::new(&to_pascal_case(def.name()), Span::call_site());
-                                    quote! { #name }
-                                }
-                            },
-                        };
-                        quote! { #field_ident: #type_token }
-                    })
-                    .collect();
-                let label = alternative_label(alternative, index);
-                let variant_name = Ident::new(&label, Span::call_site());
-                let variant_comment = alternative.display_name(grammar);
-                // Add Span as last field in each variant
-                quote! {
-                    #[comment = #variant_comment]
-                    #variant_name { #(#fields,)* span: Span }
-                }
-            })
-            .collect();
-        let nonterminal_name = &nonterminal.name;
-        let comment = if nonterminal.is_derived() {
-            let display_name = nonterminal.display_name();
-            quote! { #[comment = #display_name] }
-        } else {
-            quote! {}
-        };
-        let nonterminal_name_id = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());
-        quote! {
-            #comment
-            #[derive(Debug)]
-            pub enum #nonterminal_name_id {
-                #(#arms),*
+    let arms: Vec<_> = alternatives
+        .iter()
+        .enumerate()
+        .map(|(index, alternative)| {
+            let counts = count_symbol_occurrences(grammar, &alternative.symbols);
+            let fields: Vec<_> = alternative
+                .symbols
+                .iter()
+                .enumerate()
+                .map(|(i, s)| {
+                    let base_name = get_symbol_base_name(grammar, s);
+                    let needs_index =
+                        base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
+                    let field_name = gen_field_name(grammar, s, i, needs_index);
+                    let field_ident = safe_ident(&field_name);
+                    let def_id = s.resolved_def();
+                    let def = grammar.definition(def_id);
+                    let type_token = match def {
+                        Definition::Terminal(_) => {
+                            let token = Ident::new("Token", Span::call_site());
+                            quote! { #token }
+                        }
+                        Definition::Nonterminal(nt) => {
+                            if should_be_boxed(nt, nonterminal) {
+                                let name =
+                                    Ident::new(&to_pascal_case(def.name()), Span::call_site());
+                                quote! { Box<#name> }
+                            } else {
+                                let name =
+                                    Ident::new(&to_pascal_case(def.name()), Span::call_site());
+                                quote! { #name }
+                            }
+                        }
+                    };
+                    quote! { #field_ident: #type_token }
+                })
+                .collect();
+            let label = alternative_label(alternative, index);
+            let variant_name = Ident::new(&label, Span::call_site());
+            let variant_comment = alternative.display_name(grammar);
+            // Add Span as last field in each variant
+            quote! {
+                #[comment = #variant_comment]
+                #variant_name { #(#fields,)* span: Span }
             }
+        })
+        .collect();
+    let nonterminal_name = &nonterminal.name;
+    let comment = if nonterminal.is_derived() {
+        let display_name = nonterminal.display_name();
+        quote! { #[comment = #display_name] }
+    } else {
+        quote! {}
+    };
+    let nonterminal_name_id = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());
+    quote! {
+        #comment
+        #[derive(Debug)]
+        pub enum #nonterminal_name_id {
+            #(#arms),*
         }
+    }
 }
 
-fn gen_nonterminal_type_impl(
-    grammar: &Grammar,
-    nonterminal: &Nonterminal,
-) -> TokenStream {
+fn gen_nonterminal_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let nonterminal_name = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
     let child_method = gen_child_method(grammar, nonterminal);
     let child_count_method = gen_child_count_method(grammar, nonterminal);
@@ -417,13 +436,17 @@ fn gen_span_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream 
     let body = if alternatives.len() == 1 {
         quote! { self.span }
     } else {
-        let arms: Vec<_> = alternatives.iter().enumerate().map(|(i, alternative)| {
-            let label = alternative_label(alternative, i);
-            let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-            quote! {
-                #ident::#alt_variant { span, .. } => *span
-            }
-        }).collect();
+        let arms: Vec<_> = alternatives
+            .iter()
+            .enumerate()
+            .map(|(i, alternative)| {
+                let label = alternative_label(alternative, i);
+                let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+                quote! {
+                    #ident::#alt_variant { span, .. } => *span
+                }
+            })
+            .collect();
         quote! {
             match self {
                 #(#arms),*
@@ -458,16 +481,20 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
             }
         }
     } else {
-        let arms: Vec<_> = alternatives.iter().enumerate().map(|(i, alternative)| {
-            let label = alternative_label(alternative, i);
-            let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-            let field_names = field_names(grammar, alternative);
-            let body = child_by_index(grammar, alternative, false);
-            // Use struct pattern with .. to ignore the span field
-            quote! {
-                #ident::#alt_variant { #(#field_names,)* .. } => #body
-            }
-        }).collect();
+        let arms: Vec<_> = alternatives
+            .iter()
+            .enumerate()
+            .map(|(i, alternative)| {
+                let label = alternative_label(alternative, i);
+                let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+                let field_names = field_names(grammar, alternative);
+                let body = child_by_index(grammar, alternative, false);
+                // Use struct pattern with .. to ignore the span field
+                quote! {
+                    #ident::#alt_variant { #(#field_names,)* .. } => #body
+                }
+            })
+            .collect();
         quote! {
             match self {
                 #(#arms),*
@@ -479,32 +506,38 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
 // TODO: simplify the single_rule logic here:
 fn child_by_index(grammar: &Grammar, alternative: &Alternative, single_rule: bool) -> TokenStream {
     let counts = count_symbol_occurrences(grammar, &alternative.symbols);
-    let cases: Vec<_> = alternative.symbols.iter().enumerate().map(|(i, s)| {
-        let i_lit = Literal::usize_unsuffixed(i);
-        let base_name = get_symbol_base_name(grammar, s);
-        let needs_index = base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
-        let field_name = safe_ident(&gen_field_name(grammar, s, i, needs_index));
-        // For nonterminals with only one body, i.e., no alternatives,
-        // generate the arms as 0 => Some(self.field_name.as_parse_tree_ref())
-        // As, we can access the children by field name directly.
-        if single_rule {
-            quote! {
-                #i_lit => Some(self.#field_name.as_parse_tree_ref())
+    let cases: Vec<_> = alternative
+        .symbols
+        .iter()
+        .enumerate()
+        .map(|(i, s)| {
+            let i_lit = Literal::usize_unsuffixed(i);
+            let base_name = get_symbol_base_name(grammar, s);
+            let needs_index =
+                base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
+            let field_name = safe_ident(&gen_field_name(grammar, s, i, needs_index));
+            // For nonterminals with only one body, i.e., no alternatives,
+            // generate the arms as 0 => Some(self.field_name.as_parse_tree_ref())
+            // As, we can access the children by field name directly.
+            if single_rule {
+                quote! {
+                    #i_lit => Some(self.#field_name.as_parse_tree_ref())
+                }
+            } else {
+                // For nonterminals with alternatives, we need to return the exact child:
+                // case E::Plus { symbol, layout1, lit2, .. } {
+                //     match index {
+                //         0 => Some(symbol.as_parse_tree_ref()),
+                //         1 => Some(layout1.as_parse_tree_ref()),
+                //         2 => Some(lit2.as_parse_tree_ref()),
+                //         _ => None
+                // }
+                quote! {
+                    #i_lit => Some(#field_name.as_parse_tree_ref())
+                }
             }
-        } else {
-            // For nonterminals with alternatives, we need to return the exact child:
-            // case E::Plus { symbol, layout1, lit2, .. } {
-            //     match index {
-            //         0 => Some(symbol.as_parse_tree_ref()),
-            //         1 => Some(layout1.as_parse_tree_ref()),
-            //         2 => Some(lit2.as_parse_tree_ref()),
-            //         _ => None
-            // }
-            quote! {
-                #i_lit => Some(#field_name.as_parse_tree_ref())
-            }
-        }
-    }).collect();
+        })
+        .collect();
     if single_rule {
         quote! {
             #(#cases,)*
@@ -529,15 +562,19 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
             #count_symbols
         }
     } else {
-        let arms: Vec<_> = alternatives.iter().enumerate().map(|(i, alternative)| {
-            let label = alternative_label(alternative, i);
-            let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-            let count_symbols = alternative.symbols.len();
-            // Use { .. } to match any fields (including span)
-            quote! {
-                #ident::#alt_variant { .. } => #count_symbols
-            }
-        }).collect();
+        let arms: Vec<_> = alternatives
+            .iter()
+            .enumerate()
+            .map(|(i, alternative)| {
+                let label = alternative_label(alternative, i);
+                let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+                let count_symbols = alternative.symbols.len();
+                // Use { .. } to match any fields (including span)
+                quote! {
+                    #ident::#alt_variant { .. } => #count_symbols
+                }
+            })
+            .collect();
         quote! {
             match self {
                 #(#arms),*
@@ -585,13 +622,16 @@ fn gen_token_impl() -> TokenStream {
 }
 
 fn gen_token_kind_enum(terminals: &[(TerminalId, String)]) -> TokenStream {
-    let terminal_ids: Vec<_> = terminals.iter().map(|(terminal_id, name)|{
-        let ident = format_ident!("T{}", terminal_id.0);
-        quote! {
-            #[comment = #name]
-            #ident
-        }
-    }).collect();
+    let terminal_ids: Vec<_> = terminals
+        .iter()
+        .map(|(terminal_id, name)| {
+            let ident = format_ident!("T{}", terminal_id.0);
+            quote! {
+                #[comment = #name]
+                #ident
+            }
+        })
+        .collect();
     quote! {
         #[derive(Debug)]
         pub enum TokenKind {
@@ -601,12 +641,15 @@ fn gen_token_kind_enum(terminals: &[(TerminalId, String)]) -> TokenStream {
 }
 
 fn gen_token_kind_impl(terminals: &[(TerminalId, String)]) -> TokenStream {
-    let terminal_ids: Vec<_> = terminals.iter().map(|(id, name)|{
-        let ident = format_ident!("T{}", id.0);
-        quote! {
-            TokenKind::#ident => #name
-        }
-    }).collect();
+    let terminal_ids: Vec<_> = terminals
+        .iter()
+        .map(|(id, name)| {
+            let ident = format_ident!("T{}", id.0);
+            quote! {
+                TokenKind::#ident => #name
+            }
+        })
+        .collect();
     quote! {
         impl TokenKind {
             pub fn name(&self) -> &'static str {
@@ -624,9 +667,9 @@ fn gen_token_kind_function(terminals: &[(TerminalId, String)]) -> TokenStream {
         .iter()
         .map(|(id, name)| {
             let ident = format_ident!("T{}", id.0);
-            quote! { 
+            quote! {
                 #[comment = #name]
-                #id => TokenKind::#ident 
+                #id => TokenKind::#ident
             }
         })
         .collect();
@@ -665,7 +708,8 @@ fn field_names(grammar: &Grammar, alternative: &Alternative) -> Vec<Ident> {
         .enumerate()
         .map(|(i, s)| {
             let base_name = get_symbol_base_name(grammar, s);
-            let needs_index = base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
+            let needs_index =
+                base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
             safe_ident(&gen_field_name(grammar, s, i, needs_index))
         })
         .collect::<Vec<_>>()
@@ -786,31 +830,44 @@ fn should_be_boxed(nonterminal: &Nonterminal, head: &Nonterminal) -> bool {
         Some(s) => match s {
             Symbol::Star(symbol, _) => symbol_contains_nonterminal(symbol, &nonterminal.name),
             Symbol::Plus(symbol, _) => symbol_contains_nonterminal(symbol, &nonterminal.name),
-            Symbol::Group(symbols) => symbols.iter().any(|s| symbol_contains_nonterminal(s, &nonterminal.name)),
+            Symbol::Group(symbols) => symbols
+                .iter()
+                .any(|s| symbol_contains_nonterminal(s, &nonterminal.name)),
             Symbol::Opt(symbol) => symbol_contains_nonterminal(symbol, &nonterminal.name),
-            Symbol::Alt(symbols) => symbols.iter().any(|s| symbol_contains_nonterminal(s, &nonterminal.name)),
-            _ => false
+            Symbol::Alt(symbols) => symbols
+                .iter()
+                .any(|s| symbol_contains_nonterminal(s, &nonterminal.name)),
+            _ => false,
         },
         None => false,
     }
 }
 
 // Recursively checks if a symbol contains a reference to a nonterminal with the given name.
-fn symbol_contains_nonterminal(symbol: &Symbol, name: &str) -> bool {
+fn symbol_contains_nonterminal(symbol: &Symbol, nt_name: &str) -> bool {
     match symbol {
-        Symbol::Identifier(identifier) => identifier.name == name,
-        Symbol::Group(symbols) => symbols.iter().any(|s| symbol_contains_nonterminal(s, name)),
-        Symbol::Labeled { symbol, .. } => symbol_contains_nonterminal(symbol, name),
-        Symbol::Opt(inner) => symbol_contains_nonterminal(inner, name),
-        Symbol::Alt(symbols) => symbols.iter().any(|s| symbol_contains_nonterminal(s, name)),
+        Symbol::Identifier(identifier) => identifier.name == nt_name,
+        Symbol::Group(symbols) => symbols
+            .iter()
+            .any(|s| symbol_contains_nonterminal(s, nt_name)),
+        Symbol::Labeled { symbol, .. } => symbol_contains_nonterminal(symbol, nt_name),
+        Symbol::Opt(inner) => symbol_contains_nonterminal(inner, nt_name),
+        Symbol::Alt(symbols) => symbols
+            .iter()
+            .any(|s| symbol_contains_nonterminal(s, nt_name)),
         Symbol::Star(inner, sep) => {
-            symbol_contains_nonterminal(inner, name)
-                || sep.as_ref().map_or(false, |s| symbol_contains_nonterminal(s, name))
-        },
+            symbol_contains_nonterminal(inner, nt_name)
+                || sep
+                    .as_ref()
+                    .map_or(false, |s| symbol_contains_nonterminal(s, nt_name))
+        }
         Symbol::Plus(inner, sep) => {
-            symbol_contains_nonterminal(inner, name)
-                || sep.as_ref().map_or(false, |s| symbol_contains_nonterminal(s, name))
-        },
+            symbol_contains_nonterminal(inner, nt_name)
+                || sep
+                    .as_ref()
+                    .map_or(false, |s| symbol_contains_nonterminal(s, nt_name))
+        }
+        Symbol::Call { name, arguments: _ } => name.name == nt_name,
         Symbol::Literal(_) => false,
     }
 }
@@ -885,7 +942,6 @@ fn gen_as_parse_tree_ref_method_for_parse_tree(grammar: &Grammar) -> TokenStream
         }
     }
 }
-
 
 fn gen_unwrap_methods(grammar: &Grammar) -> Vec<TokenStream> {
     grammar
@@ -966,7 +1022,7 @@ fn gen_children_method(grammar: &Grammar) -> TokenStream {
             }
         }
     }
-}    
+}
 
 fn gen_name_method(grammar: &Grammar) -> TokenStream {
     let arms = grammar.nonterminals().map(|n| {
@@ -1051,7 +1107,9 @@ fn gen_opt_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
     let inner_def = grammar.definition(inner_symbol.resolved_def());
     let inner_type = match inner_def {
         Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
-        Definition::Nonterminal(_) => Ident::new(&to_pascal_case(inner_def.name()), Span::call_site()),
+        Definition::Nonterminal(_) => {
+            Ident::new(&to_pascal_case(inner_def.name()), Span::call_site())
+        }
     };
     let field_name = safe_ident(&gen_field_name(grammar, inner_symbol, 0, false));
 
@@ -1311,7 +1369,9 @@ fn get_innermost_element_name(grammar: &Grammar, symbol: &Symbol) -> Option<Stri
             }
             Some(ident.name.clone())
         }
-        Symbol::Plus(inner, _) | Symbol::Star(inner, _) => get_innermost_element_name(grammar, inner),
+        Symbol::Plus(inner, _) | Symbol::Star(inner, _) => {
+            get_innermost_element_name(grammar, inner)
+        }
         Symbol::Group(elements) => {
             // Find groups with exactly one nonterminal (e.g., ("|" Regex))
             let nonterminals: Vec<_> = elements
@@ -1331,7 +1391,11 @@ fn get_innermost_element_name(grammar: &Grammar, symbol: &Symbol) -> Option<Stri
 /// Gets the element type name from the base alternative of a Plus/Star nonterminal.
 fn get_element_type_name<'a>(grammar: &'a Grammar, nonterminal: &Nonterminal) -> Option<&'a str> {
     let alternatives = grammar.alternatives(nonterminal);
-    let base_alt = if alternatives.len() == 1 { &alternatives[0] } else { &alternatives[1] };
+    let base_alt = if alternatives.len() == 1 {
+        &alternatives[0]
+    } else {
+        &alternatives[1]
+    };
     let child_symbol = base_alt.symbols.first()?;
     let child_def = grammar.definition(child_symbol.resolved_def());
     Some(child_def.name())
@@ -1340,7 +1404,12 @@ fn get_element_type_name<'a>(grammar: &'a Grammar, nonterminal: &Nonterminal) ->
 fn pluralize(word: &str) -> String {
     if word.ends_with("s") || word.ends_with("x") || word.ends_with("ch") || word.ends_with("sh") {
         format!("{}es", word)
-    } else if word.ends_with("y") && !word.ends_with("ay") && !word.ends_with("ey") && !word.ends_with("oy") && !word.ends_with("uy") {
+    } else if word.ends_with("y")
+        && !word.ends_with("ay")
+        && !word.ends_with("ey")
+        && !word.ends_with("oy")
+        && !word.ends_with("uy")
+    {
         format!("{}ies", &word[..word.len() - 1])
     } else {
         format!("{}s", word)
@@ -1357,30 +1426,38 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
     let first_alt_fields = field_names(grammar, &alternatives[0]);
     let first_arm = match &nonterminal.origin {
-        Some(Symbol::Plus(_symbol, sep)) => {
-            match sep {
-                Some(_) => {
-                    let (f0, f1, f2, f3, f4) = (&first_alt_fields[0], &first_alt_fields[1], &first_alt_fields[2], &first_alt_fields[3], &first_alt_fields[4]);
-                    quote! {
-                        #ident::#alt_variant { #f0: rest, #f1: layout1, #f2: sep, #f3: layout2, #f4: item, .. } => {
-                            items.push(item.as_parse_tree_ref());
-                            items.push(layout2.as_parse_tree_ref());
-                            items.push(sep.as_parse_tree_ref());
-                            items.push(layout1.as_parse_tree_ref());
-                            current = rest;
-                        }
+        Some(Symbol::Plus(_symbol, sep)) => match sep {
+            Some(_) => {
+                let (f0, f1, f2, f3, f4) = (
+                    &first_alt_fields[0],
+                    &first_alt_fields[1],
+                    &first_alt_fields[2],
+                    &first_alt_fields[3],
+                    &first_alt_fields[4],
+                );
+                quote! {
+                    #ident::#alt_variant { #f0: rest, #f1: layout1, #f2: sep, #f3: layout2, #f4: item, .. } => {
+                        items.push(item.as_parse_tree_ref());
+                        items.push(layout2.as_parse_tree_ref());
+                        items.push(sep.as_parse_tree_ref());
+                        items.push(layout1.as_parse_tree_ref());
+                        current = rest;
                     }
-                },
-                None => {
-                    let (f0, f1, f2) = (&first_alt_fields[0], &first_alt_fields[1], &first_alt_fields[2]);
-                    quote! {
-                        #ident::#alt_variant { #f0: rest, #f1: layout, #f2: item, .. } => {
-                            items.push(item.as_parse_tree_ref());
-                            items.push(layout.as_parse_tree_ref());
-                            current = rest;
-                        }
+                }
+            }
+            None => {
+                let (f0, f1, f2) = (
+                    &first_alt_fields[0],
+                    &first_alt_fields[1],
+                    &first_alt_fields[2],
+                );
+                quote! {
+                    #ident::#alt_variant { #f0: rest, #f1: layout, #f2: item, .. } => {
+                        items.push(item.as_parse_tree_ref());
+                        items.push(layout.as_parse_tree_ref());
+                        current = rest;
                     }
-                },
+                }
             }
         },
         _ => unreachable!("Expected plus"),
@@ -1495,7 +1572,6 @@ fn gen_from_for_tree_impls(grammar: &Grammar) -> TokenStream {
     quote! { #(#from_impls)* }
 }
 
-
 fn gen_create_parse_tree_function(grammar: &Grammar) -> TokenStream {
     let parser_name_ident = format_ident!("{}Parser", grammar.name);
     let builder_name_ident = format_ident!("{}ParseTreeBuilder", grammar.name);
@@ -1523,8 +1599,11 @@ fn gen_create_parse_tree_function(grammar: &Grammar) -> TokenStream {
     }
 }
 
-/// Generates functions with the name create_parse_tree_#name, where name is the name of a nonterminal. 
-fn gen_create_parse_tree_nonterminal_function(grammar: &Grammar, nonterminal_name: &str) -> TokenStream {
+/// Generates functions with the name create_parse_tree_#name, where name is the name of a nonterminal.
+fn gen_create_parse_tree_nonterminal_function(
+    grammar: &Grammar,
+    nonterminal_name: &str,
+) -> TokenStream {
     let parser_name_ident = format_ident!("{}Parser", grammar.name);
     let builder_name_ident = format_ident!("{}ParseTreeBuilder", grammar.name);
     let return_type = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());

@@ -664,7 +664,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     slot_id: SlotId(0),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //A
@@ -675,7 +675,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     slot_id: SlotId(2),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //S_Plus_0
@@ -686,7 +686,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     slot_id: SlotId(4),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
                 //S_Plus_0 : . A
                 self.add_descriptor(Descriptor {
@@ -694,7 +694,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     slot_id: SlotId(10),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //S_Opt_0
@@ -705,7 +705,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     slot_id: SlotId(12),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
                 //S_Opt_0 : .
                 self.add_descriptor(Descriptor {
@@ -713,7 +713,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     slot_id: SlotId(14),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //S_Star_0
@@ -724,7 +724,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     slot_id: SlotId(15),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //StartS
@@ -735,7 +735,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     slot_id: SlotId(17),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             //StartA
@@ -746,7 +746,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     slot_id: SlotId(21),
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
             _ => {

@@ -157,7 +157,7 @@ fn gen_add_first_descriptors_method<'a>(
                     slot_id: #first_slot_id,
                     sppf_node_id: None,
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             });
         }
@@ -177,7 +177,7 @@ fn gen_add_first_descriptors_method<'a>(
             env: Option<EnvId>,
         ) {
             match nonterminal_id {
-                #( #nonterminal_quotes)*
+                #(#nonterminal_quotes)*
                 _ => {
                     panic!("Unknown nonterminal id: {nonterminal_id}");
                 }

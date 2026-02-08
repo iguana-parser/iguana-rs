@@ -293,6 +293,7 @@ fn ambiguous_grammar() -> Grammar {
 }
 
 fn nonterminal_parameters() -> GrammarDef {
+    // S = A(0)
     // A(p) = "a"
     grammar_def!("Test2",
         syntax: [
