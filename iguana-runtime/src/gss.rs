@@ -58,14 +58,8 @@ impl GSSNode {
 }
 
 #[derive(Clone, Debug)]
-pub struct EdgeResult {
-    pub node_id: SPPFNodeId,
-    pub left_extent: u32,
-}
-
-#[derive(Clone, Debug)]
 pub struct GSSEdge {
-    pub result: Option<EdgeResult>,
+    pub sppf_node_id: Option<SPPFNodeId>,
     pub return_slot: SlotId,
     pub dest_id: GssNodeId,
     pub env: Option<EnvId>,

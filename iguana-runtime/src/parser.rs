@@ -5,7 +5,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     descriptor::Descriptor,
     env::{Env, EnvId},
-    gss::{EdgeResult, GSSEdge, GSSNode},
+    gss::{GSSEdge, GSSNode},
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     record,
@@ -122,10 +122,7 @@ pub trait Parser<'i> {
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
         let sppf_node = sppf_node_id.map(|id| self.sppf_node(id));
-        let edge_result = sppf_node.map(|n| EdgeResult {
-            node_id: sppf_node_id.unwrap(),
-            left_extent: n.left_extent(),
-        });
+        let left_extent = sppf_node.map(|n| n.left_extent());
         let gss_node = self.gss_node(gss_node_id);
         let i = match sppf_node {
             Some(node) => node.right_extent(),
@@ -145,7 +142,7 @@ pub trait Parser<'i> {
                     sppf_node_id,
                     *popped_element,
                     return_slot,
-                    edge_result.clone().map(|r| r.left_extent),
+                    left_extent,
                     right_extent,
                 ) {
                     self.add_descriptor(Descriptor {
@@ -162,14 +159,20 @@ pub trait Parser<'i> {
             self.add_gss_edge(
                 exiting_gss_node_id,
                 gss_node_id,
-                edge_result,
+                sppf_node_id,
                 return_slot,
                 None,
             );
         } else {
             record!(self, GSSNodeNotFound, nonterminal_id, i);
             let new_gss_node_id = self.new_gss_node(nonterminal_id, i);
-            self.add_gss_edge(new_gss_node_id, gss_node_id, edge_result, return_slot, None);
+            self.add_gss_edge(
+                new_gss_node_id,
+                gss_node_id,
+                sppf_node_id,
+                return_slot,
+                None,
+            );
             self.add_first_descriptors(nonterminal_id, i, new_gss_node_id, None);
             self.add_gss_node(nonterminal_id, i, new_gss_node_id);
         }
@@ -179,13 +182,13 @@ pub trait Parser<'i> {
         &mut self,
         origin_gss_node_id: GssNodeId,
         dest_gss_node_id: GssNodeId,
-        result: Option<EdgeResult>,
+        result: Option<SPPFNodeId>,
         return_slot: SlotId,
         env: Option<EnvId>,
     ) {
         let origin = self.gss_node_mut(origin_gss_node_id);
         let gss_edge = GSSEdge {
-            result,
+            sppf_node_id: result,
             return_slot,
             dest_id: dest_gss_node_id,
             env,
@@ -214,11 +217,12 @@ pub trait Parser<'i> {
         gss.add_to_popped_elements(sppf_node_id);
         let edges = gss.edges().clone();
         for edge in edges.iter() {
+            let left_extent = edge.sppf_node_id.map(|id| self.sppf_node(id).left_extent());
             if let Some(new_node_id) = self.merge(
-                edge.result.as_ref().map(|r| r.node_id),
+                edge.sppf_node_id,
                 sppf_node_id,
                 edge.return_slot,
-                edge.result.as_ref().map(|r| r.left_extent),
+                left_extent,
                 right_extent,
             ) {
                 self.add_descriptor(Descriptor {
