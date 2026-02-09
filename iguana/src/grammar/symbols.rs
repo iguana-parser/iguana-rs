@@ -101,14 +101,16 @@ impl Symbol {
         }
     }
 
+    /// Returns the symbol without the `Labeled` wrapper, or `self` if not labeled.
+    pub fn unlabeled(&self) -> &Symbol {
+        match self {
+            Symbol::Labeled { symbol, .. } => symbol,
+            _ => self,
+        }
+    }
+
     pub fn resolved_def(&self) -> DefinitionId {
-        let ident = match self {
-            Symbol::Labeled { symbol, .. } => symbol.as_identifier(),
-            Symbol::Call { name, .. } => name,
-            Symbol::Identifier(name) => name,
-            _ => panic!("Expected identifier, got {:?}", self),
-        };
-        ident.definition.expect("Symbol should be resolved")
+        self.unlabeled().as_identifier().definition.expect("Symbol should be resolved")
     }
 
     pub fn as_identifier(&self) -> &Identifier {

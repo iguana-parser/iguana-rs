@@ -105,6 +105,7 @@ pub struct LexicalRule {
     pub regex: Regex,
 }
 
+#[derive(Debug)]
 pub struct GrammarDef {
     pub name: String,
     pub syntax_rules: Vec<SyntaxRule>,
@@ -118,7 +119,7 @@ impl Display for SyntaxRule {
         writeln!(f, "{}", self.head)?;
         if let Some((first_level, rest_levels)) = self.priority_levels.split_first() {
             if let Some((first_alt, rest_alts)) = first_level.alternatives.split_first() {
-                write!(f, "  : {}", first_alt.symbols.iter().join(" "))?;
+                write!(f, "  = {}", first_alt.symbols.iter().join(" "))?;
                 if let Some(label) = &first_alt.label {
                     write!(f, " #{}", label)?;
                 }
@@ -130,11 +131,8 @@ impl Display for SyntaxRule {
                     }
                     writeln!(f)?;
                 }
-                if rest_levels.is_empty() {
-                    writeln!(f, "  ;")?;
-                }
             }
-            for (level_idx, level) in rest_levels.iter().enumerate() {
+            for level in rest_levels.iter() {
                 writeln!(f, "  >")?;
                 if let Some((first_alt, rest_alts)) = level.alternatives.split_first() {
                     write!(f, "    {}", first_alt.symbols.iter().join(" "))?;
@@ -148,9 +146,6 @@ impl Display for SyntaxRule {
                             write!(f, " #{}", label)?;
                         }
                         writeln!(f)?;
-                    }
-                    if level_idx == rest_levels.len() - 1 {
-                        writeln!(f, "  ;")?;
                     }
                 }
             }
@@ -166,10 +161,10 @@ impl Display for GrammarDef {
             writeln!(f, "{}", rule)?;
         }
         for lexical_rule in &self.lexical_rules {
-            writeln!(f, "{}: {}", lexical_rule.head, lexical_rule.regex)?;
+            writeln!(f, "{} = {}", lexical_rule.head, lexical_rule.regex)?;
         }
         if !self.layout_def.is_empty() {
-            writeln!(f, "\nlayout: {}", self.layout_def.iter().join(", "))?;
+            writeln!(f, "\nlayout = {}", self.layout_def.iter().join(", "))?;
         }
         Ok(())
     }
@@ -499,6 +494,7 @@ fn add_start_rule(
     } else {
         Symbol::Identifier(identifier)
     };
+
     SyntaxRule {
         head: Nonterminal {
             name,

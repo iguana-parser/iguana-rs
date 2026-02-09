@@ -12,6 +12,7 @@ use crate::generator::utils::to_snake_case;
 use crate::grammar::def::Grammar;
 use crate::grammar::slot::Slot;
 use crate::grammar::symbols::Definition;
+use crate::grammar::symbols::Expr;
 use crate::grammar::symbols::Nonterminal;
 use crate::grammar::symbols::Parameter;
 use crate::grammar::symbols::Symbol;
@@ -378,14 +379,19 @@ fn gen_slot_code<'a>(
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
-    let def_id = slot.symbol().unwrap().resolved_def();
+    let symbol = slot.symbol().unwrap();
+    let def_id = symbol.resolved_def();
+    let arguments = match symbol.unlabeled() {
+        Symbol::Call { arguments, .. } => arguments.clone(),
+        _ => vec![],
+    };
     let def = grammar.definition(def_id);
     match def {
         Definition::Terminal(terminal) => {
             gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids)
         }
         Definition::Nonterminal(nonterminal) => {
-            gen_nonterminal_slot(grammar, nonterminal, slot, slot_ids)
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids)
         }
     }
 }
@@ -457,6 +463,7 @@ fn gen_terminal_slot<'a>(
 fn gen_nonterminal_slot<'a>(
     grammar: &'a Grammar,
     nonterminal: &'a Nonterminal,
+    arguments: &[Expr],
     slot: Slot<'a>,
     slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
@@ -465,10 +472,19 @@ fn gen_nonterminal_slot<'a>(
     let next_slot = slot.next();
     let return_slot_id = slot_ids.id(&next_slot);
     let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
+    // TODO: later we need to evaluate arguments
+    let arguments = arguments.iter().map(|arg| match arg {
+        Expr::Int(i) => Literal::i64_unsuffixed(*i),
+    });
+    let arguments = if nonterminal.parameters.is_empty() {
+        quote! { result, gss_node_id, #return_slot_id }
+    } else {
+        quote! { result, gss_node_id, #return_slot_id, env, #(#arguments),* }
+    };
     quote! {
         #[comment = #slot_name]
         #slot_id => {
-            self.#method_name(result, gss_node_id, #return_slot_id);
+            self.#method_name(#arguments);
         }
     }
 }
