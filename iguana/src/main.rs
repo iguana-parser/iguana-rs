@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    alternative,
+    alternative, call,
     generator::generate,
     grammar::def::{Grammar, GrammarDef},
     grammar_def, id,
@@ -297,6 +297,7 @@ fn nonterminal_parameters() -> GrammarDef {
     // A(p) = "a"
     grammar_def!("Test2",
         syntax: [
+            syntax_rule!("S" => alternative!(call!("A", 0))),
             syntax_rule!("A"("p": U16) => alternative!(lit!("a"))),
         ]
     )

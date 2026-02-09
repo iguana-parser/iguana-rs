@@ -8,7 +8,7 @@ use crate::{
     alternative,
     grammar::{
         regex::Regex,
-        symbols::{Definition, DefinitionId, Identifier, Nonterminal, Symbol, Terminal},
+        symbols::{Definition, DefinitionId, Expr, Identifier, Nonterminal, Symbol, Terminal},
         transformations::{ebnf_to_bnf, layout_insertion, transform_rule},
     },
     lexical_rule, priority_level,
@@ -328,6 +328,19 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 symbol: Box::new(transformed),
             }
         }
+        Symbol::Call { name, arguments } => {
+            if let Some(definition_id) = symbol_table.get(&name.name) {
+                Symbol::Call {
+                    name: Identifier {
+                        name: name.name,
+                        definition: Some(definition_id),
+                    },
+                    arguments,
+                }
+            } else {
+                panic!("Definition {} not found", &name.name)
+            }
+        }
         Symbol::Identifier(identifier) => {
             if let Some(definition_id) = symbol_table.get(&identifier.name) {
                 Symbol::Identifier(Identifier {
@@ -376,7 +389,7 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 None => Symbol::Plus(Box::new(resolved_symbol), None),
             }
         }
-        _ => symbol,
+        Symbol::Literal(_) => symbol,
     }
 }
 
@@ -413,7 +426,7 @@ impl From<GrammarDef> for Grammar {
         let start_rules: Vec<_> = syntax_rules
             .iter()
             .filter(|r| !r.head.is_derived())
-            .map(|r| add_start_rule(&r.head.name, &layout_identifier, &symbol_table))
+            .map(|r| add_start_rule(&r.head, &layout_identifier, &symbol_table))
             .collect();
         syntax_rules.extend(start_rules);
         let productions: IndexMap<Nonterminal, Vec<Alternative>> =
@@ -464,14 +477,28 @@ fn layout_rule(
 }
 
 fn add_start_rule(
-    nt_name: &str,
+    nt: &Nonterminal,
     layout_identifier: &Symbol,
     symbol_table: &SymbolTable,
 ) -> SyntaxRule {
+    let nt_name = &nt.name;
     let def_id = symbol_table
         .get(nt_name)
         .unwrap_or_else(|| panic!("{} is not defined", nt_name));
     let name = format!("Start{}", nt_name);
+    let identifier = Identifier {
+        name: nt_name.into(),
+        definition: Some(def_id),
+    };
+    let symbol = if !nt.parameters.is_empty() {
+        let arguments = (0..nt.parameters.len()).map(|_| Expr::Int(0)).collect();
+        Symbol::Call {
+            name: identifier,
+            arguments,
+        }
+    } else {
+        Symbol::Identifier(identifier)
+    };
     SyntaxRule {
         head: Nonterminal {
             name,
@@ -482,10 +509,7 @@ fn add_start_rule(
             layout_identifier.clone(),
             Symbol::Labeled {
                 label: "start".into(),
-                symbol: Box::new(Symbol::Identifier(Identifier {
-                    name: nt_name.into(),
-                    definition: Some(def_id)
-                }))
+                symbol: Box::new(symbol)
             },
             layout_identifier.clone()
         ))],

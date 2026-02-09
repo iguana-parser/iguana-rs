@@ -378,7 +378,7 @@ fn gen_slot_code<'a>(
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
-    let def_id = slot.symbol_def().expect("Symbol should be resolved");
+    let def_id = slot.symbol().unwrap().resolved_def();
     let def = grammar.definition(def_id);
     match def {
         Definition::Terminal(terminal) => {

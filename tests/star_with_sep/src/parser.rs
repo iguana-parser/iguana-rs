@@ -120,28 +120,28 @@ pub const SLOTS: [Slot; 25] = [
         display_name: "{A \",\"}* : {A \",\"}+?.",
     },
     Slot {
-        display_name: "StartS : . Layout S Layout",
+        display_name: "StartS : . Layout start:S Layout",
     },
     Slot {
-        display_name: "StartS : Layout . S Layout",
+        display_name: "StartS : Layout . start:S Layout",
     },
     Slot {
-        display_name: "StartS : Layout S . Layout",
+        display_name: "StartS : Layout start:S . Layout",
     },
     Slot {
-        display_name: "StartS : Layout S Layout.",
+        display_name: "StartS : Layout start:S Layout.",
     },
     Slot {
-        display_name: "StartA : . Layout A Layout",
+        display_name: "StartA : . Layout start:A Layout",
     },
     Slot {
-        display_name: "StartA : Layout . A Layout",
+        display_name: "StartA : Layout . start:A Layout",
     },
     Slot {
-        display_name: "StartA : Layout A . Layout",
+        display_name: "StartA : Layout start:A . Layout",
     },
     Slot {
-        display_name: "StartA : Layout A Layout.",
+        display_name: "StartA : Layout start:A Layout.",
     },
 ];
 impl<'i> Parser<'i> for StarWithSepParser<'i> {
@@ -471,7 +471,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //StartS : . Layout S Layout
+            //StartS : . Layout start:S Layout
             SlotId(17) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -479,7 +479,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
-                        //StartS : Layout . S Layout
+                        //StartS : Layout . start:S Layout
                         let next_slot_id = SlotId(18);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -497,11 +497,11 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     }
                 }
             }
-            //StartS : Layout . S Layout
+            //StartS : Layout . start:S Layout
             SlotId(18) => {
                 self.create_s(result, gss_node_id, SlotId(19));
             }
-            //StartS : Layout S . Layout
+            //StartS : Layout start:S . Layout
             SlotId(19) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -509,7 +509,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
-                        //StartS : Layout S Layout.
+                        //StartS : Layout start:S Layout.
                         let next_slot_id = SlotId(20);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -537,7 +537,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     }
                 }
             }
-            //StartS : Layout S Layout.
+            //StartS : Layout start:S Layout.
             SlotId(20) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -557,7 +557,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //StartA : . Layout A Layout
+            //StartA : . Layout start:A Layout
             SlotId(21) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -565,7 +565,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
-                        //StartA : Layout . A Layout
+                        //StartA : Layout . start:A Layout
                         let next_slot_id = SlotId(22);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -583,11 +583,11 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     }
                 }
             }
-            //StartA : Layout . A Layout
+            //StartA : Layout . start:A Layout
             SlotId(22) => {
                 self.create_a(result, gss_node_id, SlotId(23));
             }
-            //StartA : Layout A . Layout
+            //StartA : Layout start:A . Layout
             SlotId(23) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -595,7 +595,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
-                        //StartA : Layout A Layout.
+                        //StartA : Layout start:A Layout.
                         let next_slot_id = SlotId(24);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -623,7 +623,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                     }
                 }
             }
-            //StartA : Layout A Layout.
+            //StartA : Layout start:A Layout.
             SlotId(24) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -729,7 +729,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
             }
             //StartS
             NonterminalId(5) => {
-                //StartS : . Layout S Layout
+                //StartS : . Layout start:S Layout
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(17),
@@ -740,7 +740,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
             }
             //StartA
             NonterminalId(6) => {
-                //StartA : . Layout A Layout
+                //StartA : . Layout start:A Layout
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(21),

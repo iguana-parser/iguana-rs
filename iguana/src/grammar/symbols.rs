@@ -6,6 +6,8 @@ use quote::{ToTokens, quote};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
+use crate::grammar::def::Grammar;
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Definition {
     Terminal(Terminal),
@@ -22,13 +24,35 @@ impl Definition {
     pub fn display_name(&self) -> String {
         match self {
             Definition::Terminal(terminal) => terminal.name.clone(),
-            Definition::Nonterminal(nonterminal) => nonterminal.display_name(),
+            Definition::Nonterminal(nonterminal) =>
+            // For normal nonterminals, i.e., the ones that are defined by the user directly,
+            // the display_name is the same the nonterminal name.
+            // For other nonterminals that are generated during grammar transformations,
+            // `display_name` shows a name that reflects the structure, rather than the unique,
+            // synthetic name using for the code generation.
+            // For example, for the rule S : A (B|C)+ C, the display name is (B|C)+, while the
+            // name is S_Plus_0.
+            {
+                match &nonterminal.origin {
+                    Some(symbol) => symbol.to_string(),
+                    None => nonterminal.name.clone(),
+                }
+            }
         }
     }
     pub fn as_nonterminal(&self) -> &Nonterminal {
         match self {
             Definition::Terminal(_) => panic!(),
-            Definition::Nonterminal(nonterminal) => nonterminal,
+            Definition::Nonterminal(n) => n,
+        }
+    }
+}
+
+impl Display for Definition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Definition::Terminal(t) => write!(f, "{}", t),
+            Definition::Nonterminal(n) => write!(f, "{}", n),
         }
     }
 }
@@ -80,6 +104,7 @@ impl Symbol {
     pub fn resolved_def(&self) -> DefinitionId {
         let ident = match self {
             Symbol::Labeled { symbol, .. } => symbol.as_identifier(),
+            Symbol::Call { name, .. } => name,
             Symbol::Identifier(name) => name,
             _ => panic!("Expected identifier, got {:?}", self),
         };
@@ -89,7 +114,53 @@ impl Symbol {
     pub fn as_identifier(&self) -> &Identifier {
         match self {
             Symbol::Identifier(identifier) => identifier,
+            Symbol::Call { name, .. } => name,
             _ => panic!("Expected identifier but found {}", self),
+        }
+    }
+
+    pub fn display_name(&self, grammar: &Grammar) -> String {
+        match self {
+            Symbol::Labeled { label, symbol } => {
+                format!("{}:{}", label, symbol.display_name(grammar))
+            }
+            Symbol::Identifier(identifier) => {
+                let def_id = identifier.resolve();
+                let definition = grammar.definition(def_id);
+                definition.display_name()
+            }
+            Symbol::Literal(_) => self.to_string(),
+            Symbol::Group(symbols) => format!(
+                "({})",
+                symbols.iter().map(|s| s.display_name(grammar)).join(" "),
+            ),
+            Symbol::Opt(symbol) => format!("{}?", symbol.display_name(grammar)),
+            Symbol::Alt(symbols) => symbols.iter().map(|s| s.display_name(grammar)).join(" | "),
+            Symbol::Star(symbol, sep) => match sep {
+                Some(sep) => format!(
+                    "{{{} {}}}*",
+                    symbol.display_name(grammar),
+                    sep.display_name(grammar)
+                ),
+                None => format!("({})*", symbol.display_name(grammar)),
+            },
+            Symbol::Plus(symbol, sep) => match sep {
+                Some(sep) => format!(
+                    "{{{} {}}}+",
+                    symbol.display_name(grammar),
+                    sep.display_name(grammar)
+                ),
+                None => format!("({})+", symbol.display_name(grammar)),
+            },
+            Symbol::Call { name, arguments } => {
+                let def_id = name.resolve();
+                let definition = grammar.definition(def_id);
+                format!(
+                    "{}({})",
+                    definition.display_name(),
+                    arguments.iter().join(", ")
+                )
+            }
         }
     }
 }
@@ -127,9 +198,15 @@ pub struct Identifier {
     pub definition: Option<DefinitionId>,
 }
 
+impl Identifier {
+    fn resolve(&self) -> DefinitionId {
+        self.definition.expect("Identifier is not resolved")
+    }
+}
+
 impl Display for Identifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{}", self.name)
+        write!(f, "{}", self.name)
     }
 }
 
@@ -167,9 +244,23 @@ pub struct Parameter {
     pub ty: ParamType,
 }
 
+impl Display for Parameter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {}", self.name, self.ty)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum ParamType {
     U16,
+}
+
+impl Display for ParamType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ParamType::U16 => write!(f, "u16"),
+        }
+    }
 }
 
 impl ToTokens for ParamType {
@@ -205,19 +296,6 @@ impl Nonterminal {
             parameters: vec![],
         }
     }
-    // For normal nonterminals, i.e., the ones that are defined by the user directly,
-    // the display_name is the same the nonterminal name.
-    // For other nonterminals that are generated during grammar transformations,
-    // `display_name` shows a name that reflects the structure, rather than the unique,
-    // synthetic name using for the code generation.
-    // For example, for the rule S : A (B|C)+ C, the display name is (B|C)+, while the
-    // name is S_Plus_0.
-    pub fn display_name(&self) -> String {
-        match &self.origin {
-            Some(symbol) => symbol.to_string(),
-            None => self.name.clone(),
-        }
-    }
 
     /// Returns true if the nonterminal was generated when converting from an EBNF Plus.
     pub fn is_plus(&self) -> bool {
@@ -243,6 +321,20 @@ impl Nonterminal {
         }
     }
 
+    // For normal nonterminals, i.e., the ones that are defined by the user directly,
+    // the display_name is the same the nonterminal name.
+    // For other nonterminals that are generated during grammar transformations,
+    // `display_name` shows a name that reflects the structure, rather than the unique,
+    // synthetic name used for code generation.
+    // For example, for the rule S : A (B|C)+ C, the display name is (B|C)+, while the
+    // name is S_Plus_0.
+    pub fn display_name(&self) -> String {
+        match &self.origin {
+            Some(symbol) => symbol.to_string(),
+            None => self.name.clone(),
+        }
+    }
+
     /// Returns true if the nonterminal is derived, e.g., from the EBNF to BNF conversion.
     pub fn is_derived(&self) -> bool {
         self.origin.is_some()
@@ -265,7 +357,11 @@ impl Eq for Nonterminal {}
 
 impl Display for Nonterminal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.name)
+        if self.parameters.is_empty() {
+            write!(f, "{}", self.name)
+        } else {
+            write!(f, "{}({})", self.name, self.parameters.iter().join(", "))
+        }
     }
 }
 
@@ -345,5 +441,18 @@ macro_rules! star {
 macro_rules! opt {
     ($symbol:expr) => {
         $crate::grammar::symbols::Symbol::Opt(Box::new($symbol))
+    };
+}
+
+#[macro_export]
+macro_rules! call {
+    ($name:expr, $($arg:expr),* $(,)?) => {
+        $crate::grammar::symbols::Symbol::Call {
+            name: $crate::grammar::symbols::Identifier {
+                name: $name.into(),
+                definition: None,
+            },
+            arguments: vec![$($crate::grammar::symbols::Expr::Int($arg)),*],
+        }
     };
 }

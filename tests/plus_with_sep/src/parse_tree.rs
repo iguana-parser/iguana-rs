@@ -460,7 +460,7 @@ impl ParseTreeBuilder<ParseTree> for PlusWithSepParseTreeBuilder {
             //StartS
             NonterminalId(3) => {
                 match nonterminal_node.return_slot {
-                    //StartS : Layout S Layout.
+                    //StartS : Layout start:S Layout.
                     SlotId(15) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
@@ -478,7 +478,7 @@ impl ParseTreeBuilder<ParseTree> for PlusWithSepParseTreeBuilder {
             //StartA
             NonterminalId(4) => {
                 match nonterminal_node.return_slot {
-                    //StartA : Layout A Layout.
+                    //StartA : Layout start:A Layout.
                     SlotId(19) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();

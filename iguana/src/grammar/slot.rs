@@ -1,6 +1,6 @@
 use crate::grammar::{
     def::{Alternative, Grammar},
-    symbols::{Definition, DefinitionId, Nonterminal},
+    symbols::{self, Nonterminal},
 };
 
 /// Represents a grammar slot of the form `A : a B . c`
@@ -25,28 +25,26 @@ impl<'a> Slot<'a> {
         Slot::new(self.head, self.alternative, self.pos + 1)
     }
 
-    pub fn symbol_def(&self) -> Option<DefinitionId> {
-        Self::symbol_def_at_pos(self.alternative, self.pos)
+    pub fn symbol(&self) -> Option<&symbols::Symbol> {
+        Self::symbol_at(self.alternative, self.pos)
     }
 
-    fn symbol_def_at_pos(alternative: &Alternative, pos: usize) -> Option<DefinitionId> {
-        let symbol = alternative.symbols.get(pos)?;
-        Some(symbol.resolved_def())
+    fn symbol_at(alternative: &Alternative, pos: usize) -> Option<&symbols::Symbol> {
+        alternative.symbols.get(pos)
     }
 
     pub fn display_name(&self, grammar: &'a Grammar) -> String {
-        self.name_to_string(grammar, |n| n.display_name(), |d| d.display_name())
+        self.name_to_string(|n| n.display_name(), |s| s.display_name(grammar))
     }
 
-    pub fn name(&self, grammar: &'a Grammar) -> String {
-        self.name_to_string(grammar, |n| n.name.clone(), |d| d.name().into())
+    pub fn name(&self, _grammar: &'a Grammar) -> String {
+        self.name_to_string(|n| n.to_string(), |s| s.to_string())
     }
 
     fn name_to_string(
         &self,
-        grammar: &'a Grammar,
-        nt_name: fn(&Nonterminal) -> String,
-        def_name: fn(&Definition) -> String,
+        nt_name: impl Fn(&Nonterminal) -> String,
+        symbol_name: impl Fn(&symbols::Symbol) -> String,
     ) -> String {
         let mut result = String::new();
         result.push_str(&nt_name(self.head));
@@ -55,9 +53,8 @@ impl<'a> Slot<'a> {
             if i == self.pos {
                 result.push_str(". ");
             }
-            let def_id = Self::symbol_def_at_pos(self.alternative, i).unwrap();
-            let def = grammar.definition(def_id);
-            result.push_str(&def_name(def));
+            let symbol = Self::symbol_at(self.alternative, i).unwrap();
+            result.push_str(&symbol_name(symbol));
             if i < self.alternative.len() - 1 {
                 result.push(' ');
             }

@@ -85,16 +85,16 @@ pub const SLOTS: [Slot; 18] = [
         display_name: "E : \"a\".",
     },
     Slot {
-        display_name: "StartE : . Layout E Layout",
+        display_name: "StartE : . Layout start:E Layout",
     },
     Slot {
-        display_name: "StartE : Layout . E Layout",
+        display_name: "StartE : Layout . start:E Layout",
     },
     Slot {
-        display_name: "StartE : Layout E . Layout",
+        display_name: "StartE : Layout start:E . Layout",
     },
     Slot {
-        display_name: "StartE : Layout E Layout.",
+        display_name: "StartE : Layout start:E Layout.",
     },
 ];
 impl<'i> Parser<'i> for ExpressionParser<'i> {
@@ -448,7 +448,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //StartE : . Layout E Layout
+            //StartE : . Layout start:E Layout
             SlotId(14) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -456,7 +456,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(3), i, j);
-                        //StartE : Layout . E Layout
+                        //StartE : Layout . start:E Layout
                         let next_slot_id = SlotId(15);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -474,11 +474,11 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                     }
                 }
             }
-            //StartE : Layout . E Layout
+            //StartE : Layout . start:E Layout
             SlotId(15) => {
                 self.create_e(result, gss_node_id, SlotId(16));
             }
-            //StartE : Layout E . Layout
+            //StartE : Layout start:E . Layout
             SlotId(16) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -486,7 +486,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(3), i, j);
-                        //StartE : Layout E Layout.
+                        //StartE : Layout start:E Layout.
                         let next_slot_id = SlotId(17);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -514,7 +514,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                     }
                 }
             }
-            //StartE : Layout E Layout.
+            //StartE : Layout start:E Layout.
             SlotId(17) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -576,7 +576,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             }
             //StartE
             NonterminalId(1) => {
-                //StartE : . Layout E Layout
+                //StartE : . Layout start:E Layout
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(14),

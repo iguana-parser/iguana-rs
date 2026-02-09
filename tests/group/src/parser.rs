@@ -123,52 +123,52 @@ pub const SLOTS: [Slot; 30] = [
         display_name: "(B C D) : B Layout C Layout D.",
     },
     Slot {
-        display_name: "StartA : . Layout A Layout",
+        display_name: "StartA : . Layout start:A Layout",
     },
     Slot {
-        display_name: "StartA : Layout . A Layout",
+        display_name: "StartA : Layout . start:A Layout",
     },
     Slot {
-        display_name: "StartA : Layout A . Layout",
+        display_name: "StartA : Layout start:A . Layout",
     },
     Slot {
-        display_name: "StartA : Layout A Layout.",
+        display_name: "StartA : Layout start:A Layout.",
     },
     Slot {
-        display_name: "StartB : . Layout B Layout",
+        display_name: "StartB : . Layout start:B Layout",
     },
     Slot {
-        display_name: "StartB : Layout . B Layout",
+        display_name: "StartB : Layout . start:B Layout",
     },
     Slot {
-        display_name: "StartB : Layout B . Layout",
+        display_name: "StartB : Layout start:B . Layout",
     },
     Slot {
-        display_name: "StartB : Layout B Layout.",
+        display_name: "StartB : Layout start:B Layout.",
     },
     Slot {
-        display_name: "StartC : . Layout C Layout",
+        display_name: "StartC : . Layout start:C Layout",
     },
     Slot {
-        display_name: "StartC : Layout . C Layout",
+        display_name: "StartC : Layout . start:C Layout",
     },
     Slot {
-        display_name: "StartC : Layout C . Layout",
+        display_name: "StartC : Layout start:C . Layout",
     },
     Slot {
-        display_name: "StartC : Layout C Layout.",
+        display_name: "StartC : Layout start:C Layout.",
     },
     Slot {
-        display_name: "StartD : . Layout D Layout",
+        display_name: "StartD : . Layout start:D Layout",
     },
     Slot {
-        display_name: "StartD : Layout . D Layout",
+        display_name: "StartD : Layout . start:D Layout",
     },
     Slot {
-        display_name: "StartD : Layout D . Layout",
+        display_name: "StartD : Layout start:D . Layout",
     },
     Slot {
-        display_name: "StartD : Layout D Layout.",
+        display_name: "StartD : Layout start:D Layout.",
     },
 ];
 impl<'i> Parser<'i> for GroupParser<'i> {
@@ -470,7 +470,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //StartA : . Layout A Layout
+            //StartA : . Layout start:A Layout
             SlotId(14) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -478,7 +478,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(3), i, j);
-                        //StartA : Layout . A Layout
+                        //StartA : Layout . start:A Layout
                         let next_slot_id = SlotId(15);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -496,11 +496,11 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     }
                 }
             }
-            //StartA : Layout . A Layout
+            //StartA : Layout . start:A Layout
             SlotId(15) => {
                 self.create_a(result, gss_node_id, SlotId(16));
             }
-            //StartA : Layout A . Layout
+            //StartA : Layout start:A . Layout
             SlotId(16) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -508,7 +508,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(3), i, j);
-                        //StartA : Layout A Layout.
+                        //StartA : Layout start:A Layout.
                         let next_slot_id = SlotId(17);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -536,7 +536,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     }
                 }
             }
-            //StartA : Layout A Layout.
+            //StartA : Layout start:A Layout.
             SlotId(17) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -556,7 +556,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //StartB : . Layout B Layout
+            //StartB : . Layout start:B Layout
             SlotId(18) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -564,7 +564,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(3), i, j);
-                        //StartB : Layout . B Layout
+                        //StartB : Layout . start:B Layout
                         let next_slot_id = SlotId(19);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -582,11 +582,11 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     }
                 }
             }
-            //StartB : Layout . B Layout
+            //StartB : Layout . start:B Layout
             SlotId(19) => {
                 self.create_b(result, gss_node_id, SlotId(20));
             }
-            //StartB : Layout B . Layout
+            //StartB : Layout start:B . Layout
             SlotId(20) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -594,7 +594,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(3), i, j);
-                        //StartB : Layout B Layout.
+                        //StartB : Layout start:B Layout.
                         let next_slot_id = SlotId(21);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -622,7 +622,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     }
                 }
             }
-            //StartB : Layout B Layout.
+            //StartB : Layout start:B Layout.
             SlotId(21) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -642,7 +642,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //StartC : . Layout C Layout
+            //StartC : . Layout start:C Layout
             SlotId(22) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -650,7 +650,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(3), i, j);
-                        //StartC : Layout . C Layout
+                        //StartC : Layout . start:C Layout
                         let next_slot_id = SlotId(23);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -668,11 +668,11 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     }
                 }
             }
-            //StartC : Layout . C Layout
+            //StartC : Layout . start:C Layout
             SlotId(23) => {
                 self.create_c(result, gss_node_id, SlotId(24));
             }
-            //StartC : Layout C . Layout
+            //StartC : Layout start:C . Layout
             SlotId(24) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -680,7 +680,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(3), i, j);
-                        //StartC : Layout C Layout.
+                        //StartC : Layout start:C Layout.
                         let next_slot_id = SlotId(25);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -708,7 +708,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     }
                 }
             }
-            //StartC : Layout C Layout.
+            //StartC : Layout start:C Layout.
             SlotId(25) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -728,7 +728,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //StartD : . Layout D Layout
+            //StartD : . Layout start:D Layout
             SlotId(26) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -736,7 +736,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(3), i, j);
-                        //StartD : Layout . D Layout
+                        //StartD : Layout . start:D Layout
                         let next_slot_id = SlotId(27);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -754,11 +754,11 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     }
                 }
             }
-            //StartD : Layout . D Layout
+            //StartD : Layout . start:D Layout
             SlotId(27) => {
                 self.create_d(result, gss_node_id, SlotId(28));
             }
-            //StartD : Layout D . Layout
+            //StartD : Layout start:D . Layout
             SlotId(28) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -766,7 +766,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(3), i, j);
-                        //StartD : Layout D Layout.
+                        //StartD : Layout start:D Layout.
                         let next_slot_id = SlotId(29);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -794,7 +794,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     }
                 }
             }
-            //StartD : Layout D Layout.
+            //StartD : Layout start:D Layout.
             SlotId(29) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -884,7 +884,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             //StartA
             NonterminalId(5) => {
-                //StartA : . Layout A Layout
+                //StartA : . Layout start:A Layout
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(14),
@@ -895,7 +895,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             //StartB
             NonterminalId(6) => {
-                //StartB : . Layout B Layout
+                //StartB : . Layout start:B Layout
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(18),
@@ -906,7 +906,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             //StartC
             NonterminalId(7) => {
-                //StartC : . Layout C Layout
+                //StartC : . Layout start:C Layout
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(22),
@@ -917,7 +917,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             //StartD
             NonterminalId(8) => {
-                //StartD : . Layout D Layout
+                //StartD : . Layout start:D Layout
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(26),

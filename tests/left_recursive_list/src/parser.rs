@@ -59,16 +59,16 @@ pub const SLOTS: [Slot; 10] = [
         display_name: "A : \"a\".",
     },
     Slot {
-        display_name: "StartA : . Layout A Layout",
+        display_name: "StartA : . Layout start:A Layout",
     },
     Slot {
-        display_name: "StartA : Layout . A Layout",
+        display_name: "StartA : Layout . start:A Layout",
     },
     Slot {
-        display_name: "StartA : Layout A . Layout",
+        display_name: "StartA : Layout start:A . Layout",
     },
     Slot {
-        display_name: "StartA : Layout A Layout.",
+        display_name: "StartA : Layout start:A Layout.",
     },
 ];
 impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
@@ -246,7 +246,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                     self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
                 }
             }
-            //StartA : . Layout A Layout
+            //StartA : . Layout start:A Layout
             SlotId(6) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -254,7 +254,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(1), i, j);
-                        //StartA : Layout . A Layout
+                        //StartA : Layout . start:A Layout
                         let next_slot_id = SlotId(7);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -272,11 +272,11 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                     }
                 }
             }
-            //StartA : Layout . A Layout
+            //StartA : Layout . start:A Layout
             SlotId(7) => {
                 self.create_a(result, gss_node_id, SlotId(8));
             }
-            //StartA : Layout A . Layout
+            //StartA : Layout start:A . Layout
             SlotId(8) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
@@ -284,7 +284,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(1), i, j);
-                        //StartA : Layout A Layout.
+                        //StartA : Layout start:A Layout.
                         let next_slot_id = SlotId(9);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -312,7 +312,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                     }
                 }
             }
-            //StartA : Layout A Layout.
+            //StartA : Layout start:A Layout.
             SlotId(9) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -366,7 +366,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             }
             //StartA
             NonterminalId(1) => {
-                //StartA : . Layout A Layout
+                //StartA : . Layout start:A Layout
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(6),

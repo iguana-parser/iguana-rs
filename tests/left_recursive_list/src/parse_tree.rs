@@ -246,7 +246,7 @@ impl ParseTreeBuilder<ParseTree> for LeftRecursiveListParseTreeBuilder {
             //StartA
             NonterminalId(1) => {
                 match nonterminal_node.return_slot {
-                    //StartA : Layout A Layout.
+                    //StartA : Layout start:A Layout.
                     SlotId(9) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();

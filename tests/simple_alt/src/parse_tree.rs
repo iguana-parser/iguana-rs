@@ -632,7 +632,7 @@ impl ParseTreeBuilder<ParseTree> for SimpleAltParseTreeBuilder {
             //StartA
             NonterminalId(5) => {
                 match nonterminal_node.return_slot {
-                    //StartA : Layout A Layout.
+                    //StartA : Layout start:A Layout.
                     SlotId(17) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
@@ -650,7 +650,7 @@ impl ParseTreeBuilder<ParseTree> for SimpleAltParseTreeBuilder {
             //StartB
             NonterminalId(6) => {
                 match nonterminal_node.return_slot {
-                    //StartB : Layout B Layout.
+                    //StartB : Layout start:B Layout.
                     SlotId(21) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
@@ -668,7 +668,7 @@ impl ParseTreeBuilder<ParseTree> for SimpleAltParseTreeBuilder {
             //StartC
             NonterminalId(7) => {
                 match nonterminal_node.return_slot {
-                    //StartC : Layout C Layout.
+                    //StartC : Layout start:C Layout.
                     SlotId(25) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
@@ -686,7 +686,7 @@ impl ParseTreeBuilder<ParseTree> for SimpleAltParseTreeBuilder {
             //StartD
             NonterminalId(8) => {
                 match nonterminal_node.return_slot {
-                    //StartD : Layout D Layout.
+                    //StartD : Layout start:D Layout.
                     SlotId(29) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();

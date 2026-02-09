@@ -308,7 +308,7 @@ impl ParseTreeBuilder<ParseTree> for ExpressionParseTreeBuilder {
             //StartE
             NonterminalId(1) => {
                 match nonterminal_node.return_slot {
-                    //StartE : Layout E Layout.
+                    //StartE : Layout start:E Layout.
                     SlotId(17) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
