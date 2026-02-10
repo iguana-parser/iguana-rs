@@ -562,6 +562,7 @@ impl TraceReplay {
                     input_index: *input_index,
                     gss_node_id: *gss_node_id,
                     sppf_node_id: *sppf_node_id,
+                    env: None,
                 };
                 // Remove from pending set (if present)
                 self.descriptor_set.retain(|d| {
@@ -588,6 +589,7 @@ impl TraceReplay {
                     input_index: *input_index,
                     gss_node_id: *gss_node_id,
                     sppf_node_id: *sppf_node_id,
+                    env: None,
                 });
             }
             TraceEvent::GSSNodeCreated(nonterminal_id, input_index) => {
@@ -597,7 +599,12 @@ impl TraceReplay {
             }
             TraceEvent::GSSNodeAdded(src_id, dest_id, return_slot) => {
                 if let Some(node) = self.gss_nodes.get_mut(src_id.index()) {
-                    node.add_edge(GSSEdge::new(None, *return_slot, *dest_id));
+                    node.add_edge(GSSEdge {
+                        sppf_node_id: None,
+                        return_slot: *return_slot,
+                        dest_id: *dest_id,
+                        env: None,
+                    });
                 }
             }
             TraceEvent::TerminalNodeCreated(terminal_id, span) => {
