@@ -74,17 +74,48 @@ pub enum Symbol {
         name: Identifier,
         arguments: Vec<Expr>,
     },
+    Condition(Expr),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Expr {
     Int(i64),
+    Cond(Cond),
+    Ref(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Cond {
+    pub left: Box<Expr>,
+    pub right: Box<Expr>,
+    pub op: CondOp,
+}
+
+impl Display for Cond {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}{}{}", self.left, self.right, self.op)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum CondOp {
+    Eq,
+}
+
+impl Display for CondOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CondOp::Eq => write!(f, "=="),
+        }
+    }
 }
 
 impl Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Expr::Int(i) => write!(f, "{i}"),
+            Expr::Cond(cond) => write!(f, "{}", cond),
+            Expr::Ref(name) => write!(f, "{}", name),
         }
     }
 }
@@ -110,7 +141,10 @@ impl Symbol {
     }
 
     pub fn resolved_def(&self) -> DefinitionId {
-        self.unlabeled().as_identifier().definition.expect("Symbol should be resolved")
+        self.unlabeled()
+            .as_identifier()
+            .definition
+            .expect("Symbol should be resolved")
     }
 
     pub fn as_identifier(&self) -> &Identifier {
@@ -163,6 +197,7 @@ impl Symbol {
                     arguments.iter().join(", ")
                 )
             }
+            Symbol::Condition(expr) => expr.to_string(),
         }
     }
 }
@@ -187,6 +222,7 @@ impl Display for Symbol {
             Symbol::Call { name, arguments } => {
                 write!(f, "{}({})", name, arguments.iter().join(", "))
             }
+            Symbol::Condition(expr) => write!(f, "[{}]", expr),
         }
     }
 }
@@ -456,5 +492,18 @@ macro_rules! call {
             },
             arguments: vec![$($crate::grammar::symbols::Expr::Int($arg)),*],
         }
+    };
+}
+
+#[macro_export]
+macro_rules! cond {
+    ($left:literal == $right:expr) => {
+        $crate::grammar::symbols::Symbol::Condition(
+            $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
+                left: Box::new($crate::grammar::symbols::Expr::Ref($left.into())),
+                right: Box::new($crate::grammar::symbols::Expr::Int($right)),
+                op: $crate::grammar::symbols::CondOp::Eq,
+            }),
+        )
     };
 }

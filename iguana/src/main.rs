@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    alternative, call,
+    alternative, call, cond,
     generator::generate,
     grammar::def::{Grammar, GrammarDef},
     grammar_def, id,
@@ -294,11 +294,16 @@ fn ambiguous_grammar() -> Grammar {
 
 fn nonterminal_parameters() -> GrammarDef {
     // S = A(0)
-    // A(p) = "a"
+    // A(p)
+    //  = [p == 0] "a"
+    //  | [p == 1] "b"
     grammar_def!("Test2",
         syntax: [
             syntax_rule!("S" => alternative!(call!("A", 0))),
-            syntax_rule!("A"("p": U16) => alternative!(lit!("a"))),
+            syntax_rule!("A"("p": U16) => priority_level!(
+                alternative!(cond!("p" == 0), lit!("a")),
+                alternative!(cond!("p" == 1), lit!("b")),
+            )),
         ]
     )
 }

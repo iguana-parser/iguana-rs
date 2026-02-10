@@ -869,6 +869,7 @@ fn symbol_contains_nonterminal(symbol: &Symbol, nt_name: &str) -> bool {
         }
         Symbol::Call { name, arguments: _ } => name.name == nt_name,
         Symbol::Literal(_) => false,
+        Symbol::Condition(_) => false,
     }
 }
 

@@ -384,7 +384,7 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 None => Symbol::Plus(Box::new(resolved_symbol), None),
             }
         }
-        Symbol::Literal(_) => symbol,
+        Symbol::Literal(_) | Symbol::Condition(_) => symbol,
     }
 }
 

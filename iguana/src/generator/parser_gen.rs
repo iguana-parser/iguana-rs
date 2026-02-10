@@ -475,6 +475,8 @@ fn gen_nonterminal_slot<'a>(
     // TODO: later we need to evaluate arguments
     let arguments = arguments.iter().map(|arg| match arg {
         Expr::Int(i) => Literal::i64_unsuffixed(*i),
+        Expr::Cond(_) => unimplemented!(),
+        Expr::Ref(_) => unimplemented!(),
     });
     let arguments = if nonterminal.parameters.is_empty() {
         quote! { result, gss_node_id, #return_slot_id }
