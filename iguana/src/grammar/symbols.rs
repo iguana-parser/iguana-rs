@@ -141,17 +141,18 @@ impl Symbol {
     }
 
     pub fn resolved_def(&self) -> DefinitionId {
-        self.unlabeled()
-            .as_identifier()
+        self.as_identifier()
+            .expect("Symbol should be an Identifier or Call")
             .definition
             .expect("Symbol should be resolved")
     }
 
-    pub fn as_identifier(&self) -> &Identifier {
+    pub fn as_identifier(&self) -> Option<&Identifier> {
         match self {
-            Symbol::Identifier(identifier) => identifier,
-            Symbol::Call { name, .. } => name,
-            _ => panic!("Expected identifier but found {}", self),
+            Symbol::Identifier(identifier) => Some(identifier),
+            Symbol::Call { name, .. } => Some(name),
+            Symbol::Labeled { symbol, .. } => symbol.as_identifier(),
+            _ => None,
         }
     }
 
@@ -237,7 +238,7 @@ pub struct Identifier {
 }
 
 impl Identifier {
-    fn resolve(&self) -> DefinitionId {
+    pub fn resolve(&self) -> DefinitionId {
         self.definition.expect("Identifier is not resolved")
     }
 }

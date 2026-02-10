@@ -38,14 +38,7 @@ impl Alternative {
         let symbols: Vec<String> = self
             .symbols
             .iter()
-            .map(|s| {
-                let def_id = s.resolved_def();
-                let name = grammar.definition(def_id).display_name();
-                match s.label() {
-                    Some(label) => format!("{}:{}", label, name),
-                    None => name,
-                }
-            })
+            .map(|s| s.display_name(grammar))
             .collect();
         let symbols_str = symbols.join(" ");
         match &self.label {

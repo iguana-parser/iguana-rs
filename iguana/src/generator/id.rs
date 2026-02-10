@@ -77,7 +77,7 @@ impl NonterminalIds {
             .push(alternative);
     }
     pub fn end_slots(&self, nonterminal_id: NonterminalId) -> impl Iterator<Item = &EndSlot> {
-        self.alternatives[nonterminal_id.index()].iter()
+        self.alternatives.get(&nonterminal_id).unwrap().iter()
     }
     pub fn get_nonterminal(&self, nonterminal_id: NonterminalId) -> &Nonterminal {
         &self.nonterminals[nonterminal_id.index()]

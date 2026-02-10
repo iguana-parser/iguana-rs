@@ -152,6 +152,7 @@ fn gen_nonterminal_type_with_one_alternative(
     let fields: Vec<_> = alternative
         .symbols
         .iter()
+        .filter(|s| !matches!(s, Symbol::Condition(_)))
         .enumerate()
         .map(|(i, s)| {
             let base_name = get_symbol_base_name(grammar, s);
@@ -356,6 +357,7 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
             let fields: Vec<_> = alternative
                 .symbols
                 .iter()
+                .filter(|s| !matches!(s, Symbol::Condition(_)))
                 .enumerate()
                 .map(|(i, s)| {
                     let base_name = get_symbol_base_name(grammar, s);
@@ -509,6 +511,7 @@ fn child_by_index(grammar: &Grammar, alternative: &Alternative, single_rule: boo
     let cases: Vec<_> = alternative
         .symbols
         .iter()
+        .filter(|s| !matches!(s, Symbol::Condition(_)))
         .enumerate()
         .map(|(i, s)| {
             let i_lit = Literal::usize_unsuffixed(i);
@@ -557,7 +560,7 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
     let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
     let alternatives = grammar.alternatives(nonterminal);
     let body = if alternatives.len() == 1 {
-        let count_symbols = alternatives[0].symbols.len();
+        let count_symbols = alternatives[0].symbols.iter().filter(|s| !matches!(s, Symbol::Condition(_))).count();
         quote! {
             #count_symbols
         }
@@ -568,7 +571,7 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
             .map(|(i, alternative)| {
                 let label = alternative_label(alternative, i);
                 let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-                let count_symbols = alternative.symbols.len();
+                let count_symbols = alternative.symbols.iter().filter(|s| !matches!(s, Symbol::Condition(_))).count();
                 // Use { .. } to match any fields (including span)
                 quote! {
                     #ident::#alt_variant { .. } => #count_symbols
@@ -705,6 +708,7 @@ fn field_names(grammar: &Grammar, alternative: &Alternative) -> Vec<Ident> {
     alternative
         .symbols
         .iter()
+        .filter(|s| !matches!(s, Symbol::Condition(_)))
         .enumerate()
         .map(|(i, s)| {
             let base_name = get_symbol_base_name(grammar, s);
@@ -732,11 +736,12 @@ fn gen_nonterminal_node_method(
                     let alternative = &alternatives[index];
                     let end_slot_id = end_slot.slot_id;
                     let slot_name = slot_ids.display_name(&end_slot.slot_id);
-                    let num_symbols = alternative.len();
+                    let num_symbols = alternative.symbols.iter().filter(|s| !matches!(s, Symbol::Condition(_))).count();
                     let field_names = field_names(grammar, alternative);
                     let methods: Vec<_> = alternative
                         .symbols
                         .iter()
+                        .filter(|s| !matches!(s, Symbol::Condition(_)))
                         .map(|s| {
                             let def_id = s.resolved_def();
                             let def = grammar.definition(def_id);

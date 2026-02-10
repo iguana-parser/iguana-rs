@@ -12,6 +12,7 @@ use crate::generator::utils::to_snake_case;
 use crate::grammar::def::Grammar;
 use crate::grammar::slot::Slot;
 use crate::grammar::symbols::Definition;
+use crate::grammar::symbols::CondOp;
 use crate::grammar::symbols::Expr;
 use crate::grammar::symbols::Nonterminal;
 use crate::grammar::symbols::Parameter;
@@ -379,20 +380,27 @@ fn gen_slot_code<'a>(
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
+    if let Some(Symbol::Condition(expr)) = slot.symbol() {
+        return gen_condition_code(grammar, expr, &slot, slot_ids);
+    }
     let symbol = slot.symbol().unwrap();
-    let def_id = symbol.resolved_def();
-    let arguments = match symbol.unlabeled() {
-        Symbol::Call { arguments, .. } => arguments.clone(),
-        _ => vec![],
-    };
-    let def = grammar.definition(def_id);
-    match def {
-        Definition::Terminal(terminal) => {
-            gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids)
+    if let Some(identifier) = symbol.as_identifier() {
+        let def_id = identifier.resolve();
+        let def = grammar.definition(def_id);
+        match def {
+            Definition::Terminal(terminal) => {
+                gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids)
+            }
+            Definition::Nonterminal(nonterminal) => {
+                let arguments = match symbol.unlabeled() {
+                    Symbol::Call { arguments, .. } => arguments.clone(),
+                    _ => vec![],
+                };
+                gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids)
+            }
         }
-        Definition::Nonterminal(nonterminal) => {
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids)
-        }
+    } else {
+        quote! {}
     }
 }
 
@@ -487,6 +495,47 @@ fn gen_nonterminal_slot<'a>(
         #[comment = #slot_name]
         #slot_id => {
             self.#method_name(#arguments);
+        }
+    }
+}
+
+fn gen_condition_code<'a>(
+    grammar: &'a Grammar,
+    expr: &Expr,
+    slot: &Slot<'a>,
+    slot_ids: &mut SlotIds<'a>,
+) -> TokenStream {
+    let slot_id = slot_ids.id(slot);
+    let slot_name = slot.name(grammar);
+    let next_slot = slot.next();
+    let next_slot_id = slot_ids.id(&next_slot);
+    let condition_expr = gen_expr(expr);
+    quote! {
+        #[comment = #slot_name]
+        #slot_id => {
+            let env_id = env.unwrap();
+            if #condition_expr {
+                self.execute(input_index, #next_slot_id, result, gss_node_id, env);
+            }
+        }
+    }
+}
+
+fn gen_expr(expr: &Expr) -> TokenStream {
+    match expr {
+        Expr::Int(i) => {
+            let val = Literal::u16_suffixed(*i as u16);
+            quote! { #val }
+        }
+        Expr::Ref(name) => {
+            quote! { self.envs[env_id.index()].get(#name) }
+        }
+        Expr::Cond(cond) => {
+            let left = gen_expr(&cond.left);
+            let right = gen_expr(&cond.right);
+            match cond.op {
+                CondOp::Eq => quote! { #left == #right },
+            }
         }
     }
 }
