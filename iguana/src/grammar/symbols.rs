@@ -93,7 +93,7 @@ pub struct Cond {
 
 impl Display for Cond {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}{}{}", self.left, self.right, self.op)
+        write!(f, "{} {} {}", self.left, self.op, self.right)
     }
 }
 

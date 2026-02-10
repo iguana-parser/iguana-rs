@@ -524,7 +524,7 @@ fn gen_condition_code<'a>(
 fn gen_expr(expr: &Expr) -> TokenStream {
     match expr {
         Expr::Int(i) => {
-            let val = Literal::u16_suffixed(*i as u16);
+            let val = Literal::u16_unsuffixed(*i as u16);
             quote! { #val }
         }
         Expr::Ref(name) => {
