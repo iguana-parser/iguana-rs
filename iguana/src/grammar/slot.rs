@@ -1,14 +1,14 @@
 use crate::grammar::{
     def::{Alternative, Grammar},
-    symbols::{self, Nonterminal},
+    symbols::{self, Nonterminal, Symbol},
 };
 
 /// Represents a grammar slot of the form `A : a B . c`
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Slot<'a> {
-    pub head: &'a Nonterminal,
-    pub alternative: &'a Alternative,
-    pub pos: usize,
+    head: &'a Nonterminal,
+    alternative: &'a Alternative,
+    pos: usize,
 }
 
 impl<'a> Slot<'a> {
@@ -23,6 +23,14 @@ impl<'a> Slot<'a> {
     /// Returns the next grammar slot by moving the dot to the next position.
     pub fn next(&self) -> Self {
         Slot::new(self.head, self.alternative, self.pos + 1)
+    }
+
+    /// Returns true if the slot is the first symbol in the alternative.
+    /// If there are only condition symbols before the slot position, it returns true.
+    pub fn is_first(&self) -> bool {
+        self.alternative.symbols[..self.pos]
+            .iter()
+            .all(|s| matches!(s, Symbol::Condition(_)))
     }
 
     pub fn symbol(&self) -> Option<&symbols::Symbol> {

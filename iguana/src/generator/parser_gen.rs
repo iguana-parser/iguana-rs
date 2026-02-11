@@ -11,8 +11,8 @@ use crate::generator::utils::to_first_uppercase;
 use crate::generator::utils::to_snake_case;
 use crate::grammar::def::Grammar;
 use crate::grammar::slot::Slot;
-use crate::grammar::symbols::Definition;
 use crate::grammar::symbols::CondOp;
+use crate::grammar::symbols::Definition;
 use crate::grammar::symbols::Expr;
 use crate::grammar::symbols::Nonterminal;
 use crate::grammar::symbols::Parameter;
@@ -418,7 +418,7 @@ fn gen_terminal_slot<'a>(
     let slot_id = slot_ids.id(&slot);
     let current_slot_name = slot.name(grammar);
     // At grammar position 0, we do not need to create an intermediate node.
-    let new_node = if slot.pos == 0 {
+    let new_node = if slot.is_first() {
         quote! {
             let new_node = right_child_id;
             self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -903,7 +903,6 @@ fn gen_parser_struct(
     slot_ids: &SlotIds,
 ) -> TokenStream {
     let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.len());
-    let num_regular_nonterminal = Literal::usize_unsuffixed(nonterminal_ids.num_regular_nts());
     let terminal_ids_len = Literal::usize_unsuffixed(terminal_ids.len() + 1);
     let gss_nodes_index_fields: Vec<_> = nonterminal_ids
         .dd_nonterminals()
@@ -919,7 +918,7 @@ fn gen_parser_struct(
             descriptors: Vec<Descriptor>,
             gss_nodes: Vec<GSSNode>,
             #[comment = "A vector from nonterminal_ids to a tuple (input_index, gss_node_id)"]
-            gss_nodes_index: [Vec<(u32, GssNodeId)>; #num_regular_nonterminal],
+            gss_nodes_index: [Vec<(u32, GssNodeId)>; #nonterminal_ids_len],
             #(#gss_nodes_index_fields,)*
             sppf_nodes: Vec<SPPFNode>,
             stats: Stats,
@@ -1082,7 +1081,7 @@ fn gen_new_method(
 }
 
 fn gen_gss_nodes_index_field(nonterminal_ids: &NonterminalIds) -> TokenStream {
-    let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.num_regular_nts());
+    let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.len());
     quote! {
         gss_nodes_index: [const { vec![] }; #nonterminal_ids_len]
     }
