@@ -560,7 +560,11 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
     let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
     let alternatives = grammar.alternatives(nonterminal);
     let body = if alternatives.len() == 1 {
-        let count_symbols = alternatives[0].symbols.iter().filter(|s| !matches!(s, Symbol::Condition(_))).count();
+        let count_symbols = alternatives[0]
+            .symbols
+            .iter()
+            .filter(|s| !matches!(s, Symbol::Condition(_)))
+            .count();
         quote! {
             #count_symbols
         }
@@ -571,7 +575,11 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
             .map(|(i, alternative)| {
                 let label = alternative_label(alternative, i);
                 let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
-                let count_symbols = alternative.symbols.iter().filter(|s| !matches!(s, Symbol::Condition(_))).count();
+                let count_symbols = alternative
+                    .symbols
+                    .iter()
+                    .filter(|s| !matches!(s, Symbol::Condition(_)))
+                    .count();
                 // Use { .. } to match any fields (including span)
                 quote! {
                     #ident::#alt_variant { .. } => #count_symbols
@@ -873,8 +881,8 @@ fn symbol_contains_nonterminal(symbol: &Symbol, nt_name: &str) -> bool {
                     .map_or(false, |s| symbol_contains_nonterminal(s, nt_name))
         }
         Symbol::Call { name, arguments: _ } => name.name == nt_name,
-        Symbol::Literal(_) => false,
-        Symbol::Condition(_) => false,
+        Symbol::Binding { symbol, .. } => symbol_contains_nonterminal(symbol, nt_name),
+        Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => false,
     }
 }
 

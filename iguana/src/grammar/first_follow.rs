@@ -42,8 +42,10 @@ fn is_nullable(s: &Symbol, nullables: &HashSet<&Nonterminal>) -> bool {
         Symbol::Alt(symbols) => symbols.iter().any(|s| is_nullable(s, nullables)),
         Symbol::Star(_, _) => true,
         Symbol::Plus(symbol, _) => is_nullable(symbol, nullables),
+        Symbol::Binding { symbol, .. } => is_nullable(symbol, nullables),
         Symbol::Call { .. } => false,
         Symbol::Condition(_) => false,
+        Symbol::Return(_) => false,
     }
 }
 

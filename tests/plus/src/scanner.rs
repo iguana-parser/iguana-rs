@@ -2,6 +2,7 @@ use iguana_runtime::{
     ids::TerminalId,
     input::Input,
     scanner::Scanner,
+    sppf::{Span, TerminalNode},
 };
 pub struct PlusScanner<'i> {
     pub input: &'i Input,

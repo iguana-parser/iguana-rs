@@ -377,7 +377,8 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 None => Symbol::Plus(Box::new(resolved_symbol), None),
             }
         }
-        Symbol::Literal(_) | Symbol::Condition(_) => symbol,
+        Symbol::Binding { symbol, .. } => resolve_identifier(*symbol, symbol_table),
+        Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => symbol,
     }
 }
 

@@ -483,8 +483,7 @@ fn gen_nonterminal_slot<'a>(
     // TODO: later we need to evaluate arguments
     let arguments = arguments.iter().map(|arg| match arg {
         Expr::Int(i) => Literal::i64_unsuffixed(*i),
-        Expr::Cond(_) => unimplemented!(),
-        Expr::Ref(_) => unimplemented!(),
+        Expr::Cond(_) | Expr::Ref(_) | Expr::Or(_, _) => unimplemented!(),
     });
     let arguments = if nonterminal.parameters.is_empty() {
         quote! { result, gss_node_id, #return_slot_id }
@@ -538,6 +537,11 @@ fn gen_expr(expr: &Expr) -> TokenStream {
                 CondOp::Leq => quote! { #left <= #right },
                 CondOp::Geq => quote! { #left >= #right },
             }
+        }
+        Expr::Or(left, right) => {
+            let left = gen_expr(left);
+            let right = gen_expr(right);
+            quote! { (#left) || (#right) }
         }
     }
 }

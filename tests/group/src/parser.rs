@@ -14,7 +14,7 @@ use iguana_runtime::{
     record,
     scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
-    utils::inline_map::InlineMap,
+    utils::{inline_map::InlineMap, inline_vec::InlineVec},
 };
 use phf::phf_map;
 use rustc_hash::FxHashMap;

@@ -2,12 +2,12 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    alternative, call, cond,
+    alternative, bind, call, cond,
     generator::generate,
     grammar::def::{Grammar, GrammarDef},
     grammar_def, id,
     iggy::parse_grammar,
-    lit, opt, priority_level, syntax_rule,
+    lit, opt, priority_level, ret, syntax_rule,
 };
 
 #[derive(Parser)]
@@ -258,7 +258,7 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
             let source = std::fs::read_to_string(path)?;
             parse_grammar(&source).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
         }
-        None => expr_grammar(),
+        None => conditions(),
     };
     generate(&grammar.into(), output)?;
     Ok(())
@@ -308,17 +308,48 @@ fn nonterminal_parameters() -> GrammarDef {
     )
 }
 
-fn expr_grammar() -> GrammarDef {
-    // S = E(0)
-    // E(p)
-    //   = [p == 0] E(0) "+" E(1)
-    //   | "a"
+// S = E(0)
+// E(p)
+//   = [p == 0] E(0) "+" E(1)
+//   | "a"
+fn conditions() -> GrammarDef {
     grammar_def!("Test2",
         syntax: [
             syntax_rule!("S" => alternative!(call!("E", 0))),
             syntax_rule!("E"("p": U16) => priority_level!(
                 alternative!(cond!("p" == 0), call!("E", 0), lit!("+"), call!("E", 1)),
                 alternative!(lit!("a")),
+            )),
+        ]
+    )
+}
+
+// S = E(0)
+// E(p) = [2>=p] l=E(p) [l==0||l>=2] '*' E(3) return 2
+//     | [1>=p] l=E(p) [l==0||l>=1] '+' E(2) return 1
+//     | 'a' return 0
+fn return_values() -> GrammarDef {
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => alternative!(call!("E", 0))),
+            syntax_rule!("E"("p": U16) => priority_level!(
+                alternative!(
+                    cond!(2 >= "p"),
+                    bind!("l", call!("E", ref "p")),
+                    cond!(("l" == 0) || ("l" >= 2)),
+                    lit!("*"),
+                    call!("E", 3),
+                    ret!(2),
+                ),
+                alternative!(
+                    cond!(1 >= "p"),
+                    bind!("l", call!("E", ref "p")),
+                    cond!(("l" == 0) || ("l" >= 1)),
+                    lit!("+"),
+                    call!("E", 2),
+                    ret!(1),
+                ),
+                alternative!(lit!("a"), ret!(0)),
             )),
         ]
     )

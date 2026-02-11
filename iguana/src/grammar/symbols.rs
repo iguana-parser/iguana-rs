@@ -75,6 +75,11 @@ pub enum Symbol {
         arguments: Vec<Expr>,
     },
     Condition(Expr),
+    Return(Expr),
+    Binding {
+        name: String,
+        symbol: Box<Symbol>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -82,6 +87,7 @@ pub enum Expr {
     Int(i64),
     Cond(Cond),
     Ref(String),
+    Or(Box<Expr>, Box<Expr>),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -120,7 +126,32 @@ impl Display for Expr {
             Expr::Int(i) => write!(f, "{i}"),
             Expr::Cond(cond) => write!(f, "{}", cond),
             Expr::Ref(name) => write!(f, "{}", name),
+            Expr::Or(left, right) => write!(f, "{} || {}", left, right),
         }
+    }
+}
+
+/// Converts literals to `Expr` values: string literals become `Expr::Ref`,
+/// integer literals become `Expr::Int`. Used by the `cond_expr!` macro.
+pub trait IntoExpr {
+    fn into_expr(self) -> Expr;
+}
+
+impl IntoExpr for &str {
+    fn into_expr(self) -> Expr {
+        Expr::Ref(self.into())
+    }
+}
+
+impl IntoExpr for i32 {
+    fn into_expr(self) -> Expr {
+        Expr::Int(self as i64)
+    }
+}
+
+impl IntoExpr for i64 {
+    fn into_expr(self) -> Expr {
+        Expr::Int(self)
     }
 }
 
@@ -202,7 +233,10 @@ impl Symbol {
                     arguments.iter().join(", ")
                 )
             }
-            Symbol::Condition(_) => self.to_string(),
+            Symbol::Binding { name, symbol } => {
+                format!("{}={}", name, symbol.display_name(grammar))
+            }
+            Symbol::Condition(_) | Symbol::Return(_) => self.to_string(),
         }
     }
 }
@@ -228,6 +262,8 @@ impl Display for Symbol {
                 write!(f, "{}({})", name, arguments.iter().join(", "))
             }
             Symbol::Condition(expr) => write!(f, "[{}]", expr),
+            Symbol::Return(expr) => write!(f, "return {}", expr),
+            Symbol::Binding { name, symbol } => write!(f, "{}={}", name, symbol),
         }
     }
 }
@@ -489,6 +525,15 @@ macro_rules! opt {
 
 #[macro_export]
 macro_rules! call {
+    ($name:expr, ref $arg:literal) => {
+        $crate::grammar::symbols::Symbol::Call {
+            name: $crate::grammar::symbols::Identifier {
+                name: $name.into(),
+                definition: None,
+            },
+            arguments: vec![$crate::grammar::symbols::Expr::Ref($arg.into())],
+        }
+    };
     ($name:expr, $($arg:expr),* $(,)?) => {
         $crate::grammar::symbols::Symbol::Call {
             name: $crate::grammar::symbols::Identifier {
@@ -501,32 +546,62 @@ macro_rules! call {
 }
 
 #[macro_export]
+macro_rules! cond_expr {
+    ($left:literal == $right:literal) => {
+        $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
+            left: Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
+            right: Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
+            op: $crate::grammar::symbols::CondOp::Eq,
+        })
+    };
+    ($left:literal <= $right:literal) => {
+        $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
+            left: Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
+            right: Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
+            op: $crate::grammar::symbols::CondOp::Leq,
+        })
+    };
+    ($left:literal >= $right:literal) => {
+        $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
+            left: Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
+            right: Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
+            op: $crate::grammar::symbols::CondOp::Geq,
+        })
+    };
+}
+
+#[macro_export]
 macro_rules! cond {
-    ($left:literal == $right:expr) => {
-        $crate::grammar::symbols::Symbol::Condition($crate::grammar::symbols::Expr::Cond(
-            $crate::grammar::symbols::Cond {
-                left: Box::new($crate::grammar::symbols::Expr::Ref($left.into())),
-                right: Box::new($crate::grammar::symbols::Expr::Int($right)),
-                op: $crate::grammar::symbols::CondOp::Eq,
-            },
+    (($($c1:tt)*) || ($($c2:tt)*)) => {
+        $crate::grammar::symbols::Symbol::Condition($crate::grammar::symbols::Expr::Or(
+            Box::new($crate::cond_expr!($($c1)*)),
+            Box::new($crate::cond_expr!($($c2)*)),
         ))
     };
-    ($left:literal <= $right:expr) => {
-        $crate::grammar::symbols::Symbol::Condition($crate::grammar::symbols::Expr::Cond(
-            $crate::grammar::symbols::Cond {
-                left: Box::new($crate::grammar::symbols::Expr::Ref($left.into())),
-                right: Box::new($crate::grammar::symbols::Expr::Int($right)),
-                op: $crate::grammar::symbols::CondOp::Leq,
-            },
-        ))
+    ($left:literal == $right:literal) => {
+        $crate::grammar::symbols::Symbol::Condition($crate::cond_expr!($left == $right))
     };
-    ($left:literal >= $right:expr) => {
-        $crate::grammar::symbols::Symbol::Condition($crate::grammar::symbols::Expr::Cond(
-            $crate::grammar::symbols::Cond {
-                left: Box::new($crate::grammar::symbols::Expr::Ref($left.into())),
-                right: Box::new($crate::grammar::symbols::Expr::Int($right)),
-                op: $crate::grammar::symbols::CondOp::Geq,
-            },
-        ))
+    ($left:literal <= $right:literal) => {
+        $crate::grammar::symbols::Symbol::Condition($crate::cond_expr!($left <= $right))
+    };
+    ($left:literal >= $right:literal) => {
+        $crate::grammar::symbols::Symbol::Condition($crate::cond_expr!($left >= $right))
+    };
+}
+
+#[macro_export]
+macro_rules! ret {
+    ($value:expr) => {
+        $crate::grammar::symbols::Symbol::Return($crate::grammar::symbols::Expr::Int($value))
+    };
+}
+
+#[macro_export]
+macro_rules! bind {
+    ($name:literal, $symbol:expr) => {
+        $crate::grammar::symbols::Symbol::Binding {
+            name: $name.into(),
+            symbol: Box::new($symbol),
+        }
     };
 }
