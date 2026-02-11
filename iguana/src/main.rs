@@ -300,7 +300,7 @@ fn nonterminal_parameters() -> GrammarDef {
     grammar_def!("Test2",
         syntax: [
             syntax_rule!("S" => alternative!(call!("A", 0))),
-            syntax_rule!("A"("p": U16) => priority_level!(
+            syntax_rule!("A"("p": I32) => priority_level!(
                 alternative!(cond!("p" == 0), lit!("a")),
                 alternative!(cond!("p" == 1), lit!("b")),
             )),
@@ -316,7 +316,7 @@ fn conditions() -> GrammarDef {
     grammar_def!("Test2",
         syntax: [
             syntax_rule!("S" => alternative!(call!("E", 0))),
-            syntax_rule!("E"("p": U16) => priority_level!(
+            syntax_rule!("E"("p": I32) => priority_level!(
                 alternative!(cond!("p" == 0), call!("E", 0), lit!("+"), call!("E", 1)),
                 alternative!(lit!("a")),
             )),
@@ -332,7 +332,7 @@ fn return_values() -> GrammarDef {
     grammar_def!("Test2",
         syntax: [
             syntax_rule!("S" => alternative!(call!("E", 0))),
-            syntax_rule!("E"("p": U16) => priority_level!(
+            syntax_rule!("E"("p": I32) => priority_level!(
                 alternative!(
                     cond!(2 >= "p"),
                     bind!("l", call!("E", ref "p")),

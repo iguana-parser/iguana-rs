@@ -331,13 +331,13 @@ impl Display for Parameter {
 
 #[derive(Debug, Clone)]
 pub enum ParamType {
-    U16,
+    I32,
 }
 
 impl Display for ParamType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ParamType::U16 => write!(f, "u16"),
+            ParamType::I32 => write!(f, "i32"),
         }
     }
 }
@@ -345,7 +345,7 @@ impl Display for ParamType {
 impl ToTokens for ParamType {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let quote = match self {
-            ParamType::U16 => quote! { u16 },
+            ParamType::I32 => quote! { i32 },
         };
         tokens.extend(quote);
     }

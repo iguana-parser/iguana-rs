@@ -14,15 +14,15 @@ impl EnvId {
 
 #[derive(Clone, Debug, Default)]
 pub struct Env {
-    bindings: InlineVec<(&'static str, u16)>,
+    bindings: InlineVec<(&'static str, i32)>,
 }
 
 impl Env {
-    pub fn bind(&mut self, name: &'static str, value: u16) {
+    pub fn bind(&mut self, name: &'static str, value: i32) {
         self.bindings.push((name, value));
     }
 
-    pub fn get(&self, name: &str) -> u16 {
+    pub fn get(&self, name: &str) -> i32 {
         for (n, v) in self.bindings.iter() {
             if *n == name {
                 return *v;
