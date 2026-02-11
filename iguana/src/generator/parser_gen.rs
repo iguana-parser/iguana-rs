@@ -128,7 +128,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
             record,
             scanner::Scanner,
             sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
-            utils::inline_map::InlineMap,
+            utils::{inline_map::InlineMap, inline_vec::InlineVec}
         };
         #[cfg(feature = "debug-trace")]
         use iguana_runtime::trace::TraceEvent;
@@ -933,6 +933,10 @@ fn gen_parser_struct(
         .dd_nonterminals()
         .map(gen_gss_nodes_index_field_for_data_dependent_nt)
         .collect();
+    let return_values_fields: Vec<_> = nonterminal_ids
+        .dd_nonterminals()
+        .map(gen_return_values_field)
+        .collect();
     let slot_ids_len = Literal::usize_unsuffixed(slot_ids.len());
     let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
     let scanner_name_ident = format_ident!("{}{}", grammar_name, "Scanner");
@@ -954,6 +958,7 @@ fn gen_parser_struct(
             intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
             nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
             nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
+            #(#return_values_fields,)*
             envs: Vec<Env>,
             #[cfg(feature = "debug-trace")]
             pub trace_events: Option<Vec<TraceEvent>>,
@@ -1079,7 +1084,11 @@ fn gen_new_method(
     let gss_nodes_index_field = gen_gss_nodes_index_field(nonterminal_ids);
     let gss_nodes_index_fields: Vec<_> = nonterminal_ids
         .dd_nonterminals()
-        .map(gen_gss_nodes_index_field_init_for_data_dependent_nt)
+        .map(gen_gss_nodes_index_field_init)
+        .collect();
+    let return_value_fields: Vec<_> = nonterminal_ids
+        .dd_nonterminals()
+        .map(gen_return_values_field_init)
         .collect();
     let nonterminal_nodes_index_field = gen_nonterminal_nodes_index_field(nonterminal_ids);
     let intermediate_nodes_index_field = gen_intermediate_nodes_index_field(slot_ids);
@@ -1103,6 +1112,7 @@ fn gen_new_method(
                 intermediate_nodes_children_map: OnceCell::new(),
                 nonterminal_nodes_children: vec![],
                 nonterminal_nodes_children_map: OnceCell::new(),
+                #(#return_value_fields,)*
                 envs: vec![],
                 #[cfg(feature = "debug-trace")]
                 trace_events: None,
@@ -1128,10 +1138,26 @@ fn gen_gss_nodes_index_field_for_data_dependent_nt(nt: &Nonterminal) -> TokenStr
     }
 }
 
-fn gen_gss_nodes_index_field_init_for_data_dependent_nt(nt: &Nonterminal) -> TokenStream {
+fn gen_return_values_field(nt: &Nonterminal) -> TokenStream {
+    let field_name = format_ident!("{}_return_values", to_snake_case(&nt.name));
+    let comment = format!("Return values for nonterminal {}", nt.name);
+    quote! {
+        #[comment = #comment]
+        #field_name: FxHashMap<SPPFNodeId, InlineVec<i32>>
+    }
+}
+
+fn gen_gss_nodes_index_field_init(nt: &Nonterminal) -> TokenStream {
     let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
     quote! {
         #field_name: vec![]
+    }
+}
+
+fn gen_return_values_field_init(nt: &Nonterminal) -> TokenStream {
+    let field_name = format_ident!("{}_return_values", to_snake_case(&nt.name));
+    quote! {
+        #field_name: FxHashMap::default()
     }
 }
 
