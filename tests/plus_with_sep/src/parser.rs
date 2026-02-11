@@ -820,6 +820,10 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
         self.envs.push(Env::default());
         (id, &mut self.envs[id.index()])
     }
+    fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
+        let env = &self.envs[env_id.index()];
+        env.get(name)
+    }
 }
 pub struct PlusWithSepParser<'i> {
     start_nonterminal: NonterminalId,

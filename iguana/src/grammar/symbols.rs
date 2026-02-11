@@ -160,6 +160,13 @@ impl Symbol {
         Symbol::Literal(name.into())
     }
 
+    /// Returns `true` if this symbol produces a node in the parse tree.
+    /// Symbols like `Condition` and `Return` are semantic-only and do not
+    /// appear in the parse tree.
+    pub fn is_parse_tree_symbol(&self) -> bool {
+        !matches!(self, Symbol::Condition(_) | Symbol::Return(_))
+    }
+
     pub fn label(&self) -> Option<&str> {
         match self {
             Symbol::Labeled { label, .. } => Some(label),
@@ -167,10 +174,11 @@ impl Symbol {
         }
     }
 
-    /// Returns the symbol without the `Labeled` wrapper, or `self` if not labeled.
-    pub fn unlabeled(&self) -> &Symbol {
+    /// Returns the inner symbol if this is a wrapper (`Labeled` or `Binding`),
+    /// or `self` otherwise.
+    pub fn unwrap(&self) -> &Symbol {
         match self {
-            Symbol::Labeled { symbol, .. } => symbol,
+            Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => symbol,
             _ => self,
         }
     }
@@ -186,7 +194,9 @@ impl Symbol {
         match self {
             Symbol::Identifier(identifier) => Some(identifier),
             Symbol::Call { name, .. } => Some(name),
-            Symbol::Labeled { symbol, .. } => symbol.as_identifier(),
+            Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => {
+                symbol.as_identifier()
+            }
             _ => None,
         }
     }

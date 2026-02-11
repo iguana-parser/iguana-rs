@@ -64,6 +64,7 @@ pub fn generate<'a>(
     let add_trace_event_method = gen_add_trace_event_method();
     let start_nonterminal_method = gen_start_nonterminal_method();
     let new_env_method = gen_new_env_method();
+    let lookup_method = gen_lookup_method();
     let parser_struct = gen_parser_struct(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let parser_impl = gen_parser_impl(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
@@ -107,6 +108,7 @@ pub fn generate<'a>(
             #add_trace_event_method
             #start_nonterminal_method
             #new_env_method
+            #lookup_method
         }
         #parser_struct
         #parser_impl
@@ -380,8 +382,14 @@ fn gen_slot_code<'a>(
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
-    if let Some(Symbol::Condition(expr)) = slot.symbol() {
-        return gen_condition_code(grammar, expr, &slot, slot_ids);
+    match slot.symbol() {
+        Some(Symbol::Condition(expr)) => {
+            return gen_condition_code(grammar, expr, &slot, slot_ids);
+        }
+        Some(Symbol::Return(expr)) => {
+            return gen_return_code(grammar, expr, &slot, slot_ids);
+        }
+        _ => {}
     }
     let symbol = slot.symbol().unwrap();
     if let Some(identifier) = symbol.as_identifier() {
@@ -392,7 +400,7 @@ fn gen_slot_code<'a>(
                 gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids)
             }
             Definition::Nonterminal(nonterminal) => {
-                let arguments = match symbol.unlabeled() {
+                let arguments = match symbol.unwrap() {
                     Symbol::Call { arguments, .. } => arguments.clone(),
                     _ => vec![],
                 };
@@ -480,11 +488,7 @@ fn gen_nonterminal_slot<'a>(
     let next_slot = slot.next();
     let return_slot_id = slot_ids.id(&next_slot);
     let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
-    // TODO: later we need to evaluate arguments
-    let arguments = arguments.iter().map(|arg| match arg {
-        Expr::Int(i) => Literal::i64_unsuffixed(*i),
-        Expr::Cond(_) | Expr::Ref(_) | Expr::Or(_, _) => unimplemented!(),
-    });
+    let arguments: Vec<_> = arguments.iter().map(gen_expr).collect();
     let arguments = if nonterminal.parameters.is_empty() {
         quote! { result, gss_node_id, #return_slot_id }
     } else {
@@ -512,10 +516,36 @@ fn gen_condition_code<'a>(
     quote! {
         #[comment = #slot_name]
         #slot_id => {
-            let env_id = env.unwrap();
             if #condition_expr {
                 self.execute(input_index, #next_slot_id, result, gss_node_id, env);
             }
+        }
+    }
+}
+
+fn gen_return_code<'a>(
+    grammar: &'a Grammar,
+    expr: &Expr,
+    slot: &Slot<'a>,
+    slot_ids: &mut SlotIds<'a>,
+) -> TokenStream {
+    let slot_id = slot_ids.id(slot);
+    let slot_name = slot.name(grammar);
+    let next_slot = slot.next();
+    let next_slot_id = slot_ids.id(&next_slot);
+    let return_expr = gen_expr(expr);
+    let return_values_field = format_ident!("{}_return_values", to_snake_case(&slot.head().name));
+    quote! {
+        #[comment = #slot_name]
+        #slot_id => {
+            if let Some(node_id) = result {
+                let return_value = #return_expr;
+                self.#return_values_field
+                    .entry(node_id)
+                    .or_default()
+                    .push(return_value);
+            }
+            self.execute(input_index, #next_slot_id, result, gss_node_id, env);
         }
     }
 }
@@ -527,7 +557,7 @@ fn gen_expr(expr: &Expr) -> TokenStream {
             quote! { #val }
         }
         Expr::Ref(name) => {
-            quote! { self.envs[env_id.index()].get(#name) }
+            quote! { self.lookup(#name, env.unwrap()) }
         }
         Expr::Cond(cond) => {
             let left = gen_expr(&cond.left);
@@ -1200,6 +1230,15 @@ fn gen_new_env_method() -> TokenStream {
             let id = EnvId(self.envs.len() as u32);
             self.envs.push(Env::default());
             (id, &mut self.envs[id.index()])
+        }
+    }
+}
+
+fn gen_lookup_method() -> TokenStream {
+    quote! {
+        fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
+            let env = &self.envs[env_id.index()];
+            env.get(name)
         }
     }
 }

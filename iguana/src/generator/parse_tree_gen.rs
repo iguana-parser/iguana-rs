@@ -152,7 +152,7 @@ fn gen_nonterminal_type_with_one_alternative(
     let fields: Vec<_> = alternative
         .symbols
         .iter()
-        .filter(|s| !matches!(s, Symbol::Condition(_)))
+        .filter(|s| s.is_parse_tree_symbol())
         .enumerate()
         .map(|(i, s)| {
             let base_name = get_symbol_base_name(grammar, s);
@@ -357,7 +357,7 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
             let fields: Vec<_> = alternative
                 .symbols
                 .iter()
-                .filter(|s| !matches!(s, Symbol::Condition(_)))
+                .filter(|s| s.is_parse_tree_symbol())
                 .enumerate()
                 .map(|(i, s)| {
                     let base_name = get_symbol_base_name(grammar, s);
@@ -511,7 +511,7 @@ fn child_by_index(grammar: &Grammar, alternative: &Alternative, single_rule: boo
     let cases: Vec<_> = alternative
         .symbols
         .iter()
-        .filter(|s| !matches!(s, Symbol::Condition(_)))
+        .filter(|s| s.is_parse_tree_symbol())
         .enumerate()
         .map(|(i, s)| {
             let i_lit = Literal::usize_unsuffixed(i);
@@ -563,7 +563,7 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
         let count_symbols = alternatives[0]
             .symbols
             .iter()
-            .filter(|s| !matches!(s, Symbol::Condition(_)))
+            .filter(|s| s.is_parse_tree_symbol())
             .count();
         quote! {
             #count_symbols
@@ -578,7 +578,7 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
                 let count_symbols = alternative
                     .symbols
                     .iter()
-                    .filter(|s| !matches!(s, Symbol::Condition(_)))
+                    .filter(|s| s.is_parse_tree_symbol())
                     .count();
                 // Use { .. } to match any fields (including span)
                 quote! {
@@ -716,7 +716,7 @@ fn field_names(grammar: &Grammar, alternative: &Alternative) -> Vec<Ident> {
     alternative
         .symbols
         .iter()
-        .filter(|s| !matches!(s, Symbol::Condition(_)))
+        .filter(|s| s.is_parse_tree_symbol())
         .enumerate()
         .map(|(i, s)| {
             let base_name = get_symbol_base_name(grammar, s);
@@ -744,12 +744,12 @@ fn gen_nonterminal_node_method(
                     let alternative = &alternatives[index];
                     let end_slot_id = end_slot.slot_id;
                     let slot_name = slot_ids.display_name(&end_slot.slot_id);
-                    let num_symbols = alternative.symbols.iter().filter(|s| !matches!(s, Symbol::Condition(_))).count();
+                    let num_symbols = alternative.symbols.iter().filter(|s| s.is_parse_tree_symbol()).count();
                     let field_names = field_names(grammar, alternative);
                     let methods: Vec<_> = alternative
                         .symbols
                         .iter()
-                        .filter(|s| !matches!(s, Symbol::Condition(_)))
+                        .filter(|s| s.is_parse_tree_symbol())
                         .map(|s| {
                             let def_id = s.resolved_def();
                             let def = grammar.definition(def_id);

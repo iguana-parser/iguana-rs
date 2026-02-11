@@ -1,6 +1,6 @@
 use crate::grammar::{
     def::{Alternative, Grammar},
-    symbols::{self, Nonterminal, Symbol},
+    symbols::{self, Nonterminal},
 };
 
 /// Represents a grammar slot of the form `A : a B . c`
@@ -20,6 +20,10 @@ impl<'a> Slot<'a> {
         }
     }
 
+    pub fn head(&self) -> &'a Nonterminal {
+        self.head
+    }
+
     /// Returns the next grammar slot by moving the dot to the next position.
     pub fn next(&self) -> Self {
         Slot::new(self.head, self.alternative, self.pos + 1)
@@ -30,7 +34,7 @@ impl<'a> Slot<'a> {
     pub fn is_first(&self) -> bool {
         self.alternative.symbols[..self.pos]
             .iter()
-            .all(|s| matches!(s, Symbol::Condition(_)))
+            .all(|s| !s.is_parse_tree_symbol())
     }
 
     pub fn symbol(&self) -> Option<&symbols::Symbol> {

@@ -161,7 +161,10 @@ pub trait Parser<'i> {
         left_extent: Option<u32>,
         return_slot: SlotId,
     ) {
-        let popped_elements = std::mem::take(self.gss_node_mut(existing_gss_node_id).popped_elements_mut());
+        let popped_elements = std::mem::take(
+            self.gss_node_mut(existing_gss_node_id)
+                .popped_elements_mut(),
+        );
 
         // For each popped element of the current GSS node add a descriptor with the return label.
         for popped_element in popped_elements.iter() {
@@ -183,9 +186,17 @@ pub trait Parser<'i> {
                 });
             }
         }
-        *self.gss_node_mut(existing_gss_node_id).popped_elements_mut() = popped_elements;
+        *self
+            .gss_node_mut(existing_gss_node_id)
+            .popped_elements_mut() = popped_elements;
 
-        self.add_gss_edge(existing_gss_node_id, gss_node_id, sppf_node_id, return_slot, None);
+        self.add_gss_edge(
+            existing_gss_node_id,
+            gss_node_id,
+            sppf_node_id,
+            return_slot,
+            None,
+        );
     }
 
     fn add_gss_edge(
@@ -461,6 +472,8 @@ pub trait Parser<'i> {
     fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>;
 
     fn new_env(&mut self) -> (EnvId, &mut Env);
+
+    fn lookup(&self, name: &str, env_id: EnvId) -> i32;
 
     #[cfg(feature = "debug-trace")]
     fn add_trace_event(&mut self, event: TraceEvent);

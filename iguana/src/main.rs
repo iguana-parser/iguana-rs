@@ -258,7 +258,7 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
             let source = std::fs::read_to_string(path)?;
             parse_grammar(&source).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
         }
-        None => conditions(),
+        None => return_values(),
     };
     generate(&grammar.into(), output)?;
     Ok(())
@@ -325,9 +325,10 @@ fn conditions() -> GrammarDef {
 }
 
 // S = E(0)
-// E(p) = [2>=p] l=E(p) [l==0||l>=2] '*' E(3) return 2
-//     | [1>=p] l=E(p) [l==0||l>=1] '+' E(2) return 1
-//     | 'a' return 0
+// E(p) 
+//   = [2>=p] l=E(p) [l==0||l>=2] '*' E(3) return 2
+//   | [1>=p] l=E(p) [l==0||l>=1] '+' E(2) return 1
+//   | 'a' return 0
 fn return_values() -> GrammarDef {
     grammar_def!("Test2",
         syntax: [
