@@ -489,10 +489,15 @@ fn gen_nonterminal_slot<'a>(
     let return_slot_id = slot_ids.id(&next_slot);
     let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
     let arguments: Vec<_> = arguments.iter().map(gen_expr).collect();
+    let bindings = if let Some(Symbol::Binding { name, .. }) = slot.symbol() {
+        quote! { Some(#name) }
+    } else {
+        quote! { None }
+    };
     let arguments = if nonterminal.parameters.is_empty() {
         quote! { result, gss_node_id, #return_slot_id }
     } else {
-        quote! { result, gss_node_id, #return_slot_id, env, #(#arguments),* }
+        quote! { result, gss_node_id, #return_slot_id, env, #bindings, #(#arguments),* }
     };
     quote! {
         #[comment = #slot_name]
@@ -1079,6 +1084,7 @@ fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
                 gss_node_id: GssNodeId,
                 return_slot: SlotId,
                 env: Option<EnvId>,
+                binding: Option<&'static str>,
                 #(#parameters,)*
             ) {
                 record!(self, Call, sppf_node_id, gss_node_id, return_slot);
@@ -1092,11 +1098,11 @@ fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
                 #[comment = "If there is already a GSS node for this call, add an edge."]
                 if let Some(existing_gss_node_id) = self.#get_gss_node_method_name(i, #(#param_names),*) {
                     record!(self, GSSNodeFound, NonterminalId(#id), i);
-                    self.add_edge_to_existing_gss_node(existing_gss_node_id, gss_node_id, sppf_node_id, left_extent, return_slot);
+                    self.add_edge_to_existing_gss_node(existing_gss_node_id, gss_node_id, sppf_node_id, left_extent, return_slot, env, binding);
                 } else {
                     record!(self, GSSNodeNotFound, NonterminalId(#id), i);
                     let new_gss_node_id = self.new_gss_node(NonterminalId(#id), i);
-                    self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
+                    self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env, binding);
                     // Create a new environment to bind the parameter.
                     let (env_id, env) = self.new_env();
                     #(#bindings)*

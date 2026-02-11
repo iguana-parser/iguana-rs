@@ -137,6 +137,8 @@ pub trait Parser<'i> {
                 sppf_node_id,
                 left_extent,
                 return_slot,
+                None,
+                None,
             );
         } else {
             record!(self, GSSNodeNotFound, nonterminal_id, i);
@@ -146,6 +148,7 @@ pub trait Parser<'i> {
                 gss_node_id,
                 sppf_node_id,
                 return_slot,
+                None,
                 None,
             );
             self.add_first_descriptors(nonterminal_id, i, new_gss_node_id, None);
@@ -160,6 +163,8 @@ pub trait Parser<'i> {
         sppf_node_id: Option<SPPFNodeId>,
         left_extent: Option<u32>,
         return_slot: SlotId,
+        env: Option<EnvId>,
+        binding: Option<&'static str>,
     ) {
         let popped_elements = std::mem::take(
             self.gss_node_mut(existing_gss_node_id)
@@ -196,6 +201,7 @@ pub trait Parser<'i> {
             sppf_node_id,
             return_slot,
             None,
+            None,
         );
     }
 
@@ -206,6 +212,7 @@ pub trait Parser<'i> {
         result: Option<SPPFNodeId>,
         return_slot: SlotId,
         env: Option<EnvId>,
+        binding: Option<&'static str>,
     ) {
         let origin = self.gss_node_mut(origin_gss_node_id);
         let gss_edge = GSSEdge {
@@ -213,6 +220,7 @@ pub trait Parser<'i> {
             return_slot,
             dest_id: dest_gss_node_id,
             env,
+            binding,
         };
         origin.add_edge(gss_edge);
         record!(
