@@ -100,12 +100,16 @@ impl Display for Cond {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum CondOp {
     Eq,
+    Leq,
+    Geq,
 }
 
 impl Display for CondOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CondOp::Eq => write!(f, "=="),
+            CondOp::Leq => write!(f, "<="),
+            CondOp::Geq => write!(f, ">="),
         }
     }
 }
@@ -504,6 +508,24 @@ macro_rules! cond {
                 left: Box::new($crate::grammar::symbols::Expr::Ref($left.into())),
                 right: Box::new($crate::grammar::symbols::Expr::Int($right)),
                 op: $crate::grammar::symbols::CondOp::Eq,
+            },
+        ))
+    };
+    ($left:literal <= $right:expr) => {
+        $crate::grammar::symbols::Symbol::Condition($crate::grammar::symbols::Expr::Cond(
+            $crate::grammar::symbols::Cond {
+                left: Box::new($crate::grammar::symbols::Expr::Ref($left.into())),
+                right: Box::new($crate::grammar::symbols::Expr::Int($right)),
+                op: $crate::grammar::symbols::CondOp::Leq,
+            },
+        ))
+    };
+    ($left:literal >= $right:expr) => {
+        $crate::grammar::symbols::Symbol::Condition($crate::grammar::symbols::Expr::Cond(
+            $crate::grammar::symbols::Cond {
+                left: Box::new($crate::grammar::symbols::Expr::Ref($left.into())),
+                right: Box::new($crate::grammar::symbols::Expr::Int($right)),
+                op: $crate::grammar::symbols::CondOp::Geq,
             },
         ))
     };

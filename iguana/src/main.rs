@@ -258,7 +258,7 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
             let source = std::fs::read_to_string(path)?;
             parse_grammar(&source).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
         }
-        None => nonterminal_parameters(),
+        None => expr_grammar(),
     };
     generate(&grammar.into(), output)?;
     Ok(())
@@ -303,6 +303,22 @@ fn nonterminal_parameters() -> GrammarDef {
             syntax_rule!("A"("p": U16) => priority_level!(
                 alternative!(cond!("p" == 0), lit!("a")),
                 alternative!(cond!("p" == 1), lit!("b")),
+            )),
+        ]
+    )
+}
+
+fn expr_grammar() -> GrammarDef {
+    // S = E(0)
+    // E(p)
+    //   = [p == 0] E(0) "+" E(1)
+    //   | "a"
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => alternative!(call!("E", 0))),
+            syntax_rule!("E"("p": U16) => priority_level!(
+                alternative!(cond!("p" == 0), call!("E", 0), lit!("+"), call!("E", 1)),
+                alternative!(lit!("a")),
             )),
         ]
     )
