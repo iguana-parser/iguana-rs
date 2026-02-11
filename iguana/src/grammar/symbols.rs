@@ -198,7 +198,7 @@ impl Symbol {
                     arguments.iter().join(", ")
                 )
             }
-            Symbol::Condition(expr) => expr.to_string(),
+            Symbol::Condition(_) => self.to_string(),
         }
     }
 }
@@ -499,12 +499,12 @@ macro_rules! call {
 #[macro_export]
 macro_rules! cond {
     ($left:literal == $right:expr) => {
-        $crate::grammar::symbols::Symbol::Condition(
-            $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
+        $crate::grammar::symbols::Symbol::Condition($crate::grammar::symbols::Expr::Cond(
+            $crate::grammar::symbols::Cond {
                 left: Box::new($crate::grammar::symbols::Expr::Ref($left.into())),
                 right: Box::new($crate::grammar::symbols::Expr::Int($right)),
                 op: $crate::grammar::symbols::CondOp::Eq,
-            }),
-        )
+            },
+        ))
     };
 }
