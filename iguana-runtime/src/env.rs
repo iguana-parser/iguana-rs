@@ -14,7 +14,7 @@ impl EnvId {
 
 #[derive(Clone, Debug, Default)]
 pub struct Env {
-    bindings: InlineVec<(&'static str, i32)>,
+    pub bindings: InlineVec<(&'static str, i32)>,
 }
 
 impl Env {

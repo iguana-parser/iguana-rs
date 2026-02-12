@@ -182,12 +182,23 @@ pub trait Parser<'i> {
                 left_extent,
                 right_extent,
             ) {
+                // Restore the caller's env from the edge and extend it with the
+                // callee's return value bound to the variable name, if present.
+                let env = match (env, binding, popped_element.return_value) {
+                    (Some(env_id), Some(name), Some(return_value)) => {
+                        let (new_env_id, new_env) = self.clone_env(env_id);
+                        new_env.bind(name, return_value);
+                        Some(new_env_id)
+                    }
+                    (Some(env_id), _, _) => Some(env_id),
+                    _ => None,
+                };
                 self.add_descriptor(Descriptor {
                     input_index: right_extent,
                     slot_id: return_slot,
                     sppf_node_id: Some(new_node),
                     gss_node_id,
-                    env: None,
+                    env,
                 });
             }
         }
@@ -200,8 +211,8 @@ pub trait Parser<'i> {
             gss_node_id,
             sppf_node_id,
             return_slot,
-            None,
-            None,
+            env,
+            binding,
         );
     }
 
@@ -255,12 +266,21 @@ pub trait Parser<'i> {
                 left_extent,
                 right_extent,
             ) {
+                let env = match (edge.env, edge.binding, popped_element.return_value) {
+                    (Some(env_id), Some(name), Some(rv)) => {
+                        let (new_env_id, env) = self.clone_env(env_id);
+                        env.bind(name, rv);
+                        Some(new_env_id)
+                    }
+                    (Some(env_id), _, _) => Some(env_id),
+                    _ => None,
+                };
                 self.add_descriptor(Descriptor {
                     input_index: right_extent,
                     slot_id: edge.return_slot,
                     sppf_node_id: Some(new_node_id),
                     gss_node_id: edge.dest_id,
-                    env: None,
+                    env,
                 });
             }
         }
@@ -481,6 +501,8 @@ pub trait Parser<'i> {
     fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>;
 
     fn new_env(&mut self) -> (EnvId, &mut Env);
+
+    fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env);
 
     fn lookup(&self, name: &str, env_id: EnvId) -> i32;
 

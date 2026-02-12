@@ -65,6 +65,7 @@ pub fn generate<'a>(
     let start_nonterminal_method = gen_start_nonterminal_method();
     let new_env_method = gen_new_env_method();
     let lookup_method = gen_lookup_method();
+    let clone_env_method = gen_clone_env();
     let parser_struct = gen_parser_struct(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let parser_impl = gen_parser_impl(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
@@ -109,6 +110,7 @@ pub fn generate<'a>(
             #start_nonterminal_method
             #new_env_method
             #lookup_method
+            #clone_env_method
         }
         #parser_struct
         #parser_impl
@@ -1253,6 +1255,17 @@ fn gen_lookup_method() -> TokenStream {
         fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
             let env = &self.envs[env_id.index()];
             env.get(name)
+        }
+    }
+}
+
+fn gen_clone_env() -> TokenStream {
+    quote! {
+        fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env) {
+            let bindings = self.envs[source.0 as usize].bindings.clone();
+            let (new_id, new_env) = self.new_env();
+            new_env.bindings = bindings;
+            (new_id, new_env)
         }
     }
 }

@@ -712,6 +712,12 @@ impl<'i> Parser<'i> for OptParser<'i> {
         let env = &self.envs[env_id.index()];
         env.get(name)
     }
+    fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env) {
+        let bindings = self.envs[source.0 as usize].bindings.clone();
+        let (new_id, new_env) = self.new_env();
+        new_env.bindings = bindings;
+        (new_id, new_env)
+    }
 }
 pub struct OptParser<'i> {
     start_nonterminal: NonterminalId,
