@@ -299,11 +299,11 @@ fn gen_execute_method<'a>(
             let nonterminal_id = nonterminal_ids
                 .get_id(nonterminal)
                 .expect("nonterminal not found");
-            let alternative = EndSlot {
+            let end_slot = EndSlot {
                 index,
                 slot_id: end_slot_id,
             };
-            nonterminal_ids.add_end_slot(nonterminal_id, alternative);
+            nonterminal_ids.add_end_slot(nonterminal_id, end_slot);
             // Handles the case for an empty alternative
             let last_slot_quote = if last_symbol_index == 0 {
                 // For now we consider the last terminal to be epsilon.
@@ -335,6 +335,13 @@ fn gen_execute_method<'a>(
                     }
                 }
             } else {
+                let last_symbol = alternative.symbols.last().unwrap();
+                let return_value = if let Symbol::Return(expr) = last_symbol {
+                    let expr = gen_expr(expr);
+                    quote! { Some(#expr) }
+                } else {
+                    quote! { None }
+                };
                 quote! {
                     #[comment = #end_slot_name]
                     #end_slot_id => {
@@ -355,7 +362,7 @@ fn gen_execute_method<'a>(
                         ) {
                             let popped_element = PoppedElement {
                                 nonterminal_node_id,
-                                return_value: None,
+                                return_value: #return_value,
                             };
                             self.pop(gss_node_id, end_slot_id, popped_element);
                         }
@@ -396,8 +403,8 @@ fn gen_slot_code<'a>(
         Some(Symbol::Condition(expr)) => {
             return gen_condition_code(grammar, expr, &slot, slot_ids);
         }
-        Some(Symbol::Return(expr)) => {
-            return gen_return_code(grammar, expr, &slot, slot_ids);
+        Some(Symbol::Return(_)) => {
+            return gen_return_code(grammar, &slot, slot_ids);
         }
         _ => {}
     }
@@ -540,7 +547,6 @@ fn gen_condition_code<'a>(
 
 fn gen_return_code<'a>(
     grammar: &'a Grammar,
-    expr: &Expr,
     slot: &Slot<'a>,
     slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
@@ -548,18 +554,9 @@ fn gen_return_code<'a>(
     let slot_name = slot.name(grammar);
     let next_slot = slot.next();
     let next_slot_id = slot_ids.id(&next_slot);
-    let return_expr = gen_expr(expr);
-    let return_values_field = format_ident!("{}_return_values", to_snake_case(&slot.head().name));
     quote! {
         #[comment = #slot_name]
         #slot_id => {
-            if let Some(node_id) = result {
-                let return_value = #return_expr;
-                self.#return_values_field
-                    .entry(node_id)
-                    .or_default()
-                    .push(return_value);
-            }
             self.execute(input_index, #next_slot_id, result, gss_node_id, env);
         }
     }
