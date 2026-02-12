@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
+use crate::gss::PoppedElement;
 use crate::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
 use crate::sppf::{SPPFNodeId, Span};
 
@@ -30,8 +31,8 @@ pub enum TraceEvent {
     TerminalNodeFound(SPPFNodeId),
     NonterminalNodeFound(SPPFNodeId),
     IntermediateNodeFound(SPPFNodeId),
-    Pop(GssNodeId, SlotId, SPPFNodeId),
-    AddToPoppedElements(GssNodeId, SPPFNodeId),
+    Pop(GssNodeId, SlotId, PoppedElement),
+    AddToPoppedElements(GssNodeId, PoppedElement),
     NodeAlreadyInPoppedElements,
     Call(Option<SPPFNodeId>, GssNodeId, SlotId),
     ParseSuccess(Duration),
@@ -162,17 +163,38 @@ impl TraceEvent {
                 "Intermediate node found: {}",
                 parser.sppf_node_to_string(parser.sppf_node(sppf_node_id))
             ),
-            TraceEvent::Pop(gss_node_id, slot_id, sppf_node_id) => format!(
-                "Pop GSS node {} for the slot {} with SPPF node {}",
-                parser.gss_to_string(gss_node_id),
-                P::slot_name(slot_id),
-                parser.sppf_node_to_string(parser.sppf_node(sppf_node_id))
-            ),
-            TraceEvent::AddToPoppedElements(gss_node_id, sppf_node_id) => format!(
-                "Added {} to {}'s popped elements",
-                parser.sppf_node_to_string(parser.sppf_node(sppf_node_id)),
-                parser.gss_to_string(gss_node_id)
-            ),
+            TraceEvent::Pop(gss_node_id, slot_id, popped_element) => {
+                match popped_element.return_value {
+                    Some(return_value) => format!(
+                        "Pop GSS node {} for the slot {} with SPPF node {} and return value {}",
+                        parser.gss_to_string(gss_node_id),
+                        P::slot_name(slot_id),
+                        parser.sppf_node_to_string(parser.sppf_node(popped_element.nonterminal_node_id)),
+                        return_value
+                    ),
+                    None => format!(
+                        "Pop GSS node {} for the slot {} with SPPF node {}",
+                        parser.gss_to_string(gss_node_id),
+                        P::slot_name(slot_id),
+                        parser.sppf_node_to_string(parser.sppf_node(popped_element.nonterminal_node_id))
+                    ),
+                }
+            }
+            TraceEvent::AddToPoppedElements(gss_node_id, popped_element) => {
+                match popped_element.return_value {
+                    Some(return_value) => format!(
+                        "Added {} to {}'s popped elements with return value {}",
+                        parser.sppf_node_to_string(parser.sppf_node(popped_element.nonterminal_node_id)),
+                        parser.gss_to_string(gss_node_id),
+                        return_value
+                    ),
+                    None => format!(
+                        "Added {} to {}'s popped elements",
+                        parser.sppf_node_to_string(parser.sppf_node(popped_element.nonterminal_node_id)),
+                        parser.gss_to_string(gss_node_id)
+                    ),
+                }
+            }
             TraceEvent::NodeAlreadyInPoppedElements => {
                 "Node already in popped elements".to_string()
             }

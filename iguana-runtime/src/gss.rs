@@ -18,7 +18,13 @@ pub struct GSSNode {
     edges: InlineVec<GSSEdge>,
     #[serde(skip)]
     #[specta(skip)]
-    popped_elements: InlineSet<SPPFNodeId>,
+    popped_elements: InlineSet<PoppedElement>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
+pub struct PoppedElement {
+    pub nonterminal_node_id: SPPFNodeId,
+    pub return_value: Option<i32>,
 }
 
 impl GSSNode {
@@ -36,19 +42,19 @@ impl GSSNode {
         self.edges.push(gss_edge);
     }
 
-    pub fn add_to_popped_elements(&mut self, result: SPPFNodeId) {
-        self.popped_elements.push(result);
+    pub fn add_to_popped_elements(&mut self, element: PoppedElement) {
+        self.popped_elements.push(element);
     }
 
-    pub fn contains_popped_element(&self, value: &SPPFNodeId) -> bool {
-        self.popped_elements.contains(value)
+    pub fn contains_popped_element(&self, element: &PoppedElement) -> bool {
+        self.popped_elements.contains(element)
     }
 
-    pub fn popped_elements(&self) -> &InlineSet<SPPFNodeId> {
+    pub fn popped_elements(&self) -> &InlineSet<PoppedElement> {
         &self.popped_elements
     }
 
-    pub fn popped_elements_mut(&mut self) -> &mut InlineSet<SPPFNodeId> {
+    pub fn popped_elements_mut(&mut self) -> &mut InlineSet<PoppedElement> {
         &mut self.popped_elements
     }
 

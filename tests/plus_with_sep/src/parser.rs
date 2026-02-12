@@ -7,7 +7,7 @@ use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
     descriptor::Descriptor,
     env::{Env, EnvId},
-    gss::GSSNode,
+    gss::{GSSNode, PoppedElement},
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     parser::{Parser, Stats, init_logger},
@@ -172,7 +172,11 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //A : . "a"
@@ -218,7 +222,11 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //S_Plus_0 : . S_Plus_0 Layout "," Layout A
@@ -354,7 +362,11 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //S_Plus_0 : . A
@@ -378,7 +390,11 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartS : . Layout start:S Layout
@@ -464,7 +480,11 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartA : . Layout start:A Layout
@@ -550,7 +570,11 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             _ => {

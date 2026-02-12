@@ -7,7 +7,7 @@ use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
     descriptor::Descriptor,
     env::{Env, EnvId},
-    gss::GSSNode,
+    gss::{GSSNode, PoppedElement},
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     parser::{Parser, Stats, init_logger},
@@ -1581,7 +1581,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //LayoutDef : . "layout" Layout LayoutDef_Star_1
@@ -1667,7 +1671,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //SyntaxRule : . head:Identifier Layout "=" Layout SyntaxRule_Star_2
@@ -1825,7 +1833,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RegexBlock : . "regex" Layout "{" Layout RegexBlock_Star_3 Layout "}"
@@ -2055,7 +2067,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RegexRule : . Identifier Layout "=" Layout body:RegexRule_Plus_4
@@ -2213,7 +2229,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //PriorityLevel : . PriorityLevel_Star_4
@@ -2237,7 +2257,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Alternative : . Alternative_Star_5 Layout Alternative_Opt_8
@@ -2301,7 +2325,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol : . Symbol Layout "*"
@@ -2397,7 +2425,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol : . Symbol Layout "+"
@@ -2493,7 +2525,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol : . Symbol Layout "?"
@@ -2589,7 +2625,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol : . "(" Layout first:Symbol Layout Symbol_Plus_8 Layout ")"
@@ -2787,7 +2827,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol : . """ Layout String Layout """
@@ -2977,7 +3021,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol : . "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "*"
@@ -3247,7 +3295,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol : . "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "+"
@@ -3517,7 +3569,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol : . "(" Layout Alternative_Plus_7 Layout ")"
@@ -3675,7 +3731,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol : . label:Identifier Layout ":" Layout Symbol
@@ -3833,7 +3893,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol : . Identifier
@@ -3879,7 +3943,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Regex : . Regex Layout "+"
@@ -3975,7 +4043,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Regex : . Regex Layout "*"
@@ -4071,7 +4143,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Regex : . Regex Layout "?"
@@ -4167,7 +4243,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Regex : . "(" Layout first:Regex Layout Regex_Plus_9 Layout ")"
@@ -4365,7 +4445,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Regex : . "(" Layout RegexRule_Plus_5 Layout ")"
@@ -4523,7 +4607,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Regex : . CharClass
@@ -4547,7 +4635,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Regex : . """ Layout Char Layout """
@@ -4737,7 +4829,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //CharClass : . CharClass_Opt_9 Layout "[" Layout CharClass_Plus_10 Layout "]"
@@ -4945,7 +5041,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RangeElement : . Range
@@ -4969,7 +5069,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RangeElement : . RangeChar
@@ -5015,7 +5119,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Range : . start:RangeChar Layout "-" Layout end:RangeChar
@@ -5205,7 +5313,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Grammar_Opt_0 : . LayoutDef
@@ -5229,7 +5341,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Grammar_Opt_0 : .
@@ -5245,7 +5361,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Grammar_Plus_0 : . Grammar_Plus_0 Layout SyntaxRule
@@ -5309,7 +5429,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Grammar_Plus_0 : . SyntaxRule
@@ -5333,7 +5457,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Grammar_Opt_1 : . Grammar_Plus_0
@@ -5357,7 +5485,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Grammar_Opt_1 : .
@@ -5373,7 +5505,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Grammar_Star_0 : . Grammar_Opt_1
@@ -5397,7 +5533,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Grammar_Opt_2 : . RegexBlock
@@ -5421,7 +5561,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Grammar_Opt_2 : .
@@ -5437,7 +5581,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //LayoutDef_Plus_1 : . LayoutDef_Plus_1 Layout Identifier
@@ -5533,7 +5681,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //LayoutDef_Plus_1 : . Identifier
@@ -5579,7 +5731,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //LayoutDef_Opt_3 : . LayoutDef_Plus_1
@@ -5603,7 +5759,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //LayoutDef_Opt_3 : .
@@ -5619,7 +5779,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //LayoutDef_Star_1 : . LayoutDef_Opt_3
@@ -5643,7 +5807,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //SyntaxRule_Plus_2 : . SyntaxRule_Plus_2 Layout ">" Layout PriorityLevel
@@ -5779,7 +5947,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //SyntaxRule_Plus_2 : . PriorityLevel
@@ -5803,7 +5975,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //SyntaxRule_Opt_4 : . SyntaxRule_Plus_2
@@ -5827,7 +6003,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //SyntaxRule_Opt_4 : .
@@ -5843,7 +6023,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //SyntaxRule_Star_2 : . SyntaxRule_Opt_4
@@ -5867,7 +6051,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RegexBlock_Plus_3 : . RegexBlock_Plus_3 Layout RegexRule
@@ -5931,7 +6119,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RegexBlock_Plus_3 : . RegexRule
@@ -5955,7 +6147,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RegexBlock_Opt_5 : . RegexBlock_Plus_3
@@ -5979,7 +6175,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RegexBlock_Opt_5 : .
@@ -5995,7 +6195,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RegexBlock_Star_3 : . RegexBlock_Opt_5
@@ -6019,7 +6223,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RegexRule_Plus_5 : . RegexRule_Plus_5 Layout Regex
@@ -6083,7 +6291,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RegexRule_Plus_5 : . Regex
@@ -6107,7 +6319,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RegexRule_Plus_4 : . RegexRule_Plus_4 Layout "|" Layout RegexRule_Plus_5
@@ -6243,7 +6459,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //RegexRule_Plus_4 : . RegexRule_Plus_5
@@ -6267,7 +6487,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //PriorityLevel_Plus_6 : . PriorityLevel_Plus_6 Layout "|" Layout Alternative
@@ -6403,7 +6627,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //PriorityLevel_Plus_6 : . Alternative
@@ -6427,7 +6655,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //PriorityLevel_Opt_6 : . PriorityLevel_Plus_6
@@ -6451,7 +6683,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //PriorityLevel_Opt_6 : .
@@ -6467,7 +6703,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //PriorityLevel_Star_4 : . PriorityLevel_Opt_6
@@ -6491,7 +6731,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Alternative_Plus_7 : . Alternative_Plus_7 Layout Symbol
@@ -6555,7 +6799,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Alternative_Plus_7 : . Symbol
@@ -6579,7 +6827,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Alternative_Opt_7 : . Alternative_Plus_7
@@ -6603,7 +6855,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Alternative_Opt_7 : .
@@ -6619,7 +6875,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Alternative_Star_5 : . Alternative_Opt_7
@@ -6643,7 +6903,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Alternative_Opt_8 : . Label
@@ -6689,7 +6953,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Alternative_Opt_8 : .
@@ -6705,7 +6973,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol_Group_0 : . "|" Layout Symbol
@@ -6791,7 +7063,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol_Plus_8 : . Symbol_Plus_8 Layout Symbol_Group_0
@@ -6855,7 +7131,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Symbol_Plus_8 : . Symbol_Group_0
@@ -6879,7 +7159,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Regex_Group_1 : . "|" Layout Regex
@@ -6965,7 +7249,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Regex_Plus_9 : . Regex_Plus_9 Layout Regex_Group_1
@@ -7029,7 +7317,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //Regex_Plus_9 : . Regex_Group_1
@@ -7053,7 +7345,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //CharClass_Opt_9 : . "!"
@@ -7099,7 +7395,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //CharClass_Opt_9 : .
@@ -7115,7 +7415,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //CharClass_Plus_10 : . CharClass_Plus_10 Layout RangeElement
@@ -7179,7 +7483,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //CharClass_Plus_10 : . RangeElement
@@ -7203,7 +7511,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartGrammar : . Layout start:Grammar Layout
@@ -7289,7 +7601,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartLayoutDef : . Layout start:LayoutDef Layout
@@ -7375,7 +7691,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartSyntaxRule : . Layout start:SyntaxRule Layout
@@ -7461,7 +7781,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartRegexBlock : . Layout start:RegexBlock Layout
@@ -7547,7 +7871,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartRegexRule : . Layout start:RegexRule Layout
@@ -7633,7 +7961,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartPriorityLevel : . Layout start:PriorityLevel Layout
@@ -7719,7 +8051,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartAlternative : . Layout start:Alternative Layout
@@ -7805,7 +8141,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartSymbol : . Layout start:Symbol Layout
@@ -7891,7 +8231,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartRegex : . Layout start:Regex Layout
@@ -7977,7 +8321,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartCharClass : . Layout start:CharClass Layout
@@ -8063,7 +8411,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartRangeElement : . Layout start:RangeElement Layout
@@ -8149,7 +8501,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             //StartRange : . Layout start:Range Layout
@@ -8235,7 +8591,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     right_extent,
                     result,
                 ) {
-                    self.pop(gss_node_id, end_slot_id, nonterminal_node_id);
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
             _ => {

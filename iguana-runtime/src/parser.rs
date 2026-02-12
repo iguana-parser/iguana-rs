@@ -5,7 +5,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     descriptor::Descriptor,
     env::{Env, EnvId},
-    gss::{GSSEdge, GSSNode},
+    gss::{GSSEdge, GSSNode, PoppedElement},
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     record,
@@ -173,11 +173,11 @@ pub trait Parser<'i> {
 
         // For each popped element of the current GSS node add a descriptor with the return label.
         for popped_element in popped_elements.iter() {
-            let popped_node = self.sppf_node(*popped_element);
+            let popped_node = self.sppf_node(popped_element.nonterminal_node_id);
             let right_extent = popped_node.right_extent();
             if let Some(new_node) = self.merge(
                 sppf_node_id,
-                *popped_element,
+                popped_element.nonterminal_node_id,
                 return_slot,
                 left_extent,
                 right_extent,
@@ -233,24 +233,24 @@ pub trait Parser<'i> {
         self.stats_mut().gss_edges_count += 1;
     }
 
-    fn pop(&mut self, gss_node_id: GssNodeId, slot_id: SlotId, sppf_node_id: SPPFNodeId) {
-        record!(self, Pop, gss_node_id, slot_id, sppf_node_id);
+    fn pop(&mut self, gss_node_id: GssNodeId, slot_id: SlotId, popped_element: PoppedElement) {
+        record!(self, Pop, gss_node_id, slot_id, popped_element);
         let gss = self.gss_node(gss_node_id);
-        if gss.contains_popped_element(&sppf_node_id) {
+        if gss.contains_popped_element(&popped_element) {
             record!(self, NodeAlreadyInPoppedElements);
             return;
         }
-        let node = self.sppf_node(sppf_node_id);
+        let node = self.sppf_node(popped_element.nonterminal_node_id);
         let right_extent = node.right_extent();
-        record!(self, AddToPoppedElements, gss_node_id, sppf_node_id);
+        record!(self, AddToPoppedElements, gss_node_id, popped_element);
         let gss = self.gss_node_mut(gss_node_id);
-        gss.add_to_popped_elements(sppf_node_id);
+        gss.add_to_popped_elements(popped_element);
         let edges = gss.edges().clone();
         for edge in edges.iter() {
             let left_extent = edge.sppf_node_id.map(|id| self.sppf_node(id).left_extent());
             if let Some(new_node_id) = self.merge(
                 edge.sppf_node_id,
-                sppf_node_id,
+                popped_element.nonterminal_node_id,
                 edge.return_slot,
                 left_extent,
                 right_extent,
