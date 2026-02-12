@@ -291,6 +291,13 @@ fn add_lexical_rules(
                 None => Symbol::Plus(Box::new(transformed_symbol), None),
             }
         }
+        Symbol::Binding { name, symbol } => {
+            let transformed = add_lexical_rules(*symbol, lexical_rules, added_terminals);
+            Symbol::Binding {
+                name,
+                symbol: Box::new(transformed),
+            }
+        }
         _ => symbol,
     }
 }
@@ -377,7 +384,10 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 None => Symbol::Plus(Box::new(resolved_symbol), None),
             }
         }
-        Symbol::Binding { symbol, .. } => resolve_identifier(*symbol, symbol_table),
+        Symbol::Binding { name, symbol } => Symbol::Binding {
+            name,
+            symbol: Box::new(resolve_identifier(*symbol, symbol_table)),
+        },
         Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => symbol,
     }
 }

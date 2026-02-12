@@ -220,6 +220,13 @@ fn rewrite_ebnf_symbol(
             new_rules.push(new_rule);
             new_symbol
         }
+        Symbol::Binding { name, symbol } => {
+            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+            Symbol::Binding {
+                name,
+                symbol: Box::new(transformed),
+            }
+        }
         _ => symbol,
     };
     ebnf_symbols.insert(origin, res.clone());
