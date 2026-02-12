@@ -238,6 +238,7 @@ pub trait Parser<'i> {
         let gss = self.gss_node(gss_node_id);
         if gss.contains_popped_element(&sppf_node_id) {
             record!(self, NodeAlreadyInPoppedElements);
+            return;
         }
         let node = self.sppf_node(sppf_node_id);
         let right_extent = node.right_extent();
