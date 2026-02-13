@@ -88,6 +88,12 @@ pub enum Expr {
     Cond(Cond),
     Ref(String),
     Or(Box<Expr>, Box<Expr>),
+    Min(Box<Expr>, Box<Expr>),
+    Ternary {
+        cond: Box<Expr>,
+        then: Box<Expr>,
+        r#else: Box<Expr>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -127,6 +133,8 @@ impl Display for Expr {
             Expr::Cond(cond) => write!(f, "{}", cond),
             Expr::Ref(name) => write!(f, "{}", name),
             Expr::Or(left, right) => write!(f, "{} || {}", left, right),
+            Expr::Min(left, right) => write!(f, "min({}, {})", left, right),
+            Expr::Ternary { cond, then, r#else } => write!(f, "{} ? {} : {}", cond, then, r#else),
         }
     }
 }
@@ -152,6 +160,12 @@ impl IntoExpr for i32 {
 impl IntoExpr for i64 {
     fn into_expr(self) -> Expr {
         Expr::Int(self)
+    }
+}
+
+impl IntoExpr for Expr {
+    fn into_expr(self) -> Expr {
+        self
     }
 }
 
@@ -600,7 +614,31 @@ macro_rules! cond {
 }
 
 #[macro_export]
+macro_rules! ternary {
+    ($cond:expr, $then:expr, $else:expr) => {
+        $crate::grammar::symbols::Expr::Ternary {
+            cond: Box::new($cond),
+            then: Box::new($crate::grammar::symbols::IntoExpr::into_expr($then)),
+            r#else: Box::new($crate::grammar::symbols::IntoExpr::into_expr($else)),
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! min {
+    ($a:expr, $b:expr) => {
+        $crate::grammar::symbols::Expr::Min(
+            Box::new($crate::grammar::symbols::IntoExpr::into_expr($a)),
+            Box::new($crate::grammar::symbols::IntoExpr::into_expr($b)),
+        )
+    };
+}
+
+#[macro_export]
 macro_rules! ret {
+    (expr $e:expr) => {
+        $crate::grammar::symbols::Symbol::Return($e)
+    };
     ($value:expr) => {
         $crate::grammar::symbols::Symbol::Return($crate::grammar::symbols::Expr::Int($value))
     };

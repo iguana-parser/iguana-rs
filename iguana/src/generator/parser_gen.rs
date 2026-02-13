@@ -607,6 +607,23 @@ fn gen_expr(expr: &Expr) -> TokenStream {
             let right = gen_expr(right);
             quote! { (#left) || (#right) }
         }
+        Expr::Min(left, right) => {
+            let left = gen_expr(left);
+            let right = gen_expr(right);
+            quote! { std::cmp::min(#left, #right) }
+        }
+        Expr::Ternary { cond, then, r#else } => {
+            let cond = gen_expr(cond);
+            let then = gen_expr(then);
+            let r#else = gen_expr(r#else);
+            quote! {
+                if #cond {
+                    #then
+                } else {
+                    #r#else
+                }
+            }
+        }
     }
 }
 

@@ -2,12 +2,13 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    alternative, bind, call, cond,
+    alternative, bind, c, call, cond, cond_expr,
     generator::generate,
     grammar::def::{Grammar, GrammarDef},
-    grammar_def, id,
+    grammar::symbols::Terminal,
+    grammar_def, id, lexical_rule,
     iggy::parse_grammar,
-    lit, opt, priority_level, ret, syntax_rule,
+    lit, min, opt, priority_level, r_star, ret, syntax_rule, ternary,
 };
 
 #[derive(Parser)]
@@ -258,7 +259,7 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
             let source = std::fs::read_to_string(path)?;
             parse_grammar(&source).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
         }
-        None => unary_expression(),
+        None => deep_unary_case(),
     };
     generate(&grammar.into(), output)?;
     Ok(())
@@ -358,11 +359,11 @@ fn return_values() -> GrammarDef {
 
 // S = E(0)
 // E(p)
-//   = [2>=p] l=E(p) [l==0||l>=2] '*' E(3) {2}
-//   | [2>=p] l=E(p) [l==0||l>=2] '/' E(3) {2}
-//   | [1>=p] l=E(p) [l==0||l>=1] '+' E(2) {1}
-//   | [1>=p] l=E(p) [l==0||l>=1] '-' E(2) {1}
-//   | 'a' {0}
+//   = [2>=p] l=E(p) [l==0||l>=2] '*' E(3) return 2
+//   | [2>=p] l=E(p) [l==0||l>=2] '/' E(3) return 2
+//   | [1>=p] l=E(p) [l==0||l>=1] '+' E(2) return 1
+//   | [1>=p] l=E(p) [l==0||l>=1] '-' E(2) return 1
+//   | 'a' return 0
 fn binary_expressions_with_multiple_precedence_levels() -> GrammarDef {
     grammar_def!("Test2",
         syntax: [
@@ -408,10 +409,10 @@ fn binary_expressions_with_multiple_precedence_levels() -> GrammarDef {
 
 // S = E(0)
 // E(p)
-//   = [2>=p] l=E(p) [l==0||l>=2] '*' E(3) {2}
-//   | [1>=p] l=E(p) [l==0||l>=1] '+' E(2) {1}
-//   | [3>=p] '-' E(3) {3}
-//   | 'a' {0}
+//   = [2>=p] l=E(p) [l==0||l>=2] '*' E(3) return 2
+//   | [1>=p] l=E(p) [l==0||l>=1] '+' E(2) return 1
+//   | [3>=p] '-' E(3) return 3
+//   | 'a' return 0
 fn unary_expression() -> GrammarDef {
     grammar_def!("Test2",
         syntax: [
@@ -442,5 +443,43 @@ fn unary_expression() -> GrammarDef {
                 alternative!(lit!("a"), ret!(0)),
             )),
         ]
+    )
+}
+
+// E(p)
+//   = [2>=p] l=E(p) [l==0||l>=2] '+' r=E(3) return r==0 ? 2 : min(r,2)
+//   | 'if' E(0) 'then' E(0) 'else' E(1) return 1
+//   | 'a' return 0
+fn deep_unary_case() -> GrammarDef {
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => alternative!(call!("E", 0))),
+            syntax_rule!("E"("p": I32) => priority_level!(
+                alternative!(
+                    cond!(2 >= "p"),
+                    bind!("l", call!("E", ref "p")),
+                    cond!(("l" == 0) || ("l" >= 2)),
+                    lit!("+"),
+                    bind!("r", call!("E", 3)),
+                    ret!(expr ternary!(cond_expr!("r" == 0), 2, min!("r", 2))),
+                ),
+                alternative!(
+                    lit!("if"),
+                    call!("E", 0),
+                    lit!("then"),
+                    call!("E", 0),
+                    lit!("else"),
+                    call!("E", 1),
+                    ret!(1),
+                ),
+                alternative!(lit!("a"), ret!(0)),
+            )),
+        ],
+        lexical: [
+            lexical_rule!("WS" => r_star!(c!(' ')))
+        ],
+        layout: [
+            Terminal::new("WS")
+        ],
     )
 }
