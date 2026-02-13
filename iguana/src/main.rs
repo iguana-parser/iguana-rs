@@ -259,7 +259,7 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
             let source = std::fs::read_to_string(path)?;
             parse_grammar(&source).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
         }
-        None => deep_unary_case(),
+        None => full_pepm16_example(),
     };
     generate(&grammar.into(), output)?;
     Ok(())
@@ -471,6 +471,99 @@ fn deep_unary_case() -> GrammarDef {
                     lit!("else"),
                     call!("E", 1),
                     ret!(1),
+                ),
+                alternative!(lit!("a"), ret!(0)),
+            )),
+        ],
+        lexical: [
+            lexical_rule!("WS" => r_star!(c!(' ')))
+        ],
+        layout: [
+            Terminal::new("WS")
+        ],
+    )
+}
+
+// E(p)
+//  = [7>=p] l=E(p) [l==0||l>=7] '.' 'f' return 0
+//  | [6>=p] l=E(p) [l==0||l>=6] r=E(7) return r==0 ? 6 : min(r,6)
+//  | '-' r=E(5) return r==0 ? 5 : min(r,5)
+//  | [4>=p] l=E(p) [l==0||l>=4] '*' r=E(5) return r==0 ? 4 : min(r,4)
+//  | [3>=p] l=E(p) [l==0||l>=3] '+' r=E(4) return r==0 ? 3 : min(r,3)
+//  | [3>=p] l=E(p) [l==0||l>=3] '-' r=E(4) return r==0 ? 3 : min(r,3)
+//  | 'if' E(0) 'then' E(2) return 2
+//  | [1>=p] l=E(p) [l==0||l>=2] ';' r=E(1) return 1
+//  | '(' E(0) ')' return 0
+//  | 'a' return 0
+fn full_pepm16_example() -> GrammarDef {
+    grammar_def!("Test2",
+        syntax: [
+            syntax_rule!("S" => alternative!(call!("E", 0))),
+            syntax_rule!("E"("p": I32) => priority_level!(
+                alternative!(
+                    cond!(7 >= "p"),
+                    bind!("l", call!("E", ref "p")),
+                    cond!(("l" == 0) || ("l" >= 7)),
+                    lit!("."),
+                    lit!("f"),
+                    ret!(0),
+                ),
+                alternative!(
+                    cond!(6 >= "p"),
+                    bind!("l", call!("E", ref "p")),
+                    cond!(("l" == 0) || ("l" >= 6)),
+                    bind!("r", call!("E", 7)),
+                    ret!(expr ternary!(cond_expr!("r" == 0), 6, min!("r", 6))),
+                ),
+                alternative!(
+                    lit!("-"),
+                    bind!("r", call!("E", 5)),
+                    ret!(expr ternary!(cond_expr!("r" == 0), 5, min!("r", 5))),
+                ),
+                alternative!(
+                    cond!(4 >= "p"),
+                    bind!("l", call!("E", ref "p")),
+                    cond!(("l" == 0) || ("l" >= 4)),
+                    lit!("*"),
+                    bind!("r", call!("E", 5)),
+                    ret!(expr ternary!(cond_expr!("r" == 0), 4, min!("r", 4))),
+                ),
+                alternative!(
+                    cond!(3 >= "p"),
+                    bind!("l", call!("E", ref "p")),
+                    cond!(("l" == 0) || ("l" >= 3)),
+                    lit!("+"),
+                    bind!("r", call!("E", 4)),
+                    ret!(expr ternary!(cond_expr!("r" == 0), 3, min!("r", 3))),
+                ),
+                alternative!(
+                    cond!(3 >= "p"),
+                    bind!("l", call!("E", ref "p")),
+                    cond!(("l" == 0) || ("l" >= 3)),
+                    lit!("-"),
+                    bind!("r", call!("E", 4)),
+                    ret!(expr ternary!(cond_expr!("r" == 0), 3, min!("r", 3))),
+                ),
+                alternative!(
+                    lit!("if"),
+                    call!("E", 0),
+                    lit!("then"),
+                    call!("E", 2),
+                    ret!(2),
+                ),
+                alternative!(
+                    cond!(1 >= "p"),
+                    bind!("l", call!("E", ref "p")),
+                    cond!(("l" == 0) || ("l" >= 2)),
+                    lit!(";"),
+                    bind!("r", call!("E", 1)),
+                    ret!(1),
+                ),
+                alternative!(
+                    lit!("("),
+                    call!("E", 0),
+                    lit!(")"),
+                    ret!(0),
                 ),
                 alternative!(lit!("a"), ret!(0)),
             )),
