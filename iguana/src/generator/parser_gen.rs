@@ -336,11 +336,45 @@ fn gen_execute_method<'a>(
                 }
             } else {
                 let last_symbol = alternative.symbols.last().unwrap();
-                let return_value = if let Symbol::Return(expr) = last_symbol {
+                let pop = if let Symbol::Return(expr) = last_symbol {
                     let expr = gen_expr(expr);
-                    quote! { Some(#expr) }
+                    let create_method = format_ident!(
+                        "create_nonterminal_node_or_attach_children_{}",
+                        to_snake_case(&nonterminal.name)
+                    );
+                    quote! {
+                        let return_value = #expr;
+                        if let Some(nonterminal_node_id) = self.#create_method(
+                            nonterminal_id,
+                            end_slot_id,
+                            left_extent,
+                            right_extent,
+                            result,
+                            return_value
+                        ) {
+                            let popped_element = PoppedElement {
+                                nonterminal_node_id,
+                                return_value: Some(return_value),
+                            };
+                            self.pop(gss_node_id, end_slot_id, popped_element);
+                        }
+                    }
                 } else {
-                    quote! { None }
+                    quote! {
+                        if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                            nonterminal_id,
+                            end_slot_id,
+                            left_extent,
+                            right_extent,
+                            result,
+                        ) {
+                            let popped_element = PoppedElement {
+                                nonterminal_node_id,
+                                return_value: None,
+                            };
+                            self.pop(gss_node_id, end_slot_id, popped_element);
+                        }
+                    }
                 };
                 quote! {
                     #[comment = #end_slot_name]
@@ -353,19 +387,7 @@ fn gen_execute_method<'a>(
                         let right_extent = node.right_extent();
                         let nonterminal_id = #nonterminal_id;
                         let end_slot_id = #end_slot_id;
-                        if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                            nonterminal_id,
-                            end_slot_id,
-                            left_extent,
-                            right_extent,
-                            result,
-                        ) {
-                            let popped_element = PoppedElement {
-                                nonterminal_node_id,
-                                return_value: #return_value,
-                            };
-                            self.pop(gss_node_id, end_slot_id, popped_element);
-                        }
+                        #pop
                     }
                 }
             };
@@ -979,9 +1001,9 @@ fn gen_parser_struct(
         .dd_nonterminals()
         .map(gen_gss_nodes_index_field_for_data_dependent_nt)
         .collect();
-    let return_values_fields: Vec<_> = nonterminal_ids
+    let specialized_nonterminal_nodes_index_fields: Vec<_> = nonterminal_ids
         .dd_nonterminals()
-        .map(gen_return_values_field)
+        .map(gen_specialized_nonterminal_nodes_index_field)
         .collect();
     let slot_ids_len = Literal::usize_unsuffixed(slot_ids.len());
     let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
@@ -1004,7 +1026,7 @@ fn gen_parser_struct(
             intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
             nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
             nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
-            #(#return_values_fields,)*
+            #(#specialized_nonterminal_nodes_index_fields,)*
             envs: Vec<Env>,
             #[cfg(feature = "debug-trace")]
             pub trace_events: Option<Vec<TraceEvent>>,
@@ -1033,12 +1055,27 @@ fn gen_parser_impl(
         .dd_nonterminals()
         .map(gen_add_gss_node_method_with_parameters)
         .collect();
+    let specialized_lookup_nonterminal_node_methods: Vec<_> = nonterminal_ids
+        .dd_nonterminals()
+        .map(gen_specialized_lookup_nonterminal_node_method)
+        .collect();
+    let specialized_add_nonterminal_node_methods: Vec<_> = nonterminal_ids
+        .dd_nonterminals()
+        .map(gen_specialized_add_nonterminal_node_method)
+        .collect();
+    let create_nonterminal_node_or_attach_children_methods: Vec<_> = nonterminal_ids
+        .dd_nonterminals()
+        .map(gen_create_nonterminal_node_or_attach_children)
+        .collect();
     quote! {
         impl<'i> #name_ident<'i> {
             #new_method
             #(#create_methods)*
             #(#get_gss_node_methods)*
             #(#add_gss_node_methods)*
+            #(#specialized_lookup_nonterminal_node_methods)*
+            #(#specialized_add_nonterminal_node_methods)*
+            #(#create_nonterminal_node_or_attach_children_methods)*
         }
     }
 }
@@ -1121,6 +1158,100 @@ fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
     }
 }
 
+fn gen_specialized_lookup_nonterminal_node_method(nt: &Nonterminal) -> TokenStream {
+    let create_method_name = format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
+    let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
+    quote! {
+        fn #create_method_name(
+            &self,
+            left_extent: u32,
+            right_extent: u32,
+            return_value: i32
+        ) -> Option<SPPFNodeId> {
+            let span = Span::new(left_extent, right_extent);
+            self.#field_name
+                .get(&span)
+                .and_then(|entries| {
+                    entries.iter()
+                        .find(|(rv, _)| *rv == return_value)
+                        .map(|(_, id)| *id)
+                })
+        }
+    }
+}
+
+fn gen_specialized_add_nonterminal_node_method(nt: &Nonterminal) -> TokenStream {
+    let method_name = format_ident!("add_nonterminal_node_{}", to_snake_case(&nt.name));
+    let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
+    quote! {
+        fn #method_name(&mut self, nonterminal_node: NonterminalNode, return_value: i32) -> SPPFNodeId {
+            let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+            self.stats.nonterminal_nodes_count += 1;
+            self.#field_name
+                .entry(nonterminal_node.span)
+                .or_default()
+        .push((return_value, nonterminal_node_id));
+            record!(
+                self,
+                NonterminalNodeCreated,
+                nonterminal_node.nonterminal_id,
+                nonterminal_node.span,
+                nonterminal_node.child
+            );
+            self.sppf_nodes.push(SPPFNode::Nonterminal(nonterminal_node));
+            nonterminal_node_id
+        }
+    }
+}
+
+fn gen_create_nonterminal_node_or_attach_children(nt: &Nonterminal) -> TokenStream {
+    let method_name = format_ident!(
+        "create_nonterminal_node_or_attach_children_{}",
+        to_snake_case(&nt.name)
+    );
+    let lookup_method_name = format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
+    let add_method_name = format_ident!("add_nonterminal_node_{}", to_snake_case(&nt.name));
+    quote! {
+        fn #method_name(
+            &mut self,
+            nonterminal_id: NonterminalId,
+            return_slot: SlotId,
+            left_extent: u32,
+            right_extent: u32,
+            child: SPPFNodeId,
+            return_value: i32,
+        ) -> Option<SPPFNodeId> {
+            if let Some(existing_node_id) =
+                self.#lookup_method_name(left_extent, right_extent, return_value)
+            {
+                record!(self, NonterminalNodeFound, existing_node_id);
+                let node = self.sppf_node_mut(existing_node_id);
+                let SPPFNode::Nonterminal(node) = node else {
+                    unreachable!("Expects a nonterminal node");
+                };
+                // Only count an ambiguous node once, i.e., when the second child is attached.
+                if !node.ambiguous {
+                    node.ambiguous = true;
+                    self.stats_mut().ambiguous_nodes += 1;
+                }
+                self.add_nonterminal_node_child(existing_node_id, child);
+                return None;
+            }
+            let nonterminal_node = NonterminalNode {
+                nonterminal_id,
+                return_slot,
+                span: Span {
+                    left_extent,
+                    right_extent,
+                },
+                child,
+                ambiguous: false,
+            };
+            Some(self.#add_method_name(nonterminal_node, return_value))
+        }
+    }
+}
+
 fn gen_new_method(
     grammar_name: &str,
     nonterminal_ids: &NonterminalIds,
@@ -1135,7 +1266,7 @@ fn gen_new_method(
         .collect();
     let return_value_fields: Vec<_> = nonterminal_ids
         .dd_nonterminals()
-        .map(gen_return_values_field_init)
+        .map(gen_specialized_nonterminal_nodes_index_field_init)
         .collect();
     let nonterminal_nodes_index_field = gen_nonterminal_nodes_index_field(nonterminal_ids);
     let intermediate_nodes_index_field = gen_intermediate_nodes_index_field(slot_ids);
@@ -1185,12 +1316,10 @@ fn gen_gss_nodes_index_field_for_data_dependent_nt(nt: &Nonterminal) -> TokenStr
     }
 }
 
-fn gen_return_values_field(nt: &Nonterminal) -> TokenStream {
-    let field_name = format_ident!("{}_return_values", to_snake_case(&nt.name));
-    let comment = format!("Return values for nonterminal {}", nt.name);
+fn gen_specialized_nonterminal_nodes_index_field(nt: &Nonterminal) -> TokenStream {
+    let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
     quote! {
-        #[comment = #comment]
-        #field_name: FxHashMap<SPPFNodeId, InlineVec<i32>>
+        #field_name: FxHashMap<Span, InlineVec<(i32, SPPFNodeId)>>
     }
 }
 
@@ -1201,8 +1330,8 @@ fn gen_gss_nodes_index_field_init(nt: &Nonterminal) -> TokenStream {
     }
 }
 
-fn gen_return_values_field_init(nt: &Nonterminal) -> TokenStream {
-    let field_name = format_ident!("{}_return_values", to_snake_case(&nt.name));
+fn gen_specialized_nonterminal_nodes_index_field_init(nt: &Nonterminal) -> TokenStream {
+    let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
     quote! {
         #field_name: FxHashMap::default()
     }
