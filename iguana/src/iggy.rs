@@ -142,7 +142,10 @@ fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternat
     // Extract label, stripping the @ prefix
     let label = alt.label.value().map(|token| {
         let label_text = text(input, token.span());
-        label_text.strip_prefix('@').unwrap_or(&label_text).to_string()
+        label_text
+            .strip_prefix('@')
+            .unwrap_or(&label_text)
+            .to_string()
     });
 
     Alternative { symbols, label }
@@ -159,9 +162,9 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
         parse_tree::Symbol::Opt { symbol, .. } => {
             Symbol::Opt(Box::new(convert_symbol(symbol, input)))
         }
-        parse_tree::Symbol::Alt { first, symbol_plus_8, .. } => {
+        parse_tree::Symbol::Alt { first, rest, .. } => {
             let mut symbols = vec![convert_symbol(first, input)];
-            let rest: Vec<Symbol> = symbol_plus_8.symbols().map(|s| convert_symbol(s, input)).collect();
+            let rest: Vec<Symbol> = rest.symbols().map(|s| convert_symbol(s, input)).collect();
             symbols.extend(rest);
             Symbol::Alt(symbols)
         }
@@ -220,10 +223,10 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
         parse_tree::Regex::Plus { regex, .. } => Regex::Plus(Box::new(convert_regex(regex, input))),
         parse_tree::Regex::Star { regex, .. } => Regex::Star(Box::new(convert_regex(regex, input))),
         parse_tree::Regex::Opt { regex, .. } => Regex::Opt(Box::new(convert_regex(regex, input))),
-        parse_tree::Regex::Alt { first, regex_plus_9, .. } => {
+        parse_tree::Regex::Alt { first, rest, .. } => {
             let mut regexes = vec![convert_regex(first, input)];
             let rest_regexes: Vec<Regex> =
-                regex_plus_9.regexes().map(|r| convert_regex(r, input)).collect();
+                rest.regexes().map(|r| convert_regex(r, input)).collect();
             regexes.extend(rest_regexes);
             Regex::Alt(regexes)
         }
@@ -236,7 +239,7 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
 }
 
 fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Regex {
-    let negated = char_class.char_class_opt_9.value().is_some();
+    let negated = char_class.neg.value().is_some();
     let ranges = char_class
         .range_elements
         .range_elements()

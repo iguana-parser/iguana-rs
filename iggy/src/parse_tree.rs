@@ -1344,13 +1344,13 @@ pub enum Symbol {
         lit_4: Token,
         span: Span,
     },
-    //"(" Layout first:Symbol(0) Layout ("|" Symbol)+ Layout ")" return 0 @Alt
+    //"(" Layout first:Symbol(0) Layout rest:("|" Symbol)+ Layout ")" return 0 @Alt
     Alt {
         lit_0: Token,
         layout_1: Token,
         first: Box<Symbol>,
         layout_3: Token,
-        symbol_plus_8: SymbolPlus8,
+        rest: SymbolPlus8,
         layout_5: Token,
         lit_6: Token,
         span: Span,
@@ -1444,13 +1444,13 @@ pub enum Regex {
         lit_2: Token,
         span: Span,
     },
-    //"(" Layout first:Regex Layout ("|" Regex)+ Layout ")" @Alt
+    //"(" Layout first:Regex Layout rest:("|" Regex)+ Layout ")" @Alt
     Alt {
         lit_0: Token,
         layout_1: Token,
         first: Box<Regex>,
         layout_3: Token,
-        regex_plus_9: RegexPlus9,
+        rest: RegexPlus9,
         layout_5: Token,
         lit_6: Token,
         span: Span,
@@ -1479,10 +1479,10 @@ pub enum Regex {
         span: Span,
     },
 }
-//CharClass = "!"? Layout "[" Layout RangeElement+ Layout "]"
+//CharClass = neg:"!"? Layout "[" Layout RangeElement+ Layout "]"
 #[derive(Debug)]
 pub struct CharClass {
-    pub char_class_opt_9: CharClassOpt9,
+    pub neg: CharClassOpt9,
     pub layout_1: Token,
     pub lit_2: Token,
     pub layout_3: Token,
@@ -2130,7 +2130,7 @@ impl Symbol {
                 layout_1,
                 first,
                 layout_3,
-                symbol_plus_8,
+                rest,
                 layout_5,
                 lit_6,
                 ..
@@ -2139,7 +2139,7 @@ impl Symbol {
                 1 => Some(layout_1.as_parse_tree_ref()),
                 2 => Some(first.as_parse_tree_ref()),
                 3 => Some(layout_3.as_parse_tree_ref()),
-                4 => Some(symbol_plus_8.as_parse_tree_ref()),
+                4 => Some(rest.as_parse_tree_ref()),
                 5 => Some(layout_5.as_parse_tree_ref()),
                 6 => Some(lit_6.as_parse_tree_ref()),
                 _ => None,
@@ -2328,7 +2328,7 @@ impl Regex {
                 layout_1,
                 first,
                 layout_3,
-                regex_plus_9,
+                rest,
                 layout_5,
                 lit_6,
                 ..
@@ -2337,7 +2337,7 @@ impl Regex {
                 1 => Some(layout_1.as_parse_tree_ref()),
                 2 => Some(first.as_parse_tree_ref()),
                 3 => Some(layout_3.as_parse_tree_ref()),
-                4 => Some(regex_plus_9.as_parse_tree_ref()),
+                4 => Some(rest.as_parse_tree_ref()),
                 5 => Some(layout_5.as_parse_tree_ref()),
                 6 => Some(lit_6.as_parse_tree_ref()),
                 _ => None,
@@ -2407,7 +2407,7 @@ impl Regex {
 impl CharClass {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.char_class_opt_9.as_parse_tree_ref()),
+            0 => Some(self.neg.as_parse_tree_ref()),
             1 => Some(self.layout_1.as_parse_tree_ref()),
             2 => Some(self.lit_2.as_parse_tree_ref()),
             3 => Some(self.layout_3.as_parse_tree_ref()),
@@ -4424,23 +4424,16 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         }
                         .into()
                     }
-                    //Regex : "(" Layout first:Regex Layout ("|" Regex)+ Layout ")".
+                    //Regex : "(" Layout first:Regex Layout rest:("|" Regex)+ Layout ")".
                     SlotId(135) => {
-                        let [
-                            lit_0,
-                            layout_1,
-                            first,
-                            layout_3,
-                            regex_plus_9,
-                            layout_5,
-                            lit_6,
-                        ] = <[ParseTree; 7usize]>::try_from(children).unwrap();
+                        let [lit_0, layout_1, first, layout_3, rest, layout_5, lit_6] =
+                            <[ParseTree; 7usize]>::try_from(children).unwrap();
                         Regex::Alt {
                             lit_0: lit_0.unwrap_token(),
                             layout_1: layout_1.unwrap_token(),
                             first: Box::new(first.unwrap_regex()),
                             layout_3: layout_3.unwrap_token(),
-                            regex_plus_9: regex_plus_9.unwrap_regex_plus_9(),
+                            rest: rest.unwrap_regex_plus_9(),
                             layout_5: layout_5.unwrap_token(),
                             lit_6: lit_6.unwrap_token(),
                             span: nonterminal_node.span,
@@ -4490,10 +4483,10 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //CharClass
             NonterminalId(8) => {
                 match nonterminal_node.return_slot {
-                    //CharClass : "!"? Layout "[" Layout RangeElement+ Layout "]".
+                    //CharClass : neg:"!"? Layout "[" Layout RangeElement+ Layout "]".
                     SlotId(157) => {
                         let [
-                            char_class_opt_9,
+                            neg,
                             layout_1,
                             lit_2,
                             layout_3,
@@ -4502,7 +4495,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                             lit_6,
                         ] = <[ParseTree; 7usize]>::try_from(children).unwrap();
                         CharClass {
-                            char_class_opt_9: char_class_opt_9.unwrap_char_class_opt_9(),
+                            neg: neg.unwrap_char_class_opt_9(),
                             layout_1: layout_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
                             layout_3: layout_3.unwrap_token(),
@@ -5468,23 +5461,16 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         }
                         .into()
                     }
-                    //Symbol : "(" Layout first:Symbol(0) Layout ("|" Symbol)+ Layout ")" return 0.
+                    //Symbol : "(" Layout first:Symbol(0) Layout rest:("|" Symbol)+ Layout ")" return 0.
                     SlotId(58) => {
-                        let [
-                            lit_0,
-                            layout_1,
-                            first,
-                            layout_3,
-                            symbol_plus_8,
-                            layout_5,
-                            lit_6,
-                        ] = <[ParseTree; 7usize]>::try_from(children).unwrap();
+                        let [lit_0, layout_1, first, layout_3, rest, layout_5, lit_6] =
+                            <[ParseTree; 7usize]>::try_from(children).unwrap();
                         Symbol::Alt {
                             lit_0: lit_0.unwrap_token(),
                             layout_1: layout_1.unwrap_token(),
                             first: Box::new(first.unwrap_symbol()),
                             layout_3: layout_3.unwrap_token(),
-                            symbol_plus_8: symbol_plus_8.unwrap_symbol_plus_8(),
+                            rest: rest.unwrap_symbol_plus_8(),
                             layout_5: layout_5.unwrap_token(),
                             lit_6: lit_6.unwrap_token(),
                             span: nonterminal_node.span,
