@@ -6,17 +6,16 @@ use crate::grammar::{
     transformations::transform_rule,
 };
 
-/// Classifies how an alternative relates to its head nonterminal
-/// in terms of recursion.
+/// Which ends of an alternative are recursive (i.e., reference the head nonterminal).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Recursion {
-    /// Both left- and right-recursive: E op E
+enum RecursiveEnds {
+    /// Both ends: E op E
     Binary,
-    /// Only left-recursive: E op
+    /// Left end only: E op
     Left,
-    /// Only right-recursive: op E
+    /// Right end only: op E
     Right,
-    /// Not recursive: 'a', '(' E ')'
+    /// Neither end: 'a', '(' E ')'
     None,
 }
 
@@ -24,8 +23,8 @@ enum Recursion {
 ///
 /// For each nonterminal with multiple priority levels, this transformation:
 ///
-/// 1. Classifies each alternative as binary, left-recursive, right-recursive,
-///    or non-recursive based on whether it starts/ends with the head nonterminal.
+/// 1. Classifies each alternative by which ends are recursive (reference the
+///    head nonterminal): binary (both), left only, right only, or none.
 ///
 /// 2. Assigns precedence numbers in reverse order (bottom = 1, each `>` boundary
 ///    increments), skipping levels that contain only non-recursive alternatives.
@@ -33,8 +32,12 @@ enum Recursion {
 /// 3. Adds a parameter `p` to the nonterminal: `E` becomes `E(p)`.
 ///
 /// 4. Rewrites each alternative:
-///    - Binary `E op E` at level pr becomes:
+///    - Binary `E op E` at level pr:
 ///      `[pr>=p] l=E(p) [l==0||l>=pr] op E(pr) {pr}`
+///    - Prefix `op E` at level pr:
+///      `op E(pr) {pr}`
+///    - Postfix `E op` at level pr:
+///      `[pr>=p] l=E(p) [l==0||l>=pr] op {0}`
 ///    - Non-recursive alternatives get E references replaced with E(0)
 ///      and a return value of {0} appended.
 ///
@@ -44,22 +47,26 @@ enum Recursion {
 /// Example:
 ///
 /// Input (Rascal convention — atoms first, then operators tightest to loosest):
-///   E = 'a' | '(' E ')'
+///   E = 'a'
+///     > E '!'
+///     > '-' E
 ///     > E '*' E
-///     > E '+' E | E '-' E
+///     > E '+' E
 ///
 /// Numbering (reverse, bottom = 1, skip non-recursive levels):
-///   '+', '-': level 1
-///   '*':      level 2
-///   atoms:    no number
+///   '+': level 1
+///   '*': level 2
+///   '-': level 3
+///   '!': level 4
+///   atoms: no number
 ///
 /// Output:
-///   E(p) 
-///     = [2>=p] l=E(p) [l==0||l>=2] '*' E(2)    {2}
+///   E(p)
+///     = 'a'                                     {0}
+///     | [4>=p] l=E(p) [l==0||l>=4] '!'          {0}
+///     | '-' E(3)                                {3}
+///     | [2>=p] l=E(p) [l==0||l>=2] '*' E(2)    {2}
 ///     | [1>=p] l=E(p) [l==0||l>=1] '+' E(1)    {1}
-///     | [1>=p] l=E(p) [l==0||l>=1] '-' E(1)    {1}
-///     | 'a'                                    {0}
-///     | '(' E(0) ')'                           {0}
 pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
     // First pass: identify which nonterminals will be desugared
     let desugared_names: Vec<String> = syntax_rules
@@ -87,14 +94,14 @@ fn needs_desugaring(rule: &SyntaxRule) -> bool {
 }
 
 /// Classifies an alternative's recursion type relative to the head nonterminal.
-fn classify(alternative: &Alternative, head_name: &str) -> Recursion {
+fn classify(alternative: &Alternative, head_name: &str) -> RecursiveEnds {
     let is_left = is_reference_to(alternative.symbols.first(), head_name);
     let is_right = is_reference_to(alternative.symbols.last(), head_name);
     match (is_left, is_right) {
-        (true, true) => Recursion::Binary,
-        (true, false) => Recursion::Left,
-        (false, true) => Recursion::Right,
-        (false, false) => Recursion::None,
+        (true, true) => RecursiveEnds::Binary,
+        (true, false) => RecursiveEnds::Left,
+        (false, true) => RecursiveEnds::Right,
+        (false, false) => RecursiveEnds::None,
     }
 }
 
@@ -121,7 +128,7 @@ fn assign_precedence(
         let has_recursive = priority_levels[i]
             .alternatives
             .iter()
-            .any(|alt| classify(alt, head_name) != Recursion::None);
+            .any(|alt| classify(alt, head_name) != RecursiveEnds::None);
         if has_recursive {
             result[i] = Some(next_precedence);
             next_precedence += 1;
@@ -146,9 +153,11 @@ fn desugar_rule(rule: SyntaxRule) -> SyntaxRule {
         for alt in level.alternatives {
             let recursion = classify(&alt, &head_name);
             let rewritten = match (recursion, precedence) {
-                (Recursion::Binary, Some(pr)) => rewrite_binary(&head_name, head_def, alt, *pr),
-                (Recursion::None, _) => rewrite_non_recursive(&head_name, alt),
-                _ => alt, // Left/Right-only: pass through for now (first iteration)
+                (RecursiveEnds::Binary, Some(pr)) => rewrite_binary(&head_name, head_def, alt, *pr),
+                (RecursiveEnds::Right, Some(pr)) => rewrite_prefix(&head_name, head_def, alt, *pr),
+                (RecursiveEnds::Left, Some(pr)) => rewrite_postfix(&head_name, head_def, alt, *pr),
+                (RecursiveEnds::None, _) => rewrite_non_recursive(&head_name, alt),
+                _ => alt,
             };
             all_alternatives.push(rewritten);
         }
@@ -184,20 +193,18 @@ fn find_definition_id(
     None
 }
 
-/// Rewrites a binary alternative `E op E` at precedence level `pr` into:
-///   [pr>=p] l=E(p) [l==0||l>=pr] op E(pr) {pr}
-fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64) -> Alternative {
-    let mut symbols = Vec::new();
-
-    // [pr >= p]
-    symbols.push(Symbol::Condition(Expr::Cond(Cond {
+/// Creates the precondition symbol: [pr >= p]
+fn make_precondition(pr: i64) -> Symbol {
+    Symbol::Condition(Expr::Cond(Cond {
         left: Box::new(Expr::Int(pr)),
         right: Box::new(Expr::Ref("p".to_string())),
         op: CondOp::Geq,
-    })));
+    }))
+}
 
-    // l=E(p)
-    symbols.push(Symbol::Binding {
+/// Creates the left binding symbol: l=E(p)
+fn make_left_binding(head_name: &str, head_def: DefinitionId) -> Symbol {
+    Symbol::Binding {
         name: "l".to_string(),
         symbol: Box::new(Symbol::Call {
             name: Identifier {
@@ -206,10 +213,12 @@ fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
             },
             arguments: vec![Expr::Ref("p".to_string())],
         }),
-    });
+    }
+}
 
-    // [l==0 || l>=pr]
-    symbols.push(Symbol::Condition(Expr::Or(
+/// Creates the postcondition symbol: [l==0 || l>=pr]
+fn make_postcondition(pr: i64) -> Symbol {
+    Symbol::Condition(Expr::Or(
         Box::new(Expr::Cond(Cond {
             left: Box::new(Expr::Ref("l".to_string())),
             right: Box::new(Expr::Int(0)),
@@ -220,7 +229,31 @@ fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
             right: Box::new(Expr::Int(pr)),
             op: CondOp::Geq,
         })),
-    )));
+    ))
+}
+
+/// Replaces a reference to the head nonterminal with a call passing 0.
+fn replace_head_ref(symbol: Symbol, head_name: &str) -> Symbol {
+    match &symbol {
+        Symbol::Identifier(id) if id.name == head_name => Symbol::Call {
+            name: Identifier {
+                name: id.name.clone(),
+                definition: id.definition,
+            },
+            arguments: vec![Expr::Int(0)],
+        },
+        _ => symbol,
+    }
+}
+
+/// Rewrites a binary alternative `E op E` at precedence level `pr` into:
+///   [pr>=p] l=E(p) [l==0||l>=pr] op E(pr) {pr}
+fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64) -> Alternative {
+    let mut symbols = Vec::new();
+
+    symbols.push(make_precondition(pr));
+    symbols.push(make_left_binding(head_name, head_def));
+    symbols.push(make_postcondition(pr));
 
     // Middle symbols (everything except the first and last, which are the recursive E references)
     let num_symbols = alt.symbols.len();
@@ -239,6 +272,58 @@ fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
 
     // {pr}
     symbols.push(Symbol::Return(Expr::Int(pr)));
+
+    Alternative {
+        symbols,
+        label: alt.label,
+    }
+}
+
+/// Rewrites a prefix alternative `op E` at precedence level `pr` into:
+///   op E(pr) {pr}
+fn rewrite_prefix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64) -> Alternative {
+    let mut symbols = Vec::new();
+    let num_symbols = alt.symbols.len();
+
+    // All symbols except the last (right-end E), with any E references replaced by E(0)
+    for symbol in alt.symbols.into_iter().take(num_symbols.saturating_sub(1)) {
+        symbols.push(replace_head_ref(symbol, head_name));
+    }
+
+    // E(pr)
+    symbols.push(Symbol::Call {
+        name: Identifier {
+            name: head_name.to_string(),
+            definition: Some(head_def),
+        },
+        arguments: vec![Expr::Int(pr)],
+    });
+
+    // {pr}
+    symbols.push(Symbol::Return(Expr::Int(pr)));
+
+    Alternative {
+        symbols,
+        label: alt.label,
+    }
+}
+
+/// Rewrites a postfix alternative `E op` at precedence level `pr` into:
+///   [pr>=p] l=E(p) [l==0||l>=pr] op {0}
+fn rewrite_postfix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64) -> Alternative {
+    let mut symbols = Vec::new();
+
+    symbols.push(make_precondition(pr));
+    symbols.push(make_left_binding(head_name, head_def));
+    symbols.push(make_postcondition(pr));
+
+    // All symbols except the first (left-end E), with any E references replaced by E(0)
+    for symbol in alt.symbols.into_iter().skip(1) {
+        symbols.push(replace_head_ref(symbol, head_name));
+    }
+
+    // {0}
+    symbols.push(Symbol::Return(Expr::Int(0)));
 
     Alternative {
         symbols,
@@ -366,6 +451,87 @@ mod tests {
     fn test_desugaring() {
         let actual: Grammar = input_grammar().into();
         let expected: Grammar = expected_grammar().into();
+        assert_eq!(actual, expected);
+    }
+
+    /// Input grammar with prefix and postfix operators:
+    ///   E = 'a' > E '!' > '-' E > E '*' E > E '+' E
+    ///
+    /// Precedences (bottom=1):
+    ///   '+': 1, '*': 2, '-': 3, '!': 4
+    fn prefix_postfix_input() -> GrammarDef {
+        grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(
+                        alternative!(lit!("a"))
+                    ),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("!"))
+                    ),
+                    priority_level!(
+                        alternative!(lit!("-"), id!("E"))
+                    ),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("*"), id!("E"))
+                    ),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("+"), id!("E"))
+                    )
+                ),
+            ]
+        )
+    }
+
+    /// Expected grammar after desugaring:
+    ///   E(p)
+    ///     = 'a' {0}
+    ///     | [4>=p] l=E(p) [l==0||l>=4] '!' {0}
+    ///     | '-' E(3) {3}
+    ///     | [2>=p] l=E(p) [l==0||l>=2] '*' E(2) {2}
+    ///     | [1>=p] l=E(p) [l==0||l>=1] '+' E(1) {1}
+    fn prefix_postfix_expected() -> GrammarDef {
+        grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        cond!(4 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 4)),
+                        lit!("!"),
+                        ret!(0),
+                    ),
+                    alternative!(
+                        lit!("-"),
+                        call!("E", 3),
+                        ret!(3),
+                    ),
+                    alternative!(
+                        cond!(2 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!("*"),
+                        call!("E", 2),
+                        ret!(2),
+                    ),
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 1)),
+                        lit!("+"),
+                        call!("E", 1),
+                        ret!(1),
+                    ),
+                )),
+            ]
+        )
+    }
+
+    #[test]
+    fn test_prefix_postfix_desugaring() {
+        let actual: Grammar = prefix_postfix_input().into();
+        let expected: Grammar = prefix_postfix_expected().into();
         assert_eq!(actual, expected);
     }
 }

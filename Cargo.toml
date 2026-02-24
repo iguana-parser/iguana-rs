@@ -1,6 +1,6 @@
 [workspace]
 # terrarium excluded by default - it's a Tauri app with 500+ dependencies that slows rust-analyzer
-members = ["tests/binary_expression_priority", "tests/opt", "tests/simple_alt", "tests/group", "tests/plus_group", "tests/plus_with_sep", "tests/plus", "tests/star_with_sep", "tests/star", "tests/left_recursive_list", "iguana", "iguana-runtime", "iggy", "tests/expression"]
+members = ["tests/prefix_postfix_priority", "tests/binary_expression_priority", "tests/opt", "tests/simple_alt", "tests/group", "tests/plus_group", "tests/plus_with_sep", "tests/plus", "tests/star_with_sep", "tests/star", "tests/left_recursive_list", "iguana", "iguana-runtime", "iggy", "tests/expression"]
 # members = ["iguana", "iguana-runtime", "iggy", "terrarium/src-tauri"]  # uncomment when working on terrarium
 
 [workspace.dependencies]
