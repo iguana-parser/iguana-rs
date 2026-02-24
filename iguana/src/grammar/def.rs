@@ -9,7 +9,7 @@ use crate::{
     grammar::{
         regex::Regex,
         symbols::{Definition, DefinitionId, Expr, Identifier, Nonterminal, Symbol, Terminal},
-        transformations::{ebnf_to_bnf, layout_insertion, transform_rule},
+        transformations::{ebnf_to_bnf, layout_insertion, precedence_desugaring, transform_rule},
     },
     lexical_rule, priority_level,
 };
@@ -163,7 +163,7 @@ impl Display for GrammarDef {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq)]
 pub struct SymbolTable {
     symbol_table: FxHashMap<String, DefinitionId>,
 }
@@ -403,6 +403,7 @@ impl From<GrammarDef> for Grammar {
         let (mut definitions, mut symbol_table) =
             create_symbol_table(&syntax_rules, &lexical_rules);
         let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
+        let syntax_rules = precedence_desugaring::transform(syntax_rules);
         ebnf_symbols = ebnf_symbols
             .into_iter()
             .map(|(k, v)| (k, resolve_identifier(v, &symbol_table)))
@@ -525,6 +526,12 @@ pub struct Grammar {
     ebnf_symbols: FxHashMap<Symbol, Symbol>,
     pub symbol_table: SymbolTable,
     pub layout_defs: Vec<Terminal>,
+}
+
+impl PartialEq for Grammar {
+    fn eq(&self, other: &Self) -> bool {
+        self.productions == other.productions && self.lexical_rules == other.lexical_rules
+    }
 }
 
 impl Grammar {

@@ -5,6 +5,7 @@ use crate::grammar::{
 
 pub mod ebnf_to_bnf;
 pub mod layout_insertion;
+pub mod precedence_desugaring;
 
 pub fn transform_rule<F>(rule: SyntaxRule, mut transform_symbol: F) -> SyntaxRule
 where
