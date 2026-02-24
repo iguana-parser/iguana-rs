@@ -218,7 +218,7 @@ fn get_symbol_base_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
             }
             None
         }
-        Symbol::Identifier(ident) => {
+        Symbol::Identifier(ident) | Symbol::Call { name: ident, .. } => {
             if let Some(def_id) = ident.definition {
                 if let Definition::Nonterminal(nt) = grammar.definition(def_id) {
                     if let Some(origin) = &nt.origin {
@@ -246,7 +246,13 @@ fn get_symbol_base_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
                 None
             }
         }
-        _ => None,
+        Symbol::Binding { symbol, .. } => get_symbol_base_name(grammar, symbol),
+        Symbol::Labeled { .. } => None,
+        Symbol::Literal(_) => None,
+        Symbol::Group(_) => None,
+        Symbol::Alt(_) => None,
+        Symbol::Condition(_) => None,
+        Symbol::Return(_) => None,
     }
 }
 
@@ -296,7 +302,7 @@ fn gen_field_name(
                 format!("field_{}", position)
             }
         }
-        Symbol::Identifier(ident) => {
+        Symbol::Identifier(ident) | Symbol::Call { name: ident, .. } => {
             // Check if this identifier points to a derived nonterminal (Star/Plus/Opt)
             if let Some(def_id) = ident.definition {
                 if let Definition::Nonterminal(nt) = grammar.definition(def_id) {
@@ -334,7 +340,15 @@ fn gen_field_name(
                 format!("lit_{}", position)
             }
         }
-        _ => format!("field_{}", position),
+        Symbol::Binding { symbol, .. } => {
+            return gen_field_name(grammar, symbol, position, needs_index);
+        }
+        Symbol::Labeled { .. } => format!("field_{}", position),
+        Symbol::Literal(_) => format!("field_{}", position),
+        Symbol::Group(_) => format!("field_{}", position),
+        Symbol::Alt(_) => format!("field_{}", position),
+        Symbol::Condition(_) => format!("field_{}", position),
+        Symbol::Return(_) => format!("field_{}", position),
     };
 
     if is_rust_keyword(&field_name) {

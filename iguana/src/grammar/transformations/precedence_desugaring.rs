@@ -234,13 +234,17 @@ fn make_postcondition(pr: i64) -> Symbol {
 
 /// Replaces a reference to the head nonterminal with a call passing 0.
 fn replace_head_ref(symbol: Symbol, head_name: &str) -> Symbol {
-    match &symbol {
+    match symbol {
         Symbol::Identifier(id) if id.name == head_name => Symbol::Call {
             name: Identifier {
                 name: id.name.clone(),
                 definition: id.definition,
             },
             arguments: vec![Expr::Int(0)],
+        },
+        Symbol::Labeled { label, symbol } => Symbol::Labeled {
+            label,
+            symbol: Box::new(replace_head_ref(*symbol, head_name)),
         },
         _ => symbol,
     }
@@ -333,20 +337,11 @@ fn rewrite_postfix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr
 
 /// Rewrites a non-recursive alternative: replaces any E references with E(0)
 /// and appends {0}.
-fn rewrite_non_recursive(head_name: &str, alt: Alternative, ) -> Alternative {
+fn rewrite_non_recursive(head_name: &str, alt: Alternative) -> Alternative {
     let mut symbols: Vec<Symbol> = alt
         .symbols
         .into_iter()
-        .map(|symbol| match &symbol {
-            Symbol::Identifier(id) if id.name == head_name => Symbol::Call {
-                name: Identifier {
-                    name: id.name.clone(),
-                    definition: id.definition,
-                },
-                arguments: vec![Expr::Int(0)],
-            },
-            _ => symbol,
-        })
+        .map(|symbol| replace_head_ref(symbol, head_name))
         .collect();
 
     symbols.push(Symbol::Return(Expr::Int(0)));

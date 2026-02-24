@@ -24,22 +24,22 @@ Alternative
   = Symbol* Label?
 
 Symbol
-  = Symbol "*"                               @Star
-  | Symbol "+"                               @Plus
-  | Symbol "?"                               @Opt
+  = Identifier                               @Identifier
+  | "(" Symbol+ ")"                          @Group
   | "(" first:Symbol ("|" Symbol)+ ")"       @Alt
   | "\"" String "\""                         @Lit
   | "{" symbol:Symbol sep:Symbol "}" "*"     @StarSep
   | "{" symbol:Symbol sep:Symbol "}" "+"     @PlusSep
-  | "(" Symbol+ ")"                          @Group
-  | label:Identifier ":" Symbol              @Labeled
-  | Identifier                               @Identifier
+  > Symbol "*"                               @Star
+  | Symbol "+"                               @Plus
+  | Symbol "?"                               @Opt
+  > label:Identifier ":" Symbol              @Labeled
 
 Regex
   = Regex "+"                                 @Plus
   | Regex "*"                                 @Star
   | Regex "?"                                 @Opt
-  | "(" first:Regex ("|" Regex)+ ")"     @Alt
+  | "(" first:Regex ("|" Regex)+ ")"          @Alt
   | "(" Regex+ ")"                            @Group
   | CharClass                                 @CharClass
   | "\"" Char "\""                            @Char
