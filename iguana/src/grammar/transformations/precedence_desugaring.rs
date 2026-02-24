@@ -1,5 +1,5 @@
 use crate::grammar::{
-    def::{Alternative, PriorityLevel, SyntaxRule},
+    def::{Alternative, Associativity, PriorityLevel, SyntaxRule},
     symbols::{
         Cond, CondOp, DefinitionId, Expr, Identifier, Nonterminal, ParamType, Parameter, Symbol,
     },
@@ -19,54 +19,73 @@ enum RecursiveEnds {
     None,
 }
 
-/// Desugars operator precedence annotations into data-dependent grammar constructs.
+/// Desugars operator precedence and associativity annotations into
+/// data-dependent grammar constructs.
 ///
 /// For each nonterminal with multiple priority levels, this transformation:
 ///
 /// 1. Classifies each alternative by which ends are recursive (reference the
-///    head nonterminal): binary (both), left only, right only, or none.
+///    head nonterminal): binary (both), prefix (right only), postfix (left
+///    only), or non-recursive (neither).
 ///
-/// 2. Assigns precedence numbers in reverse order (bottom = 1, each `>` boundary
-///    increments), skipping levels that contain only non-recursive alternatives.
+/// 2. Assigns precedence numbers in reverse order (bottom = 1, each `>`
+///    boundary increments), skipping levels that contain only non-recursive
+///    alternatives.
 ///
 /// 3. Adds a parameter `p` to the nonterminal: `E` becomes `E(p)`.
 ///
-/// 4. Rewrites each alternative:
-///    - Binary `E op E` at level pr:
+/// 4. Rewrites each alternative depending on its recursion type and
+///    associativity. Let `pr` be the assigned precedence level.
+///
+///    **Binary `E op E`** — the rewrite depends on associativity:
+///
+///    - No associativity (default):
 ///      `[pr>=p] l=E(p) [l==0||l>=pr] op E(pr) {pr}`
-///    - Prefix `op E` at level pr:
-///      `op E(pr) {pr}`
-///    - Postfix `E op` at level pr:
-///      `[pr>=p] l=E(p) [l==0||l>=pr] op {0}`
-///    - Non-recursive alternatives get E references replaced with E(0)
-///      and a return value of {0} appended.
+///
+///    - Left-associative:
+///      `[pr>=p] l=E(p) [l==0||l>=pr] op E(pr+1) {pr}`
+///      The right operand gets `pr+1`, preventing right-recursive nesting
+///      at the same level.
+///
+///    - Right-associative:
+///      `[pr>=p] l=E(p) [l==0||l>=pr+1] op E(pr) {pr}`
+///      The postcondition uses `pr+1`, preventing left-recursive nesting
+///      at the same level.
+///
+///    - Non-associative:
+///      `[pr>=p] l=E(p) [l==0||l>=pr+1] op E(pr+1) {pr}`
+///      Both restrictions apply, preventing any nesting at the same level.
+///
+///    **Prefix `op E`**: `op E(pr) {pr}`
+///
+///    **Postfix `E op`**: `[pr>=p] l=E(p) [l==0||l>=pr] op {0}`
+///
+///    **Non-recursive**: E references replaced with E(0), return {0}.
 ///
 /// 5. Updates all external references to the desugared nonterminal:
 ///    `E` becomes `E(0)` in other rules.
 ///
-/// Example:
+/// ## Example: precedence with left associativity
 ///
-/// Input (Rascal convention — atoms first, then operators tightest to loosest):
+/// Input:
 ///   E = 'a'
-///     > E '!'
-///     > '-' E
-///     > E '*' E
-///     > E '+' E
+///     > E '*' E  left
+///     | E '/' E  left
+///     > E '+' E  left
+///     | E '-' E  left
+///     > E '<' E  non_assoc
 ///
-/// Numbering (reverse, bottom = 1, skip non-recursive levels):
-///   '+': level 1
-///   '*': level 2
-///   '-': level 3
-///   '!': level 4
-///   atoms: no number
+/// Numbering (reverse, bottom = 1):
+///   '<': 1, '+'/'-': 2, '*'/'/': 3, atoms: none
 ///
 /// Output:
 ///   E(p)
-///     = 'a'                                     {0}
-///     | [4>=p] l=E(p) [l==0||l>=4] '!'          {0}
-///     | '-' E(3)                                {3}
-///     | [2>=p] l=E(p) [l==0||l>=2] '*' E(2)    {2}
-///     | [1>=p] l=E(p) [l==0||l>=1] '+' E(1)    {1}
+///     = 'a'                                      {0}
+///     | [3>=p] l=E(p) [l==0||l>=3] '*' E(4)     {3}
+///     | [3>=p] l=E(p) [l==0||l>=3] '/' E(4)     {3}
+///     | [2>=p] l=E(p) [l==0||l>=2] '+' E(3)     {2}
+///     | [2>=p] l=E(p) [l==0||l>=2] '-' E(3)     {2}
+///     | [1>=p] l=E(p) [l==0||l>=2] '<' E(2)     {1}
 pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
     // First pass: identify which nonterminals will be desugared
     let desugared_names: Vec<String> = syntax_rules
@@ -153,7 +172,9 @@ fn desugar_rule(rule: SyntaxRule) -> SyntaxRule {
         for alt in level.alternatives {
             let recursion = classify(&alt, &head_name);
             let rewritten = match (recursion, precedence) {
-                (RecursiveEnds::Binary, Some(pr)) => rewrite_binary(&head_name, head_def, alt, *pr),
+                (RecursiveEnds::Binary, Some(pr)) => {
+                    rewrite_binary(&head_name, head_def, alt, *pr)
+                }
                 (RecursiveEnds::Right, Some(pr)) => rewrite_prefix(&head_name, head_def, alt, *pr),
                 (RecursiveEnds::Left, Some(pr)) => rewrite_postfix(&head_name, head_def, alt, *pr),
                 (RecursiveEnds::None, _) => rewrite_non_recursive(&head_name, alt),
@@ -250,14 +271,43 @@ fn replace_head_ref(symbol: Symbol, head_name: &str) -> Symbol {
     }
 }
 
-/// Rewrites a binary alternative `E op E` at precedence level `pr` into:
-///   [pr>=p] l=E(p) [l==0||l>=pr] op E(pr) {pr}
+/// Rewrites a binary alternative `E op E` at precedence level `pr` into a
+/// data-dependent form. The exact rewrite depends on associativity:
+///
+/// - No associativity (default):
+///   `[pr>=p] l=E(p) [l==0||l>=pr] op E(pr) {pr}`
+///
+/// - Left-associative:
+///   `[pr>=p] l=E(p) [l==0||l>=pr] op E(pr+1) {pr}`
+///   (right end gets pr+1 to prevent right-recursive use at same level)
+///
+/// - Right-associative:
+///   `[pr>=p] l=E(p) [l==0||l>=pr+1] op E(pr) {pr}`
+///   (postcondition uses pr+1 to prevent left-recursive use at same level)
+///
+/// - Non-associative:
+///   `[pr>=p] l=E(p) [l==0||l>=pr+1] op E(pr+1) {pr}`
+///   (both restrictions)
 fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64) -> Alternative {
+    let assoc = alt.associativity;
+
+    // Postcondition threshold: pr+1 for right-assoc and non-assoc, pr otherwise
+    let postcond_threshold = match assoc {
+        Some(Associativity::Right | Associativity::NonAssoc) => pr + 1,
+        _ => pr,
+    };
+
+    // Right-end argument: pr+1 for left-assoc and non-assoc, pr otherwise
+    let right_arg = match assoc {
+        Some(Associativity::Left | Associativity::NonAssoc) => pr + 1,
+        _ => pr,
+    };
+
     let mut symbols = Vec::new();
 
     symbols.push(make_precondition(pr));
     symbols.push(make_left_binding(head_name, head_def));
-    symbols.push(make_postcondition(pr));
+    symbols.push(make_postcondition(postcond_threshold));
 
     // Middle symbols (everything except the first and last, which are the recursive E references)
     let num_symbols = alt.symbols.len();
@@ -265,13 +315,13 @@ fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
         symbols.push(symbol);
     }
 
-    // E(pr)
+    // E(right_arg)
     symbols.push(Symbol::Call {
         name: Identifier {
             name: head_name.to_string(),
             definition: Some(head_def),
         },
-        arguments: vec![Expr::Int(pr)],
+        arguments: vec![Expr::Int(right_arg)],
     });
 
     // {pr}
@@ -280,6 +330,7 @@ fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
     Alternative {
         symbols,
         label: alt.label,
+        associativity: None,
     }
 }
 
@@ -309,6 +360,7 @@ fn rewrite_prefix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
     Alternative {
         symbols,
         label: alt.label,
+        associativity: None,
     }
 }
 
@@ -332,6 +384,7 @@ fn rewrite_postfix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr
     Alternative {
         symbols,
         label: alt.label,
+        associativity: None,
     }
 }
 
@@ -349,6 +402,7 @@ fn rewrite_non_recursive(head_name: &str, alt: Alternative) -> Alternative {
     Alternative {
         symbols,
         label: alt.label,
+        associativity: None,
     }
 }
 
@@ -374,7 +428,7 @@ mod tests {
     use crate::{
         alternative, bind, call, cond,
         grammar::def::{Grammar, GrammarDef},
-        grammar_def, id, lit, priority_level, ret, syntax_rule,
+        grammar_def, id, left, lit, non_assoc, priority_level, ret, right, syntax_rule,
     };
 
     /// Input grammar with priority levels (before desugaring):
@@ -527,6 +581,195 @@ mod tests {
     fn test_prefix_postfix_desugaring() {
         let actual: Grammar = prefix_postfix_input().into();
         let expected: Grammar = prefix_postfix_expected().into();
+        assert_eq!(actual, expected);
+    }
+
+    /// E = 'a' > E '+' E  left
+    #[test]
+    fn test_left_assoc() {
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(alternative!(lit!("a"))),
+                    priority_level!(alternative!(id!("E"), lit!("+"), id!("E"); left!()))
+                ),
+            ]
+        );
+
+        // E(p) = 'a' {0} | [1>=p] l=E(p) [l==0||l>=1] '+' E(2) {1}
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 1)),
+                        lit!("+"),
+                        call!("E", 2),
+                        ret!(1),
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.into();
+        let expected: Grammar = expected.into();
+        assert_eq!(actual, expected);
+    }
+
+    /// E = 'a' > E ';' E  right
+    #[test]
+    fn test_right_assoc() {
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(alternative!(lit!("a"))),
+                    priority_level!(alternative!(id!("E"), lit!(";"), id!("E"); right!()))
+                ),
+            ]
+        );
+
+        // E(p) = 'a' {0} | [1>=p] l=E(p) [l==0||l>=2] ';' E(1) {1}
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!(";"),
+                        call!("E", 1),
+                        ret!(1),
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.into();
+        let expected: Grammar = expected.into();
+        assert_eq!(actual, expected);
+    }
+
+    /// E = 'a' > E '<' E  non_assoc
+    #[test]
+    fn test_non_assoc() {
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(alternative!(lit!("a"))),
+                    priority_level!(alternative!(id!("E"), lit!("<"), id!("E"); non_assoc!()))
+                ),
+            ]
+        );
+
+        // E(p) = 'a' {0} | [1>=p] l=E(p) [l==0||l>=2] '<' E(2) {1}
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!("<"),
+                        call!("E", 2),
+                        ret!(1),
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.into();
+        let expected: Grammar = expected.into();
+        assert_eq!(actual, expected);
+    }
+
+    /// E = 'a'
+    ///   > E '*' E  left
+    ///   | E '/' E  left
+    ///   > E '+' E  left
+    ///   | E '-' E  left
+    ///   > E '<' E  non_assoc
+    #[test]
+    fn test_mixed_assoc() {
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(alternative!(lit!("a"))),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("*"), id!("E"); left!()),
+                        alternative!(id!("E"), lit!("/"), id!("E"); left!())
+                    ),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("+"), id!("E"); left!()),
+                        alternative!(id!("E"), lit!("-"), id!("E"); left!())
+                    ),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("<"), id!("E"); non_assoc!())
+                    )
+                ),
+            ]
+        );
+
+        // E(p)
+        //   = 'a' {0}
+        //   | [3>=p] l=E(p) [l==0||l>=3] '*' E(4) {3}
+        //   | [3>=p] l=E(p) [l==0||l>=3] '/' E(4) {3}
+        //   | [2>=p] l=E(p) [l==0||l>=2] '+' E(3) {2}
+        //   | [2>=p] l=E(p) [l==0||l>=2] '-' E(3) {2}
+        //   | [1>=p] l=E(p) [l==0||l>=2] '<' E(2) {1}
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        cond!(3 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 3)),
+                        lit!("*"),
+                        call!("E", 4),
+                        ret!(3),
+                    ),
+                    alternative!(
+                        cond!(3 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 3)),
+                        lit!("/"),
+                        call!("E", 4),
+                        ret!(3),
+                    ),
+                    alternative!(
+                        cond!(2 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!("+"),
+                        call!("E", 3),
+                        ret!(2),
+                    ),
+                    alternative!(
+                        cond!(2 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!("-"),
+                        call!("E", 3),
+                        ret!(2),
+                    ),
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!("<"),
+                        call!("E", 2),
+                        ret!(1),
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.into();
+        let expected: Grammar = expected.into();
         assert_eq!(actual, expected);
     }
 }

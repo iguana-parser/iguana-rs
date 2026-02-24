@@ -28,6 +28,7 @@ where
                     Alternative {
                         symbols: new_symbols,
                         label: alternative.label,
+                        associativity: alternative.associativity,
                     }
                 })
                 .collect();
@@ -59,6 +60,7 @@ where
                     Alternative {
                         symbols: new_symbols,
                         label: alternative.label,
+                        associativity: alternative.associativity,
                     }
                 })
                 .collect();

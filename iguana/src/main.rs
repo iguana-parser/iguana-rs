@@ -284,6 +284,7 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
     Ok(())
 }
 
+
 #[allow(dead_code)]
 fn grammar3() -> Grammar {
     // S : S S S | S S | b

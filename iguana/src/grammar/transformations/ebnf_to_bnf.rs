@@ -111,7 +111,8 @@ fn rewrite_ebnf_symbol(
                 head,
                 priority_levels: vec![priority_level!(Alternative {
                     symbols: transformed_symbols,
-                    label: None
+                    label: None,
+                    associativity: None,
                 })],
             };
             new_rules.push(new_rule);

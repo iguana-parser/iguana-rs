@@ -148,7 +148,11 @@ fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternat
             .to_string()
     });
 
-    Alternative { symbols, label }
+    Alternative {
+        symbols,
+        label,
+        associativity: None,
+    }
 }
 
 fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {

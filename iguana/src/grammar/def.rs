@@ -14,10 +14,18 @@ use crate::{
     lexical_rule, priority_level,
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Associativity {
+    Left,
+    Right,
+    NonAssoc,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Alternative {
     pub symbols: Vec<Symbol>,
     pub label: Option<String>,
+    pub associativity: Option<Associativity>,
 }
 
 impl Alternative {
@@ -31,6 +39,7 @@ impl Alternative {
         Self {
             symbols: vec![],
             label: None,
+            associativity: None,
         }
     }
 
@@ -40,21 +49,38 @@ impl Alternative {
             .iter()
             .map(|s| s.display_name(grammar))
             .collect();
-        let symbols_str = symbols.join(" ");
-        match &self.label {
-            Some(label) => format!("{} @{}", symbols_str, label),
-            None => symbols_str,
+        let mut result = symbols.join(" ");
+        if let Some(assoc) = &self.associativity {
+            let assoc_str = match assoc {
+                Associativity::Left => "left",
+                Associativity::Right => "right",
+                Associativity::NonAssoc => "non_assoc",
+            };
+            result = format!("{} {}", result, assoc_str);
         }
+        if let Some(label) = &self.label {
+            result = format!("{} @{}", result, label);
+        }
+        result
     }
 }
 
 impl Display for Alternative {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let symbols = self.symbols.iter().join(" ");
-        match &self.label {
-            Some(label) => write!(f, "{} @{}", symbols, label),
-            None => write!(f, "{}", symbols),
+        write!(f, "{}", symbols)?;
+        if let Some(assoc) = &self.associativity {
+            let assoc_str = match assoc {
+                Associativity::Left => "left",
+                Associativity::Right => "right",
+                Associativity::NonAssoc => "non_assoc",
+            };
+            write!(f, " {}", assoc_str)?;
         }
+        if let Some(label) = &self.label {
+            write!(f, " @{}", label)?;
+        }
+        Ok(())
     }
 }
 
@@ -587,18 +613,35 @@ impl Display for Grammar {
 
 #[macro_export]
 macro_rules! alternative {
-    ($($symbol:expr),* $(,)?, @$label:literal) => {
+    ($($symbol:expr),+; $assoc:expr) => {
         $crate::grammar::def::Alternative {
             symbols: vec![$($symbol),*],
-            label: Some($label.to_string()),
+            label: None,
+            associativity: Some($assoc),
         }
     };
     ($($symbol:expr),* $(,)?) => {
         $crate::grammar::def::Alternative {
             symbols: vec![$($symbol),*],
             label: None,
+            associativity: None,
         }
     };
+}
+
+#[macro_export]
+macro_rules! left {
+    () => { $crate::grammar::def::Associativity::Left };
+}
+
+#[macro_export]
+macro_rules! right {
+    () => { $crate::grammar::def::Associativity::Right };
+}
+
+#[macro_export]
+macro_rules! non_assoc {
+    () => { $crate::grammar::def::Associativity::NonAssoc };
 }
 
 #[macro_export]
