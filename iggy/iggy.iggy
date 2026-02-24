@@ -27,7 +27,7 @@ Symbol
   = Symbol "*"                               @Star
   | Symbol "+"                               @Plus
   | Symbol "?"                               @Opt
-  | "(" first:Symbol ("|" Symbol)+ ")"  @Alt
+  | "(" first:Symbol ("|" Symbol)+ ")"       @Alt
   | "\"" String "\""                         @Lit
   | "{" symbol:Symbol sep:Symbol "}" "*"     @StarSep
   | "{" symbol:Symbol sep:Symbol "}" "+"     @PlusSep

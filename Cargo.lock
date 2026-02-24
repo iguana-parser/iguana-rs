@@ -98,6 +98,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "binary_expression_priority"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

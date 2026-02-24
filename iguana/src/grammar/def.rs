@@ -400,10 +400,14 @@ impl From<GrammarDef> for Grammar {
         let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
         let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
         let (syntax_rules, mut ebnf_symbols) = ebnf_to_bnf::transform(syntax_rules);
-        let (mut definitions, mut symbol_table) =
-            create_symbol_table(&syntax_rules, &lexical_rules);
+        let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
         let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
         let syntax_rules = precedence_desugaring::transform(syntax_rules);
+        // Create the final symbol table after all transformations. This must happen
+        // after precedence desugaring because desugaring may add parameters to
+        // nonterminals (e.g., E becomes E(p)), and the definitions must reflect that.
+        let (mut definitions, mut symbol_table) =
+            create_symbol_table(&syntax_rules, &lexical_rules);
         ebnf_symbols = ebnf_symbols
             .into_iter()
             .map(|(k, v)| (k, resolve_identifier(v, &symbol_table)))

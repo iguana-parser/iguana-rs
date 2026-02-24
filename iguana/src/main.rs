@@ -49,6 +49,12 @@ enum TestCommands {
         /// Name of the grammar test to delete
         name: String,
     },
+    /// Regenerate the parser for a single test
+    #[command(alias = "gen")]
+    Generate {
+        /// Name of the grammar test to regenerate
+        name: String,
+    },
     /// Generate all test parsers
     GenerateAll,
 }
@@ -61,6 +67,7 @@ fn main() -> std::io::Result<()> {
         Commands::Test { command } => match command {
             TestCommands::Init { name } => init_test(&name)?,
             TestCommands::Delete { name } => delete_test(&name)?,
+            TestCommands::Generate { name } => generate_test(&name)?,
             TestCommands::GenerateAll => generate_all_tests()?,
         },
     }
@@ -199,9 +206,39 @@ fn delete_test(name: &str) -> std::io::Result<()> {
     Ok(())
 }
 
-fn generate_all_tests() -> std::io::Result<()> {
+fn generate_test(name: &str) -> std::io::Result<()> {
     use std::io::Write;
 
+    let path = PathBuf::from("tests").join(name);
+    let grammar_file = path.join(format!("{}.iggy", name));
+    if !grammar_file.exists() {
+        println!("Grammar file not found: {}", grammar_file.display());
+        return Ok(());
+    }
+
+    print!("Generating {}... ", name);
+    std::io::stdout().flush()?;
+    generate_parser(Some(&grammar_file), &path)?;
+
+    // Re-add [[test]] section if tests.rs exists
+    let tests_rs = path.join("tests.rs");
+    if tests_rs.exists() {
+        let cargo_toml = path.join("Cargo.toml");
+        let cargo_content = std::fs::read_to_string(&cargo_toml)?;
+        if !cargo_content.contains("[[test]]") {
+            let updated = cargo_content.replace(
+                "[features]",
+                "[[test]]\nname = \"tests\"\npath = \"tests.rs\"\n\n[features]",
+            );
+            std::fs::write(&cargo_toml, updated)?;
+        }
+    }
+
+    println!("done");
+    Ok(())
+}
+
+fn generate_all_tests() -> std::io::Result<()> {
     let tests_dir = PathBuf::from("tests");
     if !tests_dir.exists() {
         println!("No tests directory found");
@@ -215,25 +252,7 @@ fn generate_all_tests() -> std::io::Result<()> {
             let name = path.file_name().unwrap().to_string_lossy();
             let grammar_file = path.join(format!("{}.iggy", name));
             if grammar_file.exists() {
-                print!("Generating {}... ", name);
-                std::io::stdout().flush()?;
-                generate_parser(Some(&grammar_file), &path)?;
-
-                // Re-add [[test]] section if tests.rs exists
-                let tests_rs = path.join("tests.rs");
-                if tests_rs.exists() {
-                    let cargo_toml = path.join("Cargo.toml");
-                    let cargo_content = std::fs::read_to_string(&cargo_toml)?;
-                    if !cargo_content.contains("[[test]]") {
-                        let updated = cargo_content.replace(
-                            "[features]",
-                            "[[test]]\nname = \"tests\"\npath = \"tests.rs\"\n\n[features]",
-                        );
-                        std::fs::write(&cargo_toml, updated)?;
-                    }
-                }
-
-                println!("done");
+                generate_test(&name)?;
             }
         }
     }

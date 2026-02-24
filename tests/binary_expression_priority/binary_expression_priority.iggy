@@ -1,0 +1,9 @@
+grammar BinaryExpressionPriority
+
+S = E
+
+E
+  = "a"
+  > E "*" E
+  > E "+" E
+  | E "-" E
