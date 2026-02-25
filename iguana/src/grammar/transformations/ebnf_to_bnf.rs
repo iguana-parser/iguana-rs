@@ -228,6 +228,13 @@ fn rewrite_ebnf_symbol(
                 symbol: Box::new(transformed),
             }
         }
+        Symbol::Except { symbol, except } => {
+            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+            Symbol::Except {
+                symbol: Box::new(transformed),
+                except,
+            }
+        }
         _ => symbol,
     };
     ebnf_symbols.insert(origin, res.clone());

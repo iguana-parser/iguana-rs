@@ -70,10 +70,18 @@ pub enum Symbol {
     Alt(Vec<Symbol>),
     Star(Box<Symbol>, Option<Box<Symbol>>), // symbol, separator
     Plus(Box<Symbol>, Option<Box<Symbol>>), // symbol, separator
+    // Corresponds to the `\` operator in the concrete syntax.
+    // A `\` Id means that only match A if the span of A is not matched by Id.
+    // For now, we only accept regular expression ids.
+    Except {
+        symbol: Box<Symbol>,
+        except: Identifier,
+    },
     Call {
         name: Identifier,
         arguments: Vec<Expr>,
     },
+    // Data-dependent condition
     Condition(Expr),
     Return(Expr),
     Binding {
@@ -257,6 +265,9 @@ impl Symbol {
                     arguments.iter().join(", ")
                 )
             }
+            Symbol::Except { symbol, except } => {
+                format!("{} \\ {}", symbol.display_name(grammar), except)
+            }
             Symbol::Binding { name, symbol } => {
                 format!("{}={}", name, symbol.display_name(grammar))
             }
@@ -285,6 +296,7 @@ impl Display for Symbol {
             Symbol::Call { name, arguments } => {
                 write!(f, "{}({})", name, arguments.iter().join(", "))
             }
+            Symbol::Except { symbol, except } => write!(f, "{} \\ {}", symbol, except),
             Symbol::Condition(expr) => write!(f, "[{}]", expr),
             Symbol::Return(expr) => write!(f, "return {}", expr),
             Symbol::Binding { name, symbol } => write!(f, "{}={}", name, symbol),
@@ -544,6 +556,19 @@ macro_rules! star {
 macro_rules! opt {
     ($symbol:expr) => {
         $crate::grammar::symbols::Symbol::Opt(Box::new($symbol))
+    };
+}
+
+#[macro_export]
+macro_rules! except {
+    ($symbol:expr, $except:expr) => {
+        $crate::grammar::symbols::Symbol::Except {
+            symbol: Box::new($symbol),
+            except: $crate::grammar::symbols::Identifier {
+                name: $except.into(),
+                definition: None,
+            },
+        }
     };
 }
 

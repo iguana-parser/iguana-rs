@@ -324,6 +324,13 @@ fn add_lexical_rules(
                 symbol: Box::new(transformed),
             }
         }
+        Symbol::Except { symbol, except } => {
+            let transformed = add_lexical_rules(*symbol, lexical_rules, added_terminals);
+            Symbol::Except {
+                symbol: Box::new(transformed),
+                except,
+            }
+        }
         _ => symbol,
     }
 }
@@ -414,6 +421,21 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
             name,
             symbol: Box::new(resolve_identifier(*symbol, symbol_table)),
         },
+        Symbol::Except { symbol, except } => {
+            let resolved_symbol = resolve_identifier(*symbol, symbol_table);
+            let resolved_except = if let Some(definition_id) = symbol_table.get(&except.name) {
+                Identifier {
+                    name: except.name,
+                    definition: Some(definition_id),
+                }
+            } else {
+                panic!("Definition {} not found", &except.name)
+            };
+            Symbol::Except {
+                symbol: Box::new(resolved_symbol),
+                except: resolved_except,
+            }
+        }
         Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => symbol,
     }
 }
