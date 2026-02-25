@@ -10807,11 +10807,13 @@ impl<'i> IggyParser<'i> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let sppf_node = sppf_node_id.map(|id| self.sppf_node(id));
-        let left_extent = sppf_node.map(|n| n.left_extent());
+        let left_child = sppf_node_id.map(|id| {
+            let node = self.sppf_node(id);
+            (id, node.left_extent())
+        });
         let gss_node = self.gss_node(gss_node_id);
-        let i = match sppf_node {
-            Some(node) => node.right_extent(),
+        let i = match left_child {
+            Some((id, _)) => self.sppf_node(id).right_extent(),
             None => gss_node.index,
         };
         //If there is already a GSS node for this call, add an edge.
@@ -10820,8 +10822,7 @@ impl<'i> IggyParser<'i> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                sppf_node_id,
-                left_extent,
+                left_child,
                 return_slot,
                 env,
                 binding,

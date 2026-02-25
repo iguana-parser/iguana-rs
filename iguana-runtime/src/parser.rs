@@ -121,11 +121,13 @@ pub trait Parser<'i> {
         return_slot: SlotId,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let sppf_node = sppf_node_id.map(|id| self.sppf_node(id));
-        let left_extent = sppf_node.map(|n| n.left_extent());
+        let left_child = sppf_node_id.map(|id| {
+            let node = self.sppf_node(id);
+            (id, node.left_extent())
+        });
         let gss_node = self.gss_node(gss_node_id);
-        let i = match sppf_node {
-            Some(node) => node.right_extent(),
+        let i = match left_child {
+            Some((id, _)) => self.sppf_node(id).right_extent(),
             None => gss_node.index,
         };
         // If there is already a GSS node for this call, just add the edge
@@ -134,8 +136,7 @@ pub trait Parser<'i> {
             self.add_edge_to_existing_gss_node(
                 exiting_gss_node_id,
                 gss_node_id,
-                sppf_node_id,
-                left_extent,
+                left_child,
                 return_slot,
                 None,
                 None,
@@ -160,8 +161,7 @@ pub trait Parser<'i> {
         &mut self,
         existing_gss_node_id: GssNodeId,
         gss_node_id: GssNodeId,
-        sppf_node_id: Option<SPPFNodeId>,
-        left_extent: Option<u32>,
+        left_child: Option<(SPPFNodeId, u32)>,
         return_slot: SlotId,
         env: Option<EnvId>,
         binding: Option<&'static str>,
@@ -176,11 +176,9 @@ pub trait Parser<'i> {
             let popped_node = self.sppf_node(popped_element.nonterminal_node_id);
             let right_extent = popped_node.right_extent();
             if let Some(new_node) = self.merge(
-                sppf_node_id,
-                popped_element.nonterminal_node_id,
+                left_child,
+                (popped_element.nonterminal_node_id, right_extent),
                 return_slot,
-                left_extent,
-                right_extent,
             ) {
                 // Restore the caller's env from the edge and extend it with the
                 // callee's return value bound to the variable name, if present.
@@ -209,7 +207,7 @@ pub trait Parser<'i> {
         self.add_gss_edge(
             existing_gss_node_id,
             gss_node_id,
-            sppf_node_id,
+            left_child.map(|(id, _)| id),
             return_slot,
             env,
             binding,
@@ -258,13 +256,13 @@ pub trait Parser<'i> {
         gss.add_to_popped_elements(popped_element);
         let edges = gss.edges().clone();
         for edge in edges.iter() {
-            let left_extent = edge.sppf_node_id.map(|id| self.sppf_node(id).left_extent());
+            let left_child = edge
+                .sppf_node_id
+                .map(|id| (id, self.sppf_node(id).left_extent()));
             if let Some(new_node_id) = self.merge(
-                edge.sppf_node_id,
-                popped_element.nonterminal_node_id,
+                left_child,
+                (popped_element.nonterminal_node_id, right_extent),
                 edge.return_slot,
-                left_extent,
-                right_extent,
             ) {
                 let env = match (edge.env, edge.binding, popped_element.return_value) {
                     (Some(env_id), Some(name), Some(rv)) => {
@@ -290,22 +288,21 @@ pub trait Parser<'i> {
     /// A new descriptor should only be added when merge returns Some(n).
     fn merge(
         &mut self,
-        left_child: Option<SPPFNodeId>,
-        right_child: SPPFNodeId,
+        left_child: Option<(SPPFNodeId, u32)>,
+        right_child: (SPPFNodeId, u32),
         slot_id: SlotId,
-        left_extent: Option<u32>,
-        right_extent: u32,
     ) -> Option<SPPFNodeId> {
-        if let (Some(left_child), Some(left_extent)) = (left_child, left_extent) {
+        let (right_child_id, right_extent) = right_child;
+        if let Some((left_child_id, left_extent)) = left_child {
             self.create_intermediate_node_or_attach_children(
                 slot_id,
                 left_extent,
                 right_extent,
-                left_child,
-                right_child,
+                left_child_id,
+                right_child_id,
             )
         } else {
-            Some(right_child)
+            Some(right_child_id)
         }
     }
 

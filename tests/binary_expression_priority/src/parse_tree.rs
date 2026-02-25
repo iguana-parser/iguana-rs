@@ -161,7 +161,7 @@ pub trait OptNode {
 //S = E(0)
 #[derive(Debug)]
 pub struct S {
-    pub field_0: E,
+    pub e: E,
     pub span: Span,
 }
 #[derive(Debug)]
@@ -173,29 +173,29 @@ pub enum E {
     },
     //[2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" Layout E(2) return 2
     Alt1 {
-        field_0: Box<E>,
+        e_0: Box<E>,
         layout_1: Token,
         lit_2: Token,
         layout_3: Token,
-        field_4: Box<E>,
+        e_4: Box<E>,
         span: Span,
     },
     //[1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1
     Alt2 {
-        field_0: Box<E>,
+        e_0: Box<E>,
         layout_1: Token,
         lit_2: Token,
         layout_3: Token,
-        field_4: Box<E>,
+        e_4: Box<E>,
         span: Span,
     },
     //[1 >= p] l=E(p) [l == 0 || l >= 1] Layout "-" Layout E(1) return 1
     Alt3 {
-        field_0: Box<E>,
+        e_0: Box<E>,
         layout_1: Token,
         lit_2: Token,
         layout_3: Token,
-        field_4: Box<E>,
+        e_4: Box<E>,
         span: Span,
     },
 }
@@ -218,7 +218,7 @@ pub struct StartE {
 impl S {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.field_0.as_parse_tree_ref()),
+            0 => Some(self.e.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -240,48 +240,48 @@ impl E {
                 _ => None,
             },
             E::Alt1 {
-                field_0,
+                e_0,
                 layout_1,
                 lit_2,
                 layout_3,
-                field_4,
+                e_4,
                 ..
             } => match index {
-                0 => Some(field_0.as_parse_tree_ref()),
+                0 => Some(e_0.as_parse_tree_ref()),
                 1 => Some(layout_1.as_parse_tree_ref()),
                 2 => Some(lit_2.as_parse_tree_ref()),
                 3 => Some(layout_3.as_parse_tree_ref()),
-                4 => Some(field_4.as_parse_tree_ref()),
+                4 => Some(e_4.as_parse_tree_ref()),
                 _ => None,
             },
             E::Alt2 {
-                field_0,
+                e_0,
                 layout_1,
                 lit_2,
                 layout_3,
-                field_4,
+                e_4,
                 ..
             } => match index {
-                0 => Some(field_0.as_parse_tree_ref()),
+                0 => Some(e_0.as_parse_tree_ref()),
                 1 => Some(layout_1.as_parse_tree_ref()),
                 2 => Some(lit_2.as_parse_tree_ref()),
                 3 => Some(layout_3.as_parse_tree_ref()),
-                4 => Some(field_4.as_parse_tree_ref()),
+                4 => Some(e_4.as_parse_tree_ref()),
                 _ => None,
             },
             E::Alt3 {
-                field_0,
+                e_0,
                 layout_1,
                 lit_2,
                 layout_3,
-                field_4,
+                e_4,
                 ..
             } => match index {
-                0 => Some(field_0.as_parse_tree_ref()),
+                0 => Some(e_0.as_parse_tree_ref()),
                 1 => Some(layout_1.as_parse_tree_ref()),
                 2 => Some(lit_2.as_parse_tree_ref()),
                 3 => Some(layout_3.as_parse_tree_ref()),
-                4 => Some(field_4.as_parse_tree_ref()),
+                4 => Some(e_4.as_parse_tree_ref()),
                 _ => None,
             },
         }
@@ -386,9 +386,9 @@ impl ParseTreeBuilder<ParseTree> for BinaryExpressionPriorityParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //S : E(0).
                     SlotId(1) => {
-                        let [field_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [e] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         S {
-                            field_0: field_0.unwrap_e(),
+                            e: e.unwrap_e(),
                             span: nonterminal_node.span,
                         }
                         .into()
@@ -446,42 +446,42 @@ impl ParseTreeBuilder<ParseTree> for BinaryExpressionPriorityParseTreeBuilder {
                     }
                     //E : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" Layout E(2) return 2.
                     SlotId(13) => {
-                        let [field_0, layout_1, lit_2, layout_3, field_4] =
+                        let [e_0, layout_1, lit_2, layout_3, e_4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         E::Alt1 {
-                            field_0: Box::new(field_0.unwrap_e()),
+                            e_0: Box::new(e_0.unwrap_e()),
                             layout_1: layout_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
                             layout_3: layout_3.unwrap_token(),
-                            field_4: Box::new(field_4.unwrap_e()),
+                            e_4: Box::new(e_4.unwrap_e()),
                             span: nonterminal_node.span,
                         }
                         .into()
                     }
                     //E : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1.
                     SlotId(22) => {
-                        let [field_0, layout_1, lit_2, layout_3, field_4] =
+                        let [e_0, layout_1, lit_2, layout_3, e_4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         E::Alt2 {
-                            field_0: Box::new(field_0.unwrap_e()),
+                            e_0: Box::new(e_0.unwrap_e()),
                             layout_1: layout_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
                             layout_3: layout_3.unwrap_token(),
-                            field_4: Box::new(field_4.unwrap_e()),
+                            e_4: Box::new(e_4.unwrap_e()),
                             span: nonterminal_node.span,
                         }
                         .into()
                     }
                     //E : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "-" Layout E(1) return 1.
                     SlotId(31) => {
-                        let [field_0, layout_1, lit_2, layout_3, field_4] =
+                        let [e_0, layout_1, lit_2, layout_3, e_4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         E::Alt3 {
-                            field_0: Box::new(field_0.unwrap_e()),
+                            e_0: Box::new(e_0.unwrap_e()),
                             layout_1: layout_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
                             layout_3: layout_3.unwrap_token(),
-                            field_4: Box::new(field_4.unwrap_e()),
+                            e_4: Box::new(e_4.unwrap_e()),
                             span: nonterminal_node.span,
                         }
                         .into()
