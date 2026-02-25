@@ -5,10 +5,10 @@ use iguana_runtime::{
     sppf::{Span, TerminalNode},
 };
 const CHAR_CLASS_0: [(char, char); 2usize] = [('a', 'z'), ('A', 'Z')];
-pub struct ExceptScanner<'i> {
+pub struct ExceptTerminalScanner<'i> {
     pub input: &'i Input,
 }
-impl<'i> ExceptScanner<'i> {
+impl<'i> ExceptTerminalScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
@@ -47,7 +47,7 @@ impl<'i> ExceptScanner<'i> {
         Some(i)
     }
 }
-impl Scanner for ExceptScanner<'_> {
+impl Scanner for ExceptTerminalScanner<'_> {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         match terminal_id {
             TerminalId(0) => self.match_terminal_0(input_index),

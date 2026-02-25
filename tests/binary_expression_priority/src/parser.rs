@@ -1257,6 +1257,11 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
         new_env.bindings = bindings;
         (new_id, new_env)
     }
+    fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> bool {
+        match slot {
+            _ => true,
+        }
+    }
 }
 pub struct BinaryExpressionPriorityParser<'i> {
     start_nonterminal: NonterminalId,

@@ -1,0 +1,12 @@
+grammar ExceptNonterminal
+
+S = Id
+
+Id = Name \ Keyword
+
+Name = Identifier
+
+regex {
+  Identifier = [a-zA-Z]+
+  Keyword = "if" | "else" | "while"
+}

@@ -1,7 +1,7 @@
-// To regenerate parser:  cargo run -p iguana -- generate --grammar tests/except/except.iggy --output tests/except
-// To update golden files: REGENERATE=1 cargo test -p except
+// To regenerate parser:  cargo run -p iguana -- generate --grammar tests/except_nonterminal/except_nonterminal.iggy --output tests/except_nonterminal
+// To update golden files: REGENERATE=1 cargo test -p except_nonterminal
 
-use except::{parse, parse_tree::to_sexpr};
+use except_nonterminal::{parse, parse_tree::to_sexpr};
 use iguana_runtime::testing::{check_golden_file, golden_path};
 
 fn check(start_nonterminal: &str, input: &str, test_name: &str) {

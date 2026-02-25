@@ -1,5 +1,5 @@
 use crate::{
-    scanner::ExceptScanner,
+    scanner::ExceptTerminalScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 #[cfg(feature = "debug-trace")]
@@ -89,7 +89,7 @@ pub const SLOTS: [Slot; 12] = [
         display_name: "StartId : Layout start:Id Layout.",
     },
 ];
-impl<'i> Parser<'i> for ExceptParser<'i> {
+impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
     }
@@ -640,10 +640,15 @@ impl<'i> Parser<'i> for ExceptParser<'i> {
         new_env.bindings = bindings;
         (new_id, new_env)
     }
+    fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> bool {
+        match slot {
+            _ => true,
+        }
+    }
 }
-pub struct ExceptParser<'i> {
+pub struct ExceptTerminalParser<'i> {
     start_nonterminal: NonterminalId,
-    scanner: ExceptScanner<'i>,
+    scanner: ExceptTerminalScanner<'i>,
     descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
     //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
@@ -661,12 +666,12 @@ pub struct ExceptParser<'i> {
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
-impl<'i> ExceptParser<'i> {
+impl<'i> ExceptTerminalParser<'i> {
     pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
         init_logger();
         Self {
             start_nonterminal,
-            scanner: ExceptScanner::new(input),
+            scanner: ExceptTerminalScanner::new(input),
             gss_nodes_index: [const { vec![] }; 4],
             descriptors: vec![],
             gss_nodes: vec![],

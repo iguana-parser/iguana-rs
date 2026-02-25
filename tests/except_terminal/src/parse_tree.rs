@@ -1,4 +1,4 @@
-use crate::parser::ExceptParser;
+use crate::parser::ExceptTerminalParser;
 use core::fmt;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
@@ -276,8 +276,8 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
-pub struct ExceptParseTreeBuilder;
-impl ParseTreeBuilder<ParseTree> for ExceptParseTreeBuilder {
+pub struct ExceptTerminalParseTreeBuilder;
+impl ParseTreeBuilder<ParseTree> for ExceptTerminalParseTreeBuilder {
     fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
@@ -364,8 +364,8 @@ impl ParseTreeBuilder<ParseTree> for ExceptParseTreeBuilder {
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
     name: &str,
-    parser: &ExceptParser,
-    builder: &ExceptParseTreeBuilder,
+    parser: &ExceptTerminalParser,
+    builder: &ExceptTerminalParseTreeBuilder,
 ) -> ParseTree {
     match name {
         "S" => ParseTree::S(create_parse_tree_s(root_id, parser, builder)),
@@ -377,24 +377,24 @@ pub fn create_parse_tree(
 }
 pub fn create_parse_tree_s(
     root_id: SPPFNodeId,
-    parser: &ExceptParser,
-    builder: &ExceptParseTreeBuilder,
+    parser: &ExceptTerminalParser,
+    builder: &ExceptTerminalParseTreeBuilder,
 ) -> S {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
 }
 pub fn create_parse_tree_id(
     root_id: SPPFNodeId,
-    parser: &ExceptParser,
-    builder: &ExceptParseTreeBuilder,
+    parser: &ExceptTerminalParser,
+    builder: &ExceptTerminalParseTreeBuilder,
 ) -> Id {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_id()
 }
 pub fn create_parse_tree_start_s(
     root_id: SPPFNodeId,
-    parser: &ExceptParser,
-    builder: &ExceptParseTreeBuilder,
+    parser: &ExceptTerminalParser,
+    builder: &ExceptTerminalParseTreeBuilder,
 ) -> StartS {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
@@ -403,8 +403,8 @@ pub fn create_parse_tree_start_s(
 }
 pub fn create_parse_tree_start_id(
     root_id: SPPFNodeId,
-    parser: &ExceptParser,
-    builder: &ExceptParseTreeBuilder,
+    parser: &ExceptTerminalParser,
+    builder: &ExceptTerminalParseTreeBuilder,
 ) -> StartId {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)

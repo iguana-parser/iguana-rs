@@ -67,6 +67,7 @@ pub fn generate<'a>(
     let new_env_method = gen_new_env_method();
     let lookup_method = gen_lookup_method();
     let clone_env_method = gen_clone_env();
+    let post_conditions_method = gen_post_conditions_method(grammar, slot_ids, terminal_ids);
     let parser_struct = gen_parser_struct(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let parser_impl = gen_parser_impl(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
@@ -112,6 +113,7 @@ pub fn generate<'a>(
             #new_env_method
             #lookup_method
             #clone_env_method
+            #post_conditions_method
         }
         #parser_struct
         #parser_impl
@@ -579,31 +581,68 @@ fn gen_except_code<'a>(
     let except_terminal_id = terminal_ids
         .get_id(except_terminal)
         .unwrap_or_else(|| panic!("cannot find the lexical definition {}", except_terminal.name));
-    let post_conditions = vec![quote! {
-        self.scanner.match_token(#except_terminal_id, i) != Some(j)
-    }];
     match def {
         Definition::Terminal(terminal) => {
+            let post_conditions = vec![quote! {
+                self.scanner.match_token(#except_terminal_id, i) != Some(j)
+            }];
             gen_terminal_slot(grammar, terminal, slot.clone(), terminal_ids, slot_ids, &post_conditions)
         }
+        // For nonterminals, the except check is handled via post_conditions in the runtime.
         Definition::Nonterminal(nonterminal) => {
-            // For nonterminals, the except check is handled in the runtime pop mechanism.
             let arguments = match symbol.unwrap() {
                 Symbol::Call { arguments, .. } => arguments.clone(),
-                Symbol::Labeled { .. }
-                | Symbol::Identifier(_)
-                | Symbol::Literal(_)
-                | Symbol::Group(_)
-                | Symbol::Opt(_)
-                | Symbol::Alt(_)
-                | Symbol::Star(_, _)
-                | Symbol::Plus(_, _)
-                | Symbol::Except { .. }
-                | Symbol::Condition(_)
-                | Symbol::Return(_)
-                | Symbol::Binding { .. } => vec![],
+                _ => vec![],
             };
             gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids)
+        }
+    }
+}
+
+fn gen_post_conditions_method<'a>(
+    grammar: &'a Grammar,
+    slot_ids: &mut SlotIds<'a>,
+    terminal_ids: &mut TerminalIds,
+) -> TokenStream {
+    let mut arms = vec![];
+    for nonterminal in grammar.nonterminals() {
+        for alternative in grammar.alternatives(nonterminal) {
+            for pos in 0..alternative.symbols.len() {
+                let symbol = &alternative.symbols[pos];
+                if let Symbol::Except { symbol, except } = symbol {
+                    let Some(identifier) = symbol.as_identifier() else {
+                        continue;
+                    };
+                    let def = grammar.definition(identifier.resolve());
+                    if !matches!(def, Definition::Nonterminal(_)) {
+                        continue;
+                    }
+                    let except_def_id = except.resolve();
+                    let Definition::Terminal(except_terminal) = grammar.definition(except_def_id)
+                    else {
+                        panic!("Except identifier must resolve to a terminal");
+                    };
+                    let except_terminal_id = terminal_ids.get_id(except_terminal).unwrap_or_else(
+                        || panic!("cannot find the lexical definition {}", except_terminal.name),
+                    );
+                    let slot = Slot::new(nonterminal, alternative, pos);
+                    let next_slot = slot.next();
+                    let slot_id = slot_ids.id(&next_slot);
+                    arms.push(quote! {
+                        #slot_id => {
+                            self.scanner.match_token(#except_terminal_id, left_extent) != Some(right_extent)
+                        }
+                    });
+                }
+            }
+        }
+    }
+    quote! {
+        fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> bool {
+            match slot {
+                #(#arms)*
+                _ => true,
+            }
         }
     }
 }

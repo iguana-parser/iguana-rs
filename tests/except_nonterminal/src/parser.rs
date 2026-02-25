@@ -1,5 +1,5 @@
 use crate::{
-    scanner::StarScanner,
+    scanner::ExceptNonterminalScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 #[cfg(feature = "debug-trace")]
@@ -19,31 +19,21 @@ use iguana_runtime::{
 use phf::phf_map;
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
-pub const NONTERMINALS: [Nonterminal; 7] = [
+pub const NONTERMINALS: [Nonterminal; 6] = [
     Nonterminal {
         name: "S",
         display: "S",
         kind: None,
     },
     Nonterminal {
-        name: "A",
-        display: "A",
+        name: "Id",
+        display: "Id",
         kind: None,
     },
     Nonterminal {
-        name: "S_Plus_0",
-        display: "A+",
-        kind: Some(EbnfKind::Plus),
-    },
-    Nonterminal {
-        name: "S_Opt_0",
-        display: "A+?",
-        kind: Some(EbnfKind::Opt),
-    },
-    Nonterminal {
-        name: "S_Star_0",
-        display: "A*",
-        kind: Some(EbnfKind::Star),
+        name: "Name",
+        display: "Name",
+        kind: None,
     },
     Nonterminal {
         name: "StartS",
@@ -51,66 +41,45 @@ pub const NONTERMINALS: [Nonterminal; 7] = [
         kind: None,
     },
     Nonterminal {
-        name: "StartA",
-        display: "StartA",
+        name: "StartId",
+        display: "StartId",
+        kind: None,
+    },
+    Nonterminal {
+        name: "StartName",
+        display: "StartName",
         kind: None,
     },
 ];
 static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "A" => NonterminalId(1), "S_Plus_0" => NonterminalId(2),
-    "S_Opt_0" => NonterminalId(3), "S_Star_0" => NonterminalId(4), "StartS" =>
-    NonterminalId(5), "StartA" => NonterminalId(6)
+    "S" => NonterminalId(0), "Id" => NonterminalId(1), "Name" => NonterminalId(2),
+    "StartS" => NonterminalId(3), "StartId" => NonterminalId(4), "StartName" =>
+    NonterminalId(5)
 };
-pub const TERMINALS: [Terminal; 3] = [
-    Terminal { name: "\"a\"" },
+pub const TERMINALS: [Terminal; 4] = [
+    Terminal { name: "Identifier" },
+    Terminal { name: "Keyword" },
     Terminal { name: "Layout" },
     Terminal { name: "Epsilon" },
 ];
-pub const SLOTS: [Slot; 23] = [
+pub const SLOTS: [Slot; 18] = [
     Slot {
-        display_name: "S : . A*",
+        display_name: "S : . Id",
     },
     Slot {
-        display_name: "S : A*.",
+        display_name: "S : Id.",
     },
     Slot {
-        display_name: "A : . \"a\"",
+        display_name: "Id : . Name \\ Keyword",
     },
     Slot {
-        display_name: "A : \"a\".",
+        display_name: "Id : Name \\ Keyword.",
     },
     Slot {
-        display_name: "A+ : . A+ Layout A",
+        display_name: "Name : . Identifier",
     },
     Slot {
-        display_name: "A+ : A+ . Layout A",
-    },
-    Slot {
-        display_name: "A+ : A+ Layout . A",
-    },
-    Slot {
-        display_name: "A+ : A+ Layout A.",
-    },
-    Slot {
-        display_name: "A+ : . A",
-    },
-    Slot {
-        display_name: "A+ : A.",
-    },
-    Slot {
-        display_name: "A+? : . A+",
-    },
-    Slot {
-        display_name: "A+? : A+.",
-    },
-    Slot {
-        display_name: "A+? : .",
-    },
-    Slot {
-        display_name: "A* : . A+?",
-    },
-    Slot {
-        display_name: "A* : A+?.",
+        display_name: "Name : Identifier.",
     },
     Slot {
         display_name: "StartS : . Layout start:S Layout",
@@ -125,19 +94,31 @@ pub const SLOTS: [Slot; 23] = [
         display_name: "StartS : Layout start:S Layout.",
     },
     Slot {
-        display_name: "StartA : . Layout start:A Layout",
+        display_name: "StartId : . Layout start:Id Layout",
     },
     Slot {
-        display_name: "StartA : Layout . start:A Layout",
+        display_name: "StartId : Layout . start:Id Layout",
     },
     Slot {
-        display_name: "StartA : Layout start:A . Layout",
+        display_name: "StartId : Layout start:Id . Layout",
     },
     Slot {
-        display_name: "StartA : Layout start:A Layout.",
+        display_name: "StartId : Layout start:Id Layout.",
+    },
+    Slot {
+        display_name: "StartName : . Layout start:Name Layout",
+    },
+    Slot {
+        display_name: "StartName : Layout . start:Name Layout",
+    },
+    Slot {
+        display_name: "StartName : Layout start:Name . Layout",
+    },
+    Slot {
+        display_name: "StartName : Layout start:Name Layout.",
     },
 ];
-impl<'i> Parser<'i> for StarParser<'i> {
+impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
     }
@@ -170,11 +151,11 @@ impl<'i> Parser<'i> for StarParser<'i> {
             gss_node_id
         );
         match slot_id {
-            //S : . S_Star_0
+            //S : . Id
             SlotId(0) => {
-                self.create_s_star_0(result, gss_node_id, SlotId(1));
+                self.create_id(result, gss_node_id, SlotId(1));
             }
-            //S : S_Star_0.
+            //S : Id.
             SlotId(1) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -198,33 +179,11 @@ impl<'i> Parser<'i> for StarParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //A : . "a"
+            //Id : . Name \ Keyword
             SlotId(2) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"a\"", i);
-                match self.scanner.match_token(TerminalId(0), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", i, j);
-                        let right_child_id = self.get_or_create_terminal_node(TerminalId(0), i, j);
-                        //A : "a".
-                        let next_slot_id = SlotId(3);
-                        let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
-                    }
-                    None => {
-                        record!(
-                            self,
-                            MatchFailed,
-                            "\"a\"",
-                            i,
-                            SlotId(2),
-                            gss_node_id,
-                            result
-                        );
-                    }
-                }
+                self.create_name(result, gss_node_id, SlotId(3));
             }
-            //A : "a".
+            //Id : Name \ Keyword.
             SlotId(3) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -248,52 +207,34 @@ impl<'i> Parser<'i> for StarParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //S_Plus_0 : . S_Plus_0 Layout A
+            //Name : . Identifier
             SlotId(4) => {
-                self.create_s_plus_0(result, gss_node_id, SlotId(5));
-            }
-            //S_Plus_0 : S_Plus_0 . Layout A
-            SlotId(5) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "Identifier", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self.get_or_create_terminal_node(TerminalId(1), i, j);
-                        //S_Plus_0 : S_Plus_0 Layout . A
-                        let next_slot_id = SlotId(6);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self.create_intermediate_node_or_attach_children(
-                            next_slot_id,
-                            left_extent,
-                            j,
-                            left_child_id,
-                            right_child_id,
-                        ) {
-                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
-                        }
+                        record!(self, MatchSuccess, "Identifier", i, j);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(0), i, j);
+                        //Name : Identifier.
+                        let next_slot_id = SlotId(5);
+                        let new_node = right_child_id;
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
                             self,
                             MatchFailed,
-                            "Layout",
+                            "Identifier",
                             i,
-                            SlotId(5),
+                            SlotId(4),
                             gss_node_id,
                             result
                         );
                     }
                 }
             }
-            //S_Plus_0 : S_Plus_0 Layout . A
-            SlotId(6) => {
-                self.create_a(result, gss_node_id, SlotId(7));
-            }
-            //S_Plus_0 : S_Plus_0 Layout A.
-            SlotId(7) => {
+            //Name : Identifier.
+            SlotId(5) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -301,111 +242,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(2);
-                let end_slot_id = SlotId(7);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
-                }
-            }
-            //S_Plus_0 : . A
-            SlotId(8) => {
-                self.create_a(result, gss_node_id, SlotId(9));
-            }
-            //S_Plus_0 : A.
-            SlotId(9) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(2);
-                let end_slot_id = SlotId(9);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
-                }
-            }
-            //S_Opt_0 : . S_Plus_0
-            SlotId(10) => {
-                self.create_s_plus_0(result, gss_node_id, SlotId(11));
-            }
-            //S_Opt_0 : S_Plus_0.
-            SlotId(11) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(11);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    left_extent,
-                    right_extent,
-                    result,
-                ) {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
-                }
-            }
-            //S_Opt_0 : .
-            SlotId(12) => {
-                let end_slot_id = SlotId(12);
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(2), input_index, input_index);
-                let nonterminal_id = NonterminalId(3);
-                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                    nonterminal_id,
-                    end_slot_id,
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                ) {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
-                }
-            }
-            //S_Star_0 : . S_Opt_0
-            SlotId(13) => {
-                self.create_s_opt_0(result, gss_node_id, SlotId(14));
-            }
-            //S_Star_0 : S_Opt_0.
-            SlotId(14) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(4);
-                let end_slot_id = SlotId(14);
+                let end_slot_id = SlotId(5);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -421,15 +258,15 @@ impl<'i> Parser<'i> for StarParser<'i> {
                 }
             }
             //StartS : . Layout start:S Layout
-            SlotId(15) => {
+            SlotId(6) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self.get_or_create_terminal_node(TerminalId(1), i, j);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
                         //StartS : Layout . start:S Layout
-                        let next_slot_id = SlotId(16);
+                        let next_slot_id = SlotId(7);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
@@ -439,7 +276,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
                             MatchFailed,
                             "Layout",
                             i,
-                            SlotId(15),
+                            SlotId(6),
                             gss_node_id,
                             result
                         );
@@ -447,19 +284,19 @@ impl<'i> Parser<'i> for StarParser<'i> {
                 }
             }
             //StartS : Layout . start:S Layout
-            SlotId(16) => {
-                self.create_s(result, gss_node_id, SlotId(17));
+            SlotId(7) => {
+                self.create_s(result, gss_node_id, SlotId(8));
             }
             //StartS : Layout start:S . Layout
-            SlotId(17) => {
+            SlotId(8) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self.get_or_create_terminal_node(TerminalId(1), i, j);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
                         //StartS : Layout start:S Layout.
-                        let next_slot_id = SlotId(18);
+                        let next_slot_id = SlotId(9);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
@@ -479,7 +316,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
                             MatchFailed,
                             "Layout",
                             i,
-                            SlotId(17),
+                            SlotId(8),
                             gss_node_id,
                             result
                         );
@@ -487,15 +324,15 @@ impl<'i> Parser<'i> for StarParser<'i> {
                 }
             }
             //StartS : Layout start:S Layout.
-            SlotId(18) => {
+            SlotId(9) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(5);
-                let end_slot_id = SlotId(18);
+                let nonterminal_id = NonterminalId(3);
+                let end_slot_id = SlotId(9);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -510,16 +347,16 @@ impl<'i> Parser<'i> for StarParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //StartA : . Layout start:A Layout
-            SlotId(19) => {
+            //StartId : . Layout start:Id Layout
+            SlotId(10) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self.get_or_create_terminal_node(TerminalId(1), i, j);
-                        //StartA : Layout . start:A Layout
-                        let next_slot_id = SlotId(20);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
+                        //StartId : Layout . start:Id Layout
+                        let next_slot_id = SlotId(11);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
@@ -529,27 +366,27 @@ impl<'i> Parser<'i> for StarParser<'i> {
                             MatchFailed,
                             "Layout",
                             i,
-                            SlotId(19),
+                            SlotId(10),
                             gss_node_id,
                             result
                         );
                     }
                 }
             }
-            //StartA : Layout . start:A Layout
-            SlotId(20) => {
-                self.create_a(result, gss_node_id, SlotId(21));
+            //StartId : Layout . start:Id Layout
+            SlotId(11) => {
+                self.create_id(result, gss_node_id, SlotId(12));
             }
-            //StartA : Layout start:A . Layout
-            SlotId(21) => {
+            //StartId : Layout start:Id . Layout
+            SlotId(12) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self.get_or_create_terminal_node(TerminalId(1), i, j);
-                        //StartA : Layout start:A Layout.
-                        let next_slot_id = SlotId(22);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
+                        //StartId : Layout start:Id Layout.
+                        let next_slot_id = SlotId(13);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
@@ -569,23 +406,113 @@ impl<'i> Parser<'i> for StarParser<'i> {
                             MatchFailed,
                             "Layout",
                             i,
-                            SlotId(21),
+                            SlotId(12),
                             gss_node_id,
                             result
                         );
                     }
                 }
             }
-            //StartA : Layout start:A Layout.
-            SlotId(22) => {
+            //StartId : Layout start:Id Layout.
+            SlotId(13) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(6);
-                let end_slot_id = SlotId(22);
+                let nonterminal_id = NonterminalId(4);
+                let end_slot_id = SlotId(13);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
+                }
+            }
+            //StartName : . Layout start:Name Layout
+            SlotId(14) => {
+                let i = input_index;
+                record!(self, MatchingTerminal, "Layout", i);
+                match self.scanner.match_token(TerminalId(2), i) {
+                    Some(j) => {
+                        record!(self, MatchSuccess, "Layout", i, j);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
+                        //StartName : Layout . start:Name Layout
+                        let next_slot_id = SlotId(15);
+                        let new_node = right_child_id;
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                    None => {
+                        record!(
+                            self,
+                            MatchFailed,
+                            "Layout",
+                            i,
+                            SlotId(14),
+                            gss_node_id,
+                            result
+                        );
+                    }
+                }
+            }
+            //StartName : Layout . start:Name Layout
+            SlotId(15) => {
+                self.create_name(result, gss_node_id, SlotId(16));
+            }
+            //StartName : Layout start:Name . Layout
+            SlotId(16) => {
+                let i = input_index;
+                record!(self, MatchingTerminal, "Layout", i);
+                match self.scanner.match_token(TerminalId(2), i) {
+                    Some(j) => {
+                        record!(self, MatchSuccess, "Layout", i, j);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(2), i, j);
+                        //StartName : Layout start:Name Layout.
+                        let next_slot_id = SlotId(17);
+                        let left_child_id = result.expect("Result should not be None.");
+                        let left_child = self.sppf_node(left_child_id);
+                        let left_extent = left_child.left_extent();
+                        if let Some(new_node) = self.create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        ) {
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        }
+                    }
+                    None => {
+                        record!(
+                            self,
+                            MatchFailed,
+                            "Layout",
+                            i,
+                            SlotId(16),
+                            gss_node_id,
+                            result
+                        );
+                    }
+                }
+            }
+            //StartName : Layout start:Name Layout.
+            SlotId(17) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(5);
+                let end_slot_id = SlotId(17);
                 if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
                     nonterminal_id,
                     end_slot_id,
@@ -615,7 +542,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
         match nonterminal_id {
             //S
             NonterminalId(0) => {
-                //S : . S_Star_0
+                //S : . Id
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(0),
@@ -624,9 +551,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
                     env,
                 });
             }
-            //A
+            //Id
             NonterminalId(1) => {
-                //A : . "a"
+                //Id : . Name \ Keyword
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(2),
@@ -635,9 +562,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
                     env,
                 });
             }
-            //S_Plus_0
+            //Name
             NonterminalId(2) => {
-                //S_Plus_0 : . S_Plus_0 Layout A
+                //Name : . Identifier
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(4),
@@ -645,18 +572,21 @@ impl<'i> Parser<'i> for StarParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //S_Plus_0 : . A
+            }
+            //StartS
+            NonterminalId(3) => {
+                //StartS : . Layout start:S Layout
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(8),
+                    slot_id: SlotId(6),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
                 });
             }
-            //S_Opt_0
-            NonterminalId(3) => {
-                //S_Opt_0 : . S_Plus_0
+            //StartId
+            NonterminalId(4) => {
+                //StartId : . Layout start:Id Layout
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(10),
@@ -664,43 +594,13 @@ impl<'i> Parser<'i> for StarParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //S_Opt_0 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(12),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
             }
-            //S_Star_0
-            NonterminalId(4) => {
-                //S_Star_0 : . S_Opt_0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(13),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
-            }
-            //StartS
+            //StartName
             NonterminalId(5) => {
-                //StartS : . Layout start:S Layout
+                //StartName : . Layout start:Name Layout
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(15),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
-            }
-            //StartA
-            NonterminalId(6) => {
-                //StartA : . Layout start:A Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(19),
+                    slot_id: SlotId(14),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
@@ -909,22 +809,23 @@ impl<'i> Parser<'i> for StarParser<'i> {
     }
     fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> bool {
         match slot {
+            SlotId(3) => self.scanner.match_token(TerminalId(1), left_extent) != Some(right_extent),
             _ => true,
         }
     }
 }
-pub struct StarParser<'i> {
+pub struct ExceptNonterminalParser<'i> {
     start_nonterminal: NonterminalId,
-    scanner: StarScanner<'i>,
+    scanner: ExceptNonterminalScanner<'i>,
     descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
     //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
-    gss_nodes_index: [Vec<(u32, GssNodeId)>; 7],
+    gss_nodes_index: [Vec<(u32, GssNodeId)>; 6],
     sppf_nodes: Vec<SPPFNode>,
     stats: Stats,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 7],
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 23],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 3],
+    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 18],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
@@ -933,19 +834,19 @@ pub struct StarParser<'i> {
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
-impl<'i> StarParser<'i> {
+impl<'i> ExceptNonterminalParser<'i> {
     pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
         init_logger();
         Self {
             start_nonterminal,
-            scanner: StarScanner::new(input),
-            gss_nodes_index: [const { vec![] }; 7],
+            scanner: ExceptNonterminalScanner::new(input),
+            gss_nodes_index: [const { vec![] }; 6],
             descriptors: vec![],
             gss_nodes: vec![],
             sppf_nodes: vec![],
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 7],
-            intermediate_nodes_index: [const { InlineMap::Empty }; 23],
-            terminal_nodes_index: [const { InlineMap::Empty }; 3],
+            nonterminal_nodes_index: [const { InlineMap::Empty }; 6],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 18],
+            terminal_nodes_index: [const { InlineMap::Empty }; 4],
             stats: Stats::default(),
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
@@ -964,7 +865,7 @@ impl<'i> StarParser<'i> {
     ) {
         self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
     }
-    fn create_a(
+    fn create_id(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
@@ -972,7 +873,7 @@ impl<'i> StarParser<'i> {
     ) {
         self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
     }
-    fn create_s_plus_0(
+    fn create_name(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
@@ -980,7 +881,7 @@ impl<'i> StarParser<'i> {
     ) {
         self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot);
     }
-    fn create_s_opt_0(
+    fn create_start_s(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
@@ -988,7 +889,7 @@ impl<'i> StarParser<'i> {
     ) {
         self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot);
     }
-    fn create_s_star_0(
+    fn create_start_id(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
@@ -996,21 +897,13 @@ impl<'i> StarParser<'i> {
     ) {
         self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot);
     }
-    fn create_start_s(
+    fn create_start_name(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
     ) {
         self.create(NonterminalId(5), sppf_node_id, gss_node_id, return_slot);
-    }
-    fn create_start_a(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-    ) {
-        self.create(NonterminalId(6), sppf_node_id, gss_node_id, return_slot);
     }
 }
 

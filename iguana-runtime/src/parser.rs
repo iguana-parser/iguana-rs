@@ -100,6 +100,11 @@ pub trait Parser<'i> {
         right_extent: u32,
     ) -> Option<SPPFNodeId>;
 
+    /// Checks whether the post-conditions for a given slot are satisfied.
+    /// Called during pop and edge processing to filter results (e.g., nonterminal except).
+    /// Returns `true` if the result should be accepted, `false` if it should be rejected.
+    fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> bool;
+
     /// Creates a new GSS node if it does not exist.
     /// If a GSS node with the same nonterminal name and input index exists, just adds an edge.
     /// `create` corresponds to a function call in recursive-descent parsers.
@@ -166,6 +171,7 @@ pub trait Parser<'i> {
         env: Option<EnvId>,
         binding: Option<&'static str>,
     ) {
+        let left_extent = self.gss_node(existing_gss_node_id).index;
         let popped_elements = std::mem::take(
             self.gss_node_mut(existing_gss_node_id)
                 .popped_elements_mut(),
@@ -175,11 +181,11 @@ pub trait Parser<'i> {
         for popped_element in popped_elements.iter() {
             let popped_node = self.sppf_node(popped_element.nonterminal_node_id);
             let right_extent = popped_node.right_extent();
-            if let Some(new_node) = self.merge(
-                left_child,
-                (popped_element.nonterminal_node_id, right_extent),
-                return_slot,
-            ) {
+            if !self.post_conditions(return_slot, left_extent, right_extent) {
+                continue;
+            }
+            let right_child = (popped_element.nonterminal_node_id, right_extent);
+            if let Some(new_node) = self.merge(left_child, right_child, return_slot) {
                 // Restore the caller's env from the edge and extend it with the
                 // callee's return value bound to the variable name, if present.
                 let env = match (env, binding, popped_element.return_value) {
@@ -249,21 +255,22 @@ pub trait Parser<'i> {
             record!(self, NodeAlreadyInPoppedElements);
             return;
         }
+        let left_extent = gss.index;
         let node = self.sppf_node(popped_element.nonterminal_node_id);
         let right_extent = node.right_extent();
+        let right_child = (popped_element.nonterminal_node_id, right_extent);
         record!(self, AddToPoppedElements, gss_node_id, popped_element);
         let gss = self.gss_node_mut(gss_node_id);
         gss.add_to_popped_elements(popped_element);
         let edges = gss.edges().clone();
         for edge in edges.iter() {
+            if !self.post_conditions(edge.return_slot, left_extent, right_extent) {
+                continue;
+            }
             let left_child = edge
                 .sppf_node_id
                 .map(|id| (id, self.sppf_node(id).left_extent()));
-            if let Some(new_node_id) = self.merge(
-                left_child,
-                (popped_element.nonterminal_node_id, right_extent),
-                edge.return_slot,
-            ) {
+            if let Some(new_node_id) = self.merge(left_child, right_child, edge.return_slot) {
                 let env = match (edge.env, edge.binding, popped_element.return_value) {
                     (Some(env_id), Some(name), Some(rv)) => {
                         let (new_env_id, env) = self.clone_env(env_id);

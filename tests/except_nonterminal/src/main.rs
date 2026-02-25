@@ -1,7 +1,7 @@
 use clap::Parser as ClapParser;
-use except::{
-    parse_tree::{ExceptParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
-    parser::{ExceptParser, NONTERMINALS, SLOTS, TERMINALS},
+use except_nonterminal::{
+    parse_tree::{ExceptNonterminalParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
+    parser::{ExceptNonterminalParser, NONTERMINALS, SLOTS, TERMINALS},
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
@@ -121,19 +121,19 @@ fn main() -> Result<(), io::Error> {
         );
     }
     let input = Input::try_from(file.as_path())?;
-    let start_nonterminal_id =
-        ExceptParser::nonterminal_id(&start_nonterminal_name).ok_or_else(|| {
+    let start_nonterminal_id = ExceptNonterminalParser::nonterminal_id(&start_nonterminal_name)
+        .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 format!("Unknown nonterminal: '{}'", start_nonterminal_name),
             )
         })?;
-    let mut parser = ExceptParser::new(&input, start_nonterminal_id);
+    let mut parser = ExceptNonterminalParser::new(&input, start_nonterminal_id);
     #[cfg(feature = "debug-trace")]
     if cli.trace.is_some() {
         parser.trace_events = Some(vec![]);
     }
-    let parse_tree_builder = ExceptParseTreeBuilder;
+    let parse_tree_builder = ExceptNonterminalParseTreeBuilder;
     let result = parser.run();
     #[cfg(feature = "debug-trace")]
     if let Some(ref trace_events) = parser.trace_events {
