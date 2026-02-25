@@ -200,8 +200,19 @@ impl Symbol {
     /// or `self` otherwise.
     pub fn unwrap(&self) -> &Symbol {
         match self {
-            Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => symbol,
-            _ => self,
+            Symbol::Labeled { symbol, .. }
+            | Symbol::Binding { symbol, .. }
+            | Symbol::Except { symbol, .. } => symbol,
+            Symbol::Identifier(_)
+            | Symbol::Literal(_)
+            | Symbol::Group(_)
+            | Symbol::Opt(_)
+            | Symbol::Alt(_)
+            | Symbol::Star(_, _)
+            | Symbol::Plus(_, _)
+            | Symbol::Call { .. }
+            | Symbol::Condition(_)
+            | Symbol::Return(_) => self,
         }
     }
 
@@ -216,10 +227,17 @@ impl Symbol {
         match self {
             Symbol::Identifier(identifier) => Some(identifier),
             Symbol::Call { name, .. } => Some(name),
-            Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => {
-                symbol.as_identifier()
-            }
-            _ => None,
+            Symbol::Labeled { symbol, .. }
+            | Symbol::Binding { symbol, .. }
+            | Symbol::Except { symbol, .. } => symbol.as_identifier(),
+            Symbol::Literal(_)
+            | Symbol::Group(_)
+            | Symbol::Opt(_)
+            | Symbol::Alt(_)
+            | Symbol::Star(_, _)
+            | Symbol::Plus(_, _)
+            | Symbol::Condition(_)
+            | Symbol::Return(_) => None,
         }
     }
 

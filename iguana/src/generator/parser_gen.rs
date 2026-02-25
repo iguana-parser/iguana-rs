@@ -14,6 +14,7 @@ use crate::grammar::slot::Slot;
 use crate::grammar::symbols::CondOp;
 use crate::grammar::symbols::Definition;
 use crate::grammar::symbols::Expr;
+use crate::grammar::symbols::Identifier;
 use crate::grammar::symbols::Nonterminal;
 use crate::grammar::symbols::Parameter;
 use crate::grammar::symbols::Symbol;
@@ -205,7 +206,14 @@ fn gen_nonterminals(nonterminal_ids: &NonterminalIds) -> TokenStream {
                 Symbol::Alt(_) => quote! { Some(EbnfKind::Alt) },
                 Symbol::Star(_, _) => quote! { Some(EbnfKind::Star) },
                 Symbol::Plus(_, _) => quote! { Some(EbnfKind::Plus) },
-                _ => quote! { None },
+                Symbol::Labeled { .. }
+                | Symbol::Identifier(_)
+                | Symbol::Literal(_)
+                | Symbol::Except { .. }
+                | Symbol::Call { .. }
+                | Symbol::Condition(_)
+                | Symbol::Return(_)
+                | Symbol::Binding { .. } => quote! { None },
             },
             None => quote! { None },
         };
@@ -428,7 +436,22 @@ fn gen_slot_code<'a>(
         Some(Symbol::Return(_)) => {
             return gen_return_code(grammar, &slot, slot_ids);
         }
-        _ => {}
+        Some(Symbol::Except { symbol, except }) => {
+            return gen_except_code(grammar, symbol, except, &slot, terminal_ids, slot_ids);
+        }
+        Some(
+            Symbol::Labeled { .. }
+            | Symbol::Identifier(_)
+            | Symbol::Literal(_)
+            | Symbol::Group(_)
+            | Symbol::Opt(_)
+            | Symbol::Alt(_)
+            | Symbol::Star(_, _)
+            | Symbol::Plus(_, _)
+            | Symbol::Call { .. }
+            | Symbol::Binding { .. },
+        )
+        | None => {}
     }
     let symbol = slot.symbol().unwrap();
     if let Some(identifier) = symbol.as_identifier() {
@@ -436,12 +459,23 @@ fn gen_slot_code<'a>(
         let def = grammar.definition(def_id);
         match def {
             Definition::Terminal(terminal) => {
-                gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids)
+                gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids, &[])
             }
             Definition::Nonterminal(nonterminal) => {
                 let arguments = match symbol.unwrap() {
                     Symbol::Call { arguments, .. } => arguments.clone(),
-                    _ => vec![],
+                    Symbol::Labeled { .. }
+                    | Symbol::Identifier(_)
+                    | Symbol::Literal(_)
+                    | Symbol::Group(_)
+                    | Symbol::Opt(_)
+                    | Symbol::Alt(_)
+                    | Symbol::Star(_, _)
+                    | Symbol::Plus(_, _)
+                    | Symbol::Except { .. }
+                    | Symbol::Condition(_)
+                    | Symbol::Return(_)
+                    | Symbol::Binding { .. } => vec![],
                 };
                 gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids)
             }
@@ -458,6 +492,7 @@ fn gen_terminal_slot<'a>(
     slot: Slot<'a>,
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
+    post_conditions: &[TokenStream],
 ) -> TokenStream {
     let terminal_id = terminal_ids
         .get_id(terminal)
@@ -486,6 +521,15 @@ fn gen_terminal_slot<'a>(
             }
         }
     };
+    let new_node = if post_conditions.is_empty() {
+        new_node
+    } else {
+        quote! {
+            if #(#post_conditions)&&* {
+                #new_node
+            }
+        }
+    };
     let next_slot = slot.next();
     let next_slot_id = slot_ids.id(&next_slot);
     let next_slot_name = next_slot.name(grammar);
@@ -511,6 +555,55 @@ fn gen_terminal_slot<'a>(
                     record!(self, MatchFailed, #terminal_name, i, #slot_id, gss_node_id, result);
                 }
             }
+        }
+    }
+}
+
+fn gen_except_code<'a>(
+    grammar: &'a Grammar,
+    symbol: &Symbol,
+    except: &Identifier,
+    slot: &Slot<'a>,
+    terminal_ids: &mut TerminalIds,
+    slot_ids: &mut SlotIds<'a>,
+) -> TokenStream {
+    let Some(identifier) = symbol.as_identifier() else {
+        return quote! {};
+    };
+    let def_id = identifier.resolve();
+    let def = grammar.definition(def_id);
+    let except_def_id = except.resolve();
+    let Definition::Terminal(except_terminal) = grammar.definition(except_def_id) else {
+        panic!("Except identifier must resolve to a terminal");
+    };
+    let except_terminal_id = terminal_ids
+        .get_id(except_terminal)
+        .unwrap_or_else(|| panic!("cannot find the lexical definition {}", except_terminal.name));
+    let post_conditions = vec![quote! {
+        self.scanner.match_token(#except_terminal_id, i) != Some(j)
+    }];
+    match def {
+        Definition::Terminal(terminal) => {
+            gen_terminal_slot(grammar, terminal, slot.clone(), terminal_ids, slot_ids, &post_conditions)
+        }
+        Definition::Nonterminal(nonterminal) => {
+            // For nonterminals, the except check is handled in the runtime pop mechanism.
+            let arguments = match symbol.unwrap() {
+                Symbol::Call { arguments, .. } => arguments.clone(),
+                Symbol::Labeled { .. }
+                | Symbol::Identifier(_)
+                | Symbol::Literal(_)
+                | Symbol::Group(_)
+                | Symbol::Opt(_)
+                | Symbol::Alt(_)
+                | Symbol::Star(_, _)
+                | Symbol::Plus(_, _)
+                | Symbol::Except { .. }
+                | Symbol::Condition(_)
+                | Symbol::Return(_)
+                | Symbol::Binding { .. } => vec![],
+            };
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids)
         }
     }
 }

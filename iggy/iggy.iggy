@@ -33,6 +33,7 @@ Symbol
   > Symbol "*"                               @Star
   | Symbol "+"                               @Plus
   | Symbol "?"                               @Opt
+  | Symbol "\\" Identifier                   @Except
   > label:Identifier ":" Symbol              @Labeled
 
 Regex
@@ -42,7 +43,8 @@ Regex
   | "(" first:Regex rest:("|" Regex)+ ")"     @Alt
   | "(" Regex+ ")"                            @Group
   | CharClass                                 @CharClass
-  | "\"" Char "\""                            @Char
+  | "'" Char "'"                              @Char
+  | "\"" String "\""                          @String
 
 CharClass
   = neg:"!"? "[" RangeElement+ "]"
@@ -56,15 +58,15 @@ Range
 
 regex {
   Identifier = [a-zA-Z_][a-zA-Z_0-9]*
-  String = (("\\" [' " \\ t f r n]) | !['"\\])*
+  String = (("\\" [" \\ t f r n]) | !["\\])*
 
   RangeChar
     = ![\\ \- \[ \] \t \f \r \n \ ]
     | "\\" [\\ \- \[ \] t f r n \ ]
 
   Char
-    = "\\" [' " \\ t f r n]
-    | !['"\\]
+    = "\\" [' \\ t f r n]
+    | !['\\]
 
   Label = "@" [a-zA-Z_][a-zA-Z_0-9]*
   WS = [\ \n]*

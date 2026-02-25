@@ -197,6 +197,15 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             name: text(input, identifier.span()),
             definition: None,
         }),
+        parse_tree::Symbol::Except {
+            symbol, identifier, ..
+        } => Symbol::Except {
+            symbol: Box::new(convert_symbol(symbol, input)),
+            except: Identifier {
+                name: text(input, identifier.span()),
+                definition: None,
+            },
+        },
     }
 }
 
@@ -238,6 +247,12 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
         parse_tree::Regex::Char { char, .. } => Regex::Char(parse_char(&text(input, char.span()))),
         parse_tree::Regex::Group { regexes, .. } => {
             Regex::Seq(regexes.regexes().map(|r| convert_regex(r, input)).collect())
+        }
+        parse_tree::Regex::String { string, .. } => {
+            let text = text(input, string.span());
+            let unescaped = unescape_string(&text);
+            let regexes = unescaped.chars().map(Regex::Char).collect();
+            Regex::Seq(regexes)
         }
     }
 }

@@ -6,8 +6,7 @@ use iguana_runtime::{
 };
 const CHAR_CLASS_0: [(char, char); 3usize] = [('a', 'z'), ('A', 'Z'), ('_', '_')];
 const CHAR_CLASS_1: [(char, char); 4usize] = [('a', 'z'), ('A', 'Z'), ('_', '_'), ('0', '9')];
-const CHAR_CLASS_2: [(char, char); 7usize] = [
-    ('\'', '\''),
+const CHAR_CLASS_2: [(char, char); 6usize] = [
     ('"', '"'),
     ('\\', '\\'),
     ('t', 't'),
@@ -15,7 +14,7 @@ const CHAR_CLASS_2: [(char, char); 7usize] = [
     ('r', 'r'),
     ('n', 'n'),
 ];
-const CHAR_CLASS_3: [(char, char); 3usize] = [('\'', '\''), ('"', '"'), ('\\', '\\')];
+const CHAR_CLASS_3: [(char, char); 2usize] = [('"', '"'), ('\\', '\\')];
 const CHAR_CLASS_4: [(char, char); 9usize] = [
     ('\\', '\\'),
     ('-', '-'),
@@ -38,7 +37,16 @@ const CHAR_CLASS_5: [(char, char); 9usize] = [
     ('n', 'n'),
     (' ', ' '),
 ];
-const CHAR_CLASS_6: [(char, char); 2usize] = [(' ', ' '), ('\n', '\n')];
+const CHAR_CLASS_6: [(char, char); 6usize] = [
+    ('\'', '\''),
+    ('\\', '\\'),
+    ('t', 't'),
+    ('f', 'f'),
+    ('r', 'r'),
+    ('n', 'n'),
+];
+const CHAR_CLASS_7: [(char, char); 2usize] = [('\'', '\''), ('\\', '\\')];
+const CHAR_CLASS_8: [(char, char); 2usize] = [(' ', ' '), ('\n', '\n')];
 pub struct IggyScanner<'i> {
     pub input: &'i Input,
 }
@@ -84,8 +92,8 @@ impl<'i> IggyScanner<'i> {
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '\\')
-            .and_then(|i| self.match_char_class(i, &CHAR_CLASS_2, false))
-            .or_else(|| self.match_char_class(i, &CHAR_CLASS_3, true))
+            .and_then(|i| self.match_char_class(i, &CHAR_CLASS_6, false))
+            .or_else(|| self.match_char_class(i, &CHAR_CLASS_7, true))
     }
     //Label
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
@@ -104,7 +112,7 @@ impl<'i> IggyScanner<'i> {
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;
-        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_6, false))(j) {
+        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_8, false))(j) {
             j = k;
         }
         Some(j)
@@ -194,36 +202,46 @@ impl<'i> IggyScanner<'i> {
         let i = input_index;
         self.match_char(i, '?')
     }
-    //":"
+    //"\"
     pub fn match_terminal_20(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '\\')
+    }
+    //":"
+    pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ':')
     }
+    //"'"
+    pub fn match_terminal_22(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '\'')
+    }
     //"!"
-    pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_23(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '!')
     }
     //"["
-    pub fn match_terminal_22(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_24(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '[')
     }
     //"]"
-    pub fn match_terminal_23(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_25(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ']')
     }
     //"-"
-    pub fn match_terminal_24(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_26(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '-')
     }
     //Layout
-    pub fn match_terminal_25(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_27(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;
-        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_6, false))(j) {
+        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_8, false))(j) {
             j = k;
         }
         Some(j)
@@ -258,6 +276,8 @@ impl Scanner for IggyScanner<'_> {
             TerminalId(23) => self.match_terminal_23(input_index),
             TerminalId(24) => self.match_terminal_24(input_index),
             TerminalId(25) => self.match_terminal_25(input_index),
+            TerminalId(26) => self.match_terminal_26(input_index),
+            TerminalId(27) => self.match_terminal_27(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

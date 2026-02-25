@@ -49,18 +49,22 @@ pub enum TokenKind {
     T18,
     //"?"
     T19,
-    //":"
+    //"\"
     T20,
-    //"!"
+    //":"
     T21,
-    //"["
+    //"'"
     T22,
-    //"]"
+    //"!"
     T23,
-    //"-"
+    //"["
     T24,
-    //Layout
+    //"]"
     T25,
+    //"-"
+    T26,
+    //Layout
+    T27,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
@@ -85,12 +89,14 @@ impl TokenKind {
             TokenKind::T17 => "\"*\"",
             TokenKind::T18 => "\"+\"",
             TokenKind::T19 => "\"?\"",
-            TokenKind::T20 => "\":\"",
-            TokenKind::T21 => "\"!\"",
-            TokenKind::T22 => "\"[\"",
-            TokenKind::T23 => "\"]\"",
-            TokenKind::T24 => "\"-\"",
-            TokenKind::T25 => "Layout",
+            TokenKind::T20 => "\"\\\"",
+            TokenKind::T21 => "\":\"",
+            TokenKind::T22 => "\"'\"",
+            TokenKind::T23 => "\"!\"",
+            TokenKind::T24 => "\"[\"",
+            TokenKind::T25 => "\"]\"",
+            TokenKind::T26 => "\"-\"",
+            TokenKind::T27 => "Layout",
             _ => unreachable!(),
         }
     }
@@ -1411,6 +1417,15 @@ pub enum Symbol {
         lit_2: Token,
         span: Span,
     },
+    //[2 >= p] l=Symbol(p) [l == 0 || l >= 2] Layout "\" Layout Identifier return 0 @Except
+    Except {
+        symbol: Box<Symbol>,
+        layout_1: Token,
+        lit_2: Token,
+        layout_3: Token,
+        identifier: Token,
+        span: Span,
+    },
     //label:Identifier Layout ":" Layout Symbol(1) return 1 @Labeled
     Labeled {
         label: Token,
@@ -1469,11 +1484,20 @@ pub enum Regex {
         char_class: CharClass,
         span: Span,
     },
-    //""" Layout Char Layout """ @Char
+    //"'" Layout Char Layout "'" @Char
     Char {
         lit_0: Token,
         layout_1: Token,
         char: Token,
+        layout_3: Token,
+        lit_4: Token,
+        span: Span,
+    },
+    //""" Layout String Layout """ @String
+    String {
+        lit_0: Token,
+        layout_1: Token,
+        string: Token,
         layout_3: Token,
         lit_4: Token,
         span: Span,
@@ -2238,6 +2262,21 @@ impl Symbol {
                 2 => Some(lit_2.as_parse_tree_ref()),
                 _ => None,
             },
+            Symbol::Except {
+                symbol,
+                layout_1,
+                lit_2,
+                layout_3,
+                identifier,
+                ..
+            } => match index {
+                0 => Some(symbol.as_parse_tree_ref()),
+                1 => Some(layout_1.as_parse_tree_ref()),
+                2 => Some(lit_2.as_parse_tree_ref()),
+                3 => Some(layout_3.as_parse_tree_ref()),
+                4 => Some(identifier.as_parse_tree_ref()),
+                _ => None,
+            },
             Symbol::Labeled {
                 label,
                 layout_1,
@@ -2266,6 +2305,7 @@ impl Symbol {
             Symbol::Star { .. } => 3usize,
             Symbol::Plus { .. } => 3usize,
             Symbol::Opt { .. } => 3usize,
+            Symbol::Except { .. } => 5usize,
             Symbol::Labeled { .. } => 5usize,
         }
     }
@@ -2283,6 +2323,7 @@ impl Symbol {
             Symbol::Star { span, .. } => *span,
             Symbol::Plus { span, .. } => *span,
             Symbol::Opt { span, .. } => *span,
+            Symbol::Except { span, .. } => *span,
             Symbol::Labeled { span, .. } => *span,
         }
     }
@@ -2376,6 +2417,21 @@ impl Regex {
                 4 => Some(lit_4.as_parse_tree_ref()),
                 _ => None,
             },
+            Regex::String {
+                lit_0,
+                layout_1,
+                string,
+                layout_3,
+                lit_4,
+                ..
+            } => match index {
+                0 => Some(lit_0.as_parse_tree_ref()),
+                1 => Some(layout_1.as_parse_tree_ref()),
+                2 => Some(string.as_parse_tree_ref()),
+                3 => Some(layout_3.as_parse_tree_ref()),
+                4 => Some(lit_4.as_parse_tree_ref()),
+                _ => None,
+            },
         }
     }
     pub fn child_count(&self) -> usize {
@@ -2387,6 +2443,7 @@ impl Regex {
             Regex::Group { .. } => 5usize,
             Regex::CharClass { .. } => 1usize,
             Regex::Char { .. } => 5usize,
+            Regex::String { .. } => 5usize,
         }
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
@@ -2401,6 +2458,7 @@ impl Regex {
             Regex::Group { span, .. } => *span,
             Regex::CharClass { span, .. } => *span,
             Regex::Char { span, .. } => *span,
+            Regex::String { span, .. } => *span,
         }
     }
 }
@@ -4208,18 +4266,22 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         TerminalId(18) => TokenKind::T18,
         //"?"
         TerminalId(19) => TokenKind::T19,
-        //":"
+        //"\"
         TerminalId(20) => TokenKind::T20,
-        //"!"
+        //":"
         TerminalId(21) => TokenKind::T21,
-        //"["
+        //"'"
         TerminalId(22) => TokenKind::T22,
-        //"]"
+        //"!"
         TerminalId(23) => TokenKind::T23,
-        //"-"
+        //"["
         TerminalId(24) => TokenKind::T24,
-        //Layout
+        //"]"
         TerminalId(25) => TokenKind::T25,
+        //"-"
+        TerminalId(26) => TokenKind::T26,
+        //Layout
+        TerminalId(27) => TokenKind::T27,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -4389,7 +4451,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(7) => {
                 match nonterminal_node.return_slot {
                     //Regex : Regex Layout "+".
-                    SlotId(119) => {
+                    SlotId(128) => {
                         let [regex, layout, lit_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         Regex::Plus {
@@ -4401,7 +4463,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //Regex : Regex Layout "*".
-                    SlotId(123) => {
+                    SlotId(132) => {
                         let [regex, layout, lit_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         Regex::Star {
@@ -4413,7 +4475,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //Regex : Regex Layout "?".
-                    SlotId(127) => {
+                    SlotId(136) => {
                         let [regex, layout, lit_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         Regex::Opt {
@@ -4425,7 +4487,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //Regex : "(" Layout first:Regex Layout rest:("|" Regex)+ Layout ")".
-                    SlotId(135) => {
+                    SlotId(144) => {
                         let [lit_0, layout_1, first, layout_3, rest, layout_5, lit_6] =
                             <[ParseTree; 7usize]>::try_from(children).unwrap();
                         Regex::Alt {
@@ -4441,7 +4503,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //Regex : "(" Layout Regex+ Layout ")".
-                    SlotId(141) => {
+                    SlotId(150) => {
                         let [lit_0, layout_1, regexes, layout_3, lit_4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         Regex::Group {
@@ -4455,7 +4517,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //Regex : CharClass.
-                    SlotId(143) => {
+                    SlotId(152) => {
                         let [char_class] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         Regex::CharClass {
                             char_class: char_class.unwrap_char_class(),
@@ -4463,14 +4525,28 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         }
                         .into()
                     }
-                    //Regex : """ Layout Char Layout """.
-                    SlotId(149) => {
+                    //Regex : "'" Layout Char Layout "'".
+                    SlotId(158) => {
                         let [lit_0, layout_1, char, layout_3, lit_4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         Regex::Char {
                             lit_0: lit_0.unwrap_token(),
                             layout_1: layout_1.unwrap_token(),
                             char: char.unwrap_token(),
+                            layout_3: layout_3.unwrap_token(),
+                            lit_4: lit_4.unwrap_token(),
+                            span: nonterminal_node.span,
+                        }
+                        .into()
+                    }
+                    //Regex : """ Layout String Layout """.
+                    SlotId(164) => {
+                        let [lit_0, layout_1, string, layout_3, lit_4] =
+                            <[ParseTree; 5usize]>::try_from(children).unwrap();
+                        Regex::String {
+                            lit_0: lit_0.unwrap_token(),
+                            layout_1: layout_1.unwrap_token(),
+                            string: string.unwrap_token(),
                             layout_3: layout_3.unwrap_token(),
                             lit_4: lit_4.unwrap_token(),
                             span: nonterminal_node.span,
@@ -4484,7 +4560,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(8) => {
                 match nonterminal_node.return_slot {
                     //CharClass : neg:"!"? Layout "[" Layout RangeElement+ Layout "]".
-                    SlotId(157) => {
+                    SlotId(172) => {
                         let [
                             neg,
                             layout_1,
@@ -4513,7 +4589,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(9) => {
                 match nonterminal_node.return_slot {
                     //RangeElement : Range.
-                    SlotId(159) => {
+                    SlotId(174) => {
                         let [range] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         RangeElement::Alt0 {
                             range: range.unwrap_range(),
@@ -4522,7 +4598,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //RangeElement : RangeChar.
-                    SlotId(161) => {
+                    SlotId(176) => {
                         let [range_char] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         RangeElement::Alt1 {
                             range_char: range_char.unwrap_token(),
@@ -4537,7 +4613,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(10) => {
                 match nonterminal_node.return_slot {
                     //Range : start:RangeChar Layout "-" Layout end:RangeChar.
-                    SlotId(167) => {
+                    SlotId(182) => {
                         let [start, layout_1, lit_2, layout_3, end] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         Range {
@@ -4557,7 +4633,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(11) => {
                 match nonterminal_node.return_slot {
                     //LayoutDef? : LayoutDef.
-                    SlotId(169) => {
+                    SlotId(184) => {
                         let [layout_def] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         GrammarOpt0::Alt0 {
                             layout_def: Box::new(layout_def.unwrap_layout_def()),
@@ -4566,7 +4642,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //LayoutDef? : .
-                    SlotId(170) => {
+                    SlotId(185) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         GrammarOpt0::Alt1 {
                             span: nonterminal_node.span,
@@ -4580,7 +4656,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(12) => {
                 match nonterminal_node.return_slot {
                     //SyntaxRule+ : SyntaxRule+ Layout SyntaxRule.
-                    SlotId(174) => {
+                    SlotId(189) => {
                         let [syntax_rules, layout, syntax_rule_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         GrammarPlus0::Alt0 {
@@ -4592,7 +4668,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //SyntaxRule+ : SyntaxRule.
-                    SlotId(176) => {
+                    SlotId(191) => {
                         let [syntax_rule] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         GrammarPlus0::Alt1 {
                             syntax_rule: Box::new(syntax_rule.unwrap_syntax_rule()),
@@ -4607,7 +4683,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(13) => {
                 match nonterminal_node.return_slot {
                     //SyntaxRule+? : SyntaxRule+.
-                    SlotId(178) => {
+                    SlotId(193) => {
                         let [syntax_rules] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         GrammarOpt1::Alt0 {
                             syntax_rules: syntax_rules.unwrap_grammar_plus_0(),
@@ -4616,7 +4692,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //SyntaxRule+? : .
-                    SlotId(179) => {
+                    SlotId(194) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         GrammarOpt1::Alt1 {
                             span: nonterminal_node.span,
@@ -4630,7 +4706,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(14) => {
                 match nonterminal_node.return_slot {
                     //SyntaxRule* : SyntaxRule+?.
-                    SlotId(181) => {
+                    SlotId(196) => {
                         let [grammar_opt_1] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         GrammarStar0 {
                             grammar_opt_1: grammar_opt_1.unwrap_grammar_opt_1(),
@@ -4645,7 +4721,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(15) => {
                 match nonterminal_node.return_slot {
                     //RegexBlock? : RegexBlock.
-                    SlotId(183) => {
+                    SlotId(198) => {
                         let [regex_block] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         GrammarOpt2::Alt0 {
                             regex_block: Box::new(regex_block.unwrap_regex_block()),
@@ -4654,7 +4730,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //RegexBlock? : .
-                    SlotId(184) => {
+                    SlotId(199) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         GrammarOpt2::Alt1 {
                             span: nonterminal_node.span,
@@ -4668,7 +4744,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(16) => {
                 match nonterminal_node.return_slot {
                     //Identifier+ : Identifier+ Layout Identifier.
-                    SlotId(188) => {
+                    SlotId(203) => {
                         let [identifiers, layout, identifier_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         LayoutDefPlus1::Alt0 {
@@ -4680,7 +4756,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //Identifier+ : Identifier.
-                    SlotId(190) => {
+                    SlotId(205) => {
                         let [identifier] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         LayoutDefPlus1::Alt1 {
                             identifier: identifier.unwrap_token(),
@@ -4695,7 +4771,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(17) => {
                 match nonterminal_node.return_slot {
                     //Identifier+? : Identifier+.
-                    SlotId(192) => {
+                    SlotId(207) => {
                         let [identifiers] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         LayoutDefOpt3::Alt0 {
                             identifiers: identifiers.unwrap_layout_def_plus_1(),
@@ -4704,7 +4780,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //Identifier+? : .
-                    SlotId(193) => {
+                    SlotId(208) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         LayoutDefOpt3::Alt1 {
                             span: nonterminal_node.span,
@@ -4718,7 +4794,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(18) => {
                 match nonterminal_node.return_slot {
                     //Identifier* : Identifier+?.
-                    SlotId(195) => {
+                    SlotId(210) => {
                         let [layout_def_opt_3] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         LayoutDefStar1 {
                             layout_def_opt_3: layout_def_opt_3.unwrap_layout_def_opt_3(),
@@ -4733,7 +4809,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(19) => {
                 match nonterminal_node.return_slot {
                     //{PriorityLevel ">"}+ : {PriorityLevel ">"}+ Layout ">" Layout PriorityLevel.
-                    SlotId(201) => {
+                    SlotId(216) => {
                         let [priority_levels, layout_1, lit_2, layout_3, priority_level_4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         SyntaxRulePlus2::Alt0 {
@@ -4747,7 +4823,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //{PriorityLevel ">"}+ : PriorityLevel.
-                    SlotId(203) => {
+                    SlotId(218) => {
                         let [priority_level] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         SyntaxRulePlus2::Alt1 {
                             priority_level: Box::new(priority_level.unwrap_priority_level()),
@@ -4762,7 +4838,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(20) => {
                 match nonterminal_node.return_slot {
                     //{PriorityLevel ">"}+? : {PriorityLevel ">"}+.
-                    SlotId(205) => {
+                    SlotId(220) => {
                         let [priority_levels] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         SyntaxRuleOpt4::Alt0 {
                             priority_levels: priority_levels.unwrap_syntax_rule_plus_2(),
@@ -4771,7 +4847,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //{PriorityLevel ">"}+? : .
-                    SlotId(206) => {
+                    SlotId(221) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         SyntaxRuleOpt4::Alt1 {
                             span: nonterminal_node.span,
@@ -4785,7 +4861,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(21) => {
                 match nonterminal_node.return_slot {
                     //{PriorityLevel ">"}* : {PriorityLevel ">"}+?.
-                    SlotId(208) => {
+                    SlotId(223) => {
                         let [syntax_rule_opt_4] =
                             <[ParseTree; 1usize]>::try_from(children).unwrap();
                         SyntaxRuleStar2 {
@@ -4801,7 +4877,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(22) => {
                 match nonterminal_node.return_slot {
                     //RegexRule+ : RegexRule+ Layout RegexRule.
-                    SlotId(212) => {
+                    SlotId(227) => {
                         let [regex_rules, layout, regex_rule_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         RegexBlockPlus3::Alt0 {
@@ -4813,7 +4889,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //RegexRule+ : RegexRule.
-                    SlotId(214) => {
+                    SlotId(229) => {
                         let [regex_rule] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         RegexBlockPlus3::Alt1 {
                             regex_rule: Box::new(regex_rule.unwrap_regex_rule()),
@@ -4828,7 +4904,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(23) => {
                 match nonterminal_node.return_slot {
                     //RegexRule+? : RegexRule+.
-                    SlotId(216) => {
+                    SlotId(231) => {
                         let [regex_rules] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         RegexBlockOpt5::Alt0 {
                             regex_rules: regex_rules.unwrap_regex_block_plus_3(),
@@ -4837,7 +4913,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //RegexRule+? : .
-                    SlotId(217) => {
+                    SlotId(232) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         RegexBlockOpt5::Alt1 {
                             span: nonterminal_node.span,
@@ -4851,7 +4927,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(24) => {
                 match nonterminal_node.return_slot {
                     //RegexRule* : RegexRule+?.
-                    SlotId(219) => {
+                    SlotId(234) => {
                         let [regex_block_opt_5] =
                             <[ParseTree; 1usize]>::try_from(children).unwrap();
                         RegexBlockStar3 {
@@ -4867,7 +4943,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(25) => {
                 match nonterminal_node.return_slot {
                     //Regex+ : Regex+ Layout Regex.
-                    SlotId(223) => {
+                    SlotId(238) => {
                         let [regexes, layout, regex_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         RegexRulePlus5::Alt0 {
@@ -4879,7 +4955,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //Regex+ : Regex.
-                    SlotId(225) => {
+                    SlotId(240) => {
                         let [regex] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         RegexRulePlus5::Alt1 {
                             regex: Box::new(regex.unwrap_regex()),
@@ -4894,7 +4970,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(26) => {
                 match nonterminal_node.return_slot {
                     //{Regex+ "|"}+ : {Regex+ "|"}+ Layout "|" Layout Regex+.
-                    SlotId(231) => {
+                    SlotId(246) => {
                         let [regex_rule_plus_4, layout_1, lit_2, layout_3, regexes] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         RegexRulePlus4::Alt0 {
@@ -4910,7 +4986,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //{Regex+ "|"}+ : Regex+.
-                    SlotId(233) => {
+                    SlotId(248) => {
                         let [regexes] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         RegexRulePlus4::Alt1 {
                             regexes: regexes.unwrap_regex_rule_plus_5(),
@@ -4925,7 +5001,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(27) => {
                 match nonterminal_node.return_slot {
                     //{Alternative "|"}+ : {Alternative "|"}+ Layout "|" Layout Alternative.
-                    SlotId(239) => {
+                    SlotId(254) => {
                         let [alternatives, layout_1, lit_2, layout_3, alternative_4] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         PriorityLevelPlus6::Alt0 {
@@ -4939,7 +5015,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //{Alternative "|"}+ : Alternative.
-                    SlotId(241) => {
+                    SlotId(256) => {
                         let [alternative] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         PriorityLevelPlus6::Alt1 {
                             alternative: Box::new(alternative.unwrap_alternative()),
@@ -4954,7 +5030,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(28) => {
                 match nonterminal_node.return_slot {
                     //{Alternative "|"}+? : {Alternative "|"}+.
-                    SlotId(243) => {
+                    SlotId(258) => {
                         let [alternatives] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         PriorityLevelOpt6::Alt0 {
                             alternatives: alternatives.unwrap_priority_level_plus_6(),
@@ -4963,7 +5039,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //{Alternative "|"}+? : .
-                    SlotId(244) => {
+                    SlotId(259) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         PriorityLevelOpt6::Alt1 {
                             span: nonterminal_node.span,
@@ -4977,7 +5053,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(29) => {
                 match nonterminal_node.return_slot {
                     //{Alternative "|"}* : {Alternative "|"}+?.
-                    SlotId(246) => {
+                    SlotId(261) => {
                         let [priority_level_opt_6] =
                             <[ParseTree; 1usize]>::try_from(children).unwrap();
                         PriorityLevelStar4 {
@@ -4994,7 +5070,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(30) => {
                 match nonterminal_node.return_slot {
                     //Symbol+ : Symbol+ Layout Symbol(0).
-                    SlotId(250) => {
+                    SlotId(265) => {
                         let [symbols, layout, symbol_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         AlternativePlus7::Alt0 {
@@ -5006,7 +5082,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //Symbol+ : Symbol(0).
-                    SlotId(252) => {
+                    SlotId(267) => {
                         let [symbol] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         AlternativePlus7::Alt1 {
                             symbol: Box::new(symbol.unwrap_symbol()),
@@ -5021,7 +5097,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(31) => {
                 match nonterminal_node.return_slot {
                     //Symbol+? : Symbol+.
-                    SlotId(254) => {
+                    SlotId(269) => {
                         let [symbols] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         AlternativeOpt7::Alt0 {
                             symbols: symbols.unwrap_alternative_plus_7(),
@@ -5030,7 +5106,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //Symbol+? : .
-                    SlotId(255) => {
+                    SlotId(270) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         AlternativeOpt7::Alt1 {
                             span: nonterminal_node.span,
@@ -5044,7 +5120,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(32) => {
                 match nonterminal_node.return_slot {
                     //Symbol* : Symbol+?.
-                    SlotId(257) => {
+                    SlotId(272) => {
                         let [alternative_opt_7] =
                             <[ParseTree; 1usize]>::try_from(children).unwrap();
                         AlternativeStar5 {
@@ -5060,7 +5136,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(33) => {
                 match nonterminal_node.return_slot {
                     //Label? : Label.
-                    SlotId(259) => {
+                    SlotId(274) => {
                         let [label] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         AlternativeOpt8::Alt0 {
                             label: label.unwrap_token(),
@@ -5069,7 +5145,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //Label? : .
-                    SlotId(260) => {
+                    SlotId(275) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         AlternativeOpt8::Alt1 {
                             span: nonterminal_node.span,
@@ -5083,7 +5159,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(34) => {
                 match nonterminal_node.return_slot {
                     //("|" Symbol) : "|" Layout Symbol(0).
-                    SlotId(264) => {
+                    SlotId(279) => {
                         let [lit_0, layout, symbol] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         SymbolGroup0 {
@@ -5101,7 +5177,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(35) => {
                 match nonterminal_node.return_slot {
                     //("|" Symbol)+ : ("|" Symbol)+ Layout ("|" Symbol).
-                    SlotId(268) => {
+                    SlotId(283) => {
                         let [symbol_plus_8, layout, symbol_group_0] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         SymbolPlus8::Alt0 {
@@ -5113,7 +5189,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //("|" Symbol)+ : ("|" Symbol).
-                    SlotId(270) => {
+                    SlotId(285) => {
                         let [symbol_group_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         SymbolPlus8::Alt1 {
                             symbol_group_0: symbol_group_0.unwrap_symbol_group_0(),
@@ -5128,7 +5204,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(36) => {
                 match nonterminal_node.return_slot {
                     //("|" Regex) : "|" Layout Regex.
-                    SlotId(274) => {
+                    SlotId(289) => {
                         let [lit_0, layout, regex] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         RegexGroup1 {
@@ -5146,7 +5222,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(37) => {
                 match nonterminal_node.return_slot {
                     //("|" Regex)+ : ("|" Regex)+ Layout ("|" Regex).
-                    SlotId(278) => {
+                    SlotId(293) => {
                         let [regex_plus_9, layout, regex_group_1] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         RegexPlus9::Alt0 {
@@ -5158,7 +5234,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //("|" Regex)+ : ("|" Regex).
-                    SlotId(280) => {
+                    SlotId(295) => {
                         let [regex_group_1] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         RegexPlus9::Alt1 {
                             regex_group_1: regex_group_1.unwrap_regex_group_1(),
@@ -5173,7 +5249,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(38) => {
                 match nonterminal_node.return_slot {
                     //"!"? : "!".
-                    SlotId(282) => {
+                    SlotId(297) => {
                         let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         CharClassOpt9::Alt0 {
                             lit_0: lit_0.unwrap_token(),
@@ -5182,7 +5258,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //"!"? : .
-                    SlotId(283) => {
+                    SlotId(298) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         CharClassOpt9::Alt1 {
                             span: nonterminal_node.span,
@@ -5196,7 +5272,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(39) => {
                 match nonterminal_node.return_slot {
                     //RangeElement+ : RangeElement+ Layout RangeElement.
-                    SlotId(287) => {
+                    SlotId(302) => {
                         let [range_elements, layout, range_element_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         CharClassPlus10::Alt0 {
@@ -5208,7 +5284,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         .into()
                     }
                     //RangeElement+ : RangeElement.
-                    SlotId(289) => {
+                    SlotId(304) => {
                         let [range_element] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         CharClassPlus10::Alt1 {
                             range_element: Box::new(range_element.unwrap_range_element()),
@@ -5223,7 +5299,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(40) => {
                 match nonterminal_node.return_slot {
                     //StartGrammar : Layout start:Grammar Layout.
-                    SlotId(293) => {
+                    SlotId(308) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartGrammar {
@@ -5241,7 +5317,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(41) => {
                 match nonterminal_node.return_slot {
                     //StartLayoutDef : Layout start:LayoutDef Layout.
-                    SlotId(297) => {
+                    SlotId(312) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartLayoutDef {
@@ -5259,7 +5335,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(42) => {
                 match nonterminal_node.return_slot {
                     //StartSyntaxRule : Layout start:SyntaxRule Layout.
-                    SlotId(301) => {
+                    SlotId(316) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartSyntaxRule {
@@ -5277,7 +5353,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(43) => {
                 match nonterminal_node.return_slot {
                     //StartRegexBlock : Layout start:RegexBlock Layout.
-                    SlotId(305) => {
+                    SlotId(320) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartRegexBlock {
@@ -5295,7 +5371,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(44) => {
                 match nonterminal_node.return_slot {
                     //StartRegexRule : Layout start:RegexRule Layout.
-                    SlotId(309) => {
+                    SlotId(324) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartRegexRule {
@@ -5313,7 +5389,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(45) => {
                 match nonterminal_node.return_slot {
                     //StartPriorityLevel : Layout start:PriorityLevel Layout.
-                    SlotId(313) => {
+                    SlotId(328) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartPriorityLevel {
@@ -5331,7 +5407,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(46) => {
                 match nonterminal_node.return_slot {
                     //StartAlternative : Layout start:Alternative Layout.
-                    SlotId(317) => {
+                    SlotId(332) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartAlternative {
@@ -5349,7 +5425,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(47) => {
                 match nonterminal_node.return_slot {
                     //StartSymbol : Layout start:Symbol(0) Layout.
-                    SlotId(321) => {
+                    SlotId(336) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartSymbol {
@@ -5367,7 +5443,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(48) => {
                 match nonterminal_node.return_slot {
                     //StartRegex : Layout start:Regex Layout.
-                    SlotId(325) => {
+                    SlotId(340) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartRegex {
@@ -5385,7 +5461,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(49) => {
                 match nonterminal_node.return_slot {
                     //StartCharClass : Layout start:CharClass Layout.
-                    SlotId(329) => {
+                    SlotId(344) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartCharClass {
@@ -5403,7 +5479,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(50) => {
                 match nonterminal_node.return_slot {
                     //StartRangeElement : Layout start:RangeElement Layout.
-                    SlotId(333) => {
+                    SlotId(348) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartRangeElement {
@@ -5421,7 +5497,7 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             NonterminalId(51) => {
                 match nonterminal_node.return_slot {
                     //StartRange : Layout start:Range Layout.
-                    SlotId(337) => {
+                    SlotId(352) => {
                         let [layout_0, start, layout_2] =
                             <[ParseTree; 3usize]>::try_from(children).unwrap();
                         StartRange {
@@ -5581,8 +5657,22 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                         }
                         .into()
                     }
+                    //Symbol : [2 >= p] l=Symbol(p) [l == 0 || l >= 2] Layout "\" Layout Identifier return 0.
+                    SlotId(117) => {
+                        let [symbol, layout_1, lit_2, layout_3, identifier] =
+                            <[ParseTree; 5usize]>::try_from(children).unwrap();
+                        Symbol::Except {
+                            symbol: Box::new(symbol.unwrap_symbol()),
+                            layout_1: layout_1.unwrap_token(),
+                            lit_2: lit_2.unwrap_token(),
+                            layout_3: layout_3.unwrap_token(),
+                            identifier: identifier.unwrap_token(),
+                            span: nonterminal_node.span,
+                        }
+                        .into()
+                    }
                     //Symbol : label:Identifier Layout ":" Layout Symbol(1) return 1.
-                    SlotId(115) => {
+                    SlotId(124) => {
                         let [label, layout_1, lit_2, layout_3, symbol] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         Symbol::Labeled {
