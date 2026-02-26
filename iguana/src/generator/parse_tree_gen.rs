@@ -1165,9 +1165,16 @@ fn is_single_symbol_alternation(grammar: &Grammar, nonterminal: &Nonterminal) ->
     if matches!(&nonterminal.origin, Some(Symbol::Alt(_))) {
         return true;
     }
-    // Named nonterminals: check if they have multiple alternatives, each with exactly one symbol
+    // Named nonterminals: check if they have multiple alternatives, each with exactly one symbol.
     let alternatives = grammar.alternatives(nonterminal);
-    alternatives.len() > 1 && alternatives.iter().all(|alt| alt.symbols.len() == 1)
+    alternatives.len() > 1
+        && alternatives.iter().all(|alt| {
+            alt.symbols.len() == 1
+                && match grammar.definition(alt.symbols[0].resolved_def()) {
+                    Definition::Nonterminal(_) => true,
+                    Definition::Terminal(t) => !t.is_literal(),
+                }
+        })
 }
 
 /// Generates `as_xxx` accessor methods for single-symbol alternation nonterminals.

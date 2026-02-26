@@ -18,7 +18,12 @@ RegexRule
   = Identifier "=" body:{ Regex+ "|" }+
 
 PriorityLevel
-  = { Alternative "|" }*
+  = Associativity? { Alternative "|" }*
+
+Associativity
+  = "left"
+  | "right"
+  | "none"
 
 Alternative
   = Symbol* Label?
