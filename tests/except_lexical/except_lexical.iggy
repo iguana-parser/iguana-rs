@@ -1,0 +1,8 @@
+grammar ExceptLexical
+
+S = Identifier
+
+regex {
+  Keyword = "if" | "else" | "while"
+  Identifier = [a-zA-Z]+ \ Keyword
+}

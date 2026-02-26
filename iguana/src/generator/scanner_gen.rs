@@ -6,7 +6,7 @@ use crate::{
     grammar::{
         def::Grammar,
         regex::{CharClass, CharRange, Regex},
-        symbols::Terminal,
+        symbols::{Definition, Terminal},
     },
 };
 
@@ -16,8 +16,8 @@ pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
     // Collect all character classes from lexical rules
     let mut char_class_ids = CharClassIds::default();
     for terminal in grammar.terminals() {
-        if let Some(regex) = grammar.lexical_rules(terminal) {
-            collect_char_classes(regex, &mut char_class_ids);
+        if let Some(rule) = grammar.lexical_rule(terminal) {
+            collect_char_classes(&rule.regex, &mut char_class_ids);
         }
     }
 
@@ -91,7 +91,7 @@ fn gen_scanner_imp(
         .terminals()
         .enumerate()
         .map(|(id, terminal)| {
-            gen_match_terminal_method(id as u16, terminal, char_class_ids, grammar)
+            gen_match_terminal_method(id as u16, terminal, char_class_ids, grammar, terminal_ids)
         })
         .collect();
     quote! {
@@ -167,19 +167,40 @@ fn gen_match_terminal_method(
     terminal: &Terminal,
     char_class_ids: &CharClassIds,
     grammar: &Grammar,
+    terminal_ids: &TerminalIds,
 ) -> TokenStream {
     let fn_name = format_ident!("match_terminal_{}", id);
-    let terminal_name = &terminal.name;
-    let regex = grammar
-        .lexical_rules(terminal)
+    let rule = grammar
+        .lexical_rule(terminal)
         .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
-    let match_regex = match_regex(regex, char_class_ids);
+    let match_regex = match_regex(&rule.regex, char_class_ids);
 
+    let except_check = rule.except.as_ref().map(|except| {
+        let Definition::Terminal(except_terminal) = grammar.definition(except.resolve()) else {
+            panic!("Except {} must refer to a terminal", except.name);
+        };
+        let except_id = terminal_ids
+            .get_id(except_terminal)
+            .unwrap_or_else(|| panic!("Except terminal {} is not defined", except.name));
+        let except_fn = format_ident!("match_terminal_{}", except_id.index());
+        quote! {
+            .and_then(|end| {
+                if self.#except_fn(input_index) == Some(end) {
+                    None
+                } else {
+                    Some(end)
+                }
+            })
+        }
+    });
+
+    let comment = rule.to_string();
     quote! {
-        #[comment = #terminal_name]
+        #[comment = #comment]
         pub fn #fn_name(&self, input_index: u32) -> Option<u32> {
             let i = input_index;
             #match_regex
+            #except_check
         }
     }
 }

@@ -1,0 +1,63 @@
+use iguana_runtime::{
+    ids::TerminalId,
+    input::Input,
+    scanner::Scanner,
+    sppf::{Span, TerminalNode},
+};
+pub struct AssocTestScanner<'i> {
+    pub input: &'i Input,
+}
+impl<'i> AssocTestScanner<'i> {
+    pub fn new(input: &'i Input) -> Self {
+        Self { input }
+    }
+    //"+" = +
+    pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '+')
+    }
+    //"-" = -
+    pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '-')
+    }
+    //";" = ;
+    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, ';')
+    }
+    //"<" = <
+    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '<')
+    }
+    //"a" = a
+    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, 'a')
+    }
+    //Layout = ε
+    pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        Some(i)
+    }
+}
+impl Scanner for AssocTestScanner<'_> {
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        match terminal_id {
+            TerminalId(0) => self.match_terminal_0(input_index),
+            TerminalId(1) => self.match_terminal_1(input_index),
+            TerminalId(2) => self.match_terminal_2(input_index),
+            TerminalId(3) => self.match_terminal_3(input_index),
+            TerminalId(4) => self.match_terminal_4(input_index),
+            TerminalId(5) => self.match_terminal_5(input_index),
+            _ => {
+                unreachable!("Unknown token type: {terminal_id}");
+            }
+        }
+    }
+    fn char_at(&self, i: u32) -> Option<char> {
+        self.input.char_at(i)
+    }
+}
+

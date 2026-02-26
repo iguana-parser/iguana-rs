@@ -13,7 +13,7 @@ use iguana_runtime::{
 };
 
 use crate::grammar::{
-    def::{Alternative, GrammarDef, LexicalRule, PriorityLevel, SyntaxRule},
+    def::{Alternative, Associativity, GrammarDef, LexicalRule, PriorityLevel, SyntaxRule},
     regex::{CharClass, CharRange, Regex},
     symbols::{Identifier, Nonterminal, Symbol, Terminal},
 };
@@ -129,7 +129,16 @@ fn convert_priority_level(level: &parse_tree::PriorityLevel, input: &Input) -> P
         .map(|alt| convert_alternative(alt, input))
         .collect();
 
-    PriorityLevel::new(alternatives)
+    let associativity = level.associativity.value().map(|assoc| {
+        match text(input, assoc.span()).as_str() {
+            "left" => Associativity::Left,
+            "right" => Associativity::Right,
+            "none" => Associativity::NonAssoc,
+            other => panic!("Unknown associativity: {other}"),
+        }
+    });
+
+    PriorityLevel::with_associativity(alternatives, associativity)
 }
 
 fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternative {
@@ -151,7 +160,6 @@ fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternat
     Alternative {
         symbols,
         label,
-        associativity: None,
     }
 }
 

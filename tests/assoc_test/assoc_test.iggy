@@ -1,0 +1,9 @@
+grammar AssocTest
+
+S = E
+
+E = left  E "+" E
+  |       E "-" E
+  > right E ";" E
+  > none  E "<" E
+  > "a"

@@ -28,11 +28,10 @@ where
                     Alternative {
                         symbols: new_symbols,
                         label: alternative.label,
-                        associativity: alternative.associativity,
                     }
                 })
                 .collect();
-            PriorityLevel::new(new_alternatives)
+            PriorityLevel::with_associativity(new_alternatives, priority_level.associativity)
         })
         .collect();
     let origin = rule.head.origin.map(transform_symbol);
@@ -60,11 +59,10 @@ where
                     Alternative {
                         symbols: new_symbols,
                         label: alternative.label,
-                        associativity: alternative.associativity,
                     }
                 })
                 .collect();
-            PriorityLevel::new(new_alternatives)
+            PriorityLevel::with_associativity(new_alternatives, priority_level.associativity)
         })
         .collect();
     SyntaxRule::new(rule.head, new_priority_levels)

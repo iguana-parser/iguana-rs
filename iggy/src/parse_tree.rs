@@ -9,103 +9,106 @@ use iguana_runtime::{
 use std::{fmt::Write, vec::IntoIter};
 #[derive(Debug)]
 pub enum TokenKind {
-    //Identifier
+    //Keyword
     T0,
-    //String
+    //Identifier
     T1,
-    //RangeChar
+    //String
     T2,
-    //Char
+    //RangeChar
     T3,
-    //Label
+    //Char
     T4,
-    //WS
+    //Label
     T5,
-    //"grammar"
+    //WS
     T6,
-    //"layout"
+    //"grammar"
     T7,
-    //"="
+    //"layout"
     T8,
-    //">"
+    //"="
     T9,
-    //"regex"
+    //">"
     T10,
-    //"{"
+    //"regex"
     T11,
-    //"}"
+    //"{"
     T12,
-    //"|"
+    //"}"
     T13,
-    //"\"
+    //"|"
     T14,
-    //"left"
+    //"\"
     T15,
-    //"right"
+    //"left"
     T16,
-    //"none"
+    //"right"
     T17,
-    //"("
+    //"none"
     T18,
-    //")"
+    //"("
     T19,
-    //"""
+    //")"
     T20,
-    //"*"
+    //"""
     T21,
-    //"+"
+    //"*"
     T22,
-    //"?"
+    //"+"
     T23,
-    //":"
+    //"?"
     T24,
-    //"'"
+    //":"
     T25,
-    //"!"
+    //"'"
     T26,
-    //"["
+    //"!"
     T27,
-    //"]"
+    //"["
     T28,
-    //"-"
+    //"]"
     T29,
-    //Layout
+    //"-"
     T30,
+    //Layout
+    T31,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
         match self {
-            TokenKind::T0 => "Identifier",
-            TokenKind::T1 => "String",
-            TokenKind::T2 => "RangeChar",
-            TokenKind::T3 => "Char",
-            TokenKind::T4 => "Label",
-            TokenKind::T5 => "WS",
-            TokenKind::T6 => "\"grammar\"",
-            TokenKind::T7 => "\"layout\"",
-            TokenKind::T8 => "\"=\"",
-            TokenKind::T9 => "\">\"",
-            TokenKind::T10 => "\"regex\"",
-            TokenKind::T11 => "\"{\"",
-            TokenKind::T12 => "\"}\"",
-            TokenKind::T13 => "\"|\"",
-            TokenKind::T14 => "\"\\\"",
-            TokenKind::T15 => "\"left\"",
-            TokenKind::T16 => "\"right\"",
-            TokenKind::T17 => "\"none\"",
-            TokenKind::T18 => "\"(\"",
-            TokenKind::T19 => "\")\"",
-            TokenKind::T20 => "\"\"\"",
-            TokenKind::T21 => "\"*\"",
-            TokenKind::T22 => "\"+\"",
-            TokenKind::T23 => "\"?\"",
-            TokenKind::T24 => "\":\"",
-            TokenKind::T25 => "\"'\"",
-            TokenKind::T26 => "\"!\"",
-            TokenKind::T27 => "\"[\"",
-            TokenKind::T28 => "\"]\"",
-            TokenKind::T29 => "\"-\"",
-            TokenKind::T30 => "Layout",
+            TokenKind::T0 => "Keyword",
+            TokenKind::T1 => "Identifier",
+            TokenKind::T2 => "String",
+            TokenKind::T3 => "RangeChar",
+            TokenKind::T4 => "Char",
+            TokenKind::T5 => "Label",
+            TokenKind::T6 => "WS",
+            TokenKind::T7 => "\"grammar\"",
+            TokenKind::T8 => "\"layout\"",
+            TokenKind::T9 => "\"=\"",
+            TokenKind::T10 => "\">\"",
+            TokenKind::T11 => "\"regex\"",
+            TokenKind::T12 => "\"{\"",
+            TokenKind::T13 => "\"}\"",
+            TokenKind::T14 => "\"|\"",
+            TokenKind::T15 => "\"\\\"",
+            TokenKind::T16 => "\"left\"",
+            TokenKind::T17 => "\"right\"",
+            TokenKind::T18 => "\"none\"",
+            TokenKind::T19 => "\"(\"",
+            TokenKind::T20 => "\")\"",
+            TokenKind::T21 => "\"\"\"",
+            TokenKind::T22 => "\"*\"",
+            TokenKind::T23 => "\"+\"",
+            TokenKind::T24 => "\"?\"",
+            TokenKind::T25 => "\":\"",
+            TokenKind::T26 => "\"'\"",
+            TokenKind::T27 => "\"!\"",
+            TokenKind::T28 => "\"[\"",
+            TokenKind::T29 => "\"]\"",
+            TokenKind::T30 => "\"-\"",
+            TokenKind::T31 => "Layout",
             _ => unreachable!(),
         }
     }
@@ -4597,68 +4600,70 @@ impl Token {
 }
 fn token_kind(terminal_id: TerminalId) -> TokenKind {
     match terminal_id {
-        //Identifier
+        //Keyword
         TerminalId(0) => TokenKind::T0,
-        //String
+        //Identifier
         TerminalId(1) => TokenKind::T1,
-        //RangeChar
+        //String
         TerminalId(2) => TokenKind::T2,
-        //Char
+        //RangeChar
         TerminalId(3) => TokenKind::T3,
-        //Label
+        //Char
         TerminalId(4) => TokenKind::T4,
-        //WS
+        //Label
         TerminalId(5) => TokenKind::T5,
-        //"grammar"
+        //WS
         TerminalId(6) => TokenKind::T6,
-        //"layout"
+        //"grammar"
         TerminalId(7) => TokenKind::T7,
-        //"="
+        //"layout"
         TerminalId(8) => TokenKind::T8,
-        //">"
+        //"="
         TerminalId(9) => TokenKind::T9,
-        //"regex"
+        //">"
         TerminalId(10) => TokenKind::T10,
-        //"{"
+        //"regex"
         TerminalId(11) => TokenKind::T11,
-        //"}"
+        //"{"
         TerminalId(12) => TokenKind::T12,
-        //"|"
+        //"}"
         TerminalId(13) => TokenKind::T13,
-        //"\"
+        //"|"
         TerminalId(14) => TokenKind::T14,
-        //"left"
+        //"\"
         TerminalId(15) => TokenKind::T15,
-        //"right"
+        //"left"
         TerminalId(16) => TokenKind::T16,
-        //"none"
+        //"right"
         TerminalId(17) => TokenKind::T17,
-        //"("
+        //"none"
         TerminalId(18) => TokenKind::T18,
-        //")"
+        //"("
         TerminalId(19) => TokenKind::T19,
-        //"""
+        //")"
         TerminalId(20) => TokenKind::T20,
-        //"*"
+        //"""
         TerminalId(21) => TokenKind::T21,
-        //"+"
+        //"*"
         TerminalId(22) => TokenKind::T22,
-        //"?"
+        //"+"
         TerminalId(23) => TokenKind::T23,
-        //":"
+        //"?"
         TerminalId(24) => TokenKind::T24,
-        //"'"
+        //":"
         TerminalId(25) => TokenKind::T25,
-        //"!"
+        //"'"
         TerminalId(26) => TokenKind::T26,
-        //"["
+        //"!"
         TerminalId(27) => TokenKind::T27,
-        //"]"
+        //"["
         TerminalId(28) => TokenKind::T28,
-        //"-"
+        //"]"
         TerminalId(29) => TokenKind::T29,
-        //Layout
+        //"-"
         TerminalId(30) => TokenKind::T30,
+        //Layout
+        TerminalId(31) => TokenKind::T31,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }

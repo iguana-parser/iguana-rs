@@ -169,11 +169,12 @@ fn desugar_rule(rule: SyntaxRule) -> SyntaxRule {
     let mut all_alternatives = Vec::new();
 
     for (level, precedence) in rule.priority_levels.into_iter().zip(precedences.iter()) {
+        let assoc = level.associativity;
         for alt in level.alternatives {
             let recursion = classify(&alt, &head_name);
             let rewritten = match (recursion, precedence) {
                 (RecursiveEnds::Binary, Some(pr)) => {
-                    rewrite_binary(&head_name, head_def, alt, *pr)
+                    rewrite_binary(&head_name, head_def, alt, *pr, assoc)
                 }
                 (RecursiveEnds::Right, Some(pr)) => rewrite_prefix(&head_name, head_def, alt, *pr),
                 (RecursiveEnds::Left, Some(pr)) => rewrite_postfix(&head_name, head_def, alt, *pr),
@@ -288,9 +289,7 @@ fn replace_head_ref(symbol: Symbol, head_name: &str) -> Symbol {
 /// - Non-associative:
 ///   `[pr>=p] l=E(p) [l==0||l>=pr+1] op E(pr+1) {pr}`
 ///   (both restrictions)
-fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64) -> Alternative {
-    let assoc = alt.associativity;
-
+fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64, assoc: Option<Associativity>) -> Alternative {
     // Postcondition threshold: pr+1 for right-assoc and non-assoc, pr otherwise
     let postcond_threshold = match assoc {
         Some(Associativity::Right | Associativity::NonAssoc) => pr + 1,
@@ -330,7 +329,6 @@ fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
     Alternative {
         symbols,
         label: alt.label,
-        associativity: None,
     }
 }
 
@@ -360,7 +358,6 @@ fn rewrite_prefix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
     Alternative {
         symbols,
         label: alt.label,
-        associativity: None,
     }
 }
 
@@ -384,7 +381,6 @@ fn rewrite_postfix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr
     Alternative {
         symbols,
         label: alt.label,
-        associativity: None,
     }
 }
 
@@ -402,7 +398,6 @@ fn rewrite_non_recursive(head_name: &str, alt: Alternative) -> Alternative {
     Alternative {
         symbols,
         label: alt.label,
-        associativity: None,
     }
 }
 
@@ -591,7 +586,7 @@ mod tests {
             syntax: [
                 syntax_rule!("E" =>
                     priority_level!(alternative!(lit!("a"))),
-                    priority_level!(alternative!(id!("E"), lit!("+"), id!("E"); left!()))
+                    priority_level!(left!(); alternative!(id!("E"), lit!("+"), id!("E")))
                 ),
             ]
         );
@@ -625,7 +620,7 @@ mod tests {
             syntax: [
                 syntax_rule!("E" =>
                     priority_level!(alternative!(lit!("a"))),
-                    priority_level!(alternative!(id!("E"), lit!(";"), id!("E"); right!()))
+                    priority_level!(right!(); alternative!(id!("E"), lit!(";"), id!("E")))
                 ),
             ]
         );
@@ -659,7 +654,7 @@ mod tests {
             syntax: [
                 syntax_rule!("E" =>
                     priority_level!(alternative!(lit!("a"))),
-                    priority_level!(alternative!(id!("E"), lit!("<"), id!("E"); non_assoc!()))
+                    priority_level!(non_assoc!(); alternative!(id!("E"), lit!("<"), id!("E")))
                 ),
             ]
         );
@@ -698,16 +693,16 @@ mod tests {
             syntax: [
                 syntax_rule!("E" =>
                     priority_level!(alternative!(lit!("a"))),
-                    priority_level!(
-                        alternative!(id!("E"), lit!("*"), id!("E"); left!()),
-                        alternative!(id!("E"), lit!("/"), id!("E"); left!())
+                    priority_level!(left!();
+                        alternative!(id!("E"), lit!("*"), id!("E")),
+                        alternative!(id!("E"), lit!("/"), id!("E"))
                     ),
-                    priority_level!(
-                        alternative!(id!("E"), lit!("+"), id!("E"); left!()),
-                        alternative!(id!("E"), lit!("-"), id!("E"); left!())
+                    priority_level!(left!();
+                        alternative!(id!("E"), lit!("+"), id!("E")),
+                        alternative!(id!("E"), lit!("-"), id!("E"))
                     ),
-                    priority_level!(
-                        alternative!(id!("E"), lit!("<"), id!("E"); non_assoc!())
+                    priority_level!(non_assoc!();
+                        alternative!(id!("E"), lit!("<"), id!("E"))
                     )
                 ),
             ]

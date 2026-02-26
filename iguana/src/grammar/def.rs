@@ -25,7 +25,6 @@ pub enum Associativity {
 pub struct Alternative {
     pub symbols: Vec<Symbol>,
     pub label: Option<String>,
-    pub associativity: Option<Associativity>,
 }
 
 impl Alternative {
@@ -39,7 +38,6 @@ impl Alternative {
         Self {
             symbols: vec![],
             label: None,
-            associativity: None,
         }
     }
 
@@ -50,14 +48,6 @@ impl Alternative {
             .map(|s| s.display_name(grammar))
             .collect();
         let mut result = symbols.join(" ");
-        if let Some(assoc) = &self.associativity {
-            let assoc_str = match assoc {
-                Associativity::Left => "left",
-                Associativity::Right => "right",
-                Associativity::NonAssoc => "non_assoc",
-            };
-            result = format!("{} {}", result, assoc_str);
-        }
         if let Some(label) = &self.label {
             result = format!("{} @{}", result, label);
         }
@@ -69,14 +59,6 @@ impl Display for Alternative {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let symbols = self.symbols.iter().join(" ");
         write!(f, "{}", symbols)?;
-        if let Some(assoc) = &self.associativity {
-            let assoc_str = match assoc {
-                Associativity::Left => "left",
-                Associativity::Right => "right",
-                Associativity::NonAssoc => "non_assoc",
-            };
-            write!(f, " {}", assoc_str)?;
-        }
         if let Some(label) = &self.label {
             write!(f, " @{}", label)?;
         }
@@ -102,11 +84,25 @@ impl SyntaxRule {
 #[derive(Debug)]
 pub struct PriorityLevel {
     pub alternatives: Vec<Alternative>,
+    pub associativity: Option<Associativity>,
 }
 
 impl PriorityLevel {
     pub fn new(alternatives: Vec<Alternative>) -> Self {
-        Self { alternatives }
+        Self {
+            alternatives,
+            associativity: None,
+        }
+    }
+
+    pub fn with_associativity(
+        alternatives: Vec<Alternative>,
+        associativity: Option<Associativity>,
+    ) -> Self {
+        Self {
+            alternatives,
+            associativity,
+        }
     }
 }
 
@@ -114,15 +110,26 @@ impl From<Alternative> for PriorityLevel {
     fn from(alt: Alternative) -> Self {
         Self {
             alternatives: vec![alt],
+            associativity: None,
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct LexicalRule {
     pub head: Terminal,
     pub regex: Regex,
     pub except: Option<Identifier>,
+}
+
+impl Display for LexicalRule {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} = {}", self.head, self.regex)?;
+        if let Some(except) = &self.except {
+            write!(f, " \\ {}", except)?;
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -462,9 +469,22 @@ impl From<GrammarDef> for Grammar {
             .into_iter()
             .map(|(k, v)| (k, resolve_identifier(v, &symbol_table)))
             .collect();
-        let mut lexical_rules_map: IndexMap<Terminal, Regex> = lexical_rules
+        let lexical_rules: Vec<LexicalRule> = lexical_rules
             .into_iter()
-            .map(|r| (r.head, r.regex))
+            .map(|mut r| {
+                if let Some(except) = &mut r.except {
+                    except.definition = Some(
+                        symbol_table
+                            .get(&except.name)
+                            .unwrap_or_else(|| panic!("Except terminal {} not found", except.name)),
+                    );
+                }
+                r
+            })
+            .collect();
+        let mut lexical_rules_map: IndexMap<Terminal, LexicalRule> = lexical_rules
+            .into_iter()
+            .map(|r| (r.head.clone(), r))
             .collect();
         let layout_rule = layout_rule(&grammar_def.layout_def, &lexical_rules_map);
         let def_id = symbol_table.insert("Layout".into());
@@ -473,9 +493,9 @@ impl From<GrammarDef> for Grammar {
             definition: Some(def_id),
         });
         let mut syntax_rules = layout_insertion::transform(syntax_rules, layout_identifier.clone());
-        let layout_terminal = layout_rule.head;
+        let layout_terminal = layout_rule.head.clone();
         definitions.push(Definition::Terminal(layout_terminal.clone()));
-        lexical_rules_map.insert(layout_terminal, layout_rule.regex);
+        lexical_rules_map.insert(layout_terminal, layout_rule);
 
         let start_rules: Vec<_> = syntax_rules
             .iter()
@@ -510,11 +530,11 @@ impl From<GrammarDef> for Grammar {
 // TODO: for now we only support regex layouts
 fn layout_rule(
     layout_def: &[Terminal],
-    lexical_rules_map: &IndexMap<Terminal, Regex>,
+    lexical_rules_map: &IndexMap<Terminal, LexicalRule>,
 ) -> LexicalRule {
     let layout_regex = match layout_def {
         [] => Regex::Epsilon,
-        [single] => lexical_rules_map.get(single).unwrap().clone(),
+        [single] => lexical_rules_map.get(single).unwrap().regex.clone(),
         multiple => Regex::Alt(
             multiple
                 .iter()
@@ -522,6 +542,7 @@ fn layout_rule(
                     lexical_rules_map
                         .get(def)
                         .expect("Layout should be defined")
+                        .regex
                         .clone()
                 })
                 .collect(),
@@ -575,7 +596,7 @@ fn add_start_rule(
 pub struct Grammar {
     pub name: String,
     productions: IndexMap<Nonterminal, Vec<Alternative>>,
-    lexical_rules: IndexMap<Terminal, Regex>,
+    lexical_rules: IndexMap<Terminal, LexicalRule>,
     definitions: Vec<Definition>,
     ebnf_symbols: FxHashMap<Symbol, Symbol>,
     pub symbol_table: SymbolTable,
@@ -601,7 +622,7 @@ impl Grammar {
     pub fn terminals(&self) -> impl Iterator<Item = &'_ Terminal> {
         self.lexical_rules.keys()
     }
-    pub fn lexical_rules(&self, terminal: &Terminal) -> Option<&Regex> {
+    pub fn lexical_rule(&self, terminal: &Terminal) -> Option<&LexicalRule> {
         self.lexical_rules.get(terminal)
     }
     pub fn definition(&self, definition_id: DefinitionId) -> &Definition {
@@ -628,8 +649,8 @@ impl Display for Grammar {
             }
             writeln!(f, "  ;\n")?;
         }
-        for (name, regex) in &self.lexical_rules {
-            writeln!(f, "{}: {}", name, regex)?;
+        for (_, rule) in &self.lexical_rules {
+            writeln!(f, "{}", rule)?;
         }
         Ok(())
     }
@@ -637,18 +658,10 @@ impl Display for Grammar {
 
 #[macro_export]
 macro_rules! alternative {
-    ($($symbol:expr),+; $assoc:expr) => {
-        $crate::grammar::def::Alternative {
-            symbols: vec![$($symbol),*],
-            label: None,
-            associativity: Some($assoc),
-        }
-    };
     ($($symbol:expr),* $(,)?) => {
         $crate::grammar::def::Alternative {
             symbols: vec![$($symbol),*],
             label: None,
-            associativity: None,
         }
     };
 }
@@ -670,9 +683,16 @@ macro_rules! non_assoc {
 
 #[macro_export]
 macro_rules! priority_level {
+    ($assoc:expr; $($alt:expr),* $(,)?) => {
+        $crate::grammar::def::PriorityLevel {
+            alternatives: vec![$($alt),*],
+            associativity: Some($assoc),
+        }
+    };
     ($($alt:expr),* $(,)?) => {
         $crate::grammar::def::PriorityLevel {
             alternatives: vec![$($alt),*],
+            associativity: None,
         }
     };
 }
