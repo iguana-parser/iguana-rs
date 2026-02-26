@@ -122,6 +122,7 @@ impl From<Alternative> for PriorityLevel {
 pub struct LexicalRule {
     pub head: Terminal,
     pub regex: Regex,
+    pub except: Option<Identifier>,
 }
 
 #[derive(Debug)]
@@ -266,6 +267,7 @@ fn add_lexical_rules(
                 lexical_rules.push(LexicalRule {
                     head: terminal,
                     regex: Regex::literal(&name),
+                    except: None,
                 });
             }
             Symbol::Identifier(Identifier {
@@ -703,6 +705,7 @@ macro_rules! lexical_rule {
         $crate::grammar::def::LexicalRule {
             head: $crate::grammar::symbols::Terminal::new($head),
             regex: $regex,
+            except: None,
         }
     };
 }

@@ -15,7 +15,10 @@ RegexBlock
   = "regex" "{" RegexRule* "}"
 
 RegexRule
-  = Identifier "=" body:{ Regex+ "|" }+
+  = Identifier "=" body:{ Regex+ "|" }+ Except?
+
+Except
+  = "\\" Identifier
 
 PriorityLevel
   = Associativity? { Alternative "|" }*

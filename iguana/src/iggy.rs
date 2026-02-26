@@ -228,7 +228,15 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
             .map(|inner| Regex::Seq(inner.map(|r| convert_regex(r, input)).collect()))
             .collect(),
     );
-    LexicalRule { head, regex }
+    let except = rule.except.value().map(|except| Identifier {
+        name: text(input, except.identifier.span()),
+        definition: None,
+    });
+    LexicalRule {
+        head,
+        regex,
+        except,
+    }
 }
 
 fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
