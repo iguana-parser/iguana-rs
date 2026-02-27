@@ -1,0 +1,16 @@
+grammar DeepPriorityFull
+
+layout WS
+
+S = E
+
+E = left  E "*" E
+  > left  E "+" E
+  >       "-" E
+  >       "if" E "then" E "else" E
+  > right E ";" E
+  >       "a"
+
+regex {
+  WS = [\ ]*
+}

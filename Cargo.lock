@@ -196,6 +196,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "deep_priority"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
+]
+
+[[package]]
+name = "deep_priority_full"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
+]
+
+[[package]]
 name = "dhat"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -676,6 +704,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8a2f0d8d040d7848a709caf78912debcc3f33ee4b3cac47d73d1e1069e83507"
 dependencies = [
  "portable-atomic",
+]
+
+[[package]]
+name = "prefix_above_binary"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
 ]
 
 [[package]]

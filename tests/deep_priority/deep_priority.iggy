@@ -1,0 +1,13 @@
+grammar DeepPriority
+
+layout WS
+
+S = E
+
+E = "a"
+  > E "+" E
+  > "if" E "then" E "else" E
+
+regex {
+  WS = [\ ]*
+}

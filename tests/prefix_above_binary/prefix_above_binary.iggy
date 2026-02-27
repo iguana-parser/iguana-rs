@@ -1,0 +1,13 @@
+grammar PrefixAboveBinary
+
+layout WS
+
+S = E
+
+E = "a"
+  > "-" E
+  > E "+" E
+
+regex {
+  WS = [\ ]*
+}
