@@ -608,6 +608,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pepm16_expressions"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "phf",
+ "rustc-hash 2.1.1",
+ "serde_json",
+]
+
+[[package]]
 name = "phf"
 version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

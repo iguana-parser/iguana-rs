@@ -1,0 +1,35 @@
+(S
+  (E
+    (E
+      "("
+      Layout
+      (E
+        "if"
+        Layout
+        (E
+          "a"
+        )
+        Layout
+        "then"
+        Layout
+        (E
+          "a"
+        )
+        Layout
+        "else"
+        Layout
+        (E
+          "a"
+        )
+      )
+      Layout
+      ")"
+    )
+    Layout
+    "+"
+    Layout
+    (E
+      "a"
+    )
+  )
+)

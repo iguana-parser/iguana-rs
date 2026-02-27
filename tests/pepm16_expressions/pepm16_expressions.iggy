@@ -1,0 +1,20 @@
+grammar Pepm16Expressions
+
+layout WS
+
+S = E
+
+E =       E "." "f"
+  |       E E
+  > left  E "*" E
+  > left  E "+" E
+  |       E "-" E
+  >       "-" E
+  >       "if" E "then" E "else" E
+  > right E ";" E
+  >       "(" E ")"
+  |       "a"
+
+regex {
+  WS = [\ ]*
+}

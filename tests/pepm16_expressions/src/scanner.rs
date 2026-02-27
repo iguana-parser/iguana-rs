@@ -1,0 +1,127 @@
+use iguana_runtime::{
+    ids::TerminalId,
+    input::Input,
+    scanner::Scanner,
+    sppf::{Span, TerminalNode},
+};
+const CHAR_CLASS_0: [(char, char); 1usize] = [(' ', ' ')];
+pub struct Pepm16ExpressionsScanner<'i> {
+    pub input: &'i Input,
+}
+impl<'i> Pepm16ExpressionsScanner<'i> {
+    pub fn new(input: &'i Input) -> Self {
+        Self { input }
+    }
+    //WS = ([ - ]*)
+    pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        let mut j = i;
+        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(j) {
+            j = k;
+        }
+        Some(j)
+    }
+    //"." = .
+    pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '.')
+    }
+    //"f" = f
+    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, 'f')
+    }
+    //"*" = *
+    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '*')
+    }
+    //"+" = +
+    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '+')
+    }
+    //"-" = -
+    pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '-')
+    }
+    //"if" = if
+    pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, 'i')
+            .and_then(|i| self.match_char(i, 'f'))
+    }
+    //"then" = then
+    pub fn match_terminal_7(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, 't')
+            .and_then(|i| self.match_char(i, 'h'))
+            .and_then(|i| self.match_char(i, 'e'))
+            .and_then(|i| self.match_char(i, 'n'))
+    }
+    //"else" = else
+    pub fn match_terminal_8(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, 'e')
+            .and_then(|i| self.match_char(i, 'l'))
+            .and_then(|i| self.match_char(i, 's'))
+            .and_then(|i| self.match_char(i, 'e'))
+    }
+    //";" = ;
+    pub fn match_terminal_9(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, ';')
+    }
+    //"(" = (
+    pub fn match_terminal_10(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '(')
+    }
+    //")" = )
+    pub fn match_terminal_11(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, ')')
+    }
+    //"a" = a
+    pub fn match_terminal_12(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, 'a')
+    }
+    //Layout = ([ - ]*)
+    pub fn match_terminal_13(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        let mut j = i;
+        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(j) {
+            j = k;
+        }
+        Some(j)
+    }
+}
+impl Scanner for Pepm16ExpressionsScanner<'_> {
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        match terminal_id {
+            TerminalId(0) => self.match_terminal_0(input_index),
+            TerminalId(1) => self.match_terminal_1(input_index),
+            TerminalId(2) => self.match_terminal_2(input_index),
+            TerminalId(3) => self.match_terminal_3(input_index),
+            TerminalId(4) => self.match_terminal_4(input_index),
+            TerminalId(5) => self.match_terminal_5(input_index),
+            TerminalId(6) => self.match_terminal_6(input_index),
+            TerminalId(7) => self.match_terminal_7(input_index),
+            TerminalId(8) => self.match_terminal_8(input_index),
+            TerminalId(9) => self.match_terminal_9(input_index),
+            TerminalId(10) => self.match_terminal_10(input_index),
+            TerminalId(11) => self.match_terminal_11(input_index),
+            TerminalId(12) => self.match_terminal_12(input_index),
+            TerminalId(13) => self.match_terminal_13(input_index),
+            _ => {
+                unreachable!("Unknown token type: {terminal_id}");
+            }
+        }
+    }
+    fn char_at(&self, i: u32) -> Option<char> {
+        self.input.char_at(i)
+    }
+}
+

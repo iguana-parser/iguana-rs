@@ -1,0 +1,15 @@
+(S
+  (E
+    "-"
+    Layout
+    (E
+      (E
+        "a"
+      )
+      Layout
+      "."
+      Layout
+      "f"
+    )
+  )
+)
