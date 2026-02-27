@@ -120,6 +120,18 @@ pub struct LexicalRule {
     pub head: Terminal,
     pub regex: Regex,
     pub except: Option<Identifier>,
+    pub follow_restriction: Option<Identifier>,
+}
+
+impl LexicalRule {
+    pub fn new(head: Terminal, regex: Regex) -> Self {
+        Self {
+            head,
+            regex,
+            except: None,
+            follow_restriction: None,
+        }
+    }
 }
 
 impl Display for LexicalRule {
@@ -127,6 +139,9 @@ impl Display for LexicalRule {
         write!(f, "{} = {}", self.head, self.regex)?;
         if let Some(except) = &self.except {
             write!(f, " \\ {}", except)?;
+        }
+        if let Some(restriction) = &self.follow_restriction {
+            write!(f, " !>> {}", restriction)?;
         }
         Ok(())
     }
@@ -271,11 +286,7 @@ fn add_lexical_rules(
             let terminal = Terminal::new(terminal_name.clone());
             if !added_terminals.contains(&terminal) {
                 added_terminals.insert(terminal.clone());
-                lexical_rules.push(LexicalRule {
-                    head: terminal,
-                    regex: Regex::literal(&name),
-                    except: None,
-                });
+                lexical_rules.push(LexicalRule::new(terminal, Regex::literal(&name)));
             }
             Symbol::Identifier(Identifier {
                 name: terminal_name,
@@ -338,6 +349,16 @@ fn add_lexical_rules(
             Symbol::Except {
                 symbol: Box::new(transformed),
                 except,
+            }
+        }
+        Symbol::FollowRestriction {
+            symbol,
+            restriction,
+        } => {
+            let transformed = add_lexical_rules(*symbol, lexical_rules, added_terminals);
+            Symbol::FollowRestriction {
+                symbol: Box::new(transformed),
+                restriction,
             }
         }
         _ => symbol,
@@ -445,6 +466,25 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 except: resolved_except,
             }
         }
+        Symbol::FollowRestriction {
+            symbol,
+            restriction,
+        } => {
+            let resolved_symbol = resolve_identifier(*symbol, symbol_table);
+            let resolved_restriction =
+                if let Some(definition_id) = symbol_table.get(&restriction.name) {
+                    Identifier {
+                        name: restriction.name,
+                        definition: Some(definition_id),
+                    }
+                } else {
+                    panic!("Definition {} not found", &restriction.name)
+                };
+            Symbol::FollowRestriction {
+                symbol: Box::new(resolved_symbol),
+                restriction: resolved_restriction,
+            }
+        }
         Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => symbol,
     }
 }
@@ -477,6 +517,16 @@ impl From<GrammarDef> for Grammar {
                         symbol_table
                             .get(&except.name)
                             .unwrap_or_else(|| panic!("Except terminal {} not found", except.name)),
+                    );
+                }
+                if let Some(restriction) = &mut r.follow_restriction {
+                    restriction.definition = Some(
+                        symbol_table.get(&restriction.name).unwrap_or_else(|| {
+                            panic!(
+                                "Follow restriction terminal {} not found",
+                                restriction.name
+                            )
+                        }),
                     );
                 }
                 r
@@ -722,11 +772,10 @@ macro_rules! syntax_rule {
 #[macro_export]
 macro_rules! lexical_rule {
     ($head:literal => $regex:expr) => {
-        $crate::grammar::def::LexicalRule {
-            head: $crate::grammar::symbols::Terminal::new($head),
-            regex: $regex,
-            except: None,
-        }
+        $crate::grammar::def::LexicalRule::new(
+            $crate::grammar::symbols::Terminal::new($head),
+            $regex,
+        )
     };
 }
 

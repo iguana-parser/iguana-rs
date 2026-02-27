@@ -212,6 +212,7 @@ fn gen_nonterminals(nonterminal_ids: &NonterminalIds) -> TokenStream {
                 | Symbol::Identifier(_)
                 | Symbol::Literal(_)
                 | Symbol::Except { .. }
+                | Symbol::FollowRestriction { .. }
                 | Symbol::Call { .. }
                 | Symbol::Condition(_)
                 | Symbol::Return(_)
@@ -441,6 +442,19 @@ fn gen_slot_code<'a>(
         Some(Symbol::Except { symbol, except }) => {
             return gen_except_code(grammar, symbol, except, &slot, terminal_ids, slot_ids);
         }
+        Some(Symbol::FollowRestriction {
+            symbol,
+            restriction,
+        }) => {
+            return gen_follow_restriction_code(
+                grammar,
+                symbol,
+                restriction,
+                &slot,
+                terminal_ids,
+                slot_ids,
+            );
+        }
         Some(
             Symbol::Labeled { .. }
             | Symbol::Identifier(_)
@@ -475,6 +489,7 @@ fn gen_slot_code<'a>(
                     | Symbol::Star(_, _)
                     | Symbol::Plus(_, _)
                     | Symbol::Except { .. }
+                    | Symbol::FollowRestriction { .. }
                     | Symbol::Condition(_)
                     | Symbol::Return(_)
                     | Symbol::Binding { .. } => vec![],
@@ -599,6 +614,55 @@ fn gen_except_code<'a>(
     }
 }
 
+fn gen_follow_restriction_code<'a>(
+    grammar: &'a Grammar,
+    symbol: &Symbol,
+    restriction: &Identifier,
+    slot: &Slot<'a>,
+    terminal_ids: &mut TerminalIds,
+    slot_ids: &mut SlotIds<'a>,
+) -> TokenStream {
+    let Some(identifier) = symbol.as_identifier() else {
+        return quote! {};
+    };
+    let def_id = identifier.resolve();
+    let def = grammar.definition(def_id);
+    let restriction_def_id = restriction.resolve();
+    let Definition::Terminal(restriction_terminal) = grammar.definition(restriction_def_id) else {
+        panic!("Follow restriction identifier must resolve to a terminal");
+    };
+    let restriction_terminal_id =
+        terminal_ids.get_id(restriction_terminal).unwrap_or_else(|| {
+            panic!(
+                "cannot find the lexical definition {}",
+                restriction_terminal.name
+            )
+        });
+    match def {
+        Definition::Terminal(terminal) => {
+            let post_conditions = vec![quote! {
+                self.scanner.match_token(#restriction_terminal_id, j).is_none()
+            }];
+            gen_terminal_slot(
+                grammar,
+                terminal,
+                slot.clone(),
+                terminal_ids,
+                slot_ids,
+                &post_conditions,
+            )
+        }
+        // For nonterminals, the follow restriction check is handled via post_conditions in the runtime.
+        Definition::Nonterminal(nonterminal) => {
+            let arguments = match symbol.unwrap() {
+                Symbol::Call { arguments, .. } => arguments.clone(),
+                _ => vec![],
+            };
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids)
+        }
+    }
+}
+
 fn gen_post_conditions_method<'a>(
     grammar: &'a Grammar,
     slot_ids: &mut SlotIds<'a>,
@@ -631,6 +695,41 @@ fn gen_post_conditions_method<'a>(
                     arms.push(quote! {
                         #slot_id => {
                             self.scanner.match_token(#except_terminal_id, left_extent) != Some(right_extent)
+                        }
+                    });
+                }
+                if let Symbol::FollowRestriction {
+                    symbol,
+                    restriction,
+                } = symbol
+                {
+                    let Some(identifier) = symbol.as_identifier() else {
+                        continue;
+                    };
+                    let def = grammar.definition(identifier.resolve());
+                    if !matches!(def, Definition::Nonterminal(_)) {
+                        continue;
+                    }
+                    let restriction_def_id = restriction.resolve();
+                    let Definition::Terminal(restriction_terminal) =
+                        grammar.definition(restriction_def_id)
+                    else {
+                        panic!("Follow restriction identifier must resolve to a terminal");
+                    };
+                    let restriction_terminal_id = terminal_ids
+                        .get_id(restriction_terminal)
+                        .unwrap_or_else(|| {
+                            panic!(
+                                "cannot find the lexical definition {}",
+                                restriction_terminal.name
+                            )
+                        });
+                    let slot = Slot::new(nonterminal, alternative, pos);
+                    let next_slot = slot.next();
+                    let slot_id = slot_ids.id(&next_slot);
+                    arms.push(quote! {
+                        #slot_id => {
+                            self.scanner.match_token(#restriction_terminal_id, right_extent).is_none()
                         }
                     });
                 }

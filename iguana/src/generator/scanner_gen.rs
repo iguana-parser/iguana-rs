@@ -194,6 +194,35 @@ fn gen_match_terminal_method(
         }
     });
 
+    let follow_restriction_check = rule.follow_restriction.as_ref().map(|restriction| {
+        let Definition::Terminal(restriction_terminal) =
+            grammar.definition(restriction.resolve())
+        else {
+            panic!(
+                "Follow restriction {} must refer to a terminal",
+                restriction.name
+            );
+        };
+        let restriction_id = terminal_ids
+            .get_id(restriction_terminal)
+            .unwrap_or_else(|| {
+                panic!(
+                    "Follow restriction terminal {} is not defined",
+                    restriction.name
+                )
+            });
+        let restriction_fn = format_ident!("match_terminal_{}", restriction_id.index());
+        quote! {
+            .and_then(|end| {
+                if self.#restriction_fn(end).is_some() {
+                    None
+                } else {
+                    Some(end)
+                }
+            })
+        }
+    });
+
     let comment = rule.to_string();
     quote! {
         #[comment = #comment]
@@ -201,6 +230,7 @@ fn gen_match_terminal_method(
             let i = input_index;
             #match_regex
             #except_check
+            #follow_restriction_check
         }
     }
 }

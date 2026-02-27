@@ -234,6 +234,16 @@ fn rewrite_ebnf_symbol(
                 except,
             }
         }
+        Symbol::FollowRestriction {
+            symbol,
+            restriction,
+        } => {
+            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+            Symbol::FollowRestriction {
+                symbol: Box::new(transformed),
+                restriction,
+            }
+        }
         _ => symbol,
     };
     ebnf_symbols.insert(origin, res.clone());

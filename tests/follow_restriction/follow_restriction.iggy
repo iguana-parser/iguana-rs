@@ -1,0 +1,12 @@
+grammar FollowRestriction
+
+layout WS
+
+S = Id
+
+Id = Char !>> Char
+
+regex {
+  Char = [a-z]
+  WS = [\ ]*
+}

@@ -42,6 +42,7 @@ Symbol
   | Symbol "+"                               @Plus
   | Symbol "?"                               @Opt
   | Symbol "\\" Identifier                   @Except
+  | Symbol "!>>" Identifier                  @FollowRestriction
   > label:Identifier ":" Symbol              @Labeled
 
 Regex

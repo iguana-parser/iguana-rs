@@ -214,6 +214,15 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 definition: None,
             },
         },
+        parse_tree::Symbol::FollowRestriction {
+            symbol, identifier, ..
+        } => Symbol::FollowRestriction {
+            symbol: Box::new(convert_symbol(symbol, input)),
+            restriction: Identifier {
+                name: text(input, identifier.span()),
+                definition: None,
+            },
+        },
     }
 }
 
@@ -240,11 +249,9 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
         name: text(input, except.identifier.span()),
         definition: None,
     });
-    LexicalRule {
-        head,
-        regex,
-        except,
-    }
+    let mut rule = LexicalRule::new(head, regex);
+    rule.except = except;
+    rule
 }
 
 fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {

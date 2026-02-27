@@ -251,7 +251,9 @@ fn get_symbol_base_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
         Symbol::Literal(_) => None,
         Symbol::Group(_) => None,
         Symbol::Alt(_) => None,
-        Symbol::Except { .. } => None,
+        Symbol::Except { symbol, .. } | Symbol::FollowRestriction { symbol, .. } => {
+            get_symbol_base_name(grammar, symbol)
+        }
         Symbol::Condition(_) => None,
         Symbol::Return(_) => None,
     }
@@ -348,7 +350,9 @@ fn gen_field_name(
         Symbol::Literal(_) => format!("field_{}", position),
         Symbol::Group(_) => format!("field_{}", position),
         Symbol::Alt(_) => format!("field_{}", position),
-        Symbol::Except { .. } => format!("field_{}", position),
+        Symbol::Except { symbol, .. } | Symbol::FollowRestriction { symbol, .. } => {
+            return gen_field_name(grammar, symbol, position, needs_index);
+        }
         Symbol::Condition(_) => format!("field_{}", position),
         Symbol::Return(_) => format!("field_{}", position),
     };
@@ -898,7 +902,9 @@ fn symbol_contains_nonterminal(symbol: &Symbol, nt_name: &str) -> bool {
         }
         Symbol::Call { name, arguments: _ } => name.name == nt_name,
         Symbol::Binding { symbol, .. } => symbol_contains_nonterminal(symbol, nt_name),
-        Symbol::Except { symbol, .. } => symbol_contains_nonterminal(symbol, nt_name),
+        Symbol::Except { symbol, .. } | Symbol::FollowRestriction { symbol, .. } => {
+            symbol_contains_nonterminal(symbol, nt_name)
+        }
         Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => false,
     }
 }

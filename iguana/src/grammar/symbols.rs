@@ -77,6 +77,13 @@ pub enum Symbol {
         symbol: Box<Symbol>,
         except: Identifier,
     },
+    // Corresponds to the `!>>` operator in the concrete syntax.
+    // `X !>> Id` means reject the match of X if the character immediately after
+    // right_extent matches Id. Id must be a single-char regex (Char, CharRange, or CharClass).
+    FollowRestriction {
+        symbol: Box<Symbol>,
+        restriction: Identifier,
+    },
     Call {
         name: Identifier,
         arguments: Vec<Expr>,
@@ -202,7 +209,8 @@ impl Symbol {
         match self {
             Symbol::Labeled { symbol, .. }
             | Symbol::Binding { symbol, .. }
-            | Symbol::Except { symbol, .. } => symbol,
+            | Symbol::Except { symbol, .. }
+            | Symbol::FollowRestriction { symbol, .. } => symbol,
             Symbol::Identifier(_)
             | Symbol::Literal(_)
             | Symbol::Group(_)
@@ -229,7 +237,8 @@ impl Symbol {
             Symbol::Call { name, .. } => Some(name),
             Symbol::Labeled { symbol, .. }
             | Symbol::Binding { symbol, .. }
-            | Symbol::Except { symbol, .. } => symbol.as_identifier(),
+            | Symbol::Except { symbol, .. }
+            | Symbol::FollowRestriction { symbol, .. } => symbol.as_identifier(),
             Symbol::Literal(_)
             | Symbol::Group(_)
             | Symbol::Opt(_)
@@ -286,6 +295,12 @@ impl Symbol {
             Symbol::Except { symbol, except } => {
                 format!("{} \\ {}", symbol.display_name(grammar), except)
             }
+            Symbol::FollowRestriction {
+                symbol,
+                restriction,
+            } => {
+                format!("{} !>> {}", symbol.display_name(grammar), restriction)
+            }
             Symbol::Binding { name, symbol } => {
                 format!("{}={}", name, symbol.display_name(grammar))
             }
@@ -315,6 +330,10 @@ impl Display for Symbol {
                 write!(f, "{}({})", name, arguments.iter().join(", "))
             }
             Symbol::Except { symbol, except } => write!(f, "{} \\ {}", symbol, except),
+            Symbol::FollowRestriction {
+                symbol,
+                restriction,
+            } => write!(f, "{} !>> {}", symbol, restriction),
             Symbol::Condition(expr) => write!(f, "[{}]", expr),
             Symbol::Return(expr) => write!(f, "return {}", expr),
             Symbol::Binding { name, symbol } => write!(f, "{}={}", name, symbol),
@@ -588,6 +607,19 @@ macro_rules! except {
             symbol: Box::new($symbol),
             except: $crate::grammar::symbols::Identifier {
                 name: $except.into(),
+                definition: None,
+            },
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! follow {
+    ($symbol:expr, $restriction:expr) => {
+        $crate::grammar::symbols::Symbol::FollowRestriction {
+            symbol: Box::new($symbol),
+            restriction: $crate::grammar::symbols::Identifier {
+                name: $restriction.into(),
                 definition: None,
             },
         }

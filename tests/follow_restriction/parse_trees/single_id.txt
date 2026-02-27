@@ -1,0 +1,13 @@
+(S
+  (Id+
+    (Id
+      (Char+
+        Char
+        Layout
+        Char
+        Layout
+        Char
+      )
+    )
+  )
+)
