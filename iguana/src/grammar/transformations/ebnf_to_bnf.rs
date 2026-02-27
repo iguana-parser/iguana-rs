@@ -3,7 +3,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     alternative,
     grammar::{
-        def::{Alternative, PriorityLevel, SyntaxRule},
+        def::{Alternative, LayoutStrategy, PriorityLevel, SyntaxRule},
         symbols::{Identifier, Nonterminal, Symbol},
         transformations::transform_rule,
     },
@@ -70,8 +70,16 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> (Vec<SyntaxRule>, FxHashMap<S
         .into_iter()
         .map(|rule| {
             let name = rule.head.name.clone();
+            let layout = rule.layout.clone();
             transform_rule(rule, |s| {
-                rewrite_ebnf_symbol(s, &name, &mut counters, &mut new_rules, &mut ebnf_symbols)
+                rewrite_ebnf_symbol(
+                    s,
+                    &name,
+                    &layout,
+                    &mut counters,
+                    &mut new_rules,
+                    &mut ebnf_symbols,
+                )
             })
         })
         .collect();
@@ -82,6 +90,7 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> (Vec<SyntaxRule>, FxHashMap<S
 fn rewrite_ebnf_symbol(
     symbol: Symbol,
     parent_name: &str,
+    layout: &LayoutStrategy,
     counters: &mut Counters,
     new_rules: &mut Vec<SyntaxRule>,
     ebnf_symbols: &mut FxHashMap<Symbol, Symbol>,
@@ -93,7 +102,7 @@ fn rewrite_ebnf_symbol(
     let res = match symbol {
         // Preserve label, transform inner symbol
         Symbol::Labeled { label, symbol } => {
-            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, layout, counters, new_rules, ebnf_symbols);
             Symbol::Labeled {
                 label,
                 symbol: Box::new(transformed),
@@ -104,7 +113,7 @@ fn rewrite_ebnf_symbol(
             let name = counters.next_group(parent_name);
             let transformed_symbols: Vec<_> = symbols
                 .into_iter()
-                .map(|s| rewrite_ebnf_symbol(s, parent_name, counters, new_rules, ebnf_symbols))
+                .map(|s| rewrite_ebnf_symbol(s, parent_name, layout, counters, new_rules, ebnf_symbols))
                 .collect();
             let head = Nonterminal::with_origin(&name, origin.clone());
             let new_rule = SyntaxRule {
@@ -113,6 +122,7 @@ fn rewrite_ebnf_symbol(
                     symbols: transformed_symbols,
                     label: None,
                 })],
+                layout: layout.clone(),
             };
             new_rules.push(new_rule);
             Symbol::Identifier(Identifier {
@@ -124,13 +134,14 @@ fn rewrite_ebnf_symbol(
         Symbol::Opt(symbol) => {
             let name = counters.next_opt(parent_name);
             let transformed_symbol =
-                rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+                rewrite_ebnf_symbol(*symbol, parent_name, layout, counters, new_rules, ebnf_symbols);
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, origin.clone()),
                 priority_levels: vec![priority_level!(
                     alternative!(transformed_symbol),
                     Alternative::empty()
                 )],
+                layout: layout.clone(),
             };
             new_rules.push(new_rule);
             Symbol::Identifier(Identifier {
@@ -143,7 +154,7 @@ fn rewrite_ebnf_symbol(
             let name = counters.next_alt(parent_name);
             let transformed_symbols: Vec<_> = symbols
                 .into_iter()
-                .map(|s| rewrite_ebnf_symbol(s, parent_name, counters, new_rules, ebnf_symbols))
+                .map(|s| rewrite_ebnf_symbol(s, parent_name, layout, counters, new_rules, ebnf_symbols))
                 .collect();
             let alternatives: Vec<_> = transformed_symbols
                 .into_iter()
@@ -152,6 +163,7 @@ fn rewrite_ebnf_symbol(
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, origin.clone()),
                 priority_levels: vec![PriorityLevel::new(alternatives)],
+                layout: layout.clone(),
             };
             new_rules.push(new_rule);
             Symbol::Identifier(Identifier {
@@ -169,6 +181,7 @@ fn rewrite_ebnf_symbol(
             let transformed_symbol = rewrite_ebnf_symbol(
                 new_symbol.clone(),
                 parent_name,
+                layout,
                 counters,
                 new_rules,
                 ebnf_symbols,
@@ -177,6 +190,7 @@ fn rewrite_ebnf_symbol(
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, origin.clone()),
                 priority_levels: vec![priority_level!(alternative!(transformed_symbol),)],
+                layout: layout.clone(),
             };
             new_rules.push(new_rule);
             Symbol::Identifier(Identifier {
@@ -188,7 +202,7 @@ fn rewrite_ebnf_symbol(
         Symbol::Plus(symbol, sep) => {
             let name = counters.next_plus(parent_name);
             let transformed_symbol =
-                rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+                rewrite_ebnf_symbol(*symbol, parent_name, layout, counters, new_rules, ebnf_symbols);
             let new_symbol = Symbol::Identifier(Identifier {
                 name: name.clone(),
                 definition: None,
@@ -196,7 +210,7 @@ fn rewrite_ebnf_symbol(
             let new_rule = match sep {
                 Some(sep) => {
                     let transformed_sep =
-                        rewrite_ebnf_symbol(*sep, parent_name, counters, new_rules, ebnf_symbols);
+                        rewrite_ebnf_symbol(*sep, parent_name, layout, counters, new_rules, ebnf_symbols);
                     SyntaxRule {
                         head: Nonterminal::with_origin(&name, origin.clone()),
                         priority_levels: vec![priority_level!(
@@ -207,6 +221,7 @@ fn rewrite_ebnf_symbol(
                             ),
                             alternative!(transformed_symbol)
                         )],
+                        layout: layout.clone(),
                     }
                 }
                 None => SyntaxRule {
@@ -215,20 +230,21 @@ fn rewrite_ebnf_symbol(
                         alternative!(new_symbol.clone(), transformed_symbol.clone()),
                         alternative!(transformed_symbol)
                     )],
+                    layout: layout.clone(),
                 },
             };
             new_rules.push(new_rule);
             new_symbol
         }
         Symbol::Binding { name, symbol } => {
-            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, layout, counters, new_rules, ebnf_symbols);
             Symbol::Binding {
                 name,
                 symbol: Box::new(transformed),
             }
         }
         Symbol::Except { symbol, except } => {
-            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, layout, counters, new_rules, ebnf_symbols);
             Symbol::Except {
                 symbol: Box::new(transformed),
                 except,
@@ -238,7 +254,7 @@ fn rewrite_ebnf_symbol(
             symbol,
             restriction,
         } => {
-            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, counters, new_rules, ebnf_symbols);
+            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, layout, counters, new_rules, ebnf_symbols);
             Symbol::FollowRestriction {
                 symbol: Box::new(transformed),
                 restriction,

@@ -207,7 +207,11 @@ fn desugar_rule(rule: SyntaxRule) -> SyntaxRule {
         }],
     };
 
-    SyntaxRule::new(head, vec![PriorityLevel::new(all_alternatives)])
+    SyntaxRule {
+        head,
+        priority_levels: vec![PriorityLevel::new(all_alternatives)],
+        layout: rule.layout,
+    }
 }
 
 /// Finds the minimum precedence among prefix (Right-only recursive) alternatives.

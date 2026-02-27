@@ -1,6 +1,6 @@
 grammar Expression
 
 E
-  = E "*" E  @Mul
-  | E "+" E  @Add
-  | "a"      @Lit
+  = E "*" E  #Mul
+  | E "+" E  #Add
+  | "a"      #Lit

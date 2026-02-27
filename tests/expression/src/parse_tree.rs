@@ -119,7 +119,7 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum E {
-    //E Layout "*" Layout E @Mul
+    //E Layout "*" Layout E #Mul
     Mul {
         e_0: Box<E>,
         layout_1: Token,
@@ -128,7 +128,7 @@ pub enum E {
         e_4: Box<E>,
         span: Span,
     },
-    //E Layout "+" Layout E @Add
+    //E Layout "+" Layout E #Add
     Add {
         e_0: Box<E>,
         layout_1: Token,
@@ -137,7 +137,7 @@ pub enum E {
         e_4: Box<E>,
         span: Span,
     },
-    //"a" @Lit
+    //"a" #Lit
     Lit {
         lit_0: Token,
         span: Span,

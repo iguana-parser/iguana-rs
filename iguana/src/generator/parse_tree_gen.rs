@@ -1490,16 +1490,31 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                 }
             }
             None => {
-                let (f0, f1, f2) = (
-                    &first_alt_fields[0],
-                    &first_alt_fields[1],
-                    &first_alt_fields[2],
-                );
-                quote! {
-                    #ident::#alt_variant { #f0: rest, #f1: layout, #f2: item, .. } => {
-                        items.push(item.as_parse_tree_ref());
-                        items.push(layout.as_parse_tree_ref());
-                        current = rest;
+                if first_alt_fields.len() == 3 {
+                    // With layout: Plus ::= Plus Layout Item | Item
+                    let (f0, f1, f2) = (
+                        &first_alt_fields[0],
+                        &first_alt_fields[1],
+                        &first_alt_fields[2],
+                    );
+                    quote! {
+                        #ident::#alt_variant { #f0: rest, #f1: layout, #f2: item, .. } => {
+                            items.push(item.as_parse_tree_ref());
+                            items.push(layout.as_parse_tree_ref());
+                            current = rest;
+                        }
+                    }
+                } else {
+                    // Without layout (@layout(none)): Plus ::= Plus Item | Item
+                    let (f0, f1) = (
+                        &first_alt_fields[0],
+                        &first_alt_fields[1],
+                    );
+                    quote! {
+                        #ident::#alt_variant { #f0: rest, #f1: item, .. } => {
+                            items.push(item.as_parse_tree_ref());
+                            current = rest;
+                        }
                     }
                 }
             }

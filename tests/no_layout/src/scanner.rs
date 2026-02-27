@@ -4,41 +4,49 @@ use iguana_runtime::{
     scanner::Scanner,
     sppf::{Span, TerminalNode},
 };
-pub struct ExpressionScanner<'i> {
+const CHAR_CLASS_0: [(char, char); 1usize] = [('a', 'z')];
+const CHAR_CLASS_1: [(char, char); 2usize] = [(' ', ' '), ('\n', '\n')];
+pub struct NoLayoutScanner<'i> {
     pub input: &'i Input,
 }
-impl<'i> ExpressionScanner<'i> {
+impl<'i> NoLayoutScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //"*" = *
+    //Char = ([a-z])
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char(i, '*')
+        self.match_char_class(i, &CHAR_CLASS_0, false)
     }
-    //"+" = +
+    /*WS = ([ -
+    -
+    ]*)*/
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char(i, '+')
+        let mut j = i;
+        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_1, false))(j) {
+            j = k;
+        }
+        Some(j)
     }
-    //"a" = a
+    /*Layout = ([ -
+    -
+    ]*)*/
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char(i, 'a')
-    }
-    //Layout = ε
-    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        Some(i)
+        let mut j = i;
+        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_1, false))(j) {
+            j = k;
+        }
+        Some(j)
     }
 }
-impl Scanner for ExpressionScanner<'_> {
+impl Scanner for NoLayoutScanner<'_> {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         match terminal_id {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(1) => self.match_terminal_1(input_index),
             TerminalId(2) => self.match_terminal_2(input_index),
-            TerminalId(3) => self.match_terminal_3(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

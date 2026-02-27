@@ -21,6 +21,21 @@ pub enum Associativity {
     NonAssoc,
 }
 
+/// Controls how layout (whitespace/comments) is inserted between symbols in a syntax rule.
+///
+/// By default, the grammar's layout definition is inserted between consecutive symbols in a rule.
+/// For character-level rules (e.g., `Id = Char+ !>> Char`), layout must be suppressed to avoid
+/// inserting whitespace between individual characters. These character-level definitions correspond
+/// to lexical definitions in scannerless parsers like Rascal or SDF. A custom layout can also be
+/// specified per rule to use a different layout than the grammar default.
+#[derive(Debug, Clone, Default)]
+pub enum LayoutStrategy {
+    #[default]
+    Default,
+    None,
+    Custom(Identifier),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Alternative {
     pub symbols: Vec<Symbol>,
@@ -49,7 +64,7 @@ impl Alternative {
             .collect();
         let mut result = symbols.join(" ");
         if let Some(label) = &self.label {
-            result = format!("{} @{}", result, label);
+            result = format!("{} #{}", result, label);
         }
         result
     }
@@ -60,7 +75,7 @@ impl Display for Alternative {
         let symbols = self.symbols.iter().join(" ");
         write!(f, "{}", symbols)?;
         if let Some(label) = &self.label {
-            write!(f, " @{}", label)?;
+            write!(f, " #{}", label)?;
         }
         Ok(())
     }
@@ -70,6 +85,7 @@ impl Display for Alternative {
 pub struct SyntaxRule {
     pub head: Nonterminal,
     pub priority_levels: Vec<PriorityLevel>,
+    pub layout: LayoutStrategy,
 }
 
 impl SyntaxRule {
@@ -77,6 +93,7 @@ impl SyntaxRule {
         Self {
             head,
             priority_levels,
+            layout: LayoutStrategy::Default,
         }
     }
 }
@@ -158,6 +175,11 @@ pub struct GrammarDef {
 
 impl Display for SyntaxRule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.layout {
+            LayoutStrategy::None => writeln!(f, "@layout(none)")?,
+            LayoutStrategy::Custom(id) => writeln!(f, "@layout({})", id.name)?,
+            LayoutStrategy::Default => {}
+        }
         writeln!(f, "{}", self.head)?;
         if let Some((first_level, rest_levels)) = self.priority_levels.split_first() {
             if let Some((first_alt, rest_alts)) = first_level.alternatives.split_first() {
@@ -639,6 +661,7 @@ fn add_start_rule(
             },
             layout_identifier.clone()
         ))],
+        layout: LayoutStrategy::Default,
     }
 }
 
@@ -759,12 +782,14 @@ macro_rules! syntax_rule {
                 }),*],
             ),
             priority_levels: vec![$($level.into()),*],
+            layout: $crate::grammar::def::LayoutStrategy::Default,
         }
     };
     ($head:literal => $($level:expr),* $(,)?) => {
         $crate::grammar::def::SyntaxRule {
             head: $crate::grammar::symbols::Nonterminal::new($head),
             priority_levels: vec![$($level.into()),*],
+            layout: $crate::grammar::def::LayoutStrategy::Default,
         }
     };
 }

@@ -13,7 +13,10 @@ use iguana_runtime::{
 };
 
 use crate::grammar::{
-    def::{Alternative, Associativity, GrammarDef, LexicalRule, PriorityLevel, SyntaxRule},
+    def::{
+        Alternative, Associativity, GrammarDef, LayoutStrategy, LexicalRule, PriorityLevel,
+        SyntaxRule,
+    },
     regex::{CharClass, CharRange, Regex},
     symbols::{Identifier, Nonterminal, Symbol, Terminal},
 };
@@ -119,7 +122,18 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
         .map(|level| convert_priority_level(level, input))
         .collect();
 
-    SyntaxRule::new(head, priority_levels)
+    let layout = if rule.annotation.value().is_some() {
+        // Currently the only annotation is @layout(none)
+        LayoutStrategy::None
+    } else {
+        LayoutStrategy::Default
+    };
+
+    SyntaxRule {
+        head,
+        priority_levels,
+        layout,
+    }
 }
 
 fn convert_priority_level(level: &parse_tree::PriorityLevel, input: &Input) -> PriorityLevel {
@@ -148,11 +162,11 @@ fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternat
         .map(|sym| convert_symbol(sym, input))
         .collect();
 
-    // Extract label, stripping the @ prefix
+    // Extract label, stripping the # prefix
     let label = alt.label.value().map(|token| {
         let label_text = text(input, token.span());
         label_text
-            .strip_prefix('@')
+            .strip_prefix('#')
             .unwrap_or(&label_text)
             .to_string()
     });

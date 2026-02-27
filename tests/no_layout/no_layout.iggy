@@ -1,0 +1,13 @@
+grammar NoLayout
+
+layout WS
+
+S = Id
+
+@layout(none)
+Id = Char+
+
+regex {
+  Char = [a-z]
+  WS = [\ \n]*
+}

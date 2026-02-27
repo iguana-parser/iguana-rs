@@ -1,0 +1,9 @@
+(S
+  (Id
+    (Char+
+      Char
+      Char
+      Char
+    )
+  )
+)

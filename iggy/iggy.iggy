@@ -9,7 +9,10 @@ LayoutDef
   = "layout" Identifier*
 
 SyntaxRule
-  = head:Identifier "=" {PriorityLevel ">"}*
+  = Annotation? head:Identifier "=" {PriorityLevel ">"}*
+
+Annotation
+  = "@layout" "(" "none" ")"
 
 RegexBlock
   = "regex" "{" RegexRule* "}"
@@ -32,28 +35,28 @@ Alternative
   = Symbol* Label?
 
 Symbol
-  = Identifier                               @Identifier
-  | "(" Symbol+ ")"                          @Group
-  | "(" first:Symbol rest:("|" Symbol)+ ")"  @Alt
-  | "\"" String "\""                         @Lit
-  | "{" symbol:Symbol sep:Symbol "}" "*"     @StarSep
-  | "{" symbol:Symbol sep:Symbol "}" "+"     @PlusSep
-  > Symbol "*"                               @Star
-  | Symbol "+"                               @Plus
-  | Symbol "?"                               @Opt
-  | Symbol "\\" Identifier                   @Except
-  | Symbol "!>>" Identifier                  @FollowRestriction
-  > label:Identifier ":" Symbol              @Labeled
+  = Identifier                               #Identifier
+  | "(" Symbol+ ")"                          #Group
+  | "(" first:Symbol rest:("|" Symbol)+ ")"  #Alt
+  | "\"" String "\""                         #Lit
+  | "{" symbol:Symbol sep:Symbol "}" "*"     #StarSep
+  | "{" symbol:Symbol sep:Symbol "}" "+"     #PlusSep
+  > Symbol "*"                               #Star
+  | Symbol "+"                               #Plus
+  | Symbol "?"                               #Opt
+  | Symbol "\\" Identifier                   #Except
+  | Symbol "!>>" Identifier                  #FollowRestriction
+  > label:Identifier ":" Symbol              #Labeled
 
 Regex
-  = Regex "+"                                 @Plus
-  | Regex "*"                                 @Star
-  | Regex "?"                                 @Opt
-  | "(" first:Regex rest:("|" Regex)+ ")"     @Alt
-  | "(" Regex+ ")"                            @Group
-  | CharClass                                 @CharClass
-  | "'" Char "'"                              @Char
-  | "\"" String "\""                          @String
+  = Regex "+"                                 #Plus
+  | Regex "*"                                 #Star
+  | Regex "?"                                 #Opt
+  | "(" first:Regex rest:("|" Regex)+ ")"     #Alt
+  | "(" Regex+ ")"                            #Group
+  | CharClass                                 #CharClass
+  | "'" Char "'"                              #Char
+  | "\"" String "\""                          #String
 
 CharClass
   = neg:"!"? "[" RangeElement+ "]"
@@ -78,6 +81,6 @@ regex {
     = "\\" [' \\ t f r n]
     | !['\\]
 
-  Label = "@" [a-zA-Z_][a-zA-Z_0-9]*
+  Label = "#" [a-zA-Z_][a-zA-Z_0-9]*
   WS = [\ \n]*
 }

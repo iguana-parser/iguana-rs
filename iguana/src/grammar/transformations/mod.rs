@@ -40,13 +40,18 @@ where
         origin,
         parameters: rule.head.parameters,
     };
-    SyntaxRule::new(head, new_priority_levels)
+    SyntaxRule {
+        head,
+        priority_levels: new_priority_levels,
+        layout: rule.layout,
+    }
 }
 
 pub fn transform_rule_by_symbols<F>(rule: SyntaxRule, mut transform_symbol: F) -> SyntaxRule
 where
     F: FnMut(Vec<Symbol>) -> Vec<Symbol>,
 {
+    let layout = rule.layout;
     let new_priority_levels: Vec<_> = rule
         .priority_levels
         .into_iter()
@@ -65,5 +70,9 @@ where
             PriorityLevel::with_associativity(new_alternatives, priority_level.associativity)
         })
         .collect();
-    SyntaxRule::new(rule.head, new_priority_levels)
+    SyntaxRule {
+        head: rule.head,
+        priority_levels: new_priority_levels,
+        layout,
+    }
 }
