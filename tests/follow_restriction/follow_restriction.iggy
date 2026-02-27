@@ -2,9 +2,11 @@ grammar FollowRestriction
 
 layout WS
 
-S = Id
+S = Id+
+T = Char !>> Char
 
-Id = Char !>> Char
+@NoLayout
+Id = Char+ !>> Char
 
 regex {
   Char = [a-z]

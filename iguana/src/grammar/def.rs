@@ -176,8 +176,8 @@ pub struct GrammarDef {
 impl Display for SyntaxRule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.layout {
-            LayoutStrategy::None => writeln!(f, "@layout(none)")?,
-            LayoutStrategy::Custom(id) => writeln!(f, "@layout({})", id.name)?,
+            LayoutStrategy::None => writeln!(f, "@NoLayout")?,
+            LayoutStrategy::Custom(id) => writeln!(f, "@Layout({})", id.name)?,
             LayoutStrategy::Default => {}
         }
         writeln!(f, "{}", self.head)?;

@@ -122,11 +122,13 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
         .map(|level| convert_priority_level(level, input))
         .collect();
 
-    let layout = if rule.annotation.value().is_some() {
-        // Currently the only annotation is @layout(none)
-        LayoutStrategy::None
-    } else {
-        LayoutStrategy::Default
+    let layout = match rule.annotation.value() {
+        Some(parse_tree::Annotation::NoLayout { .. }) => LayoutStrategy::None,
+        Some(parse_tree::Annotation::Layout { identifier, .. }) => {
+            let name = text(input, identifier.span());
+            LayoutStrategy::Custom(Identifier { name, definition: None })
+        }
+        None => LayoutStrategy::Default,
     };
 
     SyntaxRule {
@@ -259,13 +261,34 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
             .map(|inner| Regex::Seq(inner.map(|r| convert_regex(r, input)).collect()))
             .collect(),
     );
-    let except = rule.except.value().map(|except| Identifier {
-        name: text(input, except.identifier.span()),
-        definition: None,
-    });
-    let mut rule = LexicalRule::new(head, regex);
-    rule.except = except;
-    rule
+    let mut lexical_rule = LexicalRule::new(head, regex);
+    for post_condition in rule.post_conditions.post_conditions() {
+        match post_condition {
+            parse_tree::PostCondition::Except { identifier, .. } => {
+                assert!(
+                    lexical_rule.except.is_none(),
+                    "Duplicate except on terminal {}",
+                    lexical_rule.head
+                );
+                lexical_rule.except = Some(Identifier {
+                    name: text(input, identifier.span()),
+                    definition: None,
+                });
+            }
+            parse_tree::PostCondition::FollowRestriction { identifier, .. } => {
+                assert!(
+                    lexical_rule.follow_restriction.is_none(),
+                    "Duplicate follow restriction on terminal {}",
+                    lexical_rule.head
+                );
+                lexical_rule.follow_restriction = Some(Identifier {
+                    name: text(input, identifier.span()),
+                    definition: None,
+                });
+            }
+        }
+    }
+    lexical_rule
 }
 
 fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {

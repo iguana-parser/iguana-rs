@@ -4,7 +4,7 @@ layout WS
 
 S = Id
 
-@layout(none)
+@NoLayout
 Id = Char+
 
 regex {

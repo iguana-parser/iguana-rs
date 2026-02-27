@@ -1,0 +1,13 @@
+grammar FollowRestrictionLexical
+
+layout WS
+
+S = Element+
+Element = Num | Id
+
+regex {
+  Num = [0-9]+ !>> Alpha
+  Alpha = [a-zA-Z]
+  Id = [a-zA-Z]+
+  WS = [\ ]*
+}

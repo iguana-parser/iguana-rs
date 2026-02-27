@@ -204,11 +204,24 @@ impl<'i> IggyScanner<'i> {
         let i = input_index;
         self.match_char(i, '>')
     }
-    //"@layout" = @layout
+    //"@NoLayout" = @NoLayout
     pub fn match_terminal_11(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '@')
-            .and_then(|i| self.match_char(i, 'l'))
+            .and_then(|i| self.match_char(i, 'N'))
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'L'))
+            .and_then(|i| self.match_char(i, 'a'))
+            .and_then(|i| self.match_char(i, 'y'))
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'u'))
+            .and_then(|i| self.match_char(i, 't'))
+    }
+    //"@Layout" = @Layout
+    pub fn match_terminal_12(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '@')
+            .and_then(|i| self.match_char(i, 'L'))
             .and_then(|i| self.match_char(i, 'a'))
             .and_then(|i| self.match_char(i, 'y'))
             .and_then(|i| self.match_char(i, 'o'))
@@ -216,17 +229,9 @@ impl<'i> IggyScanner<'i> {
             .and_then(|i| self.match_char(i, 't'))
     }
     //"(" = (
-    pub fn match_terminal_12(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        self.match_char(i, '(')
-    }
-    //"none" = none
     pub fn match_terminal_13(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char(i, 'n')
-            .and_then(|i| self.match_char(i, 'o'))
-            .and_then(|i| self.match_char(i, 'n'))
-            .and_then(|i| self.match_char(i, 'e'))
+        self.match_char(i, '(')
     }
     //")" = )
     pub fn match_terminal_14(&self, input_index: u32) -> Option<u32> {
@@ -262,8 +267,15 @@ impl<'i> IggyScanner<'i> {
         let i = input_index;
         self.match_char(i, '\\')
     }
-    //"left" = left
+    //"!>>" = !>>
     pub fn match_terminal_20(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '!')
+            .and_then(|i| self.match_char(i, '>'))
+            .and_then(|i| self.match_char(i, '>'))
+    }
+    //"left" = left
+    pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'l')
             .and_then(|i| self.match_char(i, 'e'))
@@ -271,7 +283,7 @@ impl<'i> IggyScanner<'i> {
             .and_then(|i| self.match_char(i, 't'))
     }
     //"right" = right
-    pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_22(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'r')
             .and_then(|i| self.match_char(i, 'i'))
@@ -279,67 +291,68 @@ impl<'i> IggyScanner<'i> {
             .and_then(|i| self.match_char(i, 'h'))
             .and_then(|i| self.match_char(i, 't'))
     }
+    //"none" = none
+    pub fn match_terminal_23(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, 'n')
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'n'))
+            .and_then(|i| self.match_char(i, 'e'))
+    }
     //""" = "
-    pub fn match_terminal_22(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_24(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '"')
     }
     //"*" = *
-    pub fn match_terminal_23(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_25(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '*')
     }
     //"+" = +
-    pub fn match_terminal_24(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_26(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '+')
     }
     //"?" = ?
-    pub fn match_terminal_25(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_27(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '?')
     }
-    //"!>>" = !>>
-    pub fn match_terminal_26(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        self.match_char(i, '!')
-            .and_then(|i| self.match_char(i, '>'))
-            .and_then(|i| self.match_char(i, '>'))
-    }
     //":" = :
-    pub fn match_terminal_27(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_28(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ':')
     }
     //"'" = '
-    pub fn match_terminal_28(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_29(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '\'')
     }
     //"!" = !
-    pub fn match_terminal_29(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_30(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '!')
     }
     //"[" = [
-    pub fn match_terminal_30(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_31(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '[')
     }
     //"]" = ]
-    pub fn match_terminal_31(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ']')
     }
     //"-" = -
-    pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_33(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '-')
     }
     /*Layout = ([ -
     -
     ]*)*/
-    pub fn match_terminal_33(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_34(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;
         while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_8, false))(j) {
@@ -385,6 +398,7 @@ impl Scanner for IggyScanner<'_> {
             TerminalId(31) => self.match_terminal_31(input_index),
             TerminalId(32) => self.match_terminal_32(input_index),
             TerminalId(33) => self.match_terminal_33(input_index),
+            TerminalId(34) => self.match_terminal_34(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

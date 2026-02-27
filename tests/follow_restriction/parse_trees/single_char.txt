@@ -1,5 +1,3 @@
-(S
-  (Id
-    Char
-  )
+(T
+  Char
 )

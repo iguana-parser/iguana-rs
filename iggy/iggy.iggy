@@ -12,16 +12,18 @@ SyntaxRule
   = Annotation? head:Identifier "=" {PriorityLevel ">"}*
 
 Annotation
-  = "@layout" "(" "none" ")"
+  = "@NoLayout"                        #NoLayout
+  | "@Layout" "(" Identifier ")"       #Layout
 
 RegexBlock
   = "regex" "{" RegexRule* "}"
 
 RegexRule
-  = Identifier "=" body:{ Regex+ "|" }+ Except?
+  = Identifier "=" body:{ Regex+ "|" }+ PostCondition*
 
-Except
-  = "\\" Identifier
+PostCondition
+  = "\\" Identifier              #Except
+  | "!>>" Identifier             #FollowRestriction
 
 PriorityLevel
   = Associativity? { Alternative "|" }*
