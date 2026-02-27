@@ -56,13 +56,20 @@ enum RecursiveEnds {
 ///      `[pr>=p] l=E(p) [l==0||l>=pr+1] op E(pr+1) {pr}`
 ///      Both restrictions apply, preventing any nesting at the same level.
 ///
-///    **Prefix `op E`**: `op E(pr) {pr}`
+///    **Prefix `op E`**: `op E(pr) {pr}` (or with min trick, see below)
 ///
 ///    **Postfix `E op`**: `[pr>=p] l=E(p) [l==0||l>=pr] op {0}`
 ///
 ///    **Non-recursive**: E references replaced with E(0), return {0}.
 ///
-/// 5. Updates all external references to the desugared nonterminal:
+/// 5. **Min trick** (Section 3.3 of PEPM'16): when a prefix alternative exists
+///    at a lower precedence than some right-recursive (binary or prefix)
+///    alternative, those higher-precedence alternatives use the min trick to
+///    propagate precedence information upward through right-recursive chains.
+///    Instead of returning `{pr}`, they bind the right-end return value to `r`
+///    and return `{r==0 ? pr : min(r, pr)}`.
+///
+/// 6. Updates all external references to the desugared nonterminal:
 ///    `E` becomes `E(0)` in other rules.
 ///
 /// ## Example: precedence with left associativity
@@ -166,6 +173,10 @@ fn desugar_rule(rule: SyntaxRule) -> SyntaxRule {
     let head_def = find_definition_id(&rule.priority_levels, &head_name)
         .expect("desugared nonterminal should have at least one self-reference");
 
+    // Find the minimum precedence among prefix (Right-only) alternatives.
+    // This determines which alternatives need the min trick.
+    let min_prefix_pr = min_prefix_precedence(&rule.priority_levels, &precedences, &head_name);
+
     let mut all_alternatives = Vec::new();
 
     for (level, precedence) in rule.priority_levels.into_iter().zip(precedences.iter()) {
@@ -174,9 +185,11 @@ fn desugar_rule(rule: SyntaxRule) -> SyntaxRule {
             let recursion = classify(&alt, &head_name);
             let rewritten = match (recursion, precedence) {
                 (RecursiveEnds::Binary, Some(pr)) => {
-                    rewrite_binary(&head_name, head_def, alt, *pr, assoc)
+                    rewrite_binary(&head_name, head_def, alt, *pr, assoc, min_prefix_pr)
                 }
-                (RecursiveEnds::Right, Some(pr)) => rewrite_prefix(&head_name, head_def, alt, *pr),
+                (RecursiveEnds::Right, Some(pr)) => {
+                    rewrite_prefix(&head_name, head_def, alt, *pr, min_prefix_pr)
+                }
                 (RecursiveEnds::Left, Some(pr)) => rewrite_postfix(&head_name, head_def, alt, *pr),
                 (RecursiveEnds::None, _) => rewrite_non_recursive(&head_name, alt),
                 _ => alt,
@@ -195,6 +208,58 @@ fn desugar_rule(rule: SyntaxRule) -> SyntaxRule {
     };
 
     SyntaxRule::new(head, vec![PriorityLevel::new(all_alternatives)])
+}
+
+/// Finds the minimum precedence among prefix (Right-only recursive) alternatives.
+/// Returns `None` if there are no prefix alternatives.
+fn min_prefix_precedence(
+    priority_levels: &[PriorityLevel],
+    precedences: &[Option<i64>],
+    head_name: &str,
+) -> Option<i64> {
+    priority_levels
+        .iter()
+        .zip(precedences.iter())
+        .filter_map(|(level, prec)| {
+            let pr = (*prec)?;
+            let has_prefix = level
+                .alternatives
+                .iter()
+                .any(|alt| classify(alt, head_name) == RecursiveEnds::Right);
+            has_prefix.then_some(pr)
+        })
+        .min()
+}
+
+/// Creates the return expression for the min trick:
+///   `{r == 0 ? pr : min(r, pr)}`
+fn make_min_return(pr: i64) -> Symbol {
+    Symbol::Return(Expr::Ternary {
+        cond: Box::new(Expr::Cond(Cond {
+            left: Box::new(Expr::Ref("r".to_string())),
+            right: Box::new(Expr::Int(0)),
+            op: CondOp::Eq,
+        })),
+        then: Box::new(Expr::Int(pr)),
+        r#else: Box::new(Expr::Min(
+            Box::new(Expr::Ref("r".to_string())),
+            Box::new(Expr::Int(pr)),
+        )),
+    })
+}
+
+/// Creates a right-end binding: `r=E(arg)`
+fn make_right_binding(head_name: &str, head_def: DefinitionId, arg: i64) -> Symbol {
+    Symbol::Binding {
+        name: "r".to_string(),
+        symbol: Box::new(Symbol::Call {
+            name: Identifier {
+                name: head_name.to_string(),
+                definition: Some(head_def),
+            },
+            arguments: vec![Expr::Int(arg)],
+        }),
+    }
 }
 
 /// Finds the resolved DefinitionId for a nonterminal by scanning its alternatives
@@ -289,7 +354,7 @@ fn replace_head_ref(symbol: Symbol, head_name: &str) -> Symbol {
 /// - Non-associative:
 ///   `[pr>=p] l=E(p) [l==0||l>=pr+1] op E(pr+1) {pr}`
 ///   (both restrictions)
-fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64, assoc: Option<Associativity>) -> Alternative {
+fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64, assoc: Option<Associativity>, min_prefix_pr: Option<i64>) -> Alternative {
     // Postcondition threshold: pr+1 for right-assoc and non-assoc, pr otherwise
     let postcond_threshold = match assoc {
         Some(Associativity::Right | Associativity::NonAssoc) => pr + 1,
@@ -301,6 +366,10 @@ fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
         Some(Associativity::Left | Associativity::NonAssoc) => pr + 1,
         _ => pr,
     };
+
+    // The min trick is needed when there is a prefix alternative at a lower
+    // precedence level than this binary alternative.
+    let use_min = min_prefix_pr.is_some_and(|min_pr| pr > min_pr);
 
     let mut symbols = Vec::new();
 
@@ -314,17 +383,23 @@ fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
         symbols.push(symbol);
     }
 
-    // E(right_arg)
-    symbols.push(Symbol::Call {
-        name: Identifier {
-            name: head_name.to_string(),
-            definition: Some(head_def),
-        },
-        arguments: vec![Expr::Int(right_arg)],
-    });
-
-    // {pr}
-    symbols.push(Symbol::Return(Expr::Int(pr)));
+    if use_min {
+        // r=E(right_arg)
+        symbols.push(make_right_binding(head_name, head_def, right_arg));
+        // {r==0 ? pr : min(r, pr)}
+        symbols.push(make_min_return(pr));
+    } else {
+        // E(right_arg)
+        symbols.push(Symbol::Call {
+            name: Identifier {
+                name: head_name.to_string(),
+                definition: Some(head_def),
+            },
+            arguments: vec![Expr::Int(right_arg)],
+        });
+        // {pr}
+        symbols.push(Symbol::Return(Expr::Int(pr)));
+    }
 
     Alternative {
         symbols,
@@ -334,26 +409,38 @@ fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
 
 /// Rewrites a prefix alternative `op E` at precedence level `pr` into:
 ///   op E(pr) {pr}
-fn rewrite_prefix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64) -> Alternative {
+/// Or with the min trick (when a prefix exists at lower precedence):
+///   op r=E(pr) {r==0 ? pr : min(r, pr)}
+fn rewrite_prefix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64, min_prefix_pr: Option<i64>) -> Alternative {
     let mut symbols = Vec::new();
     let num_symbols = alt.symbols.len();
+
+    // The min trick is needed when there is a prefix alternative at a lower
+    // precedence level than this prefix alternative.
+    let use_min = min_prefix_pr.is_some_and(|min_pr| pr > min_pr);
 
     // All symbols except the last (right-end E), with any E references replaced by E(0)
     for symbol in alt.symbols.into_iter().take(num_symbols.saturating_sub(1)) {
         symbols.push(replace_head_ref(symbol, head_name));
     }
 
-    // E(pr)
-    symbols.push(Symbol::Call {
-        name: Identifier {
-            name: head_name.to_string(),
-            definition: Some(head_def),
-        },
-        arguments: vec![Expr::Int(pr)],
-    });
-
-    // {pr}
-    symbols.push(Symbol::Return(Expr::Int(pr)));
+    if use_min {
+        // r=E(pr)
+        symbols.push(make_right_binding(head_name, head_def, pr));
+        // {r==0 ? pr : min(r, pr)}
+        symbols.push(make_min_return(pr));
+    } else {
+        // E(pr)
+        symbols.push(Symbol::Call {
+            name: Identifier {
+                name: head_name.to_string(),
+                definition: Some(head_def),
+            },
+            arguments: vec![Expr::Int(pr)],
+        });
+        // {pr}
+        symbols.push(Symbol::Return(Expr::Int(pr)));
+    }
 
     Alternative {
         symbols,
@@ -421,9 +508,10 @@ fn update_external_references(rule: SyntaxRule, desugared_names: &[String]) -> S
 #[cfg(test)]
 mod tests {
     use crate::{
-        alternative, bind, call, cond,
+        alternative, bind, call, cond, cond_expr,
         grammar::def::{Grammar, GrammarDef},
-        grammar_def, id, left, lit, non_assoc, priority_level, ret, right, syntax_rule,
+        grammar_def, id, left, lit, min, non_assoc, priority_level, ret, right, syntax_rule,
+        ternary,
     };
 
     /// Input grammar with priority levels (before desugaring):
@@ -757,6 +845,207 @@ mod tests {
                         cond!(("l" == 0) || ("l" >= 2)),
                         lit!("<"),
                         call!("E", 2),
+                        ret!(1),
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.into();
+        let expected: Grammar = expected.into();
+        assert_eq!(actual, expected);
+    }
+
+    /// Deep case (min trick): prefix at lower precedence than binary.
+    ///   E = 'a'
+    ///     > E '+' E
+    ///     > 'if' E 'then' E 'else' E
+    ///
+    /// Precedences: 'if-then-else': 1 (prefix), '+': 2 (binary)
+    /// The '+' alternative needs the min trick because there's a prefix at level 1.
+    /// The 'if-then-else' does NOT need the min trick (no prefix below it).
+    ///
+    /// Expected:
+    ///   E(p)
+    ///     = 'a' {0}
+    ///     | [2>=p] l=E(p) [l==0||l>=2] '+' r=E(2) {r==0 ? 2 : min(r,2)}
+    ///     | 'if' E(0) 'then' E(0) 'else' E(1) {1}
+    #[test]
+    fn test_min_trick_deep_case() {
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(alternative!(lit!("a"))),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("+"), id!("E"))
+                    ),
+                    priority_level!(
+                        alternative!(lit!("if"), id!("E"), lit!("then"), id!("E"), lit!("else"), id!("E"))
+                    )
+                ),
+            ]
+        );
+
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        cond!(2 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!("+"),
+                        bind!("r", call!("E", 2)),
+                        ret!(expr ternary!(cond_expr!("r" == 0), 2, min!("r", 2))),
+                    ),
+                    alternative!(
+                        lit!("if"),
+                        call!("E", 0),
+                        lit!("then"),
+                        call!("E", 0),
+                        lit!("else"),
+                        call!("E", 1),
+                        ret!(1),
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.into();
+        let expected: Grammar = expected.into();
+        assert_eq!(actual, expected);
+    }
+
+    /// Min trick with prefix at higher precedence: no min trick needed.
+    ///   E = 'a' > '-' E > E '+' E
+    ///
+    /// Precedences (bottom=1): '+': 1, '-': 2 (prefix above binary)
+    /// No min trick because the prefix is ABOVE the binary.
+    #[test]
+    fn test_no_min_trick_prefix_above() {
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(alternative!(lit!("a"))),
+                    priority_level!(
+                        alternative!(lit!("-"), id!("E"))
+                    ),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("+"), id!("E"))
+                    )
+                ),
+            ]
+        );
+
+        // No min trick: prefix '-' at level 2 is above binary '+' at level 1
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        lit!("-"),
+                        call!("E", 2),
+                        ret!(2),
+                    ),
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 1)),
+                        lit!("+"),
+                        call!("E", 1),
+                        ret!(1),
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.into();
+        let expected: Grammar = expected.into();
+        assert_eq!(actual, expected);
+    }
+
+    /// Min trick with multiple operators (closer to Figure 4 from PEPM'16).
+    ///   E = 'a'
+    ///     > E '*' E  left
+    ///     > E '+' E  left
+    ///     > '-' E
+    ///     > 'if' E 'then' E 'else' E
+    ///     > E ';' E  right
+    ///
+    /// Precedences: ';':1, 'if':2, '-':3, '+':4 left, '*':5 left
+    /// min_prefix_pr = 2 (the 'if-then-else')
+    /// Min trick applies to: '*'(5>2), '+'(4>2), '-'(3>2)
+    /// No min trick for: 'if'(2=2), ';'(1<2)
+    #[test]
+    fn test_min_trick_multiple_operators() {
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(alternative!(lit!("a"))),
+                    priority_level!(left!();
+                        alternative!(id!("E"), lit!("*"), id!("E"))
+                    ),
+                    priority_level!(left!();
+                        alternative!(id!("E"), lit!("+"), id!("E"))
+                    ),
+                    priority_level!(
+                        alternative!(lit!("-"), id!("E"))
+                    ),
+                    priority_level!(
+                        alternative!(lit!("if"), id!("E"), lit!("then"), id!("E"), lit!("else"), id!("E"))
+                    ),
+                    priority_level!(right!();
+                        alternative!(id!("E"), lit!(";"), id!("E"))
+                    )
+                ),
+            ]
+        );
+
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    // '*' left at level 5: min trick (5 > 2)
+                    alternative!(
+                        cond!(5 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 5)),
+                        lit!("*"),
+                        bind!("r", call!("E", 6)),
+                        ret!(expr ternary!(cond_expr!("r" == 0), 5, min!("r", 5))),
+                    ),
+                    // '+' left at level 4: min trick (4 > 2)
+                    alternative!(
+                        cond!(4 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 4)),
+                        lit!("+"),
+                        bind!("r", call!("E", 5)),
+                        ret!(expr ternary!(cond_expr!("r" == 0), 4, min!("r", 4))),
+                    ),
+                    // '-' prefix at level 3: min trick (3 > 2)
+                    alternative!(
+                        lit!("-"),
+                        bind!("r", call!("E", 3)),
+                        ret!(expr ternary!(cond_expr!("r" == 0), 3, min!("r", 3))),
+                    ),
+                    // 'if-then-else' prefix at level 2: NO min trick (2 == 2, not > 2)
+                    alternative!(
+                        lit!("if"),
+                        call!("E", 0),
+                        lit!("then"),
+                        call!("E", 0),
+                        lit!("else"),
+                        call!("E", 2),
+                        ret!(2),
+                    ),
+                    // ';' right-assoc at level 1: NO min trick (1 < 2)
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!(";"),
+                        call!("E", 1),
                         ret!(1),
                     ),
                 )),
