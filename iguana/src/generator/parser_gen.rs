@@ -213,6 +213,7 @@ fn gen_nonterminals(nonterminal_ids: &NonterminalIds) -> TokenStream {
                 | Symbol::Literal(_)
                 | Symbol::Except { .. }
                 | Symbol::FollowRestriction { .. }
+                | Symbol::PrecedeRestriction { .. }
                 | Symbol::Call { .. }
                 | Symbol::Condition(_)
                 | Symbol::Return(_)
@@ -455,6 +456,19 @@ fn gen_slot_code<'a>(
                 slot_ids,
             );
         }
+        Some(Symbol::PrecedeRestriction {
+            symbol,
+            restriction,
+        }) => {
+            return gen_precede_restriction_code(
+                grammar,
+                symbol,
+                restriction,
+                &slot,
+                terminal_ids,
+                slot_ids,
+            );
+        }
         Some(
             Symbol::Labeled { .. }
             | Symbol::Identifier(_)
@@ -490,11 +504,12 @@ fn gen_slot_code<'a>(
                     | Symbol::Plus(_, _)
                     | Symbol::Except { .. }
                     | Symbol::FollowRestriction { .. }
+                    | Symbol::PrecedeRestriction { .. }
                     | Symbol::Condition(_)
                     | Symbol::Return(_)
                     | Symbol::Binding { .. } => vec![],
                 };
-                gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids)
+                gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids, None)
             }
         }
     } else {
@@ -609,7 +624,7 @@ fn gen_except_code<'a>(
                 Symbol::Call { arguments, .. } => arguments.clone(),
                 _ => vec![],
             };
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids)
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, None)
         }
     }
 }
@@ -658,7 +673,58 @@ fn gen_follow_restriction_code<'a>(
                 Symbol::Call { arguments, .. } => arguments.clone(),
                 _ => vec![],
             };
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids)
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, None)
+        }
+    }
+}
+
+fn gen_precede_restriction_code<'a>(
+    grammar: &'a Grammar,
+    symbol: &Symbol,
+    restriction: &Identifier,
+    slot: &Slot<'a>,
+    terminal_ids: &mut TerminalIds,
+    slot_ids: &mut SlotIds<'a>,
+) -> TokenStream {
+    let Some(identifier) = symbol.as_identifier() else {
+        return quote! {};
+    };
+    let def_id = identifier.resolve();
+    let def = grammar.definition(def_id);
+    let restriction_def_id = restriction.resolve();
+    let Definition::Terminal(restriction_terminal) = grammar.definition(restriction_def_id) else {
+        panic!("Precede restriction identifier must resolve to a terminal");
+    };
+    let restriction_terminal_id =
+        terminal_ids.get_id(restriction_terminal).unwrap_or_else(|| {
+            panic!(
+                "cannot find the lexical definition {}",
+                restriction_terminal.name
+            )
+        });
+    match def {
+        Definition::Terminal(terminal) => {
+            let pre_conditions = vec![quote! {
+                i == 0 || self.scanner.match_token(#restriction_terminal_id, i - 1).is_none()
+            }];
+            gen_terminal_slot(
+                grammar,
+                terminal,
+                slot.clone(),
+                terminal_ids,
+                slot_ids,
+                &pre_conditions,
+            )
+        }
+        Definition::Nonterminal(nonterminal) => {
+            let arguments = match symbol.unwrap() {
+                Symbol::Call { arguments, .. } => arguments.clone(),
+                _ => vec![],
+            };
+            let pre_condition = quote! {
+                input_index == 0 || self.scanner.match_token(#restriction_terminal_id, input_index - 1).is_none()
+            };
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, Some(pre_condition))
         }
     }
 }
@@ -752,6 +818,7 @@ fn gen_nonterminal_slot<'a>(
     arguments: &[Expr],
     slot: Slot<'a>,
     slot_ids: &mut SlotIds<'a>,
+    pre_condition: Option<TokenStream>,
 ) -> TokenStream {
     let slot_id = slot_ids.id(&slot);
     let slot_name = slot.name(grammar);
@@ -769,10 +836,16 @@ fn gen_nonterminal_slot<'a>(
     } else {
         quote! { result, gss_node_id, #return_slot_id, env, #bindings, #(#arguments),* }
     };
+    let call = quote! { self.#method_name(#arguments); };
+    let body = if let Some(condition) = pre_condition {
+        quote! { if #condition { #call } }
+    } else {
+        call
+    };
     quote! {
         #[comment = #slot_name]
         #slot_id => {
-            self.#method_name(#arguments);
+            #body
         }
     }
 }

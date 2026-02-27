@@ -19,7 +19,10 @@ RegexBlock
   = "regex" "{" RegexRule* "}"
 
 RegexRule
-  = Identifier "=" body:{ Regex+ "|" }+ PostCondition*
+  = Identifier "=" PreCondition? body:{ Regex+ "|" }+ PostCondition*
+
+PreCondition
+  = Identifier "!<<"                   #PrecedeRestriction
 
 PostCondition
   = "\\" Identifier              #Except
@@ -48,6 +51,7 @@ Symbol
   | Symbol "?"                               #Opt
   | Symbol "\\" Identifier                   #Except
   | Symbol "!>>" Identifier                  #FollowRestriction
+  > Identifier "!<<" Symbol                  #PrecedeRestriction
   > label:Identifier ":" Symbol              #Labeled
 
 Regex

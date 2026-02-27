@@ -239,6 +239,15 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 definition: None,
             },
         },
+        parse_tree::Symbol::PrecedeRestriction {
+            symbol, identifier, ..
+        } => Symbol::PrecedeRestriction {
+            symbol: Box::new(convert_symbol(symbol, input)),
+            restriction: Identifier {
+                name: text(input, identifier.span()),
+                definition: None,
+            },
+        },
     }
 }
 
@@ -287,6 +296,12 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
                 });
             }
         }
+    }
+    if let Some(pre_condition) = rule.pre_condition.value() {
+        lexical_rule.precede_restriction = Some(Identifier {
+            name: text(input, pre_condition.identifier.span()),
+            definition: None,
+        });
     }
     lexical_rule
 }

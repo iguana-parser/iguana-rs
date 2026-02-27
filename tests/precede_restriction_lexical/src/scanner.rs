@@ -1,0 +1,88 @@
+use iguana_runtime::{
+    ids::TerminalId,
+    input::Input,
+    scanner::Scanner,
+    sppf::{Span, TerminalNode},
+};
+const CHAR_CLASS_0: [(char, char); 1usize] = [('a', 'z')];
+const CHAR_CLASS_1: [(char, char); 1usize] = [(' ', ' ')];
+pub struct PrecedeRestrictionLexicalScanner<'i> {
+    pub input: &'i Input,
+}
+impl<'i> PrecedeRestrictionLexicalScanner<'i> {
+    pub fn new(input: &'i Input) -> Self {
+        Self { input }
+    }
+    //Id = ([a-z]+) !<< Char
+    pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        if i > 0 && self.match_terminal_1(i - 1).is_some() {
+            return None;
+        }
+        let i = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i)?;
+        let mut j = i;
+        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(j) {
+            j = k;
+        }
+        Some(j)
+    }
+    //Char = ([a-z])
+    pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char_class(i, &CHAR_CLASS_0, false)
+    }
+    //WS = ([ - ]*)
+    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        let mut j = i;
+        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_1, false))(j) {
+            j = k;
+        }
+        Some(j)
+    }
+    //"for" = for
+    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, 'f')
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'r'))
+    }
+    //"forall" = forall
+    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, 'f')
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'r'))
+            .and_then(|i| self.match_char(i, 'a'))
+            .and_then(|i| self.match_char(i, 'l'))
+            .and_then(|i| self.match_char(i, 'l'))
+    }
+    //Layout = ([ - ]*)
+    pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        let mut j = i;
+        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_1, false))(j) {
+            j = k;
+        }
+        Some(j)
+    }
+}
+impl Scanner for PrecedeRestrictionLexicalScanner<'_> {
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        match terminal_id {
+            TerminalId(0) => self.match_terminal_0(input_index),
+            TerminalId(1) => self.match_terminal_1(input_index),
+            TerminalId(2) => self.match_terminal_2(input_index),
+            TerminalId(3) => self.match_terminal_3(input_index),
+            TerminalId(4) => self.match_terminal_4(input_index),
+            TerminalId(5) => self.match_terminal_5(input_index),
+            _ => {
+                unreachable!("Unknown token type: {terminal_id}");
+            }
+        }
+    }
+    fn char_at(&self, i: u32) -> Option<char> {
+        self.input.char_at(i)
+    }
+}
+

@@ -138,6 +138,7 @@ pub struct LexicalRule {
     pub regex: Regex,
     pub except: Option<Identifier>,
     pub follow_restriction: Option<Identifier>,
+    pub precede_restriction: Option<Identifier>,
 }
 
 impl LexicalRule {
@@ -147,6 +148,7 @@ impl LexicalRule {
             regex,
             except: None,
             follow_restriction: None,
+            precede_restriction: None,
         }
     }
 }
@@ -159,6 +161,9 @@ impl Display for LexicalRule {
         }
         if let Some(restriction) = &self.follow_restriction {
             write!(f, " !>> {}", restriction)?;
+        }
+        if let Some(restriction) = &self.precede_restriction {
+            write!(f, " !<< {}", restriction)?;
         }
         Ok(())
     }
@@ -383,6 +388,16 @@ fn add_lexical_rules(
                 restriction,
             }
         }
+        Symbol::PrecedeRestriction {
+            symbol,
+            restriction,
+        } => {
+            let transformed = add_lexical_rules(*symbol, lexical_rules, added_terminals);
+            Symbol::PrecedeRestriction {
+                symbol: Box::new(transformed),
+                restriction,
+            }
+        }
         _ => symbol,
     }
 }
@@ -507,6 +522,25 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 restriction: resolved_restriction,
             }
         }
+        Symbol::PrecedeRestriction {
+            symbol,
+            restriction,
+        } => {
+            let resolved_symbol = resolve_identifier(*symbol, symbol_table);
+            let resolved_restriction =
+                if let Some(definition_id) = symbol_table.get(&restriction.name) {
+                    Identifier {
+                        name: restriction.name,
+                        definition: Some(definition_id),
+                    }
+                } else {
+                    panic!("Definition {} not found", &restriction.name)
+                };
+            Symbol::PrecedeRestriction {
+                symbol: Box::new(resolved_symbol),
+                restriction: resolved_restriction,
+            }
+        }
         Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => symbol,
     }
 }
@@ -546,6 +580,16 @@ impl From<GrammarDef> for Grammar {
                         symbol_table.get(&restriction.name).unwrap_or_else(|| {
                             panic!(
                                 "Follow restriction terminal {} not found",
+                                restriction.name
+                            )
+                        }),
+                    );
+                }
+                if let Some(restriction) = &mut r.precede_restriction {
+                    restriction.definition = Some(
+                        symbol_table.get(&restriction.name).unwrap_or_else(|| {
+                            panic!(
+                                "Precede restriction terminal {} not found",
                                 restriction.name
                             )
                         }),

@@ -84,6 +84,13 @@ pub enum Symbol {
         symbol: Box<Symbol>,
         restriction: Identifier,
     },
+    // Corresponds to the `<<!` operator in the concrete syntax.
+    // `Id <<! X` means reject the match of X if the character immediately before
+    // left_extent matches Id. Id must be a single-char regex (Char, CharRange, or CharClass).
+    PrecedeRestriction {
+        symbol: Box<Symbol>,
+        restriction: Identifier,
+    },
     Call {
         name: Identifier,
         arguments: Vec<Expr>,
@@ -210,7 +217,8 @@ impl Symbol {
             Symbol::Labeled { symbol, .. }
             | Symbol::Binding { symbol, .. }
             | Symbol::Except { symbol, .. }
-            | Symbol::FollowRestriction { symbol, .. } => symbol,
+            | Symbol::FollowRestriction { symbol, .. }
+            | Symbol::PrecedeRestriction { symbol, .. } => symbol,
             Symbol::Identifier(_)
             | Symbol::Literal(_)
             | Symbol::Group(_)
@@ -238,7 +246,8 @@ impl Symbol {
             Symbol::Labeled { symbol, .. }
             | Symbol::Binding { symbol, .. }
             | Symbol::Except { symbol, .. }
-            | Symbol::FollowRestriction { symbol, .. } => symbol.as_identifier(),
+            | Symbol::FollowRestriction { symbol, .. }
+            | Symbol::PrecedeRestriction { symbol, .. } => symbol.as_identifier(),
             Symbol::Literal(_)
             | Symbol::Group(_)
             | Symbol::Opt(_)
@@ -301,6 +310,12 @@ impl Symbol {
             } => {
                 format!("{} !>> {}", symbol.display_name(grammar), restriction)
             }
+            Symbol::PrecedeRestriction {
+                symbol,
+                restriction,
+            } => {
+                format!("{} !<< {}", restriction, symbol.display_name(grammar))
+            }
             Symbol::Binding { name, symbol } => {
                 format!("{}={}", name, symbol.display_name(grammar))
             }
@@ -334,6 +349,10 @@ impl Display for Symbol {
                 symbol,
                 restriction,
             } => write!(f, "{} !>> {}", symbol, restriction),
+            Symbol::PrecedeRestriction {
+                symbol,
+                restriction,
+            } => write!(f, "{} !<< {}", restriction, symbol),
             Symbol::Condition(expr) => write!(f, "[{}]", expr),
             Symbol::Return(expr) => write!(f, "return {}", expr),
             Symbol::Binding { name, symbol } => write!(f, "{}={}", name, symbol),
@@ -617,6 +636,19 @@ macro_rules! except {
 macro_rules! follow {
     ($symbol:expr, $restriction:expr) => {
         $crate::grammar::symbols::Symbol::FollowRestriction {
+            symbol: Box::new($symbol),
+            restriction: $crate::grammar::symbols::Identifier {
+                name: $restriction.into(),
+                definition: None,
+            },
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! precede {
+    ($symbol:expr, $restriction:expr) => {
+        $crate::grammar::symbols::Symbol::PrecedeRestriction {
             symbol: Box::new($symbol),
             restriction: $crate::grammar::symbols::Identifier {
                 name: $restriction.into(),

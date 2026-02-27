@@ -223,11 +223,37 @@ fn gen_match_terminal_method(
         }
     });
 
+    let precede_restriction_check = rule.precede_restriction.as_ref().map(|restriction| {
+        let Definition::Terminal(restriction_terminal) =
+            grammar.definition(restriction.resolve())
+        else {
+            panic!(
+                "Precede restriction {} must refer to a terminal",
+                restriction.name
+            );
+        };
+        let restriction_id = terminal_ids
+            .get_id(restriction_terminal)
+            .unwrap_or_else(|| {
+                panic!(
+                    "Precede restriction terminal {} is not defined",
+                    restriction.name
+                )
+            });
+        let restriction_fn = format_ident!("match_terminal_{}", restriction_id.index());
+        quote! {
+            if i > 0 && self.#restriction_fn(i - 1).is_some() {
+                return None;
+            }
+        }
+    });
+
     let comment = rule.to_string();
     quote! {
         #[comment = #comment]
         pub fn #fn_name(&self, input_index: u32) -> Option<u32> {
             let i = input_index;
+            #precede_restriction_check
             #match_regex
             #except_check
             #follow_restriction_check

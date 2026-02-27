@@ -1,0 +1,11 @@
+grammar PrecedeRestrictionLexical
+
+layout WS
+
+S = "for" Id | "forall"
+
+regex {
+  Id = Char !<< [a-z]+
+  Char = [a-z]
+  WS = [\ ]*
+}

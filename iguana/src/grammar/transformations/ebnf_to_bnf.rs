@@ -260,7 +260,22 @@ fn rewrite_ebnf_symbol(
                 restriction,
             }
         }
-        _ => symbol,
+        Symbol::PrecedeRestriction {
+            symbol,
+            restriction,
+        } => {
+            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, layout, counters, new_rules, ebnf_symbols);
+            Symbol::PrecedeRestriction {
+                symbol: Box::new(transformed),
+                restriction,
+            }
+        }
+        Symbol::Identifier(_)
+        | Symbol::Literal(_)
+        | Symbol::Alt(_)
+        | Symbol::Call { .. }
+        | Symbol::Condition(_)
+        | Symbol::Return(_) => symbol,
     };
     ebnf_symbols.insert(origin, res.clone());
     res

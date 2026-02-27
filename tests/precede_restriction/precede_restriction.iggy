@@ -1,0 +1,13 @@
+grammar PrecedeRestriction
+
+layout WS
+
+S = "for" Id | "forall"
+
+@NoLayout
+Id = Char !<< Char+
+
+regex {
+  Char = [a-z]
+  WS = [\ ]*
+}
