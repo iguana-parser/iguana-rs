@@ -7,7 +7,8 @@ S = Id
 @NoLayout
 Id = Char+
 
-regex {
-  Char = [a-z]
-  WS = [\ \n]*
-}
+@regex
+Char = [a-z]
+
+@regex
+WS = [\ \n]*

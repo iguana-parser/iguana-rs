@@ -75,17 +75,20 @@ fn build_grammar(
     let grammar = &start_grammar.start;
     let name = text(input, grammar.name.span());
 
-    let syntax_rules: Vec<SyntaxRule> = grammar
-        .syntax_rules
-        .syntax_rules()
-        .map(|r| convert_syntax_rule(r, input))
-        .collect();
+    let mut syntax_rules: Vec<SyntaxRule> = Vec::new();
+    let mut lexical_rules: Vec<LexicalRule> = Vec::new();
 
-    let lexical_rules: Vec<LexicalRule> = grammar
-        .regex_block
-        .value()
-        .map(|block| convert_regex_block(block, input))
-        .unwrap_or_default();
+    for rule in grammar.rules.rules() {
+        match rule {
+            parse_tree::Rule::SyntaxRule { syntax_rule, .. } => {
+                syntax_rules.push(convert_syntax_rule(syntax_rule, input));
+            }
+            parse_tree::Rule::RegexRule { regex_rule, .. } => {
+                lexical_rules.push(convert_regex_rule(regex_rule, input));
+            }
+        }
+    }
+
 
     let layout_def: Vec<Terminal> = grammar
         .layout_def
@@ -251,13 +254,6 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
     }
 }
 
-fn convert_regex_block(block: &parse_tree::RegexBlock, input: &Input) -> Vec<LexicalRule> {
-    block
-        .regex_rules
-        .regex_rules()
-        .map(|rule| convert_regex_rule(rule, input))
-        .collect()
-}
 
 fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRule {
     let name = text(input, rule.identifier.span());
@@ -297,9 +293,9 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
             }
         }
     }
-    if let Some(pre_condition) = rule.pre_condition.value() {
+    if let Some(pc) = rule.pre_condition.value() {
         lexical_rule.precede_restriction = Some(Identifier {
-            name: text(input, pre_condition.identifier.span()),
+            name: text(input, pc.identifier.span()),
             definition: None,
         });
     }

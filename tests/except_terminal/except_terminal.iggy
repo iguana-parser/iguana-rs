@@ -4,7 +4,8 @@ S = Id
 
 Id = Identifier \ Keyword
 
-regex {
-  Identifier = [a-zA-Z]+
-  Keyword = "if" | "else" | "while"
-}
+@regex
+Identifier = [a-zA-Z]+
+
+@regex
+Keyword = "if" | "else" | "while"

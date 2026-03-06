@@ -8,6 +8,5 @@ E = "a"
   > E "+" E
   > "if" E "then" E "else" E
 
-regex {
-  WS = [\ ]*
-}
+@regex
+WS = [\ ]*

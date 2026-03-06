@@ -5,9 +5,14 @@ layout WS
 S = Element+
 Element = Num | Id
 
-regex {
-  Num = [0-9]+ !>> Alpha
-  Alpha = [a-zA-Z]
-  Id = [a-zA-Z]+
-  WS = [\ ]*
-}
+@regex
+Num = [0-9]+ !>> Alpha
+
+@regex
+Alpha = [a-zA-Z]
+
+@regex
+Id = [a-zA-Z]+
+
+@regex
+WS = [\ ]*

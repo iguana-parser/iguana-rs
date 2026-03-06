@@ -8,7 +8,8 @@ T = Char !>> Char
 @NoLayout
 Id = Char+ !>> Char
 
-regex {
-  Char = [a-z]
-  WS = [\ ]*
-}
+@regex
+Char = [a-z]
+
+@regex
+WS = [\ ]*

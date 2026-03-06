@@ -4,8 +4,11 @@ layout WS
 
 S = "for" Id | "forall"
 
-regex {
-  Id = Char !<< [a-z]+
-  Char = [a-z]
-  WS = [\ ]*
-}
+@regex
+Id = Char !<< [a-z]+
+
+@regex
+Char = [a-z]
+
+@regex
+WS = [\ ]*

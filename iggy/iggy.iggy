@@ -3,10 +3,14 @@ grammar Iggy
 layout WS
 
 Grammar
-  = "grammar" name:Identifier LayoutDef? SyntaxRule* RegexBlock?
+  = "grammar" name:Identifier LayoutDef? Rule*
 
 LayoutDef
   = "layout" Identifier*
+
+Rule
+  = SyntaxRule       #SyntaxRule
+  | RegexRule        #RegexRule
 
 SyntaxRule
   = Annotation? head:Identifier "=" {PriorityLevel ">"}*
@@ -15,11 +19,8 @@ Annotation
   = "@NoLayout"                        #NoLayout
   | "@Layout" "(" Identifier ")"       #Layout
 
-RegexBlock
-  = "regex" "{" RegexRule* "}"
-
 RegexRule
-  = Identifier "=" PreCondition? body:{ Regex+ "|" }+ PostCondition*
+  = "@regex" Identifier "=" PreCondition? body:{ Regex+ "|" }+ PostCondition*
 
 PreCondition
   = Identifier "!<<"                   #PrecedeRestriction
@@ -74,19 +75,27 @@ RangeElement
 Range
   = start:RangeChar "-" end:RangeChar
 
-regex {
-  Keyword = "grammar" | "layout" | "regex" | "left" | "right" | "none"
-  Identifier = [a-zA-Z_][a-zA-Z_0-9]* \ Keyword
-  String = (("\\" [" \\ t f r n]) | !["\\])*
+@regex
+Keyword = "grammar" | "layout" | "left" | "right" | "none"
 
-  RangeChar
-    = ![\\ \- \[ \] \t \f \r \n \ ]
-    | "\\" [\\ \- \[ \] t f r n \ ]
+@regex
+Identifier = [a-zA-Z_][a-zA-Z_0-9]* \ Keyword
 
-  Char
-    = "\\" [' \\ t f r n]
-    | !['\\]
+@regex
+String = (("\\" [" \\ t f r n]) | !["\\])*
 
-  Label = "#" [a-zA-Z_][a-zA-Z_0-9]*
-  WS = [\ \n]*
-}
+@regex
+RangeChar
+  = ![\\ \- \[ \] \t \f \r \n \ ]
+  | "\\" [\\ \- \[ \] t f r n \ ]
+
+@regex
+Char
+  = "\\" [' \\ t f r n]
+  | !['\\]
+
+@regex
+Label = "#" [a-zA-Z_][a-zA-Z_0-9]*
+
+@regex
+WS = [\ \n]*

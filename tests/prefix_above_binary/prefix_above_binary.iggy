@@ -8,6 +8,5 @@ E = "a"
   > "-" E
   > E "+" E
 
-regex {
-  WS = [\ ]*
-}
+@regex
+WS = [\ ]*

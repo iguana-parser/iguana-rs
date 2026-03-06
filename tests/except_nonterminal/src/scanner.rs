@@ -12,7 +12,7 @@ impl<'i> ExceptNonterminalScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //Identifier
+    //Identifier = ([a-z A-Z]+)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let i = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i)?;
@@ -22,7 +22,7 @@ impl<'i> ExceptNonterminalScanner<'i> {
         }
         Some(j)
     }
-    //Keyword
+    //Keyword = (if|else|while)
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'i')
@@ -41,7 +41,7 @@ impl<'i> ExceptNonterminalScanner<'i> {
                     .and_then(|i| self.match_char(i, 'e'))
             })
     }
-    //Layout
+    //Layout = ε
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         Some(i)

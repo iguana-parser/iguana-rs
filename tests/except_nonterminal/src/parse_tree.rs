@@ -201,7 +201,7 @@ pub struct S {
 //Id = Name \ Keyword
 #[derive(Debug)]
 pub struct Id {
-    pub field_0: Name,
+    pub name: Name,
     pub span: Span,
 }
 //Name = Identifier
@@ -254,7 +254,7 @@ impl S {
 impl Id {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.field_0.as_parse_tree_ref()),
+            0 => Some(self.name.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -395,9 +395,9 @@ impl ParseTreeBuilder<ParseTree> for ExceptNonterminalParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //Id : Name \ Keyword.
                     SlotId(3) => {
-                        let [field_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [name] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         Id {
-                            field_0: field_0.unwrap_name(),
+                            name: name.unwrap_name(),
                             span: nonterminal_node.span,
                         }
                         .into()

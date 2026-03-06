@@ -11,6 +11,5 @@ E = left  E "*" E
   > right E ";" E
   >       "a"
 
-regex {
-  WS = [\ ]*
-}
+@regex
+WS = [\ ]*

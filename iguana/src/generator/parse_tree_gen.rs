@@ -1219,7 +1219,7 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
                     (method, ret)
                 }
             };
-            let variant = format_ident!("Alt{}", i);
+            let variant = format_ident!("{}", to_pascal_case(&alternative_label(alt, i)));
             let field_name = safe_ident(&gen_field_name(grammar, symbol, 0, false));
 
             quote! {

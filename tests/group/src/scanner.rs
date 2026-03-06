@@ -11,22 +11,22 @@ impl<'i> GroupScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //"b"
+    //"b" = b
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'b')
     }
-    //"c"
+    //"c" = c
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'c')
     }
-    //"d"
+    //"d" = d
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'd')
     }
-    //Layout
+    //Layout = ε
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         Some(i)

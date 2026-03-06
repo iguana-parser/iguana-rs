@@ -11,12 +11,12 @@ impl<'i> LeftRecursiveListScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //"a"
+    //"a" = a
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'a')
     }
-    //Layout
+    //Layout = ε
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         Some(i)
