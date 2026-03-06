@@ -5,7 +5,7 @@ use crate::{
     grammar::{
         def::{Alternative, LayoutStrategy, PriorityLevel, SyntaxRule},
         symbols::{Identifier, Nonterminal, Symbol},
-        transformations::transform_rule,
+        transformations::transform_syntax_rule,
     },
     opt, plus, priority_level,
 };
@@ -71,7 +71,7 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> (Vec<SyntaxRule>, FxHashMap<S
         .map(|rule| {
             let name = rule.head.name.clone();
             let layout = rule.layout.clone();
-            transform_rule(rule, |s| {
+            transform_syntax_rule(rule, |s| {
                 rewrite_ebnf_symbol(
                     s,
                     &name,

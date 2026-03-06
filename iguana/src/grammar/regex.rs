@@ -2,6 +2,8 @@ use std::fmt::Display;
 
 use itertools::Itertools;
 
+use super::symbols::Identifier;
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Regex {
     Char(char),
@@ -13,6 +15,8 @@ pub enum Regex {
     Plus(Box<Regex>),
     Opt(Box<Regex>),
     Epsilon,
+    /// A reference to another named `@regex` rule — inlined during grammar compilation.
+    Identifier(Identifier),
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -118,6 +122,7 @@ impl std::fmt::Display for Regex {
                 }
             }
             Regex::Epsilon => write!(f, "{}", "ε"),
+            Regex::Identifier(id) => write!(f, "{}", id.name),
         }
     }
 }

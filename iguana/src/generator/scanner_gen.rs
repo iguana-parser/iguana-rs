@@ -272,6 +272,7 @@ fn match_regex(regex: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
         Regex::Opt(r) => match_opt(r, char_class_ids),
         Regex::Plus(r) => match_plus(r, char_class_ids),
         Regex::Epsilon => match_epsilon(),
+        Regex::Identifier(_) => unreachable!("Regex::Identifier should be inlined before code generation"),
     }
 }
 

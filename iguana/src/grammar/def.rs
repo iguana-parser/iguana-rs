@@ -9,7 +9,7 @@ use crate::{
     grammar::{
         regex::Regex,
         symbols::{Definition, DefinitionId, Expr, Identifier, Nonterminal, Symbol, Terminal},
-        transformations::{ebnf_to_bnf, layout_insertion, precedence_desugaring, transform_rule},
+        transformations::{ebnf_to_bnf, layout_insertion, precedence_desugaring, transform_regex, transform_syntax_rule},
     },
     lexical_rule, priority_level,
 };
@@ -287,7 +287,7 @@ fn add_lexical_rules_for_literals(
     let mut transformed_syntax_rules = vec![];
     let mut added_terminals = FxHashSet::default();
     for rule in syntax_rules {
-        let transformed = transform_rule(rule, |s| {
+        let transformed = transform_syntax_rule(rule, |s| {
             add_lexical_rules(s, lexical_rules, &mut added_terminals)
         });
         transformed_syntax_rules.push(transformed);
@@ -404,14 +404,32 @@ fn add_lexical_rules(
 
 fn resolve_identifiers(
     syntax_rules: Vec<SyntaxRule>,
+    lexical_rules: Vec<LexicalRule>,
     symbol_table: &SymbolTable,
-) -> Vec<SyntaxRule> {
-    let mut rules = vec![];
-    for rule in syntax_rules {
-        let transformed = transform_rule(rule, |s| resolve_identifier(s, symbol_table));
-        rules.push(transformed);
-    }
-    rules
+) -> (Vec<SyntaxRule>, Vec<LexicalRule>) {
+    let syntax_rules = syntax_rules
+        .into_iter()
+        .map(|rule| transform_syntax_rule(rule, |s| resolve_identifier(s, symbol_table)))
+        .collect();
+    let lexical_rules = lexical_rules
+        .into_iter()
+        .map(|mut rule| {
+            rule.regex = transform_regex(rule.regex, &mut |regex| match regex {
+                Regex::Identifier(id) => {
+                    let definition = symbol_table
+                        .get(&id.name)
+                        .unwrap_or_else(|| panic!("Undefined @regex rule: {}", id.name));
+                    Regex::Identifier(Identifier {
+                        name: id.name,
+                        definition: Some(definition),
+                    })
+                }
+                other => other,
+            });
+            rule
+        })
+        .collect();
+    (syntax_rules, lexical_rules)
 }
 
 fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
@@ -545,16 +563,86 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
     }
 }
 
+/// Inlines `Regex::Identifier` references in lexical rules by substituting them with the
+/// referenced rule's regex body. For example, given:
+///   Digit = [0-9]
+///   Digits = Digit+
+/// After inlining, `Digits` becomes `[0-9]+`.
+///
+/// Uses a single map (`inlined_regexes`) with `Option<Regex>` values to track resolution state:
+/// - `None` → resolution is in progress (on the current recursion stack)
+/// - `Some(regex)` → fully resolved and cached
+///
+/// If we encounter a name mapped to `None`, it means we have a cyclic reference
+/// (e.g., `A = B`, `B = A`), which is a grammar error.
+// TODO: return a proper Result instead of panicking on errors (cyclic/undefined references).
+fn inline_regex_refs(lexical_rules: Vec<LexicalRule>) -> Vec<LexicalRule> {
+    // Maps each lexical rule name to its original (uninlined) regex body.
+    let regex_map: FxHashMap<String, Regex> = lexical_rules
+        .iter()
+        .map(|r| (r.head.name.clone(), r.regex.clone()))
+        .collect();
+    let mut inlined_regexes: FxHashMap<String, Option<Regex>> = FxHashMap::default();
+    lexical_rules
+        .into_iter()
+        .map(|mut rule| {
+            rule.regex = inline_regex(rule.regex, &regex_map, &mut inlined_regexes);
+            rule
+        })
+        .collect()
+}
+
+fn inline_regex(
+    regex: Regex,
+    regex_map: &FxHashMap<String, Regex>,
+    inlined_regexes: &mut FxHashMap<String, Option<Regex>>,
+) -> Regex {
+    match regex {
+        Regex::Identifier(id) => match inlined_regexes.get(&id.name) {
+            Some(Some(resolved)) => resolved.clone(),
+            Some(None) => panic!(
+                "Cyclic reference in @regex rules: '{}' references itself. \
+                 Regex rules must be non-recursive.",
+                id.name
+            ),
+            None => {
+                let raw = regex_map
+                    .get(&id.name)
+                    .unwrap_or_else(|| panic!("Undefined @regex rule: '{}'", id.name));
+                inlined_regexes.insert(id.name.clone(), None);
+                let resolved = inline_regex(raw.clone(), regex_map, inlined_regexes);
+                inlined_regexes.insert(id.name.clone(), Some(resolved.clone()));
+                resolved
+            }
+        },
+        Regex::Seq(rs) => Regex::Seq(
+            rs.into_iter()
+                .map(|r| inline_regex(r, regex_map, inlined_regexes))
+                .collect(),
+        ),
+        Regex::Alt(rs) => Regex::Alt(
+            rs.into_iter()
+                .map(|r| inline_regex(r, regex_map, inlined_regexes))
+                .collect(),
+        ),
+        Regex::Star(r) => Regex::Star(Box::new(inline_regex(*r, regex_map, inlined_regexes))),
+        Regex::Plus(r) => Regex::Plus(Box::new(inline_regex(*r, regex_map, inlined_regexes))),
+        Regex::Opt(r) => Regex::Opt(Box::new(inline_regex(*r, regex_map, inlined_regexes))),
+        Regex::Char(_) | Regex::CharRange(_) | Regex::CharClass(_) | Regex::Epsilon => regex,
+    }
+}
+
 impl From<GrammarDef> for Grammar {
     fn from(grammar_def: GrammarDef) -> Self {
         let mut lexical_rules = grammar_def.lexical_rules;
         let syntax_rules = grammar_def.syntax_rules;
         let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules);
         let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
-        let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
+        let (syntax_rules, lexical_rules) = resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
+        let lexical_rules = inline_regex_refs(lexical_rules);
         let (syntax_rules, mut ebnf_symbols) = ebnf_to_bnf::transform(syntax_rules);
         let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
-        let syntax_rules = resolve_identifiers(syntax_rules, &symbol_table);
+        let (syntax_rules, lexical_rules) = resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
         let syntax_rules = precedence_desugaring::transform(syntax_rules);
         // Create the final symbol table after all transformations. This must happen
         // after precedence desugaring because desugaring may add parameters to

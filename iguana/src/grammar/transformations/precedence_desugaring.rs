@@ -3,7 +3,7 @@ use crate::grammar::{
     symbols::{
         Cond, CondOp, DefinitionId, Expr, Identifier, Nonterminal, ParamType, Parameter, Symbol,
     },
-    transformations::transform_rule,
+    transformations::transform_syntax_rule,
 };
 
 /// Which ends of an alternative are recursive (i.e., reference the head nonterminal).
@@ -495,7 +495,7 @@ fn rewrite_non_recursive(head_name: &str, alt: Alternative) -> Alternative {
 /// Updates references to desugared nonterminals in non-desugared rules:
 /// `E` becomes `E(0)`.
 fn update_external_references(rule: SyntaxRule, desugared_names: &[String]) -> SyntaxRule {
-    transform_rule(rule, |symbol| {
+    transform_syntax_rule(rule, |symbol| {
         if let Symbol::Identifier(id) = &symbol && desugared_names.contains(&id.name) {
             return Symbol::Call {
                 name: Identifier {

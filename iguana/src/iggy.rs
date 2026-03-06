@@ -325,6 +325,10 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
             let regexes = unescaped.chars().map(Regex::Char).collect();
             Regex::Seq(regexes)
         }
+        parse_tree::Regex::Identifier { identifier, .. } => {
+            let name = text(input, identifier.span());
+            Regex::Identifier(Identifier { name, definition: None })
+        }
     }
 }
 

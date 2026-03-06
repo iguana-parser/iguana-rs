@@ -1,0 +1,9 @@
+(S
+  (Id
+    Letter
+    (LetterOrDigit*
+      LetterOrDigit
+      LetterOrDigit
+    )
+  )
+)

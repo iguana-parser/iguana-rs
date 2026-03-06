@@ -195,5 +195,6 @@ pub fn collect_char_classes(regex: &Regex, char_class_ids: &mut CharClassIds) {
             collect_char_classes(r, char_class_ids);
         }
         Regex::Char(_) | Regex::CharRange(_) | Regex::Epsilon => {}
+        Regex::Identifier(_) => unreachable!("Regex::Identifier should be inlined before code generation"),
     }
 }

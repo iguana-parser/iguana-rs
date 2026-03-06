@@ -64,6 +64,7 @@ Regex
   | CharClass                                 #CharClass
   | "'" Char "'"                              #Char
   | "\"" String "\""                          #String
+  | Identifier                                #Identifier
 
 CharClass
   = neg:"!"? "[" RangeElement+ "]"
