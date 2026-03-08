@@ -147,6 +147,29 @@ fn gen_nonterminal_type(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenSt
     }
 }
 
+/// Returns the Rust type for a parse tree field: `Token` for terminals, or the
+/// nonterminal's PascalCase name (wrapped in `Box<>` if recursive).
+fn gen_field_type(
+    grammar: &Grammar,
+    symbol: &Symbol,
+    parent: &Nonterminal,
+) -> TokenStream {
+    let def = grammar.definition(symbol.resolved_def());
+    match def {
+        Definition::Terminal(_) => {
+            quote! { Token }
+        }
+        Definition::Nonterminal(nt) => {
+            let name = Ident::new(&nonterminal_type_name(grammar, def.name()), Span::call_site());
+            if should_be_boxed(unwrap_exclude(grammar, nt), parent) {
+                quote! { Box<#name> }
+            } else {
+                quote! { #name }
+            }
+        }
+    }
+}
+
 fn gen_nonterminal_type_with_one_alternative(
     grammar: &Grammar,
     nonterminal: &Nonterminal,
@@ -164,21 +187,7 @@ fn gen_nonterminal_type_with_one_alternative(
                 base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
             let field_name = gen_field_name(grammar, s, i, needs_index);
             let field_ident = safe_ident(&field_name);
-            let def = grammar.definition(s.resolved_def());
-            let field_type = match def {
-                Definition::Terminal(_) => {
-                    let token = Ident::new("Token", Span::call_site());
-                    quote! { #token }
-                }
-                Definition::Nonterminal(nt) => {
-                    let name = Ident::new(&nonterminal_type_name(grammar, def.name()), Span::call_site());
-                    if should_be_boxed(unwrap_exclude(grammar, nt), nonterminal) {
-                        quote! { Box<#name> }
-                    } else {
-                        quote! { #name }
-                    }
-                }
-            };
+            let field_type = gen_field_type(grammar, s, nonterminal);
             quote! { pub #field_ident: #field_type }
         })
         .collect();
@@ -395,24 +404,8 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
                         base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
                     let field_name = gen_field_name(grammar, s, i, needs_index);
                     let field_ident = safe_ident(&field_name);
-                    let def_id = s.resolved_def();
-                    let def = grammar.definition(def_id);
-                    let type_token = match def {
-                        Definition::Terminal(_) => {
-                            let token = Ident::new("Token", Span::call_site());
-                            quote! { #token }
-                        }
-                        Definition::Nonterminal(nt) => {
-                            let name =
-                                Ident::new(&nonterminal_type_name(grammar, def.name()), Span::call_site());
-                            if should_be_boxed(unwrap_exclude(grammar, nt), nonterminal) {
-                                quote! { Box<#name> }
-                            } else {
-                                quote! { #name }
-                            }
-                        }
-                    };
-                    quote! { #field_ident: #type_token }
+                    let field_type = gen_field_type(grammar, s, nonterminal);
+                    quote! { #field_ident: #field_type }
                 })
                 .collect();
             let label = to_pascal_case(&alternative_label(alternative, index));
