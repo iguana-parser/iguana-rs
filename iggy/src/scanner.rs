@@ -320,20 +320,20 @@ impl<'i> IggyScanner<'i> {
         let i = input_index;
         self.match_char(i, '?')
     }
-    //":" = :
+    //"!" = !
     pub fn match_terminal_29(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '!')
+    }
+    //":" = :
+    pub fn match_terminal_30(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ':')
     }
     //"'" = '
-    pub fn match_terminal_30(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        self.match_char(i, '\'')
-    }
-    //"!" = !
     pub fn match_terminal_31(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char(i, '!')
+        self.match_char(i, '\'')
     }
     //"[" = [
     pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {

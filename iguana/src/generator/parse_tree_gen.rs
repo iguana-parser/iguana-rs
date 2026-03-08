@@ -14,7 +14,7 @@ use crate::{
     },
     grammar::{
         def::{Alternative, Grammar},
-        symbols::{Definition, Nonterminal, Symbol},
+        symbols::{Definition, Identifier, Nonterminal, Symbol},
     },
     ids::TerminalId,
 };
@@ -64,6 +64,7 @@ pub fn generate(
         .collect();
     let alt_accessor_impls: Vec<TokenStream> = grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .filter(|n| is_single_symbol_alternation(grammar, n))
         .map(|n| gen_alt_accessors(grammar, n))
         .collect();
@@ -72,16 +73,19 @@ pub fn generate(
     let create_parse_tree_function = gen_create_parse_tree_function(grammar);
     let create_parse_tree_functions: Vec<_> = grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .map(|n| gen_create_parse_tree_nonterminal_function(grammar, &n.name))
         .collect();
 
     let nonterminal_types: Vec<_> = grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .map(|n| gen_nonterminal_type(grammar, n))
         .collect();
 
     let nonterminal_types_impl: Vec<_> = grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .map(|n| gen_nonterminal_type_impl(grammar, n))
         .collect();
 
@@ -167,8 +171,16 @@ fn gen_nonterminal_type_with_one_alternative(
                     quote! { #token }
                 }
                 Definition::Nonterminal(nt) => {
-                    let name = Ident::new(&to_pascal_case(def.name()), Span::call_site());
-                    if should_be_boxed(nt, nonterminal) {
+                    let name = Ident::new(&nonterminal_type_name(grammar, def.name()), Span::call_site());
+                    // Resolve exclude nonterminals to their origin for boxing checks,
+                    // since exclude types map to the original nonterminal's type.
+                    let resolved_field_nt = if nt.is_exclude() {
+                        grammar.nonterminal(exclude_origin_name(nt))
+                            .expect("Original nonterminal not found for Exclude")
+                    } else {
+                        nt
+                    };
+                    if should_be_boxed(resolved_field_nt, nonterminal) {
                         quote! { Box<#name> }
                     } else {
                         quote! { #name }
@@ -253,6 +265,9 @@ fn get_symbol_base_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
         Symbol::Alt(_) => None,
         Symbol::Except { symbol, .. } | Symbol::FollowRestriction { symbol, .. } | Symbol::PrecedeRestriction { symbol, .. } => {
             get_symbol_base_name(grammar, symbol)
+        }
+        Symbol::Exclude { .. } => {
+            unreachable!("Exclude should be desugared before code generation")
         }
         Symbol::Condition(_) => None,
         Symbol::Return(_) => None,
@@ -353,6 +368,9 @@ fn gen_field_name(
         Symbol::Except { symbol, .. } | Symbol::FollowRestriction { symbol, .. } | Symbol::PrecedeRestriction { symbol, .. } => {
             return gen_field_name(grammar, symbol, position, needs_index);
         }
+        Symbol::Exclude { .. } => {
+            unreachable!("Exclude should be desugared before code generation")
+        }
         Symbol::Condition(_) => format!("field_{}", position),
         Symbol::Return(_) => format!("field_{}", position),
     };
@@ -393,13 +411,19 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
                             quote! { #token }
                         }
                         Definition::Nonterminal(nt) => {
-                            if should_be_boxed(nt, nonterminal) {
-                                let name =
-                                    Ident::new(&to_pascal_case(def.name()), Span::call_site());
+                            let name =
+                                Ident::new(&nonterminal_type_name(grammar, def.name()), Span::call_site());
+                            // Resolve exclude nonterminals to their origin for boxing checks,
+                            // since exclude types map to the original nonterminal's type.
+                            let resolved_field_nt = if nt.is_exclude() {
+                                grammar.nonterminal(exclude_origin_name(nt))
+                                    .expect("Original nonterminal not found for Exclude")
+                            } else {
+                                nt
+                            };
+                            if should_be_boxed(resolved_field_nt, nonterminal) {
                                 quote! { Box<#name> }
                             } else {
-                                let name =
-                                    Ident::new(&to_pascal_case(def.name()), Span::call_site());
                                 quote! { #name }
                             }
                         }
@@ -407,7 +431,7 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
                     quote! { #field_ident: #type_token }
                 })
                 .collect();
-            let label = alternative_label(alternative, index);
+            let label = to_pascal_case(&alternative_label(alternative, index));
             let variant_name = Ident::new(&label, Span::call_site());
             let variant_comment = alternative.display_name(grammar);
             // Add Span as last field in each variant
@@ -778,8 +802,29 @@ fn gen_nonterminal_node_method(
                                     (Ident::new("unwrap_token", Span::call_site()), false)
                                 },
                                 Definition::Nonterminal(nt) => {
-                                    let ident = format_ident!("unwrap_{}", to_snake_case(def.name()));
-                                    (ident, should_be_boxed(nt, nonterminal))
+                                    let resolved_name = if nt.is_exclude() {
+                                        exclude_origin_name(nt)
+                                    } else {
+                                        def.name()
+                                    };
+                                    let ident = format_ident!("unwrap_{}", to_snake_case(resolved_name));
+                                    // For Exclude nonterminals, check boxing against the original
+                                    // nonterminal since that's the parse tree type being constructed.
+                                    // Resolve exclude nonterminals to their origin for boxing checks,
+                                    // since exclude types map to the original nonterminal's type.
+                                    let resolved_head = if nonterminal.is_exclude() {
+                                        grammar.nonterminal(exclude_origin_name(nonterminal))
+                                            .expect("Original nonterminal not found for Exclude")
+                                    } else {
+                                        nonterminal
+                                    };
+                                    let resolved_field_nt = if nt.is_exclude() {
+                                        grammar.nonterminal(exclude_origin_name(nt))
+                                            .expect("Original nonterminal not found for Exclude")
+                                    } else {
+                                        nt
+                                    };
+                                    (ident, should_be_boxed(resolved_field_nt, resolved_head))
                                 }
                             }})
                         .collect();
@@ -797,8 +842,17 @@ fn gen_nonterminal_node_method(
                             }
                         })
                         .collect();
-                    let nonterminal_type = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
-                    let num_alternatives = grammar.alternatives(nonterminal).len();
+                    // For Exclude-derived nonterminals, use the original nonterminal's
+                    // parse tree type, alternative count, and boxing check.
+                    let (type_name, num_alternatives) = if nonterminal.is_exclude() {
+                        let origin_name = exclude_origin_name(nonterminal);
+                        let origin_nt = grammar.nonterminal(origin_name)
+                            .expect("Original nonterminal not found for Exclude");
+                        (origin_name.to_string(), grammar.alternatives(origin_nt).len())
+                    } else {
+                        (nonterminal.name.clone(), grammar.alternatives(nonterminal).len())
+                    };
+                    let nonterminal_type = Ident::new(&to_pascal_case(&type_name), Span::call_site());
                     let construction = if num_alternatives == 1 {
                         quote! {
                             #nonterminal_type {
@@ -852,6 +906,19 @@ fn gen_nonterminal_node_method(
     }
 }
 
+/// Returns the original nonterminal name for an Exclude-desugared nonterminal.
+fn exclude_origin_name(nonterminal: &Nonterminal) -> &str {
+    match &nonterminal.origin {
+        Some(Symbol::Exclude { symbol, .. }) => {
+            &symbol
+                .as_identifier()
+                .expect("Exclude origin should wrap an Identifier")
+                .name
+        }
+        _ => panic!("Not an Exclude-derived nonterminal"),
+    }
+}
+
 // Returns true if the nonterminal corresponding to a symbol in the body of a rule has
 // the same name as the nonterminal head, or it's origin symbol.
 // This is to properly Box the generated types for recursive types, e.g., A+ or A*.
@@ -902,7 +969,7 @@ fn symbol_contains_nonterminal(symbol: &Symbol, nt_name: &str) -> bool {
         }
         Symbol::Call { name, arguments: _ } => name.name == nt_name,
         Symbol::Binding { symbol, .. } => symbol_contains_nonterminal(symbol, nt_name),
-        Symbol::Except { symbol, .. } | Symbol::FollowRestriction { symbol, .. } | Symbol::PrecedeRestriction { symbol, .. } => {
+        Symbol::Except { symbol, .. } | Symbol::FollowRestriction { symbol, .. } | Symbol::PrecedeRestriction { symbol, .. } | Symbol::Exclude { symbol, .. } => {
             symbol_contains_nonterminal(symbol, nt_name)
         }
         Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => false,
@@ -923,6 +990,7 @@ fn gen_new_token_method() -> TokenStream {
 fn gen_parse_tree_enum(grammar: &Grammar) -> TokenStream {
     let arms: Vec<_> = grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .map(|n| {
             let name = to_pascal_case(&n.name);
             let ident = Ident::new(&name, Span::call_site());
@@ -964,7 +1032,7 @@ fn gen_parse_tree_impl(grammar: &Grammar) -> TokenStream {
 }
 
 fn gen_as_parse_tree_ref_method_for_parse_tree(grammar: &Grammar) -> TokenStream {
-    let arms = grammar.nonterminals().map(|n| {
+    let arms = grammar.nonterminals().filter(|n| !n.is_exclude()).map(|n| {
         let name = &n.name;
         let variant = Ident::new(&to_pascal_case(name), Span::call_site());
         let var = safe_ident(&to_snake_case(name));
@@ -983,6 +1051,7 @@ fn gen_as_parse_tree_ref_method_for_parse_tree(grammar: &Grammar) -> TokenStream
 fn gen_unwrap_methods(grammar: &Grammar) -> Vec<TokenStream> {
     grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .map(|n| {
             let method_ident = format_ident!("unwrap_{}", to_snake_case(&n.name));
             let return_type_ident = Ident::new(&to_pascal_case(&n.name), Span::call_site());
@@ -1002,6 +1071,7 @@ fn gen_unwrap_methods(grammar: &Grammar) -> Vec<TokenStream> {
 fn gen_parse_tree_ref_enum(grammar: &Grammar) -> TokenStream {
     let variants: Vec<_> = grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .map(|n| {
             let name = to_pascal_case(&n.name);
             let ident = Ident::new(&name, Span::call_site());
@@ -1035,6 +1105,7 @@ fn gen_parse_tree_ref_impl(grammar: &Grammar) -> TokenStream {
 fn gen_children_method(grammar: &Grammar) -> TokenStream {
     let arms: Vec<_> = grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .map(|n| {
             let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
             let var_ident = safe_ident(&to_snake_case(&n.name));
@@ -1062,7 +1133,7 @@ fn gen_children_method(grammar: &Grammar) -> TokenStream {
 }
 
 fn gen_name_method(grammar: &Grammar) -> TokenStream {
-    let arms = grammar.nonterminals().map(|n| {
+    let arms = grammar.nonterminals().filter(|n| !n.is_exclude()).map(|n| {
         let display_name = &n.display_name();
         let name_ident = Ident::new(&to_pascal_case(&n.name), Span::call_site());
         quote! { ParseTreeRef::#name_ident(_) => #display_name }
@@ -1080,6 +1151,7 @@ fn gen_name_method(grammar: &Grammar) -> TokenStream {
 fn gen_child_count_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
     let arms: Vec<_> = grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .map(|n| {
             let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
             let var_ident = safe_ident(&to_snake_case(&n.name));
@@ -1101,6 +1173,7 @@ fn gen_child_count_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
 fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
     let arms: Vec<_> = grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .map(|n| {
             let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
             let var_ident = safe_ident(&to_snake_case(&n.name));
@@ -1290,42 +1363,53 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
 fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<TokenStream> {
     match &nonterminal.origin {
         Some(Symbol::Plus(inner, _)) => {
-            let innermost_name = get_innermost_element_name(grammar, inner)?;
+            let innermost = get_innermost_element(grammar, inner)?;
             let child_name = get_element_type_name(grammar, nonterminal)?;
+            let innermost_type = symbol_type(grammar, &innermost);
 
-            let method_name = safe_ident(&pluralize(&to_snake_case(&innermost_name)));
-            let innermost_type = Ident::new(&to_pascal_case(&innermost_name), Span::call_site());
-            let filter_variant = Ident::new(&to_pascal_case(child_name), Span::call_site());
+            let method_name = safe_ident(&pluralize(&to_snake_case(&innermost.name)));
+            let child_type = Ident::new(&to_pascal_case(child_name), Span::call_site());
 
-            if child_name == innermost_name {
-                // Simple case: e.g., `Regex+` where child is already the innermost element.
+            if child_name == innermost.name {
+                // Simple case: e.g., `Regex+` or `Identifier+`
                 Some(quote! {
                     pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
                         self.iter().filter_map(|node| match node {
-                            ParseTreeRef::#filter_variant(r) => Some(r),
+                            ParseTreeRef::#innermost_type(r) => Some(r),
                             _ => None,
                         })
                     }
                 })
             } else if let Symbol::Group(_) = inner.as_ref() {
-                // Group case: e.g., `("|" Regex)+` where child is a Group struct.
+                // Group case: e.g., `("|" Regex)+` or `("!" Identifier)+`
                 // Access the field directly from the group struct.
-                let field_name = safe_ident(&to_snake_case(&innermost_name));
-                Some(quote! {
-                    pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
-                        self.iter().filter_map(|node| match node {
-                            ParseTreeRef::#filter_variant(r) => Some(r.#field_name.as_ref()),
-                            _ => None,
-                        })
-                    }
-                })
+                let field_name = safe_ident(&to_snake_case(&innermost.name));
+                if grammar.is_terminal(&innermost) {
+                    Some(quote! {
+                        pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
+                            self.iter().filter_map(|node| match node {
+                                ParseTreeRef::#child_type(r) => Some(&r.#field_name),
+                                _ => None,
+                            })
+                        }
+                    })
+                } else {
+                    Some(quote! {
+                        pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
+                            self.iter().filter_map(|node| match node {
+                                ParseTreeRef::#child_type(r) => Some(r.#field_name.as_ref()),
+                                _ => None,
+                            })
+                        }
+                    })
+                }
             } else {
                 // Nested case: e.g., `{Regex+ "|"}+` where child is an intermediate Plus/Star type.
                 // Return Iterator<Item = impl Iterator<Item = &Regex>> to preserve grouping.
                 Some(quote! {
                     pub fn #method_name(&self) -> impl Iterator<Item = impl Iterator<Item = &#innermost_type> + '_> {
                         self.iter().filter_map(|node| match node {
-                            ParseTreeRef::#filter_variant(r) => Some(r.#method_name()),
+                            ParseTreeRef::#child_type(r) => Some(r.#method_name()),
                             _ => None,
                         })
                     }
@@ -1334,9 +1418,9 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
         }
         Some(Symbol::Star(inner, _)) => {
             // Star is a struct that wraps an Opt type. Delegate to the inner Opt's accessor.
-            let innermost_name = get_innermost_element_name(grammar, inner)?;
-            let method_name = safe_ident(&pluralize(&to_snake_case(&innermost_name)));
-            let innermost_type = Ident::new(&to_pascal_case(&innermost_name), Span::call_site());
+            let innermost = get_innermost_element(grammar, inner)?;
+            let method_name = safe_ident(&pluralize(&to_snake_case(&innermost.name)));
+            let innermost_type = symbol_type(grammar, &innermost);
 
             // Get the field name of the inner Opt type
             let alternatives = grammar.alternatives(nonterminal);
@@ -1357,9 +1441,9 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
                 _ => return None,
             };
 
-            let innermost_name = get_innermost_element_name(grammar, inner_inner)?;
-            let method_name = safe_ident(&pluralize(&to_snake_case(&innermost_name)));
-            let innermost_type = Ident::new(&to_pascal_case(&innermost_name), Span::call_site());
+            let innermost = get_innermost_element(grammar, inner_inner)?;
+            let method_name = safe_ident(&pluralize(&to_snake_case(&innermost.name)));
+            let innermost_type = symbol_type(grammar, &innermost);
 
             Some(quote! {
                 pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
@@ -1368,18 +1452,18 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             })
         }
         Some(Symbol::Group(elements)) => {
-            // Group case: e.g., `("|" Regex)` with exactly one nonterminal.
-            // Generate a typed accessor that uses iter() and filters for the nonterminal type.
-            let nonterminals: Vec<_> = elements
+            // Group case: e.g., `("|" Regex)` with exactly one named element.
+            // Generate a typed accessor that uses iter() and filters for the type.
+            let named_elements: Vec<_> = elements
                 .iter()
-                .filter_map(|elem| get_innermost_element_name(grammar, elem))
+                .filter_map(|elem| get_innermost_element(grammar, elem))
                 .collect();
-            if nonterminals.len() != 1 {
+            if named_elements.len() != 1 {
                 return None;
             }
-            let innermost_name = &nonterminals[0];
-            let method_name = safe_ident(&to_snake_case(innermost_name));
-            let innermost_type = Ident::new(&to_pascal_case(innermost_name), Span::call_site());
+            let innermost = &named_elements[0];
+            let method_name = safe_ident(&to_snake_case(&innermost.name));
+            let innermost_type = symbol_type(grammar, innermost);
 
             Some(quote! {
                 pub fn #method_name(&self) -> Option<&#innermost_type> {
@@ -1394,36 +1478,55 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
     }
 }
 
-/// Recursively finds the innermost nonterminal element name by walking through nested Plus/Star/Group symbols.
-/// For `Regex+` returns "Regex". For `{Regex+ "|"}+` also returns "Regex".
-/// For `("|" Regex)+` returns "Regex" (the single nonterminal in the group).
+/// Returns `Token` for terminal identifiers, or the pascal-cased name for nonterminals.
+fn symbol_type(grammar: &Grammar, ident: &Identifier) -> Ident {
+    if grammar.is_terminal(ident) {
+        Ident::new("Token", Span::call_site())
+    } else {
+        Ident::new(&nonterminal_type_name(grammar, &ident.name), Span::call_site())
+    }
+}
+
+/// Returns the PascalCase type name for a nonterminal, mapping exclude-derived
+/// nonterminals back to their original nonterminal's type.
+fn nonterminal_type_name(grammar: &Grammar, name: &str) -> String {
+    let resolved_name = match grammar.nonterminal(name) {
+        Some(nt) if nt.is_exclude() => exclude_origin_name(nt),
+        _ => name,
+    };
+    to_pascal_case(resolved_name)
+}
+
+/// Recursively finds the innermost named element by walking through nested Plus/Star/Group symbols.
+/// Returns the `Identifier` of the element, which carries both the name and the resolved definition.
+/// For `Regex+` returns the Identifier for "Regex". For `{Regex+ "|"}+` also returns "Regex".
+/// For `("|" Regex)+` returns "Regex" (the single named element in the group).
+/// For `("!" Identifier)+` returns "Identifier" (named terminal in the group).
 ///
-/// Note: After `add_lexical_rules_for_literals` transformation, string literals like `"|"` are
-/// converted to Identifier symbols referencing terminal definitions. We use the Grammar to
-/// distinguish terminals from nonterminals, returning None for terminals.
-fn get_innermost_element_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
+/// Literal terminals (e.g., `"|"`, `"!"`) are filtered out, while named terminals
+/// (e.g., `Identifier`, `Keyword`) and nonterminals are kept.
+fn get_innermost_element(grammar: &Grammar, symbol: &Symbol) -> Option<Identifier> {
     match symbol {
         Symbol::Identifier(ident) => {
-            // Check if this identifier refers to a terminal (e.g., a string literal like "|")
-            // Terminals should not be considered as the "innermost element" for typed accessors
             if let Some(def_id) = ident.definition {
-                if matches!(grammar.definition(def_id), Definition::Terminal(_)) {
-                    return None;
+                if let Definition::Terminal(t) = grammar.definition(def_id) {
+                    if t.is_literal() {
+                        return None;
+                    }
                 }
             }
-            Some(ident.name.clone())
+            Some(ident.clone())
         }
         Symbol::Plus(inner, _) | Symbol::Star(inner, _) => {
-            get_innermost_element_name(grammar, inner)
+            get_innermost_element(grammar, inner)
         }
         Symbol::Group(elements) => {
-            // Find groups with exactly one nonterminal (e.g., ("|" Regex))
-            let nonterminals: Vec<_> = elements
+            let named_elements: Vec<_> = elements
                 .iter()
-                .filter_map(|elem| get_innermost_element_name(grammar, elem))
+                .filter_map(|elem| get_innermost_element(grammar, elem))
                 .collect();
-            if nonterminals.len() == 1 {
-                nonterminals.into_iter().next()
+            if named_elements.len() == 1 {
+                named_elements.into_iter().next()
             } else {
                 None
             }
@@ -1616,6 +1719,7 @@ fn gen_list_node_impl_for_group(grammar: &Grammar, nonterminal: &Nonterminal) ->
 fn gen_from_for_tree_impls(grammar: &Grammar) -> TokenStream {
     let from_impls: Vec<_> = grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .map(|n| {
             let type_ident = Ident::new(&to_pascal_case(&n.name), Span::call_site());
             let ident = safe_ident(&to_snake_case(&n.name));
@@ -1636,6 +1740,7 @@ fn gen_create_parse_tree_function(grammar: &Grammar) -> TokenStream {
     let builder_name_ident = format_ident!("{}ParseTreeBuilder", grammar.name);
     let arms: Vec<_> = grammar
         .nonterminals()
+        .filter(|n| !n.is_exclude())
         .map(|n| {
             let name = &n.name;
             let function_name = format_ident!("create_parse_tree_{}", to_snake_case(name));

@@ -1,0 +1,63 @@
+use iguana_runtime::{
+    ids::TerminalId,
+    input::Input,
+    scanner::Scanner,
+    sppf::{Span, TerminalNode},
+};
+const CHAR_CLASS_0: [(char, char); 1usize] = [('a', 'z')];
+pub struct ExcludeByLabelScanner<'i> {
+    pub input: &'i Input,
+}
+impl<'i> ExcludeByLabelScanner<'i> {
+    pub fn new(input: &'i Input) -> Self {
+        Self { input }
+    }
+    //Id = ([a-z]+)
+    pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        let i = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i)?;
+        let mut j = i;
+        while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(j) {
+            j = k;
+        }
+        Some(j)
+    }
+    //"(" = (
+    pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, '(')
+    }
+    //"," = ,
+    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, ',')
+    }
+    //")" = )
+    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, ')')
+    }
+    //Layout = ε
+    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        Some(i)
+    }
+}
+impl Scanner for ExcludeByLabelScanner<'_> {
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        match terminal_id {
+            TerminalId(0) => self.match_terminal_0(input_index),
+            TerminalId(1) => self.match_terminal_1(input_index),
+            TerminalId(2) => self.match_terminal_2(input_index),
+            TerminalId(3) => self.match_terminal_3(input_index),
+            TerminalId(4) => self.match_terminal_4(input_index),
+            _ => {
+                unreachable!("Unknown token type: {terminal_id}");
+            }
+        }
+    }
+    fn char_at(&self, i: u32) -> Option<char> {
+        self.input.char_at(i)
+    }
+}
+

@@ -270,9 +270,15 @@ fn rewrite_ebnf_symbol(
                 restriction,
             }
         }
+        Symbol::Exclude { symbol, labels } => {
+            let transformed = rewrite_ebnf_symbol(*symbol, parent_name, layout, counters, new_rules, ebnf_symbols);
+            Symbol::Exclude {
+                symbol: Box::new(transformed),
+                labels,
+            }
+        }
         Symbol::Identifier(_)
         | Symbol::Literal(_)
-        | Symbol::Alt(_)
         | Symbol::Call { .. }
         | Symbol::Condition(_)
         | Symbol::Return(_) => symbol,

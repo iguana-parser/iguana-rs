@@ -1,0 +1,9 @@
+grammar ExcludeByLabel
+
+Expr
+  = Id                                #id
+  | Expr "(" { Expr !comma "," }* ")"  #call
+  | Expr "," Expr                     #comma
+
+@regex
+Id = [a-z]+

@@ -5,6 +5,7 @@ use crate::grammar::{
 };
 
 pub mod ebnf_to_bnf;
+pub mod exclude_desugaring;
 pub mod layout_insertion;
 pub mod precedence_desugaring;
 
@@ -79,6 +80,46 @@ where
         head: rule.head,
         priority_levels: new_priority_levels,
         layout,
+    }
+}
+
+/// Visits each symbol in a syntax rule, recursively descending into nested symbols.
+pub fn visit_syntax_rule(rule: &SyntaxRule, f: &mut impl FnMut(&Symbol)) {
+    for pl in &rule.priority_levels {
+        for alt in &pl.alternatives {
+            for symbol in &alt.symbols {
+                visit_symbol(symbol, f);
+            }
+        }
+    }
+}
+
+fn visit_symbol(symbol: &Symbol, f: &mut impl FnMut(&Symbol)) {
+    f(symbol);
+    match symbol {
+        Symbol::Labeled { symbol, .. }
+        | Symbol::Binding { symbol, .. }
+        | Symbol::Except { symbol, .. }
+        | Symbol::FollowRestriction { symbol, .. }
+        | Symbol::PrecedeRestriction { symbol, .. }
+        | Symbol::Exclude { symbol, .. }
+        | Symbol::Opt(symbol) => visit_symbol(symbol, f),
+        Symbol::Group(symbols) | Symbol::Alt(symbols) => {
+            for s in symbols {
+                visit_symbol(s, f);
+            }
+        }
+        Symbol::Star(symbol, sep) | Symbol::Plus(symbol, sep) => {
+            visit_symbol(symbol, f);
+            if let Some(sep) = sep {
+                visit_symbol(sep, f);
+            }
+        }
+        Symbol::Identifier(_)
+        | Symbol::Literal(_)
+        | Symbol::Call { .. }
+        | Symbol::Condition(_)
+        | Symbol::Return(_) => {}
     }
 }
 

@@ -251,6 +251,18 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 definition: None,
             },
         },
+        parse_tree::Symbol::Exclude {
+            symbol, labels, ..
+        } => {
+            let labels = labels
+                .identifiers()
+                .map(|token| text(input, token.span()))
+                .collect();
+            Symbol::Exclude {
+                symbol: Box::new(convert_symbol(symbol, input)),
+                labels,
+            }
+        }
     }
 }
 

@@ -214,6 +214,7 @@ fn gen_nonterminals(nonterminal_ids: &NonterminalIds) -> TokenStream {
                 | Symbol::Except { .. }
                 | Symbol::FollowRestriction { .. }
                 | Symbol::PrecedeRestriction { .. }
+                | Symbol::Exclude { .. }
                 | Symbol::Call { .. }
                 | Symbol::Condition(_)
                 | Symbol::Return(_)
@@ -469,6 +470,9 @@ fn gen_slot_code<'a>(
                 slot_ids,
             );
         }
+        Some(Symbol::Exclude { .. }) => {
+            unreachable!("Exclude should be desugared before code generation")
+        }
         Some(
             Symbol::Labeled { .. }
             | Symbol::Identifier(_)
@@ -508,6 +512,9 @@ fn gen_slot_code<'a>(
                     | Symbol::Condition(_)
                     | Symbol::Return(_)
                     | Symbol::Binding { .. } => vec![],
+                    Symbol::Exclude { .. } => {
+                        unreachable!("Exclude should be desugared before code generation")
+                    }
                 };
                 gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids, None)
             }

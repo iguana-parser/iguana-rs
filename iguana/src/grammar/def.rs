@@ -9,7 +9,7 @@ use crate::{
     grammar::{
         regex::Regex,
         symbols::{Definition, DefinitionId, Expr, Identifier, Nonterminal, Symbol, Terminal},
-        transformations::{ebnf_to_bnf, layout_insertion, precedence_desugaring, transform_regex, transform_syntax_rule},
+        transformations::{ebnf_to_bnf, exclude_desugaring, layout_insertion, precedence_desugaring, transform_regex, transform_syntax_rule},
     },
     lexical_rule, priority_level,
 };
@@ -559,6 +559,10 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 restriction: resolved_restriction,
             }
         }
+        Symbol::Exclude { symbol, labels } => Symbol::Exclude {
+            symbol: Box::new(resolve_identifier(*symbol, symbol_table)),
+            labels,
+        },
         Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => symbol,
     }
 }
@@ -641,6 +645,9 @@ impl From<GrammarDef> for Grammar {
         let (syntax_rules, lexical_rules) = resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
         let lexical_rules = inline_regex_refs(lexical_rules);
         let (syntax_rules, mut ebnf_symbols) = ebnf_to_bnf::transform(syntax_rules);
+        let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
+        let (syntax_rules, lexical_rules) = resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
+        let syntax_rules = exclude_desugaring::transform(syntax_rules);
         let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
         let (syntax_rules, lexical_rules) = resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
         let syntax_rules = precedence_desugaring::transform(syntax_rules);
@@ -821,6 +828,9 @@ impl Grammar {
     pub fn nonterminals(&self) -> impl Iterator<Item = &'_ Nonterminal> {
         self.productions.keys()
     }
+    pub fn nonterminal(&self, name: &str) -> Option<&Nonterminal> {
+        self.productions.keys().find(|n| n.name == name)
+    }
     pub fn alternatives(&self, nonterminal: &Nonterminal) -> &[Alternative] {
         self.productions.get(nonterminal).map_or(&[], |v| v)
     }
@@ -832,6 +842,12 @@ impl Grammar {
     }
     pub fn definition(&self, definition_id: DefinitionId) -> &Definition {
         &self.definitions[definition_id.0 as usize]
+    }
+    pub fn is_terminal(&self, ident: &Identifier) -> bool {
+        matches!(
+            ident.definition.map(|d| self.definition(d)),
+            Some(Definition::Terminal(_))
+        )
     }
     pub fn ebnf_symbol(&self, symbol: &Symbol) -> Option<&Symbol> {
         self.ebnf_symbols.get(symbol)
