@@ -172,15 +172,7 @@ fn gen_nonterminal_type_with_one_alternative(
                 }
                 Definition::Nonterminal(nt) => {
                     let name = Ident::new(&nonterminal_type_name(grammar, def.name()), Span::call_site());
-                    // Resolve exclude nonterminals to their origin for boxing checks,
-                    // since exclude types map to the original nonterminal's type.
-                    let resolved_field_nt = if nt.is_exclude() {
-                        grammar.nonterminal(exclude_origin_name(nt))
-                            .expect("Original nonterminal not found for Exclude")
-                    } else {
-                        nt
-                    };
-                    if should_be_boxed(resolved_field_nt, nonterminal) {
+                    if should_be_boxed(unwrap_exclude(grammar, nt), nonterminal) {
                         quote! { Box<#name> }
                     } else {
                         quote! { #name }
@@ -413,15 +405,7 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
                         Definition::Nonterminal(nt) => {
                             let name =
                                 Ident::new(&nonterminal_type_name(grammar, def.name()), Span::call_site());
-                            // Resolve exclude nonterminals to their origin for boxing checks,
-                            // since exclude types map to the original nonterminal's type.
-                            let resolved_field_nt = if nt.is_exclude() {
-                                grammar.nonterminal(exclude_origin_name(nt))
-                                    .expect("Original nonterminal not found for Exclude")
-                            } else {
-                                nt
-                            };
-                            if should_be_boxed(resolved_field_nt, nonterminal) {
+                            if should_be_boxed(unwrap_exclude(grammar, nt), nonterminal) {
                                 quote! { Box<#name> }
                             } else {
                                 quote! { #name }
@@ -802,29 +786,10 @@ fn gen_nonterminal_node_method(
                                     (Ident::new("unwrap_token", Span::call_site()), false)
                                 },
                                 Definition::Nonterminal(nt) => {
-                                    let resolved_name = if nt.is_exclude() {
-                                        exclude_origin_name(nt)
-                                    } else {
-                                        def.name()
-                                    };
-                                    let ident = format_ident!("unwrap_{}", to_snake_case(resolved_name));
-                                    // For Exclude nonterminals, check boxing against the original
-                                    // nonterminal since that's the parse tree type being constructed.
-                                    // Resolve exclude nonterminals to their origin for boxing checks,
-                                    // since exclude types map to the original nonterminal's type.
-                                    let resolved_head = if nonterminal.is_exclude() {
-                                        grammar.nonterminal(exclude_origin_name(nonterminal))
-                                            .expect("Original nonterminal not found for Exclude")
-                                    } else {
-                                        nonterminal
-                                    };
-                                    let resolved_field_nt = if nt.is_exclude() {
-                                        grammar.nonterminal(exclude_origin_name(nt))
-                                            .expect("Original nonterminal not found for Exclude")
-                                    } else {
-                                        nt
-                                    };
-                                    (ident, should_be_boxed(resolved_field_nt, resolved_head))
+                                    let resolved_nt = unwrap_exclude(grammar, nt);
+                                    let ident = format_ident!("unwrap_{}", to_snake_case(&resolved_nt.name));
+                                    let resolved_head = unwrap_exclude(grammar, nonterminal);
+                                    (ident, should_be_boxed(resolved_nt, resolved_head))
                                 }
                             }})
                         .collect();
@@ -842,17 +807,9 @@ fn gen_nonterminal_node_method(
                             }
                         })
                         .collect();
-                    // For Exclude-derived nonterminals, use the original nonterminal's
-                    // parse tree type, alternative count, and boxing check.
-                    let (type_name, num_alternatives) = if nonterminal.is_exclude() {
-                        let origin_name = exclude_origin_name(nonterminal);
-                        let origin_nt = grammar.nonterminal(origin_name)
-                            .expect("Original nonterminal not found for Exclude");
-                        (origin_name.to_string(), grammar.alternatives(origin_nt).len())
-                    } else {
-                        (nonterminal.name.clone(), grammar.alternatives(nonterminal).len())
-                    };
-                    let nonterminal_type = Ident::new(&to_pascal_case(&type_name), Span::call_site());
+                    let resolved_nt = unwrap_exclude(grammar, nonterminal);
+                    let num_alternatives = grammar.alternatives(resolved_nt).len();
+                    let nonterminal_type = Ident::new(&to_pascal_case(&resolved_nt.name), Span::call_site());
                     let construction = if num_alternatives == 1 {
                         quote! {
                             #nonterminal_type {
@@ -906,16 +863,24 @@ fn gen_nonterminal_node_method(
     }
 }
 
-/// Returns the original nonterminal name for an Exclude-desugared nonterminal.
-fn exclude_origin_name(nonterminal: &Nonterminal) -> &str {
-    match &nonterminal.origin {
-        Some(Symbol::Exclude { symbol, .. }) => {
-            &symbol
-                .as_identifier()
-                .expect("Exclude origin should wrap an Identifier")
-                .name
-        }
-        _ => panic!("Not an Exclude-derived nonterminal"),
+/// If the nonterminal is Exclude-derived, returns the original nonterminal
+/// it was derived from. Otherwise returns the nonterminal itself.
+fn unwrap_exclude<'a>(grammar: &'a Grammar, nt: &'a Nonterminal) -> &'a Nonterminal {
+    if nt.is_exclude() {
+        let name = match &nt.origin {
+            Some(Symbol::Exclude { symbol, .. }) => {
+                &symbol
+                    .as_identifier()
+                    .expect("Exclude origin should wrap an Identifier")
+                    .name
+            }
+            _ => unreachable!("is_exclude() returned true but origin is not Exclude"),
+        };
+        grammar
+            .nonterminal(name)
+            .expect("Original nonterminal not found for Exclude")
+    } else {
+        nt
     }
 }
 
@@ -1491,7 +1456,7 @@ fn symbol_type(grammar: &Grammar, ident: &Identifier) -> Ident {
 /// nonterminals back to their original nonterminal's type.
 fn nonterminal_type_name(grammar: &Grammar, name: &str) -> String {
     let resolved_name = match grammar.nonterminal(name) {
-        Some(nt) if nt.is_exclude() => exclude_origin_name(nt),
+        Some(nt) => &unwrap_exclude(grammar, nt).name,
         _ => name,
     };
     to_pascal_case(resolved_name)
