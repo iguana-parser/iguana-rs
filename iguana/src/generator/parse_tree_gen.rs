@@ -147,6 +147,10 @@ fn gen_nonterminal_type(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenSt
     }
 }
 
+fn nt_ident(name: &str) -> Ident {
+    format_ident!("{}", to_pascal_case(name))
+}
+
 /// Returns the Rust type for a parse tree field: `Token` for terminals, or the
 /// nonterminal's PascalCase name (wrapped in `Box<>` if recursive).
 fn gen_field_type(
@@ -218,7 +222,7 @@ fn gen_nonterminal_type_with_one_alternative(
         );
         quote! { #[comment = #rule] }
     };
-    let nonterminal_name_id = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());
+    let nonterminal_name_id = nt_ident(nonterminal_name);
     quote! {
         #comment
         #[derive(Debug)]
@@ -427,7 +431,7 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
     } else {
         quote! {}
     };
-    let nonterminal_name_id = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());
+    let nonterminal_name_id = nt_ident(nonterminal_name);
     quote! {
         #comment
         #[derive(Debug)]
@@ -438,7 +442,7 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
 }
 
 fn gen_nonterminal_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
-    let nonterminal_name = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let nonterminal_name = nt_ident(&nonterminal.name);
     let child_method = gen_child_method(grammar, nonterminal);
     let child_count_method = gen_child_count_method(grammar, nonterminal);
     let as_node_ref_method = gen_as_parse_tree_ref_method(&nonterminal.name);
@@ -456,7 +460,7 @@ fn gen_nonterminal_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> To
 }
 
 fn gen_span_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
-    let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let ident = nt_ident(&nonterminal.name);
     let alternatives = grammar.alternatives(nonterminal);
     let body = if alternatives.len() == 1 {
         quote! { self.span }
@@ -466,7 +470,7 @@ fn gen_span_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream 
             .enumerate()
             .map(|(i, alternative)| {
                 let label = alternative_label(alternative, i);
-                let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+                let alt_variant = nt_ident(&label);
                 quote! {
                     #ident::#alt_variant { span, .. } => *span
                 }
@@ -495,7 +499,7 @@ fn gen_child_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream
 }
 
 fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
-    let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let ident = nt_ident(&nonterminal.name);
     let alternatives = grammar.alternatives(nonterminal);
     if alternatives.len() == 1 {
         let alternative = &alternatives[0];
@@ -511,7 +515,7 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
             .enumerate()
             .map(|(i, alternative)| {
                 let label = alternative_label(alternative, i);
-                let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+                let alt_variant = nt_ident(&label);
                 let field_names = field_names(grammar, alternative);
                 let body = child_by_index(grammar, alternative, false);
                 // Use struct pattern with .. to ignore the span field
@@ -580,7 +584,7 @@ fn child_by_index(grammar: &Grammar, alternative: &Alternative, single_rule: boo
 }
 
 fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
-    let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let ident = nt_ident(&nonterminal.name);
     let alternatives = grammar.alternatives(nonterminal);
     let body = if alternatives.len() == 1 {
         let count_symbols = alternatives[0]
@@ -597,7 +601,7 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
             .enumerate()
             .map(|(i, alternative)| {
                 let label = alternative_label(alternative, i);
-                let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+                let alt_variant = nt_ident(&label);
                 let count_symbols = alternative
                     .symbols
                     .iter()
@@ -623,7 +627,7 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
 }
 
 fn gen_as_parse_tree_ref_method(nonterminal_name: &str) -> TokenStream {
-    let name_ident = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());
+    let name_ident = nt_ident(nonterminal_name);
     quote! {
         pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
             ParseTreeRef::#name_ident(self)
@@ -804,7 +808,7 @@ fn gen_nonterminal_node_method(
                         .collect();
                     let resolved_nt = unwrap_exclude(grammar, nonterminal);
                     let num_alternatives = grammar.alternatives(resolved_nt).len();
-                    let nonterminal_type = Ident::new(&to_pascal_case(&resolved_nt.name), Span::call_site());
+                    let nonterminal_type = nt_ident(&resolved_nt.name);
                     let construction = if num_alternatives == 1 {
                         quote! {
                             #nonterminal_type {
@@ -994,7 +998,7 @@ fn gen_parse_tree_impl(grammar: &Grammar) -> TokenStream {
 fn gen_as_parse_tree_ref_method_for_parse_tree(grammar: &Grammar) -> TokenStream {
     let arms = grammar.nonterminals().filter(|n| !n.is_exclude()).map(|n| {
         let name = &n.name;
-        let variant = Ident::new(&to_pascal_case(name), Span::call_site());
+        let variant = nt_ident(name);
         let var = safe_ident(&to_snake_case(name));
         quote! { ParseTree::#variant(#var) => #var.as_parse_tree_ref() }
     });
@@ -1014,7 +1018,7 @@ fn gen_unwrap_methods(grammar: &Grammar) -> Vec<TokenStream> {
         .filter(|n| !n.is_exclude())
         .map(|n| {
             let method_ident = format_ident!("unwrap_{}", to_snake_case(&n.name));
-            let return_type_ident = Ident::new(&to_pascal_case(&n.name), Span::call_site());
+            let return_type_ident = nt_ident(&n.name);
             let var_ident = safe_ident(&to_snake_case(&n.name));
             quote! {
                 fn #method_ident(self) -> #return_type_ident {
@@ -1067,7 +1071,7 @@ fn gen_children_method(grammar: &Grammar) -> TokenStream {
         .nonterminals()
         .filter(|n| !n.is_exclude())
         .map(|n| {
-            let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
+            let variant = nt_ident(&n.name);
             let var_ident = safe_ident(&to_snake_case(&n.name));
             if n.is_plus() || n.is_star() {
                 quote! {
@@ -1095,7 +1099,7 @@ fn gen_children_method(grammar: &Grammar) -> TokenStream {
 fn gen_name_method(grammar: &Grammar) -> TokenStream {
     let arms = grammar.nonterminals().filter(|n| !n.is_exclude()).map(|n| {
         let display_name = &n.display_name();
-        let name_ident = Ident::new(&to_pascal_case(&n.name), Span::call_site());
+        let name_ident = nt_ident(&n.name);
         quote! { ParseTreeRef::#name_ident(_) => #display_name }
     });
     quote! {
@@ -1113,7 +1117,7 @@ fn gen_child_count_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
         .nonterminals()
         .filter(|n| !n.is_exclude())
         .map(|n| {
-            let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
+            let variant = nt_ident(&n.name);
             let var_ident = safe_ident(&to_snake_case(&n.name));
             quote! {
                 ParseTreeRef::#variant(#var_ident) => #var_ident.child_count()
@@ -1135,7 +1139,7 @@ fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
         .nonterminals()
         .filter(|n| !n.is_exclude())
         .map(|n| {
-            let variant = Ident::new(&to_pascal_case(&n.name), Span::call_site());
+            let variant = nt_ident(&n.name);
             let var_ident = safe_ident(&to_snake_case(&n.name));
             quote! {
                 ParseTreeRef::#variant(#var_ident) => #var_ident.span()
@@ -1170,7 +1174,7 @@ fn gen_opt_node_trait() -> TokenStream {
 }
 
 fn gen_opt_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
-    let opt_type = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let opt_type = nt_ident(&nonterminal.name);
     let alternatives = grammar.alternatives(nonterminal);
     let alt0 = &alternatives[0];
     let inner_symbol = &alt0.symbols[0];
@@ -1178,7 +1182,7 @@ fn gen_opt_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
     let inner_type = match inner_def {
         Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
         Definition::Nonterminal(_) => {
-            Ident::new(&to_pascal_case(inner_def.name()), Span::call_site())
+            nt_ident(inner_def.name())
         }
     };
     let field_name = safe_ident(&gen_field_name(grammar, inner_symbol, 0, false));
@@ -1231,7 +1235,7 @@ fn is_single_symbol_alternation(grammar: &Grammar, nonterminal: &Nonterminal) ->
 /// }
 /// ```
 fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
-    let alt_type = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let alt_type = nt_ident(&nonterminal.name);
     let alternatives = grammar.alternatives(nonterminal);
 
     let accessors: Vec<_> = alternatives
@@ -1248,7 +1252,7 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
                 }
                 Definition::Nonterminal(nt) => {
                     let method = format_ident!("as_{}", to_snake_case(&nt.name));
-                    let ret = Ident::new(&to_pascal_case(&nt.name), Span::call_site());
+                    let ret = nt_ident(&nt.name);
                     (method, ret)
                 }
             };
@@ -1328,7 +1332,7 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             let innermost_type = symbol_type(grammar, &innermost);
 
             let method_name = safe_ident(&pluralize(&to_snake_case(&innermost.name)));
-            let child_type = Ident::new(&to_pascal_case(child_name), Span::call_site());
+            let child_type = nt_ident(child_name);
 
             if child_name == innermost.name {
                 // Simple case: e.g., `Regex+` or `Identifier+`
@@ -1524,13 +1528,13 @@ fn pluralize(word: &str) -> String {
 }
 
 fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
-    let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let ident = nt_ident(&nonterminal.name);
     let alternatives = grammar.alternatives(nonterminal);
     // This method must only be called for list nodes, i.e., * and + nonterminals,
     // which always have two alternatives.
     assert_eq!(alternatives.len(), 2);
     let label = alternative_label(&alternatives[0], 0);
-    let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+    let alt_variant = nt_ident(&label);
     let first_alt_fields = field_names(grammar, &alternatives[0]);
     let first_arm = match &nonterminal.origin {
         Some(Symbol::Plus(_symbol, sep)) => match sep {
@@ -1585,7 +1589,7 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
         _ => unreachable!("Expected plus"),
     };
     let label = alternative_label(&alternatives[1], 1);
-    let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+    let alt_variant = nt_ident(&label);
     let second_alt_fields = field_names(grammar, &alternatives[1]);
     let f0 = &second_alt_fields[0];
     let second_arm = quote! {
@@ -1613,7 +1617,7 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
 }
 
 fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
-    let star_ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let star_ident = nt_ident(&nonterminal.name);
     let alternatives = grammar.alternatives(nonterminal);
     let first_symbol = &alternatives[0].symbols[0];
     let field_name = safe_ident(&gen_field_name(grammar, first_symbol, 0, false));
@@ -1621,17 +1625,17 @@ fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let nonterminal = grammar.definition(def_id).as_nonterminal();
     let alternatives = grammar.alternatives(nonterminal);
 
-    let opt_ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let opt_ident = nt_ident(&nonterminal.name);
     let var_ident = safe_ident(&to_snake_case(&nonterminal.name));
     let label = alternative_label(&alternatives[0], 0);
-    let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+    let alt_variant = nt_ident(&label);
     let first_alt_fields = field_names(grammar, &alternatives[0]);
     let f0 = &first_alt_fields[0];
     let first_arm = quote! {
         #opt_ident::#alt_variant { #f0: #var_ident, .. } => #var_ident.iter(),
     };
     let label = alternative_label(&alternatives[1], 1);
-    let alt_variant = Ident::new(&to_pascal_case(&label), Span::call_site());
+    let alt_variant = nt_ident(&label);
     let second_arm = quote! {
         #opt_ident::#alt_variant { .. } => vec![].into_iter(),
     };
@@ -1648,7 +1652,7 @@ fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> 
 }
 
 fn gen_list_node_impl_for_group(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
-    let ident = Ident::new(&to_pascal_case(&nonterminal.name), Span::call_site());
+    let ident = nt_ident(&nonterminal.name);
     let alternatives = grammar.alternatives(nonterminal);
     // Groups always have exactly one alternative
     assert_eq!(alternatives.len(), 1);
@@ -1681,7 +1685,7 @@ fn gen_from_for_tree_impls(grammar: &Grammar) -> TokenStream {
         .nonterminals()
         .filter(|n| !n.is_exclude())
         .map(|n| {
-            let type_ident = Ident::new(&to_pascal_case(&n.name), Span::call_site());
+            let type_ident = nt_ident(&n.name);
             let ident = safe_ident(&to_snake_case(&n.name));
             quote! {
                 impl From<#type_ident> for ParseTree {
@@ -1704,7 +1708,7 @@ fn gen_create_parse_tree_function(grammar: &Grammar) -> TokenStream {
         .map(|n| {
             let name = &n.name;
             let function_name = format_ident!("create_parse_tree_{}", to_snake_case(name));
-            let variant_name = Ident::new(&to_pascal_case(name), Span::call_site());
+            let variant_name = nt_ident(name);
             quote! { #name => ParseTree::#variant_name(#function_name(root_id, parser, builder)) }
         })
         .collect();
@@ -1730,7 +1734,7 @@ fn gen_create_parse_tree_nonterminal_function(
 ) -> TokenStream {
     let parser_name_ident = format_ident!("{}Parser", grammar.name);
     let builder_name_ident = format_ident!("{}ParseTreeBuilder", grammar.name);
-    let return_type = Ident::new(&to_pascal_case(nonterminal_name), Span::call_site());
+    let return_type = nt_ident(nonterminal_name);
     let function_name = format_ident!("create_parse_tree_{}", to_snake_case(nonterminal_name));
     let unwrap_method = format_ident!("unwrap_{}", to_snake_case(nonterminal_name));
     quote! {
