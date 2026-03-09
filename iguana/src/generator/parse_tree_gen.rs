@@ -170,13 +170,17 @@ fn gen_field_type(
     }
 }
 
-fn gen_nonterminal_type_with_one_alternative(
+/// Returns (name, type) pairs for each parse-tree-relevant symbol in an alternative.
+/// Literals are filtered out. For example, given `Expr = Expr "+" Expr`, this returns:
+///   `[(expr_0, Box<Expr>), (expr_1, Box<Expr>)]`
+/// The `"+"` is skipped, and both `Expr` references are boxed due to recursion.
+fn gen_fields_for_alternative_symbols(
     grammar: &Grammar,
-    nonterminal: &Nonterminal,
     alternative: &Alternative,
-) -> TokenStream {
+    parent: &Nonterminal,
+) -> Vec<(Ident, TokenStream)> {
     let counts = count_symbol_occurrences(grammar, &alternative.symbols);
-    let fields: Vec<_> = alternative
+    alternative
         .symbols
         .iter()
         .filter(|s| s.is_parse_tree_symbol())
@@ -187,9 +191,20 @@ fn gen_nonterminal_type_with_one_alternative(
                 base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
             let field_name = gen_field_name(grammar, s, i, needs_index);
             let field_ident = safe_ident(&field_name);
-            let field_type = gen_field_type(grammar, s, nonterminal);
-            quote! { pub #field_ident: #field_type }
+            let field_type = gen_field_type(grammar, s, parent);
+            (field_ident, field_type)
         })
+        .collect()
+}
+
+fn gen_nonterminal_type_with_one_alternative(
+    grammar: &Grammar,
+    nonterminal: &Nonterminal,
+    alternative: &Alternative,
+) -> TokenStream {
+    let fields: Vec<_> = gen_fields_for_alternative_symbols(grammar, alternative, nonterminal)
+        .into_iter()
+        .map(|(ident, ty)| quote! { pub #ident: #ty })
         .collect();
     let nonterminal_name = &nonterminal.name;
     let comment = if nonterminal.is_derived() {
@@ -392,26 +407,13 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
         .iter()
         .enumerate()
         .map(|(index, alternative)| {
-            let counts = count_symbol_occurrences(grammar, &alternative.symbols);
-            let fields: Vec<_> = alternative
-                .symbols
-                .iter()
-                .filter(|s| s.is_parse_tree_symbol())
-                .enumerate()
-                .map(|(i, s)| {
-                    let base_name = get_symbol_base_name(grammar, s);
-                    let needs_index =
-                        base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
-                    let field_name = gen_field_name(grammar, s, i, needs_index);
-                    let field_ident = safe_ident(&field_name);
-                    let field_type = gen_field_type(grammar, s, nonterminal);
-                    quote! { #field_ident: #field_type }
-                })
+            let fields: Vec<_> = gen_fields_for_alternative_symbols(grammar, alternative, nonterminal)
+                .into_iter()
+                .map(|(ident, ty)| quote! { #ident: #ty })
                 .collect();
             let label = to_pascal_case(&alternative_label(alternative, index));
             let variant_name = Ident::new(&label, Span::call_site());
             let variant_comment = alternative.display_name(grammar);
-            // Add Span as last field in each variant
             quote! {
                 #[comment = #variant_comment]
                 #variant_name { #(#fields,)* span: Span }
