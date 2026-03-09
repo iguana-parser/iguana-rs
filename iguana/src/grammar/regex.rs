@@ -33,7 +33,11 @@ pub struct CharClass {
 
 impl Display for CharRange {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}-{}", self.start, self.end)
+        if self.start == self.end {
+            write!(f, "{}", self.start.escape_debug())
+        } else {
+            write!(f, "{}-{}", self.start.escape_debug(), self.end.escape_debug())
+        }
     }
 }
 
@@ -74,7 +78,7 @@ impl Regex {
 impl std::fmt::Display for Regex {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Regex::Char(c) => write!(f, "{}", c),
+            Regex::Char(c) => write!(f, "{}", c.escape_debug()),
             Regex::CharRange(r) => write!(f, "{}", r),
             Regex::Seq(parts) => {
                 for part in parts {

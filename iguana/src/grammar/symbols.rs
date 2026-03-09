@@ -341,7 +341,7 @@ impl Display for Symbol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Symbol::Labeled { label, symbol } => write!(f, "{label}:{symbol}"),
-            Symbol::Literal(literal) => write!(f, "\"{literal}\""),
+            Symbol::Literal(literal) => write!(f, "\"{}\"", literal.escape_debug()),
             Symbol::Identifier(identifier) => write!(f, "{}", identifier.name),
             Symbol::Group(symbols) => write!(f, "({})", symbols.iter().join(" ")),
             Symbol::Opt(opt) => write!(f, "{opt}?"),
