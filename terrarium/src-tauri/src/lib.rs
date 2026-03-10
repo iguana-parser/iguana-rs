@@ -133,6 +133,38 @@ fn get_parser_name(directory: String) -> Result<String, String> {
 
 #[tauri::command]
 #[specta::specta]
+fn load_grammar(directory: String) -> Result<(String, String), String> {
+    let dir = Path::new(&directory);
+    let iggy_files: Vec<_> = fs::read_dir(dir)
+        .map_err(|e| format!("Cannot read directory: {e}"))?
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| {
+            entry
+                .path()
+                .extension()
+                .is_some_and(|ext| ext == "iggy")
+        })
+        .collect();
+
+    match iggy_files.len() {
+        0 => Err("No .iggy file found in this directory.".to_string()),
+        1 => {
+            let path = iggy_files[0].path();
+            let content = fs::read_to_string(&path)
+                .map_err(|e| format!("Cannot read grammar file: {e}"))?;
+            let filename = path
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_string();
+            Ok((filename, content))
+        }
+        n => Err(format!("Found {n} .iggy files. Expected exactly one.")),
+    }
+}
+
+#[tauri::command]
+#[specta::specta]
 fn build_parser(directory: String, app: tauri::AppHandle) {
     // Spawn blocking work in a separate thread
     thread::spawn(move || {
@@ -791,6 +823,7 @@ fn debug_prev_error(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo,
 pub fn run() {
     let builder = Builder::<tauri::Wry>::new().commands(collect_commands![
         get_parser_name,
+        load_grammar,
         build_parser,
         generate_parser,
         parse,

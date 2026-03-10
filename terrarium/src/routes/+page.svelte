@@ -6,7 +6,7 @@
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { createMaximizeToggle } from "$lib/window-utils";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List } from "lucide-svelte";
+  import { FolderOpen, Cog, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
   import {
@@ -26,6 +26,7 @@
     INTERMEDIATE_MAX_LENGTH,
   } from "$lib/graph-styles";
   import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng, parseNodeKind } from "$lib/graph-utils";
+  import MonacoEditor from "$lib/MonacoEditor.svelte";
 
   // Parse Tree types (manually defined, not via specta)
   interface ParseTreeNode {
@@ -145,11 +146,13 @@
         generateStatus = "success";
         generateError = null;
         logOutput("Parser generated successfully");
+        setTimeout(() => { generateStatus = "none"; }, 2000);
       } else {
         generateStatus = "error";
         generateError = event.payload.message;
         logError(event.payload.message);
         outputPanelOpen = true;
+        setTimeout(() => { generateStatus = "none"; }, 3000);
       }
     });
 
@@ -315,6 +318,8 @@
   let isGenerating = $state(false);
   let generateStatus = $state<"none" | "success" | "error">("none");
   let generateError = $state<string | null>(null);
+  let grammarText = $state("");
+  let grammarFileName = $state<string | null>(null);
 
   // Status bar state
   let statusMessage = $state<string | null>(null);
@@ -396,7 +401,7 @@
   let showSpans = $state(false);
 
   // App mode
-  let activeMode = $state<"parse" | "debug" | "design">("parse");
+  let activeMode = $state<"design" | "parse" | "debug">("design");
 
   // SPPF data
   let sppf = $state<SPPF | null>(null);
@@ -1117,17 +1122,28 @@
       lastParsedInput = null;
       nonterminals = [];
       startNonterminal = null;
+      grammarText = "";
+      grammarFileName = null;
 
       // Log the working directory
       logOutput(`Working directory: ${parserDirectory}`);
 
       // Try to get parser name (might not exist yet if empty directory)
-      const result = await commands.getParserName(parserDirectory);
-      if (result.status === "ok") {
-        parserName = result.data;
+      const nameResult = await commands.getParserName(parserDirectory);
+      if (nameResult.status === "ok") {
+        parserName = nameResult.data;
         logOutput(`Parser: ${parserName}`);
       } else {
         parserName = null;
+      }
+
+      // Load grammar file into editor
+      const grammarResult = await commands.loadGrammar(parserDirectory);
+      if (grammarResult.status === "ok") {
+        const [filename, content] = grammarResult.data;
+        grammarFileName = filename;
+        grammarText = content;
+        logOutput(`Grammar: ${filename}`);
       }
 
       // Auto-build the parser
@@ -2072,6 +2088,15 @@
       return;
     }
 
+    // Cmd+G to generate parser
+    if ((e.metaKey || e.ctrlKey) && e.key === 'g') {
+      e.preventDefault();
+      if (grammarFileName && !isGenerating) {
+        generateParser();
+      }
+      return;
+    }
+
     // Cmd+/ to show keyboard shortcuts (displayed as ⌘? like Slack)
     if ((e.metaKey || e.ctrlKey) && e.key === '/') {
       e.preventDefault();
@@ -2198,6 +2223,19 @@
       </button>
     </div>
     <div class="title-bar-right">
+      {#if grammarFileName}
+        <button
+          class="title-bar-icon-btn"
+          class:generate-success={generateStatus === "success"}
+          class:generate-error={generateStatus === "error"}
+          onclick={generateParser}
+          onmousedown={(e) => e.stopPropagation()}
+          disabled={isGenerating}
+          title="Generate Parser"
+        >
+          <Cog size={18} class={isGenerating ? "spinning" : ""} />
+        </button>
+      {/if}
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div class="title-bar-menu" onmousedown={(e) => e.stopPropagation()}>
         <button
@@ -2235,6 +2273,14 @@
     <div class="activity-bar">
       <button
         class="activity-btn"
+        class:active={activeMode === "design"}
+        onclick={() => activeMode = "design"}
+        title="Design"
+      >
+        <Braces size={24} />
+      </button>
+      <button
+        class="activity-btn"
         class:active={activeMode === "parse"}
         onclick={() => activeMode = "parse"}
         title="Parse"
@@ -2249,20 +2295,24 @@
       >
         <Bug size={24} />
       </button>
-      <button
-        class="activity-btn"
-        class:active={activeMode === "design"}
-        onclick={() => activeMode = "design"}
-        title="Design"
-      >
-        <Braces size={24} />
-      </button>
     </div>
 
     <!-- Main Area -->
     <div class="main-area">
     <!-- Mode Content -->
-  {#if activeMode === "parse"}
+  {#if activeMode === "design"}
+  <!-- Design Mode -->
+  <div class="design-mode">
+    {#if generateError}
+      <div class="generate-error">
+        <pre>{generateError}</pre>
+      </div>
+    {/if}
+    <div class="design-editor">
+      <MonacoEditor bind:value={grammarText} language="plaintext" />
+    </div>
+  </div>
+  {:else if activeMode === "parse"}
   <!-- Parse Mode -->
   <div class="main-content">
     <!-- Left Panel -->
@@ -2788,44 +2838,6 @@
       </div>
     </div>
   </div>
-  {:else if activeMode === "design"}
-  <!-- Design Mode -->
-  <div class="design-mode">
-    <div class="design-header">
-      <button
-        class="generate-btn"
-        onclick={generateParser}
-        disabled={!parserDirectory || isGenerating}
-      >
-        {#if isGenerating}
-          <Loader2 size={16} class="spinning" />
-          Generating...
-        {:else}
-          Generate Parser
-        {/if}
-      </button>
-      {#if generateStatus === "success"}
-        <span class="generate-status success">
-          <CheckCircle size={16} />
-          Generated successfully
-        </span>
-      {:else if generateStatus === "error"}
-        <span class="generate-status error">
-          <AlertTriangle size={16} />
-          Generation failed
-        </span>
-      {/if}
-    </div>
-    {#if generateError}
-      <div class="generate-error">
-        <pre>{generateError}</pre>
-      </div>
-    {/if}
-    <div class="design-placeholder">
-      <Braces size={48} />
-      <p>Grammar editor coming soon</p>
-    </div>
-  </div>
   {/if}
 
     </div>
@@ -2944,6 +2956,10 @@
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>O</kbd></span>
               <span class="shortcut-desc">Open parser directory</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>G</kbd></span>
+              <span class="shortcut-desc">Generate parser</span>
             </div>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>?</kbd></span>
@@ -3079,57 +3095,6 @@
     min-height: 0;
   }
 
-  .design-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 16px;
-    background: #2d2d2d;
-    border-bottom: 1px solid #3c3c3c;
-  }
-
-  .generate-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: transparent;
-    color: #d4d4d4;
-    border: 1px solid #555;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-  }
-
-  .generate-btn:hover:not(:disabled) {
-    border-color: #888;
-    color: #fff;
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .generate-btn:disabled {
-    background: transparent;
-    color: #555;
-    border-color: #3c3c3c;
-    cursor: not-allowed;
-  }
-
-  .generate-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-  }
-
-  .generate-status.success {
-    color: #89d185;
-  }
-
-  .generate-status.error {
-    color: #f48771;
-  }
-
   .generate-error {
     padding: 12px 16px;
     background: #2d1f1f;
@@ -3147,19 +3112,9 @@
     word-break: break-word;
   }
 
-  .design-placeholder {
+  .design-editor {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #666;
-    gap: 16px;
-  }
-
-  .design-placeholder p {
-    margin: 0;
-    font-size: 14px;
+    min-height: 0;
   }
 
   /* Title Bar */
@@ -3187,12 +3142,43 @@
   }
 
   .title-bar-right {
-    width: 78px;  /* Balance with left */
     flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     padding-right: 12px;
+    gap: 4px;
+  }
+
+  .title-bar-icon-btn {
+    background: transparent;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+  }
+
+  .title-bar-icon-btn:hover:not(:disabled) {
+    color: #d4d4d4;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .title-bar-icon-btn:disabled {
+    color: #555;
+    cursor: not-allowed;
+  }
+
+  .title-bar-icon-btn.generate-success {
+    color: #89d185;
+    transition: color 0.5s ease;
+  }
+
+  .title-bar-icon-btn.generate-error {
+    color: #f48771;
+    transition: color 0.5s ease;
   }
 
   /* Title Bar Menu */

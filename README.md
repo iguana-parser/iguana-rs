@@ -40,6 +40,9 @@ cargo build -p iguana    # Build just the generator
 ## Usage
 
 ```bash
+# Initialize a new iggy project
+cargo run -p iguana -- init --output ./my-parser
+
 # Generate a parser from an iggy grammar file
 cargo run -p iguana -- generate --grammar path/to/grammar.iggy --output ./my-parser
 

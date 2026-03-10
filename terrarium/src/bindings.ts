@@ -13,6 +13,14 @@ async getParserName(directory: string) : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async loadGrammar(directory: string) : Promise<Result<[string, string], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("load_grammar", { directory }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async buildParser(directory: string) : Promise<void> {
     await TAURI_INVOKE("build_parser", { directory });
 },

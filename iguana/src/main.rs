@@ -19,13 +19,22 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Initialize a new iggy project
+    Init {
+        /// Grammar name
+        name: String,
+
+        /// Directory to initialize (defaults to current directory)
+        #[arg(short, long, default_value = ".")]
+        output: PathBuf,
+    },
     Generate {
         /// Path to an iggy grammar file. If not provided, uses the built-in iggy grammar.
         #[arg(short, long)]
         grammar: Option<PathBuf>,
 
-        /// Output directory for generated parser
-        #[arg(short, long)]
+        /// Output directory for generated parser (defaults to current directory)
+        #[arg(short, long, default_value = ".")]
         output: PathBuf,
     },
     Run,
@@ -62,6 +71,7 @@ enum TestCommands {
 fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
     match cli.command {
+        Commands::Init { name, output } => init_project(&output, &name)?,
         Commands::Generate { grammar, output } => generate_parser(grammar.as_deref(), &output)?,
         Commands::Run => todo!(),
         Commands::Test { command } => match command {
@@ -71,6 +81,36 @@ fn main() -> std::io::Result<()> {
             TestCommands::GenerateAll => generate_all_tests()?,
         },
     }
+    Ok(())
+}
+
+fn init_project(output: &Path, name: &str) -> std::io::Result<()> {
+    use std::io::Write;
+    let grammar_name = to_pascal_case(name);
+    let grammar_file = output.join(format!("{}.iggy", name));
+
+    // Create directory if needed
+    if !output.exists() {
+        std::fs::create_dir_all(output)?;
+        println!("Created directory: {}", output.display());
+    }
+
+    // Create grammar file if it doesn't exist
+    if !grammar_file.exists() {
+        std::fs::write(&grammar_file, format!("grammar {grammar_name}\n"))?;
+        println!("Created grammar: {}", grammar_file.display());
+    }
+
+    // Generate parser (creates Cargo.toml and source files)
+    let cargo_toml = output.join("Cargo.toml");
+    if !cargo_toml.exists() {
+        print!("Generating parser... ");
+        std::io::stdout().flush()?;
+        generate_parser(Some(&grammar_file), output)?;
+        println!("done");
+    }
+
+    println!("Initialized iggy project at {}", output.display());
     Ok(())
 }
 
@@ -272,14 +312,45 @@ fn to_pascal_case(s: &str) -> String {
         .collect()
 }
 
+fn find_iggy_file(directory: &Path) -> std::io::Result<PathBuf> {
+    let iggy_files: Vec<_> = std::fs::read_dir(directory)?
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| {
+            entry
+                .path()
+                .extension()
+                .is_some_and(|ext| ext == "iggy")
+        })
+        .collect();
+
+    match iggy_files.len() {
+        0 => Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!("No .iggy file found in {}", directory.display()),
+        )),
+        1 => Ok(iggy_files[0].path()),
+        n => Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!(
+                "Found {n} .iggy files in {}. Expected exactly one.",
+                directory.display()
+            ),
+        )),
+    }
+}
+
 fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Result<()> {
-    let grammar = match grammar_path {
-        Some(path) => {
-            let source = std::fs::read_to_string(path)?;
-            parse_grammar(&source).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
+    let resolved_path;
+    let path = match grammar_path {
+        Some(path) => path,
+        None => {
+            resolved_path = find_iggy_file(output)?;
+            &resolved_path
         }
-        None => full_pepm16_example(),
     };
+    let source = std::fs::read_to_string(path)?;
+    let grammar = parse_grammar(&source)
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
     generate(&grammar.into(), output)?;
     Ok(())
 }

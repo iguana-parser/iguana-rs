@@ -20,7 +20,9 @@
     "@types/cytoscape-dagre": "^2.3.4",
     "cytoscape": "^3.33.1",
     "cytoscape-dagre": "^2.5.0",
-    "lucide-svelte": "^0.562.0"
+    "lucide-svelte": "^0.562.0",
+    "monaco-editor": "^0.55.1",
+    "vite-plugin-monaco-editor-nls": "^3.0.1"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.6",
