@@ -12,6 +12,22 @@ use toml::Value;
 
 use trace_replay::{DebugGSSInfo, DebugSPPFNode, ErrorInfo, EventLogEntry, TraceReplay};
 
+/// Specta-compatible wrapper for lsp_types::SemanticToken
+#[derive(Clone, Serialize, Type)]
+struct SemanticTokenData {
+    delta_line: u32,
+    delta_start: u32,
+    length: u32,
+    token_type: u32,
+    token_modifiers_bitset: u32,
+}
+
+/// Semantic token legend (token type names).
+#[derive(Clone, Serialize, Type)]
+struct SemanticTokensLegendData {
+    token_types: Vec<String>,
+}
+
 /// Debug SPPF info returned to the frontend.
 #[derive(Clone, Serialize, Type)]
 struct DebugSPPFInfo {
@@ -30,6 +46,13 @@ struct BuildProgress {
 struct BuildResult {
     success: bool,
     message: String,
+}
+
+// TODO: Remove once the iggy parser has error recovery.
+// Caches last successful tokens so highlighting stays stable while typing.
+#[derive(Default)]
+struct SemanticTokensState {
+    cached_tokens: Vec<SemanticTokenData>,
 }
 
 #[derive(Default)]
@@ -515,6 +538,48 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
     });
 }
 
+// ============ Language Intelligence Commands ============
+
+#[tauri::command]
+#[specta::specta]
+fn get_semantic_tokens(
+    source: String,
+    state: tauri::State<Mutex<SemanticTokensState>>,
+) -> Vec<SemanticTokenData> {
+    // TODO: Remove catch_unwind once the iggy parser handles ambiguities gracefully.
+    // Currently, ambiguous grammars can panic during parse tree creation.
+    let result = std::panic::catch_unwind(|| {
+        iggy_ls::semantic_tokens::tokenize(&source)
+            .into_iter()
+            .map(|t| SemanticTokenData {
+                delta_line: t.delta_line,
+                delta_start: t.delta_start,
+                length: t.length,
+                token_type: t.token_type,
+                token_modifiers_bitset: t.token_modifiers_bitset,
+            })
+            .collect::<Vec<_>>()
+    });
+
+    let mut st = state.lock().unwrap();
+    match result {
+        Ok(tokens) if !tokens.is_empty() => {
+            st.cached_tokens = tokens.clone();
+            tokens
+        }
+        _ => st.cached_tokens.clone(),
+    }
+}
+
+#[tauri::command]
+#[specta::specta]
+fn get_semantic_tokens_legend() -> SemanticTokensLegendData {
+    let legend = iggy_ls::semantic_tokens::legend();
+    SemanticTokensLegendData {
+        token_types: legend.token_types.iter().map(|t| t.as_str().to_string()).collect(),
+    }
+}
+
 // ============ Debug Commands ============
 
 #[tauri::command]
@@ -843,7 +908,9 @@ pub fn run() {
         debug_next_error,
         debug_prev_error,
         get_debug_errors,
-        get_event_log
+        get_event_log,
+        get_semantic_tokens,
+        get_semantic_tokens_legend
     ]);
 
     #[cfg(debug_assertions)]
@@ -857,6 +924,7 @@ pub fn run() {
     tauri::Builder::default()
         .manage(Mutex::new(ParseState::default()))
         .manage(Mutex::new(DebugState::default()))
+        .manage(Mutex::new(SemanticTokensState::default()))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())

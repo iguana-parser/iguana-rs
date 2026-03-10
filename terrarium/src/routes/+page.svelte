@@ -2309,7 +2309,7 @@
       </div>
     {/if}
     <div class="design-editor">
-      <MonacoEditor bind:value={grammarText} language="plaintext" />
+      <MonacoEditor bind:value={grammarText} language="iggy" />
     </div>
   </div>
   {:else if activeMode === "parse"}

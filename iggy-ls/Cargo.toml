@@ -1,0 +1,9 @@
+[package]
+name = "iggy-ls"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+iggy = { path = "../iggy" }
+iguana-runtime = { path = "../iguana-runtime" }
+lsp-types = "0.97"

@@ -178,6 +178,12 @@ async getEventLog() : Promise<Result<EventLogEntry[], string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async getSemanticTokens(source: string) : Promise<SemanticTokenData[]> {
+    return await TAURI_INVOKE("get_semantic_tokens", { source });
+},
+async getSemanticTokensLegend() : Promise<SemanticTokensLegendData> {
+    return await TAURI_INVOKE("get_semantic_tokens_legend");
 }
 }
 
@@ -324,6 +330,14 @@ export type SPPFDotNode = { id: SPPFNodeId; kind: NodeKind; label: string; left_
  * Uses `u32` since real-world grammars rarely exceed 2^32 - 1 nodes.
  */
 export type SPPFNodeId = number
+/**
+ * Specta-compatible wrapper for lsp_types::SemanticToken
+ */
+export type SemanticTokenData = { delta_line: number; delta_start: number; length: number; token_type: number; token_modifiers_bitset: number }
+/**
+ * Semantic token legend (token type names).
+ */
+export type SemanticTokensLegendData = { token_types: string[] }
 
 /** tauri-specta globals **/
 
