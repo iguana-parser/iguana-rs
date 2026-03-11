@@ -52,7 +52,7 @@ Symbol
   | Symbol "?"                               #Opt
   | Symbol "\\" Identifier                   #Except
   | Symbol "!>>" Identifier                  #FollowRestriction
-  | Symbol labels:("!" Identifier)+           #Exclude
+  | Symbol labels:("!" Identifier)+          #Exclude
   > Identifier "!<<" Symbol                  #PrecedeRestriction
   > label:Identifier ":" Symbol              #Labeled
 

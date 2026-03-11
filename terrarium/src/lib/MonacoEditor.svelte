@@ -112,6 +112,11 @@
       window.dispatchEvent(new CustomEvent("terrarium-generate"));
     });
 
+    // Cmd+D / Ctrl+D: Delete current line
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD, () => {
+      editor.getAction("editor.action.deleteLines")?.run();
+    });
+
     editor.onDidChangeModelContent(() => {
       if (ignoreChange) return;
       const newValue = editor.getValue();

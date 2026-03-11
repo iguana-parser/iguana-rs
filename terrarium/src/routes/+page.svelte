@@ -2993,6 +2993,17 @@
             </div>
           </div>
           <div class="shortcuts-section">
+            <h4>Editor</h4>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>F</kbd></span>
+              <span class="shortcut-desc">Find</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>D</kbd></span>
+              <span class="shortcut-desc">Delete line</span>
+            </div>
+          </div>
+          <div class="shortcuts-section">
             <h4>Debug Mode</h4>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>←</kbd></span>
