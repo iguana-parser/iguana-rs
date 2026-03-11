@@ -362,6 +362,18 @@ fn gen_field_name(
                                     }
                                 }
                             }
+                            Symbol::Exclude { symbol, .. } => {
+                                if let Some(inner_ident) = symbol.as_identifier() {
+                                    let snake = to_snake_case(&inner_ident.name);
+                                    if is_valid_rust_ident(&snake) {
+                                        return if needs_index {
+                                            format!("{}_{}", snake, position)
+                                        } else {
+                                            snake
+                                        };
+                                    }
+                                }
+                            }
                             _ => {}
                         }
                     }

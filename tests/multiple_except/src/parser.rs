@@ -19,10 +19,86 @@ use iguana_runtime::{
 use phf::phf_map;
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
-pub const NONTERMINALS: [Nonterminal; 0] = [];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {};
-pub const TERMINALS: [Terminal; 2] = [Terminal { name: "Layout" }, Terminal { name: "Epsilon" }];
-pub const SLOTS: [Slot; 0] = [];
+pub const NONTERMINALS: [Nonterminal; 4] = [
+    Nonterminal {
+        name: "SyntaxIdentifier",
+        display: "SyntaxIdentifier",
+        kind: None,
+    },
+    Nonterminal {
+        name: "LexicalIdentifier",
+        display: "LexicalIdentifier",
+        kind: None,
+    },
+    Nonterminal {
+        name: "StartSyntaxIdentifier",
+        display: "StartSyntaxIdentifier",
+        kind: None,
+    },
+    Nonterminal {
+        name: "StartLexicalIdentifier",
+        display: "StartLexicalIdentifier",
+        kind: None,
+    },
+];
+static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
+    "SyntaxIdentifier" => NonterminalId(0), "LexicalIdentifier" => NonterminalId(1),
+    "StartSyntaxIdentifier" => NonterminalId(2), "StartLexicalIdentifier" =>
+    NonterminalId(3)
+};
+pub const TERMINALS: [Terminal; 7] = [
+    Terminal { name: "Identifier" },
+    Terminal {
+        name: "IdentifierChars",
+    },
+    Terminal { name: "Keyword" },
+    Terminal {
+        name: "BooleanLiteral",
+    },
+    Terminal {
+        name: "NullLiteral",
+    },
+    Terminal { name: "Layout" },
+    Terminal { name: "Epsilon" },
+];
+pub const SLOTS: [Slot; 12] = [
+    Slot {
+        display_name: "SyntaxIdentifier : . IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral",
+    },
+    Slot {
+        display_name: "SyntaxIdentifier : IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral.",
+    },
+    Slot {
+        display_name: "LexicalIdentifier : . Identifier",
+    },
+    Slot {
+        display_name: "LexicalIdentifier : Identifier.",
+    },
+    Slot {
+        display_name: "StartSyntaxIdentifier : . Layout start:SyntaxIdentifier Layout",
+    },
+    Slot {
+        display_name: "StartSyntaxIdentifier : Layout . start:SyntaxIdentifier Layout",
+    },
+    Slot {
+        display_name: "StartSyntaxIdentifier : Layout start:SyntaxIdentifier . Layout",
+    },
+    Slot {
+        display_name: "StartSyntaxIdentifier : Layout start:SyntaxIdentifier Layout.",
+    },
+    Slot {
+        display_name: "StartLexicalIdentifier : . Layout start:LexicalIdentifier Layout",
+    },
+    Slot {
+        display_name: "StartLexicalIdentifier : Layout . start:LexicalIdentifier Layout",
+    },
+    Slot {
+        display_name: "StartLexicalIdentifier : Layout start:LexicalIdentifier . Layout",
+    },
+    Slot {
+        display_name: "StartLexicalIdentifier : Layout start:LexicalIdentifier Layout.",
+    },
+];
 impl<'i> Parser<'i> for MultipleExceptParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -56,6 +132,291 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
             gss_node_id
         );
         match slot_id {
+            //SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
+            SlotId(0) => {
+                let i = input_index;
+                record!(self, MatchingTerminal, "IdentifierChars", i);
+                match self.scanner.match_token(TerminalId(1), i) {
+                    Some(j) => {
+                        record!(self, MatchSuccess, "IdentifierChars", i, j);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(1), i, j);
+                        //SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
+                        let next_slot_id = SlotId(1);
+                        if self.scanner.match_token(TerminalId(2), i) != Some(j)
+                            && self.scanner.match_token(TerminalId(3), i) != Some(j)
+                            && self.scanner.match_token(TerminalId(4), i) != Some(j)
+                        {
+                            let new_node = right_child_id;
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        }
+                    }
+                    None => {
+                        record!(
+                            self,
+                            MatchFailed,
+                            "IdentifierChars",
+                            i,
+                            SlotId(0),
+                            gss_node_id,
+                            result
+                        );
+                    }
+                }
+            }
+            //SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
+            SlotId(1) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(0);
+                let end_slot_id = SlotId(1);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
+                }
+            }
+            //LexicalIdentifier : . Identifier
+            SlotId(2) => {
+                let i = input_index;
+                record!(self, MatchingTerminal, "Identifier", i);
+                match self.scanner.match_token(TerminalId(0), i) {
+                    Some(j) => {
+                        record!(self, MatchSuccess, "Identifier", i, j);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(0), i, j);
+                        //LexicalIdentifier : Identifier.
+                        let next_slot_id = SlotId(3);
+                        let new_node = right_child_id;
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                    None => {
+                        record!(
+                            self,
+                            MatchFailed,
+                            "Identifier",
+                            i,
+                            SlotId(2),
+                            gss_node_id,
+                            result
+                        );
+                    }
+                }
+            }
+            //LexicalIdentifier : Identifier.
+            SlotId(3) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(1);
+                let end_slot_id = SlotId(3);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
+                }
+            }
+            //StartSyntaxIdentifier : . Layout start:SyntaxIdentifier Layout
+            SlotId(4) => {
+                let i = input_index;
+                record!(self, MatchingTerminal, "Layout", i);
+                match self.scanner.match_token(TerminalId(5), i) {
+                    Some(j) => {
+                        record!(self, MatchSuccess, "Layout", i, j);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(5), i, j);
+                        //StartSyntaxIdentifier : Layout . start:SyntaxIdentifier Layout
+                        let next_slot_id = SlotId(5);
+                        let new_node = right_child_id;
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                    None => {
+                        record!(
+                            self,
+                            MatchFailed,
+                            "Layout",
+                            i,
+                            SlotId(4),
+                            gss_node_id,
+                            result
+                        );
+                    }
+                }
+            }
+            //StartSyntaxIdentifier : Layout . start:SyntaxIdentifier Layout
+            SlotId(5) => {
+                self.create_syntax_identifier(result, gss_node_id, SlotId(6));
+            }
+            //StartSyntaxIdentifier : Layout start:SyntaxIdentifier . Layout
+            SlotId(6) => {
+                let i = input_index;
+                record!(self, MatchingTerminal, "Layout", i);
+                match self.scanner.match_token(TerminalId(5), i) {
+                    Some(j) => {
+                        record!(self, MatchSuccess, "Layout", i, j);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(5), i, j);
+                        //StartSyntaxIdentifier : Layout start:SyntaxIdentifier Layout.
+                        let next_slot_id = SlotId(7);
+                        let left_child_id = result.expect("Result should not be None.");
+                        let left_child = self.sppf_node(left_child_id);
+                        let left_extent = left_child.left_extent();
+                        if let Some(new_node) = self.create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        ) {
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        }
+                    }
+                    None => {
+                        record!(
+                            self,
+                            MatchFailed,
+                            "Layout",
+                            i,
+                            SlotId(6),
+                            gss_node_id,
+                            result
+                        );
+                    }
+                }
+            }
+            //StartSyntaxIdentifier : Layout start:SyntaxIdentifier Layout.
+            SlotId(7) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(2);
+                let end_slot_id = SlotId(7);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
+                }
+            }
+            //StartLexicalIdentifier : . Layout start:LexicalIdentifier Layout
+            SlotId(8) => {
+                let i = input_index;
+                record!(self, MatchingTerminal, "Layout", i);
+                match self.scanner.match_token(TerminalId(5), i) {
+                    Some(j) => {
+                        record!(self, MatchSuccess, "Layout", i, j);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(5), i, j);
+                        //StartLexicalIdentifier : Layout . start:LexicalIdentifier Layout
+                        let next_slot_id = SlotId(9);
+                        let new_node = right_child_id;
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                    None => {
+                        record!(
+                            self,
+                            MatchFailed,
+                            "Layout",
+                            i,
+                            SlotId(8),
+                            gss_node_id,
+                            result
+                        );
+                    }
+                }
+            }
+            //StartLexicalIdentifier : Layout . start:LexicalIdentifier Layout
+            SlotId(9) => {
+                self.create_lexical_identifier(result, gss_node_id, SlotId(10));
+            }
+            //StartLexicalIdentifier : Layout start:LexicalIdentifier . Layout
+            SlotId(10) => {
+                let i = input_index;
+                record!(self, MatchingTerminal, "Layout", i);
+                match self.scanner.match_token(TerminalId(5), i) {
+                    Some(j) => {
+                        record!(self, MatchSuccess, "Layout", i, j);
+                        let right_child_id = self.get_or_create_terminal_node(TerminalId(5), i, j);
+                        //StartLexicalIdentifier : Layout start:LexicalIdentifier Layout.
+                        let next_slot_id = SlotId(11);
+                        let left_child_id = result.expect("Result should not be None.");
+                        let left_child = self.sppf_node(left_child_id);
+                        let left_extent = left_child.left_extent();
+                        if let Some(new_node) = self.create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        ) {
+                            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        }
+                    }
+                    None => {
+                        record!(
+                            self,
+                            MatchFailed,
+                            "Layout",
+                            i,
+                            SlotId(10),
+                            gss_node_id,
+                            result
+                        );
+                    }
+                }
+            }
+            //StartLexicalIdentifier : Layout start:LexicalIdentifier Layout.
+            SlotId(11) => {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(3);
+                let end_slot_id = SlotId(11);
+                if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                    nonterminal_id,
+                    end_slot_id,
+                    left_extent,
+                    right_extent,
+                    result,
+                ) {
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
+                }
+            }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
             }
@@ -69,6 +430,50 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
         env: Option<EnvId>,
     ) {
         match nonterminal_id {
+            //SyntaxIdentifier
+            NonterminalId(0) => {
+                //SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(0),
+                    sppf_node_id: None,
+                    gss_node_id,
+                    env,
+                });
+            }
+            //LexicalIdentifier
+            NonterminalId(1) => {
+                //LexicalIdentifier : . Identifier
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(2),
+                    sppf_node_id: None,
+                    gss_node_id,
+                    env,
+                });
+            }
+            //StartSyntaxIdentifier
+            NonterminalId(2) => {
+                //StartSyntaxIdentifier : . Layout start:SyntaxIdentifier Layout
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(4),
+                    sppf_node_id: None,
+                    gss_node_id,
+                    env,
+                });
+            }
+            //StartLexicalIdentifier
+            NonterminalId(3) => {
+                //StartLexicalIdentifier : . Layout start:LexicalIdentifier Layout
+                self.add_descriptor(Descriptor {
+                    input_index,
+                    slot_id: SlotId(8),
+                    sppf_node_id: None,
+                    gss_node_id,
+                    env,
+                });
+            }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
             }
@@ -282,12 +687,12 @@ pub struct MultipleExceptParser<'i> {
     descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
     //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
-    gss_nodes_index: [Vec<(u32, GssNodeId)>; 0],
+    gss_nodes_index: [Vec<(u32, GssNodeId)>; 4],
     sppf_nodes: Vec<SPPFNode>,
     stats: Stats,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 0],
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 0],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
+    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 12],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 7],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
@@ -302,13 +707,13 @@ impl<'i> MultipleExceptParser<'i> {
         Self {
             start_nonterminal,
             scanner: MultipleExceptScanner::new(input),
-            gss_nodes_index: [const { vec![] }; 0],
+            gss_nodes_index: [const { vec![] }; 4],
             descriptors: vec![],
             gss_nodes: vec![],
             sppf_nodes: vec![],
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 0],
-            intermediate_nodes_index: [const { InlineMap::Empty }; 0],
-            terminal_nodes_index: [const { InlineMap::Empty }; 2],
+            nonterminal_nodes_index: [const { InlineMap::Empty }; 4],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 12],
+            terminal_nodes_index: [const { InlineMap::Empty }; 7],
             stats: Stats::default(),
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
@@ -318,6 +723,38 @@ impl<'i> MultipleExceptParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
+    }
+    fn create_syntax_identifier(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_lexical_identifier(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_start_syntax_identifier(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn create_start_lexical_identifier(
+        &mut self,
+        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        return_slot: SlotId,
+    ) {
+        self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot);
     }
 }
 
