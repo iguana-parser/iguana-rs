@@ -1,0 +1,323 @@
+use crate::{
+    scanner::MultipleExceptScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
+};
+#[cfg(feature = "debug-trace")]
+use iguana_runtime::trace::TraceEvent;
+use iguana_runtime::{
+    descriptor::Descriptor,
+    env::{Env, EnvId},
+    gss::{GSSNode, PoppedElement},
+    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    input::Input,
+    parser::{Parser, Stats, init_logger},
+    record,
+    scanner::Scanner,
+    sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
+    utils::{inline_map::InlineMap, inline_vec::InlineVec},
+};
+use phf::phf_map;
+use rustc_hash::FxHashMap;
+use std::cell::OnceCell;
+pub const NONTERMINALS: [Nonterminal; 0] = [];
+static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {};
+pub const TERMINALS: [Terminal; 2] = [Terminal { name: "Layout" }, Terminal { name: "Epsilon" }];
+pub const SLOTS: [Slot; 0] = [];
+impl<'i> Parser<'i> for MultipleExceptParser<'i> {
+    fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
+        NONTERMINALS[nonterminal_id.index()].display
+    }
+    fn nonterminal_id(name: &str) -> Option<NonterminalId> {
+        NONTERMINAL_IDS.get(name).copied()
+    }
+    fn terminal_name(terminal_id: TerminalId) -> &'static str {
+        TERMINALS[terminal_id.index()].name
+    }
+    fn slot_name(slot_id: SlotId) -> &'static str {
+        SLOTS[slot_id.index()].display_name
+    }
+    fn epsilon() -> TerminalId {
+        TerminalId((TERMINALS.len() - 1) as u16)
+    }
+    fn execute(
+        &mut self,
+        input_index: u32,
+        slot_id: SlotId,
+        result: Option<SPPFNodeId>,
+        gss_node_id: GssNodeId,
+        env: Option<EnvId>,
+    ) {
+        record!(
+            self,
+            ProcessingDescriptor,
+            input_index,
+            slot_id,
+            result,
+            gss_node_id
+        );
+        match slot_id {
+            _ => {
+                panic!("Unknown grammar slot id: {slot_id}");
+            }
+        }
+    }
+    fn add_first_descriptors(
+        &mut self,
+        nonterminal_id: NonterminalId,
+        input_index: u32,
+        gss_node_id: GssNodeId,
+        env: Option<EnvId>,
+    ) {
+        match nonterminal_id {
+            _ => {
+                panic!("Unknown nonterminal id: {nonterminal_id}");
+            }
+        }
+    }
+    fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
+        let gss_nodes = &self.gss_nodes_index[nonterminal_id.index()];
+        gss_nodes
+            .iter()
+            .find(|(k, _)| *k == input_index)
+            .map(|x| x.1)
+    }
+    fn add_gss_node(
+        &mut self,
+        nonterminal_id: NonterminalId,
+        input_index: u32,
+        gss_node_id: GssNodeId,
+    ) {
+        let gss_nodes = &mut self.gss_nodes_index[nonterminal_id.index()];
+        gss_nodes.push((input_index, gss_node_id));
+    }
+    fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
+        let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
+        let gss_node = GSSNode::new(gss_node_id, nonterminal_id, input_index);
+        record!(self, GSSNodeCreated, nonterminal_id, input_index);
+        self.gss_nodes.push(gss_node);
+        self.stats.gss_nodes_count += 1;
+        gss_node_id
+    }
+    fn gss_node(&self, id: GssNodeId) -> &GSSNode {
+        &self.gss_nodes[id.index()]
+    }
+    fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode {
+        self.gss_nodes
+            .get_mut(id.index())
+            .expect("GSS node id should be valid")
+    }
+    fn sppf_node(&self, id: SPPFNodeId) -> &SPPFNode {
+        &self.sppf_nodes[id.index()]
+    }
+    fn sppf_node_mut(&mut self, id: SPPFNodeId) -> &mut SPPFNode {
+        &mut self.sppf_nodes[id.index()]
+    }
+    fn add_descriptor(&mut self, descriptor: Descriptor) {
+        record!(
+            self,
+            DescriptorAdded,
+            descriptor.input_index,
+            descriptor.slot_id,
+            descriptor.sppf_node_id,
+            descriptor.gss_node_id
+        );
+        self.stats_mut().descriptors_count += 1;
+        self.descriptors.push(descriptor);
+    }
+    fn next_descriptor(&mut self) -> Option<Descriptor> {
+        self.descriptors.pop()
+    }
+    fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
+        let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+        self.stats.terminal_nodes_count += 1;
+        self.terminal_nodes_index[terminal_node.terminal_id.index()]
+            .insert(terminal_node.span, terminal_node_id);
+        record!(
+            self,
+            TerminalNodeCreated,
+            terminal_node.terminal_id,
+            terminal_node.span
+        );
+        self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
+        terminal_node_id
+    }
+    fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
+        let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+        self.stats.nonterminal_nodes_count += 1;
+        self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
+            .insert(nonterminal_node.span, nonterminal_node_id);
+        record!(
+            self,
+            NonterminalNodeCreated,
+            nonterminal_node.nonterminal_id,
+            nonterminal_node.span,
+            nonterminal_node.child
+        );
+        self.sppf_nodes
+            .push(SPPFNode::Nonterminal(nonterminal_node));
+        nonterminal_node_id
+    }
+    fn add_intermediate_node(&mut self, intermediate_node: IntermediateNode) -> SPPFNodeId {
+        let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+        self.stats.intermediate_nodes_count += 1;
+        self.intermediate_nodes_index[intermediate_node.slot_id.index()]
+            .insert(intermediate_node.span, intermediate_node_id);
+        record!(
+            self,
+            IntermediateNodeCreated,
+            intermediate_node.slot_id,
+            intermediate_node.span,
+            intermediate_node.child.0,
+            intermediate_node.child.1
+        );
+        self.sppf_nodes
+            .push(SPPFNode::Intermediate(intermediate_node));
+        intermediate_node_id
+    }
+    fn input(&self) -> &'i Input {
+        self.scanner.input
+    }
+    fn stats(&self) -> &Stats {
+        &self.stats
+    }
+    fn stats_mut(&mut self) -> &mut Stats {
+        &mut self.stats
+    }
+    fn lookup_nonterminal_node(
+        &self,
+        nonterminal_id: NonterminalId,
+        left_extent: u32,
+        right_extent: u32,
+    ) -> Option<SPPFNodeId> {
+        let map = &self.nonterminal_nodes_index[nonterminal_id.index()];
+        map.get(&Span::new(left_extent, right_extent)).copied()
+    }
+    fn lookup_intermediate_node(
+        &self,
+        slot_id: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+    ) -> Option<SPPFNodeId> {
+        let map = &self.intermediate_nodes_index[slot_id.index()];
+        map.get(&Span::new(left_extent, right_extent)).copied()
+    }
+    fn lookup_terminal_node(
+        &self,
+        terminal_id: TerminalId,
+        left_extent: u32,
+        right_extent: u32,
+    ) -> Option<SPPFNodeId> {
+        let map = &self.terminal_nodes_index[terminal_id.index()];
+        map.get(&Span::new(left_extent, right_extent)).copied()
+    }
+    fn gss_nodes(&self) -> impl Iterator<Item = &GSSNode> {
+        self.gss_nodes.iter()
+    }
+    fn add_intermediate_node_child(
+        &mut self,
+        node: SPPFNodeId,
+        child1: SPPFNodeId,
+        child2: SPPFNodeId,
+    ) {
+        self.intermediate_nodes_children
+            .push((node, (child1, child2)));
+    }
+    fn add_nonterminal_node_child(&mut self, node: SPPFNodeId, child: SPPFNodeId) {
+        self.nonterminal_nodes_children.push((node, child));
+    }
+    fn intermediate_nodes_children_map(
+        &self,
+    ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> {
+        self.intermediate_nodes_children_map.get_or_init(|| {
+            let mut map: FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> =
+                FxHashMap::default();
+            for (k, v) in &self.intermediate_nodes_children {
+                map.entry(*k).or_default().push(*v);
+            }
+            map
+        })
+    }
+    fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<SPPFNodeId>> {
+        self.nonterminal_nodes_children_map.get_or_init(|| {
+            let mut map: FxHashMap<SPPFNodeId, Vec<SPPFNodeId>> = FxHashMap::default();
+            for (k, v) in &self.nonterminal_nodes_children {
+                map.entry(*k).or_default().push(*v);
+            }
+            map
+        })
+    }
+    #[cfg(feature = "debug-trace")]
+    fn add_trace_event(&mut self, event: TraceEvent) {
+        if let Some(trace_events) = &mut self.trace_events {
+            trace_events.push(event);
+        }
+    }
+    fn start_nonterminal(&self) -> NonterminalId {
+        self.start_nonterminal
+    }
+    fn new_env(&mut self) -> (EnvId, &mut Env) {
+        let id = EnvId(self.envs.len() as u32);
+        self.envs.push(Env::default());
+        (id, &mut self.envs[id.index()])
+    }
+    fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
+        let env = &self.envs[env_id.index()];
+        env.get(name)
+    }
+    fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env) {
+        let bindings = self.envs[source.0 as usize].bindings.clone();
+        let (new_id, new_env) = self.new_env();
+        new_env.bindings = bindings;
+        (new_id, new_env)
+    }
+    fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> bool {
+        match slot {
+            _ => true,
+        }
+    }
+}
+pub struct MultipleExceptParser<'i> {
+    start_nonterminal: NonterminalId,
+    scanner: MultipleExceptScanner<'i>,
+    descriptors: Vec<Descriptor>,
+    gss_nodes: Vec<GSSNode>,
+    //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
+    gss_nodes_index: [Vec<(u32, GssNodeId)>; 0],
+    sppf_nodes: Vec<SPPFNode>,
+    stats: Stats,
+    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 0],
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 0],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
+    intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
+    intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
+    nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
+    nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
+    envs: Vec<Env>,
+    #[cfg(feature = "debug-trace")]
+    pub trace_events: Option<Vec<TraceEvent>>,
+}
+impl<'i> MultipleExceptParser<'i> {
+    pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
+        init_logger();
+        Self {
+            start_nonterminal,
+            scanner: MultipleExceptScanner::new(input),
+            gss_nodes_index: [const { vec![] }; 0],
+            descriptors: vec![],
+            gss_nodes: vec![],
+            sppf_nodes: vec![],
+            nonterminal_nodes_index: [const { InlineMap::Empty }; 0],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 0],
+            terminal_nodes_index: [const { InlineMap::Empty }; 2],
+            stats: Stats::default(),
+            intermediate_nodes_children: vec![],
+            intermediate_nodes_children_map: OnceCell::new(),
+            nonterminal_nodes_children: vec![],
+            nonterminal_nodes_children_map: OnceCell::new(),
+            envs: vec![],
+            #[cfg(feature = "debug-trace")]
+            trace_events: None,
+        }
+    }
+}
+

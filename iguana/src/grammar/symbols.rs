@@ -75,7 +75,7 @@ pub enum Symbol {
     // For now, we only accept regular expression ids.
     Except {
         symbol: Box<Symbol>,
-        except: Identifier,
+        except: Vec<Identifier>,
     },
     // Corresponds to the `!>>` operator in the concrete syntax.
     // `X !>> Id` means reject the match of X if the character immediately after
@@ -311,7 +311,8 @@ impl Symbol {
                 )
             }
             Symbol::Except { symbol, except } => {
-                format!("{} \\ {}", symbol.display_name(grammar), except)
+                let excepts = except.iter().map(|e| format!("\\ {}", e)).join(" ");
+                format!("{} {}", symbol.display_name(grammar), excepts)
             }
             Symbol::FollowRestriction {
                 symbol,
@@ -357,7 +358,13 @@ impl Display for Symbol {
             Symbol::Call { name, arguments } => {
                 write!(f, "{}({})", name, arguments.iter().join(", "))
             }
-            Symbol::Except { symbol, except } => write!(f, "{} \\ {}", symbol, except),
+            Symbol::Except { symbol, except } => {
+                write!(f, "{}", symbol)?;
+                for e in except {
+                    write!(f, " \\ {}", e)?;
+                }
+                Ok(())
+            }
             Symbol::FollowRestriction {
                 symbol,
                 restriction,
@@ -646,13 +653,17 @@ macro_rules! opt {
 
 #[macro_export]
 macro_rules! except {
-    ($symbol:expr, $except:expr) => {
+    ($symbol:expr, $($except:expr),+ $(,)?) => {
         $crate::grammar::symbols::Symbol::Except {
             symbol: Box::new($symbol),
-            except: $crate::grammar::symbols::Identifier {
-                name: $except.into(),
-                definition: None,
-            },
+            except: vec![
+                $(
+                    $crate::grammar::symbols::Identifier {
+                        name: $except.into(),
+                        definition: None,
+                    },
+                )+
+            ],
         }
     };
 }

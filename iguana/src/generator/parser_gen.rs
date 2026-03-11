@@ -442,7 +442,7 @@ fn gen_slot_code<'a>(
             return gen_return_code(grammar, &slot, slot_ids);
         }
         Some(Symbol::Except { symbol, except }) => {
-            return gen_except_code(grammar, symbol, except, &slot, terminal_ids, slot_ids);
+            return gen_except_code(grammar, symbol, except.as_slice(), &slot, terminal_ids, slot_ids);
         }
         Some(Symbol::FollowRestriction {
             symbol,
@@ -601,7 +601,7 @@ fn gen_terminal_slot<'a>(
 fn gen_except_code<'a>(
     grammar: &'a Grammar,
     symbol: &Symbol,
-    except: &Identifier,
+    except: &[Identifier],
     slot: &Slot<'a>,
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
@@ -611,18 +611,28 @@ fn gen_except_code<'a>(
     };
     let def_id = identifier.resolve();
     let def = grammar.definition(def_id);
-    let except_def_id = except.resolve();
-    let Definition::Terminal(except_terminal) = grammar.definition(except_def_id) else {
-        panic!("Except identifier must resolve to a terminal");
-    };
-    let except_terminal_id = terminal_ids
-        .get_id(except_terminal)
-        .unwrap_or_else(|| panic!("cannot find the lexical definition {}", except_terminal.name));
+    let except_terminal_ids: Vec<_> = except
+        .iter()
+        .map(|e| {
+            let except_def_id = e.resolve();
+            let Definition::Terminal(except_terminal) = grammar.definition(except_def_id) else {
+                panic!("Except identifier must resolve to a terminal");
+            };
+            terminal_ids
+                .get_id(except_terminal)
+                .unwrap_or_else(|| panic!("cannot find the lexical definition {}", except_terminal.name))
+        })
+        .collect();
     match def {
         Definition::Terminal(terminal) => {
-            let post_conditions = vec![quote! {
-                self.scanner.match_token(#except_terminal_id, i) != Some(j)
-            }];
+            let post_conditions: Vec<_> = except_terminal_ids
+                .iter()
+                .map(|id| {
+                    quote! {
+                        self.scanner.match_token(#id, i) != Some(j)
+                    }
+                })
+                .collect();
             gen_terminal_slot(grammar, terminal, slot.clone(), terminal_ids, slot_ids, &post_conditions)
         }
         // For nonterminals, the except check is handled via post_conditions in the runtime.
@@ -754,20 +764,33 @@ fn gen_post_conditions_method<'a>(
                     if !matches!(def, Definition::Nonterminal(_)) {
                         continue;
                     }
-                    let except_def_id = except.resolve();
-                    let Definition::Terminal(except_terminal) = grammar.definition(except_def_id)
-                    else {
-                        panic!("Except identifier must resolve to a terminal");
-                    };
-                    let except_terminal_id = terminal_ids.get_id(except_terminal).unwrap_or_else(
-                        || panic!("cannot find the lexical definition {}", except_terminal.name),
-                    );
+                    let checks: Vec<_> = except
+                        .iter()
+                        .map(|e| {
+                            let except_def_id = e.resolve();
+                            let Definition::Terminal(except_terminal) =
+                                grammar.definition(except_def_id)
+                            else {
+                                panic!("Except identifier must resolve to a terminal");
+                            };
+                            let except_terminal_id =
+                                terminal_ids.get_id(except_terminal).unwrap_or_else(|| {
+                                    panic!(
+                                        "cannot find the lexical definition {}",
+                                        except_terminal.name
+                                    )
+                                });
+                            quote! {
+                                self.scanner.match_token(#except_terminal_id, left_extent) != Some(right_extent)
+                            }
+                        })
+                        .collect();
                     let slot = Slot::new(nonterminal, alternative, pos);
                     let next_slot = slot.next();
                     let slot_id = slot_ids.id(&next_slot);
                     arms.push(quote! {
                         #slot_id => {
-                            self.scanner.match_token(#except_terminal_id, left_extent) != Some(right_extent)
+                            #(#checks)&&*
                         }
                     });
                 }

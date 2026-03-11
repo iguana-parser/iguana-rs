@@ -136,7 +136,7 @@ impl From<Alternative> for PriorityLevel {
 pub struct LexicalRule {
     pub head: Terminal,
     pub regex: Regex,
-    pub except: Option<Identifier>,
+    pub except: Vec<Identifier>,
     pub follow_restriction: Option<Identifier>,
     pub precede_restriction: Option<Identifier>,
 }
@@ -146,7 +146,7 @@ impl LexicalRule {
         Self {
             head,
             regex,
-            except: None,
+            except: vec![],
             follow_restriction: None,
             precede_restriction: None,
         }
@@ -156,7 +156,7 @@ impl LexicalRule {
 impl Display for LexicalRule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} = {}", self.head, self.regex)?;
-        if let Some(except) = &self.except {
+        for except in &self.except {
             write!(f, " \\ {}", except)?;
         }
         if let Some(restriction) = &self.follow_restriction {
@@ -508,14 +508,19 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
         },
         Symbol::Except { symbol, except } => {
             let resolved_symbol = resolve_identifier(*symbol, symbol_table);
-            let resolved_except = if let Some(definition_id) = symbol_table.get(&except.name) {
-                Identifier {
-                    name: except.name,
-                    definition: Some(definition_id),
-                }
-            } else {
-                panic!("Definition {} not found", &except.name)
-            };
+            let resolved_except = except
+                .into_iter()
+                .map(|e| {
+                    if let Some(definition_id) = symbol_table.get(&e.name) {
+                        Identifier {
+                            name: e.name,
+                            definition: Some(definition_id),
+                        }
+                    } else {
+                        panic!("Definition {} not found", &e.name)
+                    }
+                })
+                .collect();
             Symbol::Except {
                 symbol: Box::new(resolved_symbol),
                 except: resolved_except,
@@ -663,7 +668,7 @@ impl From<GrammarDef> for Grammar {
         let lexical_rules: Vec<LexicalRule> = lexical_rules
             .into_iter()
             .map(|mut r| {
-                if let Some(except) = &mut r.except {
+                for except in &mut r.except {
                     except.definition = Some(
                         symbol_table
                             .get(&except.name)

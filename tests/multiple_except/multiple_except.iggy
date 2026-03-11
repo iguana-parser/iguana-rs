@@ -1,0 +1,19 @@
+grammar MultipleExcept
+
+SyntaxIdentifier = IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
+LexicalIdentifier = Identifier
+
+@regex
+Identifier = [a-zA-Z]+ \ Keyword \ BooleanLiteral \ NullLiteral
+
+@regex
+IdentifierChars = [a-zA-Z]+
+
+@regex
+Keyword = "if" | "else" | "while" | "for"
+
+@regex
+BooleanLiteral = "true" | "false"
+
+@regex
+NullLiteral = "null"

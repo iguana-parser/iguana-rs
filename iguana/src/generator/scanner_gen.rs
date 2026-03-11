@@ -175,7 +175,7 @@ fn gen_match_terminal_method(
         .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
     let match_regex = match_regex(&rule.regex, char_class_ids);
 
-    let except_check = rule.except.as_ref().map(|except| {
+    let except_checks: Vec<_> = rule.except.iter().map(|except| {
         let Definition::Terminal(except_terminal) = grammar.definition(except.resolve()) else {
             panic!("Except {} must refer to a terminal", except.name);
         };
@@ -192,7 +192,7 @@ fn gen_match_terminal_method(
                 }
             })
         }
-    });
+    }).collect();
 
     let follow_restriction_check = rule.follow_restriction.as_ref().map(|restriction| {
         let Definition::Terminal(restriction_terminal) =
@@ -255,7 +255,7 @@ fn gen_match_terminal_method(
             let i = input_index;
             #precede_restriction_check
             #match_regex
-            #except_check
+            #(#except_checks)*
             #follow_restriction_check
         }
     }

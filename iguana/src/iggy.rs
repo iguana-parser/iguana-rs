@@ -225,13 +225,16 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             definition: None,
         }),
         parse_tree::Symbol::Except {
-            symbol, identifier, ..
+            symbol, excepts, ..
         } => Symbol::Except {
             symbol: Box::new(convert_symbol(symbol, input)),
-            except: Identifier {
-                name: text(input, identifier.span()),
-                definition: None,
-            },
+            except: excepts
+                .identifiers()
+                .map(|id| Identifier {
+                    name: text(input, id.span()),
+                    definition: None,
+                })
+                .collect(),
         },
         parse_tree::Symbol::FollowRestriction {
             symbol, identifier, ..
@@ -282,12 +285,7 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
     for post_condition in rule.post_conditions.post_conditions() {
         match post_condition {
             parse_tree::PostCondition::Except { identifier, .. } => {
-                assert!(
-                    lexical_rule.except.is_none(),
-                    "Duplicate except on terminal {}",
-                    lexical_rule.head
-                );
-                lexical_rule.except = Some(Identifier {
+                lexical_rule.except.push(Identifier {
                     name: text(input, identifier.span()),
                     definition: None,
                 });
