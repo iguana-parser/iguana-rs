@@ -144,12 +144,11 @@
       statusMessage = null;  // Clear status message
       if (event.payload.success) {
         generateStatus = "success";
-        generateError = null;
+
         logOutput("Parser generated successfully");
         setTimeout(() => { generateStatus = "none"; }, 2000);
       } else {
         generateStatus = "error";
-        generateError = event.payload.message;
         logError(event.payload.message);
         outputPanelOpen = true;
         setTimeout(() => { generateStatus = "none"; }, 3000);
@@ -282,6 +281,14 @@
       await mainWindow.destroy();
     });
 
+    // Listen for Cmd+G from Monaco editor (which can't bubble keyboard events)
+    function handleTerrariumGenerate() {
+      if (grammarFileName && !isGenerating) {
+        generateParser();
+      }
+    }
+    window.addEventListener("terrarium-generate", handleTerrariumGenerate);
+
     return () => {
       unlistenProgress.then(fn => fn());
       unlistenResult.then(fn => fn());
@@ -294,6 +301,7 @@
       unlistenDebugStepChanged.then(fn => fn());
       unlistenMainClose.then(fn => fn());
       window.removeEventListener('resize', handleWindowResize);
+      window.removeEventListener("terrarium-generate", handleTerrariumGenerate);
     };
   });
 
@@ -317,9 +325,20 @@
   // Generation state
   let isGenerating = $state(false);
   let generateStatus = $state<"none" | "success" | "error">("none");
-  let generateError = $state<string | null>(null);
   let grammarText = $state("");
   let grammarFileName = $state<string | null>(null);
+
+  // Auto-save grammar file (debounced 500ms after edits)
+  let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+  function onGrammarEdit(text: string) {
+    if (!parserDirectory || !grammarFileName) return;
+    if (saveTimeout) clearTimeout(saveTimeout);
+    const dir = parserDirectory;
+    const file = grammarFileName;
+    saveTimeout = setTimeout(() => {
+      commands.saveGrammar(dir, file, text);
+    }, 500);
+  }
 
   // Status bar state
   let statusMessage = $state<string | null>(null);
@@ -1125,6 +1144,7 @@
       grammarText = "";
       grammarFileName = null;
 
+
       // Log the working directory
       logOutput(`Working directory: ${parserDirectory}`);
 
@@ -1143,6 +1163,7 @@
         const [filename, content] = grammarResult.data;
         grammarFileName = filename;
         grammarText = content;
+
         logOutput(`Grammar: ${filename}`);
       }
 
@@ -1169,7 +1190,6 @@
   async function generateParser() {
     if (!parserDirectory) return;
     isGenerating = true;
-    generateError = null;
     generateStatus = "none";
     logCommand(`iguana generate --output .`);
     // Command returns immediately, results come via events
@@ -2303,13 +2323,8 @@
   {#if activeMode === "design"}
   <!-- Design Mode -->
   <div class="design-mode">
-    {#if generateError}
-      <div class="generate-error">
-        <pre>{generateError}</pre>
-      </div>
-    {/if}
     <div class="design-editor">
-      <MonacoEditor bind:value={grammarText} language="iggy" />
+      <MonacoEditor bind:value={grammarText} language="iggy" onchange={onGrammarEdit} />
     </div>
   </div>
   {:else if activeMode === "parse"}
@@ -3093,23 +3108,6 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
-  }
-
-  .generate-error {
-    padding: 12px 16px;
-    background: #2d1f1f;
-    border-bottom: 1px solid #3c3c3c;
-    max-height: 200px;
-    overflow: auto;
-  }
-
-  .generate-error pre {
-    margin: 0;
-    font-family: "Fira Code", "Consolas", monospace;
-    font-size: 12px;
-    color: #f48771;
-    white-space: pre-wrap;
-    word-break: break-word;
   }
 
   .design-editor {

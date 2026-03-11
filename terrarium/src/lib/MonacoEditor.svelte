@@ -105,6 +105,13 @@
       "semanticHighlighting.enabled": true,
     });
 
+    // Override Cmd+G / Ctrl+G: Monaco uses it for "Find Next", but Terrarium
+    // uses it globally for "Generate Parser". Dispatch a custom event that the
+    // global handler in +page.svelte listens for.
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG, () => {
+      window.dispatchEvent(new CustomEvent("terrarium-generate"));
+    });
+
     editor.onDidChangeModelContent(() => {
       if (ignoreChange) return;
       const newValue = editor.getValue();

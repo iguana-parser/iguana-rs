@@ -188,6 +188,13 @@ fn load_grammar(directory: String) -> Result<(String, String), String> {
 
 #[tauri::command]
 #[specta::specta]
+fn save_grammar(directory: String, filename: String, content: String) -> Result<(), String> {
+    let path = Path::new(&directory).join(&filename);
+    fs::write(&path, &content).map_err(|e| format!("Cannot save grammar file: {e}"))
+}
+
+#[tauri::command]
+#[specta::specta]
 fn build_parser(directory: String, app: tauri::AppHandle) {
     // Spawn blocking work in a separate thread
     thread::spawn(move || {
@@ -889,6 +896,7 @@ pub fn run() {
     let builder = Builder::<tauri::Wry>::new().commands(collect_commands![
         get_parser_name,
         load_grammar,
+        save_grammar,
         build_parser,
         generate_parser,
         parse,

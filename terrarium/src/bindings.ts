@@ -21,6 +21,14 @@ async loadGrammar(directory: string) : Promise<Result<[string, string], string>>
     else return { status: "error", error: e  as any };
 }
 },
+async saveGrammar(directory: string, filename: string, content: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("save_grammar", { directory, filename, content }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async buildParser(directory: string) : Promise<void> {
     await TAURI_INVOKE("build_parser", { directory });
 },
