@@ -2,10 +2,12 @@
 // To update golden files: REGENERATE=1 cargo test -p prefix_postfix_priority
 
 use prefix_postfix_priority::{parse, parse_tree::to_sexpr};
+use iguana_runtime::input::Input;
 use iguana_runtime::testing::{check_golden_file, golden_path};
 
 fn check(input: &str, test_name: &str) {
-    let tree = parse(input, "S").expect("Parse failed");
+    let input = Input::from(input);
+    let tree = parse(&input, "S").expect("Parse failed");
     let actual = to_sexpr(tree.as_parse_tree_ref());
     check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
 }

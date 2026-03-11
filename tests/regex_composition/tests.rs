@@ -2,10 +2,12 @@
 // To update golden files: REGENERATE=1 cargo test -p regex_composition
 
 use regex_composition::{parse, parse_tree::to_sexpr};
+use iguana_runtime::input::Input;
 use iguana_runtime::testing::{check_golden_file, golden_path};
 
 fn check(input: &str, test_name: &str) {
-    let tree = parse(input, "S").expect("Parse failed");
+    let input = Input::from(input);
+    let tree = parse(&input, "S").expect("Parse failed");
     let actual = to_sexpr(tree.as_parse_tree_ref());
     check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
 }
@@ -37,6 +39,7 @@ fn test_mixed() {
 
 #[test]
 fn test_digit_only_fails() {
-    let result = parse("123", "S");
+    let input = Input::from("123");
+    let result = parse(&input, "S");
     assert!(result.is_none(), "Should not parse: identifiers cannot start with a digit");
 }

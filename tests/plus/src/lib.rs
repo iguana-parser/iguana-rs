@@ -8,10 +8,9 @@ use iguana_runtime::{
 };
 use parse_tree::{ParseTree, PlusParseTreeBuilder, create_parse_tree};
 use parser::PlusParser;
-pub fn parse(source: &str, start_nonterminal: &str) -> Option<ParseTree> {
-    let input = Input::from(source);
+pub fn parse(input: &Input, start_nonterminal: &str) -> Option<ParseTree> {
     let start_id = PlusParser::nonterminal_id(start_nonterminal)?;
-    let mut parser = PlusParser::new(&input, start_id);
+    let mut parser = PlusParser::new(input, start_id);
     match parser.run() {
         ParseResult::Success(success) => Some(create_parse_tree(
             success.sppf_node_id,

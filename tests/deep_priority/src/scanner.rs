@@ -12,7 +12,7 @@ impl<'i> DeepPriorityScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //WS = ([ - ]*)
+    //WS = ([ ]*)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;
@@ -53,7 +53,7 @@ impl<'i> DeepPriorityScanner<'i> {
             .and_then(|i| self.match_char(i, 's'))
             .and_then(|i| self.match_char(i, 'e'))
     }
-    //Layout = ([ - ]*)
+    //Layout = ([ ]*)
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;

@@ -18,9 +18,7 @@ impl<'i> NoLayoutScanner<'i> {
         let i = input_index;
         self.match_char_class(i, &CHAR_CLASS_0, false)
     }
-    /*WS = ([ -
-    -
-    ]*)*/
+    //WS = ([  \n]*)
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;
@@ -29,9 +27,7 @@ impl<'i> NoLayoutScanner<'i> {
         }
         Some(j)
     }
-    /*Layout = ([ -
-    -
-    ]*)*/
+    //Layout = ([  \n]*)
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;

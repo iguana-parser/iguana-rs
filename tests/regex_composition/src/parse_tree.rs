@@ -350,6 +350,12 @@ impl IdPlus0 {
             IdPlus0::Alt1 { span, .. } => *span,
         }
     }
+    pub fn letter_or_digits(&self) -> impl Iterator<Item = &Token> {
+        self.iter().filter_map(|node| match node {
+            ParseTreeRef::Token(r) => Some(r),
+            _ => None,
+        })
+    }
 }
 impl IdOpt0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -380,6 +386,11 @@ impl IdOpt0 {
             IdOpt0::Alt1 { span, .. } => *span,
         }
     }
+    pub fn letter_or_digits(&self) -> impl Iterator<Item = &Token> {
+        self.value()
+            .into_iter()
+            .flat_map(|inner| inner.letter_or_digits())
+    }
 }
 impl IdStar0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -396,6 +407,9 @@ impl IdStar0 {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn letter_or_digits(&self) -> impl Iterator<Item = &Token> {
+        self.id_opt_0.letter_or_digits()
     }
 }
 impl StartS {

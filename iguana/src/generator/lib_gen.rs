@@ -21,10 +21,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         use parse_tree::{ParseTree, #parse_tree_builder, create_parse_tree};
         use parser::#parser;
 
-        pub fn parse(source: &str, start_nonterminal: &str) -> Option<ParseTree> {
-            let input = Input::from(source);
+        pub fn parse(input: &Input, start_nonterminal: &str) -> Option<ParseTree> {
             let start_id = #parser::nonterminal_id(start_nonterminal)?;
-            let mut parser = #parser::new(&input, start_id);
+            let mut parser = #parser::new(input, start_id);
             match parser.run() {
                 ParseResult::Success(success) => {
                     Some(create_parse_tree(

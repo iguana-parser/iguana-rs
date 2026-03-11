@@ -19,20 +19,18 @@ impl<'i> RegexCompositionScanner<'i> {
         let i = input_index;
         self.match_char_class(i, &CHAR_CLASS_0, false)
     }
-    //Letter = ([a-z A-Z _-_])
+    //Letter = ([a-z A-Z _])
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char_class(i, &CHAR_CLASS_1, false)
     }
-    //LetterOrDigit = (([a-z A-Z _-_])|([0-9]))
+    //LetterOrDigit = (([a-z A-Z _])|([0-9]))
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char_class(i, &CHAR_CLASS_1, false)
             .or_else(|| self.match_char_class(i, &CHAR_CLASS_0, false))
     }
-    /*WS = ([ -
-    -
-    ]*)*/
+    //WS = ([  \n]*)
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;
@@ -41,9 +39,7 @@ impl<'i> RegexCompositionScanner<'i> {
         }
         Some(j)
     }
-    /*Layout = ([ -
-    -
-    ]*)*/
+    //Layout = ([  \n]*)
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;

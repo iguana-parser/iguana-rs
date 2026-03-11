@@ -1,3 +1,52 @@
+// Precedence Desugaring Algorithm
+// ================================
+// Based on Sections 3.2–3.5 of:
+//   "Operator Precedence for Data-Dependent Grammars" (PEPM'16)
+//   Ali Afroozeh, Anastasia Izmaylova
+//
+// Phase 1 — Identify desugared nonterminals
+// ------------------------------------------
+// Collect all nonterminals with multiple priority levels (`>`). Then for each,
+// find its "recursive name" — the nonterminal at left/right ends of its
+// alternatives:
+// - Direct (Section 3.3): head name appears at ends (e.g., `E` in `E '+' E`)
+// - Indirect (Section 3.5): a different desugared nonterminal appears at ends
+//   (e.g., `E` in `E_except_comma`'s alternatives)
+//
+// Phase 2 — Desugar each rule
+// ----------------------------
+// Let `R` be the recursive name, `pr` the assigned precedence (bottom=1,
+// increments at each `>`).
+//
+// Assign precedence (Section 3.3): levels with only non-recursive alternatives
+// get no number.
+//
+// Rewrite alternatives (Section 3.3):
+// - Binary `R op R`:  `[pr>=p] l=R(p) [l==0||l>=pr] op R(pr) {pr}`
+//   with associativity adjusting thresholds (Section 3.4):
+//   left gives right end `pr+1`, right gives postcondition `pr+1`,
+//   non-assoc does both.
+// - Prefix `op R`:    `op R(pr) {pr}`
+// - Postfix `R op`:   `[pr>=p] l=R(p) [l==0||l>=pr] op {0}`
+// - Non-recursive:    replace `R` refs with `R(0)`, return `{0}`
+//
+// Min trick (Section 3.3, deep case): when a prefix exists at lower precedence
+// than a binary/prefix alternative, the higher alternative binds the right end:
+// `r=R(pr) {r==0 ? pr : min(r, pr)}`. This propagates precedence upward
+// through right-recursive chains.
+//
+// Phase 3 — Update external references
+// --------------------------------------
+// All references to desugared nonterminals become calls with argument 0:
+// `E` → `E(0)`. This applies to ALL rules, including desugared ones (to handle
+// cross-references like `E` referencing `E_except_comma`).
+//
+// Indirect case (Section 3.5)
+// ----------------------------
+// `desugar_rule` is agnostic about whether the recursive name equals the head
+// name. For `E_except_comma` with recursive name `E`, the calls go to `E(p)` /
+// `E(pr)` — the parameter is passed through to `E`, which does the enforcement.
+
 use crate::grammar::{
     def::{Alternative, Associativity, PriorityLevel, SyntaxRule},
     symbols::{
@@ -19,99 +68,84 @@ enum RecursiveEnds {
     None,
 }
 
-/// Desugars operator precedence and associativity annotations into
-/// data-dependent grammar constructs.
-///
-/// For each nonterminal with multiple priority levels, this transformation:
-///
-/// 1. Classifies each alternative by which ends are recursive (reference the
-///    head nonterminal): binary (both), prefix (right only), postfix (left
-///    only), or non-recursive (neither).
-///
-/// 2. Assigns precedence numbers in reverse order (bottom = 1, each `>`
-///    boundary increments), skipping levels that contain only non-recursive
-///    alternatives.
-///
-/// 3. Adds a parameter `p` to the nonterminal: `E` becomes `E(p)`.
-///
-/// 4. Rewrites each alternative depending on its recursion type and
-///    associativity. Let `pr` be the assigned precedence level.
-///
-///    **Binary `E op E`** — the rewrite depends on associativity:
-///
-///    - No associativity (default):
-///      `[pr>=p] l=E(p) [l==0||l>=pr] op E(pr) {pr}`
-///
-///    - Left-associative:
-///      `[pr>=p] l=E(p) [l==0||l>=pr] op E(pr+1) {pr}`
-///      The right operand gets `pr+1`, preventing right-recursive nesting
-///      at the same level.
-///
-///    - Right-associative:
-///      `[pr>=p] l=E(p) [l==0||l>=pr+1] op E(pr) {pr}`
-///      The postcondition uses `pr+1`, preventing left-recursive nesting
-///      at the same level.
-///
-///    - Non-associative:
-///      `[pr>=p] l=E(p) [l==0||l>=pr+1] op E(pr+1) {pr}`
-///      Both restrictions apply, preventing any nesting at the same level.
-///
-///    **Prefix `op E`**: `op E(pr) {pr}` (or with min trick, see below)
-///
-///    **Postfix `E op`**: `[pr>=p] l=E(p) [l==0||l>=pr] op {0}`
-///
-///    **Non-recursive**: E references replaced with E(0), return {0}.
-///
-/// 5. **Min trick** (Section 3.3 of PEPM'16): when a prefix alternative exists
-///    at a lower precedence than some right-recursive (binary or prefix)
-///    alternative, those higher-precedence alternatives use the min trick to
-///    propagate precedence information upward through right-recursive chains.
-///    Instead of returning `{pr}`, they bind the right-end return value to `r`
-///    and return `{r==0 ? pr : min(r, pr)}`.
-///
-/// 6. Updates all external references to the desugared nonterminal:
-///    `E` becomes `E(0)` in other rules.
-///
-/// ## Example: precedence with left associativity
-///
-/// Input:
-///   E = 'a'
-///     > E '*' E  left
-///     | E '/' E  left
-///     > E '+' E  left
-///     | E '-' E  left
-///     > E '<' E  non_assoc
-///
-/// Numbering (reverse, bottom = 1):
-///   '<': 1, '+'/'-': 2, '*'/'/': 3, atoms: none
-///
-/// Output:
-///   E(p)
-///     = 'a'                                      {0}
-///     | [3>=p] l=E(p) [l==0||l>=3] '*' E(4)     {3}
-///     | [3>=p] l=E(p) [l==0||l>=3] '/' E(4)     {3}
-///     | [2>=p] l=E(p) [l==0||l>=2] '+' E(3)     {2}
-///     | [2>=p] l=E(p) [l==0||l>=2] '-' E(3)     {2}
-///     | [1>=p] l=E(p) [l==0||l>=2] '<' E(2)     {1}
 pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
-    // First pass: identify which nonterminals will be desugared
+    // First pass: identify which nonterminals will be desugared (directly recursive)
     let desugared_names: Vec<String> = syntax_rules
         .iter()
         .filter(|rule| needs_desugaring(rule))
         .map(|rule| rule.head.name.clone())
         .collect();
 
-    // Second pass: desugar rules and update external references
+    // Second pass: desugar rules and update external references.
+    // A rule can be:
+    // 1. Directly recursive: has multiple priority levels with self-references at left/right ends.
+    // 2. Indirectly recursive: has multiple priority levels but the left/right ends reference
+    //    a different, desugared nonterminal (Section 3.5 of the PEPM'16 paper). This happens
+    //    when exclude desugaring creates a filtered copy of a nonterminal.
+    // 3. Neither: just update external references (E -> E(0)).
+    //
+    // For both direct and indirect cases, we apply the same desugaring logic. The difference
+    // is that the "recursive name" (the nonterminal at the recursive ends) differs from the
+    // head name in the indirect case.
+    //
+    // After desugaring, all rules get external reference updates to handle references to
+    // OTHER desugared nonterminals (e.g., a desugared rule for E may contain a reference to
+    // the desugared E_except_comma).
+    let all_desugared: Vec<String> = syntax_rules
+        .iter()
+        .filter_map(|rule| {
+            if !needs_desugaring(rule) {
+                return None;
+            }
+            let recursive_name = find_recursive_name(rule, &desugared_names);
+            if recursive_name.is_some() {
+                Some(rule.head.name.clone())
+            } else {
+                None
+            }
+        })
+        .collect();
+
     syntax_rules
         .into_iter()
         .map(|rule| {
-            if desugared_names.contains(&rule.head.name) {
-                desugar_rule(rule)
+            let rule = if all_desugared.contains(&rule.head.name) {
+                let recursive_name =
+                    find_recursive_name(&rule, &desugared_names).unwrap_or(rule.head.name.clone());
+                desugar_rule(rule, &recursive_name)
             } else {
-                update_external_references(rule, &desugared_names)
-            }
+                rule
+            };
+            update_external_references(rule, &all_desugared)
         })
         .collect()
+}
+
+/// Finds the nonterminal name that appears at recursive (left/right) ends of a rule's
+/// alternatives. For directly recursive rules this is the head name itself. For indirectly
+/// recursive rules (e.g., from exclude desugaring) this is a different desugared nonterminal.
+/// Returns `None` if no recursive ends are found.
+fn find_recursive_name(rule: &SyntaxRule, desugared_names: &[String]) -> Option<String> {
+    // Check direct recursion first
+    if has_recursive_ends(rule, &rule.head.name) {
+        return Some(rule.head.name.clone());
+    }
+    // Check indirect recursion: does any desugared nonterminal appear at left/right ends?
+    for name in desugared_names {
+        if has_recursive_ends(rule, name) {
+            return Some(name.clone());
+        }
+    }
+    None
+}
+
+/// Returns true if any alternative in the rule has the given nonterminal at a left or right end.
+fn has_recursive_ends(rule: &SyntaxRule, name: &str) -> bool {
+    rule.priority_levels.iter().any(|pl| {
+        pl.alternatives
+            .iter()
+            .any(|alt| classify(alt, name) != RecursiveEnds::None)
+    })
 }
 
 /// A rule needs desugaring if it has more than one priority level.
@@ -164,34 +198,40 @@ fn assign_precedence(
     result
 }
 
-fn desugar_rule(rule: SyntaxRule) -> SyntaxRule {
+/// Desugars a single rule. `recursive_name` is the nonterminal that appears at
+/// left/right recursive ends — for direct recursion this equals the head name,
+/// for indirect recursion (e.g., exclude-derived rules) it's a different nonterminal.
+fn desugar_rule(rule: SyntaxRule, recursive_name: &str) -> SyntaxRule {
     let head_name = rule.head.name.clone();
-    let precedences = assign_precedence(&rule.priority_levels, &head_name);
+    let precedences = assign_precedence(&rule.priority_levels, recursive_name);
 
-    // Find the resolved DefinitionId for the head nonterminal from any reference in the
+    // Find the resolved DefinitionId for the recursive nonterminal from any reference in the
     // alternatives. Identifiers are already resolved at this point in the pipeline.
-    let head_def = find_definition_id(&rule.priority_levels, &head_name)
-        .expect("desugared nonterminal should have at least one self-reference");
+    let head_def = find_definition_id(&rule.priority_levels, recursive_name)
+        .expect("desugared nonterminal should have at least one recursive reference");
 
     // Find the minimum precedence among prefix (Right-only) alternatives.
     // This determines which alternatives need the min trick.
-    let min_prefix_pr = min_prefix_precedence(&rule.priority_levels, &precedences, &head_name);
+    let min_prefix_pr =
+        min_prefix_precedence(&rule.priority_levels, &precedences, recursive_name);
 
     let mut all_alternatives = Vec::new();
 
     for (level, precedence) in rule.priority_levels.into_iter().zip(precedences.iter()) {
         let assoc = level.associativity;
         for alt in level.alternatives {
-            let recursion = classify(&alt, &head_name);
+            let recursion = classify(&alt, recursive_name);
             let rewritten = match (recursion, precedence) {
                 (RecursiveEnds::Binary, Some(pr)) => {
-                    rewrite_binary(&head_name, head_def, alt, *pr, assoc, min_prefix_pr)
+                    rewrite_binary(recursive_name, head_def, alt, *pr, assoc, min_prefix_pr)
                 }
                 (RecursiveEnds::Right, Some(pr)) => {
-                    rewrite_prefix(&head_name, head_def, alt, *pr, min_prefix_pr)
+                    rewrite_prefix(recursive_name, head_def, alt, *pr, min_prefix_pr)
                 }
-                (RecursiveEnds::Left, Some(pr)) => rewrite_postfix(&head_name, head_def, alt, *pr),
-                (RecursiveEnds::None, _) => rewrite_non_recursive(&head_name, alt),
+                (RecursiveEnds::Left, Some(pr)) => {
+                    rewrite_postfix(recursive_name, head_def, alt, *pr)
+                }
+                (RecursiveEnds::None, _) => rewrite_non_recursive(recursive_name, alt),
                 _ => alt,
             };
             all_alternatives.push(rewritten);

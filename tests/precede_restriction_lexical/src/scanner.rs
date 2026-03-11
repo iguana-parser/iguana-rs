@@ -31,7 +31,7 @@ impl<'i> PrecedeRestrictionLexicalScanner<'i> {
         let i = input_index;
         self.match_char_class(i, &CHAR_CLASS_0, false)
     }
-    //WS = ([ - ]*)
+    //WS = ([ ]*)
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;
@@ -57,7 +57,7 @@ impl<'i> PrecedeRestrictionLexicalScanner<'i> {
             .and_then(|i| self.match_char(i, 'l'))
             .and_then(|i| self.match_char(i, 'l'))
     }
-    //Layout = ([ - ]*)
+    //Layout = ([ ]*)
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;

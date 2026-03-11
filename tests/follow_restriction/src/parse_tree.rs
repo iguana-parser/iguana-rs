@@ -420,6 +420,12 @@ impl IdPlus1 {
             IdPlus1::Alt1 { span, .. } => *span,
         }
     }
+    pub fn chars(&self) -> impl Iterator<Item = &Token> {
+        self.iter().filter_map(|node| match node {
+            ParseTreeRef::Token(r) => Some(r),
+            _ => None,
+        })
+    }
 }
 impl StartS {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {

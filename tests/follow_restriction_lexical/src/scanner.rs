@@ -45,7 +45,7 @@ impl<'i> FollowRestrictionLexicalScanner<'i> {
         }
         Some(j)
     }
-    //WS = ([ - ]*)
+    //WS = ([ ]*)
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;
@@ -54,7 +54,7 @@ impl<'i> FollowRestrictionLexicalScanner<'i> {
         }
         Some(j)
     }
-    //Layout = ([ - ]*)
+    //Layout = ([ ]*)
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;

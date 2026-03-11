@@ -12,7 +12,7 @@ impl<'i> Pepm16ExpressionsScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //WS = ([ - ]*)
+    //WS = ([ ]*)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;
@@ -88,7 +88,7 @@ impl<'i> Pepm16ExpressionsScanner<'i> {
         let i = input_index;
         self.match_char(i, 'a')
     }
-    //Layout = ([ - ]*)
+    //Layout = ([ ]*)
     pub fn match_terminal_13(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         let mut j = i;
