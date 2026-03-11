@@ -2,7 +2,7 @@ use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::Ident;
 
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     generator::{
@@ -165,7 +165,7 @@ fn gen_field_type(
         }
         Definition::Nonterminal(nt) => {
             let name = Ident::new(&nonterminal_type_name(grammar, def.name()), Span::call_site());
-            if should_be_boxed(unwrap_exclude(grammar, nt), parent) {
+            if should_be_boxed(grammar, unwrap_exclude(grammar, nt), parent) {
                 quote! { Box<#name> }
             } else {
                 quote! { #name }
@@ -800,7 +800,7 @@ fn gen_nonterminal_node_method(
                                     let resolved_nt = unwrap_exclude(grammar, nt);
                                     let ident = format_ident!("unwrap_{}", to_snake_case(&resolved_nt.name));
                                     let resolved_head = unwrap_exclude(grammar, nonterminal);
-                                    (ident, should_be_boxed(resolved_nt, resolved_head))
+                                    (ident, should_be_boxed(grammar, resolved_nt, resolved_head))
                                 }
                             }})
                         .collect();
@@ -898,24 +898,64 @@ fn unwrap_exclude<'a>(grammar: &'a Grammar, nt: &'a Nonterminal) -> &'a Nontermi
 // Returns true if the nonterminal corresponding to a symbol in the body of a rule has
 // the same name as the nonterminal head, or it's origin symbol.
 // This is to properly Box the generated types for recursive types, e.g., A+ or A*.
-fn should_be_boxed(nonterminal: &Nonterminal, head: &Nonterminal) -> bool {
+fn should_be_boxed(grammar: &Grammar, nonterminal: &Nonterminal, head: &Nonterminal) -> bool {
     if nonterminal.name == head.name {
         return true;
     }
-    match &head.origin {
-        Some(s) => match s {
-            Symbol::Star(symbol, _) => symbol_contains_nonterminal(symbol, &nonterminal.name),
-            Symbol::Plus(symbol, _) => symbol_contains_nonterminal(symbol, &nonterminal.name),
-            Symbol::Group(symbols) => symbols
-                .iter()
-                .any(|s| symbol_contains_nonterminal(s, &nonterminal.name)),
-            Symbol::Opt(symbol) => symbol_contains_nonterminal(symbol, &nonterminal.name),
-            Symbol::Alt(symbols) => symbols
-                .iter()
-                .any(|s| symbol_contains_nonterminal(s, &nonterminal.name)),
-            _ => false,
-        },
-        None => false,
+    // Check if nonterminal can transitively reach head through the grammar
+    let mut visited = FxHashSet::default();
+    is_transitively_recursive(grammar, nonterminal, &head.name, &mut visited)
+}
+
+fn is_transitively_recursive(grammar: &Grammar, from: &Nonterminal, target: &str, visited: &mut FxHashSet<String>) -> bool {
+    if !visited.insert(from.name.clone()) {
+        return false;
+    }
+    for alternative in grammar.alternatives(from) {
+        for symbol in &alternative.symbols {
+            for name in symbol_names(symbol) {
+                if name == target {
+                    return true;
+                }
+                if let Some(nt) = grammar.nonterminal(&name) {
+                    if is_transitively_recursive(grammar, nt, target, visited) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    false
+}
+
+/// Returns the name of the symbol, unwrapping any wrappers like labels, except, follow/precede
+/// restrictions, etc. For composite symbols (groups, alts), returns all contained names.
+/// For example, `label:E` returns `["E"]`, `E \ Keyword` returns `["E"]`,
+/// and a group `(E F)` returns `["E", "F"]`.
+fn symbol_names(symbol: &Symbol) -> Vec<String> {
+    let mut names = vec![];
+    collect_symbol_names(symbol, &mut names);
+    names
+}
+
+fn collect_symbol_names(symbol: &Symbol, names: &mut Vec<String>) {
+    match symbol {
+        Symbol::Identifier(ident) => names.push(ident.name.clone()),
+        Symbol::Call { name, .. } => names.push(name.name.clone()),
+        Symbol::Labeled { symbol, .. }
+        | Symbol::Binding { symbol, .. }
+        | Symbol::Opt(symbol)
+        | Symbol::Except { symbol, .. }
+        | Symbol::FollowRestriction { symbol, .. }
+        | Symbol::PrecedeRestriction { symbol, .. }
+        | Symbol::Exclude { symbol, .. } => collect_symbol_names(symbol, names),
+        Symbol::Star(inner, _) | Symbol::Plus(inner, _) => collect_symbol_names(inner, names),
+        Symbol::Group(symbols) | Symbol::Alt(symbols) => {
+            for s in symbols {
+                collect_symbol_names(s, names);
+            }
+        }
+        Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => {}
     }
 }
 
