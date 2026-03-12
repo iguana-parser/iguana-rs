@@ -225,13 +225,19 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             definition: None,
         }),
         parse_tree::Symbol::Except {
-            symbol, identifier, ..
+            symbol, excepts, ..
         } => Symbol::Except {
             symbol: Box::new(convert_symbol(symbol, input)),
-            except: vec![Identifier {
-                name: text(input, identifier.span()),
-                definition: None,
-            }],
+            except: excepts
+                .iter()
+                .filter_map(|node| match node {
+                    parse_tree::ParseTreeRef::SymbolGroup1(group) => Some(Identifier {
+                        name: text(input, group.identifier.span()),
+                        definition: None,
+                    }),
+                    _ => None,
+                })
+                .collect(),
         },
         parse_tree::Symbol::FollowRestriction {
             symbol, identifier, ..

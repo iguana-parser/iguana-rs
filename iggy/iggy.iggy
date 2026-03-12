@@ -50,7 +50,7 @@ Symbol
   > Symbol "*"                               #Star
   | Symbol "+"                               #Plus
   | Symbol "?"                               #Opt
-  | Symbol "\\" Identifier                   #Except
+  | Symbol excepts:("\\" Identifier)+          #Except
   | Symbol "!>>" Identifier                  #FollowRestriction
   | Symbol labels:("!" Identifier)+          #Exclude
   > Identifier "!<<" Symbol                  #PrecedeRestriction
