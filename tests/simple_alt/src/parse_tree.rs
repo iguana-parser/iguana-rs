@@ -496,13 +496,13 @@ impl StartD {
 impl AAlt0 {
     pub fn as_c(&self) -> Option<&C> {
         match self {
-            AAlt0::Alt0 { c, .. } => Some(c),
+            AAlt0::Alt0 { c, .. } => Some(c.as_ref()),
             _ => None,
         }
     }
     pub fn as_d(&self) -> Option<&D> {
         match self {
-            AAlt0::Alt1 { d, .. } => Some(d),
+            AAlt0::Alt1 { d, .. } => Some(d.as_ref()),
             _ => None,
         }
     }

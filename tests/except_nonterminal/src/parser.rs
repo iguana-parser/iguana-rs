@@ -1,3 +1,26 @@
+// grammar ExceptNonterminal
+//
+// S
+//   = Id
+//
+// Id
+//   = Name \ Keyword
+//
+// Name
+//   = Identifier
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartId
+//   = Layout start:Id Layout
+//
+// StartName
+//   = Layout start:Name Layout
+//
+// Identifier = ([a-z A-Z]+)
+// Keyword = (if|else|while)
+// Layout = ε
 use crate::{
     scanner::ExceptNonterminalScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

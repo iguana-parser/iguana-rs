@@ -1,3 +1,27 @@
+// grammar AssocTest
+//
+// S
+//   = E(0)
+//
+// E(p: i32)
+//   = [3 >= p] l=E(p) [l == 0 || l >= 3] Layout "+" Layout E(4) return 3
+//   | [3 >= p] l=E(p) [l == 0 || l >= 3] Layout "-" Layout E(4) return 3
+//   | [2 >= p] l=E(p) [l == 0 || l >= 3] Layout ";" Layout E(2) return 2
+//   | [1 >= p] l=E(p) [l == 0 || l >= 2] Layout "<" Layout E(2) return 1
+//   | "a" return 0
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartE
+//   = Layout start:E(0) Layout
+//
+// "+" = +
+// "-" = -
+// ";" = ;
+// "<" = <
+// "a" = a
+// Layout = ε
 use crate::{
     scanner::AssocTestScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

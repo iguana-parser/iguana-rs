@@ -1,3 +1,37 @@
+// grammar SimpleAlt
+//
+// A
+//   = B Layout A_Alt_0
+//
+// B
+//   = "b"
+//
+// C
+//   = "c"
+//
+// D
+//   = "d"
+//
+// A_Alt_0
+//   = C
+//   | D
+//
+// StartA
+//   = Layout start:A Layout
+//
+// StartB
+//   = Layout start:B Layout
+//
+// StartC
+//   = Layout start:C Layout
+//
+// StartD
+//   = Layout start:D Layout
+//
+// "b" = b
+// "c" = c
+// "d" = d
+// Layout = ε
 use crate::{
     scanner::SimpleAltScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

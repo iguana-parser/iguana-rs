@@ -1,3 +1,36 @@
+// grammar IndirectPrecedence
+//
+// S
+//   = E(0)
+//
+// E(p: i32)
+//   = "-" Layout E(2) return 2
+//   | [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "*" Layout F return 0
+//   | "a" return 0
+//
+// F
+//   = E(0) Layout "/" Layout K
+//
+// K
+//   = E(0)
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartE
+//   = Layout start:E(0) Layout
+//
+// StartF
+//   = Layout start:F Layout
+//
+// StartK
+//   = Layout start:K Layout
+//
+// "-" = -
+// "*" = *
+// "a" = a
+// "/" = /
+// Layout = ε
 use crate::{
     scanner::IndirectPrecedenceScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

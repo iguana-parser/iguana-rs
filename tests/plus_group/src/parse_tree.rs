@@ -568,7 +568,7 @@ impl<'a> ListNode<'a> for SPlus0 {
                 } => {
                     items.push(item.as_parse_tree_ref());
                     items.push(layout.as_parse_tree_ref());
-                    current = rest;
+                    current = rest.as_ref();
                 }
                 SPlus0::Alt1 {
                     s_group_0: item, ..

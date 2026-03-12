@@ -1,3 +1,14 @@
+// grammar LeftRecursiveList
+//
+// A
+//   = A Layout "a"
+//   | "a"
+//
+// StartA
+//   = Layout start:A Layout
+//
+// "a" = a
+// Layout = ε
 use crate::{
     scanner::LeftRecursiveListScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

@@ -1,3 +1,26 @@
+// grammar DeepPriority
+//
+// S
+//   = E(0)
+//
+// E(p: i32)
+//   = "a" return 0
+//   | [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "+" Layout r=E(2) return r == 0 ? 2 : min(r, 2)
+//   | "if" Layout E(0) Layout "then" Layout E(0) Layout "else" Layout E(1) return 1
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartE
+//   = Layout start:E(0) Layout
+//
+// WS = ([ ]*)
+// "a" = a
+// "+" = +
+// "if" = if
+// "then" = then
+// "else" = else
+// Layout = ([ ]*)
 use crate::{
     scanner::DeepPriorityScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

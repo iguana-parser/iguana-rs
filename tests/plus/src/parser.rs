@@ -1,3 +1,23 @@
+// grammar Plus
+//
+// S
+//   = S_Plus_0
+//
+// A
+//   = "a"
+//
+// S_Plus_0
+//   = S_Plus_0 Layout A
+//   | A
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartA
+//   = Layout start:A Layout
+//
+// "a" = a
+// Layout = ε
 use crate::{
     scanner::PlusScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

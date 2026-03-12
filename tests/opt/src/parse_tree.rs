@@ -310,7 +310,7 @@ impl OptNode for SOpt0 {
     type Inner = A;
     fn value(&self) -> Option<&Self::Inner> {
         match self {
-            SOpt0::Alt0 { a, .. } => Some(a),
+            SOpt0::Alt0 { a, .. } => Some(a.as_ref()),
             SOpt0::Alt1 { .. } => None,
         }
     }

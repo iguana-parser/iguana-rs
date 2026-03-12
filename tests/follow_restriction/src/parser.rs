@@ -1,3 +1,34 @@
+// grammar FollowRestriction
+//
+// S
+//   = S_Plus_0
+//
+// T
+//   = Char !>> Char
+//
+// Id
+//   = Id_Plus_1 !>> Char
+//
+// S_Plus_0
+//   = S_Plus_0 Layout Id
+//   | Id
+//
+// Id_Plus_1
+//   = Id_Plus_1 Char
+//   | Char
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartT
+//   = Layout start:T Layout
+//
+// StartId
+//   = Layout start:Id Layout
+//
+// Char = ([a-z])
+// WS = ([ ]*)
+// Layout = ([ ]*)
 use crate::{
     scanner::FollowRestrictionScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

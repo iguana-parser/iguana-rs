@@ -156,7 +156,7 @@ fn nt_ident(name: &str) -> Ident {
 fn gen_field_type(
     grammar: &Grammar,
     symbol: &Symbol,
-    parent: &Nonterminal,
+    head: &Nonterminal,
 ) -> TokenStream {
     let def = grammar.definition(symbol.resolved_def());
     match def {
@@ -165,7 +165,7 @@ fn gen_field_type(
         }
         Definition::Nonterminal(nt) => {
             let name = Ident::new(&nonterminal_type_name(grammar, def.name()), Span::call_site());
-            if should_be_boxed(grammar, unwrap_exclude(grammar, nt), parent) {
+            if should_be_boxed(grammar, unwrap_exclude(grammar, nt), head) {
                 quote! { Box<#name> }
             } else {
                 quote! { #name }
@@ -181,7 +181,7 @@ fn gen_field_type(
 fn gen_fields_for_alternative_symbols(
     grammar: &Grammar,
     alternative: &Alternative,
-    parent: &Nonterminal,
+    head: &Nonterminal,
 ) -> Vec<(Ident, TokenStream)> {
     let counts = count_symbol_occurrences(grammar, &alternative.symbols);
     alternative
@@ -195,7 +195,7 @@ fn gen_fields_for_alternative_symbols(
                 base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
             let field_name = gen_field_name(grammar, s, i, needs_index);
             let field_ident = safe_ident(&field_name);
-            let field_type = gen_field_type(grammar, s, parent);
+            let field_type = gen_field_type(grammar, s, head);
             (field_ident, field_type)
         })
         .collect()
@@ -895,30 +895,76 @@ fn unwrap_exclude<'a>(grammar: &'a Grammar, nt: &'a Nonterminal) -> &'a Nontermi
     }
 }
 
-// Returns true if the nonterminal corresponding to a symbol in the body of a rule has
-// the same name as the nonterminal head, or it's origin symbol.
-// This is to properly Box the generated types for recursive types, e.g., A+ or A*.
+/// Determines whether a field of type `nonterminal` inside `head` should be boxed.
+///
+/// 1. Direct self-reference: `nonterminal.name == head.name` → box
+/// 2. EBNF head (Plus/Star/Opt/Group/Alt): box if the head's origin symbol contains
+///    the nonterminal (e.g., `Symbol` inside `AlternativePlus7` whose origin is `Symbol+`)
+/// 3. Non-EBNF head, non-EBNF field: box if `nonterminal` can transitively reach `head`
+///    through non-EBNF nonterminals (handles mutual recursion like `E → F → E`)
 fn should_be_boxed(grammar: &Grammar, nonterminal: &Nonterminal, head: &Nonterminal) -> bool {
     if nonterminal.name == head.name {
         return true;
     }
-    // Check if nonterminal can transitively reach head through the grammar
-    let mut visited = FxHashSet::default();
-    is_transitively_recursive(grammar, nonterminal, &head.name, &mut visited)
+    match &head.origin {
+        Some(s) => match s {
+            Symbol::Star(symbol, _) | Symbol::Plus(symbol, _) | Symbol::Opt(symbol) => {
+                symbol_contains_nonterminal(symbol, &nonterminal.name)
+            }
+            Symbol::Group(symbols) | Symbol::Alt(symbols) => symbols
+                .iter()
+                .any(|s| symbol_contains_nonterminal(s, &nonterminal.name)),
+            _ => false,
+        },
+        None => {
+            if nonterminal.is_derived() {
+                return false;
+            }
+            let mut visited = FxHashSet::default();
+            is_recursive(grammar, nonterminal, &head.name, &mut visited)
+        }
+    }
 }
 
-fn is_transitively_recursive(grammar: &Grammar, from: &Nonterminal, target: &str, visited: &mut FxHashSet<String>) -> bool {
+/// Recursively checks if a symbol contains a reference to a nonterminal with the given name.
+fn symbol_contains_nonterminal(symbol: &Symbol, nt_name: &str) -> bool {
+    match symbol {
+        Symbol::Identifier(identifier) => identifier.name == nt_name,
+        Symbol::Call { name, .. } => name.name == nt_name,
+        Symbol::Group(symbols) | Symbol::Alt(symbols) => symbols
+            .iter()
+            .any(|s| symbol_contains_nonterminal(s, nt_name)),
+        Symbol::Labeled { symbol, .. }
+        | Symbol::Binding { symbol, .. }
+        | Symbol::Except { symbol, .. }
+        | Symbol::FollowRestriction { symbol, .. }
+        | Symbol::PrecedeRestriction { symbol, .. }
+        | Symbol::Exclude { symbol, .. } => symbol_contains_nonterminal(symbol, nt_name),
+        Symbol::Opt(inner) => symbol_contains_nonterminal(inner, nt_name),
+        Symbol::Star(inner, sep) | Symbol::Plus(inner, sep) => {
+            symbol_contains_nonterminal(inner, nt_name)
+                || sep
+                    .as_ref()
+                    .map_or(false, |s| symbol_contains_nonterminal(s, nt_name))
+        }
+        Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => false,
+    }
+}
+
+/// Checks if `from` can transitively reach `target` through the grammar's nonterminal references.
+/// Skips EBNF-derived nonterminals since they already handle their own boxing via the origin check.
+fn is_recursive(grammar: &Grammar, from: &Nonterminal, target: &str, visited: &mut FxHashSet<String>) -> bool {
     if !visited.insert(from.name.clone()) {
         return false;
     }
     for alternative in grammar.alternatives(from) {
         for symbol in &alternative.symbols {
-            for name in symbol_names(symbol) {
-                if name == target {
+            if let Some(ident) = symbol.as_identifier() {
+                if ident.name == target {
                     return true;
                 }
-                if let Some(nt) = grammar.nonterminal(&name) {
-                    if is_transitively_recursive(grammar, nt, target, visited) {
+                if let Some(nt) = grammar.nonterminal(&ident.name) {
+                    if !nt.is_derived() && is_recursive(grammar, nt, target, visited) {
                         return true;
                     }
                 }
@@ -928,69 +974,6 @@ fn is_transitively_recursive(grammar: &Grammar, from: &Nonterminal, target: &str
     false
 }
 
-/// Returns the name of the symbol, unwrapping any wrappers like labels, except, follow/precede
-/// restrictions, etc. For composite symbols (groups, alts), returns all contained names.
-/// For example, `label:E` returns `["E"]`, `E \ Keyword` returns `["E"]`,
-/// and a group `(E F)` returns `["E", "F"]`.
-fn symbol_names(symbol: &Symbol) -> Vec<String> {
-    let mut names = vec![];
-    collect_symbol_names(symbol, &mut names);
-    names
-}
-
-fn collect_symbol_names(symbol: &Symbol, names: &mut Vec<String>) {
-    match symbol {
-        Symbol::Identifier(ident) => names.push(ident.name.clone()),
-        Symbol::Call { name, .. } => names.push(name.name.clone()),
-        Symbol::Labeled { symbol, .. }
-        | Symbol::Binding { symbol, .. }
-        | Symbol::Opt(symbol)
-        | Symbol::Except { symbol, .. }
-        | Symbol::FollowRestriction { symbol, .. }
-        | Symbol::PrecedeRestriction { symbol, .. }
-        | Symbol::Exclude { symbol, .. } => collect_symbol_names(symbol, names),
-        Symbol::Star(inner, _) | Symbol::Plus(inner, _) => collect_symbol_names(inner, names),
-        Symbol::Group(symbols) | Symbol::Alt(symbols) => {
-            for s in symbols {
-                collect_symbol_names(s, names);
-            }
-        }
-        Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => {}
-    }
-}
-
-// Recursively checks if a symbol contains a reference to a nonterminal with the given name.
-fn symbol_contains_nonterminal(symbol: &Symbol, nt_name: &str) -> bool {
-    match symbol {
-        Symbol::Identifier(identifier) => identifier.name == nt_name,
-        Symbol::Group(symbols) => symbols
-            .iter()
-            .any(|s| symbol_contains_nonterminal(s, nt_name)),
-        Symbol::Labeled { symbol, .. } => symbol_contains_nonterminal(symbol, nt_name),
-        Symbol::Opt(inner) => symbol_contains_nonterminal(inner, nt_name),
-        Symbol::Alt(symbols) => symbols
-            .iter()
-            .any(|s| symbol_contains_nonterminal(s, nt_name)),
-        Symbol::Star(inner, sep) => {
-            symbol_contains_nonterminal(inner, nt_name)
-                || sep
-                    .as_ref()
-                    .map_or(false, |s| symbol_contains_nonterminal(s, nt_name))
-        }
-        Symbol::Plus(inner, sep) => {
-            symbol_contains_nonterminal(inner, nt_name)
-                || sep
-                    .as_ref()
-                    .map_or(false, |s| symbol_contains_nonterminal(s, nt_name))
-        }
-        Symbol::Call { name, arguments: _ } => name.name == nt_name,
-        Symbol::Binding { symbol, .. } => symbol_contains_nonterminal(symbol, nt_name),
-        Symbol::Except { symbol, .. } | Symbol::FollowRestriction { symbol, .. } | Symbol::PrecedeRestriction { symbol, .. } | Symbol::Exclude { symbol, .. } => {
-            symbol_contains_nonterminal(symbol, nt_name)
-        }
-        Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => false,
-    }
-}
 
 fn gen_new_token_method() -> TokenStream {
     quote! {
@@ -1239,12 +1222,20 @@ fn gen_opt_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
     };
     let field_name = safe_ident(&gen_field_name(grammar, inner_symbol, 0, false));
 
+    let boxed = matches!(inner_def, Definition::Nonterminal(nt) if
+        should_be_boxed(grammar, unwrap_exclude(grammar, nt), nonterminal));
+    let some_expr = if boxed {
+        quote! { Some(#field_name.as_ref()) }
+    } else {
+        quote! { Some(#field_name) }
+    };
+
     quote! {
         impl OptNode for #opt_type {
             type Inner = #inner_type;
             fn value(&self) -> Option<&Self::Inner> {
                 match self {
-                    #opt_type::Alt0 { #field_name, .. } => Some(#field_name),
+                    #opt_type::Alt0 { #field_name, .. } => #some_expr,
                     #opt_type::Alt1 { .. } => None,
                 }
             }
@@ -1311,10 +1302,18 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
             let variant = format_ident!("{}", to_pascal_case(&alternative_label(alt, i)));
             let field_name = safe_ident(&gen_field_name(grammar, symbol, 0, false));
 
+            let boxed = matches!(def, Definition::Nonterminal(nt) if
+                should_be_boxed(grammar, unwrap_exclude(grammar, nt), nonterminal));
+            let some_expr = if boxed {
+                quote! { Some(#field_name.as_ref()) }
+            } else {
+                quote! { Some(#field_name) }
+            };
+
             quote! {
                 pub fn #method_name(&self) -> Option<&#return_type> {
                     match self {
-                        #alt_type::#variant { #field_name, .. } => Some(#field_name),
+                        #alt_type::#variant { #field_name, .. } => #some_expr,
                         _ => None,
                     }
                 }
@@ -1588,6 +1587,14 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let label = alternative_label(&alternatives[0], 0);
     let alt_variant = nt_ident(&label);
     let first_alt_fields = field_names(grammar, &alternatives[0]);
+    // The first field (rest) is a self-reference to Plus, which is always boxed
+    // since Plus is self-recursive. We need to deref through the Box.
+    let self_boxed = should_be_boxed(grammar, nonterminal, nonterminal);
+    let deref_rest = if self_boxed {
+        quote! { current = rest.as_ref(); }
+    } else {
+        quote! { current = rest; }
+    };
     let first_arm = match &nonterminal.origin {
         Some(Symbol::Plus(_symbol, sep)) => match sep {
             Some(_) => {
@@ -1604,7 +1611,7 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                         items.push(layout2.as_parse_tree_ref());
                         items.push(sep.as_parse_tree_ref());
                         items.push(layout1.as_parse_tree_ref());
-                        current = rest;
+                        #deref_rest
                     }
                 }
             }
@@ -1620,7 +1627,7 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                         #ident::#alt_variant { #f0: rest, #f1: layout, #f2: item, .. } => {
                             items.push(item.as_parse_tree_ref());
                             items.push(layout.as_parse_tree_ref());
-                            current = rest;
+                            #deref_rest
                         }
                     }
                 } else {
@@ -1632,7 +1639,7 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                     quote! {
                         #ident::#alt_variant { #f0: rest, #f1: item, .. } => {
                             items.push(item.as_parse_tree_ref());
-                            current = rest;
+                            #deref_rest
                         }
                     }
                 }
@@ -1670,6 +1677,7 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
 
 fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let star_ident = nt_ident(&nonterminal.name);
+    let star_nonterminal = nonterminal;
     let alternatives = grammar.alternatives(nonterminal);
     let first_symbol = &alternatives[0].symbols[0];
     let field_name = safe_ident(&gen_field_name(grammar, first_symbol, 0, false));
@@ -1691,10 +1699,16 @@ fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let second_arm = quote! {
         #opt_ident::#alt_variant { .. } => vec![].into_iter(),
     };
+    let boxed = should_be_boxed(grammar, unwrap_exclude(grammar, nonterminal), star_nonterminal);
+    let match_expr = if boxed {
+        quote! { match self.#field_name.as_ref() }
+    } else {
+        quote! { match &self.#field_name }
+    };
     quote! {
         impl<'a> ListNode<'a> for #star_ident {
             fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
-                match &self.#field_name {
+                #match_expr {
                     #first_arm
                     #second_arm
                 }

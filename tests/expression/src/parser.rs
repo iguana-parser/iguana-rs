@@ -1,3 +1,17 @@
+// grammar Expression
+//
+// E
+//   = E Layout "*" Layout E #Mul
+//   | E Layout "+" Layout E #Add
+//   | "a" #Lit
+//
+// StartE
+//   = Layout start:E Layout
+//
+// "*" = *
+// "+" = +
+// "a" = a
+// Layout = ε
 use crate::{
     scanner::ExpressionScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

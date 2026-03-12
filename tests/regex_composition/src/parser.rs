@@ -1,3 +1,33 @@
+// grammar RegexComposition
+//
+// S
+//   = Id
+//
+// Id
+//   = Letter Id_Star_0
+//
+// Id_Plus_0
+//   = Id_Plus_0 LetterOrDigit
+//   | LetterOrDigit
+//
+// Id_Opt_0
+//   = Id_Plus_0
+//   |
+//
+// Id_Star_0
+//   = Id_Opt_0
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartId
+//   = Layout start:Id Layout
+//
+// Digit = ([0-9])
+// Letter = ([a-z A-Z _])
+// LetterOrDigit = (([a-z A-Z _])|([0-9]))
+// WS = ([  \n]*)
+// Layout = ([  \n]*)
 use crate::{
     scanner::RegexCompositionScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

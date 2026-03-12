@@ -1,3 +1,23 @@
+// grammar MultipleExcept
+//
+// SyntaxIdentifier
+//   = IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
+//
+// LexicalIdentifier
+//   = Identifier
+//
+// StartSyntaxIdentifier
+//   = Layout start:SyntaxIdentifier Layout
+//
+// StartLexicalIdentifier
+//   = Layout start:LexicalIdentifier Layout
+//
+// Identifier = ([a-z A-Z]+) \ Keyword \ BooleanLiteral \ NullLiteral
+// IdentifierChars = ([a-z A-Z]+)
+// Keyword = (if|else|while|for)
+// BooleanLiteral = (true|false)
+// NullLiteral = (null)
+// Layout = ε
 use crate::{
     scanner::MultipleExceptScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},
@@ -142,10 +162,7 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(1), i, j);
                         //SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
                         let next_slot_id = SlotId(1);
-                        if self.scanner.match_token(TerminalId(2), i) != Some(j)
-                            && self.scanner.match_token(TerminalId(3), i) != Some(j)
-                            && self.scanner.match_token(TerminalId(4), i) != Some(j)
-                        {
+                        if self.scanner.match_token(TerminalId(4), i) != Some(j) {
                             let new_node = right_child_id;
                             self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }

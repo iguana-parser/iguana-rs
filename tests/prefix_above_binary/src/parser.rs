@@ -1,3 +1,24 @@
+// grammar PrefixAboveBinary
+//
+// S
+//   = E(0)
+//
+// E(p: i32)
+//   = "a" return 0
+//   | "-" Layout E(2) return 2
+//   | [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartE
+//   = Layout start:E(0) Layout
+//
+// WS = ([ ]*)
+// "a" = a
+// "-" = -
+// "+" = +
+// Layout = ([ ]*)
 use crate::{
     scanner::PrefixAboveBinaryScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

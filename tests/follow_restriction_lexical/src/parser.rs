@@ -1,3 +1,27 @@
+// grammar FollowRestrictionLexical
+//
+// S
+//   = S_Plus_0
+//
+// Element
+//   = Num
+//   | Id
+//
+// S_Plus_0
+//   = S_Plus_0 Layout Element
+//   | Element
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartElement
+//   = Layout start:Element Layout
+//
+// Num = ([0-9]+) !>> Alpha
+// Alpha = ([a-z A-Z])
+// Id = ([a-z A-Z]+)
+// WS = ([ ]*)
+// Layout = ([ ]*)
 use crate::{
     scanner::FollowRestrictionLexicalScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

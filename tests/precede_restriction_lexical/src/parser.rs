@@ -1,3 +1,18 @@
+// grammar PrecedeRestrictionLexical
+//
+// S
+//   = "for" Layout Id
+//   | "forall"
+//
+// StartS
+//   = Layout start:S Layout
+//
+// Id = ([a-z]+) !<< Char
+// Char = ([a-z])
+// WS = ([ ]*)
+// "for" = for
+// "forall" = forall
+// Layout = ([ ]*)
 use crate::{
     scanner::PrecedeRestrictionLexicalScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

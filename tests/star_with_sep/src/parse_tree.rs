@@ -458,7 +458,7 @@ impl<'a> ListNode<'a> for SPlus0 {
                     items.push(layout2.as_parse_tree_ref());
                     items.push(sep.as_parse_tree_ref());
                     items.push(layout1.as_parse_tree_ref());
-                    current = rest;
+                    current = rest.as_ref();
                 }
                 SPlus0::Alt1 { a: item, .. } => {
                     items.push(item.as_parse_tree_ref());

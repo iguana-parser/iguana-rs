@@ -1,3 +1,25 @@
+// grammar BinaryExpressionPriority
+//
+// S
+//   = E(0)
+//
+// E(p: i32)
+//   = "a" return 0
+//   | [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" Layout E(2) return 2
+//   | [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1
+//   | [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "-" Layout E(1) return 1
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartE
+//   = Layout start:E(0) Layout
+//
+// "a" = a
+// "*" = *
+// "+" = +
+// "-" = -
+// Layout = ε
 use crate::{
     scanner::BinaryExpressionPriorityScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

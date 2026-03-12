@@ -1,3 +1,33 @@
+// grammar ExcludeByLabel
+//
+// Expr
+//   = Id #id
+//   | Expr Layout "(" Layout Expr_Star_0 Layout ")" #call
+//   | Expr Layout "," Layout Expr #comma
+//
+// Expr_Plus_0
+//   = Expr_Plus_0 Layout "," Layout Expr_except_comma
+//   | Expr_except_comma
+//
+// Expr_Opt_0
+//   = Expr_Plus_0
+//   |
+//
+// Expr_Star_0
+//   = Expr_Opt_0
+//
+// Expr_except_comma
+//   = Id #id
+//   | Expr Layout "(" Layout Expr_Star_0 Layout ")" #call
+//
+// StartExpr
+//   = Layout start:Expr Layout
+//
+// Id = ([a-z]+)
+// "(" = (
+// "," = ,
+// ")" = )
+// Layout = ε
 use crate::{
     scanner::ExcludeByLabelScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

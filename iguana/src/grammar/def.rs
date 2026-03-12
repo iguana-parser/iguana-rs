@@ -865,15 +865,12 @@ impl Display for Grammar {
         for (head, alternatives) in &self.productions {
             writeln!(f, "{}", head)?;
             if let Some((first, rest)) = alternatives.split_first() {
-                writeln!(f, "  : {}", first)?;
-                if let Some((last, rest)) = rest.split_last() {
-                    for alternative in rest {
-                        writeln!(f, "  | {}", alternative)?;
-                    }
-                    writeln!(f, "  | {}", last)?;
+                writeln!(f, "  = {}", first)?;
+                for alternative in rest {
+                    writeln!(f, "  | {}", alternative)?;
                 }
             }
-            writeln!(f, "  ;\n")?;
+            writeln!(f)?;
         }
         for (_, rule) in &self.lexical_rules {
             writeln!(f, "{}", rule)?;

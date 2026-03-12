@@ -1,3 +1,23 @@
+// grammar Opt
+//
+// S
+//   = S_Opt_0
+//
+// A
+//   = "a"
+//
+// S_Opt_0
+//   = A
+//   |
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartA
+//   = Layout start:A Layout
+//
+// "a" = a
+// Layout = ε
 use crate::{
     scanner::OptScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

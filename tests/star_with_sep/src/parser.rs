@@ -1,3 +1,31 @@
+// grammar StarWithSep
+//
+// S
+//   = S_Star_0
+//
+// A
+//   = "a"
+//
+// S_Plus_0
+//   = S_Plus_0 Layout "," Layout A
+//   | A
+//
+// S_Opt_0
+//   = S_Plus_0
+//   |
+//
+// S_Star_0
+//   = S_Opt_0
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartA
+//   = Layout start:A Layout
+//
+// "," = ,
+// "a" = a
+// Layout = ε
 use crate::{
     scanner::StarWithSepScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

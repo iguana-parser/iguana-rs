@@ -462,7 +462,7 @@ impl<'a> ListNode<'a> for IdPlus0 {
                     ..
                 } => {
                     items.push(item.as_parse_tree_ref());
-                    current = rest;
+                    current = rest.as_ref();
                 }
                 IdPlus0::Alt1 {
                     letter_or_digit: item,

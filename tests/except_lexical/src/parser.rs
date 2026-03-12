@@ -1,3 +1,14 @@
+// grammar ExceptLexical
+//
+// S
+//   = Identifier
+//
+// StartS
+//   = Layout start:S Layout
+//
+// Keyword = (if|else|while)
+// Identifier = ([a-z A-Z]+) \ Keyword
+// Layout = ε
 use crate::{
     scanner::ExceptLexicalScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

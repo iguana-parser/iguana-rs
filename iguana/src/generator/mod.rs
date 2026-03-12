@@ -59,8 +59,15 @@ pub fn generate(grammar: &Grammar, output_dir: &Path) -> std::io::Result<()> {
         &mut slot_ids,
         &mut terminal_ids,
     );
+    let grammar_comment = grammar
+        .to_string()
+        .lines()
+        .map(|l| format!("// {l}"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let parser_source = format!("{grammar_comment}\n{}", to_string(parser_code));
     write_file(
-        to_string(parser_code),
+        parser_source,
         &src_dir.join("parser.rs"),
         FileFormat::Rust,
     )?;

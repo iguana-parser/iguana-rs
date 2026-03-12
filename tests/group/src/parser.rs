@@ -1,3 +1,36 @@
+// grammar Group
+//
+// A
+//   = A_Group_0
+//
+// B
+//   = "b"
+//
+// C
+//   = "c"
+//
+// D
+//   = "d"
+//
+// A_Group_0
+//   = B Layout C Layout D
+//
+// StartA
+//   = Layout start:A Layout
+//
+// StartB
+//   = Layout start:B Layout
+//
+// StartC
+//   = Layout start:C Layout
+//
+// StartD
+//   = Layout start:D Layout
+//
+// "b" = b
+// "c" = c
+// "d" = d
+// Layout = ε
 use crate::{
     scanner::GroupScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

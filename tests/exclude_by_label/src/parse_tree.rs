@@ -218,12 +218,12 @@ pub enum ExprPlus0 {
         layout_1: Token,
         lit_2: Token,
         layout_3: Token,
-        expr_except_comma: Box<Expr>,
+        expr: Box<Expr>,
         span: Span,
     },
     //Expr !comma
     Alt1 {
-        expr_except_comma: Box<Expr>,
+        expr: Box<Expr>,
         span: Span,
     },
 }
@@ -318,20 +318,18 @@ impl ExprPlus0 {
                 layout_1,
                 lit_2,
                 layout_3,
-                expr_except_comma,
+                expr,
                 ..
             } => match index {
                 0 => Some(expr_plus_0.as_parse_tree_ref()),
                 1 => Some(layout_1.as_parse_tree_ref()),
                 2 => Some(lit_2.as_parse_tree_ref()),
                 3 => Some(layout_3.as_parse_tree_ref()),
-                4 => Some(expr_except_comma.as_parse_tree_ref()),
+                4 => Some(expr.as_parse_tree_ref()),
                 _ => None,
             },
-            ExprPlus0::Alt1 {
-                expr_except_comma, ..
-            } => match index {
-                0 => Some(expr_except_comma.as_parse_tree_ref()),
+            ExprPlus0::Alt1 { expr, .. } => match index {
+                0 => Some(expr.as_parse_tree_ref()),
                 _ => None,
             },
         }
@@ -427,19 +425,16 @@ impl<'a> ListNode<'a> for ExprPlus0 {
                     layout_1: layout1,
                     lit_2: sep,
                     layout_3: layout2,
-                    expr_except_comma: item,
+                    expr: item,
                     ..
                 } => {
                     items.push(item.as_parse_tree_ref());
                     items.push(layout2.as_parse_tree_ref());
                     items.push(sep.as_parse_tree_ref());
                     items.push(layout1.as_parse_tree_ref());
-                    current = rest;
+                    current = rest.as_ref();
                 }
-                ExprPlus0::Alt1 {
-                    expr_except_comma: item,
-                    ..
-                } => {
+                ExprPlus0::Alt1 { expr: item, .. } => {
                     items.push(item.as_parse_tree_ref());
                     break;
                 }
@@ -563,24 +558,23 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //{Expr !comma ","}+ : {Expr !comma ","}+ Layout "," Layout Expr !comma.
                     SlotId(21) => {
-                        let [expr_plus_0, layout_1, lit_2, layout_3, expr_except_comma] =
+                        let [expr_plus_0, layout_1, lit_2, layout_3, expr] =
                             <[ParseTree; 5usize]>::try_from(children).unwrap();
                         ExprPlus0::Alt0 {
                             expr_plus_0: Box::new(expr_plus_0.unwrap_expr_plus_0()),
                             layout_1: layout_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
                             layout_3: layout_3.unwrap_token(),
-                            expr_except_comma: Box::new(expr_except_comma.unwrap_expr()),
+                            expr: Box::new(expr.unwrap_expr()),
                             span: nonterminal_node.span,
                         }
                         .into()
                     }
                     //{Expr !comma ","}+ : Expr !comma.
                     SlotId(23) => {
-                        let [expr_except_comma] =
-                            <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [expr] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         ExprPlus0::Alt1 {
-                            expr_except_comma: Box::new(expr_except_comma.unwrap_expr()),
+                            expr: Box::new(expr.unwrap_expr()),
                             span: nonterminal_node.span,
                         }
                         .into()

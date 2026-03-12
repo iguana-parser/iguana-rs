@@ -1,3 +1,24 @@
+// grammar NoLayout
+//
+// S
+//   = Id
+//
+// Id
+//   = Id_Plus_0
+//
+// Id_Plus_0
+//   = Id_Plus_0 Char
+//   | Char
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartId
+//   = Layout start:Id Layout
+//
+// Char = ([a-z])
+// WS = ([  \n]*)
+// Layout = ([  \n]*)
 use crate::{
     scanner::NoLayoutScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

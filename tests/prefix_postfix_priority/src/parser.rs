@@ -1,3 +1,27 @@
+// grammar PrefixPostfixPriority
+//
+// S
+//   = E(0)
+//
+// E(p: i32)
+//   = "a" return 0
+//   | [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "!" return 0
+//   | "-" Layout E(3) return 3
+//   | [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" Layout E(2) return 2
+//   | [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartE
+//   = Layout start:E(0) Layout
+//
+// "a" = a
+// "!" = !
+// "-" = -
+// "*" = *
+// "+" = +
+// Layout = ε
 use crate::{
     scanner::PrefixPostfixPriorityScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

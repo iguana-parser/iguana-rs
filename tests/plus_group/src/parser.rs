@@ -1,3 +1,40 @@
+// grammar PlusGroup
+//
+// S
+//   = S_Plus_0
+//
+// A
+//   = "a"
+//
+// B
+//   = "b"
+//
+// C
+//   = "c"
+//
+// S_Group_0
+//   = A Layout B Layout C
+//
+// S_Plus_0
+//   = S_Plus_0 Layout S_Group_0
+//   | S_Group_0
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartA
+//   = Layout start:A Layout
+//
+// StartB
+//   = Layout start:B Layout
+//
+// StartC
+//   = Layout start:C Layout
+//
+// "a" = a
+// "b" = b
+// "c" = c
+// Layout = ε
 use crate::{
     scanner::PlusGroupScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},

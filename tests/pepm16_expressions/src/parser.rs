@@ -1,3 +1,40 @@
+// grammar Pepm16Expressions
+//
+// S
+//   = E(0)
+//
+// E(p: i32)
+//   = [6 >= p] l=E(p) [l == 0 || l >= 6] Layout "." Layout "f" return 0
+//   | [6 >= p] l=E(p) [l == 0 || l >= 6] Layout r=E(6) return r == 0 ? 6 : min(r, 6)
+//   | [5 >= p] l=E(p) [l == 0 || l >= 5] Layout "*" Layout r=E(6) return r == 0 ? 5 : min(r, 5)
+//   | [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "+" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+//   | [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "-" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+//   | "-" Layout r=E(3) return r == 0 ? 3 : min(r, 3)
+//   | "if" Layout E(0) Layout "then" Layout E(0) Layout "else" Layout E(2) return 2
+//   | [1 >= p] l=E(p) [l == 0 || l >= 2] Layout ";" Layout E(1) return 1
+//   | "(" Layout E(0) Layout ")" return 0
+//   | "a" return 0
+//
+// StartS
+//   = Layout start:S Layout
+//
+// StartE
+//   = Layout start:E(0) Layout
+//
+// WS = ([ ]*)
+// "." = .
+// "f" = f
+// "*" = *
+// "+" = +
+// "-" = -
+// "if" = if
+// "then" = then
+// "else" = else
+// ";" = ;
+// "(" = (
+// ")" = )
+// "a" = a
+// Layout = ([ ]*)
 use crate::{
     scanner::Pepm16ExpressionsScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},
