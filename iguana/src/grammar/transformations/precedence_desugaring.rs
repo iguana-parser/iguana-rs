@@ -69,50 +69,43 @@ enum RecursiveEnds {
 }
 
 pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
-    // First pass: identify which nonterminals will be desugared (directly recursive)
+    // First pass: identify which nonterminals need desugaring (multiple priority levels)
+    // and find their recursive names. At this stage, classify uses exact name matching only,
+    // which is sufficient because find_recursive_name checks each candidate name individually.
     let desugared_names: Vec<String> = syntax_rules
         .iter()
         .filter(|rule| needs_desugaring(rule))
         .map(|rule| rule.head.name.clone())
         .collect();
 
-    // Second pass: desugar rules and update external references.
-    // A rule can be:
-    // 1. Directly recursive: has multiple priority levels with self-references at left/right ends.
-    // 2. Indirectly recursive: has multiple priority levels but the left/right ends reference
-    //    a different, desugared nonterminal (Section 3.5 of the PEPM'16 paper). This happens
-    //    when exclude desugaring creates a filtered copy of a nonterminal.
-    // 3. Neither: just update external references (E -> E(0)).
-    //
-    // For both direct and indirect cases, we apply the same desugaring logic. The difference
-    // is that the "recursive name" (the nonterminal at the recursive ends) differs from the
-    // head name in the indirect case.
-    //
-    // After desugaring, all rules get external reference updates to handle references to
-    // OTHER desugared nonterminals (e.g., a desugared rule for E may contain a reference to
-    // the desugared E_except_comma).
-    let all_desugared: Vec<String> = syntax_rules
-        .iter()
-        .filter_map(|rule| {
-            if !needs_desugaring(rule) {
-                return None;
-            }
-            let recursive_name = find_recursive_name(rule, &desugared_names);
-            if recursive_name.is_some() {
-                Some(rule.head.name.clone())
-            } else {
-                None
-            }
-        })
-        .collect();
+    // Map each desugared nonterminal to its recursive name.
+    // Direct recursion: E → E. Indirect recursion: E_except_comma → E.
+    let mut recursive_names: Vec<(String, String)> = Vec::new();
+    for rule in &syntax_rules {
+        if !needs_desugaring(rule) {
+            continue;
+        }
+        if let Some(rec_name) = find_recursive_name(rule, &desugared_names) {
+            recursive_names.push((rule.head.name.clone(), rec_name));
+        }
+    }
 
+    let all_desugared: Vec<String> =
+        recursive_names.iter().map(|(name, _)| name.clone()).collect();
+
+    // Second pass: desugar rules and update external references.
+    // When classifying alternatives, we need to recognize indirect recursion: if E and
+    // E_except_comma both have recursive name E, then E_except_comma at a left/right end
+    // of E's alternatives is an indirect reference to E. The recursive_names mapping
+    // enables this lookup.
     syntax_rules
         .into_iter()
         .map(|rule| {
-            let rule = if all_desugared.contains(&rule.head.name) {
-                let recursive_name =
-                    find_recursive_name(&rule, &desugared_names).unwrap_or(rule.head.name.clone());
-                desugar_rule(rule, &recursive_name)
+            let rule = if let Some((_, rec_name)) = recursive_names
+                .iter()
+                .find(|(name, _)| *name == rule.head.name)
+            {
+                desugar_rule(rule, rec_name, &recursive_names)
             } else {
                 rule
             };
@@ -123,7 +116,7 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
 
 /// Finds the nonterminal name that appears at recursive (left/right) ends of a rule's
 /// alternatives. For directly recursive rules this is the head name itself. For indirectly
-/// recursive rules (e.g., from exclude desugaring) this is a different desugared nonterminal.
+/// recursive rules this is a different desugared nonterminal.
 /// Returns `None` if no recursive ends are found.
 fn find_recursive_name(rule: &SyntaxRule, desugared_names: &[String]) -> Option<String> {
     // Check direct recursion first
@@ -140,11 +133,14 @@ fn find_recursive_name(rule: &SyntaxRule, desugared_names: &[String]) -> Option<
 }
 
 /// Returns true if any alternative in the rule has the given nonterminal at a left or right end.
+/// Uses exact name matching only (no indirect lookup), since this runs before the full
+/// recursive_names mapping is built. This is correct because find_recursive_name tries
+/// each desugared name individually.
 fn has_recursive_ends(rule: &SyntaxRule, name: &str) -> bool {
     rule.priority_levels.iter().any(|pl| {
         pl.alternatives
             .iter()
-            .any(|alt| classify(alt, name) != RecursiveEnds::None)
+            .any(|alt| classify(alt, name, &[]) != RecursiveEnds::None)
     })
 }
 
@@ -153,10 +149,16 @@ fn needs_desugaring(rule: &SyntaxRule) -> bool {
     rule.priority_levels.len() > 1
 }
 
-/// Classifies an alternative's recursion type relative to the head nonterminal.
-fn classify(alternative: &Alternative, head_name: &str) -> RecursiveEnds {
-    let is_left = is_reference_to(alternative.symbols.first(), head_name);
-    let is_right = is_reference_to(alternative.symbols.last(), head_name);
+/// Classifies an alternative's recursion type relative to the recursive nonterminal.
+/// `recursive_names` maps each desugared nonterminal to its recursive name, enabling
+/// recognition of indirect recursion (e.g., E_except_comma as a reference to E).
+fn classify(
+    alternative: &Alternative,
+    recursive_name: &str,
+    recursive_names: &[(String, String)],
+) -> RecursiveEnds {
+    let is_left = is_reference_to(alternative.symbols.first(), recursive_name, recursive_names);
+    let is_right = is_reference_to(alternative.symbols.last(), recursive_name, recursive_names);
     match (is_left, is_right) {
         (true, true) => RecursiveEnds::Binary,
         (true, false) => RecursiveEnds::Left,
@@ -165,10 +167,20 @@ fn classify(alternative: &Alternative, head_name: &str) -> RecursiveEnds {
     }
 }
 
-/// Checks if a symbol is an identifier reference to the given nonterminal name.
-fn is_reference_to(symbol: Option<&Symbol>, name: &str) -> bool {
+/// Checks if a symbol is an identifier reference to the given recursive name,
+/// either directly or indirectly (via a nonterminal that shares the same recursive name).
+fn is_reference_to(
+    symbol: Option<&Symbol>,
+    recursive_name: &str,
+    recursive_names: &[(String, String)],
+) -> bool {
     match symbol {
-        Some(Symbol::Identifier(id)) => id.name == name,
+        Some(Symbol::Identifier(id)) => {
+            id.name == recursive_name
+                || recursive_names
+                    .iter()
+                    .any(|(name, rec)| name == &id.name && rec == recursive_name)
+        }
         _ => false,
     }
 }
@@ -178,7 +190,8 @@ fn is_reference_to(symbol: Option<&Symbol>, name: &str) -> bool {
 /// Levels containing only non-recursive alternatives get `None`.
 fn assign_precedence(
     priority_levels: &[PriorityLevel],
-    head_name: &str,
+    recursive_name: &str,
+    recursive_names: &[(String, String)],
 ) -> Vec<Option<i64>> {
     let mut result = vec![Option::<i64>::None; priority_levels.len()];
     let mut next_precedence: i64 = 1;
@@ -188,7 +201,7 @@ fn assign_precedence(
         let has_recursive = priority_levels[i]
             .alternatives
             .iter()
-            .any(|alt| classify(alt, head_name) != RecursiveEnds::None);
+            .any(|alt| classify(alt, recursive_name, recursive_names) != RecursiveEnds::None);
         if has_recursive {
             result[i] = Some(next_precedence);
             next_precedence += 1;
@@ -201,9 +214,13 @@ fn assign_precedence(
 /// Desugars a single rule. `recursive_name` is the nonterminal that appears at
 /// left/right recursive ends — for direct recursion this equals the head name,
 /// for indirect recursion (e.g., exclude-derived rules) it's a different nonterminal.
-fn desugar_rule(rule: SyntaxRule, recursive_name: &str) -> SyntaxRule {
+fn desugar_rule(
+    rule: SyntaxRule,
+    recursive_name: &str,
+    recursive_names: &[(String, String)],
+) -> SyntaxRule {
     let head_name = rule.head.name.clone();
-    let precedences = assign_precedence(&rule.priority_levels, recursive_name);
+    let precedences = assign_precedence(&rule.priority_levels, recursive_name, recursive_names);
 
     // Find the resolved DefinitionId for the recursive nonterminal from any reference in the
     // alternatives. Identifiers are already resolved at this point in the pipeline.
@@ -212,15 +229,19 @@ fn desugar_rule(rule: SyntaxRule, recursive_name: &str) -> SyntaxRule {
 
     // Find the minimum precedence among prefix (Right-only) alternatives.
     // This determines which alternatives need the min trick.
-    let min_prefix_pr =
-        min_prefix_precedence(&rule.priority_levels, &precedences, recursive_name);
+    let min_prefix_pr = min_prefix_precedence(
+        &rule.priority_levels,
+        &precedences,
+        recursive_name,
+        recursive_names,
+    );
 
     let mut all_alternatives = Vec::new();
 
     for (level, precedence) in rule.priority_levels.into_iter().zip(precedences.iter()) {
         let assoc = level.associativity;
         for alt in level.alternatives {
-            let recursion = classify(&alt, recursive_name);
+            let recursion = classify(&alt, recursive_name, recursive_names);
             let rewritten = match (recursion, precedence) {
                 (RecursiveEnds::Binary, Some(pr)) => {
                     rewrite_binary(recursive_name, head_def, alt, *pr, assoc, min_prefix_pr)
@@ -259,7 +280,8 @@ fn desugar_rule(rule: SyntaxRule, recursive_name: &str) -> SyntaxRule {
 fn min_prefix_precedence(
     priority_levels: &[PriorityLevel],
     precedences: &[Option<i64>],
-    head_name: &str,
+    recursive_name: &str,
+    recursive_names: &[(String, String)],
 ) -> Option<i64> {
     priority_levels
         .iter()
@@ -269,7 +291,7 @@ fn min_prefix_precedence(
             let has_prefix = level
                 .alternatives
                 .iter()
-                .any(|alt| classify(alt, head_name) == RecursiveEnds::Right);
+                .any(|alt| classify(alt, recursive_name, recursive_names) == RecursiveEnds::Right);
             has_prefix.then_some(pr)
         })
         .min()
@@ -1089,6 +1111,93 @@ mod tests {
                         bind!("l", call!("E", ref "p")),
                         cond!(("l" == 0) || ("l" >= 2)),
                         lit!(";"),
+                        call!("E", 1),
+                        ret!(1),
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.into();
+        let expected: Grammar = expected.into();
+        assert_eq!(actual, expected);
+    }
+
+    /// Indirect recursion: F is a filtered copy of E (e.g., from exclude desugaring).
+    /// F's alternatives reference E at their ends, making F indirectly recursive with
+    /// recursive name E. When E has an alternative with F at the left end, classify
+    /// must recognize F as an indirect reference to E.
+    ///
+    ///   E = 'a' > F '*' 'b' > E '+' E
+    ///   F = 'a' > E '+' E
+    ///
+    /// F is indirectly recursive (recursive name = E). E has F at the left end of
+    /// `F '*' 'b'`, which should be classified as Left (postfix).
+    ///
+    /// Precedences for E: '+': 1, '*': 2
+    /// Precedences for F: '+': 1
+    #[test]
+    fn test_indirect_recursion() {
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(
+                        alternative!(lit!("a"))
+                    ),
+                    priority_level!(
+                        alternative!(id!("F"), lit!("*"), lit!("b"))
+                    ),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("+"), id!("E"))
+                    )
+                ),
+                syntax_rule!("F" =>
+                    priority_level!(
+                        alternative!(lit!("a"))
+                    ),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("+"), id!("E"))
+                    )
+                ),
+            ]
+        );
+
+        // E(p):
+        //   'a' {0}
+        //   [2>=p] l=E(p) [l==0||l>=2] '*' 'b' {0}    -- F recognized as left-recursive
+        //   [1>=p] l=E(p) [l==0||l>=1] '+' E(1) {1}
+        //
+        // F(p):
+        //   'a' {0}
+        //   [1>=p] l=E(p) [l==0||l>=1] '+' E(1) {1}
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        cond!(2 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!("*"),
+                        lit!("b"),
+                        ret!(0),
+                    ),
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 1)),
+                        lit!("+"),
+                        call!("E", 1),
+                        ret!(1),
+                    ),
+                )),
+                syntax_rule!("F"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 1)),
+                        lit!("+"),
                         call!("E", 1),
                         ret!(1),
                     ),
