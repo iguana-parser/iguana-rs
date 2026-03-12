@@ -50,7 +50,7 @@
 use crate::grammar::{
     def::{Alternative, Associativity, PriorityLevel, SyntaxRule},
     symbols::{
-        Cond, CondOp, DefinitionId, Expr, Identifier, Nonterminal, ParamType, Parameter, Symbol,
+        Cond, CondOp, Expr, Identifier, Nonterminal, ParamType, Parameter, Symbol,
     },
     transformations::transform_syntax_rule,
 };
@@ -222,11 +222,6 @@ fn desugar_rule(
     let head_name = rule.head.name.clone();
     let precedences = assign_precedence(&rule.priority_levels, recursive_name, recursive_names);
 
-    // Find the resolved DefinitionId for the recursive nonterminal from any reference in the
-    // alternatives. Identifiers are already resolved at this point in the pipeline.
-    let head_def = find_definition_id(&rule.priority_levels, recursive_name)
-        .expect("desugared nonterminal should have at least one recursive reference");
-
     // Find the minimum precedence among prefix (Right-only) alternatives.
     // This determines which alternatives need the min trick.
     let min_prefix_pr = min_prefix_precedence(
@@ -244,13 +239,13 @@ fn desugar_rule(
             let recursion = classify(&alt, recursive_name, recursive_names);
             let rewritten = match (recursion, precedence) {
                 (RecursiveEnds::Binary, Some(pr)) => {
-                    rewrite_binary(recursive_name, head_def, alt, *pr, assoc, min_prefix_pr)
+                    rewrite_binary(alt, *pr, assoc, min_prefix_pr)
                 }
                 (RecursiveEnds::Right, Some(pr)) => {
-                    rewrite_prefix(recursive_name, head_def, alt, *pr, min_prefix_pr)
+                    rewrite_prefix(recursive_name, alt, *pr, min_prefix_pr)
                 }
                 (RecursiveEnds::Left, Some(pr)) => {
-                    rewrite_postfix(recursive_name, head_def, alt, *pr)
+                    rewrite_postfix(recursive_name, alt, *pr)
                 }
                 (RecursiveEnds::None, _) => rewrite_non_recursive(recursive_name, alt),
                 _ => alt,
@@ -315,35 +310,22 @@ fn make_min_return(pr: i64) -> Symbol {
 }
 
 /// Creates a right-end binding: `r=E(arg)`
-fn make_right_binding(head_name: &str, head_def: DefinitionId, arg: i64) -> Symbol {
+fn make_right_binding(id: &Identifier, arg: i64) -> Symbol {
     Symbol::Binding {
         name: "r".to_string(),
         symbol: Box::new(Symbol::Call {
-            name: Identifier {
-                name: head_name.to_string(),
-                definition: Some(head_def),
-            },
+            name: id.clone(),
             arguments: vec![Expr::Int(arg)],
         }),
     }
 }
 
-/// Finds the resolved DefinitionId for a nonterminal by scanning its alternatives
-/// for a self-reference.
-fn find_definition_id(
-    priority_levels: &[PriorityLevel],
-    head_name: &str,
-) -> Option<DefinitionId> {
-    for level in priority_levels {
-        for alt in &level.alternatives {
-            for symbol in &alt.symbols {
-                if let Symbol::Identifier(id) = symbol && id.name == head_name {
-                    return id.definition;
-                }
-            }
-        }
+/// Extracts the Identifier from a symbol at a recursive end.
+fn extract_identifier(symbol: &Symbol) -> &Identifier {
+    match symbol {
+        Symbol::Identifier(id) => id,
+        _ => panic!("expected Identifier at recursive end, got {symbol:?}"),
     }
-    None
 }
 
 /// Creates the precondition symbol: [pr >= p]
@@ -356,14 +338,11 @@ fn make_precondition(pr: i64) -> Symbol {
 }
 
 /// Creates the left binding symbol: l=E(p)
-fn make_left_binding(head_name: &str, head_def: DefinitionId) -> Symbol {
+fn make_left_binding(id: &Identifier) -> Symbol {
     Symbol::Binding {
         name: "l".to_string(),
         symbol: Box::new(Symbol::Call {
-            name: Identifier {
-                name: head_name.to_string(),
-                definition: Some(head_def),
-            },
+            name: id.clone(),
             arguments: vec![Expr::Ref("p".to_string())],
         }),
     }
@@ -420,7 +399,7 @@ fn replace_head_ref(symbol: Symbol, head_name: &str) -> Symbol {
 /// - Non-associative:
 ///   `[pr>=p] l=E(p) [l==0||l>=pr+1] op E(pr+1) {pr}`
 ///   (both restrictions)
-fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64, assoc: Option<Associativity>, min_prefix_pr: Option<i64>) -> Alternative {
+fn rewrite_binary(alt: Alternative, pr: i64, assoc: Option<Associativity>, min_prefix_pr: Option<i64>) -> Alternative {
     // Postcondition threshold: pr+1 for right-assoc and non-assoc, pr otherwise
     let postcond_threshold = match assoc {
         Some(Associativity::Right | Associativity::NonAssoc) => pr + 1,
@@ -437,33 +416,32 @@ fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
     // precedence level than this binary alternative.
     let use_min = min_prefix_pr.is_some_and(|min_pr| pr > min_pr);
 
+    // Use the actual identifiers from the alternative's left/right ends, not the
+    // recursive name. For indirect recursion (e.g., Symbol_except_Except at the left
+    // end of Symbol's rule), this preserves the original nonterminal identity.
+    let left_id = extract_identifier(alt.symbols.first().unwrap()).clone();
+    let right_id = extract_identifier(alt.symbols.last().unwrap()).clone();
+
     let mut symbols = Vec::new();
 
     symbols.push(make_precondition(pr));
-    symbols.push(make_left_binding(head_name, head_def));
+    symbols.push(make_left_binding(&left_id));
     symbols.push(make_postcondition(postcond_threshold));
 
-    // Middle symbols (everything except the first and last, which are the recursive E references)
+    // Middle symbols (everything except the first and last, which are the recursive references)
     let num_symbols = alt.symbols.len();
     for symbol in alt.symbols.into_iter().skip(1).take(num_symbols.saturating_sub(2)) {
         symbols.push(symbol);
     }
 
     if use_min {
-        // r=E(right_arg)
-        symbols.push(make_right_binding(head_name, head_def, right_arg));
-        // {r==0 ? pr : min(r, pr)}
+        symbols.push(make_right_binding(&right_id, right_arg));
         symbols.push(make_min_return(pr));
     } else {
-        // E(right_arg)
         symbols.push(Symbol::Call {
-            name: Identifier {
-                name: head_name.to_string(),
-                definition: Some(head_def),
-            },
+            name: right_id,
             arguments: vec![Expr::Int(right_arg)],
         });
-        // {pr}
         symbols.push(Symbol::Return(Expr::Int(pr)));
     }
 
@@ -477,7 +455,7 @@ fn rewrite_binary(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
 ///   op E(pr) {pr}
 /// Or with the min trick (when a prefix exists at lower precedence):
 ///   op r=E(pr) {r==0 ? pr : min(r, pr)}
-fn rewrite_prefix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64, min_prefix_pr: Option<i64>) -> Alternative {
+fn rewrite_prefix(recursive_name: &str, alt: Alternative, pr: i64, min_prefix_pr: Option<i64>) -> Alternative {
     let mut symbols = Vec::new();
     let num_symbols = alt.symbols.len();
 
@@ -485,26 +463,21 @@ fn rewrite_prefix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
     // precedence level than this prefix alternative.
     let use_min = min_prefix_pr.is_some_and(|min_pr| pr > min_pr);
 
+    let right_id = extract_identifier(alt.symbols.last().unwrap()).clone();
+
     // All symbols except the last (right-end E), with any E references replaced by E(0)
     for symbol in alt.symbols.into_iter().take(num_symbols.saturating_sub(1)) {
-        symbols.push(replace_head_ref(symbol, head_name));
+        symbols.push(replace_head_ref(symbol, recursive_name));
     }
 
     if use_min {
-        // r=E(pr)
-        symbols.push(make_right_binding(head_name, head_def, pr));
-        // {r==0 ? pr : min(r, pr)}
+        symbols.push(make_right_binding(&right_id, pr));
         symbols.push(make_min_return(pr));
     } else {
-        // E(pr)
         symbols.push(Symbol::Call {
-            name: Identifier {
-                name: head_name.to_string(),
-                definition: Some(head_def),
-            },
+            name: right_id,
             arguments: vec![Expr::Int(pr)],
         });
-        // {pr}
         symbols.push(Symbol::Return(Expr::Int(pr)));
     }
 
@@ -516,16 +489,18 @@ fn rewrite_prefix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr:
 
 /// Rewrites a postfix alternative `E op` at precedence level `pr` into:
 ///   [pr>=p] l=E(p) [l==0||l>=pr] op {0}
-fn rewrite_postfix(head_name: &str, head_def: DefinitionId, alt: Alternative, pr: i64) -> Alternative {
+fn rewrite_postfix(recursive_name: &str, alt: Alternative, pr: i64) -> Alternative {
+    let left_id = extract_identifier(alt.symbols.first().unwrap()).clone();
+
     let mut symbols = Vec::new();
 
     symbols.push(make_precondition(pr));
-    symbols.push(make_left_binding(head_name, head_def));
+    symbols.push(make_left_binding(&left_id));
     symbols.push(make_postcondition(pr));
 
     // All symbols except the first (left-end E), with any E references replaced by E(0)
     for symbol in alt.symbols.into_iter().skip(1) {
-        symbols.push(replace_head_ref(symbol, head_name));
+        symbols.push(replace_head_ref(symbol, recursive_name));
     }
 
     // {0}
@@ -1164,7 +1139,7 @@ mod tests {
 
         // E(p):
         //   'a' {0}
-        //   [2>=p] l=E(p) [l==0||l>=2] '*' 'b' {0}    -- F recognized as left-recursive
+        //   [2>=p] l=F(p) [l==0||l>=2] '*' 'b' {0}    -- F at left end, preserved
         //   [1>=p] l=E(p) [l==0||l>=1] '+' E(1) {1}
         //
         // F(p):
@@ -1176,7 +1151,7 @@ mod tests {
                     alternative!(lit!("a"), ret!(0)),
                     alternative!(
                         cond!(2 >= "p"),
-                        bind!("l", call!("E", ref "p")),
+                        bind!("l", call!("F", ref "p")),
                         cond!(("l" == 0) || ("l" >= 2)),
                         lit!("*"),
                         lit!("b"),

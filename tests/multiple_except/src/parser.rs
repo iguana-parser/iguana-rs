@@ -162,7 +162,10 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
                         let right_child_id = self.get_or_create_terminal_node(TerminalId(1), i, j);
                         //SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
                         let next_slot_id = SlotId(1);
-                        if self.scanner.match_token(TerminalId(4), i) != Some(j) {
+                        if self.scanner.match_token(TerminalId(2), i) != Some(j)
+                            && self.scanner.match_token(TerminalId(3), i) != Some(j)
+                            && self.scanner.match_token(TerminalId(4), i) != Some(j)
+                        {
                             let new_node = right_child_id;
                             self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                         }
