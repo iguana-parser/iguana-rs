@@ -139,13 +139,14 @@
       }
     });
 
-    const unlistenGenerateResult = listen<{ success: boolean; message: string }>("generate-result", (event) => {
+    const unlistenGenerateResult = listen<{ success: boolean; message: string; duration_ms?: number }>("generate-result", (event) => {
       isGenerating = false;
       statusMessage = null;  // Clear status message
       if (event.payload.success) {
         generateStatus = "success";
-
-        logOutput("Parser generated successfully");
+        const durationStr = event.payload.duration_ms != null ? ` (${event.payload.duration_ms}ms)` : "";
+        logOutput(`Parser generated successfully${durationStr}`);
+        setStatus(`Generated${durationStr}`, "success");
         setTimeout(() => { generateStatus = "none"; }, 2000);
       } else {
         generateStatus = "error";

@@ -46,6 +46,8 @@ struct BuildProgress {
 struct BuildResult {
     success: bool,
     message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    duration_ms: Option<u64>,
 }
 
 /// Result of analyzing/parsing a grammar source.
@@ -229,6 +231,7 @@ fn build_parser(directory: String, app: tauri::AppHandle) {
                     BuildResult {
                         success: true,
                         message: "Build successful".into(),
+                        duration_ms: None,
                     },
                 );
             }
@@ -239,6 +242,7 @@ fn build_parser(directory: String, app: tauri::AppHandle) {
                     BuildResult {
                         success: false,
                         message: stderr.into_owned(),
+                        duration_ms: None,
                     },
                 );
             }
@@ -248,6 +252,7 @@ fn build_parser(directory: String, app: tauri::AppHandle) {
                     BuildResult {
                         success: false,
                         message: format!("Failed to run cargo build: {}", e),
+                        duration_ms: None,
                     },
                 );
             }
@@ -495,6 +500,7 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
                     BuildResult {
                         success: false,
                         message: "Failed to find workspace root".into(),
+                        duration_ms: None,
                     },
                 );
                 return;
@@ -506,6 +512,7 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
                 BuildResult {
                     success: false,
                     message: format!("Failed to get current directory: {}", e),
+                    duration_ms: None,
                 },
             );
             return;
@@ -514,6 +521,7 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
 
     // Spawn blocking work in a separate thread
     thread::spawn(move || {
+        let start = std::time::Instant::now();
         let _ = app.emit(
             "generate-progress",
             BuildProgress {
@@ -535,6 +543,8 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
             .current_dir(&workspace_root)
             .output();
 
+        let duration_ms = start.elapsed().as_millis() as u64;
+
         match generate_output {
             Ok(output) if output.status.success() => {
                 let _ = app.emit(
@@ -542,6 +552,7 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
                     BuildResult {
                         success: true,
                         message: "Generation successful".into(),
+                        duration_ms: Some(duration_ms),
                     },
                 );
             }
@@ -552,6 +563,7 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
                     BuildResult {
                         success: false,
                         message: format!("Generation failed:\n{}", stderr),
+                        duration_ms: Some(duration_ms),
                     },
                 );
             }
@@ -561,6 +573,7 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
                     BuildResult {
                         success: false,
                         message: format!("Failed to run generator: {}", e),
+                        duration_ms: None,
                     },
                 );
             }
