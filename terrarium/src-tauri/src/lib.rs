@@ -48,10 +48,20 @@ struct BuildResult {
     message: String,
 }
 
-// TODO: Remove once the iggy parser has error recovery.
-// Caches last successful tokens so highlighting stays stable while typing.
-#[derive(Default)]
-struct SemanticTokensState {
+/// Result of analyzing/parsing a grammar source.
+#[derive(Clone, Serialize, Type)]
+struct AnalyzeResult {
+    success: bool,
+    /// Time spent in the GLL parsing algorithm (milliseconds).
+    parse_duration_ms: u32,
+    /// Time spent constructing the typed parse tree from the SPPF (milliseconds).
+    tree_construction_duration_ms: u32,
+}
+
+/// Cached grammar analysis state.
+/// Stores the parse result and a fallback token cache for when parsing fails.
+struct GrammarState {
+    parse_result: Option<iggy_ls::ParseResult>,
     cached_tokens: Vec<SemanticTokenData>,
 }
 
@@ -68,6 +78,7 @@ struct ParseState {
 struct ParseOutput {
     success: bool,
     error: Option<String>,
+    duration_ms: Option<u32>,
     has_sppf: bool,
     has_gss: bool,
     has_parse_tree: bool,
@@ -295,11 +306,21 @@ fn parse(
     parse_state.gss_path = if has_gss { Some(gss_path) } else { None };
     parse_state.parse_tree_path = if has_parse_tree { Some(parse_tree_path) } else { None };
 
+    // Parse duration from stdout (format: "Parse success in <ms>ms")
+    let duration_ms = stdout
+        .lines()
+        .find_map(|line| {
+            line.strip_prefix("Parse success in ")
+                .and_then(|rest| rest.strip_suffix("ms"))
+                .and_then(|ms| ms.parse::<u32>().ok())
+        });
+
     // Determine success/error status
-    if stdout.trim() == "Parse failed" {
+    if stdout.lines().any(|line| line.trim() == "Parse failed") {
         return Ok(ParseOutput {
             success: false,
             error: Some("Parse error".to_string()),
+            duration_ms: None,
             has_sppf,
             has_gss,
             has_parse_tree,
@@ -310,6 +331,7 @@ fn parse(
         return Ok(ParseOutput {
             success: false,
             error: Some(format!("Parser error: {}", stderr.trim())),
+            duration_ms: None,
             has_sppf,
             has_gss,
             has_parse_tree,
@@ -319,6 +341,7 @@ fn parse(
     Ok(ParseOutput {
         success: true,
         error: None,
+        duration_ms,
         has_sppf,
         has_gss,
         has_parse_tree,
@@ -547,34 +570,55 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
 
 // ============ Language Intelligence Commands ============
 
+/// Parse the grammar source and cache the result. All other language intelligence
+/// commands (semantic tokens, diagnostics, etc.) read from this cache.
 #[tauri::command]
 #[specta::specta]
-fn get_semantic_tokens(
-    source: String,
-    state: tauri::State<Mutex<SemanticTokensState>>,
-) -> Vec<SemanticTokenData> {
-    // TODO: Remove catch_unwind once the iggy parser handles ambiguities gracefully.
-    // Currently, ambiguous grammars can panic during parse tree creation.
-    let result = std::panic::catch_unwind(|| {
-        iggy_ls::semantic_tokens::tokenize(&source)
-            .into_iter()
-            .map(|t| SemanticTokenData {
-                delta_line: t.delta_line,
-                delta_start: t.delta_start,
-                length: t.length,
-                token_type: t.token_type,
-                token_modifiers_bitset: t.token_modifiers_bitset,
-            })
-            .collect::<Vec<_>>()
-    });
+fn analyze_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> AnalyzeResult {
+    let result = iggy_ls::parse(&source);
+    let parse_duration_ms = result.parse_duration.as_millis() as u32;
+    let tree_construction_duration_ms = result.tree_construction_duration.as_millis() as u32;
+    let success = result.tree.is_some();
 
     let mut st = state.lock().unwrap();
-    match result {
-        Ok(tokens) if !tokens.is_empty() => {
-            st.cached_tokens = tokens.clone();
-            tokens
-        }
-        _ => st.cached_tokens.clone(),
+    st.parse_result = Some(result);
+
+    AnalyzeResult {
+        success,
+        parse_duration_ms,
+        tree_construction_duration_ms,
+    }
+}
+
+/// Return semantic tokens from the cached parse result.
+#[tauri::command]
+#[specta::specta]
+fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<SemanticTokenData> {
+    let mut st = state.lock().unwrap();
+
+    let tokens: Vec<SemanticTokenData> = st
+        .parse_result
+        .as_ref()
+        .map(|r| {
+            iggy_ls::semantic_tokens::semantic_tokens(r)
+                .into_iter()
+                .map(|t| SemanticTokenData {
+                    delta_line: t.delta_line,
+                    delta_start: t.delta_start,
+                    length: t.length,
+                    token_type: t.token_type,
+                    token_modifiers_bitset: t.token_modifiers_bitset,
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
+    if !tokens.is_empty() {
+        st.cached_tokens = tokens.clone();
+        tokens
+    } else {
+        // Fallback: return cached tokens so highlighting stays stable while typing
+        st.cached_tokens.clone()
     }
 }
 
@@ -917,6 +961,7 @@ pub fn run() {
         debug_prev_error,
         get_debug_errors,
         get_event_log,
+        analyze_grammar,
         get_semantic_tokens,
         get_semantic_tokens_legend
     ]);
@@ -932,7 +977,10 @@ pub fn run() {
     tauri::Builder::default()
         .manage(Mutex::new(ParseState::default()))
         .manage(Mutex::new(DebugState::default()))
-        .manage(Mutex::new(SemanticTokensState::default()))
+        .manage(Mutex::new(GrammarState {
+            parse_result: None,
+            cached_tokens: Vec::new(),
+        }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())

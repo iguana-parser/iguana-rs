@@ -218,14 +218,13 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         None => {}
                     }
 
+                    println!("Parse success in {}ms", parse_success.duration.as_millis());
+
                     // Print parse tree if no write flags specified and not tracing
                     // (trace mode skips parse tree to avoid panics on ambiguous grammars)
                     if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() && cli.trace.is_none() {
-                        println!("Parse success.");
                         let parse_tree = create_parse_tree(node_id, &start_nonterminal_name, &parser, &parse_tree_builder);
                         println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
-                    } else if cli.trace.is_some() {
-                        println!("Parse success.");
                     }
                 }
                 ParseResult::Failure() => {

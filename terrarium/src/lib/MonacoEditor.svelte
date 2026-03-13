@@ -13,6 +13,8 @@
 
   // Register iggy language and semantic tokens provider (once)
   let iggyRegistered = false;
+  let onAnalyzeCallback: ((result: { success: boolean; parse_duration_ms: number; tree_construction_duration_ms: number }) => void) | undefined;
+
   function registerIggyLanguage() {
     if (iggyRegistered) return;
     iggyRegistered = true;
@@ -46,6 +48,15 @@
             };
           },
           async provideDocumentSemanticTokens(model) {
+            // First: parse and cache the grammar
+            const analyzeResult = await invoke<{
+              success: boolean;
+              duration_ms: number;
+            }>("analyze_grammar", { source: model.getValue() });
+
+            onAnalyzeCallback?.(analyzeResult);
+
+            // Then: extract semantic tokens from the cached parse result
             const tokens = await invoke<
               {
                 delta_line: number;
@@ -54,7 +65,7 @@
                 token_type: number;
                 token_modifiers_bitset: number;
               }[]
-            >("get_semantic_tokens", { source: model.getValue() });
+            >("get_semantic_tokens");
 
             const data = new Uint32Array(tokens.length * 5);
             for (let i = 0; i < tokens.length; i++) {
@@ -78,9 +89,15 @@
     value?: string;
     language?: string;
     onchange?: (value: string) => void;
+    onanalyze?: (result: { success: boolean; parse_duration_ms: number; tree_construction_duration_ms: number }) => void;
   }
 
-  let { value = $bindable(""), language = "plaintext", onchange }: Props = $props();
+  let { value = $bindable(""), language = "plaintext", onchange, onanalyze }: Props = $props();
+
+  // Keep the module-level callback in sync with the prop
+  $effect(() => {
+    onAnalyzeCallback = onanalyze;
+  });
 
   let container: HTMLDivElement;
   let editor: monaco.editor.IStandaloneCodeEditor;

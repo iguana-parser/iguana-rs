@@ -340,29 +340,28 @@
     }, 500);
   }
 
+  // Called by MonacoEditor after each grammar analysis (parse)
+  function onGrammarAnalyze(result: { success: boolean; parse_duration_ms: number; tree_construction_duration_ms: number }) {
+    if (result.success) {
+      const totalMs = result.parse_duration_ms + result.tree_construction_duration_ms;
+      setStatus(
+        `Parsed (${totalMs}ms)`,
+        "success",
+        `Parse: ${result.parse_duration_ms}ms\nTree construction: ${result.tree_construction_duration_ms}ms`,
+      );
+    }
+  }
+
   // Status bar state
   let statusMessage = $state<string | null>(null);
+  let statusTooltip = $state<string | null>(null);
   let statusType = $state<"info" | "error" | "success">("info");
   let showStatusDetails = $state(false);
-  let statusTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  function setStatus(message: string, type: "info" | "error" | "success") {
-    // Clear any existing timeout
-    if (statusTimeout) {
-      clearTimeout(statusTimeout);
-      statusTimeout = null;
-    }
-
+  function setStatus(message: string, type: "info" | "error" | "success", tooltip?: string) {
     statusMessage = message;
+    statusTooltip = tooltip ?? null;
     statusType = type;
-
-    // Auto-dismiss success messages after 3 seconds
-    if (type === "success") {
-      statusTimeout = setTimeout(() => {
-        statusMessage = null;
-        statusTimeout = null;
-      }, 3000);
-    }
   }
 
   // State
@@ -1197,11 +1196,8 @@
   }
 
   function clearStatus() {
-    if (statusTimeout) {
-      clearTimeout(statusTimeout);
-      statusTimeout = null;
-    }
     statusMessage = null;
+    statusTooltip = null;
     showStatusDetails = false;
   }
 
@@ -1236,8 +1232,9 @@
     parseResultAvailable = output.has_sppf || output.has_gss || output.has_parse_tree;
 
     if (output.success) {
-      logOutput("Parse successful");
-      setStatus("Parse successful", "success");
+      const durationStr = output.duration_ms != null ? ` (${output.duration_ms}ms)` : "";
+      logOutput(`Parse successful${durationStr}`);
+      setStatus(`Parse successful${durationStr}`, "success");
     } else {
       // Partial success - show error but still display available data
       if (output.error) {
@@ -2324,7 +2321,7 @@
   <!-- Design Mode -->
   <div class="design-mode">
     <div class="design-editor">
-      <MonacoEditor bind:value={grammarText} language="iggy" onchange={onGrammarEdit} />
+      <MonacoEditor bind:value={grammarText} language="iggy" onchange={onGrammarEdit} onanalyze={onGrammarAnalyze} />
     </div>
   </div>
   {:else if activeMode === "parse"}
@@ -2909,6 +2906,9 @@
           Ready
         {:else}
           No parser selected
+        {/if}
+        {#if statusTooltip}
+          <span class="status-tooltip">{statusTooltip}</span>
         {/if}
       </button>
     </div>
@@ -4461,6 +4461,7 @@
   }
 
   .status-text-btn {
+    position: relative;
     background: transparent;
     border: none;
     font-size: 12px;
@@ -4474,6 +4475,27 @@
   .status-text-btn:hover {
     background: rgba(255, 255, 255, 0.08);
     color: #d4d4d4;
+  }
+
+  .status-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 6px;
+    padding: 4px 8px;
+    background: #252526;
+    border: 1px solid #454545;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #ccc;
+    white-space: pre;
+    text-align: left;
+    pointer-events: none;
+  }
+
+  .status-text-btn:hover .status-tooltip {
+    display: block;
   }
 
   .status-icon-btn {

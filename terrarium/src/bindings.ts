@@ -187,8 +187,18 @@ async getEventLog() : Promise<Result<EventLogEntry[], string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async getSemanticTokens(source: string) : Promise<SemanticTokenData[]> {
-    return await TAURI_INVOKE("get_semantic_tokens", { source });
+/**
+ * Parse the grammar source and cache the result. All other language intelligence
+ * commands (semantic tokens, diagnostics, etc.) read from this cache.
+ */
+async analyzeGrammar(source: string) : Promise<AnalyzeResult> {
+    return await TAURI_INVOKE("analyze_grammar", { source });
+},
+/**
+ * Return semantic tokens from the cached parse result.
+ */
+async getSemanticTokens() : Promise<SemanticTokenData[]> {
+    return await TAURI_INVOKE("get_semantic_tokens");
 },
 async getSemanticTokensLegend() : Promise<SemanticTokensLegendData> {
     return await TAURI_INVOKE("get_semantic_tokens_legend");
@@ -205,6 +215,18 @@ async getSemanticTokensLegend() : Promise<SemanticTokensLegendData> {
 
 /** user-defined types **/
 
+/**
+ * Result of analyzing/parsing a grammar source.
+ */
+export type AnalyzeResult = { success: boolean; 
+/**
+ * Time spent in the GLL parsing algorithm (milliseconds).
+ */
+parse_duration_ms: number; 
+/**
+ * Time spent constructing the typed parse tree from the SPPF (milliseconds).
+ */
+tree_construction_duration_ms: number }
 /**
  * GSS edge for debug visualization.
  */
@@ -327,7 +349,7 @@ export type NodeKind = { Nonterminal: { ambiguous: boolean } } | { Intermediate:
 /**
  * Result of a parse operation, indicating which outputs are available.
  */
-export type ParseOutput = { success: boolean; error: string | null; has_sppf: boolean; has_gss: boolean; has_parse_tree: boolean }
+export type ParseOutput = { success: boolean; error: string | null; duration_ms: number | null; has_sppf: boolean; has_gss: boolean; has_parse_tree: boolean }
 export type SPPF = { nodes: SPPFDotNode[]; edges: SPPFDotEdge[] }
 export type SPPFDotEdge = { src: SPPFNodeId; dest: SPPFNodeId }
 export type SPPFDotNode = { id: SPPFNodeId; kind: NodeKind; label: string; left_extent: number; right_extent: number }
