@@ -1,6 +1,4 @@
 use std::borrow::Cow;
-use std::io::Write;
-use std::process::{Command, Stdio};
 
 use crate::grammar::def::Alternative;
 
@@ -88,23 +86,12 @@ pub fn safe_ident(name: &str) -> proc_macro2::Ident {
     }
 }
 
-pub fn rustfmt(code: &str) -> String {
-    let mut child = Command::new("rustfmt")
-        .arg("--edition")
-        .arg("2024")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()
-        .expect("Failed to spawn rustfmt");
-
-    child
-        .stdin
-        .as_mut()
-        .unwrap()
-        .write_all(code.as_bytes())
-        .unwrap();
-    let output = child.wait_with_output().unwrap();
-    String::from_utf8(output.stdout).unwrap()
+#[cfg(test)]
+pub fn prettyprint(code: &str) -> String {
+    let syntax = syn::parse_file(code).unwrap_or_else(|e| {
+        panic!("Parse error at {:?}: {}", e.span().start(), e);
+    });
+    prettyplease::unparse(&syntax)
 }
 
 #[cfg(test)]

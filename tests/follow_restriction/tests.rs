@@ -7,8 +7,8 @@ use iguana_runtime::testing::{check_golden_file, golden_path};
 
 fn check(input: &str, start: &str, test_name: &str) {
     let input = Input::from(input);
-    let tree = parse(&input, start).expect("Parse failed");
-    let actual = to_sexpr(tree.as_parse_tree_ref());
+    let result = parse(&input, start).expect("Parse failed");
+    let actual = to_sexpr(result.tree.as_parse_tree_ref());
     check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
 }
 

@@ -36,6 +36,10 @@ enum Commands {
         /// Output directory for generated parser (defaults to current directory)
         #[arg(short, long, default_value = ".")]
         output: PathBuf,
+
+        /// Output timing information as JSON (for tool integration)
+        #[arg(long)]
+        json: bool,
     },
     Run,
     /// Test-related commands
@@ -72,7 +76,25 @@ fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Commands::Init { name, output } => init_project(&output, &name)?,
-        Commands::Generate { grammar, output } => generate_parser(grammar.as_deref(), &output)?,
+        Commands::Generate { grammar, output, json } => {
+            let resolved_path;
+            let path = match grammar.as_deref() {
+                Some(path) => path,
+                None => {
+                    resolved_path = find_iggy_file(&output)?;
+                    &resolved_path
+                }
+            };
+            let source = std::fs::read_to_string(path)?;
+            let grammar_def = parse_grammar(&source)
+                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+            let result = generate(&grammar_def.into(), &output)?;
+            if json {
+                println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
+            } else {
+                println!("Generated in {}ms", result.total_duration_ms);
+            }
+        }
         Commands::Run => todo!(),
         Commands::Test { command } => match command {
             TestCommands::Init { name } => init_test(&name)?,

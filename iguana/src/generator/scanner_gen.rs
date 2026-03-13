@@ -385,7 +385,7 @@ mod tests {
         generator::{
             id::CharClassIds,
             scanner_gen::{match_alt, match_char, match_char_range, match_star},
-            utils::rustfmt,
+            utils::prettyprint,
         },
         grammar::regex::{CharRange, Regex},
     };
@@ -396,7 +396,7 @@ mod tests {
                 #token_stream
             }
         };
-        rustfmt(&code.to_string())
+        prettyprint(&code.to_string())
     }
 
     #[test]

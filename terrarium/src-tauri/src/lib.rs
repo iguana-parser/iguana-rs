@@ -521,7 +521,6 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
 
     // Spawn blocking work in a separate thread
     thread::spawn(move || {
-        let start = std::time::Instant::now();
         let _ = app.emit(
             "generate-progress",
             BuildProgress {
@@ -539,20 +538,23 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
                 "generate",
                 "--output",
                 &directory,
+                "--json",
             ])
             .current_dir(&workspace_root)
             .output();
 
-        let duration_ms = start.elapsed().as_millis() as u64;
-
         match generate_output {
             Ok(output) if output.status.success() => {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                let duration_ms = serde_json::from_str::<serde_json::Value>(stdout.trim())
+                    .ok()
+                    .and_then(|v| v["total_duration_ms"].as_u64());
                 let _ = app.emit(
                     "generate-result",
                     BuildResult {
                         success: true,
                         message: "Generation successful".into(),
-                        duration_ms: Some(duration_ms),
+                        duration_ms,
                     },
                 );
             }
@@ -563,7 +565,7 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
                     BuildResult {
                         success: false,
                         message: format!("Generation failed:\n{}", stderr),
-                        duration_ms: Some(duration_ms),
+                        duration_ms: None,
                     },
                 );
             }
