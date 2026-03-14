@@ -13,18 +13,21 @@ impl<'i> ExceptTerminalScanner<'i> {
     //Identifier = ([a-z A-Z]+)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_0, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
     //Keyword = (if|else|while)
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char(i, 'i')
-            .and_then(|i| { self.match_char(i, 'f') })
+        (|i| { self.match_char(i, 'i').and_then(|i| { self.match_char(i, 'f') }) })(i)
             .or_else(|| {
                 self.match_char(i, 'e')
                     .and_then(|i| { self.match_char(i, 'l') })

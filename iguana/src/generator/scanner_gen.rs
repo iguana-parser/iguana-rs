@@ -336,7 +336,7 @@ fn match_alt(rs: &[Regex], char_class_ids: &CharClassIds) -> TokenStream {
             })
             .collect();
         quote! {
-            #match_first
+            (|i| { #match_first })(i)
             #(#rest)*
         }
     } else {

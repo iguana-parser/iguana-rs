@@ -14,25 +14,33 @@ impl<'i> FollowRestrictionScanner<'i> {
     //Char = ([a-z])
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char_class(i, &CHAR_CLASS_0, false)
+        (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)
     }
     //WS = ([ ]*)
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_1, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
     //Layout = ([ ]*)
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_1, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
 }
 impl Scanner for FollowRestrictionScanner<'_> {

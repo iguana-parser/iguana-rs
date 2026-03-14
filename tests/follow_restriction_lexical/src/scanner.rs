@@ -15,12 +15,16 @@ impl<'i> FollowRestrictionLexicalScanner<'i> {
     //Num = ([0-9]+) !>> Alpha
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_0, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
             .and_then(|end| {
                 if self.match_terminal_1(end).is_some() { None } else { Some(end) }
             })
@@ -28,35 +32,47 @@ impl<'i> FollowRestrictionLexicalScanner<'i> {
     //Alpha = ([a-z A-Z])
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char_class(i, &CHAR_CLASS_1, false)
+        (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(i)
     }
     //Id = ([a-z A-Z]+)
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let i = (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(i)?;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(i)?;
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_1, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
     //WS = ([ ]*)
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_2, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_2, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
     //Layout = ([ ]*)
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_2, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_2, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
 }
 impl Scanner for FollowRestrictionLexicalScanner<'_> {

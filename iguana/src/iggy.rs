@@ -200,7 +200,8 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             Symbol::Alt(symbols)
         }
         parse_tree::Symbol::Lit { string, .. } => {
-            Symbol::Literal(unescape_string(&text(input, string.span())))
+            let raw = text(input, string.span());
+            Symbol::Literal(unescape_string(&raw[1..raw.len() - 1]))
         }
         parse_tree::Symbol::StarSep { symbol, sep, .. } => Symbol::Star(
             Box::new(convert_symbol(symbol, input)),
@@ -328,13 +329,16 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
             Regex::Alt(regexes)
         }
         parse_tree::Regex::CharClass { char_class, .. } => convert_char_class(char_class, input),
-        parse_tree::Regex::Char { char, .. } => Regex::Char(parse_char(&text(input, char.span()))),
+        parse_tree::Regex::Char { char, .. } => {
+            let raw = text(input, char.span());
+            Regex::Char(parse_char(&raw[1..raw.len() - 1]))
+        }
         parse_tree::Regex::Group { regexes, .. } => {
             Regex::Seq(regexes.regexes().map(|r| convert_regex(r, input)).collect())
         }
         parse_tree::Regex::String { string, .. } => {
-            let text = text(input, string.span());
-            let unescaped = unescape_string(&text);
+            let raw = text(input, string.span());
+            let unescaped = unescape_string(&raw[1..raw.len() - 1]);
             let regexes = unescaped.chars().map(Regex::Char).collect();
             Regex::Seq(regexes)
         }

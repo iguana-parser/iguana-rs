@@ -15,36 +15,44 @@ impl<'i> RegexCompositionScanner<'i> {
     //Digit = ([0-9])
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char_class(i, &CHAR_CLASS_0, false)
+        (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)
     }
     //Letter = ([a-z A-Z _])
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char_class(i, &CHAR_CLASS_1, false)
+        (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(i)
     }
     //LetterOrDigit = (([a-z A-Z _])|([0-9]))
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char_class(i, &CHAR_CLASS_1, false)
-            .or_else(|| { self.match_char_class(i, &CHAR_CLASS_0, false) })
+        (|i| { (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(i) })(i)
+            .or_else(|| { (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i) })
     }
     //WS = ([  \n]*)
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_2, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_2, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
     //Layout = ([  \n]*)
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_2, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_2, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
 }
 impl Scanner for RegexCompositionScanner<'_> {

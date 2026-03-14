@@ -77,42 +77,29 @@ where
 }
 
 fn classify_token(token: &Token) -> Option<u32> {
-    match token.kind {
-        // Keywords: grammar, layout, left, right, none
-        TokenKind::T7 | TokenKind::T8 | TokenKind::T20 | TokenKind::T21 | TokenKind::T22 => {
+    match token.kind.name() {
+        // Keywords
+        "Keyword" | "\"grammar\"" | "\"layout\"" | "\"left\"" | "\"right\"" | "\"none\"" => {
             Some(TOKEN_KEYWORD)
         }
-        // Keyword terminal (matched as keyword, not identifier)
-        TokenKind::T0 => Some(TOKEN_KEYWORD),
-        // Decorators: @NoLayout, @Layout, @regex
-        TokenKind::T11 | TokenKind::T12 | TokenKind::T15 => Some(TOKEN_DECORATOR),
+        // Decorators
+        "\"@NoLayout\"" | "\"@Layout\"" | "\"@regex\"" => Some(TOKEN_DECORATOR),
         // Identifier
-        TokenKind::T1 => Some(TOKEN_TYPE),
-        // String content and delimiters: " '
-        TokenKind::T2 | TokenKind::T23 | TokenKind::T31 => Some(TOKEN_STRING),
-        // Char content (inside single quotes)
-        TokenKind::T4 => Some(TOKEN_STRING),
-        // Label: #SyntaxRule
-        TokenKind::T5 => Some(TOKEN_LABEL),
-        // Operators: = > | \ !>> !<< * + ? ! : -
-        TokenKind::T9
-        | TokenKind::T10
-        | TokenKind::T16
-        | TokenKind::T17
-        | TokenKind::T18
-        | TokenKind::T19
-        | TokenKind::T26
-        | TokenKind::T27
-        | TokenKind::T28
-        | TokenKind::T29
-        | TokenKind::T30
-        | TokenKind::T34 => Some(TOKEN_OPERATOR),
-        // Punctuation: ( ) { }
-        TokenKind::T13 | TokenKind::T14 | TokenKind::T24 | TokenKind::T25 => Some(TOKEN_OPERATOR),
-        // Regex: character class brackets [ ] and RangeChar
-        TokenKind::T32 | TokenKind::T33 | TokenKind::T3 => Some(TOKEN_REGEXP),
-        // Whitespace/layout — skip
-        TokenKind::T6 | TokenKind::T35 => None,
+        "Identifier" => Some(TOKEN_TYPE),
+        // String and Char literals (now include quotes)
+        "String" | "Char" => Some(TOKEN_STRING),
+        // Label
+        "Label" => Some(TOKEN_LABEL),
+        // Operators
+        "\"=\"" | "\">\"" | "\"|\"" | "\"\\\"" | "\"!>>\"" | "\"!<<\"" | "\"*\"" | "\"+\""
+        | "\"?\"" | "\"!\"" | "\":\"" | "\"-\"" => Some(TOKEN_OPERATOR),
+        // Punctuation
+        "\"(\"" | "\")\"" | "\"{\"" | "\"}\"" => Some(TOKEN_OPERATOR),
+        // Regex: character class brackets and RangeChar
+        "\"[\"" | "\"]\"" | "RangeChar" => Some(TOKEN_REGEXP),
+        // Whitespace, layout, comments, escape chars — skip
+        "WS" | "Comment" | "EscapeChar" | "Layout" => None,
+        _ => None,
     }
 }
 

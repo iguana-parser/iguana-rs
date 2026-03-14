@@ -1,0 +1,22 @@
+grammar Comments
+
+// Layout definition
+layout WS Comment
+
+// Expressions
+Expr
+  = Expr "+" Expr // addition
+  | Expr "*" Expr // multiplication
+  | "x" // variable
+
+// Lexical rules
+@regex
+Identifier = [a-zA-Z]+
+
+// Line comments start with //
+@regex
+Comment = "//" ![\n]*
+
+// Whitespace
+@regex
+WS = [\ \n \t]+

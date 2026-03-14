@@ -751,7 +751,9 @@ fn layout_rule(
     let layout_regex = match layout_def {
         [] => Regex::Epsilon,
         [single] => lexical_rules_map.get(single).unwrap().regex.clone(),
-        multiple => Regex::Alt(
+        // Wrap in Star so layout can match any interleaving of the layout terminals,
+        // e.g., layout WS Comment becomes (WS | Comment)*
+        multiple => Regex::Star(Box::new(Regex::Alt(
             multiple
                 .iter()
                 .map(|def| {
@@ -762,7 +764,7 @@ fn layout_rule(
                         .clone()
                 })
                 .collect(),
-        ),
+        ))),
     };
     lexical_rule!("Layout" => layout_regex)
 }

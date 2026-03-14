@@ -13,11 +13,15 @@ impl<'i> DeepPriorityScanner<'i> {
     //WS = ([ ]*)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_0, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
     //"a" = a
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
@@ -53,11 +57,15 @@ impl<'i> DeepPriorityScanner<'i> {
     //Layout = ([ ]*)
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_0, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
 }
 impl Scanner for DeepPriorityScanner<'_> {

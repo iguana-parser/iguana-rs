@@ -13,12 +13,16 @@ impl<'i> ExcludeByLabelScanner<'i> {
     //Id = ([a-z]+)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_0, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
     //"(" = (
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {

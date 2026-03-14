@@ -17,26 +17,34 @@ impl<'i> PrecedeRestrictionLexicalScanner<'i> {
         if i > 0 && self.match_terminal_1(i - 1).is_some() {
             return None;
         }
-        let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_0, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
     //Char = ([a-z])
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char_class(i, &CHAR_CLASS_0, false)
+        (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)
     }
     //WS = ([ ]*)
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_1, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
     //"for" = for
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
@@ -58,11 +66,15 @@ impl<'i> PrecedeRestrictionLexicalScanner<'i> {
     //Layout = ([ ]*)
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let mut j = i;
-        while let Some(k) = (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(j) {
-            j = k;
-        }
-        Some(j)
+        (|i| {
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_1, false)
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
 }
 impl Scanner for PrecedeRestrictionLexicalScanner<'_> {
