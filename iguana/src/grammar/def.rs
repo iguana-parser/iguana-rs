@@ -844,6 +844,9 @@ impl Grammar {
     pub fn terminals(&self) -> impl Iterator<Item = &'_ Terminal> {
         self.lexical_rules.keys()
     }
+    pub fn terminal(&self, name: &str) -> Option<&Terminal> {
+        self.lexical_rules.keys().find(|t| t.name == name)
+    }
     pub fn lexical_rule(&self, terminal: &Terminal) -> Option<&LexicalRule> {
         self.lexical_rules.get(terminal)
     }

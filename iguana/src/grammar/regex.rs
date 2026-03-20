@@ -42,6 +42,19 @@ impl Display for CharRange {
 }
 
 impl Regex {
+    /// Returns true if this regex can match the empty string.
+    pub fn is_nullable(&self) -> bool {
+        match self {
+            Regex::Char(_) | Regex::CharRange(_) | Regex::CharClass(_) | Regex::Plus(_) => false,
+            Regex::Epsilon | Regex::Star(_) | Regex::Opt(_) => true,
+            Regex::Seq(parts) => parts.iter().all(|r| r.is_nullable()),
+            Regex::Alt(choices) => choices.iter().any(|r| r.is_nullable()),
+            Regex::Identifier(_) => {
+                unreachable!("Regex::Identifier should be inlined before calling is_nullable")
+            }
+        }
+    }
+
     pub fn char(c: char) -> Self {
         Regex::Char(c)
     }
