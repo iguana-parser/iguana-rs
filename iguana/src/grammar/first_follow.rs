@@ -2,11 +2,13 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::grammar::{
     def::{Alternative, Grammar},
+    reachability::ReachabilityGraph,
     symbols::{Definition, Nonterminal, Symbol, Terminal},
 };
 
 pub struct FirstFollowSets<'a> {
     grammar: &'a Grammar,
+    reachability: ReachabilityGraph<'a>,
     nullables: FxHashSet<&'a Nonterminal>,
     first_sets: FxHashMap<&'a Nonterminal, FxHashSet<Terminal>>,
     follow_sets: FxHashMap<&'a Nonterminal, FxHashSet<Terminal>>,
@@ -16,6 +18,7 @@ impl<'a> FirstFollowSets<'a> {
     pub fn new(grammar: &'a Grammar) -> Self {
         let mut ff = FirstFollowSets {
             grammar,
+            reachability: ReachabilityGraph::new(grammar),
             nullables: FxHashSet::default(),
             first_sets: FxHashMap::default(),
             follow_sets: FxHashMap::default(),
@@ -43,9 +46,9 @@ impl<'a> FirstFollowSets<'a> {
         set
     }
 
-    /// A nonterminal is LL(1) if the prediction sets of all its alternatives
-    /// are pairwise disjoint.
-    pub fn is_ll1(&self, nt: &Nonterminal) -> bool {
+    /// Returns true if the prediction sets of all alternatives of a nonterminal
+    /// are pairwise disjoint. This is necessary but not sufficient for LL(1).
+    pub fn has_disjoint_alternatives(&self, nt: &Nonterminal) -> bool {
         let alternatives = self.grammar.alternatives(nt);
         let prediction_sets: Vec<_> = alternatives
             .iter()
@@ -59,6 +62,17 @@ impl<'a> FirstFollowSets<'a> {
             }
         }
         true
+    }
+
+    /// A nonterminal is LL(1)-parseable if it has disjoint alternatives AND all
+    /// nonterminals it transitively references also have disjoint alternatives.
+    pub fn is_ll1(&self, nt: &Nonterminal) -> bool {
+        self.has_disjoint_alternatives(nt)
+            && self
+                .reachability
+                .reachable(nt)
+                .iter()
+                .all(|referenced| self.has_disjoint_alternatives(referenced))
     }
 
     /// Returns the FIRST set of an alternative. Walks symbols left to right,
@@ -609,9 +623,11 @@ mod tests {
         let follow_a = &ff.follow_sets[grammar.nonterminal("A").unwrap()];
         assert!(follow_a.contains(&ta));
 
-        // LL(1): S is LL(1) ({"a"} vs {"b"}, disjoint)
-        assert!(ff.is_ll1(grammar.nonterminal("S").unwrap()));
-        // A is NOT LL(1): prediction(A → "a" A) = {"a"}, prediction(A → ε) = FOLLOW(A) = {"a"}
+        // S has disjoint alternatives ({"a"} vs {"b"}) but is NOT LL(1)
+        // because it references A which is not LL(1)
+        assert!(ff.has_disjoint_alternatives(grammar.nonterminal("S").unwrap()));
+        assert!(!ff.is_ll1(grammar.nonterminal("S").unwrap()));
+        // A is NOT LL(1): prediction(A -> "a" A) = {"a"}, prediction(A -> e) = FOLLOW(A) = {"a"}
         assert!(!ff.is_ll1(grammar.nonterminal("A").unwrap()));
     }
 
@@ -661,9 +677,11 @@ mod tests {
         let follow_a = &ff.follow_sets[grammar.nonterminal("A").unwrap()];
         assert!(follow_a.contains(&tb));
 
-        // LL(1): S has one alternative → trivially LL(1)
-        assert!(ff.is_ll1(grammar.nonterminal("S").unwrap()));
-        // A is NOT LL(1): prediction(A → "b") = {"b"}, prediction(A → ε) = FOLLOW(A) ⊇ {"b"}
+        // S has one alternative so disjoint trivially, but NOT LL(1)
+        // because it references A which is not LL(1)
+        assert!(ff.has_disjoint_alternatives(grammar.nonterminal("S").unwrap()));
+        assert!(!ff.is_ll1(grammar.nonterminal("S").unwrap()));
+        // A is NOT LL(1): prediction(A -> "b") = {"b"}, prediction(A -> e) = FOLLOW(A) contains {"b"}
         assert!(!ff.is_ll1(grammar.nonterminal("A").unwrap()));
     }
 }
