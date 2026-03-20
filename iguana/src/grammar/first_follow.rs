@@ -1,7 +1,7 @@
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::grammar::{
-    def::Grammar,
+    def::{Alternative, Grammar},
     symbols::{Definition, Nonterminal, Symbol, Terminal},
 };
 
@@ -30,17 +30,51 @@ impl<'a> FirstFollowSets<'a> {
         Terminal::new("EOF")
     }
 
-    pub fn is_nullable(&self, nt: &Nonterminal) -> bool {
-        self.nullables.contains(nt)
+    /// Returns the prediction set (director set) for an alternative of a nonterminal.
+    ///
+    /// The prediction set is:
+    /// - FIRST(α) if α is not nullable
+    /// - FIRST(α) ∪ FOLLOW(A) if α is nullable
+    pub fn prediction_set(&self, nt: &Nonterminal, alt: &Alternative) -> FxHashSet<Terminal> {
+        let mut set = self.first_set(alt);
+        if alt.symbols.iter().all(|s| self.is_nullable(s)) {
+            set.extend(self.follow_sets[nt].iter().cloned());
+        }
+        set
     }
 
-    pub fn first_set(&self, nt: &Nonterminal) -> impl Iterator<Item = &Terminal> {
-        self.first_sets[nt].iter()
+    /// A nonterminal is LL(1) if the prediction sets of all its alternatives
+    /// are pairwise disjoint.
+    pub fn is_ll1(&self, nt: &Nonterminal) -> bool {
+        let alternatives = self.grammar.alternatives(nt);
+        let prediction_sets: Vec<_> = alternatives
+            .iter()
+            .map(|alt| self.prediction_set(nt, alt))
+            .collect();
+        for i in 0..prediction_sets.len() {
+            for j in i + 1..prediction_sets.len() {
+                if !prediction_sets[i].is_disjoint(&prediction_sets[j]) {
+                    return false;
+                }
+            }
+        }
+        true
     }
 
-    pub fn follow_set(&self, nt: &Nonterminal) -> impl Iterator<Item = &Terminal> {
-        self.follow_sets[nt].iter()
+    /// Returns the FIRST set of an alternative. Walks symbols left to right,
+    /// collecting FIRST of each symbol, stopping at the first non-nullable.
+    fn first_set(&self, alt: &Alternative) -> FxHashSet<Terminal> {
+        let mut set = FxHashSet::default();
+        for symbol in &alt.symbols {
+            let firsts = self.first_of_symbol(symbol);
+            set.extend(firsts);
+            if !self.is_nullable(symbol) {
+                break;
+            }
+        }
+        set
     }
+
 
     // -- Nullables --
 
@@ -56,7 +90,7 @@ impl<'a> FirstFollowSets<'a> {
                     if alternative
                         .symbols
                         .iter()
-                        .all(|s| self.is_symbol_nullable(s))
+                        .all(|s| self.is_nullable(s))
                     {
                         self.nullables.insert(nonterminal);
                         changed = true;
@@ -67,10 +101,10 @@ impl<'a> FirstFollowSets<'a> {
         }
     }
 
-    fn is_symbol_nullable(&self, s: &Symbol) -> bool {
+    fn is_nullable(&self, s: &Symbol) -> bool {
         match s {
             Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => {
-                self.is_symbol_nullable(symbol)
+                self.is_nullable(symbol)
             }
             Symbol::Identifier(id) => {
                 let def_id = id.resolve();
@@ -78,19 +112,19 @@ impl<'a> FirstFollowSets<'a> {
                     Definition::Terminal(terminal) => self
                         .grammar
                         .lexical_rule(terminal)
-                        .map_or(false, |rule| rule.regex.is_nullable()),
+                        .is_some_and(|rule| rule.regex.is_nullable()),
                     Definition::Nonterminal(nt) => self.nullables.contains(nt),
                 }
             }
             Symbol::Literal(_) => false,
-            Symbol::Group(symbols) => symbols.iter().all(|s| self.is_symbol_nullable(s)),
+            Symbol::Group(symbols) => symbols.iter().all(|s| self.is_nullable(s)),
             Symbol::Opt(_) | Symbol::Star(_, _) => true,
-            Symbol::Alt(symbols) => symbols.iter().any(|s| self.is_symbol_nullable(s)),
-            Symbol::Plus(symbol, _) => self.is_symbol_nullable(symbol),
+            Symbol::Alt(symbols) => symbols.iter().any(|s| self.is_nullable(s)),
+            Symbol::Plus(symbol, _) => self.is_nullable(symbol),
             Symbol::Except { symbol, .. }
             | Symbol::FollowRestriction { symbol, .. }
             | Symbol::PrecedeRestriction { symbol, .. }
-            | Symbol::Exclude { symbol, .. } => self.is_symbol_nullable(symbol),
+            | Symbol::Exclude { symbol, .. } => self.is_nullable(symbol),
             Symbol::Call { .. } | Symbol::Condition(_) | Symbol::Return(_) => false,
         }
     }
@@ -113,7 +147,7 @@ impl<'a> FirstFollowSets<'a> {
                         let old_len = target_set.len();
                         target_set.extend(firsts);
                         changed |= target_set.len() > old_len;
-                        if !self.is_symbol_nullable(symbol) {
+                        if !self.is_nullable(symbol) {
                             break;
                         }
                     }
@@ -160,7 +194,7 @@ impl<'a> FirstFollowSets<'a> {
             Symbol::Group(symbols) => {
                 for s in symbols {
                     self.collect_first_of_symbol(s, result);
-                    if !self.is_symbol_nullable(s) {
+                    if !self.is_nullable(s) {
                         break;
                     }
                 }
@@ -246,13 +280,13 @@ impl<'a> FirstFollowSets<'a> {
                             let old_len = follow_b.len();
                             follow_b.extend(firsts);
                             changed |= follow_b.len() > old_len;
-                            if !self.is_symbol_nullable(s) {
+                            if !self.is_nullable(s) {
                                 break;
                             }
                         }
 
                         // If the entire suffix is nullable, add FOLLOW(A) to FOLLOW(B)
-                        if suffix.iter().all(|s| self.is_symbol_nullable(s)) {
+                        if suffix.iter().all(|s| self.is_nullable(s)) {
                             let follow_a: Vec<_> =
                                 self.follow_sets[nonterminal].iter().cloned().collect();
                             let follow_b = self.follow_sets.get_mut(nt_b).unwrap();
@@ -281,7 +315,6 @@ mod tests {
     //   Tp = "*" F Tp | ε
     //   F  = "(" E ")" | "id"
     // ---------------------------------------------------------------
-
     fn expression_grammar() -> Grammar {
         grammar_def!("expr",
             syntax: [
@@ -309,11 +342,11 @@ mod tests {
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
-        assert!(ff.is_nullable(grammar.nonterminal("Ep").unwrap()));
-        assert!(ff.is_nullable(grammar.nonterminal("Tp").unwrap()));
-        assert!(!ff.is_nullable(grammar.nonterminal("E").unwrap()));
-        assert!(!ff.is_nullable(grammar.nonterminal("T").unwrap()));
-        assert!(!ff.is_nullable(grammar.nonterminal("F").unwrap()));
+        assert!(ff.nullables.contains(grammar.nonterminal("Ep").unwrap()));
+        assert!(ff.nullables.contains(grammar.nonterminal("Tp").unwrap()));
+        assert!(!ff.nullables.contains(grammar.nonterminal("E").unwrap()));
+        assert!(!ff.nullables.contains(grammar.nonterminal("T").unwrap()));
+        assert!(!ff.nullables.contains(grammar.nonterminal("F").unwrap()));
 
         // FIRST sets
         let lparen = Terminal::new("\"(\"");
@@ -324,7 +357,7 @@ mod tests {
         let layout = Terminal::new("Layout");
         let eof = FirstFollowSets::eof();
 
-        let first_e: FxHashSet<_> = ff.first_set(grammar.nonterminal("E").unwrap()).cloned().collect();
+        let first_e = &ff.first_sets[grammar.nonterminal("E").unwrap()];
         assert!(first_e.contains(&lparen));
         assert!(first_e.contains(&id_terminal));
         assert!(!first_e.contains(&layout));
@@ -332,48 +365,55 @@ mod tests {
         assert!(!first_e.contains(&star));
         assert!(!first_e.contains(&rparen));
 
-        let first_ep: FxHashSet<_> = ff.first_set(grammar.nonterminal("Ep").unwrap()).cloned().collect();
+        let first_ep = &ff.first_sets[grammar.nonterminal("Ep").unwrap()];
         assert!(first_ep.contains(&plus));
         assert_eq!(first_ep.len(), 1);
 
-        let first_f: FxHashSet<_> = ff.first_set(grammar.nonterminal("F").unwrap()).cloned().collect();
+        let first_f = &ff.first_sets[grammar.nonterminal("F").unwrap()];
         assert!(first_f.contains(&lparen));
         assert!(first_f.contains(&id_terminal));
         assert_eq!(first_f.len(), 2);
 
-        let first_tp: FxHashSet<_> = ff.first_set(grammar.nonterminal("Tp").unwrap()).cloned().collect();
+        let first_tp = &ff.first_sets[grammar.nonterminal("Tp").unwrap()];
         assert!(first_tp.contains(&star));
         assert_eq!(first_tp.len(), 1);
 
         // FOLLOW sets
         // FOLLOW(E) = { ")", EOF }
-        let follow_e: FxHashSet<_> = ff.follow_set(grammar.nonterminal("E").unwrap()).cloned().collect();
+        let follow_e = &ff.follow_sets[grammar.nonterminal("E").unwrap()];
         assert!(follow_e.contains(&rparen));
         assert!(follow_e.contains(&eof));
 
         // FOLLOW(Ep) = FOLLOW(E) = { ")", EOF }
-        let follow_ep: FxHashSet<_> = ff.follow_set(grammar.nonterminal("Ep").unwrap()).cloned().collect();
+        let follow_ep = &ff.follow_sets[grammar.nonterminal("Ep").unwrap()];
         assert!(follow_ep.contains(&rparen));
         assert!(follow_ep.contains(&eof));
 
         // FOLLOW(T) = { "+", ")", EOF }
-        let follow_t: FxHashSet<_> = ff.follow_set(grammar.nonterminal("T").unwrap()).cloned().collect();
+        let follow_t = &ff.follow_sets[grammar.nonterminal("T").unwrap()];
         assert!(follow_t.contains(&plus));
         assert!(follow_t.contains(&rparen));
         assert!(follow_t.contains(&eof));
 
         // FOLLOW(Tp) = FOLLOW(T) = { "+", ")", EOF }
-        let follow_tp: FxHashSet<_> = ff.follow_set(grammar.nonterminal("Tp").unwrap()).cloned().collect();
+        let follow_tp = &ff.follow_sets[grammar.nonterminal("Tp").unwrap()];
         assert!(follow_tp.contains(&plus));
         assert!(follow_tp.contains(&rparen));
         assert!(follow_tp.contains(&eof));
 
         // FOLLOW(F) = { "*", "+", ")", EOF }
-        let follow_f: FxHashSet<_> = ff.follow_set(grammar.nonterminal("F").unwrap()).cloned().collect();
+        let follow_f = &ff.follow_sets[grammar.nonterminal("F").unwrap()];
         assert!(follow_f.contains(&star));
         assert!(follow_f.contains(&plus));
         assert!(follow_f.contains(&rparen));
         assert!(follow_f.contains(&eof));
+
+        // LL(1): this grammar is LL(1)
+        assert!(ff.is_ll1(grammar.nonterminal("E").unwrap()));
+        assert!(ff.is_ll1(grammar.nonterminal("Ep").unwrap()));
+        assert!(ff.is_ll1(grammar.nonterminal("T").unwrap()));
+        assert!(ff.is_ll1(grammar.nonterminal("Tp").unwrap()));
+        assert!(ff.is_ll1(grammar.nonterminal("F").unwrap()));
     }
 
     // ---------------------------------------------------------------
@@ -384,7 +424,6 @@ mod tests {
     //   B = "b" | ε
     //   C = "c" | ε
     // ---------------------------------------------------------------
-
     fn nullable_prefix_grammar() -> Grammar {
         grammar_def!("nullable",
             syntax: [
@@ -402,10 +441,10 @@ mod tests {
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
-        assert!(ff.is_nullable(grammar.nonterminal("A").unwrap()));
-        assert!(ff.is_nullable(grammar.nonterminal("B").unwrap()));
-        assert!(ff.is_nullable(grammar.nonterminal("C").unwrap()));
-        assert!(!ff.is_nullable(grammar.nonterminal("S").unwrap()));
+        assert!(ff.nullables.contains(grammar.nonterminal("A").unwrap()));
+        assert!(ff.nullables.contains(grammar.nonterminal("B").unwrap()));
+        assert!(ff.nullables.contains(grammar.nonterminal("C").unwrap()));
+        assert!(!ff.nullables.contains(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
         let ta = Terminal::new("\"a\"");
@@ -414,41 +453,41 @@ mod tests {
         let td = Terminal::new("\"d\"");
         let layout = Terminal::new("Layout");
 
-        let first_s: FxHashSet<_> = ff.first_set(grammar.nonterminal("S").unwrap()).cloned().collect();
+        let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
         assert!(first_s.contains(&ta));
         assert!(first_s.contains(&tb));
         assert!(first_s.contains(&tc));
         assert!(first_s.contains(&td));
         assert!(first_s.contains(&layout));
 
-        let first_a: FxHashSet<_> = ff.first_set(grammar.nonterminal("A").unwrap()).cloned().collect();
+        let first_a = &ff.first_sets[grammar.nonterminal("A").unwrap()];
         assert!(first_a.contains(&ta));
         assert_eq!(first_a.len(), 1);
 
-        let first_b: FxHashSet<_> = ff.first_set(grammar.nonterminal("B").unwrap()).cloned().collect();
+        let first_b = &ff.first_sets[grammar.nonterminal("B").unwrap()];
         assert!(first_b.contains(&tb));
         assert_eq!(first_b.len(), 1);
 
-        let first_c: FxHashSet<_> = ff.first_set(grammar.nonterminal("C").unwrap()).cloned().collect();
+        let first_c = &ff.first_sets[grammar.nonterminal("C").unwrap()];
         assert!(first_c.contains(&tc));
         assert_eq!(first_c.len(), 1);
 
         // FOLLOW sets
         // FOLLOW(A) = { Layout, "b", "c", "d" }
-        let follow_a: FxHashSet<_> = ff.follow_set(grammar.nonterminal("A").unwrap()).cloned().collect();
+        let follow_a = &ff.follow_sets[grammar.nonterminal("A").unwrap()];
         assert!(follow_a.contains(&layout));
         assert!(follow_a.contains(&tb));
         assert!(follow_a.contains(&tc));
         assert!(follow_a.contains(&td));
 
         // FOLLOW(B) = { Layout, "c", "d" }
-        let follow_b: FxHashSet<_> = ff.follow_set(grammar.nonterminal("B").unwrap()).cloned().collect();
+        let follow_b = &ff.follow_sets[grammar.nonterminal("B").unwrap()];
         assert!(follow_b.contains(&layout));
         assert!(follow_b.contains(&tc));
         assert!(follow_b.contains(&td));
 
         // FOLLOW(C) = { Layout, "d" }
-        let follow_c: FxHashSet<_> = ff.follow_set(grammar.nonterminal("C").unwrap()).cloned().collect();
+        let follow_c = &ff.follow_sets[grammar.nonterminal("C").unwrap()];
         assert!(follow_c.contains(&layout));
         assert!(follow_c.contains(&td));
     }
@@ -460,7 +499,6 @@ mod tests {
     //   A = "a" | ε
     //   B = S "d" | ε
     // ---------------------------------------------------------------
-
     fn recursive_first_grammar() -> Grammar {
         grammar_def!("recursive",
             syntax: [
@@ -480,9 +518,9 @@ mod tests {
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
-        assert!(ff.is_nullable(grammar.nonterminal("A").unwrap()));
-        assert!(ff.is_nullable(grammar.nonterminal("B").unwrap()));
-        assert!(!ff.is_nullable(grammar.nonterminal("S").unwrap()));
+        assert!(ff.nullables.contains(grammar.nonterminal("A").unwrap()));
+        assert!(ff.nullables.contains(grammar.nonterminal("B").unwrap()));
+        assert!(!ff.nullables.contains(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
         let ta = Terminal::new("\"a\"");
@@ -491,17 +529,17 @@ mod tests {
         let layout = Terminal::new("Layout");
         let eof = FirstFollowSets::eof();
 
-        let first_s: FxHashSet<_> = ff.first_set(grammar.nonterminal("S").unwrap()).cloned().collect();
+        let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
         assert!(first_s.contains(&ta));
         assert!(first_s.contains(&tc));
         assert!(first_s.contains(&layout));
         assert!(!first_s.contains(&td));
 
-        let first_a: FxHashSet<_> = ff.first_set(grammar.nonterminal("A").unwrap()).cloned().collect();
+        let first_a = &ff.first_sets[grammar.nonterminal("A").unwrap()];
         assert!(first_a.contains(&ta));
         assert_eq!(first_a.len(), 1);
 
-        let first_b: FxHashSet<_> = ff.first_set(grammar.nonterminal("B").unwrap()).cloned().collect();
+        let first_b = &ff.first_sets[grammar.nonterminal("B").unwrap()];
         assert!(first_b.contains(&ta));
         assert!(first_b.contains(&tc));
         assert!(first_b.contains(&layout));
@@ -509,14 +547,123 @@ mod tests {
 
         // FOLLOW sets
         // FOLLOW(S) = { EOF, Layout, "d" }
-        let follow_s: FxHashSet<_> = ff.follow_set(grammar.nonterminal("S").unwrap()).cloned().collect();
+        let follow_s = &ff.follow_sets[grammar.nonterminal("S").unwrap()];
         assert!(follow_s.contains(&eof));
         assert!(follow_s.contains(&layout));
         assert!(follow_s.contains(&td));
 
         // FOLLOW(B) = { Layout, "c" }
-        let follow_b: FxHashSet<_> = ff.follow_set(grammar.nonterminal("B").unwrap()).cloned().collect();
+        let follow_b = &ff.follow_sets[grammar.nonterminal("B").unwrap()];
         assert!(follow_b.contains(&layout));
         assert!(follow_b.contains(&tc));
+    }
+
+    // ---------------------------------------------------------------
+    // Grammar 4: FIRST/FOLLOW conflict with right-recursive nullable
+    // (Appel, "Modern Compiler Implementation", Chapter 3)
+    //
+    //   S = A "a" | "b"
+    //   A = "a" A | ε
+    //
+    // A is nullable and right-recursive. FIRST(A → "a" A) = {"a"}.
+    // Prediction set of A → ε = FOLLOW(A) = {"a"}.
+    // Conflict on "a" → not LL(1).
+    // ---------------------------------------------------------------
+    fn appel_conflict_grammar() -> Grammar {
+        grammar_def!("appel",
+            syntax: [
+                syntax_rule!("S" => priority_level!(
+                    alternative!(id!("A"), lit!("a")),
+                    alternative!(lit!("b"))
+                )),
+                syntax_rule!("A" => priority_level!(
+                    alternative!(lit!("a"), id!("A")),
+                    alternative!()
+                ))
+            ]
+        ).into()
+    }
+
+    #[test]
+    fn test_appel_conflict_grammar() {
+        let grammar = appel_conflict_grammar();
+        let ff = FirstFollowSets::new(&grammar);
+
+        // Nullables
+        assert!(ff.nullables.contains(grammar.nonterminal("A").unwrap()));
+        assert!(!ff.nullables.contains(grammar.nonterminal("S").unwrap()));
+
+        // FIRST sets
+        let ta = Terminal::new("\"a\"");
+        let tb = Terminal::new("\"b\"");
+
+        let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
+        assert!(first_s.contains(&ta));
+        assert!(first_s.contains(&tb));
+
+        let first_a = &ff.first_sets[grammar.nonterminal("A").unwrap()];
+        assert!(first_a.contains(&ta));
+
+        // FOLLOW sets
+        // FOLLOW(A) = { "a" }, from S -> A "a"
+        let follow_a = &ff.follow_sets[grammar.nonterminal("A").unwrap()];
+        assert!(follow_a.contains(&ta));
+
+        // LL(1): S is LL(1) ({"a"} vs {"b"}, disjoint)
+        assert!(ff.is_ll1(grammar.nonterminal("S").unwrap()));
+        // A is NOT LL(1): prediction(A → "a" A) = {"a"}, prediction(A → ε) = FOLLOW(A) = {"a"}
+        assert!(!ff.is_ll1(grammar.nonterminal("A").unwrap()));
+    }
+
+    // ---------------------------------------------------------------
+    // Grammar 5: Simple FIRST/FOLLOW conflict with nullable
+    // (Grune & Jacobs, "Parsing Techniques")
+    //
+    //   S = A "b"
+    //   A = "b" | ε
+    //
+    // FIRST(A → "b") = {"b"}.
+    // Prediction set of A → ε = FOLLOW(A) = {"b"}.
+    // Conflict on "b" → not LL(1).
+    // ---------------------------------------------------------------
+    fn grune_conflict_grammar() -> Grammar {
+        grammar_def!("grune",
+            syntax: [
+                syntax_rule!("S" => alternative!(id!("A"), lit!("b"))),
+                syntax_rule!("A" => priority_level!(
+                    alternative!(lit!("b")),
+                    alternative!()
+                ))
+            ]
+        ).into()
+    }
+
+    #[test]
+    fn test_grune_conflict_grammar() {
+        let grammar = grune_conflict_grammar();
+        let ff = FirstFollowSets::new(&grammar);
+
+        // Nullables
+        assert!(ff.nullables.contains(grammar.nonterminal("A").unwrap()));
+        assert!(!ff.nullables.contains(grammar.nonterminal("S").unwrap()));
+
+        // FIRST sets
+        let tb = Terminal::new("\"b\"");
+
+        let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
+        assert!(first_s.contains(&tb));
+
+        let first_a = &ff.first_sets[grammar.nonterminal("A").unwrap()];
+        assert!(first_a.contains(&tb));
+
+        // FOLLOW sets
+        // FOLLOW(A) = { Layout, "b" }, from S -> A Layout "b"
+        let follow_a = &ff.follow_sets[grammar.nonterminal("A").unwrap()];
+        assert!(follow_a.contains(&tb));
+
+        // LL(1): S has one alternative → trivially LL(1)
+        assert!(ff.is_ll1(grammar.nonterminal("S").unwrap()));
+        // A is NOT LL(1): prediction(A → "b") = {"b"}, prediction(A → ε) = FOLLOW(A) ⊇ {"b"}
+        assert!(!ff.is_ll1(grammar.nonterminal("A").unwrap()));
     }
 }
