@@ -10,6 +10,7 @@ use crate::generator::id::TerminalIds;
 use crate::generator::utils::to_first_uppercase;
 use crate::generator::utils::to_snake_case;
 use crate::grammar::def::Grammar;
+use crate::grammar::first_follow::FirstFollowSets;
 use crate::grammar::slot::Slot;
 use crate::grammar::symbols::CondOp;
 use crate::grammar::symbols::Definition;
@@ -26,11 +27,12 @@ pub fn generate<'a>(
     slot_ids: &mut SlotIds<'a>,
     terminal_ids: &mut TerminalIds,
 ) -> TokenStream {
+    let ff = FirstFollowSets::new(grammar);
     let grammar_name = &grammar.name;
     let imports = gen_imports(grammar);
     let nonterminals = gen_nonterminals(nonterminal_ids);
     let nonterminal_ids_static_var = gen_nonterminal_ids(nonterminal_ids);
-    let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids);
+    let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids, &ff);
     let first_descriptors = gen_add_first_descriptors_method(grammar, nonterminal_ids, slot_ids);
     let terminals = gen_terminals(terminal_ids);
     let slots = gen_slots(slot_ids, grammar);
@@ -295,6 +297,7 @@ fn gen_execute_method<'a>(
     nonterminal_ids: &mut NonterminalIds,
     slot_ids: &mut SlotIds<'a>,
     terminal_ids: &mut TerminalIds,
+    ff: &FirstFollowSets,
 ) -> TokenStream {
     let mut slot_quotes = vec![];
     for nonterminal in grammar.nonterminals() {
@@ -302,7 +305,7 @@ fn gen_execute_method<'a>(
         for (index, alternative) in alternatives.iter().enumerate() {
             for pos in 0..alternative.symbols.len() {
                 let slot = Slot::new(nonterminal, alternative, pos);
-                slot_quotes.push(gen_slot_code(grammar, slot, terminal_ids, slot_ids));
+                slot_quotes.push(gen_slot_code(grammar, slot, terminal_ids, slot_ids, ff));
             }
             // Handle the last grammar slot
             let last_symbol_index = alternative.symbols.len();
@@ -433,6 +436,7 @@ fn gen_slot_code<'a>(
     slot: Slot<'a>,
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
+    ff: &FirstFollowSets,
 ) -> TokenStream {
     match slot.symbol() {
         Some(Symbol::Condition(expr)) => {
@@ -516,7 +520,11 @@ fn gen_slot_code<'a>(
                         unreachable!("Exclude should be desugared before code generation")
                     }
                 };
-                gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids, None)
+                if ff.is_ll1(nonterminal) {
+                    gen_ll1_nonterminal_slot(grammar, nonterminal, slot, slot_ids)
+                } else {
+                    gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids, None)
+                }
             }
         }
     } else {
@@ -837,6 +845,54 @@ fn gen_post_conditions_method<'a>(
             match slot {
                 #(#arms)*
                 _ => true,
+            }
+        }
+    }
+}
+
+fn gen_ll1_nonterminal_slot<'a>(
+    grammar: &'a Grammar,
+    nonterminal: &'a Nonterminal,
+    slot: Slot<'a>,
+    slot_ids: &mut SlotIds<'a>,
+) -> TokenStream {
+    let slot_id = slot_ids.id(&slot);
+    let slot_name = slot.name(grammar);
+    let next_slot = slot.next();
+    let next_slot_id = slot_ids.id(&next_slot);
+    let next_slot_name = next_slot.name(grammar);
+    let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+    let nonterminal_name = &nonterminal.name;
+    let new_node = if slot.is_first() {
+        quote! {
+            let new_node = right_child_id;
+            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+        }
+    } else {
+        quote! {
+            let left_child_id = result.expect("Result should not be None.");
+            let left_child = self.sppf_node(left_child_id);
+            let left_extent = left_child.left_extent();
+            if let Some(new_node) = self.create_intermediate_node_or_attach_children(
+                next_slot_id,
+                left_extent,
+                j,
+                left_child_id,
+                right_child_id,
+            ) {
+                self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+            }
+        }
+    };
+    quote! {
+        #[comment = #slot_name]
+        #slot_id => {
+            let i = input_index;
+            if let Some(right_child_id) = self.#method_name(i) {
+                let j = self.sppf_node(right_child_id).right_extent();
+                #[comment = #next_slot_name]
+                let next_slot_id = #next_slot_id;
+                #new_node
             }
         }
     }
