@@ -2727,7 +2727,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule : . SyntaxRule_Opt_3 Layout head:Identifier Layout "=" Layout SyntaxRule_Star_2
             SlotId(16) => {
-                self.create_syntax_rule_opt_3(result, gss_node_id, SlotId(17));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_syntax_rule_opt_3_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //SyntaxRule : SyntaxRule_Opt_3 . Layout head:Identifier Layout "=" Layout SyntaxRule_Star_2
+                    let next_slot_id = SlotId(17);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //SyntaxRule : SyntaxRule_Opt_3 . Layout head:Identifier Layout "=" Layout SyntaxRule_Star_2
             SlotId(17) => {
@@ -4021,7 +4028,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel : . PriorityLevel_Opt_7 Layout PriorityLevel_Star_4
             SlotId(58) => {
-                self.create_priority_level_opt_7(result, gss_node_id, SlotId(59));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_priority_level_opt_7_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //PriorityLevel : PriorityLevel_Opt_7 . Layout PriorityLevel_Star_4
+                    let next_slot_id = SlotId(59);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //PriorityLevel : PriorityLevel_Opt_7 . Layout PriorityLevel_Star_4
             SlotId(59) => {
@@ -4283,7 +4297,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative : Alternative_Star_5 Layout . Alternative_Opt_10
             SlotId(70) => {
-                self.create_alternative_opt_10(result, gss_node_id, SlotId(71));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_alternative_opt_10_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //Alternative : Alternative_Star_5 Layout Alternative_Opt_10.
+                    let next_slot_id = SlotId(71);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //Alternative : Alternative_Star_5 Layout Alternative_Opt_10.
             SlotId(71) => {
@@ -7507,7 +7540,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass : . neg:CharClass_Opt_11 Layout "[" Layout CharClass_Plus_12 Layout "]"
             SlotId(208) => {
-                self.create_char_class_opt_11(result, gss_node_id, SlotId(209));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_char_class_opt_11_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //CharClass : neg:CharClass_Opt_11 . Layout "[" Layout CharClass_Plus_12 Layout "]"
+                    let next_slot_id = SlotId(209);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //CharClass : neg:CharClass_Opt_11 . Layout "[" Layout CharClass_Plus_12 Layout "]"
             SlotId(209) => {
@@ -7741,7 +7781,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RangeElement : . Range
             SlotId(216) => {
-                self.create_range(result, gss_node_id, SlotId(217));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_range_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //RangeElement : Range.
+                    let next_slot_id = SlotId(217);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //RangeElement : Range.
             SlotId(217) => {
@@ -8517,7 +8564,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Opt_3 : . Annotation
             SlotId(251) => {
-                self.create_annotation(result, gss_node_id, SlotId(252));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_annotation_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //SyntaxRule_Opt_3 : Annotation.
+                    let next_slot_id = SlotId(252);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //SyntaxRule_Opt_3 : Annotation.
             SlotId(252) => {
@@ -8843,7 +8897,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Opt_5 : . PreCondition
             SlotId(267) => {
-                self.create_pre_condition(result, gss_node_id, SlotId(268));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_pre_condition_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //RegexRule_Opt_5 : PreCondition.
+                    let next_slot_id = SlotId(268);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //RegexRule_Opt_5 : PreCondition.
             SlotId(268) => {
@@ -9231,7 +9292,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_5 : RegexRule_Plus_5 Layout . PostCondition
             SlotId(286) => {
-                self.create_post_condition(result, gss_node_id, SlotId(287));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_post_condition_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //RegexRule_Plus_5 : RegexRule_Plus_5 Layout PostCondition.
+                    let next_slot_id = SlotId(287);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //RegexRule_Plus_5 : RegexRule_Plus_5 Layout PostCondition.
             SlotId(287) => {
@@ -9261,7 +9341,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_5 : . PostCondition
             SlotId(288) => {
-                self.create_post_condition(result, gss_node_id, SlotId(289));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_post_condition_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //RegexRule_Plus_5 : PostCondition.
+                    let next_slot_id = SlotId(289);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //RegexRule_Plus_5 : PostCondition.
             SlotId(289) => {
@@ -9377,7 +9464,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Opt_7 : . Associativity
             SlotId(295) => {
-                self.create_associativity(result, gss_node_id, SlotId(296));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_associativity_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //PriorityLevel_Opt_7 : Associativity.
+                    let next_slot_id = SlotId(296);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //PriorityLevel_Opt_7 : Associativity.
             SlotId(296) => {
@@ -10335,7 +10429,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_9 : Symbol_Plus_9 Layout . Symbol_Group_1
             SlotId(341) => {
-                self.create_symbol_group_1(result, gss_node_id, SlotId(342));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_symbol_group_1_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //Symbol_Plus_9 : Symbol_Plus_9 Layout Symbol_Group_1.
+                    let next_slot_id = SlotId(342);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //Symbol_Plus_9 : Symbol_Plus_9 Layout Symbol_Group_1.
             SlotId(342) => {
@@ -10365,7 +10478,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_9 : . Symbol_Group_1
             SlotId(343) => {
-                self.create_symbol_group_1(result, gss_node_id, SlotId(344));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_symbol_group_1_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //Symbol_Plus_9 : Symbol_Group_1.
+                    let next_slot_id = SlotId(344);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //Symbol_Plus_9 : Symbol_Group_1.
             SlotId(344) => {
@@ -10567,7 +10687,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_10 : Symbol_Plus_10 Layout . Symbol_Group_2
             SlotId(351) => {
-                self.create_symbol_group_2(result, gss_node_id, SlotId(352));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_symbol_group_2_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //Symbol_Plus_10 : Symbol_Plus_10 Layout Symbol_Group_2.
+                    let next_slot_id = SlotId(352);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //Symbol_Plus_10 : Symbol_Plus_10 Layout Symbol_Group_2.
             SlotId(352) => {
@@ -10597,7 +10736,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_10 : . Symbol_Group_2
             SlotId(353) => {
-                self.create_symbol_group_2(result, gss_node_id, SlotId(354));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_symbol_group_2_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //Symbol_Plus_10 : Symbol_Group_2.
+                    let next_slot_id = SlotId(354);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //Symbol_Plus_10 : Symbol_Group_2.
             SlotId(354) => {
@@ -13592,7 +13738,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartAnnotation : Layout . start:Annotation Layout
             SlotId(486) => {
-                self.create_annotation(result, gss_node_id, SlotId(487));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_annotation_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //StartAnnotation : Layout start:Annotation . Layout
+                    let next_slot_id = SlotId(487);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //StartAnnotation : Layout start:Annotation . Layout
             SlotId(487) => {
@@ -13776,7 +13941,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartPreCondition : Layout . start:PreCondition Layout
             SlotId(494) => {
-                self.create_pre_condition(result, gss_node_id, SlotId(495));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_pre_condition_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //StartPreCondition : Layout start:PreCondition . Layout
+                    let next_slot_id = SlotId(495);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //StartPreCondition : Layout start:PreCondition . Layout
             SlotId(495) => {
@@ -13868,7 +14052,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartPostCondition : Layout . start:PostCondition Layout
             SlotId(498) => {
-                self.create_post_condition(result, gss_node_id, SlotId(499));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_post_condition_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //StartPostCondition : Layout start:PostCondition . Layout
+                    let next_slot_id = SlotId(499);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //StartPostCondition : Layout start:PostCondition . Layout
             SlotId(499) => {
@@ -14052,7 +14255,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartAssociativity : Layout . start:Associativity Layout
             SlotId(506) => {
-                self.create_associativity(result, gss_node_id, SlotId(507));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_associativity_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //StartAssociativity : Layout start:Associativity . Layout
+                    let next_slot_id = SlotId(507);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //StartAssociativity : Layout start:Associativity . Layout
             SlotId(507) => {
@@ -14604,7 +14826,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartRange : Layout . start:Range Layout
             SlotId(530) => {
-                self.create_range(result, gss_node_id, SlotId(531));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_range_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //StartRange : Layout start:Range . Layout
+                    let next_slot_id = SlotId(531);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //StartRange : Layout start:Range . Layout
             SlotId(531) => {
@@ -16839,6 +17080,54 @@ impl<'i> IggyParser<'i> {
             );
             self.add_gss_node_symbol_except_except(i, p, new_gss_node_id);
         }
+    }
+    fn parse_annotation_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_pre_condition_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_post_condition_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_associativity_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_range_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_syntax_rule_opt_3_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_priority_level_opt_7_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_alternative_opt_10_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_symbol_group_1_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_symbol_group_2_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_char_class_opt_11_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_start_annotation_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_start_pre_condition_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_start_post_condition_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_start_associativity_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
+    }
+    fn parse_start_range_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
+        todo!("LL(1) parse method generation")
     }
     fn get_gss_node_symbol(&self, input_index: u32, p: i32) -> Option<GssNodeId> {
         self.gss_nodes_index_symbol

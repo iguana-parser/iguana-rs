@@ -71,7 +71,7 @@ pub fn generate<'a>(
     let clone_env_method = gen_clone_env();
     let post_conditions_method = gen_post_conditions_method(grammar, slot_ids, terminal_ids);
     let parser_struct = gen_parser_struct(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
-    let parser_impl = gen_parser_impl(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
+    let parser_impl = gen_parser_impl(grammar_name, grammar, &ff, nonterminal_ids, terminal_ids, slot_ids);
     let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
     quote! {
         #imports
@@ -446,7 +446,7 @@ fn gen_slot_code<'a>(
             return gen_return_code(grammar, &slot, slot_ids);
         }
         Some(Symbol::Except { symbol, except }) => {
-            return gen_except_code(grammar, symbol, except.as_slice(), &slot, terminal_ids, slot_ids);
+            return gen_except_code(grammar, symbol, except.as_slice(), &slot, terminal_ids, slot_ids, ff);
         }
         Some(Symbol::FollowRestriction {
             symbol,
@@ -459,6 +459,7 @@ fn gen_slot_code<'a>(
                 &slot,
                 terminal_ids,
                 slot_ids,
+                ff,
             );
         }
         Some(Symbol::PrecedeRestriction {
@@ -472,6 +473,7 @@ fn gen_slot_code<'a>(
                 &slot,
                 terminal_ids,
                 slot_ids,
+                ff,
             );
         }
         Some(Symbol::Exclude { .. }) => {
@@ -497,7 +499,7 @@ fn gen_slot_code<'a>(
         let def = grammar.definition(def_id);
         match def {
             Definition::Terminal(terminal) => {
-                gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids, &[])
+                gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids, &[], &[])
             }
             Definition::Nonterminal(nonterminal) => {
                 let arguments = match symbol.unwrap() {
@@ -520,11 +522,7 @@ fn gen_slot_code<'a>(
                         unreachable!("Exclude should be desugared before code generation")
                     }
                 };
-                if ff.is_ll1(nonterminal) {
-                    gen_ll1_nonterminal_slot(grammar, nonterminal, slot, slot_ids)
-                } else {
-                    gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids, None)
-                }
+                gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids, &[], &[], ff)
             }
         }
     } else {
@@ -539,6 +537,7 @@ fn gen_terminal_slot<'a>(
     slot: Slot<'a>,
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
+    pre_conditions: &[TokenStream],
     post_conditions: &[TokenStream],
 ) -> TokenStream {
     let terminal_id = terminal_ids
@@ -580,11 +579,19 @@ fn gen_terminal_slot<'a>(
     let next_slot = slot.next();
     let next_slot_id = slot_ids.id(&next_slot);
     let next_slot_name = next_slot.name(grammar);
+    let pre_condition_check = if pre_conditions.is_empty() {
+        quote! {}
+    } else {
+        quote! {
+            if !(#(#pre_conditions)&&*) { return; }
+        }
+    };
     let terminal_name = &terminal.name;
     quote! {
         #[comment = #current_slot_name]
         #slot_id => {
             let i = input_index;
+            #pre_condition_check
             record!(self, MatchingTerminal, #terminal_name, i);
             match self.scanner.match_token(#terminal_id, i) {
                 Some(j) => {
@@ -613,6 +620,7 @@ fn gen_except_code<'a>(
     slot: &Slot<'a>,
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
+    ff: &FirstFollowSets,
 ) -> TokenStream {
     let Some(identifier) = symbol.as_identifier() else {
         return quote! {};
@@ -641,15 +649,22 @@ fn gen_except_code<'a>(
                     }
                 })
                 .collect();
-            gen_terminal_slot(grammar, terminal, slot.clone(), terminal_ids, slot_ids, &post_conditions)
+            gen_terminal_slot(grammar, terminal, slot.clone(), terminal_ids, slot_ids, &[], &post_conditions)
         }
-        // For nonterminals, the except check is handled via post_conditions in the runtime.
         Definition::Nonterminal(nonterminal) => {
             let arguments = match symbol.unwrap() {
                 Symbol::Call { arguments, .. } => arguments.clone(),
                 _ => vec![],
             };
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, None)
+            let post_conditions: Vec<_> = except_terminal_ids
+                .iter()
+                .map(|id| {
+                    quote! {
+                        self.scanner.match_token(#id, i) != Some(j)
+                    }
+                })
+                .collect();
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &[], &post_conditions, ff)
         }
     }
 }
@@ -661,6 +676,7 @@ fn gen_follow_restriction_code<'a>(
     slot: &Slot<'a>,
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
+    ff: &FirstFollowSets,
 ) -> TokenStream {
     let Some(identifier) = symbol.as_identifier() else {
         return quote! {};
@@ -689,16 +705,19 @@ fn gen_follow_restriction_code<'a>(
                 slot.clone(),
                 terminal_ids,
                 slot_ids,
+                &[],
                 &post_conditions,
             )
         }
-        // For nonterminals, the follow restriction check is handled via post_conditions in the runtime.
         Definition::Nonterminal(nonterminal) => {
             let arguments = match symbol.unwrap() {
                 Symbol::Call { arguments, .. } => arguments.clone(),
                 _ => vec![],
             };
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, None)
+            let post_conditions = vec![quote! {
+                self.scanner.match_token(#restriction_terminal_id, j).is_none()
+            }];
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &[], &post_conditions, ff)
         }
     }
 }
@@ -710,6 +729,7 @@ fn gen_precede_restriction_code<'a>(
     slot: &Slot<'a>,
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
+    ff: &FirstFollowSets,
 ) -> TokenStream {
     let Some(identifier) = symbol.as_identifier() else {
         return quote! {};
@@ -739,6 +759,7 @@ fn gen_precede_restriction_code<'a>(
                 terminal_ids,
                 slot_ids,
                 &pre_conditions,
+                &[],
             )
         }
         Definition::Nonterminal(nonterminal) => {
@@ -746,10 +767,10 @@ fn gen_precede_restriction_code<'a>(
                 Symbol::Call { arguments, .. } => arguments.clone(),
                 _ => vec![],
             };
-            let pre_condition = quote! {
+            let pre_conditions = vec![quote! {
                 input_index == 0 || self.scanner.match_token(#restriction_terminal_id, input_index - 1).is_none()
-            };
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, Some(pre_condition))
+            }];
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &pre_conditions, &[], ff)
         }
     }
 }
@@ -850,88 +871,87 @@ fn gen_post_conditions_method<'a>(
     }
 }
 
-fn gen_ll1_nonterminal_slot<'a>(
-    grammar: &'a Grammar,
-    nonterminal: &'a Nonterminal,
-    slot: Slot<'a>,
-    slot_ids: &mut SlotIds<'a>,
-) -> TokenStream {
-    let slot_id = slot_ids.id(&slot);
-    let slot_name = slot.name(grammar);
-    let next_slot = slot.next();
-    let next_slot_id = slot_ids.id(&next_slot);
-    let next_slot_name = next_slot.name(grammar);
-    let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
-    let nonterminal_name = &nonterminal.name;
-    let new_node = if slot.is_first() {
-        quote! {
-            let new_node = right_child_id;
-            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
-        }
-    } else {
-        quote! {
-            let left_child_id = result.expect("Result should not be None.");
-            let left_child = self.sppf_node(left_child_id);
-            let left_extent = left_child.left_extent();
-            if let Some(new_node) = self.create_intermediate_node_or_attach_children(
-                next_slot_id,
-                left_extent,
-                j,
-                left_child_id,
-                right_child_id,
-            ) {
-                self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
-            }
-        }
-    };
-    quote! {
-        #[comment = #slot_name]
-        #slot_id => {
-            let i = input_index;
-            if let Some(right_child_id) = self.#method_name(i) {
-                let j = self.sppf_node(right_child_id).right_extent();
-                #[comment = #next_slot_name]
-                let next_slot_id = #next_slot_id;
-                #new_node
-            }
-        }
-    }
-}
-
 fn gen_nonterminal_slot<'a>(
     grammar: &'a Grammar,
     nonterminal: &'a Nonterminal,
     arguments: &[Expr],
     slot: Slot<'a>,
     slot_ids: &mut SlotIds<'a>,
-    pre_condition: Option<TokenStream>,
+    pre_conditions: &[TokenStream],
+    post_conditions: &[TokenStream],
+    ff: &FirstFollowSets,
 ) -> TokenStream {
     let slot_id = slot_ids.id(&slot);
     let slot_name = slot.name(grammar);
     let next_slot = slot.next();
-    let return_slot_id = slot_ids.id(&next_slot);
-    let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
-    let arguments: Vec<_> = arguments.iter().map(gen_expr).collect();
-    let bindings = if let Some(Symbol::Binding { name, .. }) = slot.symbol() {
-        quote! { Some(#name) }
+    let next_slot_id = slot_ids.id(&next_slot);
+    let pre_condition_check = if pre_conditions.is_empty() {
+        quote! {}
     } else {
-        quote! { None }
+        quote! { if !(#(#pre_conditions)&&*) { return; } }
     };
-    let arguments = if nonterminal.parameters.is_empty() {
-        quote! { result, gss_node_id, #return_slot_id }
+    if ff.is_ll1(nonterminal) {
+        let next_slot_name = next_slot.name(grammar);
+        let post_condition_check = if post_conditions.is_empty() {
+            quote! {}
+        } else {
+            quote! { if !(#(#post_conditions)&&*) { return; } }
+        };
+        let new_node = if slot.is_first() {
+            quote! {
+                let new_node = right_child_id;
+                self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+            }
+        } else {
+            quote! {
+                let left_child_id = result.expect("Result should not be None.");
+                let left_child = self.sppf_node(left_child_id);
+                let left_extent = left_child.left_extent();
+                if let Some(new_node) = self.create_intermediate_node_or_attach_children(
+                    next_slot_id,
+                    left_extent,
+                    j,
+                    left_child_id,
+                    right_child_id,
+                ) {
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
+            }
+        };
+        let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+        quote! {
+            #[comment = #slot_name]
+            #slot_id => {
+                let i = input_index;
+                #pre_condition_check
+                if let Some(right_child_id) = self.#method_name(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    #post_condition_check
+                    #[comment = #next_slot_name]
+                    let next_slot_id = #next_slot_id;
+                    #new_node
+                }
+            }
+        }
     } else {
-        quote! { result, gss_node_id, #return_slot_id, env, #bindings, #(#arguments),* }
-    };
-    let call = quote! { self.#method_name(#arguments); };
-    let body = if let Some(condition) = pre_condition {
-        quote! { if #condition { #call } }
-    } else {
-        call
-    };
-    quote! {
-        #[comment = #slot_name]
-        #slot_id => {
-            #body
+        let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
+        let arguments: Vec<_> = arguments.iter().map(gen_expr).collect();
+        let bindings = if let Some(Symbol::Binding { name, .. }) = slot.symbol() {
+            quote! { Some(#name) }
+        } else {
+            quote! { None }
+        };
+        let arguments = if nonterminal.parameters.is_empty() {
+            quote! { result, gss_node_id, #next_slot_id }
+        } else {
+            quote! { result, gss_node_id, #next_slot_id, env, #bindings, #(#arguments),* }
+        };
+        quote! {
+            #[comment = #slot_name]
+            #slot_id => {
+                #pre_condition_check
+                self.#method_name(#arguments);
+            }
         }
     }
 }
@@ -1441,11 +1461,13 @@ fn gen_parser_struct(
     }
 }
 
-fn gen_parser_impl(
+fn gen_parser_impl<'a>(
     grammar_name: &str,
-    nonterminal_ids: &NonterminalIds,
-    terminal_ids: &TerminalIds,
-    slot_ids: &SlotIds,
+    grammar: &'a Grammar,
+    ff: &FirstFollowSets<'a>,
+    nonterminal_ids: &mut NonterminalIds,
+    terminal_ids: &mut TerminalIds,
+    slot_ids: &mut SlotIds<'a>,
 ) -> TokenStream {
     let new_method = gen_new_method(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let name_ident = format_ident!("{}{}", grammar_name, "Parser");
@@ -1453,6 +1475,11 @@ fn gen_parser_impl(
         .nonterminals()
         .enumerate()
         .map(|(i, n)| gen_create_method(n, i))
+        .collect();
+    let ll1_parse_methods: Vec<_> = grammar
+        .nonterminals()
+        .filter(|nt| ff.is_ll1(nt))
+        .map(|nt| gen_ll1_parse_method(grammar, nt, ff, nonterminal_ids, terminal_ids, slot_ids))
         .collect();
     let get_gss_node_methods: Vec<_> = nonterminal_ids
         .dd_nonterminals()
@@ -1478,6 +1505,7 @@ fn gen_parser_impl(
         impl<'i> #name_ident<'i> {
             #new_method
             #(#create_methods)*
+            #(#ll1_parse_methods)*
             #(#get_gss_node_methods)*
             #(#add_gss_node_methods)*
             #(#specialized_lookup_nonterminal_node_methods)*
@@ -1563,6 +1591,22 @@ fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
                     self.#add_gss_node_method_name(i, #(#param_names,)* new_gss_node_id);
                 }
             }
+        }
+    }
+}
+
+fn gen_ll1_parse_method<'a>(
+    _grammar: &'a Grammar,
+    nonterminal: &'a Nonterminal,
+    _ff: &FirstFollowSets<'a>,
+    _nonterminal_ids: &mut NonterminalIds,
+    _terminal_ids: &mut TerminalIds,
+    _slot_ids: &mut SlotIds<'a>,
+) -> TokenStream {
+    let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+    quote! {
+        fn #method_name(&mut self, _i: u32) -> Option<SPPFNodeId> {
+            todo!("LL(1) parse method generation")
         }
     }
 }
