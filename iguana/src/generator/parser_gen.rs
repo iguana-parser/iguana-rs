@@ -9,6 +9,7 @@ use crate::generator::id::SlotIds;
 use crate::generator::id::TerminalIds;
 use crate::generator::utils::to_first_uppercase;
 use crate::generator::utils::to_snake_case;
+use crate::grammar::def::Alternative;
 use crate::grammar::def::Grammar;
 use crate::grammar::first_follow::FirstFollowSets;
 use crate::grammar::slot::Slot;
@@ -20,6 +21,9 @@ use crate::grammar::symbols::Nonterminal;
 use crate::grammar::symbols::Parameter;
 use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
+use crate::ids::NonterminalId;
+use crate::ids::SlotId;
+use rustc_hash::FxHashSet;
 
 pub fn generate<'a>(
     grammar: &'a Grammar,
@@ -1595,20 +1599,158 @@ fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
     }
 }
 
-fn gen_ll1_parse_method<'a>(
-    _grammar: &'a Grammar,
-    nonterminal: &'a Nonterminal,
-    _ff: &FirstFollowSets<'a>,
-    _nonterminal_ids: &mut NonterminalIds,
-    _terminal_ids: &mut TerminalIds,
-    _slot_ids: &mut SlotIds<'a>,
+fn gen_prediction_set_check(
+    prediction_set: &FxHashSet<Terminal>,
+    terminal_ids: &TerminalIds,
 ) -> TokenStream {
-    let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
-    quote! {
-        fn #method_name(&mut self, _i: u32) -> Option<SPPFNodeId> {
-            todo!("LL(1) parse method generation")
+    let mut checks: Vec<TokenStream> = vec![];
+    for terminal in prediction_set {
+        if terminal.name == "EOF" {
+            checks.push(quote! { i == self.input().len() });
+        } else {
+            let terminal_id = terminal_ids
+                .get_id(terminal)
+                .unwrap_or_else(|| {
+                    panic!("terminal not found in prediction set: {}", terminal.name)
+                });
+            checks.push(quote! { self.scanner.match_token(#terminal_id, i).is_some() });
         }
     }
+    if checks.is_empty() {
+        quote! { false }
+    } else {
+        quote! { #(#checks)||* }
+    }
+}
+
+fn gen_ll1_parse_method<'a>(
+    grammar: &'a Grammar,
+    nonterminal: &'a Nonterminal,
+    ff: &FirstFollowSets<'a>,
+    nonterminal_ids: &mut NonterminalIds,
+    terminal_ids: &mut TerminalIds,
+    slot_ids: &mut SlotIds<'a>,
+) -> TokenStream {
+    let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+    let nonterminal_id = nonterminal_ids
+        .get_id(nonterminal)
+        .expect("nonterminal not found");
+    let alternatives = grammar.alternatives(nonterminal);
+    let mut alt_branches: Vec<TokenStream> = vec![];
+
+    for alternative in alternatives {
+        let prediction_set = ff.prediction_set(nonterminal, alternative);
+        let condition = gen_prediction_set_check(&prediction_set, terminal_ids);
+        let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
+        let end_slot_id = slot_ids.id(&end_slot);
+
+        if alternative.symbols.is_empty() {
+            let epsilon_id = Literal::usize_unsuffixed(terminal_ids.len());
+            alt_branches.push(quote! {
+                if #condition {
+                    let epsilon_node_id = self.get_or_create_terminal_node(
+                        TerminalId(#epsilon_id), i, i,
+                    );
+                    return self.create_nonterminal_node_or_attach_children(
+                        #nonterminal_id, #end_slot_id, i, i, epsilon_node_id,
+                    );
+                }
+            });
+        } else {
+            let body = gen_parse_alternative_ll1(
+                grammar, nonterminal, alternative, nonterminal_id, end_slot_id,
+                terminal_ids, slot_ids,
+            );
+            alt_branches.push(quote! {
+                if #condition {
+                    #body
+                }
+            });
+        }
+    }
+
+    quote! {
+        fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
+            #(#alt_branches)*
+            None
+        }
+    }
+}
+
+fn gen_parse_alternative_ll1<'a>(
+    grammar: &'a Grammar,
+    nonterminal: &'a Nonterminal,
+    alternative: &'a Alternative,
+    nonterminal_id: NonterminalId,
+    end_slot_id: SlotId,
+    terminal_ids: &mut TerminalIds,
+    slot_ids: &mut SlotIds<'a>,
+) -> TokenStream {
+    let mut body = vec![];
+    body.push(quote! { let mut j = i; });
+
+    for (pos, symbol) in alternative.symbols.iter().enumerate() {
+        let slot = Slot::new(nonterminal, alternative, pos);
+        let is_first = slot.is_first();
+        let next_slot = slot.next();
+        let next_slot_id = slot_ids.id(&next_slot);
+
+        let Some(identifier) = symbol.as_identifier() else {
+            continue;
+        };
+        let def_id = identifier.resolve();
+        let def = grammar.definition(def_id);
+
+        match def {
+            Definition::Terminal(terminal) => {
+                let terminal_id = terminal_ids
+                    .get_id(terminal)
+                    .unwrap_or_else(|| {
+                        panic!("terminal not found: {}", terminal.name)
+                    });
+                body.push(quote! {
+                    let right_child_id = {
+                        let end = self.scanner.match_token(#terminal_id, j)?;
+                        let node = self.get_or_create_terminal_node(#terminal_id, j, end);
+                        j = end;
+                        node
+                    };
+                });
+            }
+            Definition::Nonterminal(nt) => {
+                let nt_method =
+                    format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
+                body.push(quote! {
+                    let right_child_id = {
+                        let node = self.#nt_method(j)?;
+                        j = self.sppf_node(node).right_extent();
+                        node
+                    };
+                });
+            }
+        }
+
+        if is_first {
+            body.push(quote! {
+                let left_extent = self.sppf_node(right_child_id).left_extent();
+                let mut current = right_child_id;
+            });
+        } else {
+            body.push(quote! {
+                current = self.create_intermediate_node_or_attach_children(
+                    #next_slot_id, left_extent, j, current, right_child_id,
+                )?;
+            });
+        }
+    }
+
+    body.push(quote! {
+        return self.create_nonterminal_node_or_attach_children(
+            #nonterminal_id, #end_slot_id, left_extent, j, current,
+        );
+    });
+
+    quote! { #(#body)* }
 }
 
 fn gen_specialized_lookup_nonterminal_node_method(nt: &Nonterminal) -> TokenStream {
