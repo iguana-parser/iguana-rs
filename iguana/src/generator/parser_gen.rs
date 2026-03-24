@@ -30,13 +30,14 @@ pub fn generate<'a>(
     nonterminal_ids: &mut NonterminalIds,
     slot_ids: &mut SlotIds<'a>,
     terminal_ids: &mut TerminalIds,
+    config: &super::GenConfig,
 ) -> TokenStream {
     let ff = FirstFollowSets::new(grammar);
     let grammar_name = &grammar.name;
     let imports = gen_imports(grammar);
     let nonterminals = gen_nonterminals(nonterminal_ids);
     let nonterminal_ids_static_var = gen_nonterminal_ids(nonterminal_ids);
-    let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids, &ff);
+    let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids, &ff, config);
     let first_descriptors = gen_add_first_descriptors_method(grammar, nonterminal_ids, slot_ids);
     let terminals = gen_terminals(terminal_ids);
     let slots = gen_slots(slot_ids, grammar);
@@ -75,7 +76,7 @@ pub fn generate<'a>(
     let clone_env_method = gen_clone_env();
     let post_conditions_method = gen_post_conditions_method(grammar, slot_ids, terminal_ids);
     let parser_struct = gen_parser_struct(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
-    let parser_impl = gen_parser_impl(grammar_name, grammar, &ff, nonterminal_ids, terminal_ids, slot_ids);
+    let parser_impl = gen_parser_impl(grammar_name, grammar, &ff, nonterminal_ids, terminal_ids, slot_ids, config);
     let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
     quote! {
         #imports
@@ -302,6 +303,7 @@ fn gen_execute_method<'a>(
     slot_ids: &mut SlotIds<'a>,
     terminal_ids: &mut TerminalIds,
     ff: &FirstFollowSets,
+    config: &super::GenConfig,
 ) -> TokenStream {
     let mut slot_quotes = vec![];
     for nonterminal in grammar.nonterminals() {
@@ -309,7 +311,7 @@ fn gen_execute_method<'a>(
         for (index, alternative) in alternatives.iter().enumerate() {
             for pos in 0..alternative.symbols.len() {
                 let slot = Slot::new(nonterminal, alternative, pos);
-                slot_quotes.push(gen_slot_code(grammar, slot, terminal_ids, slot_ids, ff));
+                slot_quotes.push(gen_slot_code(grammar, slot, terminal_ids, slot_ids, ff, config));
             }
             // Handle the last grammar slot
             let last_symbol_index = alternative.symbols.len();
@@ -441,6 +443,7 @@ fn gen_slot_code<'a>(
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
     ff: &FirstFollowSets,
+    config: &super::GenConfig,
 ) -> TokenStream {
     match slot.symbol() {
         Some(Symbol::Condition(expr)) => {
@@ -450,7 +453,7 @@ fn gen_slot_code<'a>(
             return gen_return_code(grammar, &slot, slot_ids);
         }
         Some(Symbol::Except { symbol, except }) => {
-            return gen_except_code(grammar, symbol, except.as_slice(), &slot, terminal_ids, slot_ids, ff);
+            return gen_except_code(grammar, symbol, except.as_slice(), &slot, terminal_ids, slot_ids, ff, config);
         }
         Some(Symbol::FollowRestriction {
             symbol,
@@ -464,6 +467,7 @@ fn gen_slot_code<'a>(
                 terminal_ids,
                 slot_ids,
                 ff,
+                config,
             );
         }
         Some(Symbol::PrecedeRestriction {
@@ -478,6 +482,7 @@ fn gen_slot_code<'a>(
                 terminal_ids,
                 slot_ids,
                 ff,
+                config,
             );
         }
         Some(Symbol::Exclude { .. }) => {
@@ -526,7 +531,7 @@ fn gen_slot_code<'a>(
                         unreachable!("Exclude should be desugared before code generation")
                     }
                 };
-                gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids, &[], &[], ff)
+                gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids, &[], &[], ff, config)
             }
         }
     } else {
@@ -625,6 +630,7 @@ fn gen_except_code<'a>(
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
     ff: &FirstFollowSets,
+    config: &super::GenConfig,
 ) -> TokenStream {
     let Some(identifier) = symbol.as_identifier() else {
         return quote! {};
@@ -668,7 +674,7 @@ fn gen_except_code<'a>(
                     }
                 })
                 .collect();
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &[], &post_conditions, ff)
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &[], &post_conditions, ff, config)
         }
     }
 }
@@ -681,6 +687,7 @@ fn gen_follow_restriction_code<'a>(
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
     ff: &FirstFollowSets,
+    config: &super::GenConfig,
 ) -> TokenStream {
     let Some(identifier) = symbol.as_identifier() else {
         return quote! {};
@@ -721,7 +728,7 @@ fn gen_follow_restriction_code<'a>(
             let post_conditions = vec![quote! {
                 self.scanner.match_token(#restriction_terminal_id, j).is_none()
             }];
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &[], &post_conditions, ff)
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &[], &post_conditions, ff, config)
         }
     }
 }
@@ -734,6 +741,7 @@ fn gen_precede_restriction_code<'a>(
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
     ff: &FirstFollowSets,
+    config: &super::GenConfig,
 ) -> TokenStream {
     let Some(identifier) = symbol.as_identifier() else {
         return quote! {};
@@ -774,7 +782,7 @@ fn gen_precede_restriction_code<'a>(
             let pre_conditions = vec![quote! {
                 input_index == 0 || self.scanner.match_token(#restriction_terminal_id, input_index - 1).is_none()
             }];
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &pre_conditions, &[], ff)
+            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &pre_conditions, &[], ff, config)
         }
     }
 }
@@ -884,6 +892,7 @@ fn gen_nonterminal_slot<'a>(
     pre_conditions: &[TokenStream],
     post_conditions: &[TokenStream],
     ff: &FirstFollowSets,
+    config: &super::GenConfig,
 ) -> TokenStream {
     let slot_id = slot_ids.id(&slot);
     let slot_name = slot.name(grammar);
@@ -894,7 +903,7 @@ fn gen_nonterminal_slot<'a>(
     } else {
         quote! { if !(#(#pre_conditions)&&*) { return; } }
     };
-    if ff.is_ll1(nonterminal) {
+    if config.ll1_optimization && ff.is_ll1(nonterminal) {
         let next_slot_name = next_slot.name(grammar);
         let post_condition_check = if post_conditions.is_empty() {
             quote! {}
@@ -1472,6 +1481,7 @@ fn gen_parser_impl<'a>(
     nonterminal_ids: &mut NonterminalIds,
     terminal_ids: &mut TerminalIds,
     slot_ids: &mut SlotIds<'a>,
+    config: &super::GenConfig,
 ) -> TokenStream {
     let new_method = gen_new_method(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
     let name_ident = format_ident!("{}{}", grammar_name, "Parser");
@@ -1482,7 +1492,7 @@ fn gen_parser_impl<'a>(
         .collect();
     let ll1_parse_methods: Vec<_> = grammar
         .nonterminals()
-        .filter(|nt| ff.is_ll1(nt))
+        .filter(|nt| config.ll1_optimization && ff.is_ll1(nt))
         .map(|nt| gen_ll1_parse_method(grammar, nt, ff, nonterminal_ids, terminal_ids, slot_ids))
         .collect();
     let get_gss_node_methods: Vec<_> = nonterminal_ids

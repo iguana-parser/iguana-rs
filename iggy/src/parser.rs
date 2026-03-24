@@ -17081,53 +17081,933 @@ impl<'i> IggyParser<'i> {
             self.add_gss_node_symbol_except_except(i, p, new_gss_node_id);
         }
     }
-    fn parse_annotation_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_annotation_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(13), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(13), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(13), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(4),
+                    SlotId(25),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        if self.scanner.match_token(TerminalId(14), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(14), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(14), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(28),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(15), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(15), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(29),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(30),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(1), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(31),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(32),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(16), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(16), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(33),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(4),
+                    SlotId(33),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
-    fn parse_pre_condition_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_pre_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(1), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(1), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(48),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(19), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(19), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(49),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(6),
+                    SlotId(49),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
-    fn parse_post_condition_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_post_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(20), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(20), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(20), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(52),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(1), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(53),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(7),
+                    SlotId(53),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        if self.scanner.match_token(TerminalId(21), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(21), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(21), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(56),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(1), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(57),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(7),
+                    SlotId(57),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
-    fn parse_associativity_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_associativity_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(22), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(22), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(22), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(9),
+                    SlotId(63),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        if self.scanner.match_token(TerminalId(23), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(23), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(23), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(9),
+                    SlotId(65),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        if self.scanner.match_token(TerminalId(24), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(24), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(24), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(9),
+                    SlotId(67),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
-    fn parse_range_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_range_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(5), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(5), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(5), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(222),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(34), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(34), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(223),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(224),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(5), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(5), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(225),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(14),
+                    SlotId(225),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
-    fn parse_syntax_rule_opt_3_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_syntax_rule_opt_3_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(14), i).is_some()
+            || self.scanner.match_token(TerminalId(13), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let node = self.parse_annotation_ll1(j)?;
+                j = self.sppf_node(node).right_extent();
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(22),
+                    SlotId(252),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        if self.scanner.match_token(TerminalId(35), i).is_some()
+            || self.scanner.match_token(TerminalId(1), i).is_some()
+        {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(22),
+                    SlotId(253),
+                    i,
+                    i,
+                    epsilon_node_id,
+                );
+        }
+        None
     }
-    fn parse_priority_level_opt_7_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_priority_level_opt_7_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(22), i).is_some()
+            || self.scanner.match_token(TerminalId(23), i).is_some()
+            || self.scanner.match_token(TerminalId(24), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let node = self.parse_associativity_ll1(j)?;
+                j = self.sppf_node(node).right_extent();
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(32),
+                    SlotId(296),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        if self.scanner.match_token(TerminalId(17), i).is_some()
+            || self.scanner.match_token(TerminalId(2), i).is_some()
+            || self.scanner.match_token(TerminalId(13), i).is_some()
+            || self.scanner.match_token(TerminalId(6), i).is_some()
+            || self.scanner.match_token(TerminalId(18), i).is_some()
+            || i == self.input().len()
+            || self.scanner.match_token(TerminalId(25), i).is_some()
+            || self.scanner.match_token(TerminalId(1), i).is_some()
+            || self.scanner.match_token(TerminalId(15), i).is_some()
+            || self.scanner.match_token(TerminalId(14), i).is_some()
+            || self.scanner.match_token(TerminalId(35), i).is_some()
+            || self.scanner.match_token(TerminalId(12), i).is_some()
+        {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(32),
+                    SlotId(297),
+                    i,
+                    i,
+                    epsilon_node_id,
+                );
+        }
+        None
     }
-    fn parse_alternative_opt_10_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_alternative_opt_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(6), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(6), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(6), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(39),
+                    SlotId(323),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        if self.scanner.match_token(TerminalId(17), i).is_some()
+            || self.scanner.match_token(TerminalId(13), i).is_some()
+            || self.scanner.match_token(TerminalId(18), i).is_some()
+            || i == self.input().len()
+            || self.scanner.match_token(TerminalId(1), i).is_some()
+            || self.scanner.match_token(TerminalId(14), i).is_some()
+            || self.scanner.match_token(TerminalId(35), i).is_some()
+            || self.scanner.match_token(TerminalId(12), i).is_some()
+        {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(39),
+                    SlotId(324),
+                    i,
+                    i,
+                    epsilon_node_id,
+                );
+        }
+        None
     }
-    fn parse_symbol_group_1_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_symbol_group_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(20), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(20), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(20), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(337),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(1), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(338),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(42),
+                    SlotId(338),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
-    fn parse_symbol_group_2_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_symbol_group_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(30), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(30), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(30), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(347),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(1), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(348),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(44),
+                    SlotId(348),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
-    fn parse_char_class_opt_11_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_char_class_opt_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(30), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(30), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(30), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(48),
+                    SlotId(366),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        if self.scanner.match_token(TerminalId(32), i).is_some()
+            || self.scanner.match_token(TerminalId(35), i).is_some()
+        {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(48),
+                    SlotId(367),
+                    i,
+                    i,
+                    epsilon_node_id,
+                );
+        }
+        None
     }
-    fn parse_start_annotation_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_start_annotation_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(14), i).is_some()
+            || self.scanner.match_token(TerminalId(35), i).is_some()
+            || self.scanner.match_token(TerminalId(13), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let node = self.parse_annotation_ll1(j)?;
+                j = self.sppf_node(node).right_extent();
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(487),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(488),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(54),
+                    SlotId(488),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
-    fn parse_start_pre_condition_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_start_pre_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(35), i).is_some()
+            || self.scanner.match_token(TerminalId(1), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let node = self.parse_pre_condition_ll1(j)?;
+                j = self.sppf_node(node).right_extent();
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(495),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(496),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(56),
+                    SlotId(496),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
-    fn parse_start_post_condition_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_start_post_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(20), i).is_some()
+            || self.scanner.match_token(TerminalId(35), i).is_some()
+            || self.scanner.match_token(TerminalId(21), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let node = self.parse_post_condition_ll1(j)?;
+                j = self.sppf_node(node).right_extent();
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(499),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(500),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(57),
+                    SlotId(500),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
-    fn parse_start_associativity_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_start_associativity_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(22), i).is_some()
+            || self.scanner.match_token(TerminalId(23), i).is_some()
+            || self.scanner.match_token(TerminalId(35), i).is_some()
+            || self.scanner.match_token(TerminalId(24), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let node = self.parse_associativity_ll1(j)?;
+                j = self.sppf_node(node).right_extent();
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(507),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(508),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(59),
+                    SlotId(508),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
-    fn parse_start_range_ll1(&mut self, _i: u32) -> Option<SPPFNodeId> {
-        todo!("LL(1) parse method generation")
+    fn parse_start_range_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(5), i).is_some()
+            || self.scanner.match_token(TerminalId(35), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let node = self.parse_range_ll1(j)?;
+                j = self.sppf_node(node).right_extent();
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(531),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(35), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(532),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(65),
+                    SlotId(532),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
     fn get_gss_node_symbol(&self, input_index: u32, p: i32) -> Option<GssNodeId> {
         self.gss_nodes_index_symbol

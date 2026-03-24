@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use clap::{Parser, Subcommand};
 use iguana::{
     alternative, bind, c, call, cond, cond_expr,
-    generator::generate,
+    generator::{generate, GenConfig},
     grammar::def::{Grammar, GrammarDef},
     grammar::symbols::Terminal,
     grammar_def, id, lexical_rule,
@@ -88,7 +88,7 @@ fn main() -> std::io::Result<()> {
             let source = std::fs::read_to_string(path)?;
             let grammar_def = parse_grammar(&source)
                 .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-            let result = generate(&grammar_def.into(), &output)?;
+            let result = generate(&grammar_def.into(), &output, &GenConfig::default())?;
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
             } else {
@@ -374,7 +374,7 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
     let source = std::fs::read_to_string(path)?;
     let grammar = parse_grammar(&source)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-    generate(&grammar.into(), output)?;
+    generate(&grammar.into(), output, &GenConfig::default())?;
     Ok(())
 }
 
