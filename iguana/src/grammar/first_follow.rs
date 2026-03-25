@@ -139,7 +139,15 @@ impl<'a> FirstFollowSets<'a> {
             | Symbol::FollowRestriction { symbol, .. }
             | Symbol::PrecedeRestriction { symbol, .. }
             | Symbol::Exclude { symbol, .. } => self.is_nullable(symbol),
-            Symbol::Call { .. } | Symbol::Condition(_) | Symbol::Return(_) => false,
+            // Conditions and returns don't consume input, so they are nullable.
+            Symbol::Condition(_) | Symbol::Return(_) => true,
+            Symbol::Call { name, .. } => {
+                let def_id = name.resolve();
+                match self.grammar.definition(def_id) {
+                    Definition::Terminal(_) => false,
+                    Definition::Nonterminal(nt) => self.nullables.contains(nt),
+                }
+            }
         }
     }
 

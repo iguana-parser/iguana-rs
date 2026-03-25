@@ -1000,8 +1000,10 @@ impl<'i> ExceptNonterminalParser<'i> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let node = self.parse_id_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_id_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
@@ -1021,8 +1023,13 @@ impl<'i> ExceptNonterminalParser<'i> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let node = self.parse_name_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_name_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
+                if !(self.scanner.match_token(TerminalId(1), start) != Some(end)) {
+                    return None;
+                }
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
@@ -1042,8 +1049,9 @@ impl<'i> ExceptNonterminalParser<'i> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(0), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(0), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(0), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
                 j = end;
                 node
             };
@@ -1066,16 +1074,19 @@ impl<'i> ExceptNonterminalParser<'i> {
         {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(2), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(2), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(2), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let node = self.parse_s_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_s_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
                 node
             };
             current = self
@@ -1087,8 +1098,9 @@ impl<'i> ExceptNonterminalParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(2), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(2), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(2), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
             };
@@ -1117,16 +1129,19 @@ impl<'i> ExceptNonterminalParser<'i> {
         {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(2), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(2), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(2), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let node = self.parse_id_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_id_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
                 node
             };
             current = self
@@ -1138,8 +1153,9 @@ impl<'i> ExceptNonterminalParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(2), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(2), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(2), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
             };
@@ -1168,16 +1184,19 @@ impl<'i> ExceptNonterminalParser<'i> {
         {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(2), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(2), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(2), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let node = self.parse_name_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_name_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
                 node
             };
             current = self
@@ -1189,8 +1208,9 @@ impl<'i> ExceptNonterminalParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(2), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(2), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(2), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
             };

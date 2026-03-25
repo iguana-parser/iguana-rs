@@ -1231,11 +1231,55 @@ impl<'a> ParserGen<'a> {
             let next_slot = slot.next();
             let next_slot_id = self.slot_ids.id(&next_slot);
 
+            // Collect pre/post conditions from restriction symbols
+            let mut pre_conditions: Vec<TokenStream> = vec![];
+            let mut post_conditions: Vec<TokenStream> = vec![];
+            match symbol {
+                Symbol::Except { except, .. } => {
+                    for e in except {
+                        let Definition::Terminal(t) = self.grammar.definition(e.resolve()) else {
+                            panic!("Except identifier must resolve to a terminal");
+                        };
+                        let id = self.terminal_ids.get_id(t).expect("terminal not found");
+                        post_conditions.push(
+                            quote! { self.scanner.match_token(#id, start) != Some(end) },
+                        );
+                    }
+                }
+                Symbol::FollowRestriction { restriction, .. } => {
+                    let Definition::Terminal(t) = self.grammar.definition(restriction.resolve())
+                    else {
+                        panic!("Follow restriction identifier must resolve to a terminal");
+                    };
+                    let id = self.terminal_ids.get_id(t).expect("terminal not found");
+                    post_conditions.push(
+                        quote! { self.scanner.match_token(#id, end).is_none() },
+                    );
+                }
+                Symbol::PrecedeRestriction { restriction, .. } => {
+                    let Definition::Terminal(t) = self.grammar.definition(restriction.resolve())
+                    else {
+                        panic!("Precede restriction identifier must resolve to a terminal");
+                    };
+                    let id = self.terminal_ids.get_id(t).expect("terminal not found");
+                    pre_conditions.push(
+                        quote! { j == 0 || self.scanner.match_token(#id, j - 1).is_none() },
+                    );
+                }
+                _ => {}
+            }
+
             let Some(identifier) = symbol.as_identifier() else {
                 continue;
             };
             let def_id = identifier.resolve();
             let def = self.grammar.definition(def_id);
+
+            let pre_check = if pre_conditions.is_empty() {
+                quote! {}
+            } else {
+                quote! { if !(#(#pre_conditions)&&*) { return None; } }
+            };
 
             match def {
                 Definition::Terminal(terminal) => {
@@ -1243,10 +1287,18 @@ impl<'a> ParserGen<'a> {
                         .terminal_ids
                         .get_id(terminal)
                         .unwrap_or_else(|| panic!("terminal not found: {}", terminal.name));
+                    let post_check = if post_conditions.is_empty() {
+                        quote! {}
+                    } else {
+                        quote! { if !(#(#post_conditions)&&*) { return None; } }
+                    };
                     body.push(quote! {
+                        #pre_check
                         let right_child_id = {
-                            let end = self.scanner.match_token(#terminal_id, j)?;
-                            let node = self.get_or_create_terminal_node(#terminal_id, j, end);
+                            let start = j;
+                            let end = self.scanner.match_token(#terminal_id, start)?;
+                            #post_check
+                            let node = self.get_or_create_terminal_node(#terminal_id, start, end);
                             j = end;
                             node
                         };
@@ -1254,10 +1306,19 @@ impl<'a> ParserGen<'a> {
                 }
                 Definition::Nonterminal(nt) => {
                     let nt_method = format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
+                    let post_check = if post_conditions.is_empty() {
+                        quote! {}
+                    } else {
+                        quote! { if !(#(#post_conditions)&&*) { return None; } }
+                    };
                     body.push(quote! {
+                        #pre_check
                         let right_child_id = {
-                            let node = self.#nt_method(j)?;
-                            j = self.sppf_node(node).right_extent();
+                            let start = j;
+                            let node = self.#nt_method(start)?;
+                            let end = self.sppf_node(node).right_extent();
+                            j = end;
+                            #post_check
                             node
                         };
                     });

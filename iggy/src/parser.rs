@@ -17085,8 +17085,9 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(13), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(13), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(13), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(13), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(13), start, end);
                 j = end;
                 node
             };
@@ -17104,16 +17105,18 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(14), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(14), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(14), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(14), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(14), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17126,8 +17129,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(15), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(15), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(15), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(15), start, end);
                 j = end;
                 node
             };
@@ -17140,8 +17144,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17154,8 +17159,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(1), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
@@ -17168,8 +17174,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17182,8 +17189,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(16), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(16), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(16), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(16), start, end);
                 j = end;
                 node
             };
@@ -17210,16 +17218,18 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(1), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(1), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17232,8 +17242,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(19), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(19), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(19), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(19), start, end);
                 j = end;
                 node
             };
@@ -17260,16 +17271,18 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(20), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(20), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(20), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(20), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(20), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17282,8 +17295,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(1), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
@@ -17307,16 +17321,18 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(21), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(21), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(21), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(21), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(21), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17329,8 +17345,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(1), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
@@ -17357,8 +17374,9 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(22), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(22), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(22), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(22), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(22), start, end);
                 j = end;
                 node
             };
@@ -17376,8 +17394,9 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(23), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(23), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(23), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(23), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(23), start, end);
                 j = end;
                 node
             };
@@ -17395,8 +17414,9 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(24), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(24), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(24), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(24), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(24), start, end);
                 j = end;
                 node
             };
@@ -17417,16 +17437,18 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(5), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(5), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(5), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(5), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(5), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17439,8 +17461,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(34), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(34), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(34), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(34), start, end);
                 j = end;
                 node
             };
@@ -17453,8 +17476,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17467,8 +17491,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(5), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(5), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(5), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(5), start, end);
                 j = end;
                 node
             };
@@ -17497,8 +17522,10 @@ impl<'i> IggyParser<'i> {
         {
             let mut j = i;
             let right_child_id = {
-                let node = self.parse_annotation_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_annotation_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
@@ -17534,8 +17561,10 @@ impl<'i> IggyParser<'i> {
         {
             let mut j = i;
             let right_child_id = {
-                let node = self.parse_associativity_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_associativity_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
@@ -17578,8 +17607,9 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(6), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(6), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(6), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(6), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(6), start, end);
                 j = end;
                 node
             };
@@ -17619,16 +17649,18 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(20), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(20), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(20), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(20), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(20), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17641,8 +17673,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(1), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
@@ -17669,16 +17702,18 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(30), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(30), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(30), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(30), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(30), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17691,8 +17726,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(1), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
@@ -17719,8 +17755,9 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(30), i).is_some() {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(30), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(30), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(30), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(30), start, end);
                 j = end;
                 node
             };
@@ -17757,16 +17794,19 @@ impl<'i> IggyParser<'i> {
         {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let node = self.parse_annotation_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_annotation_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
                 node
             };
             current = self
@@ -17778,8 +17818,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17808,16 +17849,19 @@ impl<'i> IggyParser<'i> {
         {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let node = self.parse_pre_condition_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_pre_condition_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
                 node
             };
             current = self
@@ -17829,8 +17873,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17860,16 +17905,19 @@ impl<'i> IggyParser<'i> {
         {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let node = self.parse_post_condition_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_post_condition_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
                 node
             };
             current = self
@@ -17881,8 +17929,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17913,16 +17962,19 @@ impl<'i> IggyParser<'i> {
         {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let node = self.parse_associativity_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_associativity_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
                 node
             };
             current = self
@@ -17934,8 +17986,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
@@ -17964,16 +18017,19 @@ impl<'i> IggyParser<'i> {
         {
             let mut j = i;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
             let right_child_id = {
-                let node = self.parse_range_ll1(j)?;
-                j = self.sppf_node(node).right_extent();
+                let start = j;
+                let node = self.parse_range_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
                 node
             };
             current = self
@@ -17985,8 +18041,9 @@ impl<'i> IggyParser<'i> {
                     right_child_id,
                 )?;
             let right_child_id = {
-                let end = self.scanner.match_token(TerminalId(35), j)?;
-                let node = self.get_or_create_terminal_node(TerminalId(35), j, end);
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
             };
