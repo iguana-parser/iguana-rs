@@ -175,42 +175,36 @@ fn gen_match_terminal_method(
         .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
     let match_regex = match_regex(&rule.regex, char_class_ids);
 
-    let except_checks: Vec<_> = rule.except.iter().map(|except| {
-        let Definition::Terminal(except_terminal) = grammar.definition(except.resolve()) else {
-            panic!("Except {} must refer to a terminal", except.name);
-        };
-        let except_id = terminal_ids
-            .get_id(except_terminal)
-            .unwrap_or_else(|| panic!("Except terminal {} is not defined", except.name));
-        let except_fn = format_ident!("match_terminal_{}", except_id.index());
-        quote! {
-            .and_then(|end| {
-                if self.#except_fn(input_index) == Some(end) {
-                    None
-                } else {
-                    Some(end)
-                }
-            })
-        }
-    }).collect();
+    let except_checks: Vec<_> = rule
+        .except
+        .iter()
+        .map(|except| {
+            let Definition::Terminal(except_terminal) = grammar.definition(except.resolve()) else {
+                panic!("Except {} must refer to a terminal", except.name);
+            };
+            let except_id = terminal_ids.get_id(except_terminal);
+            let except_fn = format_ident!("match_terminal_{}", except_id.index());
+            quote! {
+                .and_then(|end| {
+                    if self.#except_fn(input_index) == Some(end) {
+                        None
+                    } else {
+                        Some(end)
+                    }
+                })
+            }
+        })
+        .collect();
 
     let follow_restriction_check = rule.follow_restriction.as_ref().map(|restriction| {
-        let Definition::Terminal(restriction_terminal) =
-            grammar.definition(restriction.resolve())
+        let Definition::Terminal(restriction_terminal) = grammar.definition(restriction.resolve())
         else {
             panic!(
                 "Follow restriction {} must refer to a terminal",
                 restriction.name
             );
         };
-        let restriction_id = terminal_ids
-            .get_id(restriction_terminal)
-            .unwrap_or_else(|| {
-                panic!(
-                    "Follow restriction terminal {} is not defined",
-                    restriction.name
-                )
-            });
+        let restriction_id = terminal_ids.get_id(restriction_terminal);
         let restriction_fn = format_ident!("match_terminal_{}", restriction_id.index());
         quote! {
             .and_then(|end| {
@@ -224,22 +218,14 @@ fn gen_match_terminal_method(
     });
 
     let precede_restriction_check = rule.precede_restriction.as_ref().map(|restriction| {
-        let Definition::Terminal(restriction_terminal) =
-            grammar.definition(restriction.resolve())
+        let Definition::Terminal(restriction_terminal) = grammar.definition(restriction.resolve())
         else {
             panic!(
                 "Precede restriction {} must refer to a terminal",
                 restriction.name
             );
         };
-        let restriction_id = terminal_ids
-            .get_id(restriction_terminal)
-            .unwrap_or_else(|| {
-                panic!(
-                    "Precede restriction terminal {} is not defined",
-                    restriction.name
-                )
-            });
+        let restriction_id = terminal_ids.get_id(restriction_terminal);
         let restriction_fn = format_ident!("match_terminal_{}", restriction_id.index());
         quote! {
             if i > 0 && self.#restriction_fn(i - 1).is_some() {
@@ -272,7 +258,9 @@ fn match_regex(regex: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
         Regex::Opt(r) => match_opt(r, char_class_ids),
         Regex::Plus(r) => match_plus(r, char_class_ids),
         Regex::Epsilon => match_epsilon(),
-        Regex::Identifier(_) => unreachable!("Regex::Identifier should be inlined before code generation"),
+        Regex::Identifier(_) => {
+            unreachable!("Regex::Identifier should be inlined before code generation")
+        }
     }
 }
 

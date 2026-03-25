@@ -184,11 +184,8 @@ impl<'a> ParserGen<'a> {
                 let last_symbol_index = alternative.symbols.len();
                 let end_slot = Slot::new(nonterminal, alternative, last_symbol_index);
                 let end_slot_name = end_slot.name();
-                let end_slot_id = self.slot_ids.id(&end_slot).expect("slot not found");
-                let nonterminal_id = self
-                    .nonterminal_ids
-                    .get_id(nonterminal)
-                    .expect("nonterminal not found");
+                let end_slot_id = self.slot_ids.get_id(&end_slot);
+                let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
                 // Handles the case for an empty alternative
                 let last_slot_quote = if last_symbol_index == 0 {
                     // For now we consider the last terminal to be epsilon.
@@ -310,7 +307,7 @@ impl<'a> ParserGen<'a> {
             for alternative in alternatives {
                 let first_slot = Slot::new(nonterminal, alternative, 0);
                 let first_slot_name = first_slot.name();
-                let first_slot_id = self.slot_ids.id(&first_slot);
+                let first_slot_id = self.slot_ids.get_id(&first_slot);
                 alternative_quotes.push(quote! {
                     #[comment = #first_slot_name]
                     self.add_descriptor(Descriptor {
@@ -527,11 +524,8 @@ impl<'a> ParserGen<'a> {
         pre_conditions: &[TokenStream],
         post_conditions: &[TokenStream],
     ) -> TokenStream {
-        let terminal_id = &self
-            .terminal_ids
-            .get_id(terminal)
-            .unwrap_or_else(|| panic!("cannot not find the lexical definition {}", terminal.name));
-        let slot_id = self.slot_ids.id(&slot);
+        let terminal_id = &self.terminal_ids.get_id(terminal);
+        let slot_id = self.slot_ids.get_id(&slot);
         let current_slot_name = slot.name();
         // At grammar position 0, we do not need to create an intermediate node.
         let new_node = if slot.is_first() {
@@ -565,7 +559,7 @@ impl<'a> ParserGen<'a> {
             }
         };
         let next_slot = slot.next();
-        let next_slot_id = self.slot_ids.id(&next_slot);
+        let next_slot_id = self.slot_ids.get_id(&next_slot);
         let next_slot_name = next_slot.name();
         let pre_condition_check = if pre_conditions.is_empty() {
             quote! {}
@@ -620,14 +614,7 @@ impl<'a> ParserGen<'a> {
                 else {
                     panic!("Except identifier must resolve to a terminal");
                 };
-                self.terminal_ids
-                    .get_id(except_terminal)
-                    .unwrap_or_else(|| {
-                        panic!(
-                            "cannot find the lexical definition {}",
-                            except_terminal.name
-                        )
-                    })
+                self.terminal_ids.get_id(except_terminal)
             })
             .collect();
         match def {
@@ -683,15 +670,7 @@ impl<'a> ParserGen<'a> {
         else {
             panic!("Follow restriction identifier must resolve to a terminal");
         };
-        let restriction_terminal_id = self
-            .terminal_ids
-            .get_id(restriction_terminal)
-            .unwrap_or_else(|| {
-                panic!(
-                    "cannot find the lexical definition {}",
-                    restriction_terminal.name
-                )
-            });
+        let restriction_terminal_id = self.terminal_ids.get_id(restriction_terminal);
         match def {
             Definition::Terminal(terminal) => {
                 let post_conditions = vec![quote! {
@@ -735,15 +714,7 @@ impl<'a> ParserGen<'a> {
         else {
             panic!("Precede restriction identifier must resolve to a terminal");
         };
-        let restriction_terminal_id = self
-            .terminal_ids
-            .get_id(restriction_terminal)
-            .unwrap_or_else(|| {
-                panic!(
-                    "cannot find the lexical definition {}",
-                    restriction_terminal.name
-                )
-            });
+        let restriction_terminal_id = self.terminal_ids.get_id(restriction_terminal);
         match def {
             Definition::Terminal(terminal) => {
                 let pre_conditions = vec![quote! {
@@ -794,12 +765,7 @@ impl<'a> ParserGen<'a> {
                                 panic!("Except identifier must resolve to a terminal");
                             };
                             let except_terminal_id =
-                                self.terminal_ids.get_id(except_terminal).unwrap_or_else(|| {
-                                    panic!(
-                                        "cannot find the lexical definition {}",
-                                        except_terminal.name
-                                    )
-                                });
+                                self.terminal_ids.get_id(except_terminal);
                             quote! {
                                 self.scanner.match_token(#except_terminal_id, left_extent) != Some(right_extent)
                             }
@@ -807,7 +773,7 @@ impl<'a> ParserGen<'a> {
                         .collect();
                         let slot = Slot::new(nonterminal, alternative, pos);
                         let next_slot = slot.next();
-                        let slot_id = self.slot_ids.id(&next_slot);
+                        let slot_id = self.slot_ids.get_id(&next_slot);
                         arms.push(quote! {
                             #slot_id => {
                                 #(#checks)&&*
@@ -832,18 +798,11 @@ impl<'a> ParserGen<'a> {
                         else {
                             panic!("Follow restriction identifier must resolve to a terminal");
                         };
-                        let restriction_terminal_id = self
-                            .terminal_ids
-                            .get_id(restriction_terminal)
-                            .unwrap_or_else(|| {
-                                panic!(
-                                    "cannot find the lexical definition {}",
-                                    restriction_terminal.name
-                                )
-                            });
+                        let restriction_terminal_id =
+                            self.terminal_ids.get_id(restriction_terminal);
                         let slot = Slot::new(nonterminal, alternative, pos);
                         let next_slot = slot.next();
-                        let slot_id = self.slot_ids.id(&next_slot);
+                        let slot_id = self.slot_ids.get_id(&next_slot);
                         arms.push(quote! {
                         #slot_id => {
                             self.scanner.match_token(#restriction_terminal_id, right_extent).is_none()
@@ -871,10 +830,10 @@ impl<'a> ParserGen<'a> {
         pre_conditions: &[TokenStream],
         post_conditions: &[TokenStream],
     ) -> TokenStream {
-        let slot_id = self.slot_ids.id(&slot);
+        let slot_id = self.slot_ids.get_id(&slot);
         let slot_name = slot.name();
         let next_slot = slot.next();
-        let next_slot_id = self.slot_ids.id(&next_slot);
+        let next_slot_id = self.slot_ids.get_id(&next_slot);
         let pre_condition_check = if pre_conditions.is_empty() {
             quote! {}
         } else {
@@ -947,10 +906,10 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_condition_code(&self, expr: &Expr, slot: &Slot<'a>) -> TokenStream {
-        let slot_id = self.slot_ids.id(slot);
+        let slot_id = self.slot_ids.get_id(slot);
         let slot_name = slot.name();
         let next_slot = slot.next();
-        let next_slot_id = self.slot_ids.id(&next_slot);
+        let next_slot_id = self.slot_ids.get_id(&next_slot);
         let condition_expr = Self::gen_expr(expr);
         quote! {
             #[comment = #slot_name]
@@ -963,10 +922,10 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_return_code(&self, slot: &Slot<'a>) -> TokenStream {
-        let slot_id = self.slot_ids.id(slot);
+        let slot_id = self.slot_ids.get_id(slot);
         let slot_name = slot.name();
         let next_slot = slot.next();
-        let next_slot_id = self.slot_ids.id(&next_slot);
+        let next_slot_id = self.slot_ids.get_id(&next_slot);
         quote! {
             #[comment = #slot_name]
             #slot_id => {
@@ -994,27 +953,27 @@ impl<'a> ParserGen<'a> {
         let get_gss_node_methods: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(|nt| Self::gen_get_gss_node_method_with_parameters(nt))
+            .map(Self::gen_get_gss_node_method_with_parameters)
             .collect();
         let add_gss_node_methods: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(|nt| Self::gen_add_gss_node_method_with_parameters(nt))
+            .map(Self::gen_add_gss_node_method_with_parameters)
             .collect();
         let specialized_lookup_nonterminal_node_methods: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(|nt| Self::gen_specialized_lookup_nonterminal_node_method(nt))
+            .map(Self::gen_specialized_lookup_nonterminal_node_method)
             .collect();
         let specialized_add_nonterminal_node_methods: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(|nt| Self::gen_specialized_add_nonterminal_node_method(nt))
+            .map(Self::gen_specialized_add_nonterminal_node_method)
             .collect();
         let create_nonterminal_node_or_attach_children_methods: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(|nt| Self::gen_create_nonterminal_node_or_attach_children(nt))
+            .map(Self::gen_create_nonterminal_node_or_attach_children)
             .collect();
         quote! {
             impl<'i> #name_ident<'i> {
@@ -1037,12 +996,12 @@ impl<'a> ParserGen<'a> {
         let gss_nodes_index_fields: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(|nt| Self::gen_gss_nodes_index_field_init(nt))
+            .map(Self::gen_gss_nodes_index_field_init)
             .collect();
         let return_value_fields: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(|nt| Self::gen_specialized_nonterminal_nodes_index_field_init(nt))
+            .map(Self::gen_specialized_nonterminal_nodes_index_field_init)
             .collect();
         let nonterminal_nodes_index_field = self.gen_nonterminal_nodes_index_field();
         let intermediate_nodes_index_field = self.gen_intermediate_nodes_index_field();
@@ -1082,12 +1041,12 @@ impl<'a> ParserGen<'a> {
         let gss_nodes_index_fields: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(|nt| Self::gen_gss_nodes_index_field_for_data_dependent_nt(nt))
+            .map(Self::gen_gss_nodes_index_field_for_data_dependent_nt)
             .collect();
         let specialized_nonterminal_nodes_index_fields: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(|nt| Self::gen_specialized_nonterminal_nodes_index_field(nt))
+            .map(Self::gen_specialized_nonterminal_nodes_index_field)
             .collect();
         let slot_ids_len = Literal::usize_unsuffixed(self.slot_ids.len());
         let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
@@ -1152,9 +1111,7 @@ impl<'a> ParserGen<'a> {
             if terminal.name == "EOF" {
                 checks.push(quote! { i == self.input().len() });
             } else {
-                let terminal_id = self.terminal_ids.get_id(terminal).unwrap_or_else(|| {
-                    panic!("terminal not found in prediction set: {}", terminal.name)
-                });
+                let terminal_id = self.terminal_ids.get_id(terminal);
                 checks.push(quote! { self.scanner.match_token(#terminal_id, i).is_some() });
             }
         }
@@ -1167,10 +1124,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_ll1_parse_method(&self, nonterminal: &'a Nonterminal) -> TokenStream {
         let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
-        let nonterminal_id = self
-            .nonterminal_ids
-            .get_id(nonterminal)
-            .expect("nonterminal not found");
+        let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
         let alternatives = self.grammar.alternatives(nonterminal);
         let mut alt_branches: Vec<TokenStream> = vec![];
 
@@ -1178,7 +1132,7 @@ impl<'a> ParserGen<'a> {
             let prediction_set = self.ff.prediction_set(nonterminal, alternative);
             let condition = self.gen_prediction_set_check(&prediction_set);
             let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
-            let end_slot_id = self.slot_ids.id(&end_slot).expect("slot not found");
+            let end_slot_id = self.slot_ids.get_id(&end_slot);
 
             if alternative.symbols.is_empty() {
                 let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
@@ -1229,7 +1183,7 @@ impl<'a> ParserGen<'a> {
             let slot = Slot::new(nonterminal, alternative, pos);
             let is_first = slot.is_first();
             let next_slot = slot.next();
-            let next_slot_id = self.slot_ids.id(&next_slot);
+            let next_slot_id = self.slot_ids.get_id(&next_slot);
 
             // Collect pre/post conditions from restriction symbols
             let mut pre_conditions: Vec<TokenStream> = vec![];
@@ -1240,10 +1194,9 @@ impl<'a> ParserGen<'a> {
                         let Definition::Terminal(t) = self.grammar.definition(e.resolve()) else {
                             panic!("Except identifier must resolve to a terminal");
                         };
-                        let id = self.terminal_ids.get_id(t).expect("terminal not found");
-                        post_conditions.push(
-                            quote! { self.scanner.match_token(#id, start) != Some(end) },
-                        );
+                        let id = self.terminal_ids.get_id(t);
+                        post_conditions
+                            .push(quote! { self.scanner.match_token(#id, start) != Some(end) });
                     }
                 }
                 Symbol::FollowRestriction { restriction, .. } => {
@@ -1251,20 +1204,17 @@ impl<'a> ParserGen<'a> {
                     else {
                         panic!("Follow restriction identifier must resolve to a terminal");
                     };
-                    let id = self.terminal_ids.get_id(t).expect("terminal not found");
-                    post_conditions.push(
-                        quote! { self.scanner.match_token(#id, end).is_none() },
-                    );
+                    let id = self.terminal_ids.get_id(t);
+                    post_conditions.push(quote! { self.scanner.match_token(#id, end).is_none() });
                 }
                 Symbol::PrecedeRestriction { restriction, .. } => {
                     let Definition::Terminal(t) = self.grammar.definition(restriction.resolve())
                     else {
                         panic!("Precede restriction identifier must resolve to a terminal");
                     };
-                    let id = self.terminal_ids.get_id(t).expect("terminal not found");
-                    pre_conditions.push(
-                        quote! { j == 0 || self.scanner.match_token(#id, j - 1).is_none() },
-                    );
+                    let id = self.terminal_ids.get_id(t);
+                    pre_conditions
+                        .push(quote! { j == 0 || self.scanner.match_token(#id, j - 1).is_none() });
                 }
                 _ => {}
             }
@@ -1283,10 +1233,7 @@ impl<'a> ParserGen<'a> {
 
             match def {
                 Definition::Terminal(terminal) => {
-                    let terminal_id = self
-                        .terminal_ids
-                        .get_id(terminal)
-                        .unwrap_or_else(|| panic!("terminal not found: {}", terminal.name));
+                    let terminal_id = self.terminal_ids.get_id(terminal);
                     let post_check = if post_conditions.is_empty() {
                         quote! {}
                     } else {
@@ -1741,8 +1688,10 @@ impl<'a> ParserGen<'a> {
                 }
             }
         } else {
-            let get_gss_node_method_name = format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
-            let add_gss_node_method_name = format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
+            let get_gss_node_method_name =
+                format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
+            let add_gss_node_method_name =
+                format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
             let parameters: Vec<_> = nt
                 .parameters
                 .iter()
@@ -1807,7 +1756,8 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_specialized_lookup_nonterminal_node_method(nt: &Nonterminal) -> TokenStream {
-        let create_method_name = format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
+        let create_method_name =
+            format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
         let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
         quote! {
             fn #create_method_name(
@@ -1857,7 +1807,8 @@ impl<'a> ParserGen<'a> {
             "create_nonterminal_node_or_attach_children_{}",
             to_snake_case(&nt.name)
         );
-        let lookup_method_name = format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
+        let lookup_method_name =
+            format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
         let add_method_name = format_ident!("add_nonterminal_node_{}", to_snake_case(&nt.name));
         quote! {
             fn #method_name(

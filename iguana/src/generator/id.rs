@@ -48,18 +48,13 @@ impl NonterminalIds {
         }
     }
 
-    pub fn get_id(&self, nonterminal: &Nonterminal) -> Option<NonterminalId> {
+    pub fn get_id(&self, nonterminal: &Nonterminal) -> NonterminalId {
         let id = self.nonterminals.get_index_of(nonterminal);
         id.map(|id| NonterminalId(id as u16))
+            .unwrap_or_else(|| panic!("unknown nonterminal: {}", nonterminal))
     }
     pub fn len(&self) -> usize {
         self.nonterminals.len()
-    }
-    pub fn num_regular_nts(&self) -> usize {
-        self.dd_id_start
-    }
-    pub fn num_data_dependent_nts(&self) -> usize {
-        self.len() - self.dd_id_start
     }
     pub fn ids(&self) -> impl Iterator<Item = NonterminalId> {
         (0..self.len()).map(|id| NonterminalId(id as u16))
@@ -107,8 +102,11 @@ impl<'a> SlotIds<'a> {
         self.slots.push(slot);
         SlotId(value as u16)
     }
-    pub fn id(&self, slot: &Slot<'a>) -> Option<SlotId> {
-        self.slot_to_id.get(slot).map(|id| SlotId(*id as u16))
+    pub fn get_id(&self, slot: &Slot<'a>) -> SlotId {
+        self.slot_to_id
+            .get(slot)
+            .map(|id| SlotId(*id as u16))
+            .unwrap_or_else(|| panic!("unknown slot: {}", slot.name()))
     }
     pub fn len(&self) -> usize {
         self.slots.len()
@@ -131,9 +129,10 @@ impl TerminalIds {
     pub fn insert(&mut self, terminal: Terminal) {
         self.terminals.insert(terminal);
     }
-    pub fn get_id(&self, terminal: &Terminal) -> Option<TerminalId> {
+    pub fn get_id(&self, terminal: &Terminal) -> TerminalId {
         let id = self.terminals.get_index_of(terminal);
         id.map(|id| TerminalId(id as u16))
+            .unwrap_or_else(|| panic!("unknown terminal: {}", terminal))
     }
     pub fn ids(&self) -> impl Iterator<Item = TerminalId> {
         (0..self.len()).map(|id| TerminalId(id as u16))

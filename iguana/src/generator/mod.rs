@@ -62,9 +62,7 @@ pub fn generate(
             let last_symbol_index = alternative.symbols.len();
             let end_slot = Slot::new(nonterminal, alternative, last_symbol_index);
             let end_slot_id = slot_ids.insert(end_slot);
-            let nonterminal_id = nonterminal_ids
-                .get_id(nonterminal)
-                .expect("nonterminal not found");
+            let nonterminal_id = nonterminal_ids.get_id(nonterminal);
             let end_slot = EndSlot {
                 index,
                 slot_id: end_slot_id,
