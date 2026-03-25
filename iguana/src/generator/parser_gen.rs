@@ -61,39 +61,39 @@ impl<'a> ParserGen<'a> {
         let first_descriptors = self.gen_add_first_descriptors_method();
         let terminals = self.gen_terminals();
         let slots = self.gen_slots();
-        let nonterminal_display_name_method = gen_nonterminal_display_name_method();
-        let nonterminal_id_method = gen_nonterminal_id_method();
-        let terminal_name_method = gen_terminal_name_method();
-        let slot_name_method = gen_slot_name_method();
-        let epsilon_method = gen_epsilon_method();
-        let get_gss_node_method = gen_get_gss_node_method();
-        let gen_add_gss_node_method = gen_add_gss_node_method();
-        let gen_new_gss_node_method = gen_new_gss_node_method();
-        let gss_node_method = gen_gss_node_method();
-        let gss_node_mut_method = gen_gss_node_mut_method();
-        let sppf_node_method = gen_sppf_node_method();
-        let sppf_node_mut_method = gen_sppf_node_mut_method();
-        let add_descriptor_method = gen_add_descriptor_method();
-        let next_descriptor_method = gen_next_descriptor_method();
-        let new_terminal_node_method = gen_add_terminal_node_method();
-        let new_nonterminal_node_method = gen_add_nonterminal_node_method();
-        let new_intermediate_node_method = gen_add_intermediate_node_method();
-        let input_len_method = gen_input_method();
-        let stats_method = gen_stats_method();
-        let stats_mut_method = gen_stats_mut_method();
-        let lookup_nonterminal_node_method = gen_lookup_nonterminal_node_method();
-        let lookup_intermediate_node_method = gen_lookup_intermediate_node_method();
-        let lookup_terminal_node_method = gen_lookup_terminal_node_method();
-        let gss_nodes_method = gen_gss_nodes_method();
-        let add_nonterminal_node_child_method = gen_add_nonterminal_node_child_method();
-        let add_intermediate_node_child_method = gen_add_intermediate_node_child_method();
-        let intermediate_nodes_children_method = gen_intermediate_nodes_children_map_method();
-        let nonterminal_nodes_children_method = gen_nonterminal_nodes_children_map_method();
-        let add_trace_event_method = gen_add_trace_event_method();
-        let start_nonterminal_method = gen_start_nonterminal_method();
-        let new_env_method = gen_new_env_method();
-        let lookup_method = gen_lookup_method();
-        let clone_env_method = gen_clone_env();
+        let nonterminal_display_name_method = Self::gen_nonterminal_display_name_method();
+        let nonterminal_id_method = Self::gen_nonterminal_id_method();
+        let terminal_name_method = Self::gen_terminal_name_method();
+        let slot_name_method = Self::gen_slot_name_method();
+        let epsilon_method = Self::gen_epsilon_method();
+        let get_gss_node_method = Self::gen_get_gss_node_method();
+        let gen_add_gss_node_method = Self::gen_add_gss_node_method();
+        let gen_new_gss_node_method = Self::gen_new_gss_node_method();
+        let gss_node_method = Self::gen_gss_node_method();
+        let gss_node_mut_method = Self::gen_gss_node_mut_method();
+        let sppf_node_method = Self::gen_sppf_node_method();
+        let sppf_node_mut_method = Self::gen_sppf_node_mut_method();
+        let add_descriptor_method = Self::gen_add_descriptor_method();
+        let next_descriptor_method = Self::gen_next_descriptor_method();
+        let new_terminal_node_method = Self::gen_add_terminal_node_method();
+        let new_nonterminal_node_method = Self::gen_add_nonterminal_node_method();
+        let new_intermediate_node_method = Self::gen_add_intermediate_node_method();
+        let input_len_method = Self::gen_input_method();
+        let stats_method = Self::gen_stats_method();
+        let stats_mut_method = Self::gen_stats_mut_method();
+        let lookup_nonterminal_node_method = Self::gen_lookup_nonterminal_node_method();
+        let lookup_intermediate_node_method = Self::gen_lookup_intermediate_node_method();
+        let lookup_terminal_node_method = Self::gen_lookup_terminal_node_method();
+        let gss_nodes_method = Self::gen_gss_nodes_method();
+        let add_nonterminal_node_child_method = Self::gen_add_nonterminal_node_child_method();
+        let add_intermediate_node_child_method = Self::gen_add_intermediate_node_child_method();
+        let intermediate_nodes_children_method = Self::gen_intermediate_nodes_children_map_method();
+        let nonterminal_nodes_children_method = Self::gen_nonterminal_nodes_children_map_method();
+        let add_trace_event_method = Self::gen_add_trace_event_method();
+        let start_nonterminal_method = Self::gen_start_nonterminal_method();
+        let new_env_method = Self::gen_new_env_method();
+        let lookup_method = Self::gen_lookup_method();
+        let clone_env_method = Self::gen_clone_env();
         let post_conditions_method = self.gen_post_conditions_method();
         let parser_struct = self.gen_parser_struct();
         let parser_impl = self.gen_parser_impl();
@@ -222,7 +222,7 @@ impl<'a> ParserGen<'a> {
                 } else {
                     let last_symbol = alternative.symbols.last().unwrap();
                     let pop = if let Symbol::Return(expr) = last_symbol {
-                        let expr = gen_expr(expr);
+                        let expr = Self::gen_expr(expr);
                         let create_method = format_ident!(
                             "create_nonterminal_node_or_attach_children_{}",
                             to_snake_case(&nonterminal.name)
@@ -925,7 +925,7 @@ impl<'a> ParserGen<'a> {
             }
         } else {
             let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
-            let arguments: Vec<_> = arguments.iter().map(gen_expr).collect();
+            let arguments: Vec<_> = arguments.iter().map(Self::gen_expr).collect();
             let bindings = if let Some(Symbol::Binding { name, .. }) = slot.symbol() {
                 quote! { Some(#name) }
             } else {
@@ -951,7 +951,7 @@ impl<'a> ParserGen<'a> {
         let slot_name = slot.name();
         let next_slot = slot.next();
         let next_slot_id = self.slot_ids.id(&next_slot);
-        let condition_expr = gen_expr(expr);
+        let condition_expr = Self::gen_expr(expr);
         quote! {
             #[comment = #slot_name]
             #slot_id => {
@@ -983,7 +983,7 @@ impl<'a> ParserGen<'a> {
             .nonterminal_ids
             .nonterminals()
             .enumerate()
-            .map(|(i, n)| gen_create_method(n, i))
+            .map(|(i, n)| Self::gen_create_method(n, i))
             .collect();
         let ll1_parse_methods: Vec<_> = self
             .grammar
@@ -994,27 +994,27 @@ impl<'a> ParserGen<'a> {
         let get_gss_node_methods: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(gen_get_gss_node_method_with_parameters)
+            .map(|nt| Self::gen_get_gss_node_method_with_parameters(nt))
             .collect();
         let add_gss_node_methods: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(gen_add_gss_node_method_with_parameters)
+            .map(|nt| Self::gen_add_gss_node_method_with_parameters(nt))
             .collect();
         let specialized_lookup_nonterminal_node_methods: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(gen_specialized_lookup_nonterminal_node_method)
+            .map(|nt| Self::gen_specialized_lookup_nonterminal_node_method(nt))
             .collect();
         let specialized_add_nonterminal_node_methods: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(gen_specialized_add_nonterminal_node_method)
+            .map(|nt| Self::gen_specialized_add_nonterminal_node_method(nt))
             .collect();
         let create_nonterminal_node_or_attach_children_methods: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(gen_create_nonterminal_node_or_attach_children)
+            .map(|nt| Self::gen_create_nonterminal_node_or_attach_children(nt))
             .collect();
         quote! {
             impl<'i> #name_ident<'i> {
@@ -1037,12 +1037,12 @@ impl<'a> ParserGen<'a> {
         let gss_nodes_index_fields: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(gen_gss_nodes_index_field_init)
+            .map(|nt| Self::gen_gss_nodes_index_field_init(nt))
             .collect();
         let return_value_fields: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(gen_specialized_nonterminal_nodes_index_field_init)
+            .map(|nt| Self::gen_specialized_nonterminal_nodes_index_field_init(nt))
             .collect();
         let nonterminal_nodes_index_field = self.gen_nonterminal_nodes_index_field();
         let intermediate_nodes_index_field = self.gen_intermediate_nodes_index_field();
@@ -1082,12 +1082,12 @@ impl<'a> ParserGen<'a> {
         let gss_nodes_index_fields: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(gen_gss_nodes_index_field_for_data_dependent_nt)
+            .map(|nt| Self::gen_gss_nodes_index_field_for_data_dependent_nt(nt))
             .collect();
         let specialized_nonterminal_nodes_index_fields: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
-            .map(gen_specialized_nonterminal_nodes_index_field)
+            .map(|nt| Self::gen_specialized_nonterminal_nodes_index_field(nt))
             .collect();
         let slot_ids_len = Literal::usize_unsuffixed(self.slot_ids.len());
         let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
@@ -1347,447 +1347,58 @@ impl<'a> ParserGen<'a> {
 
         quote! { #(#body)* }
     }
-}
 
-fn gen_expr(expr: &Expr) -> TokenStream {
-    match expr {
-        Expr::Int(i) => {
-            let val = Literal::i32_unsuffixed(*i as i32);
-            quote! { #val }
-        }
-        Expr::Ref(name) => {
-            quote! { self.lookup(#name, env.unwrap()) }
-        }
-        Expr::Cond(cond) => {
-            let left = gen_expr(&cond.left);
-            let right = gen_expr(&cond.right);
-            match cond.op {
-                CondOp::Eq => quote! { #left == #right },
-                CondOp::Leq => quote! { #left <= #right },
-                CondOp::Geq => quote! { #left >= #right },
-            }
-        }
-        Expr::Or(left, right) => {
-            let left = gen_expr(left);
-            let right = gen_expr(right);
-            quote! { (#left) || (#right) }
-        }
-        Expr::Min(left, right) => {
-            let left = gen_expr(left);
-            let right = gen_expr(right);
-            quote! { std::cmp::min(#left, #right) }
-        }
-        Expr::Ternary { cond, then, r#else } => {
-            let cond = gen_expr(cond);
-            let then = gen_expr(then);
-            let r#else = gen_expr(r#else);
-            quote! {
-                if #cond {
-                    #then
-                } else {
-                    #r#else
-                }
-            }
-        }
-    }
-}
-
-fn gen_nonterminal_display_name_method() -> TokenStream {
-    quote! {
-        fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
-            NONTERMINALS[nonterminal_id.index()].display
-        }
-    }
-}
-
-fn gen_nonterminal_id_method() -> TokenStream {
-    quote! {
-        fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-            NONTERMINAL_IDS.get(name).copied()
-        }
-    }
-}
-
-fn gen_terminal_name_method() -> TokenStream {
-    quote! {
-        fn terminal_name(terminal_id: TerminalId) -> &'static str {
-            TERMINALS[terminal_id.index()].name
-        }
-    }
-}
-
-fn gen_slot_name_method() -> TokenStream {
-    quote! {
-        fn slot_name(slot_id: SlotId) -> &'static str {
-            SLOTS[slot_id.index()].display_name
-        }
-    }
-}
-
-fn gen_epsilon_method() -> TokenStream {
-    quote! {
-        fn epsilon() -> TerminalId {
-            TerminalId((TERMINALS.len() - 1) as u16)
-        }
-    }
-}
-
-fn gen_get_gss_node_method() -> TokenStream {
-    quote! {
-        fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
-            let gss_nodes = &self.gss_nodes_index[nonterminal_id.index()];
-            gss_nodes.iter().find(|(k, _)| *k == input_index).map(|x| x.1)
-        }
-    }
-}
-
-fn gen_get_gss_node_method_with_parameters(nt: &Nonterminal) -> TokenStream {
-    let method_name = format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
-    let parameters: Vec<_> = nt
-        .parameters
-        .iter()
-        .map(|Parameter { name, ty }| {
-            let name = format_ident!("{}", name);
-            quote! { #name: #ty }
-        })
-        .collect();
-    let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
-    let args: Vec<_> = (0..parameters.len())
-        .map(|i| format_ident!("a{i}"))
-        .collect();
-    let comparisons: Vec<_> = nt
-        .parameters
-        .iter()
-        .enumerate()
-        .map(|(i, p)| {
-            let lhs = format_ident!("a{}", i);
-            let rhs = format_ident!("{}", p.name);
-            quote! { *#lhs == #rhs }
-        })
-        .collect();
-    // Calculate the gss_node_id index: 1 (input_index) + the number of parameters
-    let index = Literal::usize_unsuffixed(1 + nt.parameters.len());
-    quote! {
-        fn #method_name(&self, input_index: u32, #(#parameters),*) -> Option<GssNodeId> {
-            self.#field_name
-                .iter()
-                .find(|(i, #(#args,)* _)| *i == input_index && #(#comparisons)&&*)
-                .map(|x| x.#index)
-        }
-    }
-}
-
-fn gen_add_gss_node_method() -> TokenStream {
-    quote! {
-        fn add_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32, gss_node_id: GssNodeId) {
-            let gss_nodes = &mut self.gss_nodes_index[nonterminal_id.index()];
-            gss_nodes.push((input_index, gss_node_id));
-        }
-    }
-}
-
-fn gen_add_gss_node_method_with_parameters(nt: &Nonterminal) -> TokenStream {
-    let method_name = format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
-    let parameters: Vec<_> = nt
-        .parameters
-        .iter()
-        .map(|Parameter { name, ty }| {
-            let name = format_ident!("{}", name);
-            quote! { #name: #ty }
-        })
-        .collect();
-    let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
-    let parameter_names: Vec<_> = nt
-        .parameters
-        .iter()
-        .map(|p| format_ident!("{}", p.name))
-        .collect();
-    quote! {
-        fn #method_name(&mut self, input_index: u32, #(#parameters,)* gss_node_id: GssNodeId) {
-            self.#field_name.push((input_index, #(#parameter_names,)* gss_node_id));
-        }
-    }
-}
-
-fn gen_new_gss_node_method() -> TokenStream {
-    quote! {
-        fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
-            let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
-            let gss_node = GSSNode::new(gss_node_id, nonterminal_id, input_index);
-            record!(self, GSSNodeCreated, nonterminal_id, input_index);
-            self.gss_nodes.push(gss_node);
-            self.stats.gss_nodes_count += 1;
-            gss_node_id
-        }
-    }
-}
-
-fn gen_gss_node_method() -> TokenStream {
-    quote! {
-        fn gss_node(&self, id: GssNodeId) -> &GSSNode {
-            &self.gss_nodes[id.index()]
-        }
-    }
-}
-
-fn gen_gss_node_mut_method() -> TokenStream {
-    quote! {
-        fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode {
-            self.gss_nodes.get_mut(id.index()).expect("GSS node id should be valid")
-        }
-    }
-}
-
-fn gen_sppf_node_method() -> TokenStream {
-    quote! {
-        fn sppf_node(&self, id: SPPFNodeId) -> &SPPFNode {
-            &self.sppf_nodes[id.index()]
-        }
-    }
-}
-
-fn gen_sppf_node_mut_method() -> TokenStream {
-    quote! {
-        fn sppf_node_mut(&mut self, id: SPPFNodeId) -> &mut SPPFNode {
-            &mut self.sppf_nodes[id.index()]
-        }
-    }
-}
-
-fn gen_add_descriptor_method() -> TokenStream {
-    quote! {
-        fn add_descriptor(&mut self, descriptor: Descriptor) {
-            record!(
-                self,
-                DescriptorAdded,
-                descriptor.input_index,
-                descriptor.slot_id,
-                descriptor.sppf_node_id,
-                descriptor.gss_node_id
-            );
-            self.stats_mut().descriptors_count += 1;
-            self.descriptors.push(descriptor);
-        }
-    }
-}
-
-fn gen_next_descriptor_method() -> TokenStream {
-    quote! {
-        fn next_descriptor(&mut self) -> Option<Descriptor> {
-            self.descriptors.pop()
-        }
-    }
-}
-
-fn gen_add_terminal_node_method() -> TokenStream {
-    quote! {
-        fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
-            let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-            self.stats.terminal_nodes_count += 1;
-            self.terminal_nodes_index[terminal_node.terminal_id.index()]
-                .insert(terminal_node.span, terminal_node_id);
-            record!(self, TerminalNodeCreated, terminal_node.terminal_id, terminal_node.span);
-            self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
-            terminal_node_id
-        }
-    }
-}
-
-fn gen_add_nonterminal_node_method() -> TokenStream {
-    quote! {
-        fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
-            let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-            self.stats.nonterminal_nodes_count += 1;
-            self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
-                .insert(nonterminal_node.span, nonterminal_node_id);
-            record!(
-                self,
-                NonterminalNodeCreated,
-                nonterminal_node.nonterminal_id,
-                nonterminal_node.span,
-                nonterminal_node.child
-            );
-            self.sppf_nodes.push(SPPFNode::Nonterminal(nonterminal_node));
-            nonterminal_node_id
-        }
-    }
-}
-
-fn gen_add_intermediate_node_method() -> TokenStream {
-    quote! {
-        fn add_intermediate_node(&mut self, intermediate_node: IntermediateNode) -> SPPFNodeId {
-            let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-            self.stats.intermediate_nodes_count += 1;
-            self.intermediate_nodes_index[intermediate_node.slot_id.index()]
-                .insert(intermediate_node.span, intermediate_node_id);
-            record!(
-                self,
-                IntermediateNodeCreated,
-                intermediate_node.slot_id,
-                intermediate_node.span,
-                intermediate_node.child.0,
-                intermediate_node.child.1
-            );
-            self.sppf_nodes.push(SPPFNode::Intermediate(intermediate_node));
-            intermediate_node_id
-        }
-    }
-}
-
-fn gen_input_method() -> TokenStream {
-    quote! {
-        fn input(&self) -> &'i Input {
-            self.scanner.input
-        }
-    }
-}
-
-fn gen_stats_method() -> TokenStream {
-    quote! {
-        fn stats(&self) -> &Stats {
-            &self.stats
-        }
-    }
-}
-
-fn gen_stats_mut_method() -> TokenStream {
-    quote! {
-        fn stats_mut(&mut self) -> &mut Stats {
-            &mut self.stats
-        }
-    }
-}
-
-fn gen_lookup_nonterminal_node_method() -> TokenStream {
-    quote! {
-        fn lookup_nonterminal_node(
-            &self,
-            nonterminal_id: NonterminalId,
-            left_extent: u32,
-            right_extent: u32,
-        ) -> Option<SPPFNodeId> {
-            let map = &self.nonterminal_nodes_index[nonterminal_id.index()];
-            map.get(&Span::new(left_extent, right_extent)).copied()
-        }
-    }
-}
-
-fn gen_lookup_intermediate_node_method() -> TokenStream {
-    quote! {
-        fn lookup_intermediate_node(
-            &self,
-            slot_id: SlotId,
-            left_extent: u32,
-            right_extent: u32,
-        ) -> Option<SPPFNodeId> {
-            let map = &self.intermediate_nodes_index[slot_id.index()];
-            map.get(&Span::new(left_extent, right_extent)).copied()
-        }
-    }
-}
-
-fn gen_lookup_terminal_node_method() -> TokenStream {
-    quote! {
-        fn lookup_terminal_node(
-            &self,
-            terminal_id: TerminalId,
-            left_extent: u32,
-            right_extent: u32,
-        ) -> Option<SPPFNodeId> {
-            let map = &self.terminal_nodes_index[terminal_id.index()];
-            map.get(&Span::new(left_extent, right_extent)).copied()
-        }
-    }
-}
-
-fn gen_gss_nodes_method() -> TokenStream {
-    quote! {
-        fn gss_nodes(&self) -> impl Iterator<Item = &GSSNode> {
-            self.gss_nodes.iter()
-        }
-    }
-}
-
-fn gen_add_intermediate_node_child_method() -> TokenStream {
-    quote! {
-        fn add_intermediate_node_child(
-            &mut self,
-            node: SPPFNodeId,
-            child1: SPPFNodeId,
-            child2: SPPFNodeId,
-        ) {
-            self.intermediate_nodes_children
-                .push((node, (child1, child2)));
-        }
-    }
-}
-
-fn gen_intermediate_nodes_children_map_method() -> TokenStream {
-    quote! {
-        fn intermediate_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> {
-            self.intermediate_nodes_children_map.get_or_init(|| {
-                let mut map: FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> =
-                    FxHashMap::default();
-                for (k, v) in &self.intermediate_nodes_children {
-                    map.entry(*k).or_default().push(*v);
-                }
-                map
-            })
-        }
-    }
-}
-
-fn gen_add_nonterminal_node_child_method() -> TokenStream {
-    quote! {
-        fn add_nonterminal_node_child(&mut self, node: SPPFNodeId, child: SPPFNodeId) {
-            self.nonterminal_nodes_children.push((node, child));
-        }
-    }
-}
-
-fn gen_nonterminal_nodes_children_map_method() -> TokenStream {
-    quote! {
-        fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<SPPFNodeId>> {
-            self.nonterminal_nodes_children_map.get_or_init(|| {
-                let mut map: FxHashMap<SPPFNodeId, Vec<SPPFNodeId>> =
-                    FxHashMap::default();
-                for (k, v) in &self.nonterminal_nodes_children {
-                    map.entry(*k).or_default().push(*v);
-                }
-                map
-            })
-        }
-    }
-}
-
-fn gen_add_trace_event_method() -> TokenStream {
-    quote! {
-        #[cfg(feature = "debug-trace")]
-        fn add_trace_event(&mut self, event: TraceEvent) {
-            if let Some(trace_events) = &mut self.trace_events {
-                trace_events.push(event);
-            }
-        }
-    }
-}
-
-fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
-    let create_method_name = format_ident!("create_{}", to_snake_case(&nt.name));
-    let id = Literal::usize_unsuffixed(id);
-    if nt.parameters.is_empty() {
+    fn gen_nonterminal_display_name_method() -> TokenStream {
         quote! {
-            fn #create_method_name(
-                &mut self,
-                sppf_node_id: Option<SPPFNodeId>,
-                gss_node_id: GssNodeId,
-                return_slot: SlotId,
-            ) {
-                self.create(NonterminalId(#id), sppf_node_id, gss_node_id, return_slot);
+            fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
+                NONTERMINALS[nonterminal_id.index()].display
             }
         }
-    } else {
-        let get_gss_node_method_name = format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
-        let add_gss_node_method_name = format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
+    }
+
+    fn gen_nonterminal_id_method() -> TokenStream {
+        quote! {
+            fn nonterminal_id(name: &str) -> Option<NonterminalId> {
+                NONTERMINAL_IDS.get(name).copied()
+            }
+        }
+    }
+
+    fn gen_terminal_name_method() -> TokenStream {
+        quote! {
+            fn terminal_name(terminal_id: TerminalId) -> &'static str {
+                TERMINALS[terminal_id.index()].name
+            }
+        }
+    }
+
+    fn gen_slot_name_method() -> TokenStream {
+        quote! {
+            fn slot_name(slot_id: SlotId) -> &'static str {
+                SLOTS[slot_id.index()].display_name
+            }
+        }
+    }
+
+    fn gen_epsilon_method() -> TokenStream {
+        quote! {
+            fn epsilon() -> TerminalId {
+                TerminalId((TERMINALS.len() - 1) as u16)
+            }
+        }
+    }
+
+    fn gen_get_gss_node_method() -> TokenStream {
+        quote! {
+            fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
+                let gss_nodes = &self.gss_nodes_index[nonterminal_id.index()];
+                gss_nodes.iter().find(|(k, _)| *k == input_index).map(|x| x.1)
+            }
+        }
+    }
+
+    fn gen_get_gss_node_method_with_parameters(nt: &Nonterminal) -> TokenStream {
+        let method_name = format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
         let parameters: Vec<_> = nt
             .parameters
             .iter()
@@ -1796,220 +1407,607 @@ fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
                 quote! { #name: #ty }
             })
             .collect();
-        let bindings: Vec<_> = nt
+        let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
+        let args: Vec<_> = (0..parameters.len())
+            .map(|i| format_ident!("a{i}"))
+            .collect();
+        let comparisons: Vec<_> = nt
             .parameters
             .iter()
-            .map(|p| {
-                let key = &p.name;
-                let value = format_ident!("{}", p.name);
-                quote! {
-                    env.bind(#key, #value);
-                }
+            .enumerate()
+            .map(|(i, p)| {
+                let lhs = format_ident!("a{}", i);
+                let rhs = format_ident!("{}", p.name);
+                quote! { *#lhs == #rhs }
             })
             .collect();
-        let param_names: Vec<_> = nt
+        let index = Literal::usize_unsuffixed(1 + nt.parameters.len());
+        quote! {
+            fn #method_name(&self, input_index: u32, #(#parameters),*) -> Option<GssNodeId> {
+                self.#field_name
+                    .iter()
+                    .find(|(i, #(#args,)* _)| *i == input_index && #(#comparisons)&&*)
+                    .map(|x| x.#index)
+            }
+        }
+    }
+
+    fn gen_add_gss_node_method() -> TokenStream {
+        quote! {
+            fn add_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32, gss_node_id: GssNodeId) {
+                let gss_nodes = &mut self.gss_nodes_index[nonterminal_id.index()];
+                gss_nodes.push((input_index, gss_node_id));
+            }
+        }
+    }
+
+    fn gen_add_gss_node_method_with_parameters(nt: &Nonterminal) -> TokenStream {
+        let method_name = format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
+        let parameters: Vec<_> = nt
+            .parameters
+            .iter()
+            .map(|Parameter { name, ty }| {
+                let name = format_ident!("{}", name);
+                quote! { #name: #ty }
+            })
+            .collect();
+        let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
+        let parameter_names: Vec<_> = nt
             .parameters
             .iter()
             .map(|p| format_ident!("{}", p.name))
             .collect();
         quote! {
-            fn #create_method_name(
+            fn #method_name(&mut self, input_index: u32, #(#parameters,)* gss_node_id: GssNodeId) {
+                self.#field_name.push((input_index, #(#parameter_names,)* gss_node_id));
+            }
+        }
+    }
+
+    fn gen_new_gss_node_method() -> TokenStream {
+        quote! {
+            fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
+                let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
+                let gss_node = GSSNode::new(gss_node_id, nonterminal_id, input_index);
+                record!(self, GSSNodeCreated, nonterminal_id, input_index);
+                self.gss_nodes.push(gss_node);
+                self.stats.gss_nodes_count += 1;
+                gss_node_id
+            }
+        }
+    }
+
+    fn gen_gss_node_method() -> TokenStream {
+        quote! {
+            fn gss_node(&self, id: GssNodeId) -> &GSSNode {
+                &self.gss_nodes[id.index()]
+            }
+        }
+    }
+
+    fn gen_gss_node_mut_method() -> TokenStream {
+        quote! {
+            fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode {
+                self.gss_nodes.get_mut(id.index()).expect("GSS node id should be valid")
+            }
+        }
+    }
+
+    fn gen_sppf_node_method() -> TokenStream {
+        quote! {
+            fn sppf_node(&self, id: SPPFNodeId) -> &SPPFNode {
+                &self.sppf_nodes[id.index()]
+            }
+        }
+    }
+
+    fn gen_sppf_node_mut_method() -> TokenStream {
+        quote! {
+            fn sppf_node_mut(&mut self, id: SPPFNodeId) -> &mut SPPFNode {
+                &mut self.sppf_nodes[id.index()]
+            }
+        }
+    }
+
+    fn gen_add_descriptor_method() -> TokenStream {
+        quote! {
+            fn add_descriptor(&mut self, descriptor: Descriptor) {
+                record!(
+                    self,
+                    DescriptorAdded,
+                    descriptor.input_index,
+                    descriptor.slot_id,
+                    descriptor.sppf_node_id,
+                    descriptor.gss_node_id
+                );
+                self.stats_mut().descriptors_count += 1;
+                self.descriptors.push(descriptor);
+            }
+        }
+    }
+
+    fn gen_next_descriptor_method() -> TokenStream {
+        quote! {
+            fn next_descriptor(&mut self) -> Option<Descriptor> {
+                self.descriptors.pop()
+            }
+        }
+    }
+
+    fn gen_add_terminal_node_method() -> TokenStream {
+        quote! {
+            fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
+                let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+                self.stats.terminal_nodes_count += 1;
+                self.terminal_nodes_index[terminal_node.terminal_id.index()]
+                    .insert(terminal_node.span, terminal_node_id);
+                record!(self, TerminalNodeCreated, terminal_node.terminal_id, terminal_node.span);
+                self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
+                terminal_node_id
+            }
+        }
+    }
+
+    fn gen_add_nonterminal_node_method() -> TokenStream {
+        quote! {
+            fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
+                let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+                self.stats.nonterminal_nodes_count += 1;
+                self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
+                    .insert(nonterminal_node.span, nonterminal_node_id);
+                record!(
+                    self,
+                    NonterminalNodeCreated,
+                    nonterminal_node.nonterminal_id,
+                    nonterminal_node.span,
+                    nonterminal_node.child
+                );
+                self.sppf_nodes.push(SPPFNode::Nonterminal(nonterminal_node));
+                nonterminal_node_id
+            }
+        }
+    }
+
+    fn gen_add_intermediate_node_method() -> TokenStream {
+        quote! {
+            fn add_intermediate_node(&mut self, intermediate_node: IntermediateNode) -> SPPFNodeId {
+                let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+                self.stats.intermediate_nodes_count += 1;
+                self.intermediate_nodes_index[intermediate_node.slot_id.index()]
+                    .insert(intermediate_node.span, intermediate_node_id);
+                record!(
+                    self,
+                    IntermediateNodeCreated,
+                    intermediate_node.slot_id,
+                    intermediate_node.span,
+                    intermediate_node.child.0,
+                    intermediate_node.child.1
+                );
+                self.sppf_nodes.push(SPPFNode::Intermediate(intermediate_node));
+                intermediate_node_id
+            }
+        }
+    }
+
+    fn gen_input_method() -> TokenStream {
+        quote! {
+            fn input(&self) -> &'i Input {
+                self.scanner.input
+            }
+        }
+    }
+
+    fn gen_stats_method() -> TokenStream {
+        quote! {
+            fn stats(&self) -> &Stats {
+                &self.stats
+            }
+        }
+    }
+
+    fn gen_stats_mut_method() -> TokenStream {
+        quote! {
+            fn stats_mut(&mut self) -> &mut Stats {
+                &mut self.stats
+            }
+        }
+    }
+
+    fn gen_lookup_nonterminal_node_method() -> TokenStream {
+        quote! {
+            fn lookup_nonterminal_node(
+                &self,
+                nonterminal_id: NonterminalId,
+                left_extent: u32,
+                right_extent: u32,
+            ) -> Option<SPPFNodeId> {
+                let map = &self.nonterminal_nodes_index[nonterminal_id.index()];
+                map.get(&Span::new(left_extent, right_extent)).copied()
+            }
+        }
+    }
+
+    fn gen_lookup_intermediate_node_method() -> TokenStream {
+        quote! {
+            fn lookup_intermediate_node(
+                &self,
+                slot_id: SlotId,
+                left_extent: u32,
+                right_extent: u32,
+            ) -> Option<SPPFNodeId> {
+                let map = &self.intermediate_nodes_index[slot_id.index()];
+                map.get(&Span::new(left_extent, right_extent)).copied()
+            }
+        }
+    }
+
+    fn gen_lookup_terminal_node_method() -> TokenStream {
+        quote! {
+            fn lookup_terminal_node(
+                &self,
+                terminal_id: TerminalId,
+                left_extent: u32,
+                right_extent: u32,
+            ) -> Option<SPPFNodeId> {
+                let map = &self.terminal_nodes_index[terminal_id.index()];
+                map.get(&Span::new(left_extent, right_extent)).copied()
+            }
+        }
+    }
+
+    fn gen_gss_nodes_method() -> TokenStream {
+        quote! {
+            fn gss_nodes(&self) -> impl Iterator<Item = &GSSNode> {
+                self.gss_nodes.iter()
+            }
+        }
+    }
+
+    fn gen_add_intermediate_node_child_method() -> TokenStream {
+        quote! {
+            fn add_intermediate_node_child(
                 &mut self,
-                sppf_node_id: Option<SPPFNodeId>,
-                gss_node_id: GssNodeId,
-                return_slot: SlotId,
-                env: Option<EnvId>,
-                binding: Option<&'static str>,
-                #(#parameters,)*
+                node: SPPFNodeId,
+                child1: SPPFNodeId,
+                child2: SPPFNodeId,
             ) {
-                record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-                let left_child = sppf_node_id.map(|id| {
-                    let node = self.sppf_node(id);
-                    (id, node.left_extent())
-                });
-                let gss_node = self.gss_node(gss_node_id);
-                let i = match left_child {
-                    Some((id, _)) => self.sppf_node(id).right_extent(),
-                    None => gss_node.index,
-                };
-                #[comment = "If there is already a GSS node for this call, add an edge."]
-                if let Some(existing_gss_node_id) = self.#get_gss_node_method_name(i, #(#param_names),*) {
-                    record!(self, GSSNodeFound, NonterminalId(#id), i);
-                    self.add_edge_to_existing_gss_node(existing_gss_node_id, gss_node_id, left_child, return_slot, env, binding);
-                } else {
-                    record!(self, GSSNodeNotFound, NonterminalId(#id), i);
-                    let new_gss_node_id = self.new_gss_node(NonterminalId(#id), i);
-                    self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env, binding);
-                    // Create a new environment to bind the parameter.
-                    let (env_id, env) = self.new_env();
-                    #(#bindings)*
-                    self.add_first_descriptors(NonterminalId(#id), i, new_gss_node_id, Some(env_id));
-                    self.#add_gss_node_method_name(i, #(#param_names,)* new_gss_node_id);
-                }
+                self.intermediate_nodes_children
+                    .push((node, (child1, child2)));
             }
         }
     }
-}
 
-fn gen_specialized_lookup_nonterminal_node_method(nt: &Nonterminal) -> TokenStream {
-    let create_method_name = format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
-    let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
-    quote! {
-        fn #create_method_name(
-            &self,
-            left_extent: u32,
-            right_extent: u32,
-            return_value: i32
-        ) -> Option<SPPFNodeId> {
-            let span = Span::new(left_extent, right_extent);
-            self.#field_name
-                .get(&span)
-                .and_then(|entries| {
-                    entries.iter()
-                        .find(|(rv, _)| *rv == return_value)
-                        .map(|(_, id)| *id)
+    fn gen_intermediate_nodes_children_map_method() -> TokenStream {
+        quote! {
+            fn intermediate_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> {
+                self.intermediate_nodes_children_map.get_or_init(|| {
+                    let mut map: FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> =
+                        FxHashMap::default();
+                    for (k, v) in &self.intermediate_nodes_children {
+                        map.entry(*k).or_default().push(*v);
+                    }
+                    map
                 })
-        }
-    }
-}
-
-fn gen_specialized_add_nonterminal_node_method(nt: &Nonterminal) -> TokenStream {
-    let method_name = format_ident!("add_nonterminal_node_{}", to_snake_case(&nt.name));
-    let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
-    quote! {
-        fn #method_name(&mut self, nonterminal_node: NonterminalNode, return_value: i32) -> SPPFNodeId {
-            let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-            self.stats.nonterminal_nodes_count += 1;
-            self.#field_name
-                .entry(nonterminal_node.span)
-                .or_default()
-        .push((return_value, nonterminal_node_id));
-            record!(
-                self,
-                NonterminalNodeCreated,
-                nonterminal_node.nonterminal_id,
-                nonterminal_node.span,
-                nonterminal_node.child
-            );
-            self.sppf_nodes.push(SPPFNode::Nonterminal(nonterminal_node));
-            nonterminal_node_id
-        }
-    }
-}
-
-fn gen_create_nonterminal_node_or_attach_children(nt: &Nonterminal) -> TokenStream {
-    let method_name = format_ident!(
-        "create_nonterminal_node_or_attach_children_{}",
-        to_snake_case(&nt.name)
-    );
-    let lookup_method_name = format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
-    let add_method_name = format_ident!("add_nonterminal_node_{}", to_snake_case(&nt.name));
-    quote! {
-        fn #method_name(
-            &mut self,
-            nonterminal_id: NonterminalId,
-            return_slot: SlotId,
-            left_extent: u32,
-            right_extent: u32,
-            child: SPPFNodeId,
-            return_value: i32,
-        ) -> Option<SPPFNodeId> {
-            if let Some(existing_node_id) =
-                self.#lookup_method_name(left_extent, right_extent, return_value)
-            {
-                record!(self, NonterminalNodeFound, existing_node_id);
-                let node = self.sppf_node_mut(existing_node_id);
-                let SPPFNode::Nonterminal(node) = node else {
-                    unreachable!("Expects a nonterminal node");
-                };
-                // Only count an ambiguous node once, i.e., when the second child is attached.
-                if !node.ambiguous {
-                    node.ambiguous = true;
-                    self.stats_mut().ambiguous_nodes += 1;
-                }
-                self.add_nonterminal_node_child(existing_node_id, child);
-                return None;
             }
-            let nonterminal_node = NonterminalNode {
-                nonterminal_id,
-                return_slot,
-                span: Span {
-                    left_extent,
-                    right_extent,
-                },
-                child,
-                ambiguous: false,
-            };
-            Some(self.#add_method_name(nonterminal_node, return_value))
         }
     }
-}
 
-fn gen_gss_nodes_index_field_for_data_dependent_nt(nt: &Nonterminal) -> TokenStream {
-    let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
-    let types: Vec<_> = nt.parameters.iter().map(|p| &p.ty).collect();
-    let comment = format!("GSS index for nonterminal {}", nt.name);
-    quote! {
-        #[comment = #comment]
-        #field_name: Vec<(u32, #(#types,)* GssNodeId)>
-    }
-}
-
-fn gen_specialized_nonterminal_nodes_index_field(nt: &Nonterminal) -> TokenStream {
-    let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
-    quote! {
-        #field_name: FxHashMap<Span, InlineVec<(i32, SPPFNodeId)>>
-    }
-}
-
-fn gen_gss_nodes_index_field_init(nt: &Nonterminal) -> TokenStream {
-    let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
-    quote! {
-        #field_name: vec![]
-    }
-}
-
-fn gen_specialized_nonterminal_nodes_index_field_init(nt: &Nonterminal) -> TokenStream {
-    let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
-    quote! {
-        #field_name: FxHashMap::default()
-    }
-}
-
-fn gen_start_nonterminal_method() -> TokenStream {
-    quote! {
-        fn start_nonterminal(&self) -> NonterminalId {
-            self.start_nonterminal
+    fn gen_add_nonterminal_node_child_method() -> TokenStream {
+        quote! {
+            fn add_nonterminal_node_child(&mut self, node: SPPFNodeId, child: SPPFNodeId) {
+                self.nonterminal_nodes_children.push((node, child));
+            }
         }
     }
-}
 
-fn gen_new_env_method() -> TokenStream {
-    quote! {
-        fn new_env(&mut self) -> (EnvId, &mut Env) {
-            let id = EnvId(self.envs.len() as u32);
-            self.envs.push(Env::default());
-            (id, &mut self.envs[id.index()])
+    fn gen_nonterminal_nodes_children_map_method() -> TokenStream {
+        quote! {
+            fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<SPPFNodeId>> {
+                self.nonterminal_nodes_children_map.get_or_init(|| {
+                    let mut map: FxHashMap<SPPFNodeId, Vec<SPPFNodeId>> =
+                        FxHashMap::default();
+                    for (k, v) in &self.nonterminal_nodes_children {
+                        map.entry(*k).or_default().push(*v);
+                    }
+                    map
+                })
+            }
         }
     }
-}
 
-fn gen_lookup_method() -> TokenStream {
-    quote! {
-        fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
-            let env = &self.envs[env_id.index()];
-            env.get(name)
+    fn gen_add_trace_event_method() -> TokenStream {
+        quote! {
+            #[cfg(feature = "debug-trace")]
+            fn add_trace_event(&mut self, event: TraceEvent) {
+                if let Some(trace_events) = &mut self.trace_events {
+                    trace_events.push(event);
+                }
+            }
         }
     }
-}
 
-fn gen_clone_env() -> TokenStream {
-    quote! {
-        fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env) {
-            let bindings = self.envs[source.0 as usize].bindings.clone();
-            let (new_id, new_env) = self.new_env();
-            new_env.bindings = bindings;
-            (new_id, new_env)
+    fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
+        let create_method_name = format_ident!("create_{}", to_snake_case(&nt.name));
+        let id = Literal::usize_unsuffixed(id);
+        if nt.parameters.is_empty() {
+            quote! {
+                fn #create_method_name(
+                    &mut self,
+                    sppf_node_id: Option<SPPFNodeId>,
+                    gss_node_id: GssNodeId,
+                    return_slot: SlotId,
+                ) {
+                    self.create(NonterminalId(#id), sppf_node_id, gss_node_id, return_slot);
+                }
+            }
+        } else {
+            let get_gss_node_method_name = format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
+            let add_gss_node_method_name = format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
+            let parameters: Vec<_> = nt
+                .parameters
+                .iter()
+                .map(|Parameter { name, ty }| {
+                    let name = format_ident!("{}", name);
+                    quote! { #name: #ty }
+                })
+                .collect();
+            let bindings: Vec<_> = nt
+                .parameters
+                .iter()
+                .map(|p| {
+                    let key = &p.name;
+                    let value = format_ident!("{}", p.name);
+                    quote! {
+                        env.bind(#key, #value);
+                    }
+                })
+                .collect();
+            let param_names: Vec<_> = nt
+                .parameters
+                .iter()
+                .map(|p| format_ident!("{}", p.name))
+                .collect();
+            quote! {
+                fn #create_method_name(
+                    &mut self,
+                    sppf_node_id: Option<SPPFNodeId>,
+                    gss_node_id: GssNodeId,
+                    return_slot: SlotId,
+                    env: Option<EnvId>,
+                    binding: Option<&'static str>,
+                    #(#parameters,)*
+                ) {
+                    record!(self, Call, sppf_node_id, gss_node_id, return_slot);
+                    let left_child = sppf_node_id.map(|id| {
+                        let node = self.sppf_node(id);
+                        (id, node.left_extent())
+                    });
+                    let gss_node = self.gss_node(gss_node_id);
+                    let i = match left_child {
+                        Some((id, _)) => self.sppf_node(id).right_extent(),
+                        None => gss_node.index,
+                    };
+                    #[comment = "If there is already a GSS node for this call, add an edge."]
+                    if let Some(existing_gss_node_id) = self.#get_gss_node_method_name(i, #(#param_names),*) {
+                        record!(self, GSSNodeFound, NonterminalId(#id), i);
+                        self.add_edge_to_existing_gss_node(existing_gss_node_id, gss_node_id, left_child, return_slot, env, binding);
+                    } else {
+                        record!(self, GSSNodeNotFound, NonterminalId(#id), i);
+                        let new_gss_node_id = self.new_gss_node(NonterminalId(#id), i);
+                        self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env, binding);
+                        // Create a new environment to bind the parameter.
+                        let (env_id, env) = self.new_env();
+                        #(#bindings)*
+                        self.add_first_descriptors(NonterminalId(#id), i, new_gss_node_id, Some(env_id));
+                        self.#add_gss_node_method_name(i, #(#param_names,)* new_gss_node_id);
+                    }
+                }
+            }
+        }
+    }
+
+    fn gen_specialized_lookup_nonterminal_node_method(nt: &Nonterminal) -> TokenStream {
+        let create_method_name = format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
+        let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
+        quote! {
+            fn #create_method_name(
+                &self,
+                left_extent: u32,
+                right_extent: u32,
+                return_value: i32
+            ) -> Option<SPPFNodeId> {
+                let span = Span::new(left_extent, right_extent);
+                self.#field_name
+                    .get(&span)
+                    .and_then(|entries| {
+                        entries.iter()
+                            .find(|(rv, _)| *rv == return_value)
+                            .map(|(_, id)| *id)
+                    })
+            }
+        }
+    }
+
+    fn gen_specialized_add_nonterminal_node_method(nt: &Nonterminal) -> TokenStream {
+        let method_name = format_ident!("add_nonterminal_node_{}", to_snake_case(&nt.name));
+        let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
+        quote! {
+            fn #method_name(&mut self, nonterminal_node: NonterminalNode, return_value: i32) -> SPPFNodeId {
+                let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+                self.stats.nonterminal_nodes_count += 1;
+                self.#field_name
+                    .entry(nonterminal_node.span)
+                    .or_default()
+                .push((return_value, nonterminal_node_id));
+                record!(
+                    self,
+                    NonterminalNodeCreated,
+                    nonterminal_node.nonterminal_id,
+                    nonterminal_node.span,
+                    nonterminal_node.child
+                );
+                self.sppf_nodes.push(SPPFNode::Nonterminal(nonterminal_node));
+                nonterminal_node_id
+            }
+        }
+    }
+
+    fn gen_create_nonterminal_node_or_attach_children(nt: &Nonterminal) -> TokenStream {
+        let method_name = format_ident!(
+            "create_nonterminal_node_or_attach_children_{}",
+            to_snake_case(&nt.name)
+        );
+        let lookup_method_name = format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
+        let add_method_name = format_ident!("add_nonterminal_node_{}", to_snake_case(&nt.name));
+        quote! {
+            fn #method_name(
+                &mut self,
+                nonterminal_id: NonterminalId,
+                return_slot: SlotId,
+                left_extent: u32,
+                right_extent: u32,
+                child: SPPFNodeId,
+                return_value: i32,
+            ) -> Option<SPPFNodeId> {
+                if let Some(existing_node_id) =
+                    self.#lookup_method_name(left_extent, right_extent, return_value)
+                {
+                    record!(self, NonterminalNodeFound, existing_node_id);
+                    let node = self.sppf_node_mut(existing_node_id);
+                    let SPPFNode::Nonterminal(node) = node else {
+                        unreachable!("Expects a nonterminal node");
+                    };
+                    if !node.ambiguous {
+                        node.ambiguous = true;
+                        self.stats_mut().ambiguous_nodes += 1;
+                    }
+                    self.add_nonterminal_node_child(existing_node_id, child);
+                    return None;
+                }
+                let nonterminal_node = NonterminalNode {
+                    nonterminal_id,
+                    return_slot,
+                    span: Span {
+                        left_extent,
+                        right_extent,
+                    },
+                    child,
+                    ambiguous: false,
+                };
+                Some(self.#add_method_name(nonterminal_node, return_value))
+            }
+        }
+    }
+
+    fn gen_gss_nodes_index_field_for_data_dependent_nt(nt: &Nonterminal) -> TokenStream {
+        let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
+        let types: Vec<_> = nt.parameters.iter().map(|p| &p.ty).collect();
+        let comment = format!("GSS index for nonterminal {}", nt.name);
+        quote! {
+            #[comment = #comment]
+            #field_name: Vec<(u32, #(#types,)* GssNodeId)>
+        }
+    }
+
+    fn gen_specialized_nonterminal_nodes_index_field(nt: &Nonterminal) -> TokenStream {
+        let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
+        quote! {
+            #field_name: FxHashMap<Span, InlineVec<(i32, SPPFNodeId)>>
+        }
+    }
+
+    fn gen_gss_nodes_index_field_init(nt: &Nonterminal) -> TokenStream {
+        let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
+        quote! {
+            #field_name: vec![]
+        }
+    }
+
+    fn gen_specialized_nonterminal_nodes_index_field_init(nt: &Nonterminal) -> TokenStream {
+        let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
+        quote! {
+            #field_name: FxHashMap::default()
+        }
+    }
+
+    fn gen_start_nonterminal_method() -> TokenStream {
+        quote! {
+            fn start_nonterminal(&self) -> NonterminalId {
+                self.start_nonterminal
+            }
+        }
+    }
+
+    fn gen_new_env_method() -> TokenStream {
+        quote! {
+            fn new_env(&mut self) -> (EnvId, &mut Env) {
+                let id = EnvId(self.envs.len() as u32);
+                self.envs.push(Env::default());
+                (id, &mut self.envs[id.index()])
+            }
+        }
+    }
+
+    fn gen_lookup_method() -> TokenStream {
+        quote! {
+            fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
+                let env = &self.envs[env_id.index()];
+                env.get(name)
+            }
+        }
+    }
+
+    fn gen_clone_env() -> TokenStream {
+        quote! {
+            fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env) {
+                let bindings = self.envs[source.0 as usize].bindings.clone();
+                let (new_id, new_env) = self.new_env();
+                new_env.bindings = bindings;
+                (new_id, new_env)
+            }
+        }
+    }
+
+    fn gen_expr(expr: &Expr) -> TokenStream {
+        match expr {
+            Expr::Int(i) => {
+                let val = Literal::i32_unsuffixed(*i as i32);
+                quote! { #val }
+            }
+            Expr::Ref(name) => {
+                quote! { self.lookup(#name, env.unwrap()) }
+            }
+            Expr::Cond(cond) => {
+                let left = Self::gen_expr(&cond.left);
+                let right = Self::gen_expr(&cond.right);
+                match cond.op {
+                    CondOp::Eq => quote! { #left == #right },
+                    CondOp::Leq => quote! { #left <= #right },
+                    CondOp::Geq => quote! { #left >= #right },
+                }
+            }
+            Expr::Or(left, right) => {
+                let left = Self::gen_expr(left);
+                let right = Self::gen_expr(right);
+                quote! { (#left) || (#right) }
+            }
+            Expr::Min(left, right) => {
+                let left = Self::gen_expr(left);
+                let right = Self::gen_expr(right);
+                quote! { std::cmp::min(#left, #right) }
+            }
+            Expr::Ternary { cond, then, r#else } => {
+                let cond = Self::gen_expr(cond);
+                let then = Self::gen_expr(then);
+                let r#else = Self::gen_expr(r#else);
+                quote! {
+                    if #cond {
+                        #then
+                    } else {
+                        #r#else
+                    }
+                }
+            }
         }
     }
 }
