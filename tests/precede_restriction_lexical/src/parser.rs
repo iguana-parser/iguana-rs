@@ -313,7 +313,26 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             //StartS : Layout . start:S Layout
             SlotId(7) => {
-                self.create_s(result, gss_node_id, SlotId(8));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_s_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //StartS : Layout start:S . Layout
+                    let next_slot_id = SlotId(8);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //StartS : Layout start:S . Layout
             SlotId(8) => {
@@ -686,6 +705,127 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
         return_slot: SlotId,
     ) {
         self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(3), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(3), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(3), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(5), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(5), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(2),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(0), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(0), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(3),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(0),
+                    SlotId(3),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        if self.scanner.match_token(TerminalId(4), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(4), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(4), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(0),
+                    SlotId(5),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
+    }
+    fn parse_start_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(5), i).is_some()
+            || self.scanner.match_token(TerminalId(4), i).is_some()
+            || self.scanner.match_token(TerminalId(3), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(5), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(5), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let node = self.parse_s_ll1(j)?;
+                j = self.sppf_node(node).right_extent();
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(8),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(5), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(5), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(9),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(1),
+                    SlotId(9),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
 }
 

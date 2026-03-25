@@ -269,7 +269,26 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
             }
             //StartSyntaxIdentifier : Layout . start:SyntaxIdentifier Layout
             SlotId(5) => {
-                self.create_syntax_identifier(result, gss_node_id, SlotId(6));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_syntax_identifier_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //StartSyntaxIdentifier : Layout start:SyntaxIdentifier . Layout
+                    let next_slot_id = SlotId(6);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //StartSyntaxIdentifier : Layout start:SyntaxIdentifier . Layout
             SlotId(6) => {
@@ -361,7 +380,26 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
             }
             //StartLexicalIdentifier : Layout . start:LexicalIdentifier Layout
             SlotId(9) => {
-                self.create_lexical_identifier(result, gss_node_id, SlotId(10));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_lexical_identifier_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //StartLexicalIdentifier : Layout start:LexicalIdentifier . Layout
+                    let next_slot_id = SlotId(10);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //StartLexicalIdentifier : Layout start:LexicalIdentifier . Layout
             SlotId(10) => {
@@ -764,6 +802,152 @@ impl<'i> MultipleExceptParser<'i> {
         return_slot: SlotId,
     ) {
         self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn parse_syntax_identifier_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(1), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(1), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(0),
+                    SlotId(1),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
+    }
+    fn parse_lexical_identifier_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(0), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(0), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(0), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(1),
+                    SlotId(3),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
+    }
+    fn parse_start_syntax_identifier_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(1), i).is_some()
+            || self.scanner.match_token(TerminalId(5), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(5), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(5), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let node = self.parse_syntax_identifier_ll1(j)?;
+                j = self.sppf_node(node).right_extent();
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(6),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(5), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(5), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(7),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(2),
+                    SlotId(7),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
+    }
+    fn parse_start_lexical_identifier_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(5), i).is_some()
+            || self.scanner.match_token(TerminalId(0), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(5), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(5), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let node = self.parse_lexical_identifier_ll1(j)?;
+                j = self.sppf_node(node).right_extent();
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(10),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(5), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(5), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(11),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(3),
+                    SlotId(11),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
 }
 

@@ -100,16 +100,15 @@ impl<'a> SlotIds<'a> {
             slots: vec![],
         }
     }
-    pub fn id(&mut self, slot: &Slot<'a>) -> SlotId {
-        if let Some(id) = self.slot_to_id.get(slot) {
-            SlotId(*id as u16)
-        } else {
-            let value = self.value;
-            self.value += 1;
-            self.slot_to_id.insert(slot.clone(), value);
-            self.slots.push(slot.clone());
-            SlotId(value as u16)
-        }
+    pub fn insert(&mut self, slot: Slot<'a>) -> SlotId {
+        let value = self.value;
+        self.value += 1;
+        self.slot_to_id.insert(slot.clone(), value);
+        self.slots.push(slot);
+        SlotId(value as u16)
+    }
+    pub fn id(&self, slot: &Slot<'a>) -> Option<SlotId> {
+        self.slot_to_id.get(slot).map(|id| SlotId(*id as u16))
     }
     pub fn len(&self) -> usize {
         self.slots.len()
@@ -195,6 +194,8 @@ pub fn collect_char_classes(regex: &Regex, char_class_ids: &mut CharClassIds) {
             collect_char_classes(r, char_class_ids);
         }
         Regex::Char(_) | Regex::CharRange(_) | Regex::Epsilon => {}
-        Regex::Identifier(_) => unreachable!("Regex::Identifier should be inlined before code generation"),
+        Regex::Identifier(_) => {
+            unreachable!("Regex::Identifier should be inlined before code generation")
+        }
     }
 }

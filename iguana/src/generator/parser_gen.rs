@@ -3,7 +3,7 @@ use proc_macro2::TokenStream;
 use quote::format_ident;
 use quote::quote;
 
-use crate::generator::id::EndSlot;
+use crate::generator::GenConfig;
 use crate::generator::id::NonterminalIds;
 use crate::generator::id::SlotIds;
 use crate::generator::id::TerminalIds;
@@ -25,891 +25,515 @@ use crate::ids::NonterminalId;
 use crate::ids::SlotId;
 use rustc_hash::FxHashSet;
 
-pub fn generate<'a>(
+pub struct ParserGen<'a> {
     grammar: &'a Grammar,
-    nonterminal_ids: &mut NonterminalIds,
-    slot_ids: &mut SlotIds<'a>,
-    terminal_ids: &mut TerminalIds,
-    config: &super::GenConfig,
-) -> TokenStream {
-    let ff = FirstFollowSets::new(grammar);
-    let grammar_name = &grammar.name;
-    let imports = gen_imports(grammar);
-    let nonterminals = gen_nonterminals(nonterminal_ids);
-    let nonterminal_ids_static_var = gen_nonterminal_ids(nonterminal_ids);
-    let execute_method = gen_execute_method(grammar, nonterminal_ids, slot_ids, terminal_ids, &ff, config);
-    let first_descriptors = gen_add_first_descriptors_method(grammar, nonterminal_ids, slot_ids);
-    let terminals = gen_terminals(terminal_ids);
-    let slots = gen_slots(slot_ids, grammar);
-    let nonterminal_display_name_method = gen_nonterminal_display_name_method();
-    let nonterminal_id_method = gen_nonterminal_id_method();
-    let terminal_name_method = gen_terminal_name_method();
-    let slot_name_method = gen_slot_name_method();
-    let epsilon_method = gen_epsilon_method();
-    let get_gss_node_method = gen_get_gss_node_method();
-    let gen_add_gss_node_method = gen_add_gss_node_method();
-    let gen_new_gss_node_method = gen_new_gss_node_method();
-    let gss_node_method = gen_gss_node_method();
-    let gss_node_mut_method = gen_gss_node_mut_method();
-    let sppf_node_method = gen_sppf_node_method();
-    let sppf_node_mut_method = gen_sppf_node_mut_method();
-    let add_descriptor_method = gen_add_descriptor_method();
-    let next_descriptor_method = gen_next_descriptor_method();
-    let new_terminal_node_method = gen_add_terminal_node_method();
-    let new_nonterminal_node_method = gen_add_nonterminal_node_method();
-    let new_intermediate_node_method = gen_add_intermediate_node_method();
-    let input_len_method = gen_input_method();
-    let stats_method = gen_stats_method();
-    let stats_mut_method = gen_stats_mut_method();
-    let lookup_nonterminal_node_method = gen_lookup_nonterminal_node_method();
-    let lookup_intermediate_node_method = gen_lookup_intermediate_node_method();
-    let lookup_terminal_node_method = gen_lookup_terminal_node_method();
-    let gss_nodes_method = gen_gss_nodes_method();
-    let add_nonterminal_node_child_method = gen_add_nonterminal_node_child_method();
-    let add_intermediate_node_child_method = gen_add_intermediate_node_child_method();
-    let intermediate_nodes_children_method = gen_intermediate_nodes_children_map_method();
-    let nonterminal_nodes_children_method = gen_nonterminal_nodes_children_map_method();
-    let add_trace_event_method = gen_add_trace_event_method();
-    let start_nonterminal_method = gen_start_nonterminal_method();
-    let new_env_method = gen_new_env_method();
-    let lookup_method = gen_lookup_method();
-    let clone_env_method = gen_clone_env();
-    let post_conditions_method = gen_post_conditions_method(grammar, slot_ids, terminal_ids);
-    let parser_struct = gen_parser_struct(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
-    let parser_impl = gen_parser_impl(grammar_name, grammar, &ff, nonterminal_ids, terminal_ids, slot_ids, config);
-    let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
-    quote! {
-        #imports
-        #nonterminals
-        #nonterminal_ids_static_var
-        #terminals
-        #slots
-        impl<'i> Parser<'i> for #grammar_name_ident<'i> {
-            #nonterminal_display_name_method
-            #nonterminal_id_method
-            #terminal_name_method
-            #slot_name_method
-            #epsilon_method
-            #execute_method
-            #first_descriptors
-            #get_gss_node_method
-            #gen_add_gss_node_method
-            #gen_new_gss_node_method
-            #gss_node_method
-            #gss_node_mut_method
-            #sppf_node_method
-            #sppf_node_mut_method
-            #add_descriptor_method
-            #next_descriptor_method
-            #new_terminal_node_method
-            #new_nonterminal_node_method
-            #new_intermediate_node_method
-            #input_len_method
-            #stats_method
-            #stats_mut_method
-            #lookup_nonterminal_node_method
-            #lookup_intermediate_node_method
-            #lookup_terminal_node_method
-            #gss_nodes_method
-            #add_intermediate_node_child_method
-            #add_nonterminal_node_child_method
-            #intermediate_nodes_children_method
-            #nonterminal_nodes_children_method
-            #add_trace_event_method
-            #start_nonterminal_method
-            #new_env_method
-            #lookup_method
-            #clone_env_method
-            #post_conditions_method
-        }
-        #parser_struct
-        #parser_impl
-    }
+    nonterminal_ids: &'a NonterminalIds,
+    terminal_ids: &'a TerminalIds,
+    slot_ids: &'a SlotIds<'a>,
+    ff: FirstFollowSets<'a>,
+    config: GenConfig,
 }
 
-fn gen_imports(grammar: &Grammar) -> TokenStream {
-    let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&grammar.name));
-    quote! {
-        use std::cell::OnceCell;
-        use crate::{scanner::#scanner_name, types::{EbnfKind, Nonterminal, Slot, Terminal}};
-        use iguana_runtime::{
-            descriptor::Descriptor,
-            env::{Env, EnvId},
-            gss::{GSSNode, PoppedElement},
-            ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
-            input::Input,
-            parser::{Parser, Stats, init_logger},
-            record,
-            scanner::Scanner,
-            sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
-            utils::{inline_map::InlineMap, inline_vec::InlineVec}
-        };
-        #[cfg(feature = "debug-trace")]
-        use iguana_runtime::trace::TraceEvent;
-        use rustc_hash::FxHashMap;
-        use phf::phf_map;
-    }
-}
-
-fn gen_add_first_descriptors_method<'a>(
-    grammar: &'a Grammar,
-    nonterminal_ids: &NonterminalIds,
-    slot_ids: &mut SlotIds<'a>,
-) -> TokenStream {
-    let mut nonterminal_quotes = vec![];
-    for nonterminal in grammar.nonterminals() {
-        let nonterminal_id = nonterminal_ids.get_id(nonterminal);
-        let nt_name = &nonterminal.name;
-        let mut alternative_quotes = vec![];
-        let alternatives = grammar.alternatives(nonterminal);
-        for alternative in alternatives {
-            let first_slot = Slot::new(nonterminal, alternative, 0);
-            let first_slot_name = first_slot.name(grammar);
-            let first_slot_id = slot_ids.id(&first_slot);
-            alternative_quotes.push(quote! {
-                #[comment = #first_slot_name]
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: #first_slot_id,
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
-            });
-        }
-        nonterminal_quotes.push(quote! {
-            #[comment = #nt_name]
-            #nonterminal_id => {
-                #( #alternative_quotes)*
-            }
-        });
-    }
-    quote! {
-        fn add_first_descriptors(
-            &mut self,
-            nonterminal_id: NonterminalId,
-            input_index: u32,
-            gss_node_id: GssNodeId,
-            env: Option<EnvId>,
-        ) {
-            match nonterminal_id {
-                #(#nonterminal_quotes)*
-                _ => {
-                    panic!("Unknown nonterminal id: {nonterminal_id}");
-                }
-            }
+impl<'a> ParserGen<'a> {
+    pub fn new(
+        grammar: &'a Grammar,
+        nonterminal_ids: &'a NonterminalIds,
+        terminal_ids: &'a TerminalIds,
+        slot_ids: &'a SlotIds<'a>,
+        config: GenConfig,
+    ) -> Self {
+        Self {
+            grammar,
+            nonterminal_ids,
+            terminal_ids,
+            slot_ids,
+            ff: FirstFollowSets::new(grammar),
+            config,
         }
     }
-}
 
-fn gen_nonterminals(nonterminal_ids: &NonterminalIds) -> TokenStream {
-    let nonterminals_len = Literal::usize_unsuffixed(nonterminal_ids.len());
-    let nonterminals = nonterminal_ids.nonterminals().map(|n| {
-        let nonterminal_name = &n.name;
-        let display_name = n.display_name();
-        let origin = &n.origin;
-        let nonterminal_kind = match origin {
-            Some(s) => match s {
-                Symbol::Group(_) => quote! { Some(EbnfKind::Group) },
-                Symbol::Opt(_) => quote! { Some(EbnfKind::Opt) },
-                Symbol::Alt(_) => quote! { Some(EbnfKind::Alt) },
-                Symbol::Star(_, _) => quote! { Some(EbnfKind::Star) },
-                Symbol::Plus(_, _) => quote! { Some(EbnfKind::Plus) },
-                Symbol::Labeled { .. }
-                | Symbol::Identifier(_)
-                | Symbol::Literal(_)
-                | Symbol::Except { .. }
-                | Symbol::FollowRestriction { .. }
-                | Symbol::PrecedeRestriction { .. }
-                | Symbol::Exclude { .. }
-                | Symbol::Call { .. }
-                | Symbol::Condition(_)
-                | Symbol::Return(_)
-                | Symbol::Binding { .. } => quote! { None },
-            },
-            None => quote! { None },
-        };
+    pub fn generate(&mut self) -> TokenStream {
+        let grammar_name = &self.grammar.name;
+        let imports = self.gen_imports();
+        let nonterminals = self.gen_nonterminals();
+        let nonterminal_ids_static_var = self.gen_nonterminal_ids();
+        let execute_method = self.gen_execute_method();
+        let first_descriptors = self.gen_add_first_descriptors_method();
+        let terminals = self.gen_terminals();
+        let slots = self.gen_slots();
+        let nonterminal_display_name_method = gen_nonterminal_display_name_method();
+        let nonterminal_id_method = gen_nonterminal_id_method();
+        let terminal_name_method = gen_terminal_name_method();
+        let slot_name_method = gen_slot_name_method();
+        let epsilon_method = gen_epsilon_method();
+        let get_gss_node_method = gen_get_gss_node_method();
+        let gen_add_gss_node_method = gen_add_gss_node_method();
+        let gen_new_gss_node_method = gen_new_gss_node_method();
+        let gss_node_method = gen_gss_node_method();
+        let gss_node_mut_method = gen_gss_node_mut_method();
+        let sppf_node_method = gen_sppf_node_method();
+        let sppf_node_mut_method = gen_sppf_node_mut_method();
+        let add_descriptor_method = gen_add_descriptor_method();
+        let next_descriptor_method = gen_next_descriptor_method();
+        let new_terminal_node_method = gen_add_terminal_node_method();
+        let new_nonterminal_node_method = gen_add_nonterminal_node_method();
+        let new_intermediate_node_method = gen_add_intermediate_node_method();
+        let input_len_method = gen_input_method();
+        let stats_method = gen_stats_method();
+        let stats_mut_method = gen_stats_mut_method();
+        let lookup_nonterminal_node_method = gen_lookup_nonterminal_node_method();
+        let lookup_intermediate_node_method = gen_lookup_intermediate_node_method();
+        let lookup_terminal_node_method = gen_lookup_terminal_node_method();
+        let gss_nodes_method = gen_gss_nodes_method();
+        let add_nonterminal_node_child_method = gen_add_nonterminal_node_child_method();
+        let add_intermediate_node_child_method = gen_add_intermediate_node_child_method();
+        let intermediate_nodes_children_method = gen_intermediate_nodes_children_map_method();
+        let nonterminal_nodes_children_method = gen_nonterminal_nodes_children_map_method();
+        let add_trace_event_method = gen_add_trace_event_method();
+        let start_nonterminal_method = gen_start_nonterminal_method();
+        let new_env_method = gen_new_env_method();
+        let lookup_method = gen_lookup_method();
+        let clone_env_method = gen_clone_env();
+        let post_conditions_method = self.gen_post_conditions_method();
+        let parser_struct = self.gen_parser_struct();
+        let parser_impl = self.gen_parser_impl();
+        let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
         quote! {
-            Nonterminal {
-                name: #nonterminal_name,
-                display: #display_name,
-                kind: #nonterminal_kind,
+            #imports
+            #nonterminals
+            #nonterminal_ids_static_var
+            #terminals
+            #slots
+            impl<'i> Parser<'i> for #grammar_name_ident<'i> {
+                #nonterminal_display_name_method
+                #nonterminal_id_method
+                #terminal_name_method
+                #slot_name_method
+                #epsilon_method
+                #execute_method
+                #first_descriptors
+                #get_gss_node_method
+                #gen_add_gss_node_method
+                #gen_new_gss_node_method
+                #gss_node_method
+                #gss_node_mut_method
+                #sppf_node_method
+                #sppf_node_mut_method
+                #add_descriptor_method
+                #next_descriptor_method
+                #new_terminal_node_method
+                #new_nonterminal_node_method
+                #new_intermediate_node_method
+                #input_len_method
+                #stats_method
+                #stats_mut_method
+                #lookup_nonterminal_node_method
+                #lookup_intermediate_node_method
+                #lookup_terminal_node_method
+                #gss_nodes_method
+                #add_intermediate_node_child_method
+                #add_nonterminal_node_child_method
+                #intermediate_nodes_children_method
+                #nonterminal_nodes_children_method
+                #add_trace_event_method
+                #start_nonterminal_method
+                #new_env_method
+                #lookup_method
+                #clone_env_method
+                #post_conditions_method
             }
+            #parser_struct
+            #parser_impl
         }
-    });
-    quote! {
-        pub const NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminals),*];
     }
-}
 
-fn gen_nonterminal_ids(nonterminal_ids: &NonterminalIds) -> TokenStream {
-    let nonterminal_name_to_ids: Vec<_> = nonterminal_ids
-        .nonterminals()
-        .enumerate()
-        .map(|(i, n)| {
-            let name = &n.name;
-            let index = Literal::usize_unsuffixed(i);
-            quote! { #name => NonterminalId(#index) }
-        })
-        .collect();
-    quote! {
-        static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-            #(#nonterminal_name_to_ids),*
-        };
-    }
-}
-
-fn gen_terminals(terminal_ids: &TerminalIds) -> TokenStream {
-    let terminals_len = Literal::usize_unsuffixed(terminal_ids.len() + 1);
-    let terminals: Vec<_> = terminal_ids
-        .terminals()
-        .map(|t| {
-            let terminal_name = &t.name;
-            quote! {
-                Terminal {
-                    name: #terminal_name
-                }
-            }
-        })
-        .collect();
-    let epsilon = quote! {
-        Terminal {
-            name: "Epsilon"
-        }
-    };
-    quote! {
-        pub const TERMINALS: [Terminal; #terminals_len] = [#(#terminals,)* #epsilon];
-    }
-}
-
-fn gen_slots(slot_ids: &SlotIds, grammar: &Grammar) -> TokenStream {
-    let slots_len = Literal::usize_unsuffixed(slot_ids.len());
-    let slot_names = slot_ids.slots().map(|s| {
-        let display_name = s.display_name(grammar);
+    fn gen_imports(&self) -> TokenStream {
+        let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&self.grammar.name));
         quote! {
-            Slot {
-                display_name: #display_name
-            }
-        }
-    });
-    quote! {
-        pub const SLOTS: [Slot; #slots_len] = [#(#slot_names),*];
-    }
-}
-
-fn gen_execute_method<'a>(
-    grammar: &'a Grammar,
-    nonterminal_ids: &mut NonterminalIds,
-    slot_ids: &mut SlotIds<'a>,
-    terminal_ids: &mut TerminalIds,
-    ff: &FirstFollowSets,
-    config: &super::GenConfig,
-) -> TokenStream {
-    let mut slot_quotes = vec![];
-    for nonterminal in grammar.nonterminals() {
-        let alternatives = grammar.alternatives(nonterminal);
-        for (index, alternative) in alternatives.iter().enumerate() {
-            for pos in 0..alternative.symbols.len() {
-                let slot = Slot::new(nonterminal, alternative, pos);
-                slot_quotes.push(gen_slot_code(grammar, slot, terminal_ids, slot_ids, ff, config));
-            }
-            // Handle the last grammar slot
-            let last_symbol_index = alternative.symbols.len();
-            let end_slot = Slot::new(nonterminal, alternative, last_symbol_index);
-            let end_slot_name = end_slot.name(grammar);
-            let end_slot_id = slot_ids.id(&end_slot);
-            let nonterminal_id = nonterminal_ids
-                .get_id(nonterminal)
-                .expect("nonterminal not found");
-            let end_slot = EndSlot {
-                index,
-                slot_id: end_slot_id,
+            use std::cell::OnceCell;
+            use crate::{scanner::#scanner_name, types::{EbnfKind, Nonterminal, Slot, Terminal}};
+            use iguana_runtime::{
+                descriptor::Descriptor,
+                env::{Env, EnvId},
+                gss::{GSSNode, PoppedElement},
+                ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+                input::Input,
+                parser::{Parser, Stats, init_logger},
+                record,
+                scanner::Scanner,
+                sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
+                utils::{inline_map::InlineMap, inline_vec::InlineVec}
             };
-            nonterminal_ids.add_end_slot(nonterminal_id, end_slot);
-            // Handles the case for an empty alternative
-            let last_slot_quote = if last_symbol_index == 0 {
-                // For now we consider the last terminal to be epsilon.
-                let epsilon_id = Literal::usize_unsuffixed(terminal_ids.len());
-                quote! {
-                    #[comment = #end_slot_name]
-                    #end_slot_id => {
-                        let end_slot_id = #end_slot_id;
-                        let epsilon_node_id =
-                            self.get_or_create_terminal_node(
-                                TerminalId(#epsilon_id),
-                                input_index,
-                                input_index,
-                            );
-                        let nonterminal_id = #nonterminal_id;
-                        if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                            nonterminal_id,
-                            end_slot_id,
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                        ) {
-                            let popped_element = PoppedElement {
-                                nonterminal_node_id,
-                                return_value: None,
-                            };
-                            self.pop(gss_node_id, end_slot_id, popped_element);
-                        }
-                    }
+            #[cfg(feature = "debug-trace")]
+            use iguana_runtime::trace::TraceEvent;
+            use rustc_hash::FxHashMap;
+            use phf::phf_map;
+        }
+    }
+
+    fn gen_execute_method(&self) -> TokenStream {
+        let mut slot_quotes = vec![];
+        for nonterminal in self.grammar.nonterminals() {
+            let alternatives = self.grammar.alternatives(nonterminal);
+            for alternative in alternatives.iter() {
+                for pos in 0..alternative.symbols.len() {
+                    let slot = Slot::new(nonterminal, alternative, pos);
+                    slot_quotes.push(self.gen_slot_code(slot));
                 }
-            } else {
-                let last_symbol = alternative.symbols.last().unwrap();
-                let pop = if let Symbol::Return(expr) = last_symbol {
-                    let expr = gen_expr(expr);
-                    let create_method = format_ident!(
-                        "create_nonterminal_node_or_attach_children_{}",
-                        to_snake_case(&nonterminal.name)
-                    );
+                // Handle the last grammar slot
+                let last_symbol_index = alternative.symbols.len();
+                let end_slot = Slot::new(nonterminal, alternative, last_symbol_index);
+                let end_slot_name = end_slot.name();
+                let end_slot_id = self.slot_ids.id(&end_slot).expect("slot not found");
+                let nonterminal_id = self
+                    .nonterminal_ids
+                    .get_id(nonterminal)
+                    .expect("nonterminal not found");
+                // Handles the case for an empty alternative
+                let last_slot_quote = if last_symbol_index == 0 {
+                    // For now we consider the last terminal to be epsilon.
+                    let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
                     quote! {
-                        let return_value = #expr;
-                        if let Some(nonterminal_node_id) = self.#create_method(
-                            nonterminal_id,
-                            end_slot_id,
-                            left_extent,
-                            right_extent,
-                            result,
-                            return_value
-                        ) {
-                            let popped_element = PoppedElement {
-                                nonterminal_node_id,
-                                return_value: Some(return_value),
-                            };
-                            self.pop(gss_node_id, end_slot_id, popped_element);
+                        #[comment = #end_slot_name]
+                        #end_slot_id => {
+                            let end_slot_id = #end_slot_id;
+                            let epsilon_node_id =
+                                self.get_or_create_terminal_node(
+                                    TerminalId(#epsilon_id),
+                                    input_index,
+                                    input_index,
+                                );
+                            let nonterminal_id = #nonterminal_id;
+                            if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                                nonterminal_id,
+                                end_slot_id,
+                                input_index,
+                                input_index,
+                                epsilon_node_id,
+                            ) {
+                                let popped_element = PoppedElement {
+                                    nonterminal_node_id,
+                                    return_value: None,
+                                };
+                                self.pop(gss_node_id, end_slot_id, popped_element);
+                            }
                         }
                     }
                 } else {
+                    let last_symbol = alternative.symbols.last().unwrap();
+                    let pop = if let Symbol::Return(expr) = last_symbol {
+                        let expr = gen_expr(expr);
+                        let create_method = format_ident!(
+                            "create_nonterminal_node_or_attach_children_{}",
+                            to_snake_case(&nonterminal.name)
+                        );
+                        quote! {
+                            let return_value = #expr;
+                            if let Some(nonterminal_node_id) = self.#create_method(
+                                nonterminal_id,
+                                end_slot_id,
+                                left_extent,
+                                right_extent,
+                                result,
+                                return_value
+                            ) {
+                                let popped_element = PoppedElement {
+                                    nonterminal_node_id,
+                                    return_value: Some(return_value),
+                                };
+                                self.pop(gss_node_id, end_slot_id, popped_element);
+                            }
+                        }
+                    } else {
+                        quote! {
+                            if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                                nonterminal_id,
+                                end_slot_id,
+                                left_extent,
+                                right_extent,
+                                result,
+                            ) {
+                                let popped_element = PoppedElement {
+                                    nonterminal_node_id,
+                                    return_value: None,
+                                };
+                                self.pop(gss_node_id, end_slot_id, popped_element);
+                            }
+                        }
+                    };
                     quote! {
-                        if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                            nonterminal_id,
-                            end_slot_id,
-                            left_extent,
-                            right_extent,
-                            result,
-                        ) {
-                            let popped_element = PoppedElement {
-                                nonterminal_node_id,
-                                return_value: None,
+                        #[comment = #end_slot_name]
+                        #end_slot_id => {
+                            let Some(result) = result else {
+                                unreachable!("result cannot be None here.")
                             };
-                            self.pop(gss_node_id, end_slot_id, popped_element);
+                            let node = self.sppf_node(result);
+                            let left_extent = node.left_extent();
+                            let right_extent = node.right_extent();
+                            let nonterminal_id = #nonterminal_id;
+                            let end_slot_id = #end_slot_id;
+                            #pop
                         }
                     }
                 };
-                quote! {
-                    #[comment = #end_slot_name]
-                    #end_slot_id => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let node = self.sppf_node(result);
-                        let left_extent = node.left_extent();
-                        let right_extent = node.right_extent();
-                        let nonterminal_id = #nonterminal_id;
-                        let end_slot_id = #end_slot_id;
-                        #pop
+                slot_quotes.push(last_slot_quote);
+            }
+        }
+
+        quote! {
+            fn execute(
+                &mut self,
+                input_index: u32,
+                slot_id: SlotId,
+                result: Option<SPPFNodeId>,
+                gss_node_id: GssNodeId,
+                env: Option<EnvId>,
+            ) {
+                record!(self, ProcessingDescriptor, input_index, slot_id, result, gss_node_id);
+                match slot_id {
+                    #(#slot_quotes)*
+                    _ => {
+                        panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            };
-            slot_quotes.push(last_slot_quote);
+            }
         }
     }
 
-    quote! {
-        fn execute(
-            &mut self,
-            input_index: u32,
-            slot_id: SlotId,
-            result: Option<SPPFNodeId>,
-            gss_node_id: GssNodeId,
-            env: Option<EnvId>,
-        ) {
-            record!(self, ProcessingDescriptor, input_index, slot_id, result, gss_node_id);
-            match slot_id {
-                #(#slot_quotes)*
-                _ => {
-                    panic!("Unknown grammar slot id: {slot_id}");
+    fn gen_add_first_descriptors_method(&self) -> TokenStream {
+        let mut nonterminal_quotes = vec![];
+        for nonterminal in self.grammar.nonterminals() {
+            let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
+            let nt_name = &nonterminal.name;
+            let mut alternative_quotes = vec![];
+            let alternatives = self.grammar.alternatives(nonterminal);
+            for alternative in alternatives {
+                let first_slot = Slot::new(nonterminal, alternative, 0);
+                let first_slot_name = first_slot.name();
+                let first_slot_id = self.slot_ids.id(&first_slot);
+                alternative_quotes.push(quote! {
+                    #[comment = #first_slot_name]
+                    self.add_descriptor(Descriptor {
+                        input_index,
+                        slot_id: #first_slot_id,
+                        sppf_node_id: None,
+                        gss_node_id,
+                        env,
+                    });
+                });
+            }
+            nonterminal_quotes.push(quote! {
+                #[comment = #nt_name]
+                #nonterminal_id => {
+                    #( #alternative_quotes)*
+                }
+            });
+        }
+        quote! {
+            fn add_first_descriptors(
+                &mut self,
+                nonterminal_id: NonterminalId,
+                input_index: u32,
+                gss_node_id: GssNodeId,
+                env: Option<EnvId>,
+            ) {
+                match nonterminal_id {
+                    #(#nonterminal_quotes)*
+                    _ => {
+                        panic!("Unknown nonterminal id: {nonterminal_id}");
+                    }
                 }
             }
         }
     }
-}
 
-fn gen_slot_code<'a>(
-    grammar: &'a Grammar,
-    slot: Slot<'a>,
-    terminal_ids: &mut TerminalIds,
-    slot_ids: &mut SlotIds<'a>,
-    ff: &FirstFollowSets,
-    config: &super::GenConfig,
-) -> TokenStream {
-    match slot.symbol() {
-        Some(Symbol::Condition(expr)) => {
-            return gen_condition_code(grammar, expr, &slot, slot_ids);
-        }
-        Some(Symbol::Return(_)) => {
-            return gen_return_code(grammar, &slot, slot_ids);
-        }
-        Some(Symbol::Except { symbol, except }) => {
-            return gen_except_code(grammar, symbol, except.as_slice(), &slot, terminal_ids, slot_ids, ff, config);
-        }
-        Some(Symbol::FollowRestriction {
-            symbol,
-            restriction,
-        }) => {
-            return gen_follow_restriction_code(
-                grammar,
-                symbol,
-                restriction,
-                &slot,
-                terminal_ids,
-                slot_ids,
-                ff,
-                config,
-            );
-        }
-        Some(Symbol::PrecedeRestriction {
-            symbol,
-            restriction,
-        }) => {
-            return gen_precede_restriction_code(
-                grammar,
-                symbol,
-                restriction,
-                &slot,
-                terminal_ids,
-                slot_ids,
-                ff,
-                config,
-            );
-        }
-        Some(Symbol::Exclude { .. }) => {
-            unreachable!("Exclude should be desugared before code generation")
-        }
-        Some(
-            Symbol::Labeled { .. }
-            | Symbol::Identifier(_)
-            | Symbol::Literal(_)
-            | Symbol::Group(_)
-            | Symbol::Opt(_)
-            | Symbol::Alt(_)
-            | Symbol::Star(_, _)
-            | Symbol::Plus(_, _)
-            | Symbol::Call { .. }
-            | Symbol::Binding { .. },
-        )
-        | None => {}
-    }
-    let symbol = slot.symbol().unwrap();
-    if let Some(identifier) = symbol.as_identifier() {
-        let def_id = identifier.resolve();
-        let def = grammar.definition(def_id);
-        match def {
-            Definition::Terminal(terminal) => {
-                gen_terminal_slot(grammar, terminal, slot, terminal_ids, slot_ids, &[], &[])
-            }
-            Definition::Nonterminal(nonterminal) => {
-                let arguments = match symbol.unwrap() {
-                    Symbol::Call { arguments, .. } => arguments.clone(),
+    fn gen_nonterminals(&self) -> TokenStream {
+        let nonterminals_len = Literal::usize_unsuffixed(self.nonterminal_ids.len());
+        let nonterminals = self.nonterminal_ids.nonterminals().map(|n| {
+            let nonterminal_name = &n.name;
+            let display_name = n.display_name();
+            let origin = &n.origin;
+            let nonterminal_kind = match origin {
+                Some(s) => match s {
+                    Symbol::Group(_) => quote! { Some(EbnfKind::Group) },
+                    Symbol::Opt(_) => quote! { Some(EbnfKind::Opt) },
+                    Symbol::Alt(_) => quote! { Some(EbnfKind::Alt) },
+                    Symbol::Star(_, _) => quote! { Some(EbnfKind::Star) },
+                    Symbol::Plus(_, _) => quote! { Some(EbnfKind::Plus) },
                     Symbol::Labeled { .. }
                     | Symbol::Identifier(_)
                     | Symbol::Literal(_)
-                    | Symbol::Group(_)
-                    | Symbol::Opt(_)
-                    | Symbol::Alt(_)
-                    | Symbol::Star(_, _)
-                    | Symbol::Plus(_, _)
                     | Symbol::Except { .. }
                     | Symbol::FollowRestriction { .. }
                     | Symbol::PrecedeRestriction { .. }
+                    | Symbol::Exclude { .. }
+                    | Symbol::Call { .. }
                     | Symbol::Condition(_)
                     | Symbol::Return(_)
-                    | Symbol::Binding { .. } => vec![],
-                    Symbol::Exclude { .. } => {
-                        unreachable!("Exclude should be desugared before code generation")
-                    }
-                };
-                gen_nonterminal_slot(grammar, nonterminal, &arguments, slot, slot_ids, &[], &[], ff, config)
-            }
-        }
-    } else {
-        quote! {}
-    }
-}
-
-/// Generates code for the grammar slots before a terminal.
-fn gen_terminal_slot<'a>(
-    grammar: &'a Grammar,
-    terminal: &Terminal,
-    slot: Slot<'a>,
-    terminal_ids: &mut TerminalIds,
-    slot_ids: &mut SlotIds<'a>,
-    pre_conditions: &[TokenStream],
-    post_conditions: &[TokenStream],
-) -> TokenStream {
-    let terminal_id = terminal_ids
-        .get_id(terminal)
-        .unwrap_or_else(|| panic!("cannot not find the lexical definition {}", terminal.name));
-    let slot_id = slot_ids.id(&slot);
-    let current_slot_name = slot.name(grammar);
-    // At grammar position 0, we do not need to create an intermediate node.
-    let new_node = if slot.is_first() {
-        quote! {
-            let new_node = right_child_id;
-            self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
-        }
-    } else {
-        quote! {
-            let left_child_id = result.expect("Result should not be None.");
-            let left_child = self.sppf_node(left_child_id);
-            let left_extent = left_child.left_extent();
-            if let Some(new_node) = self.create_intermediate_node_or_attach_children(
-                next_slot_id,
-                left_extent,
-                j,
-                left_child_id,
-                right_child_id,
-            ) {
-                self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
-            }
-        }
-    };
-    let new_node = if post_conditions.is_empty() {
-        new_node
-    } else {
-        quote! {
-            if #(#post_conditions)&&* {
-                #new_node
-            }
-        }
-    };
-    let next_slot = slot.next();
-    let next_slot_id = slot_ids.id(&next_slot);
-    let next_slot_name = next_slot.name(grammar);
-    let pre_condition_check = if pre_conditions.is_empty() {
-        quote! {}
-    } else {
-        quote! {
-            if !(#(#pre_conditions)&&*) { return; }
-        }
-    };
-    let terminal_name = &terminal.name;
-    quote! {
-        #[comment = #current_slot_name]
-        #slot_id => {
-            let i = input_index;
-            #pre_condition_check
-            record!(self, MatchingTerminal, #terminal_name, i);
-            match self.scanner.match_token(#terminal_id, i) {
-                Some(j) => {
-                    record!(self, MatchSuccess, #terminal_name, i, j);
-                    let right_child_id = self.get_or_create_terminal_node(
-                        #terminal_id,
-                        i,
-                        j,
-                    );
-                    #[comment = #next_slot_name]
-                    let next_slot_id = #next_slot_id;
-                    #new_node
-                }
-                None => {
-                    record!(self, MatchFailed, #terminal_name, i, #slot_id, gss_node_id, result);
+                    | Symbol::Binding { .. } => quote! { None },
+                },
+                None => quote! { None },
+            };
+            quote! {
+                Nonterminal {
+                    name: #nonterminal_name,
+                    display: #display_name,
+                    kind: #nonterminal_kind,
                 }
             }
-        }
-    }
-}
-
-fn gen_except_code<'a>(
-    grammar: &'a Grammar,
-    symbol: &Symbol,
-    except: &[Identifier],
-    slot: &Slot<'a>,
-    terminal_ids: &mut TerminalIds,
-    slot_ids: &mut SlotIds<'a>,
-    ff: &FirstFollowSets,
-    config: &super::GenConfig,
-) -> TokenStream {
-    let Some(identifier) = symbol.as_identifier() else {
-        return quote! {};
-    };
-    let def_id = identifier.resolve();
-    let def = grammar.definition(def_id);
-    let except_terminal_ids: Vec<_> = except
-        .iter()
-        .map(|e| {
-            let except_def_id = e.resolve();
-            let Definition::Terminal(except_terminal) = grammar.definition(except_def_id) else {
-                panic!("Except identifier must resolve to a terminal");
-            };
-            terminal_ids
-                .get_id(except_terminal)
-                .unwrap_or_else(|| panic!("cannot find the lexical definition {}", except_terminal.name))
-        })
-        .collect();
-    match def {
-        Definition::Terminal(terminal) => {
-            let post_conditions: Vec<_> = except_terminal_ids
-                .iter()
-                .map(|id| {
-                    quote! {
-                        self.scanner.match_token(#id, i) != Some(j)
-                    }
-                })
-                .collect();
-            gen_terminal_slot(grammar, terminal, slot.clone(), terminal_ids, slot_ids, &[], &post_conditions)
-        }
-        Definition::Nonterminal(nonterminal) => {
-            let arguments = match symbol.unwrap() {
-                Symbol::Call { arguments, .. } => arguments.clone(),
-                _ => vec![],
-            };
-            let post_conditions: Vec<_> = except_terminal_ids
-                .iter()
-                .map(|id| {
-                    quote! {
-                        self.scanner.match_token(#id, i) != Some(j)
-                    }
-                })
-                .collect();
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &[], &post_conditions, ff, config)
-        }
-    }
-}
-
-fn gen_follow_restriction_code<'a>(
-    grammar: &'a Grammar,
-    symbol: &Symbol,
-    restriction: &Identifier,
-    slot: &Slot<'a>,
-    terminal_ids: &mut TerminalIds,
-    slot_ids: &mut SlotIds<'a>,
-    ff: &FirstFollowSets,
-    config: &super::GenConfig,
-) -> TokenStream {
-    let Some(identifier) = symbol.as_identifier() else {
-        return quote! {};
-    };
-    let def_id = identifier.resolve();
-    let def = grammar.definition(def_id);
-    let restriction_def_id = restriction.resolve();
-    let Definition::Terminal(restriction_terminal) = grammar.definition(restriction_def_id) else {
-        panic!("Follow restriction identifier must resolve to a terminal");
-    };
-    let restriction_terminal_id =
-        terminal_ids.get_id(restriction_terminal).unwrap_or_else(|| {
-            panic!(
-                "cannot find the lexical definition {}",
-                restriction_terminal.name
-            )
         });
-    match def {
-        Definition::Terminal(terminal) => {
-            let post_conditions = vec![quote! {
-                self.scanner.match_token(#restriction_terminal_id, j).is_none()
-            }];
-            gen_terminal_slot(
-                grammar,
-                terminal,
-                slot.clone(),
-                terminal_ids,
-                slot_ids,
-                &[],
-                &post_conditions,
-            )
+        quote! {
+            pub const NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminals),*];
         }
-        Definition::Nonterminal(nonterminal) => {
-            let arguments = match symbol.unwrap() {
-                Symbol::Call { arguments, .. } => arguments.clone(),
-                _ => vec![],
+    }
+
+    fn gen_nonterminal_ids(&self) -> TokenStream {
+        let nonterminal_name_to_ids: Vec<_> = self
+            .nonterminal_ids
+            .nonterminals()
+            .enumerate()
+            .map(|(i, n)| {
+                let name = &n.name;
+                let index = Literal::usize_unsuffixed(i);
+                quote! { #name => NonterminalId(#index) }
+            })
+            .collect();
+        quote! {
+            static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
+                #(#nonterminal_name_to_ids),*
             };
-            let post_conditions = vec![quote! {
-                self.scanner.match_token(#restriction_terminal_id, j).is_none()
-            }];
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &[], &post_conditions, ff, config)
         }
     }
-}
 
-fn gen_precede_restriction_code<'a>(
-    grammar: &'a Grammar,
-    symbol: &Symbol,
-    restriction: &Identifier,
-    slot: &Slot<'a>,
-    terminal_ids: &mut TerminalIds,
-    slot_ids: &mut SlotIds<'a>,
-    ff: &FirstFollowSets,
-    config: &super::GenConfig,
-) -> TokenStream {
-    let Some(identifier) = symbol.as_identifier() else {
-        return quote! {};
-    };
-    let def_id = identifier.resolve();
-    let def = grammar.definition(def_id);
-    let restriction_def_id = restriction.resolve();
-    let Definition::Terminal(restriction_terminal) = grammar.definition(restriction_def_id) else {
-        panic!("Precede restriction identifier must resolve to a terminal");
-    };
-    let restriction_terminal_id =
-        terminal_ids.get_id(restriction_terminal).unwrap_or_else(|| {
-            panic!(
-                "cannot find the lexical definition {}",
-                restriction_terminal.name
-            )
-        });
-    match def {
-        Definition::Terminal(terminal) => {
-            let pre_conditions = vec![quote! {
-                i == 0 || self.scanner.match_token(#restriction_terminal_id, i - 1).is_none()
-            }];
-            gen_terminal_slot(
-                grammar,
-                terminal,
-                slot.clone(),
-                terminal_ids,
-                slot_ids,
-                &pre_conditions,
-                &[],
-            )
-        }
-        Definition::Nonterminal(nonterminal) => {
-            let arguments = match symbol.unwrap() {
-                Symbol::Call { arguments, .. } => arguments.clone(),
-                _ => vec![],
-            };
-            let pre_conditions = vec![quote! {
-                input_index == 0 || self.scanner.match_token(#restriction_terminal_id, input_index - 1).is_none()
-            }];
-            gen_nonterminal_slot(grammar, nonterminal, &arguments, slot.clone(), slot_ids, &pre_conditions, &[], ff, config)
-        }
-    }
-}
-
-fn gen_post_conditions_method<'a>(
-    grammar: &'a Grammar,
-    slot_ids: &mut SlotIds<'a>,
-    terminal_ids: &mut TerminalIds,
-) -> TokenStream {
-    let mut arms = vec![];
-    for nonterminal in grammar.nonterminals() {
-        for alternative in grammar.alternatives(nonterminal) {
-            for pos in 0..alternative.symbols.len() {
-                let symbol = &alternative.symbols[pos];
-                if let Symbol::Except { symbol, except } = symbol {
-                    let Some(identifier) = symbol.as_identifier() else {
-                        continue;
-                    };
-                    let def = grammar.definition(identifier.resolve());
-                    if !matches!(def, Definition::Nonterminal(_)) {
-                        continue;
+    fn gen_terminals(&self) -> TokenStream {
+        let terminals_len = Literal::usize_unsuffixed(self.terminal_ids.len() + 1);
+        let terminals: Vec<_> = self
+            .terminal_ids
+            .terminals()
+            .map(|t| {
+                let terminal_name = &t.name;
+                quote! {
+                    Terminal {
+                        name: #terminal_name
                     }
-                    let checks: Vec<_> = except
-                        .iter()
-                        .map(|e| {
-                            let except_def_id = e.resolve();
-                            let Definition::Terminal(except_terminal) =
-                                grammar.definition(except_def_id)
-                            else {
-                                panic!("Except identifier must resolve to a terminal");
-                            };
-                            let except_terminal_id =
-                                terminal_ids.get_id(except_terminal).unwrap_or_else(|| {
-                                    panic!(
-                                        "cannot find the lexical definition {}",
-                                        except_terminal.name
-                                    )
-                                });
-                            quote! {
-                                self.scanner.match_token(#except_terminal_id, left_extent) != Some(right_extent)
-                            }
-                        })
-                        .collect();
-                    let slot = Slot::new(nonterminal, alternative, pos);
-                    let next_slot = slot.next();
-                    let slot_id = slot_ids.id(&next_slot);
-                    arms.push(quote! {
-                        #slot_id => {
-                            #(#checks)&&*
-                        }
-                    });
                 }
-                if let Symbol::FollowRestriction {
-                    symbol,
-                    restriction,
-                } = symbol
-                {
-                    let Some(identifier) = symbol.as_identifier() else {
-                        continue;
-                    };
-                    let def = grammar.definition(identifier.resolve());
-                    if !matches!(def, Definition::Nonterminal(_)) {
-                        continue;
-                    }
-                    let restriction_def_id = restriction.resolve();
-                    let Definition::Terminal(restriction_terminal) =
-                        grammar.definition(restriction_def_id)
-                    else {
-                        panic!("Follow restriction identifier must resolve to a terminal");
-                    };
-                    let restriction_terminal_id = terminal_ids
-                        .get_id(restriction_terminal)
-                        .unwrap_or_else(|| {
-                            panic!(
-                                "cannot find the lexical definition {}",
-                                restriction_terminal.name
-                            )
-                        });
-                    let slot = Slot::new(nonterminal, alternative, pos);
-                    let next_slot = slot.next();
-                    let slot_id = slot_ids.id(&next_slot);
-                    arms.push(quote! {
-                        #slot_id => {
-                            self.scanner.match_token(#restriction_terminal_id, right_extent).is_none()
-                        }
-                    });
-                }
+            })
+            .collect();
+        let epsilon = quote! {
+            Terminal {
+                name: "Epsilon"
             }
-        }
-    }
-    quote! {
-        fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> bool {
-            match slot {
-                #(#arms)*
-                _ => true,
-            }
-        }
-    }
-}
-
-fn gen_nonterminal_slot<'a>(
-    grammar: &'a Grammar,
-    nonterminal: &'a Nonterminal,
-    arguments: &[Expr],
-    slot: Slot<'a>,
-    slot_ids: &mut SlotIds<'a>,
-    pre_conditions: &[TokenStream],
-    post_conditions: &[TokenStream],
-    ff: &FirstFollowSets,
-    config: &super::GenConfig,
-) -> TokenStream {
-    let slot_id = slot_ids.id(&slot);
-    let slot_name = slot.name(grammar);
-    let next_slot = slot.next();
-    let next_slot_id = slot_ids.id(&next_slot);
-    let pre_condition_check = if pre_conditions.is_empty() {
-        quote! {}
-    } else {
-        quote! { if !(#(#pre_conditions)&&*) { return; } }
-    };
-    if config.ll1_optimization && ff.is_ll1(nonterminal) {
-        let next_slot_name = next_slot.name(grammar);
-        let post_condition_check = if post_conditions.is_empty() {
-            quote! {}
-        } else {
-            quote! { if !(#(#post_conditions)&&*) { return; } }
         };
+        quote! {
+            pub const TERMINALS: [Terminal; #terminals_len] = [#(#terminals,)* #epsilon];
+        }
+    }
+
+    fn gen_slots(&self) -> TokenStream {
+        let slots_len = Literal::usize_unsuffixed(self.slot_ids.len());
+        let slot_names = self.slot_ids.slots().map(|s| {
+            let display_name = s.display_name(self.grammar);
+            quote! {
+                Slot {
+                    display_name: #display_name
+                }
+            }
+        });
+        quote! {
+            pub const SLOTS: [Slot; #slots_len] = [#(#slot_names),*];
+        }
+    }
+
+    fn gen_slot_code(&self, slot: Slot<'a>) -> TokenStream {
+        match slot.symbol() {
+            Some(Symbol::Condition(expr)) => {
+                return self.gen_condition_code(expr, &slot);
+            }
+            Some(Symbol::Return(_)) => {
+                return self.gen_return_code(&slot);
+            }
+            Some(Symbol::Except { symbol, except }) => {
+                return self.gen_except_code(symbol, except.as_slice(), &slot);
+            }
+            Some(Symbol::FollowRestriction {
+                symbol,
+                restriction,
+            }) => {
+                return self.gen_follow_restriction_code(symbol, restriction, &slot);
+            }
+            Some(Symbol::PrecedeRestriction {
+                symbol,
+                restriction,
+            }) => {
+                return self.gen_precede_restriction_code(symbol, restriction, &slot);
+            }
+            Some(Symbol::Exclude { .. }) => {
+                unreachable!("Exclude should be desugared before code generation")
+            }
+            Some(
+                Symbol::Labeled { .. }
+                | Symbol::Identifier(_)
+                | Symbol::Literal(_)
+                | Symbol::Group(_)
+                | Symbol::Opt(_)
+                | Symbol::Alt(_)
+                | Symbol::Star(_, _)
+                | Symbol::Plus(_, _)
+                | Symbol::Call { .. }
+                | Symbol::Binding { .. },
+            )
+            | None => {}
+        }
+        let symbol = slot.symbol().unwrap();
+        if let Some(identifier) = symbol.as_identifier() {
+            let def_id = identifier.resolve();
+            let def = self.grammar.definition(def_id);
+            match def {
+                Definition::Terminal(terminal) => self.gen_terminal_slot(terminal, slot, &[], &[]),
+                Definition::Nonterminal(nonterminal) => {
+                    let arguments = match symbol.unwrap() {
+                        Symbol::Call { arguments, .. } => arguments.clone(),
+                        Symbol::Labeled { .. }
+                        | Symbol::Identifier(_)
+                        | Symbol::Literal(_)
+                        | Symbol::Group(_)
+                        | Symbol::Opt(_)
+                        | Symbol::Alt(_)
+                        | Symbol::Star(_, _)
+                        | Symbol::Plus(_, _)
+                        | Symbol::Except { .. }
+                        | Symbol::FollowRestriction { .. }
+                        | Symbol::PrecedeRestriction { .. }
+                        | Symbol::Condition(_)
+                        | Symbol::Return(_)
+                        | Symbol::Binding { .. } => vec![],
+                        Symbol::Exclude { .. } => {
+                            unreachable!("Exclude should be desugared before code generation")
+                        }
+                    };
+                    self.gen_nonterminal_slot(nonterminal, &arguments, slot, &[], &[])
+                }
+            }
+        } else {
+            quote! {}
+        }
+    }
+
+    /// Generates code for the grammar slots before a terminal.
+    fn gen_terminal_slot(
+        &self,
+        terminal: &Terminal,
+        slot: Slot<'a>,
+        pre_conditions: &[TokenStream],
+        post_conditions: &[TokenStream],
+    ) -> TokenStream {
+        let terminal_id = &self
+            .terminal_ids
+            .get_id(terminal)
+            .unwrap_or_else(|| panic!("cannot not find the lexical definition {}", terminal.name));
+        let slot_id = self.slot_ids.id(&slot);
+        let current_slot_name = slot.name();
+        // At grammar position 0, we do not need to create an intermediate node.
         let new_node = if slot.is_first() {
             quote! {
                 let new_node = right_child_id;
@@ -931,79 +555,736 @@ fn gen_nonterminal_slot<'a>(
                 }
             }
         };
-        let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
-        quote! {
-            #[comment = #slot_name]
-            #slot_id => {
-                let i = input_index;
-                #pre_condition_check
-                if let Some(right_child_id) = self.#method_name(i) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    #post_condition_check
-                    #[comment = #next_slot_name]
-                    let next_slot_id = #next_slot_id;
+        let new_node = if post_conditions.is_empty() {
+            new_node
+        } else {
+            quote! {
+                if #(#post_conditions)&&* {
                     #new_node
                 }
             }
-        }
-    } else {
-        let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
-        let arguments: Vec<_> = arguments.iter().map(gen_expr).collect();
-        let bindings = if let Some(Symbol::Binding { name, .. }) = slot.symbol() {
-            quote! { Some(#name) }
-        } else {
-            quote! { None }
         };
-        let arguments = if nonterminal.parameters.is_empty() {
-            quote! { result, gss_node_id, #next_slot_id }
+        let next_slot = slot.next();
+        let next_slot_id = self.slot_ids.id(&next_slot);
+        let next_slot_name = next_slot.name();
+        let pre_condition_check = if pre_conditions.is_empty() {
+            quote! {}
         } else {
-            quote! { result, gss_node_id, #next_slot_id, env, #bindings, #(#arguments),* }
+            quote! {
+                if !(#(#pre_conditions)&&*) { return; }
+            }
         };
+        let terminal_name = &terminal.name;
         quote! {
-            #[comment = #slot_name]
+            #[comment = #current_slot_name]
             #slot_id => {
+                let i = input_index;
                 #pre_condition_check
-                self.#method_name(#arguments);
+                record!(self, MatchingTerminal, #terminal_name, i);
+                match self.scanner.match_token(#terminal_id, i) {
+                    Some(j) => {
+                        record!(self, MatchSuccess, #terminal_name, i, j);
+                        let right_child_id = self.get_or_create_terminal_node(
+                            #terminal_id,
+                            i,
+                            j,
+                        );
+                        #[comment = #next_slot_name]
+                        let next_slot_id = #next_slot_id;
+                        #new_node
+                    }
+                    None => {
+                        record!(self, MatchFailed, #terminal_name, i, #slot_id, gss_node_id, result);
+                    }
+                }
             }
         }
     }
-}
 
-fn gen_condition_code<'a>(
-    grammar: &'a Grammar,
-    expr: &Expr,
-    slot: &Slot<'a>,
-    slot_ids: &mut SlotIds<'a>,
-) -> TokenStream {
-    let slot_id = slot_ids.id(slot);
-    let slot_name = slot.name(grammar);
-    let next_slot = slot.next();
-    let next_slot_id = slot_ids.id(&next_slot);
-    let condition_expr = gen_expr(expr);
-    quote! {
-        #[comment = #slot_name]
-        #slot_id => {
-            if #condition_expr {
+    fn gen_except_code(
+        &self,
+        symbol: &Symbol,
+        except: &[Identifier],
+        slot: &Slot<'a>,
+    ) -> TokenStream {
+        let Some(identifier) = symbol.as_identifier() else {
+            return quote! {};
+        };
+        let def_id = identifier.resolve();
+        let def = &self.grammar.definition(def_id);
+        let except_terminal_ids: Vec<_> = except
+            .iter()
+            .map(|e| {
+                let except_def_id = e.resolve();
+                let Definition::Terminal(except_terminal) = &self.grammar.definition(except_def_id)
+                else {
+                    panic!("Except identifier must resolve to a terminal");
+                };
+                self.terminal_ids
+                    .get_id(except_terminal)
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "cannot find the lexical definition {}",
+                            except_terminal.name
+                        )
+                    })
+            })
+            .collect();
+        match def {
+            Definition::Terminal(terminal) => {
+                let post_conditions: Vec<_> = except_terminal_ids
+                    .iter()
+                    .map(|id| {
+                        quote! {
+                            self.scanner.match_token(#id, i) != Some(j)
+                        }
+                    })
+                    .collect();
+                self.gen_terminal_slot(terminal, slot.clone(), &[], &post_conditions)
+            }
+            Definition::Nonterminal(nonterminal) => {
+                let arguments = match symbol.unwrap() {
+                    Symbol::Call { arguments, .. } => arguments.clone(),
+                    _ => vec![],
+                };
+                let post_conditions: Vec<_> = except_terminal_ids
+                    .iter()
+                    .map(|id| {
+                        quote! {
+                            self.scanner.match_token(#id, i) != Some(j)
+                        }
+                    })
+                    .collect();
+                self.gen_nonterminal_slot(
+                    nonterminal,
+                    &arguments,
+                    slot.clone(),
+                    &[],
+                    &post_conditions,
+                )
+            }
+        }
+    }
+
+    fn gen_follow_restriction_code(
+        &self,
+        symbol: &Symbol,
+        restriction: &Identifier,
+        slot: &Slot<'a>,
+    ) -> TokenStream {
+        let Some(identifier) = symbol.as_identifier() else {
+            return quote! {};
+        };
+        let def_id = identifier.resolve();
+        let def = &self.grammar.definition(def_id);
+        let restriction_def_id = restriction.resolve();
+        let Definition::Terminal(restriction_terminal) =
+            self.grammar.definition(restriction_def_id)
+        else {
+            panic!("Follow restriction identifier must resolve to a terminal");
+        };
+        let restriction_terminal_id = self
+            .terminal_ids
+            .get_id(restriction_terminal)
+            .unwrap_or_else(|| {
+                panic!(
+                    "cannot find the lexical definition {}",
+                    restriction_terminal.name
+                )
+            });
+        match def {
+            Definition::Terminal(terminal) => {
+                let post_conditions = vec![quote! {
+                    self.scanner.match_token(#restriction_terminal_id, j).is_none()
+                }];
+                self.gen_terminal_slot(terminal, slot.clone(), &[], &post_conditions)
+            }
+            Definition::Nonterminal(nonterminal) => {
+                let arguments = match symbol.unwrap() {
+                    Symbol::Call { arguments, .. } => arguments.clone(),
+                    _ => vec![],
+                };
+                let post_conditions = vec![quote! {
+                    self.scanner.match_token(#restriction_terminal_id, j).is_none()
+                }];
+                self.gen_nonterminal_slot(
+                    nonterminal,
+                    &arguments,
+                    slot.clone(),
+                    &[],
+                    &post_conditions,
+                )
+            }
+        }
+    }
+
+    fn gen_precede_restriction_code(
+        &self,
+        symbol: &Symbol,
+        restriction: &Identifier,
+        slot: &Slot<'a>,
+    ) -> TokenStream {
+        let Some(identifier) = symbol.as_identifier() else {
+            return quote! {};
+        };
+        let def_id = identifier.resolve();
+        let def = &self.grammar.definition(def_id);
+        let restriction_def_id = restriction.resolve();
+        let Definition::Terminal(restriction_terminal) =
+            self.grammar.definition(restriction_def_id)
+        else {
+            panic!("Precede restriction identifier must resolve to a terminal");
+        };
+        let restriction_terminal_id = self
+            .terminal_ids
+            .get_id(restriction_terminal)
+            .unwrap_or_else(|| {
+                panic!(
+                    "cannot find the lexical definition {}",
+                    restriction_terminal.name
+                )
+            });
+        match def {
+            Definition::Terminal(terminal) => {
+                let pre_conditions = vec![quote! {
+                    i == 0 || self.scanner.match_token(#restriction_terminal_id, i - 1).is_none()
+                }];
+                self.gen_terminal_slot(terminal, slot.clone(), &pre_conditions, &[])
+            }
+            Definition::Nonterminal(nonterminal) => {
+                let arguments = match symbol.unwrap() {
+                    Symbol::Call { arguments, .. } => arguments.clone(),
+                    _ => vec![],
+                };
+                let pre_conditions = vec![quote! {
+                    input_index == 0 || self.scanner.match_token(#restriction_terminal_id, input_index - 1).is_none()
+                }];
+                self.gen_nonterminal_slot(
+                    nonterminal,
+                    &arguments,
+                    slot.clone(),
+                    &pre_conditions,
+                    &[],
+                )
+            }
+        }
+    }
+
+    fn gen_post_conditions_method(&mut self) -> TokenStream {
+        let mut arms = vec![];
+        for nonterminal in self.grammar.nonterminals() {
+            for alternative in self.grammar.alternatives(nonterminal) {
+                for pos in 0..alternative.symbols.len() {
+                    let symbol = &alternative.symbols[pos];
+                    if let Symbol::Except { symbol, except } = symbol {
+                        let Some(identifier) = symbol.as_identifier() else {
+                            continue;
+                        };
+                        let def = self.grammar.definition(identifier.resolve());
+                        if !matches!(def, Definition::Nonterminal(_)) {
+                            continue;
+                        }
+                        let checks: Vec<_> = except
+                        .iter()
+                        .map(|e| {
+                            let except_def_id = e.resolve();
+                            let Definition::Terminal(except_terminal) =
+                                self.grammar.definition(except_def_id)
+                            else {
+                                panic!("Except identifier must resolve to a terminal");
+                            };
+                            let except_terminal_id =
+                                self.terminal_ids.get_id(except_terminal).unwrap_or_else(|| {
+                                    panic!(
+                                        "cannot find the lexical definition {}",
+                                        except_terminal.name
+                                    )
+                                });
+                            quote! {
+                                self.scanner.match_token(#except_terminal_id, left_extent) != Some(right_extent)
+                            }
+                        })
+                        .collect();
+                        let slot = Slot::new(nonterminal, alternative, pos);
+                        let next_slot = slot.next();
+                        let slot_id = self.slot_ids.id(&next_slot);
+                        arms.push(quote! {
+                            #slot_id => {
+                                #(#checks)&&*
+                            }
+                        });
+                    }
+                    if let Symbol::FollowRestriction {
+                        symbol,
+                        restriction,
+                    } = symbol
+                    {
+                        let Some(identifier) = symbol.as_identifier() else {
+                            continue;
+                        };
+                        let def = self.grammar.definition(identifier.resolve());
+                        if !matches!(def, Definition::Nonterminal(_)) {
+                            continue;
+                        }
+                        let restriction_def_id = restriction.resolve();
+                        let Definition::Terminal(restriction_terminal) =
+                            self.grammar.definition(restriction_def_id)
+                        else {
+                            panic!("Follow restriction identifier must resolve to a terminal");
+                        };
+                        let restriction_terminal_id = self
+                            .terminal_ids
+                            .get_id(restriction_terminal)
+                            .unwrap_or_else(|| {
+                                panic!(
+                                    "cannot find the lexical definition {}",
+                                    restriction_terminal.name
+                                )
+                            });
+                        let slot = Slot::new(nonterminal, alternative, pos);
+                        let next_slot = slot.next();
+                        let slot_id = self.slot_ids.id(&next_slot);
+                        arms.push(quote! {
+                        #slot_id => {
+                            self.scanner.match_token(#restriction_terminal_id, right_extent).is_none()
+                        }
+                    });
+                    }
+                }
+            }
+        }
+        quote! {
+            fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> bool {
+                match slot {
+                    #(#arms)*
+                    _ => true,
+                }
+            }
+        }
+    }
+
+    fn gen_nonterminal_slot(
+        &self,
+        nonterminal: &'a Nonterminal,
+        arguments: &[Expr],
+        slot: Slot<'a>,
+        pre_conditions: &[TokenStream],
+        post_conditions: &[TokenStream],
+    ) -> TokenStream {
+        let slot_id = self.slot_ids.id(&slot);
+        let slot_name = slot.name();
+        let next_slot = slot.next();
+        let next_slot_id = self.slot_ids.id(&next_slot);
+        let pre_condition_check = if pre_conditions.is_empty() {
+            quote! {}
+        } else {
+            quote! { if !(#(#pre_conditions)&&*) { return; } }
+        };
+        if self.config.ll1_optimization && self.ff.is_ll1(nonterminal) {
+            let next_slot_name = next_slot.name();
+            let post_condition_check = if post_conditions.is_empty() {
+                quote! {}
+            } else {
+                quote! { if !(#(#post_conditions)&&*) { return; } }
+            };
+            let new_node = if slot.is_first() {
+                quote! {
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
+            } else {
+                quote! {
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self.create_intermediate_node_or_attach_children(
+                        next_slot_id,
+                        left_extent,
+                        j,
+                        left_child_id,
+                        right_child_id,
+                    ) {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
+            };
+            let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+            quote! {
+                #[comment = #slot_name]
+                #slot_id => {
+                    let i = input_index;
+                    #pre_condition_check
+                    if let Some(right_child_id) = self.#method_name(i) {
+                        let j = self.sppf_node(right_child_id).right_extent();
+                        #post_condition_check
+                        #[comment = #next_slot_name]
+                        let next_slot_id = #next_slot_id;
+                        #new_node
+                    }
+                }
+            }
+        } else {
+            let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
+            let arguments: Vec<_> = arguments.iter().map(gen_expr).collect();
+            let bindings = if let Some(Symbol::Binding { name, .. }) = slot.symbol() {
+                quote! { Some(#name) }
+            } else {
+                quote! { None }
+            };
+            let arguments = if nonterminal.parameters.is_empty() {
+                quote! { result, gss_node_id, #next_slot_id }
+            } else {
+                quote! { result, gss_node_id, #next_slot_id, env, #bindings, #(#arguments),* }
+            };
+            quote! {
+                #[comment = #slot_name]
+                #slot_id => {
+                    #pre_condition_check
+                    self.#method_name(#arguments);
+                }
+            }
+        }
+    }
+
+    fn gen_condition_code(&self, expr: &Expr, slot: &Slot<'a>) -> TokenStream {
+        let slot_id = self.slot_ids.id(slot);
+        let slot_name = slot.name();
+        let next_slot = slot.next();
+        let next_slot_id = self.slot_ids.id(&next_slot);
+        let condition_expr = gen_expr(expr);
+        quote! {
+            #[comment = #slot_name]
+            #slot_id => {
+                if #condition_expr {
+                    self.execute(input_index, #next_slot_id, result, gss_node_id, env);
+                }
+            }
+        }
+    }
+
+    fn gen_return_code(&self, slot: &Slot<'a>) -> TokenStream {
+        let slot_id = self.slot_ids.id(slot);
+        let slot_name = slot.name();
+        let next_slot = slot.next();
+        let next_slot_id = self.slot_ids.id(&next_slot);
+        quote! {
+            #[comment = #slot_name]
+            #slot_id => {
                 self.execute(input_index, #next_slot_id, result, gss_node_id, env);
             }
         }
     }
-}
 
-fn gen_return_code<'a>(
-    grammar: &'a Grammar,
-    slot: &Slot<'a>,
-    slot_ids: &mut SlotIds<'a>,
-) -> TokenStream {
-    let slot_id = slot_ids.id(slot);
-    let slot_name = slot.name(grammar);
-    let next_slot = slot.next();
-    let next_slot_id = slot_ids.id(&next_slot);
-    quote! {
-        #[comment = #slot_name]
-        #slot_id => {
-            self.execute(input_index, #next_slot_id, result, gss_node_id, env);
+    fn gen_parser_impl(&mut self) -> TokenStream {
+        let grammar_name = &self.grammar.name;
+        let new_method = self.gen_new_method();
+        let name_ident = format_ident!("{}{}", grammar_name, "Parser");
+        let create_methods: Vec<_> = self
+            .nonterminal_ids
+            .nonterminals()
+            .enumerate()
+            .map(|(i, n)| gen_create_method(n, i))
+            .collect();
+        let ll1_parse_methods: Vec<_> = self
+            .grammar
+            .nonterminals()
+            .filter(|nt| self.config.ll1_optimization && self.ff.is_ll1(nt))
+            .map(|nt| self.gen_ll1_parse_method(nt))
+            .collect();
+        let get_gss_node_methods: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(gen_get_gss_node_method_with_parameters)
+            .collect();
+        let add_gss_node_methods: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(gen_add_gss_node_method_with_parameters)
+            .collect();
+        let specialized_lookup_nonterminal_node_methods: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(gen_specialized_lookup_nonterminal_node_method)
+            .collect();
+        let specialized_add_nonterminal_node_methods: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(gen_specialized_add_nonterminal_node_method)
+            .collect();
+        let create_nonterminal_node_or_attach_children_methods: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(gen_create_nonterminal_node_or_attach_children)
+            .collect();
+        quote! {
+            impl<'i> #name_ident<'i> {
+                #new_method
+                #(#create_methods)*
+                #(#ll1_parse_methods)*
+                #(#get_gss_node_methods)*
+                #(#add_gss_node_methods)*
+                #(#specialized_lookup_nonterminal_node_methods)*
+                #(#specialized_add_nonterminal_node_methods)*
+                #(#create_nonterminal_node_or_attach_children_methods)*
+            }
         }
+    }
+
+    fn gen_new_method(&self) -> TokenStream {
+        let grammar_name = &self.grammar.name;
+        let name_ident = format_ident!("{}{}", grammar_name, "Scanner");
+        let gss_nodes_index_field = self.gen_gss_nodes_index_field();
+        let gss_nodes_index_fields: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(gen_gss_nodes_index_field_init)
+            .collect();
+        let return_value_fields: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(gen_specialized_nonterminal_nodes_index_field_init)
+            .collect();
+        let nonterminal_nodes_index_field = self.gen_nonterminal_nodes_index_field();
+        let intermediate_nodes_index_field = self.gen_intermediate_nodes_index_field();
+        let terminal_nodes_index_field = self.gen_terminal_nodes_index_field();
+        quote! {
+            pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
+                init_logger();
+                Self {
+                    start_nonterminal,
+                    scanner: #name_ident::new(input),
+                    #gss_nodes_index_field,
+                    #(#gss_nodes_index_fields,)*
+                    descriptors: vec![],
+                    gss_nodes: vec![],
+                    sppf_nodes: vec![],
+                    #nonterminal_nodes_index_field,
+                    #intermediate_nodes_index_field,
+                    #terminal_nodes_index_field,
+                    stats: Stats::default(),
+                    intermediate_nodes_children: vec![],
+                    intermediate_nodes_children_map: OnceCell::new(),
+                    nonterminal_nodes_children: vec![],
+                    nonterminal_nodes_children_map: OnceCell::new(),
+                    #(#return_value_fields,)*
+                    envs: vec![],
+                    #[cfg(feature = "debug-trace")]
+                    trace_events: None,
+                }
+            }
+        }
+    }
+
+    fn gen_parser_struct(&self) -> TokenStream {
+        let grammar_name = &self.grammar.name;
+        let nonterminal_ids_len = Literal::usize_unsuffixed(self.nonterminal_ids.len());
+        let terminal_ids_len = Literal::usize_unsuffixed(self.terminal_ids.len() + 1);
+        let gss_nodes_index_fields: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(gen_gss_nodes_index_field_for_data_dependent_nt)
+            .collect();
+        let specialized_nonterminal_nodes_index_fields: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(gen_specialized_nonterminal_nodes_index_field)
+            .collect();
+        let slot_ids_len = Literal::usize_unsuffixed(self.slot_ids.len());
+        let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
+        let scanner_name_ident = format_ident!("{}{}", grammar_name, "Scanner");
+        quote! {
+            pub struct #parser_name_ident<'i> {
+                start_nonterminal: NonterminalId,
+                scanner: #scanner_name_ident<'i>,
+                descriptors: Vec<Descriptor>,
+                gss_nodes: Vec<GSSNode>,
+                #[comment = "A vector from nonterminal_ids to a tuple (input_index, gss_node_id)"]
+                gss_nodes_index: [Vec<(u32, GssNodeId)>; #nonterminal_ids_len],
+                #(#gss_nodes_index_fields,)*
+                sppf_nodes: Vec<SPPFNode>,
+                stats: Stats,
+                nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #nonterminal_ids_len],
+                intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #slot_ids_len],
+                terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
+                intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
+                intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
+                nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
+                nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
+                #(#specialized_nonterminal_nodes_index_fields,)*
+                envs: Vec<Env>,
+                #[cfg(feature = "debug-trace")]
+                pub trace_events: Option<Vec<TraceEvent>>,
+            }
+        }
+    }
+
+    fn gen_gss_nodes_index_field(&self) -> TokenStream {
+        let nonterminal_ids_len = Literal::usize_unsuffixed(self.nonterminal_ids.len());
+        quote! {
+            gss_nodes_index: [const { vec![] }; #nonterminal_ids_len]
+        }
+    }
+
+    fn gen_nonterminal_nodes_index_field(&self) -> TokenStream {
+        let nonterminal_ids_len = Literal::usize_unsuffixed(self.nonterminal_ids.len());
+        quote! {
+            nonterminal_nodes_index: [const { InlineMap::Empty }; #nonterminal_ids_len]
+        }
+    }
+
+    fn gen_intermediate_nodes_index_field(&self) -> TokenStream {
+        let intermediate_ids_len = Literal::usize_unsuffixed(self.slot_ids.len());
+        quote! {
+            intermediate_nodes_index: [const { InlineMap::Empty }; #intermediate_ids_len]
+        }
+    }
+
+    fn gen_terminal_nodes_index_field(&self) -> TokenStream {
+        let terminal_ids_len = Literal::usize_unsuffixed(self.terminal_ids.len() + 1);
+        quote! {
+            terminal_nodes_index: [const { InlineMap::Empty }; #terminal_ids_len]
+        }
+    }
+
+    fn gen_prediction_set_check(&self, prediction_set: &FxHashSet<Terminal>) -> TokenStream {
+        let mut checks: Vec<TokenStream> = vec![];
+        for terminal in prediction_set {
+            if terminal.name == "EOF" {
+                checks.push(quote! { i == self.input().len() });
+            } else {
+                let terminal_id = self.terminal_ids.get_id(terminal).unwrap_or_else(|| {
+                    panic!("terminal not found in prediction set: {}", terminal.name)
+                });
+                checks.push(quote! { self.scanner.match_token(#terminal_id, i).is_some() });
+            }
+        }
+        if checks.is_empty() {
+            quote! { false }
+        } else {
+            quote! { #(#checks)||* }
+        }
+    }
+
+    fn gen_ll1_parse_method(&self, nonterminal: &'a Nonterminal) -> TokenStream {
+        let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+        let nonterminal_id = self
+            .nonterminal_ids
+            .get_id(nonterminal)
+            .expect("nonterminal not found");
+        let alternatives = self.grammar.alternatives(nonterminal);
+        let mut alt_branches: Vec<TokenStream> = vec![];
+
+        for alternative in alternatives {
+            let prediction_set = self.ff.prediction_set(nonterminal, alternative);
+            let condition = self.gen_prediction_set_check(&prediction_set);
+            let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
+            let end_slot_id = self.slot_ids.id(&end_slot).expect("slot not found");
+
+            if alternative.symbols.is_empty() {
+                let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
+                alt_branches.push(quote! {
+                    if #condition {
+                        let epsilon_node_id = self.get_or_create_terminal_node(
+                            TerminalId(#epsilon_id), i, i,
+                        );
+                        return self.create_nonterminal_node_or_attach_children(
+                            #nonterminal_id, #end_slot_id, i, i, epsilon_node_id,
+                        );
+                    }
+                });
+            } else {
+                let body = self.gen_parse_alternative_ll1(
+                    nonterminal,
+                    alternative,
+                    nonterminal_id,
+                    end_slot_id,
+                );
+                alt_branches.push(quote! {
+                    if #condition {
+                        #body
+                    }
+                });
+            }
+        }
+
+        quote! {
+            fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
+                #(#alt_branches)*
+                None
+            }
+        }
+    }
+
+    fn gen_parse_alternative_ll1(
+        &self,
+        nonterminal: &'a Nonterminal,
+        alternative: &'a Alternative,
+        nonterminal_id: NonterminalId,
+        end_slot_id: SlotId,
+    ) -> TokenStream {
+        let mut body = vec![];
+        body.push(quote! { let mut j = i; });
+
+        for (pos, symbol) in alternative.symbols.iter().enumerate() {
+            let slot = Slot::new(nonterminal, alternative, pos);
+            let is_first = slot.is_first();
+            let next_slot = slot.next();
+            let next_slot_id = self.slot_ids.id(&next_slot);
+
+            let Some(identifier) = symbol.as_identifier() else {
+                continue;
+            };
+            let def_id = identifier.resolve();
+            let def = self.grammar.definition(def_id);
+
+            match def {
+                Definition::Terminal(terminal) => {
+                    let terminal_id = self
+                        .terminal_ids
+                        .get_id(terminal)
+                        .unwrap_or_else(|| panic!("terminal not found: {}", terminal.name));
+                    body.push(quote! {
+                        let right_child_id = {
+                            let end = self.scanner.match_token(#terminal_id, j)?;
+                            let node = self.get_or_create_terminal_node(#terminal_id, j, end);
+                            j = end;
+                            node
+                        };
+                    });
+                }
+                Definition::Nonterminal(nt) => {
+                    let nt_method = format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
+                    body.push(quote! {
+                        let right_child_id = {
+                            let node = self.#nt_method(j)?;
+                            j = self.sppf_node(node).right_extent();
+                            node
+                        };
+                    });
+                }
+            }
+
+            if is_first {
+                body.push(quote! {
+                    let left_extent = self.sppf_node(right_child_id).left_extent();
+                    let mut current = right_child_id;
+                });
+            } else {
+                body.push(quote! {
+                    current = self.create_intermediate_node_or_attach_children(
+                        #next_slot_id, left_extent, j, current, right_child_id,
+                    )?;
+                });
+            }
+        }
+
+        body.push(quote! {
+            return self.create_nonterminal_node_or_attach_children(
+                #nonterminal_id, #end_slot_id, left_extent, j, current,
+            );
+        });
+
+        quote! { #(#body)* }
     }
 }
 
@@ -1429,106 +1710,6 @@ fn gen_add_trace_event_method() -> TokenStream {
     }
 }
 
-fn gen_parser_struct(
-    grammar_name: &str,
-    nonterminal_ids: &NonterminalIds,
-    terminal_ids: &TerminalIds,
-    slot_ids: &SlotIds,
-) -> TokenStream {
-    let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.len());
-    let terminal_ids_len = Literal::usize_unsuffixed(terminal_ids.len() + 1);
-    let gss_nodes_index_fields: Vec<_> = nonterminal_ids
-        .dd_nonterminals()
-        .map(gen_gss_nodes_index_field_for_data_dependent_nt)
-        .collect();
-    let specialized_nonterminal_nodes_index_fields: Vec<_> = nonterminal_ids
-        .dd_nonterminals()
-        .map(gen_specialized_nonterminal_nodes_index_field)
-        .collect();
-    let slot_ids_len = Literal::usize_unsuffixed(slot_ids.len());
-    let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
-    let scanner_name_ident = format_ident!("{}{}", grammar_name, "Scanner");
-    quote! {
-        pub struct #parser_name_ident<'i> {
-            start_nonterminal: NonterminalId,
-            scanner: #scanner_name_ident<'i>,
-            descriptors: Vec<Descriptor>,
-            gss_nodes: Vec<GSSNode>,
-            #[comment = "A vector from nonterminal_ids to a tuple (input_index, gss_node_id)"]
-            gss_nodes_index: [Vec<(u32, GssNodeId)>; #nonterminal_ids_len],
-            #(#gss_nodes_index_fields,)*
-            sppf_nodes: Vec<SPPFNode>,
-            stats: Stats,
-            nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #nonterminal_ids_len],
-            intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #slot_ids_len],
-            terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
-            intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
-            intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
-            nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
-            nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
-            #(#specialized_nonterminal_nodes_index_fields,)*
-            envs: Vec<Env>,
-            #[cfg(feature = "debug-trace")]
-            pub trace_events: Option<Vec<TraceEvent>>,
-        }
-    }
-}
-
-fn gen_parser_impl<'a>(
-    grammar_name: &str,
-    grammar: &'a Grammar,
-    ff: &FirstFollowSets<'a>,
-    nonterminal_ids: &mut NonterminalIds,
-    terminal_ids: &mut TerminalIds,
-    slot_ids: &mut SlotIds<'a>,
-    config: &super::GenConfig,
-) -> TokenStream {
-    let new_method = gen_new_method(grammar_name, nonterminal_ids, terminal_ids, slot_ids);
-    let name_ident = format_ident!("{}{}", grammar_name, "Parser");
-    let create_methods: Vec<_> = nonterminal_ids
-        .nonterminals()
-        .enumerate()
-        .map(|(i, n)| gen_create_method(n, i))
-        .collect();
-    let ll1_parse_methods: Vec<_> = grammar
-        .nonterminals()
-        .filter(|nt| config.ll1_optimization && ff.is_ll1(nt))
-        .map(|nt| gen_ll1_parse_method(grammar, nt, ff, nonterminal_ids, terminal_ids, slot_ids))
-        .collect();
-    let get_gss_node_methods: Vec<_> = nonterminal_ids
-        .dd_nonterminals()
-        .map(gen_get_gss_node_method_with_parameters)
-        .collect();
-    let add_gss_node_methods: Vec<_> = nonterminal_ids
-        .dd_nonterminals()
-        .map(gen_add_gss_node_method_with_parameters)
-        .collect();
-    let specialized_lookup_nonterminal_node_methods: Vec<_> = nonterminal_ids
-        .dd_nonterminals()
-        .map(gen_specialized_lookup_nonterminal_node_method)
-        .collect();
-    let specialized_add_nonterminal_node_methods: Vec<_> = nonterminal_ids
-        .dd_nonterminals()
-        .map(gen_specialized_add_nonterminal_node_method)
-        .collect();
-    let create_nonterminal_node_or_attach_children_methods: Vec<_> = nonterminal_ids
-        .dd_nonterminals()
-        .map(gen_create_nonterminal_node_or_attach_children)
-        .collect();
-    quote! {
-        impl<'i> #name_ident<'i> {
-            #new_method
-            #(#create_methods)*
-            #(#ll1_parse_methods)*
-            #(#get_gss_node_methods)*
-            #(#add_gss_node_methods)*
-            #(#specialized_lookup_nonterminal_node_methods)*
-            #(#specialized_add_nonterminal_node_methods)*
-            #(#create_nonterminal_node_or_attach_children_methods)*
-        }
-    }
-}
-
 fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
     let create_method_name = format_ident!("create_{}", to_snake_case(&nt.name));
     let id = Literal::usize_unsuffixed(id);
@@ -1607,160 +1788,6 @@ fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
             }
         }
     }
-}
-
-fn gen_prediction_set_check(
-    prediction_set: &FxHashSet<Terminal>,
-    terminal_ids: &TerminalIds,
-) -> TokenStream {
-    let mut checks: Vec<TokenStream> = vec![];
-    for terminal in prediction_set {
-        if terminal.name == "EOF" {
-            checks.push(quote! { i == self.input().len() });
-        } else {
-            let terminal_id = terminal_ids
-                .get_id(terminal)
-                .unwrap_or_else(|| {
-                    panic!("terminal not found in prediction set: {}", terminal.name)
-                });
-            checks.push(quote! { self.scanner.match_token(#terminal_id, i).is_some() });
-        }
-    }
-    if checks.is_empty() {
-        quote! { false }
-    } else {
-        quote! { #(#checks)||* }
-    }
-}
-
-fn gen_ll1_parse_method<'a>(
-    grammar: &'a Grammar,
-    nonterminal: &'a Nonterminal,
-    ff: &FirstFollowSets<'a>,
-    nonterminal_ids: &mut NonterminalIds,
-    terminal_ids: &mut TerminalIds,
-    slot_ids: &mut SlotIds<'a>,
-) -> TokenStream {
-    let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
-    let nonterminal_id = nonterminal_ids
-        .get_id(nonterminal)
-        .expect("nonterminal not found");
-    let alternatives = grammar.alternatives(nonterminal);
-    let mut alt_branches: Vec<TokenStream> = vec![];
-
-    for alternative in alternatives {
-        let prediction_set = ff.prediction_set(nonterminal, alternative);
-        let condition = gen_prediction_set_check(&prediction_set, terminal_ids);
-        let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
-        let end_slot_id = slot_ids.id(&end_slot);
-
-        if alternative.symbols.is_empty() {
-            let epsilon_id = Literal::usize_unsuffixed(terminal_ids.len());
-            alt_branches.push(quote! {
-                if #condition {
-                    let epsilon_node_id = self.get_or_create_terminal_node(
-                        TerminalId(#epsilon_id), i, i,
-                    );
-                    return self.create_nonterminal_node_or_attach_children(
-                        #nonterminal_id, #end_slot_id, i, i, epsilon_node_id,
-                    );
-                }
-            });
-        } else {
-            let body = gen_parse_alternative_ll1(
-                grammar, nonterminal, alternative, nonterminal_id, end_slot_id,
-                terminal_ids, slot_ids,
-            );
-            alt_branches.push(quote! {
-                if #condition {
-                    #body
-                }
-            });
-        }
-    }
-
-    quote! {
-        fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
-            #(#alt_branches)*
-            None
-        }
-    }
-}
-
-fn gen_parse_alternative_ll1<'a>(
-    grammar: &'a Grammar,
-    nonterminal: &'a Nonterminal,
-    alternative: &'a Alternative,
-    nonterminal_id: NonterminalId,
-    end_slot_id: SlotId,
-    terminal_ids: &mut TerminalIds,
-    slot_ids: &mut SlotIds<'a>,
-) -> TokenStream {
-    let mut body = vec![];
-    body.push(quote! { let mut j = i; });
-
-    for (pos, symbol) in alternative.symbols.iter().enumerate() {
-        let slot = Slot::new(nonterminal, alternative, pos);
-        let is_first = slot.is_first();
-        let next_slot = slot.next();
-        let next_slot_id = slot_ids.id(&next_slot);
-
-        let Some(identifier) = symbol.as_identifier() else {
-            continue;
-        };
-        let def_id = identifier.resolve();
-        let def = grammar.definition(def_id);
-
-        match def {
-            Definition::Terminal(terminal) => {
-                let terminal_id = terminal_ids
-                    .get_id(terminal)
-                    .unwrap_or_else(|| {
-                        panic!("terminal not found: {}", terminal.name)
-                    });
-                body.push(quote! {
-                    let right_child_id = {
-                        let end = self.scanner.match_token(#terminal_id, j)?;
-                        let node = self.get_or_create_terminal_node(#terminal_id, j, end);
-                        j = end;
-                        node
-                    };
-                });
-            }
-            Definition::Nonterminal(nt) => {
-                let nt_method =
-                    format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
-                body.push(quote! {
-                    let right_child_id = {
-                        let node = self.#nt_method(j)?;
-                        j = self.sppf_node(node).right_extent();
-                        node
-                    };
-                });
-            }
-        }
-
-        if is_first {
-            body.push(quote! {
-                let left_extent = self.sppf_node(right_child_id).left_extent();
-                let mut current = right_child_id;
-            });
-        } else {
-            body.push(quote! {
-                current = self.create_intermediate_node_or_attach_children(
-                    #next_slot_id, left_extent, j, current, right_child_id,
-                )?;
-            });
-        }
-    }
-
-    body.push(quote! {
-        return self.create_nonterminal_node_or_attach_children(
-            #nonterminal_id, #end_slot_id, left_extent, j, current,
-        );
-    });
-
-    quote! { #(#body)* }
 }
 
 fn gen_specialized_lookup_nonterminal_node_method(nt: &Nonterminal) -> TokenStream {
@@ -1857,60 +1884,6 @@ fn gen_create_nonterminal_node_or_attach_children(nt: &Nonterminal) -> TokenStre
     }
 }
 
-fn gen_new_method(
-    grammar_name: &str,
-    nonterminal_ids: &NonterminalIds,
-    terminal_ids: &TerminalIds,
-    slot_ids: &SlotIds,
-) -> TokenStream {
-    let name_ident = format_ident!("{}{}", grammar_name, "Scanner");
-    let gss_nodes_index_field = gen_gss_nodes_index_field(nonterminal_ids);
-    let gss_nodes_index_fields: Vec<_> = nonterminal_ids
-        .dd_nonterminals()
-        .map(gen_gss_nodes_index_field_init)
-        .collect();
-    let return_value_fields: Vec<_> = nonterminal_ids
-        .dd_nonterminals()
-        .map(gen_specialized_nonterminal_nodes_index_field_init)
-        .collect();
-    let nonterminal_nodes_index_field = gen_nonterminal_nodes_index_field(nonterminal_ids);
-    let intermediate_nodes_index_field = gen_intermediate_nodes_index_field(slot_ids);
-    let terminal_nodes_index_field = gen_terminal_nodes_index_field(terminal_ids);
-    quote! {
-        pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
-            init_logger();
-            Self {
-                start_nonterminal,
-                scanner: #name_ident::new(input),
-                #gss_nodes_index_field,
-                #(#gss_nodes_index_fields,)*
-                descriptors: vec![],
-                gss_nodes: vec![],
-                sppf_nodes: vec![],
-                #nonterminal_nodes_index_field,
-                #intermediate_nodes_index_field,
-                #terminal_nodes_index_field,
-                stats: Stats::default(),
-                intermediate_nodes_children: vec![],
-                intermediate_nodes_children_map: OnceCell::new(),
-                nonterminal_nodes_children: vec![],
-                nonterminal_nodes_children_map: OnceCell::new(),
-                #(#return_value_fields,)*
-                envs: vec![],
-                #[cfg(feature = "debug-trace")]
-                trace_events: None,
-            }
-        }
-    }
-}
-
-fn gen_gss_nodes_index_field(nonterminal_ids: &NonterminalIds) -> TokenStream {
-    let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.len());
-    quote! {
-        gss_nodes_index: [const { vec![] }; #nonterminal_ids_len]
-    }
-}
-
 fn gen_gss_nodes_index_field_for_data_dependent_nt(nt: &Nonterminal) -> TokenStream {
     let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
     let types: Vec<_> = nt.parameters.iter().map(|p| &p.ty).collect();
@@ -1939,27 +1912,6 @@ fn gen_specialized_nonterminal_nodes_index_field_init(nt: &Nonterminal) -> Token
     let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
     quote! {
         #field_name: FxHashMap::default()
-    }
-}
-
-fn gen_nonterminal_nodes_index_field(nonterminal_ids: &NonterminalIds) -> TokenStream {
-    let nonterminal_ids_len = Literal::usize_unsuffixed(nonterminal_ids.len());
-    quote! {
-        nonterminal_nodes_index: [const { InlineMap::Empty }; #nonterminal_ids_len]
-    }
-}
-
-fn gen_intermediate_nodes_index_field(slot_ids: &SlotIds) -> TokenStream {
-    let intermediate_ids_len = Literal::usize_unsuffixed(slot_ids.len());
-    quote! {
-        intermediate_nodes_index: [const { InlineMap::Empty }; #intermediate_ids_len]
-    }
-}
-
-fn gen_terminal_nodes_index_field(slot_ids: &TerminalIds) -> TokenStream {
-    let terminal_ids_len = Literal::usize_unsuffixed(slot_ids.len() + 1);
-    quote! {
-        terminal_nodes_index: [const { InlineMap::Empty }; #terminal_ids_len]
     }
 }
 

@@ -49,7 +49,7 @@ impl<'a> Slot<'a> {
         self.name_to_string(|n| n.display_name(), |s| s.display_name(grammar))
     }
 
-    pub fn name(&self, _grammar: &'a Grammar) -> String {
+    pub fn name(&self) -> String {
         self.name_to_string(|n| n.to_string(), |s| s.to_string())
     }
 

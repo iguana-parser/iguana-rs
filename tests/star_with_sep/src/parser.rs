@@ -393,7 +393,26 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
             }
             //S_Plus_0 : S_Plus_0 Layout "," Layout . A
             SlotId(8) => {
-                self.create_a(result, gss_node_id, SlotId(9));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_a_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //S_Plus_0 : S_Plus_0 Layout "," Layout A.
+                    let next_slot_id = SlotId(9);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //S_Plus_0 : S_Plus_0 Layout "," Layout A.
             SlotId(9) => {
@@ -423,7 +442,14 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
             }
             //S_Plus_0 : . A
             SlotId(10) => {
-                self.create_a(result, gss_node_id, SlotId(11));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_a_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //S_Plus_0 : A.
+                    let next_slot_id = SlotId(11);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //S_Plus_0 : A.
             SlotId(11) => {
@@ -653,7 +679,26 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
             }
             //StartA : Layout . start:A Layout
             SlotId(22) => {
-                self.create_a(result, gss_node_id, SlotId(23));
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_a_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //StartA : Layout start:A . Layout
+                    let next_slot_id = SlotId(23);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //StartA : Layout start:A . Layout
             SlotId(23) => {
@@ -1129,6 +1174,79 @@ impl<'i> StarWithSepParser<'i> {
         return_slot: SlotId,
     ) {
         self.create(NonterminalId(6), sppf_node_id, gss_node_id, return_slot);
+    }
+    fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(1), i).is_some() {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(1), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(1), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(1),
+                    SlotId(3),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
+    }
+    fn parse_start_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(1), i).is_some()
+            || self.scanner.match_token(TerminalId(2), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(2), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(2), j, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let node = self.parse_a_ll1(j)?;
+                j = self.sppf_node(node).right_extent();
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(23),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let end = self.scanner.match_token(TerminalId(2), j)?;
+                let node = self.get_or_create_terminal_node(TerminalId(2), j, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(24),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(6),
+                    SlotId(24),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
     }
 }
 

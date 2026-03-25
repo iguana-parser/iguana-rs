@@ -312,11 +312,15 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
             }
             //Id : . Char !<< Id_Plus_0
             SlotId(6) => {
-                if input_index == 0
-                    || self.scanner.match_token(TerminalId(0), input_index - 1).is_none()
+                if !(input_index == 0
+                    || self
+                        .scanner
+                        .match_token(TerminalId(0), input_index - 1)
+                        .is_none())
                 {
-                    self.create_id_plus_0(result, gss_node_id, SlotId(7));
+                    return;
                 }
+                self.create_id_plus_0(result, gss_node_id, SlotId(7));
             }
             //Id : Char !<< Id_Plus_0.
             SlotId(7) => {

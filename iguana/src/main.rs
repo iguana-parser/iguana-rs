@@ -3,12 +3,12 @@ use std::path::{Path, PathBuf};
 use clap::{Parser, Subcommand};
 use iguana::{
     alternative, bind, c, call, cond, cond_expr,
-    generator::{generate, GenConfig},
+    generator::{GenConfig, generate},
     grammar::def::{Grammar, GrammarDef},
     grammar::symbols::Terminal,
-    grammar_def, id, lexical_rule,
+    grammar_def, id,
     iggy::parse_grammar,
-    lit, min, opt, priority_level, r_star, ret, syntax_rule, ternary,
+    lexical_rule, lit, min, opt, priority_level, r_star, ret, syntax_rule, ternary,
 };
 
 #[derive(Parser)]
@@ -76,7 +76,11 @@ fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Commands::Init { name, output } => init_project(&output, &name)?,
-        Commands::Generate { grammar, output, json } => {
+        Commands::Generate {
+            grammar,
+            output,
+            json,
+        } => {
             let resolved_path;
             let path = match grammar.as_deref() {
                 Some(path) => path,
@@ -86,9 +90,8 @@ fn main() -> std::io::Result<()> {
                 }
             };
             let source = std::fs::read_to_string(path)?;
-            let grammar_def = parse_grammar(&source)
-                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-            let result = generate(&grammar_def.into(), &output, &GenConfig::default())?;
+            let grammar_def = parse_grammar(&source).map_err(std::io::Error::other)?;
+            let result = generate(&grammar_def.into(), &output, GenConfig::default())?;
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
             } else {
@@ -324,7 +327,7 @@ fn generate_all_tests() -> std::io::Result<()> {
 }
 
 fn to_pascal_case(s: &str) -> String {
-    s.split(|c: char| c == '_' || c == '-')
+    s.split(['_', '-'])
         .map(|word| {
             let mut chars = word.chars();
             match chars.next() {
@@ -338,12 +341,7 @@ fn to_pascal_case(s: &str) -> String {
 fn find_iggy_file(directory: &Path) -> std::io::Result<PathBuf> {
     let iggy_files: Vec<_> = std::fs::read_dir(directory)?
         .filter_map(|entry| entry.ok())
-        .filter(|entry| {
-            entry
-                .path()
-                .extension()
-                .is_some_and(|ext| ext == "iggy")
-        })
+        .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "iggy"))
         .collect();
 
     match iggy_files.len() {
@@ -372,12 +370,10 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
         }
     };
     let source = std::fs::read_to_string(path)?;
-    let grammar = parse_grammar(&source)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-    generate(&grammar.into(), output, &GenConfig::default())?;
+    let grammar = parse_grammar(&source).map_err(std::io::Error::other)?;
+    generate(&grammar.into(), output, GenConfig::default())?;
     Ok(())
 }
-
 
 #[allow(dead_code)]
 fn grammar3() -> Grammar {
