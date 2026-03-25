@@ -4,7 +4,14 @@ version = "0.1.0"
 edition = "2024"
 license = "GPL-3.0-only"
 
+[[bin]]
+name = "iguana-lsp"
+path = "src/main.rs"
+
 [dependencies]
 iggy.workspace = true
 iguana-runtime.workspace = true
+lsp-server.workspace = true
+serde.workspace = true
 lsp-types.workspace = true
+serde_json.workspace = true

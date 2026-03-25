@@ -162,6 +162,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570"
 
 [[package]]
+name = "crossbeam-channel"
+version = "0.5.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82b8f8f868b36967f9606790d1903570de9ceaf870a7bf9fbbd3016d636a2cb2"
+dependencies = [
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-utils"
+version = "0.8.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
+
+[[package]]
 name = "dhat"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -324,7 +339,23 @@ version = "0.1.0"
 dependencies = [
  "iggy",
  "iguana-runtime",
+ "lsp-server",
  "lsp-types",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "lsp-server"
+version = "0.7.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d6ada348dbc2703cbe7637b2dda05cff84d3da2819c24abcb305dd613e0ba2e"
+dependencies = [
+ "crossbeam-channel",
+ "log",
+ "serde",
+ "serde_derive",
+ "serde_json",
 ]
 
 [[package]]
