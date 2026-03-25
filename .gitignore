@@ -1,0 +1,4 @@
+/target
+terrarium/node_modules
+terrarium/.svelte-kit
+terrarium/src-tauri/target
