@@ -4,14 +4,14 @@
       (E
         "a"
       )
-      Layout
+      WS
       "."
-      Layout
+      WS
       "f"
     )
-    Layout
+    WS
     "."
-    Layout
+    WS
     "f"
   )
 )

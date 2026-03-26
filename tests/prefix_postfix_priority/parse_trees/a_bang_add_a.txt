@@ -4,12 +4,9 @@
       (E
         "a"
       )
-      Layout
       "!"
     )
-    Layout
     "+"
-    Layout
     (E
       "a"
     )

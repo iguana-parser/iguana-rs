@@ -2,7 +2,7 @@
 // grammar PrecedeRestriction
 // 
 // S
-//   = "for" Layout Id
+//   = "for" WS Id
 //   | "forall"
 // 
 // Id
@@ -13,16 +13,15 @@
 //   | Char
 // 
 // StartS
-//   = Layout start:S Layout
+//   = WS start:S WS
 // 
 // StartId
-//   = Layout start:Id Layout
+//   = WS start:Id WS
 // 
 // Char = ([a-z])
 // WS = ([ ]*)
 // "for" = for
 // "forall" = forall
-// Layout = ([ ]*)
 use std::cell::OnceCell;
 use crate::{
     scanner::PrecedeRestrictionScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
@@ -71,26 +70,25 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "S" => NonterminalId(0), "Id" => NonterminalId(1), "Id_Plus_0" => NonterminalId(2),
     "StartS" => NonterminalId(3), "StartId" => NonterminalId(4)
 };
-pub const TERMINALS: [Terminal; 6] = [
+pub const TERMINALS: [Terminal; 5] = [
     Terminal { name: "Char" },
     Terminal { name: "WS" },
     Terminal { name: "\"for\"" },
     Terminal { name: "\"forall\"" },
-    Terminal { name: "Layout" },
     Terminal { name: "Epsilon" },
 ];
 pub const SLOTS: [Slot; 21] = [
     Slot {
-        display_name: "S : . \"for\" Layout Id",
+        display_name: "S : . \"for\" WS Id",
     },
     Slot {
-        display_name: "S : \"for\" . Layout Id",
+        display_name: "S : \"for\" . WS Id",
     },
     Slot {
-        display_name: "S : \"for\" Layout . Id",
+        display_name: "S : \"for\" WS . Id",
     },
     Slot {
-        display_name: "S : \"for\" Layout Id.",
+        display_name: "S : \"for\" WS Id.",
     },
     Slot {
         display_name: "S : . \"forall\"",
@@ -120,28 +118,28 @@ pub const SLOTS: [Slot; 21] = [
         display_name: "Char+ : Char.",
     },
     Slot {
-        display_name: "StartS : . Layout start:S Layout",
+        display_name: "StartS : . WS start:S WS",
     },
     Slot {
-        display_name: "StartS : Layout . start:S Layout",
+        display_name: "StartS : WS . start:S WS",
     },
     Slot {
-        display_name: "StartS : Layout start:S . Layout",
+        display_name: "StartS : WS start:S . WS",
     },
     Slot {
-        display_name: "StartS : Layout start:S Layout.",
+        display_name: "StartS : WS start:S WS.",
     },
     Slot {
-        display_name: "StartId : . Layout start:Id Layout",
+        display_name: "StartId : . WS start:Id WS",
     },
     Slot {
-        display_name: "StartId : Layout . start:Id Layout",
+        display_name: "StartId : WS . start:Id WS",
     },
     Slot {
-        display_name: "StartId : Layout start:Id . Layout",
+        display_name: "StartId : WS start:Id . WS",
     },
     Slot {
-        display_name: "StartId : Layout start:Id Layout.",
+        display_name: "StartId : WS start:Id WS.",
     },
 ];
 impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
@@ -170,7 +168,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
     ) {
         record!(self, ProcessingDescriptor, input_index, slot_id, result, gss_node_id);
         match slot_id {
-            //S : . "for" Layout Id
+            //S : . "for" WS Id
             SlotId(0) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"for\"", i);
@@ -179,7 +177,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                         record!(self, MatchSuccess, "\"for\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(2), i, j);
-                        //S : "for" . Layout Id
+                        //S : "for" . WS Id
                         let next_slot_id = SlotId(1);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -192,16 +190,16 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                     }
                 }
             }
-            //S : "for" . Layout Id
+            //S : "for" . WS Id
             SlotId(1) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //S : "for" Layout . Id
+                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                        //S : "for" WS . Id
                         let next_slot_id = SlotId(2);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -226,17 +224,16 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(1), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(1), gss_node_id, result
                         );
                     }
                 }
             }
-            //S : "for" Layout . Id
+            //S : "for" WS . Id
             SlotId(2) => {
-                self.create_id(result, gss_node_id, SlotId(3));
+                self.create_id(result, gss_node_id, SlotId(3), env);
             }
-            //S : "for" Layout Id.
+            //S : "for" WS Id.
             SlotId(3) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -320,7 +317,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 {
                     return;
                 }
-                self.create_id_plus_0(result, gss_node_id, SlotId(7));
+                self.create_id_plus_0(result, gss_node_id, SlotId(7), env);
             }
             //Id : Char !<< Id_Plus_0.
             SlotId(7) => {
@@ -350,7 +347,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
             }
             //Id_Plus_0 : . Id_Plus_0 Char
             SlotId(8) => {
-                self.create_id_plus_0(result, gss_node_id, SlotId(9));
+                self.create_id_plus_0(result, gss_node_id, SlotId(9), env);
             }
             //Id_Plus_0 : Id_Plus_0 . Char
             SlotId(9) => {
@@ -464,42 +461,41 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //StartS : . Layout start:S Layout
+            //StartS : . WS start:S WS
             SlotId(13) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //StartS : Layout . start:S Layout
+                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                        //StartS : WS . start:S WS
                         let next_slot_id = SlotId(14);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(13), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(13), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartS : Layout . start:S Layout
+            //StartS : WS . start:S WS
             SlotId(14) => {
-                self.create_s(result, gss_node_id, SlotId(15));
+                self.create_s(result, gss_node_id, SlotId(15), env);
             }
-            //StartS : Layout start:S . Layout
+            //StartS : WS start:S . WS
             SlotId(15) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //StartS : Layout start:S Layout.
+                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                        //StartS : WS start:S WS.
                         let next_slot_id = SlotId(16);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -524,13 +520,12 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(15), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(15), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartS : Layout start:S Layout.
+            //StartS : WS start:S WS.
             SlotId(16) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -556,42 +551,41 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //StartId : . Layout start:Id Layout
+            //StartId : . WS start:Id WS
             SlotId(17) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //StartId : Layout . start:Id Layout
+                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                        //StartId : WS . start:Id WS
                         let next_slot_id = SlotId(18);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(17), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(17), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartId : Layout . start:Id Layout
+            //StartId : WS . start:Id WS
             SlotId(18) => {
-                self.create_id(result, gss_node_id, SlotId(19));
+                self.create_id(result, gss_node_id, SlotId(19), env);
             }
-            //StartId : Layout start:Id . Layout
+            //StartId : WS start:Id . WS
             SlotId(19) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //StartId : Layout start:Id Layout.
+                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                        //StartId : WS start:Id WS.
                         let next_slot_id = SlotId(20);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -616,13 +610,12 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(19), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(19), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartId : Layout start:Id Layout.
+            //StartId : WS start:Id WS.
             SlotId(20) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -663,7 +656,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
         match nonterminal_id {
             //S
             NonterminalId(0) => {
-                //S : . "for" Layout Id
+                //S : . "for" WS Id
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(0),
@@ -712,7 +705,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
             }
             //StartS
             NonterminalId(3) => {
-                //StartS : . Layout start:S Layout
+                //StartS : . WS start:S WS
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(13),
@@ -723,7 +716,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
             }
             //StartId
             NonterminalId(4) => {
-                //StartId : . Layout start:Id Layout
+                //StartId : . WS start:Id WS
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(17),
@@ -945,7 +938,7 @@ pub struct PrecedeRestrictionParser<'i> {
     stats: Stats,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 21],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -968,7 +961,7 @@ impl<'i> PrecedeRestrictionParser<'i> {
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 5],
             intermediate_nodes_index: [const { InlineMap::Empty }; 21],
-            terminal_nodes_index: [const { InlineMap::Empty }; 6],
+            terminal_nodes_index: [const { InlineMap::Empty }; 5],
             stats: Stats::default(),
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
@@ -984,40 +977,45 @@ impl<'i> PrecedeRestrictionParser<'i> {
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_id(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_id_plus_0(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_s(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_id(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot, env);
     }
 }
 

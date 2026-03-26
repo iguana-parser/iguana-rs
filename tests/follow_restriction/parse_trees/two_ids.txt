@@ -7,7 +7,7 @@
         Char
       )
     )
-    Layout
+    WS
     (Id
       (Char+
         Char

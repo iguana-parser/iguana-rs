@@ -2,14 +2,11 @@
   (E
     (E
       "-"
-      Layout
       (E
         "a"
       )
     )
-    Layout
     "+"
-    Layout
     (E
       "a"
     )

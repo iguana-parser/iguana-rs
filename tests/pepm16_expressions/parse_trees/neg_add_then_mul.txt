@@ -2,28 +2,28 @@
   (E
     (E
       "("
-      Layout
+      WS
       (E
         "-"
-        Layout
+        WS
         (E
           (E
             "a"
           )
-          Layout
+          WS
           "+"
-          Layout
+          WS
           (E
             "a"
           )
         )
       )
-      Layout
+      WS
       ")"
     )
-    Layout
+    WS
     "*"
-    Layout
+    WS
     (E
       "a"
     )

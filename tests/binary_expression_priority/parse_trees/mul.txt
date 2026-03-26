@@ -3,9 +3,7 @@
     (E
       "a"
     )
-    Layout
     "*"
-    Layout
     (E
       "a"
     )

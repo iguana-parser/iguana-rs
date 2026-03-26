@@ -3,24 +3,24 @@
     (E
       "a"
     )
-    Layout
+    WS
     ";"
-    Layout
+    WS
     (E
       "if"
-      Layout
+      WS
       (E
         "a"
       )
-      Layout
+      WS
       "then"
-      Layout
+      WS
       (E
         "a"
       )
-      Layout
+      WS
       "else"
-      Layout
+      WS
       (E
         "a"
       )

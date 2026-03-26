@@ -891,7 +891,7 @@ impl<'a> ParserGen<'a> {
                 quote! { None }
             };
             let arguments = if nonterminal.parameters.is_empty() {
-                quote! { result, gss_node_id, #next_slot_id }
+                quote! { result, gss_node_id, #next_slot_id, env }
             } else {
                 quote! { result, gss_node_id, #next_slot_id, env, #bindings, #(#arguments),* }
             };
@@ -1683,8 +1683,9 @@ impl<'a> ParserGen<'a> {
                     sppf_node_id: Option<SPPFNodeId>,
                     gss_node_id: GssNodeId,
                     return_slot: SlotId,
+                    env: Option<EnvId>,
                 ) {
-                    self.create(NonterminalId(#id), sppf_node_id, gss_node_id, return_slot);
+                    self.create(NonterminalId(#id), sppf_node_id, gss_node_id, return_slot, env);
                 }
             }
         } else {

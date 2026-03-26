@@ -29,26 +29,12 @@ impl<'i> FollowRestrictionScanner<'i> {
             Some(j)
         })(i)
     }
-    //Layout = ([ ]*)
-    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        (|i| {
-            let mut j = i;
-            while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_1, false)
-            })(j) {
-                j = k;
-            }
-            Some(j)
-        })(i)
-    }
 }
 impl Scanner for FollowRestrictionScanner<'_> {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         match terminal_id {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(1) => self.match_terminal_1(input_index),
-            TerminalId(2) => self.match_terminal_2(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

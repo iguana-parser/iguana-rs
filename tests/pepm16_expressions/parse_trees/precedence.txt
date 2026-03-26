@@ -3,16 +3,16 @@
     (E
       "a"
     )
-    Layout
+    WS
     "+"
-    Layout
+    WS
     (E
       (E
         "a"
       )
-      Layout
+      WS
       "*"
-      Layout
+      WS
       (E
         "a"
       )

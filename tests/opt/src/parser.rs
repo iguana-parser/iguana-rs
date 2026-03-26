@@ -541,27 +541,32 @@ impl<'i> OptParser<'i> {
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_a(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_s_opt_0(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(0), i).is_some() {
+        if self.scanner.match_token(TerminalId(0), i).is_some()
+            || i == self.input().len()
+        {
             let mut j = i;
             let right_child_id = {
                 let start = j;
@@ -627,7 +632,7 @@ impl<'i> OptParser<'i> {
                     current,
                 );
         }
-        if false {
+        if i == self.input().len() {
             let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(1), i, i);
             return self
                 .create_nonterminal_node_or_attach_children(

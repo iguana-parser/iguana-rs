@@ -1,7 +1,6 @@
 (S
   (E
     "-"
-    Layout
     (E
       "a"
     )

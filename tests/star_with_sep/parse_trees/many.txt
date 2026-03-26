@@ -3,15 +3,11 @@
     (A
       "a"
     )
-    Layout
     ","
-    Layout
     (A
       "a"
     )
-    Layout
     ","
-    Layout
     (A
       "a"
     )

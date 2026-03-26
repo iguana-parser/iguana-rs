@@ -124,6 +124,7 @@ pub trait Parser<'i> {
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
         let left_child = sppf_node_id.map(|id| {
@@ -143,7 +144,7 @@ pub trait Parser<'i> {
                 gss_node_id,
                 left_child,
                 return_slot,
-                None,
+                env,
                 None,
             );
         } else {
@@ -154,7 +155,7 @@ pub trait Parser<'i> {
                 gss_node_id,
                 sppf_node_id,
                 return_slot,
-                None,
+                env,
                 None,
             );
             self.add_first_descriptors(nonterminal_id, i, new_gss_node_id, None);

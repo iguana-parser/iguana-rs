@@ -11,14 +11,11 @@ use crate::parser::PlusParser;
 pub enum TokenKind {
     //"a"
     T0,
-    //Layout
-    T1,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
         match self {
             TokenKind::T0 => "\"a\"",
-            TokenKind::T1 => "Layout",
             _ => unreachable!(),
         }
     }
@@ -29,8 +26,6 @@ pub enum ParseTree {
     A(A),
     //A+
     SPlus0(SPlus0),
-    StartS(StartS),
-    StartA(StartA),
     Token(Token),
 }
 impl ParseTree {
@@ -39,8 +34,6 @@ impl ParseTree {
             ParseTree::S(s) => s.as_parse_tree_ref(),
             ParseTree::A(a) => a.as_parse_tree_ref(),
             ParseTree::SPlus0(s_plus_0) => s_plus_0.as_parse_tree_ref(),
-            ParseTree::StartS(start_s) => start_s.as_parse_tree_ref(),
-            ParseTree::StartA(start_a) => start_a.as_parse_tree_ref(),
             ParseTree::Token(token) => token.as_parse_tree_ref(),
         }
     }
@@ -62,18 +55,6 @@ impl ParseTree {
             _ => panic!(),
         }
     }
-    fn unwrap_start_s(self) -> StartS {
-        match self {
-            ParseTree::StartS(start_s) => start_s,
-            _ => panic!(),
-        }
-    }
-    fn unwrap_start_a(self) -> StartA {
-        match self {
-            ParseTree::StartA(start_a) => start_a,
-            _ => panic!(),
-        }
-    }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
@@ -86,8 +67,6 @@ pub enum ParseTreeRef<'a> {
     S(&'a S),
     A(&'a A),
     SPlus0(&'a SPlus0),
-    StartS(&'a StartS),
-    StartA(&'a StartA),
     Token(&'a Token),
 }
 impl<'a> ParseTreeRef<'a> {
@@ -100,12 +79,6 @@ impl<'a> ParseTreeRef<'a> {
                 (0..a.child_count()).filter_map(|i| a.child(i)).collect()
             }
             ParseTreeRef::SPlus0(s_plus_0) => s_plus_0.iter().collect(),
-            ParseTreeRef::StartS(start_s) => {
-                (0..start_s.child_count()).filter_map(|i| start_s.child(i)).collect()
-            }
-            ParseTreeRef::StartA(start_a) => {
-                (0..start_a.child_count()).filter_map(|i| start_a.child(i)).collect()
-            }
             ParseTreeRef::Token(_) => vec![],
         }
     }
@@ -114,8 +87,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::S(_) => "S",
             ParseTreeRef::A(_) => "A",
             ParseTreeRef::SPlus0(_) => "A+",
-            ParseTreeRef::StartS(_) => "StartS",
-            ParseTreeRef::StartA(_) => "StartA",
             ParseTreeRef::Token(token) => token.kind.name(),
         }
     }
@@ -124,8 +95,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::S(s) => s.child_count(),
             ParseTreeRef::A(a) => a.child_count(),
             ParseTreeRef::SPlus0(s_plus_0) => s_plus_0.child_count(),
-            ParseTreeRef::StartS(start_s) => start_s.child_count(),
-            ParseTreeRef::StartA(start_a) => start_a.child_count(),
             ParseTreeRef::Token(_) => 0,
         }
     }
@@ -134,8 +103,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::S(s) => s.span(),
             ParseTreeRef::A(a) => a.span(),
             ParseTreeRef::SPlus0(s_plus_0) => s_plus_0.span(),
-            ParseTreeRef::StartS(start_s) => start_s.span(),
-            ParseTreeRef::StartA(start_a) => start_a.span(),
             ParseTreeRef::Token(token) => token.span(),
         }
     }
@@ -153,16 +120,6 @@ impl From<A> for ParseTree {
 impl From<SPlus0> for ParseTree {
     fn from(s_plus_0: SPlus0) -> Self {
         ParseTree::SPlus0(s_plus_0)
-    }
-}
-impl From<StartS> for ParseTree {
-    fn from(start_s: StartS) -> Self {
-        ParseTree::StartS(start_s)
-    }
-}
-impl From<StartA> for ParseTree {
-    fn from(start_a: StartA) -> Self {
-        ParseTree::StartA(start_a)
     }
 }
 pub trait ListNode<'a> {
@@ -187,26 +144,10 @@ pub struct A {
 //A+
 #[derive(Debug)]
 pub enum SPlus0 {
-    //A+ Layout A
-    Alt0 { r#as: Box<SPlus0>, layout: Token, a_2: Box<A>, span: Span },
+    //A+ A
+    Alt0 { r#as: Box<SPlus0>, a_1: Box<A>, span: Span },
     //A
     Alt1 { a: Box<A>, span: Span },
-}
-//StartS = Layout start:S Layout
-#[derive(Debug)]
-pub struct StartS {
-    pub layout_0: Token,
-    pub start: S,
-    pub layout_2: Token,
-    pub span: Span,
-}
-//StartA = Layout start:A Layout
-#[derive(Debug)]
-pub struct StartA {
-    pub layout_0: Token,
-    pub start: A,
-    pub layout_2: Token,
-    pub span: Span,
 }
 impl S {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -245,11 +186,10 @@ impl A {
 impl SPlus0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            SPlus0::Alt0 { r#as, layout, a_2, .. } => {
+            SPlus0::Alt0 { r#as, a_1, .. } => {
                 match index {
                     0 => Some(r#as.as_parse_tree_ref()),
-                    1 => Some(layout.as_parse_tree_ref()),
-                    2 => Some(a_2.as_parse_tree_ref()),
+                    1 => Some(a_1.as_parse_tree_ref()),
                     _ => None,
                 }
             }
@@ -263,7 +203,7 @@ impl SPlus0 {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            SPlus0::Alt0 { .. } => 3usize,
+            SPlus0::Alt0 { .. } => 2usize,
             SPlus0::Alt1 { .. } => 1usize,
         }
     }
@@ -284,53 +224,14 @@ impl SPlus0 {
             })
     }
 }
-impl StartS {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
-        match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
-            _ => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::StartS(self)
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-}
-impl StartA {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
-        match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
-            _ => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::StartA(self)
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-}
 impl<'a> ListNode<'a> for SPlus0 {
     fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
         let mut items = vec![];
         let mut current = self;
         loop {
             match current {
-                SPlus0::Alt0 { r#as: rest, layout: layout, a_2: item, .. } => {
+                SPlus0::Alt0 { r#as: rest, a_1: item, .. } => {
                     items.push(item.as_parse_tree_ref());
-                    items.push(layout.as_parse_tree_ref());
                     current = rest.as_ref();
                 }
                 SPlus0::Alt1 { a: item, .. } => {
@@ -360,8 +261,6 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
     match terminal_id {
         //"a"
         TerminalId(0) => TokenKind::T0,
-        //Layout
-        TerminalId(1) => TokenKind::T1,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -407,65 +306,22 @@ impl ParseTreeBuilder<ParseTree> for PlusParseTreeBuilder {
             //S_Plus_0
             NonterminalId(2) => {
                 match nonterminal_node.return_slot {
-                    //A+ : A+ Layout A.
-                    SlotId(7) => {
-                        let [r#as, layout, a_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
+                    //A+ : A+ A.
+                    SlotId(6) => {
+                        let [r#as, a_1] = <[ParseTree; 2usize]>::try_from(children)
                             .unwrap();
                         SPlus0::Alt0 {
                             r#as: Box::new(r#as.unwrap_s_plus_0()),
-                            layout: layout.unwrap_token(),
-                            a_2: Box::new(a_2.unwrap_a()),
+                            a_1: Box::new(a_1.unwrap_a()),
                             span: nonterminal_node.span,
                         }
                             .into()
                     }
                     //A+ : A.
-                    SlotId(9) => {
+                    SlotId(8) => {
                         let [a] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         SPlus0::Alt1 {
                             a: Box::new(a.unwrap_a()),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            //StartS
-            NonterminalId(3) => {
-                match nonterminal_node.return_slot {
-                    //StartS : Layout start:S Layout.
-                    SlotId(13) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
-                        StartS {
-                            layout_0: layout_0.unwrap_token(),
-                            start: start.unwrap_s(),
-                            layout_2: layout_2.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            //StartA
-            NonterminalId(4) => {
-                match nonterminal_node.return_slot {
-                    //StartA : Layout start:A Layout.
-                    SlotId(17) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
-                        StartA {
-                            layout_0: layout_0.unwrap_token(),
-                            start: start.unwrap_a(),
-                            layout_2: layout_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -495,12 +351,6 @@ pub fn create_parse_tree(
         "S_Plus_0" => {
             ParseTree::SPlus0(create_parse_tree_s_plus_0(root_id, parser, builder))
         }
-        "StartS" => {
-            ParseTree::StartS(create_parse_tree_start_s(root_id, parser, builder))
-        }
-        "StartA" => {
-            ParseTree::StartA(create_parse_tree_start_a(root_id, parser, builder))
-        }
         _ => panic!(),
     }
 }
@@ -527,22 +377,6 @@ pub fn create_parse_tree_s_plus_0(
 ) -> SPlus0 {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_s_plus_0()
-}
-pub fn create_parse_tree_start_s(
-    root_id: SPPFNodeId,
-    parser: &PlusParser,
-    builder: &PlusParseTreeBuilder,
-) -> StartS {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_start_s()
-}
-pub fn create_parse_tree_start_a(
-    root_id: SPPFNodeId,
-    parser: &PlusParser,
-    builder: &PlusParseTreeBuilder,
-) -> StartA {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_start_a()
 }
 pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
     let mut s = String::new();

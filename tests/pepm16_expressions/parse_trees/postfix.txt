@@ -3,9 +3,9 @@
     (E
       "a"
     )
-    Layout
+    WS
     "."
-    Layout
+    WS
     "f"
   )
 )

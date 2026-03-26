@@ -17,8 +17,6 @@ pub enum TokenKind {
     T2,
     //WS
     T3,
-    //Layout
-    T4,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
@@ -27,7 +25,6 @@ impl TokenKind {
             TokenKind::T1 => "Alpha",
             TokenKind::T2 => "Id",
             TokenKind::T3 => "WS",
-            TokenKind::T4 => "Layout",
             _ => unreachable!(),
         }
     }
@@ -199,25 +196,25 @@ pub enum Element {
 //Element+
 #[derive(Debug)]
 pub enum SPlus0 {
-    //Element+ Layout Element
-    Alt0 { elements: Box<SPlus0>, layout: Token, element_2: Box<Element>, span: Span },
+    //Element+ WS Element
+    Alt0 { elements: Box<SPlus0>, w_s: Token, element_2: Box<Element>, span: Span },
     //Element
     Alt1 { element: Box<Element>, span: Span },
 }
-//StartS = Layout start:S Layout
+//StartS = WS start:S WS
 #[derive(Debug)]
 pub struct StartS {
-    pub layout_0: Token,
+    pub w_s_0: Token,
     pub start: S,
-    pub layout_2: Token,
+    pub w_s_2: Token,
     pub span: Span,
 }
-//StartElement = Layout start:Element Layout
+//StartElement = WS start:Element WS
 #[derive(Debug)]
 pub struct StartElement {
-    pub layout_0: Token,
+    pub w_s_0: Token,
     pub start: Element,
-    pub layout_2: Token,
+    pub w_s_2: Token,
     pub span: Span,
 }
 impl S {
@@ -273,10 +270,10 @@ impl Element {
 impl SPlus0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            SPlus0::Alt0 { elements, layout, element_2, .. } => {
+            SPlus0::Alt0 { elements, w_s, element_2, .. } => {
                 match index {
                     0 => Some(elements.as_parse_tree_ref()),
-                    1 => Some(layout.as_parse_tree_ref()),
+                    1 => Some(w_s.as_parse_tree_ref()),
                     2 => Some(element_2.as_parse_tree_ref()),
                     _ => None,
                 }
@@ -315,9 +312,9 @@ impl SPlus0 {
 impl StartS {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
+            0 => Some(self.w_s_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            2 => Some(self.w_s_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -334,9 +331,9 @@ impl StartS {
 impl StartElement {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
+            0 => Some(self.w_s_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            2 => Some(self.w_s_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -356,7 +353,7 @@ impl<'a> ListNode<'a> for SPlus0 {
         let mut current = self;
         loop {
             match current {
-                SPlus0::Alt0 { elements: rest, layout: layout, element_2: item, .. } => {
+                SPlus0::Alt0 { elements: rest, w_s: layout, element_2: item, .. } => {
                     items.push(item.as_parse_tree_ref());
                     items.push(layout.as_parse_tree_ref());
                     current = rest.as_ref();
@@ -408,8 +405,6 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         TerminalId(2) => TokenKind::T2,
         //WS
         TerminalId(3) => TokenKind::T3,
-        //Layout
-        TerminalId(4) => TokenKind::T4,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -465,15 +460,15 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionLexicalParseTreeBuilder {
             //S_Plus_0
             NonterminalId(2) => {
                 match nonterminal_node.return_slot {
-                    //Element+ : Element+ Layout Element.
+                    //Element+ : Element+ WS Element.
                     SlotId(9) => {
-                        let [elements, layout, element_2] = <[ParseTree; 3usize]>::try_from(
+                        let [elements, w_s, element_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         SPlus0::Alt0 {
                             elements: Box::new(elements.unwrap_s_plus_0()),
-                            layout: layout.unwrap_token(),
+                            w_s: w_s.unwrap_token(),
                             element_2: Box::new(element_2.unwrap_element()),
                             span: nonterminal_node.span,
                         }
@@ -495,16 +490,16 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionLexicalParseTreeBuilder {
             //StartS
             NonterminalId(3) => {
                 match nonterminal_node.return_slot {
-                    //StartS : Layout start:S Layout.
+                    //StartS : WS start:S WS.
                     SlotId(15) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartS {
-                            layout_0: layout_0.unwrap_token(),
+                            w_s_0: w_s_0.unwrap_token(),
                             start: start.unwrap_s(),
-                            layout_2: layout_2.unwrap_token(),
+                            w_s_2: w_s_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -515,16 +510,16 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionLexicalParseTreeBuilder {
             //StartElement
             NonterminalId(4) => {
                 match nonterminal_node.return_slot {
-                    //StartElement : Layout start:Element Layout.
+                    //StartElement : WS start:Element WS.
                     SlotId(19) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartElement {
-                            layout_0: layout_0.unwrap_token(),
+                            w_s_0: w_s_0.unwrap_token(),
                             start: start.unwrap_element(),
-                            layout_2: layout_2.unwrap_token(),
+                            w_s_2: w_s_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()

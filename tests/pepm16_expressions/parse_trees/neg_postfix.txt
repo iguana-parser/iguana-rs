@@ -1,14 +1,14 @@
 (S
   (E
     "-"
-    Layout
+    WS
     (E
       (E
         "a"
       )
-      Layout
+      WS
       "."
-      Layout
+      WS
       "f"
     )
   )

@@ -140,7 +140,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
         match slot_id {
             //Expr : . Expr Layout "+" Layout Expr
             SlotId(0) => {
-                self.create_expr(result, gss_node_id, SlotId(1));
+                self.create_expr(result, gss_node_id, SlotId(1), env);
             }
             //Expr : Expr . Layout "+" Layout Expr
             SlotId(1) => {
@@ -263,7 +263,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //Expr : Expr Layout "+" Layout . Expr
             SlotId(4) => {
-                self.create_expr(result, gss_node_id, SlotId(5));
+                self.create_expr(result, gss_node_id, SlotId(5), env);
             }
             //Expr : Expr Layout "+" Layout Expr.
             SlotId(5) => {
@@ -293,7 +293,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //Expr : . Expr Layout "*" Layout Expr
             SlotId(6) => {
-                self.create_expr(result, gss_node_id, SlotId(7));
+                self.create_expr(result, gss_node_id, SlotId(7), env);
             }
             //Expr : Expr . Layout "*" Layout Expr
             SlotId(7) => {
@@ -416,7 +416,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //Expr : Expr Layout "*" Layout . Expr
             SlotId(10) => {
-                self.create_expr(result, gss_node_id, SlotId(11));
+                self.create_expr(result, gss_node_id, SlotId(11), env);
             }
             //Expr : Expr Layout "*" Layout Expr.
             SlotId(11) => {
@@ -516,7 +516,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //StartExpr : Layout . start:Expr Layout
             SlotId(15) => {
-                self.create_expr(result, gss_node_id, SlotId(16));
+                self.create_expr(result, gss_node_id, SlotId(16), env);
             }
             //StartExpr : Layout start:Expr . Layout
             SlotId(16) => {
@@ -887,16 +887,18 @@ impl<'i> CommentsParser<'i> {
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_expr(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
     }
 }
 

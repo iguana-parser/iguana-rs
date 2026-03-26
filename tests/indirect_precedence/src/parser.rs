@@ -308,7 +308,7 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "*" . F return 0
             SlotId(10) => {
-                self.create_f(result, gss_node_id, SlotId(11));
+                self.create_f(result, gss_node_id, SlotId(11), env);
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "*" F . return 0
             SlotId(11) => {
@@ -442,7 +442,7 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
             }
             //F : E(0) "/" . K
             SlotId(18) => {
-                self.create_k(result, gss_node_id, SlotId(19));
+                self.create_k(result, gss_node_id, SlotId(19), env);
             }
             //F : E(0) "/" K.
             SlotId(19) => {
@@ -830,24 +830,27 @@ impl<'i> IndirectPrecedenceParser<'i> {
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_f(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_k(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_e(
         &mut self,

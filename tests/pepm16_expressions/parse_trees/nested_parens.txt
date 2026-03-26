@@ -1,17 +1,17 @@
 (S
   (E
     "("
-    Layout
+    WS
     (E
       "("
-      Layout
+      WS
       (E
         "a"
       )
-      Layout
+      WS
       ")"
     )
-    Layout
+    WS
     ")"
   )
 )

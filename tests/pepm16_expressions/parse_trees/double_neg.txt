@@ -1,10 +1,10 @@
 (S
   (E
     "-"
-    Layout
+    WS
     (E
       "-"
-      Layout
+      WS
       (E
         "a"
       )

@@ -3,16 +3,12 @@
     (E
       "a"
     )
-    Layout
     "+"
-    Layout
     (E
       (E
         "a"
       )
-      Layout
       "*"
-      Layout
       (E
         "a"
       )

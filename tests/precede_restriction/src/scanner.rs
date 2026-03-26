@@ -46,19 +46,6 @@ impl<'i> PrecedeRestrictionScanner<'i> {
             .and_then(|i| { self.match_char(i, 'l') })
             .and_then(|i| { self.match_char(i, 'l') })
     }
-    //Layout = ([ ]*)
-    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        (|i| {
-            let mut j = i;
-            while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_1, false)
-            })(j) {
-                j = k;
-            }
-            Some(j)
-        })(i)
-    }
 }
 impl Scanner for PrecedeRestrictionScanner<'_> {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
@@ -67,7 +54,6 @@ impl Scanner for PrecedeRestrictionScanner<'_> {
             TerminalId(1) => self.match_terminal_1(input_index),
             TerminalId(2) => self.match_terminal_2(input_index),
             TerminalId(3) => self.match_terminal_3(input_index),
-            TerminalId(4) => self.match_terminal_4(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

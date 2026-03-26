@@ -7,37 +7,27 @@
             (E
               "a"
             )
-            Layout
             "+"
-            Layout
             (E
               "a"
             )
           )
-          Layout
           "+"
-          Layout
           (E
             "a"
           )
         )
-        Layout
         "-"
-        Layout
         (E
           "a"
         )
       )
-      Layout
       "-"
-      Layout
       (E
         "a"
       )
     )
-    Layout
     "-"
-    Layout
     (E
       "a"
     )

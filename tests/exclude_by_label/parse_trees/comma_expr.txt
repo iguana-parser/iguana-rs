@@ -2,9 +2,7 @@
   (Expr
     Id
   )
-  Layout
   ","
-  Layout
   (Expr
     Id
   )

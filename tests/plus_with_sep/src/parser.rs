@@ -111,7 +111,7 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
         match slot_id {
             //S : . S_Plus_0
             SlotId(0) => {
-                self.create_s_plus_0(result, gss_node_id, SlotId(1));
+                self.create_s_plus_0(result, gss_node_id, SlotId(1), env);
             }
             //S : S_Plus_0.
             SlotId(1) => {
@@ -188,7 +188,7 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             //S_Plus_0 : . S_Plus_0 "," A
             SlotId(4) => {
-                self.create_s_plus_0(result, gss_node_id, SlotId(5));
+                self.create_s_plus_0(result, gss_node_id, SlotId(5), env);
             }
             //S_Plus_0 : S_Plus_0 . "," A
             SlotId(5) => {
@@ -621,24 +621,27 @@ impl<'i> PlusWithSepParser<'i> {
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_a(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_s_plus_0(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(1), i).is_some() {

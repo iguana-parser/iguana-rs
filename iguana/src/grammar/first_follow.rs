@@ -273,14 +273,12 @@ impl<'a> FirstFollowSets<'a> {
             self.follow_sets.insert(nonterminal, FxHashSet::default());
         }
 
-        // FOLLOW(start) includes EOF
+        // Every nonterminal can be a start symbol, so EOF is in all FOLLOW sets
         for nonterminal in self.grammar.nonterminals() {
-            if nonterminal.name.starts_with("Start") {
-                self.follow_sets
-                    .get_mut(nonterminal)
-                    .unwrap()
-                    .insert(Self::eof());
-            }
+            self.follow_sets
+                .get_mut(nonterminal)
+                .unwrap()
+                .insert(Self::eof());
         }
 
         let mut changed = true;
@@ -473,14 +471,12 @@ mod tests {
         let tb = Terminal::new("\"b\"");
         let tc = Terminal::new("\"c\"");
         let td = Terminal::new("\"d\"");
-        let layout = Terminal::new("Layout");
 
         let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
         assert!(first_s.contains(&ta));
         assert!(first_s.contains(&tb));
         assert!(first_s.contains(&tc));
         assert!(first_s.contains(&td));
-        assert!(first_s.contains(&layout));
 
         let first_a = &ff.first_sets[grammar.nonterminal("A").unwrap()];
         assert!(first_a.contains(&ta));
@@ -495,22 +491,19 @@ mod tests {
         assert_eq!(first_c.len(), 1);
 
         // FOLLOW sets
-        // FOLLOW(A) = { Layout, "b", "c", "d" }
+        // FOLLOW(A) = { "b", "c", "d" }
         let follow_a = &ff.follow_sets[grammar.nonterminal("A").unwrap()];
-        assert!(follow_a.contains(&layout));
         assert!(follow_a.contains(&tb));
         assert!(follow_a.contains(&tc));
         assert!(follow_a.contains(&td));
 
-        // FOLLOW(B) = { Layout, "c", "d" }
+        // FOLLOW(B) = { "c", "d" }
         let follow_b = &ff.follow_sets[grammar.nonterminal("B").unwrap()];
-        assert!(follow_b.contains(&layout));
         assert!(follow_b.contains(&tc));
         assert!(follow_b.contains(&td));
 
-        // FOLLOW(C) = { Layout, "d" }
+        // FOLLOW(C) = { "d" }
         let follow_c = &ff.follow_sets[grammar.nonterminal("C").unwrap()];
-        assert!(follow_c.contains(&layout));
         assert!(follow_c.contains(&td));
     }
 
@@ -548,13 +541,11 @@ mod tests {
         let ta = Terminal::new("\"a\"");
         let tc = Terminal::new("\"c\"");
         let td = Terminal::new("\"d\"");
-        let layout = Terminal::new("Layout");
         let eof = FirstFollowSets::eof();
 
         let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
         assert!(first_s.contains(&ta));
         assert!(first_s.contains(&tc));
-        assert!(first_s.contains(&layout));
         assert!(!first_s.contains(&td));
 
         let first_a = &ff.first_sets[grammar.nonterminal("A").unwrap()];
@@ -564,19 +555,16 @@ mod tests {
         let first_b = &ff.first_sets[grammar.nonterminal("B").unwrap()];
         assert!(first_b.contains(&ta));
         assert!(first_b.contains(&tc));
-        assert!(first_b.contains(&layout));
         assert!(!first_b.contains(&td));
 
         // FOLLOW sets
-        // FOLLOW(S) = { EOF, Layout, "d" }
+        // FOLLOW(S) = { EOF, "d" }
         let follow_s = &ff.follow_sets[grammar.nonterminal("S").unwrap()];
         assert!(follow_s.contains(&eof));
-        assert!(follow_s.contains(&layout));
         assert!(follow_s.contains(&td));
 
-        // FOLLOW(B) = { Layout, "c" }
+        // FOLLOW(B) = { "c" }
         let follow_b = &ff.follow_sets[grammar.nonterminal("B").unwrap()];
-        assert!(follow_b.contains(&layout));
         assert!(follow_b.contains(&tc));
     }
 

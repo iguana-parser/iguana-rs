@@ -4,11 +4,9 @@
       (A
         "a"
       )
-      Layout
       (B
         "b"
       )
-      Layout
       (C
         "c"
       )

@@ -4,12 +4,9 @@
       (A
         "a"
       )
-      Layout
       "a"
     )
-    Layout
     "a"
   )
-  Layout
   "a"
 )

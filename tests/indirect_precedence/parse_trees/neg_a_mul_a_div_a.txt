@@ -2,21 +2,16 @@
   (E
     (E
       "-"
-      Layout
       (E
         "a"
       )
     )
-    Layout
     "*"
-    Layout
     (F
       (E
         "a"
       )
-      Layout
       "/"
-      Layout
       (K
         (E
           "a"

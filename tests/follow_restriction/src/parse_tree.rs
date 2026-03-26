@@ -13,15 +13,12 @@ pub enum TokenKind {
     T0,
     //WS
     T1,
-    //Layout
-    T2,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
         match self {
             TokenKind::T0 => "Char",
             TokenKind::T1 => "WS",
-            TokenKind::T2 => "Layout",
             _ => unreachable!(),
         }
     }
@@ -255,8 +252,8 @@ pub struct Id {
 //Id+
 #[derive(Debug)]
 pub enum SPlus0 {
-    //Id+ Layout Id
-    Alt0 { ids: Box<SPlus0>, layout: Token, id_2: Box<Id>, span: Span },
+    //Id+ WS Id
+    Alt0 { ids: Box<SPlus0>, w_s: Token, id_2: Box<Id>, span: Span },
     //Id
     Alt1 { id: Box<Id>, span: Span },
 }
@@ -268,28 +265,28 @@ pub enum IdPlus1 {
     //Char
     Alt1 { char: Token, span: Span },
 }
-//StartS = Layout start:S Layout
+//StartS = WS start:S WS
 #[derive(Debug)]
 pub struct StartS {
-    pub layout_0: Token,
+    pub w_s_0: Token,
     pub start: S,
-    pub layout_2: Token,
+    pub w_s_2: Token,
     pub span: Span,
 }
-//StartT = Layout start:T Layout
+//StartT = WS start:T WS
 #[derive(Debug)]
 pub struct StartT {
-    pub layout_0: Token,
+    pub w_s_0: Token,
     pub start: T,
-    pub layout_2: Token,
+    pub w_s_2: Token,
     pub span: Span,
 }
-//StartId = Layout start:Id Layout
+//StartId = WS start:Id WS
 #[derive(Debug)]
 pub struct StartId {
-    pub layout_0: Token,
+    pub w_s_0: Token,
     pub start: Id,
-    pub layout_2: Token,
+    pub w_s_2: Token,
     pub span: Span,
 }
 impl S {
@@ -346,10 +343,10 @@ impl Id {
 impl SPlus0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            SPlus0::Alt0 { ids, layout, id_2, .. } => {
+            SPlus0::Alt0 { ids, w_s, id_2, .. } => {
                 match index {
                     0 => Some(ids.as_parse_tree_ref()),
-                    1 => Some(layout.as_parse_tree_ref()),
+                    1 => Some(w_s.as_parse_tree_ref()),
                     2 => Some(id_2.as_parse_tree_ref()),
                     _ => None,
                 }
@@ -429,9 +426,9 @@ impl IdPlus1 {
 impl StartS {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
+            0 => Some(self.w_s_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            2 => Some(self.w_s_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -448,9 +445,9 @@ impl StartS {
 impl StartT {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
+            0 => Some(self.w_s_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            2 => Some(self.w_s_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -467,9 +464,9 @@ impl StartT {
 impl StartId {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
+            0 => Some(self.w_s_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            2 => Some(self.w_s_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -489,7 +486,7 @@ impl<'a> ListNode<'a> for SPlus0 {
         let mut current = self;
         loop {
             match current {
-                SPlus0::Alt0 { ids: rest, layout: layout, id_2: item, .. } => {
+                SPlus0::Alt0 { ids: rest, w_s: layout, id_2: item, .. } => {
                     items.push(item.as_parse_tree_ref());
                     items.push(layout.as_parse_tree_ref());
                     current = rest.as_ref();
@@ -543,8 +540,6 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         TerminalId(0) => TokenKind::T0,
         //WS
         TerminalId(1) => TokenKind::T1,
-        //Layout
-        TerminalId(2) => TokenKind::T2,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -605,15 +600,13 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
             //S_Plus_0
             NonterminalId(3) => {
                 match nonterminal_node.return_slot {
-                    //Id+ : Id+ Layout Id.
+                    //Id+ : Id+ WS Id.
                     SlotId(9) => {
-                        let [ids, layout, id_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
+                        let [ids, w_s, id_2] = <[ParseTree; 3usize]>::try_from(children)
                             .unwrap();
                         SPlus0::Alt0 {
                             ids: Box::new(ids.unwrap_s_plus_0()),
-                            layout: layout.unwrap_token(),
+                            w_s: w_s.unwrap_token(),
                             id_2: Box::new(id_2.unwrap_id()),
                             span: nonterminal_node.span,
                         }
@@ -660,16 +653,16 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
             //StartS
             NonterminalId(5) => {
                 match nonterminal_node.return_slot {
-                    //StartS : Layout start:S Layout.
+                    //StartS : WS start:S WS.
                     SlotId(20) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartS {
-                            layout_0: layout_0.unwrap_token(),
+                            w_s_0: w_s_0.unwrap_token(),
                             start: start.unwrap_s(),
-                            layout_2: layout_2.unwrap_token(),
+                            w_s_2: w_s_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -680,16 +673,16 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
             //StartT
             NonterminalId(6) => {
                 match nonterminal_node.return_slot {
-                    //StartT : Layout start:T Layout.
+                    //StartT : WS start:T WS.
                     SlotId(24) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartT {
-                            layout_0: layout_0.unwrap_token(),
+                            w_s_0: w_s_0.unwrap_token(),
                             start: start.unwrap_t(),
-                            layout_2: layout_2.unwrap_token(),
+                            w_s_2: w_s_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -700,16 +693,16 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
             //StartId
             NonterminalId(7) => {
                 match nonterminal_node.return_slot {
-                    //StartId : Layout start:Id Layout.
+                    //StartId : WS start:Id WS.
                     SlotId(28) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartId {
-                            layout_0: layout_0.unwrap_token(),
+                            w_s_0: w_s_0.unwrap_token(),
                             start: start.unwrap_id(),
-                            layout_2: layout_2.unwrap_token(),
+                            w_s_2: w_s_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()

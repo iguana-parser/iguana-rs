@@ -2435,7 +2435,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar : "grammar" . Layout name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0
             SlotId(1) => {
-                self.create_layout(result, gss_node_id, SlotId(2));
+                self.create_layout(result, gss_node_id, SlotId(2), env);
             }
             //Grammar : "grammar" Layout . name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0
             SlotId(2) => {
@@ -2479,19 +2479,19 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar : "grammar" Layout name:Identifier . Layout Grammar_Opt_0 Layout Grammar_Star_0
             SlotId(3) => {
-                self.create_layout(result, gss_node_id, SlotId(4));
+                self.create_layout(result, gss_node_id, SlotId(4), env);
             }
             //Grammar : "grammar" Layout name:Identifier Layout . Grammar_Opt_0 Layout Grammar_Star_0
             SlotId(4) => {
-                self.create_grammar_opt_0(result, gss_node_id, SlotId(5));
+                self.create_grammar_opt_0(result, gss_node_id, SlotId(5), env);
             }
             //Grammar : "grammar" Layout name:Identifier Layout Grammar_Opt_0 . Layout Grammar_Star_0
             SlotId(5) => {
-                self.create_layout(result, gss_node_id, SlotId(6));
+                self.create_layout(result, gss_node_id, SlotId(6), env);
             }
             //Grammar : "grammar" Layout name:Identifier Layout Grammar_Opt_0 Layout . Grammar_Star_0
             SlotId(6) => {
-                self.create_grammar_star_0(result, gss_node_id, SlotId(7));
+                self.create_grammar_star_0(result, gss_node_id, SlotId(7), env);
             }
             //Grammar : "grammar" Layout name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0.
             SlotId(7) => {
@@ -2543,7 +2543,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //LayoutDef : "layout" . Layout Identifier
             SlotId(9) => {
-                self.create_layout(result, gss_node_id, SlotId(10));
+                self.create_layout(result, gss_node_id, SlotId(10), env);
             }
             //LayoutDef : "layout" Layout . Identifier
             SlotId(10) => {
@@ -2613,7 +2613,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule : . SyntaxRule
             SlotId(12) => {
-                self.create_syntax_rule(result, gss_node_id, SlotId(13));
+                self.create_syntax_rule(result, gss_node_id, SlotId(13), env);
             }
             //Rule : SyntaxRule.
             SlotId(13) => {
@@ -2643,7 +2643,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule : . RegexRule
             SlotId(14) => {
-                self.create_regex_rule(result, gss_node_id, SlotId(15));
+                self.create_regex_rule(result, gss_node_id, SlotId(15), env);
             }
             //Rule : RegexRule.
             SlotId(15) => {
@@ -2673,11 +2673,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule : . SyntaxRule_Opt_2 Layout head:Identifier Layout "=" Layout SyntaxRule_Star_1
             SlotId(16) => {
-                self.create_syntax_rule_opt_2(result, gss_node_id, SlotId(17));
+                self.create_syntax_rule_opt_2(result, gss_node_id, SlotId(17), env);
             }
             //SyntaxRule : SyntaxRule_Opt_2 . Layout head:Identifier Layout "=" Layout SyntaxRule_Star_1
             SlotId(17) => {
-                self.create_layout(result, gss_node_id, SlotId(18));
+                self.create_layout(result, gss_node_id, SlotId(18), env);
             }
             //SyntaxRule : SyntaxRule_Opt_2 Layout . head:Identifier Layout "=" Layout SyntaxRule_Star_1
             SlotId(18) => {
@@ -2721,7 +2721,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule : SyntaxRule_Opt_2 Layout head:Identifier . Layout "=" Layout SyntaxRule_Star_1
             SlotId(19) => {
-                self.create_layout(result, gss_node_id, SlotId(20));
+                self.create_layout(result, gss_node_id, SlotId(20), env);
             }
             //SyntaxRule : SyntaxRule_Opt_2 Layout head:Identifier Layout . "=" Layout SyntaxRule_Star_1
             SlotId(20) => {
@@ -2765,11 +2765,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule : SyntaxRule_Opt_2 Layout head:Identifier Layout "=" . Layout SyntaxRule_Star_1
             SlotId(21) => {
-                self.create_layout(result, gss_node_id, SlotId(22));
+                self.create_layout(result, gss_node_id, SlotId(22), env);
             }
             //SyntaxRule : SyntaxRule_Opt_2 Layout head:Identifier Layout "=" Layout . SyntaxRule_Star_1
             SlotId(22) => {
-                self.create_syntax_rule_star_1(result, gss_node_id, SlotId(23));
+                self.create_syntax_rule_star_1(result, gss_node_id, SlotId(23), env);
             }
             //SyntaxRule : SyntaxRule_Opt_2 Layout head:Identifier Layout "=" Layout SyntaxRule_Star_1.
             SlotId(23) => {
@@ -2869,7 +2869,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation : "@Layout" . Layout "(" Layout Identifier Layout ")"
             SlotId(27) => {
-                self.create_layout(result, gss_node_id, SlotId(28));
+                self.create_layout(result, gss_node_id, SlotId(28), env);
             }
             //Annotation : "@Layout" Layout . "(" Layout Identifier Layout ")"
             SlotId(28) => {
@@ -2913,7 +2913,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation : "@Layout" Layout "(" . Layout Identifier Layout ")"
             SlotId(29) => {
-                self.create_layout(result, gss_node_id, SlotId(30));
+                self.create_layout(result, gss_node_id, SlotId(30), env);
             }
             //Annotation : "@Layout" Layout "(" Layout . Identifier Layout ")"
             SlotId(30) => {
@@ -2957,7 +2957,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation : "@Layout" Layout "(" Layout Identifier . Layout ")"
             SlotId(31) => {
-                self.create_layout(result, gss_node_id, SlotId(32));
+                self.create_layout(result, gss_node_id, SlotId(32), env);
             }
             //Annotation : "@Layout" Layout "(" Layout Identifier Layout . ")"
             SlotId(32) => {
@@ -3049,7 +3049,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule : "@regex" . Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
             SlotId(35) => {
-                self.create_layout(result, gss_node_id, SlotId(36));
+                self.create_layout(result, gss_node_id, SlotId(36), env);
             }
             //RegexRule : "@regex" Layout . Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
             SlotId(36) => {
@@ -3093,7 +3093,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule : "@regex" Layout Identifier . Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
             SlotId(37) => {
-                self.create_layout(result, gss_node_id, SlotId(38));
+                self.create_layout(result, gss_node_id, SlotId(38), env);
             }
             //RegexRule : "@regex" Layout Identifier Layout . "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
             SlotId(38) => {
@@ -3137,27 +3137,27 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule : "@regex" Layout Identifier Layout "=" . Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
             SlotId(39) => {
-                self.create_layout(result, gss_node_id, SlotId(40));
+                self.create_layout(result, gss_node_id, SlotId(40), env);
             }
             //RegexRule : "@regex" Layout Identifier Layout "=" Layout . RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
             SlotId(40) => {
-                self.create_regex_rule_opt_4(result, gss_node_id, SlotId(41));
+                self.create_regex_rule_opt_4(result, gss_node_id, SlotId(41), env);
             }
             //RegexRule : "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 . Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
             SlotId(41) => {
-                self.create_layout(result, gss_node_id, SlotId(42));
+                self.create_layout(result, gss_node_id, SlotId(42), env);
             }
             //RegexRule : "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout . body:RegexRule_Plus_2 Layout RegexRule_Star_2
             SlotId(42) => {
-                self.create_regex_rule_plus_2(result, gss_node_id, SlotId(43));
+                self.create_regex_rule_plus_2(result, gss_node_id, SlotId(43), env);
             }
             //RegexRule : "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 . Layout RegexRule_Star_2
             SlotId(43) => {
-                self.create_layout(result, gss_node_id, SlotId(44));
+                self.create_layout(result, gss_node_id, SlotId(44), env);
             }
             //RegexRule : "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout . RegexRule_Star_2
             SlotId(44) => {
-                self.create_regex_rule_star_2(result, gss_node_id, SlotId(45));
+                self.create_regex_rule_star_2(result, gss_node_id, SlotId(45), env);
             }
             //RegexRule : "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2.
             SlotId(45) => {
@@ -3209,7 +3209,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PreCondition : Identifier . Layout "!<<"
             SlotId(47) => {
-                self.create_layout(result, gss_node_id, SlotId(48));
+                self.create_layout(result, gss_node_id, SlotId(48), env);
             }
             //PreCondition : Identifier Layout . "!<<"
             SlotId(48) => {
@@ -3301,7 +3301,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PostCondition : "\" . Layout Identifier
             SlotId(51) => {
-                self.create_layout(result, gss_node_id, SlotId(52));
+                self.create_layout(result, gss_node_id, SlotId(52), env);
             }
             //PostCondition : "\" Layout . Identifier
             SlotId(52) => {
@@ -3393,7 +3393,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PostCondition : "!>>" . Layout Identifier
             SlotId(55) => {
-                self.create_layout(result, gss_node_id, SlotId(56));
+                self.create_layout(result, gss_node_id, SlotId(56), env);
             }
             //PostCondition : "!>>" Layout . Identifier
             SlotId(56) => {
@@ -3474,11 +3474,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel : PriorityLevel_Opt_6 . Layout PriorityLevel_Star_3
             SlotId(59) => {
-                self.create_layout(result, gss_node_id, SlotId(60));
+                self.create_layout(result, gss_node_id, SlotId(60), env);
             }
             //PriorityLevel : PriorityLevel_Opt_6 Layout . PriorityLevel_Star_3
             SlotId(60) => {
-                self.create_priority_level_star_3(result, gss_node_id, SlotId(61));
+                self.create_priority_level_star_3(result, gss_node_id, SlotId(61), env);
             }
             //PriorityLevel : PriorityLevel_Opt_6 Layout PriorityLevel_Star_3.
             SlotId(61) => {
@@ -3652,11 +3652,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative : . Alternative_Star_4 Layout Alternative_Opt_9
             SlotId(68) => {
-                self.create_alternative_star_4(result, gss_node_id, SlotId(69));
+                self.create_alternative_star_4(result, gss_node_id, SlotId(69), env);
             }
             //Alternative : Alternative_Star_4 . Layout Alternative_Opt_9
             SlotId(69) => {
-                self.create_layout(result, gss_node_id, SlotId(70));
+                self.create_layout(result, gss_node_id, SlotId(70), env);
             }
             //Alternative : Alternative_Star_4 Layout . Alternative_Opt_9
             SlotId(70) => {
@@ -3785,15 +3785,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "(" . Layout Alternative_Plus_6 Layout ")" return 0
             SlotId(76) => {
-                self.create_layout(result, gss_node_id, SlotId(77));
+                self.create_layout(result, gss_node_id, SlotId(77), env);
             }
             //Symbol(p: i32) : "(" Layout . Alternative_Plus_6 Layout ")" return 0
             SlotId(77) => {
-                self.create_alternative_plus_6(result, gss_node_id, SlotId(78));
+                self.create_alternative_plus_6(result, gss_node_id, SlotId(78), env);
             }
             //Symbol(p: i32) : "(" Layout Alternative_Plus_6 . Layout ")" return 0
             SlotId(78) => {
-                self.create_layout(result, gss_node_id, SlotId(79));
+                self.create_layout(result, gss_node_id, SlotId(79), env);
             }
             //Symbol(p: i32) : "(" Layout Alternative_Plus_6 Layout . ")" return 0
             SlotId(79) => {
@@ -3891,7 +3891,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "(" . Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
             SlotId(83) => {
-                self.create_layout(result, gss_node_id, SlotId(84));
+                self.create_layout(result, gss_node_id, SlotId(84), env);
             }
             //Symbol(p: i32) : "(" Layout . first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
             SlotId(84) => {
@@ -3899,15 +3899,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "(" Layout first:Symbol(0) . Layout rest:Symbol_Plus_7 Layout ")" return 0
             SlotId(85) => {
-                self.create_layout(result, gss_node_id, SlotId(86));
+                self.create_layout(result, gss_node_id, SlotId(86), env);
             }
             //Symbol(p: i32) : "(" Layout first:Symbol(0) Layout . rest:Symbol_Plus_7 Layout ")" return 0
             SlotId(86) => {
-                self.create_symbol_plus_7(result, gss_node_id, SlotId(87));
+                self.create_symbol_plus_7(result, gss_node_id, SlotId(87), env);
             }
             //Symbol(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 . Layout ")" return 0
             SlotId(87) => {
-                self.create_layout(result, gss_node_id, SlotId(88));
+                self.create_layout(result, gss_node_id, SlotId(88), env);
             }
             //Symbol(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout . ")" return 0
             SlotId(88) => {
@@ -4059,7 +4059,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
             SlotId(95) => {
-                self.create_layout(result, gss_node_id, SlotId(96));
+                self.create_layout(result, gss_node_id, SlotId(96), env);
             }
             //Symbol(p: i32) : "{" Layout . symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
             SlotId(96) => {
@@ -4067,7 +4067,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout "}" Layout "*" return 0
             SlotId(97) => {
-                self.create_layout(result, gss_node_id, SlotId(98));
+                self.create_layout(result, gss_node_id, SlotId(98), env);
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout . sep:Symbol(0) Layout "}" Layout "*" return 0
             SlotId(98) => {
@@ -4075,7 +4075,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout "}" Layout "*" return 0
             SlotId(99) => {
-                self.create_layout(result, gss_node_id, SlotId(100));
+                self.create_layout(result, gss_node_id, SlotId(100), env);
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . "}" Layout "*" return 0
             SlotId(100) => {
@@ -4119,7 +4119,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "*" return 0
             SlotId(101) => {
-                self.create_layout(result, gss_node_id, SlotId(102));
+                self.create_layout(result, gss_node_id, SlotId(102), env);
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "*" return 0
             SlotId(102) => {
@@ -4217,7 +4217,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
             SlotId(106) => {
-                self.create_layout(result, gss_node_id, SlotId(107));
+                self.create_layout(result, gss_node_id, SlotId(107), env);
             }
             //Symbol(p: i32) : "{" Layout . symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
             SlotId(107) => {
@@ -4225,7 +4225,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout "}" Layout "+" return 0
             SlotId(108) => {
-                self.create_layout(result, gss_node_id, SlotId(109));
+                self.create_layout(result, gss_node_id, SlotId(109), env);
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout . sep:Symbol(0) Layout "}" Layout "+" return 0
             SlotId(109) => {
@@ -4233,7 +4233,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout "}" Layout "+" return 0
             SlotId(110) => {
-                self.create_layout(result, gss_node_id, SlotId(111));
+                self.create_layout(result, gss_node_id, SlotId(111), env);
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . "}" Layout "+" return 0
             SlotId(111) => {
@@ -4277,7 +4277,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "+" return 0
             SlotId(112) => {
-                self.create_layout(result, gss_node_id, SlotId(113));
+                self.create_layout(result, gss_node_id, SlotId(113), env);
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "+" return 0
             SlotId(113) => {
@@ -4378,7 +4378,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] . Layout "*" return 0
             SlotId(119) => {
-                self.create_layout(result, gss_node_id, SlotId(120));
+                self.create_layout(result, gss_node_id, SlotId(120), env);
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "*" return 0
             SlotId(120) => {
@@ -4479,7 +4479,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] . Layout "+" return 0
             SlotId(126) => {
-                self.create_layout(result, gss_node_id, SlotId(127));
+                self.create_layout(result, gss_node_id, SlotId(127), env);
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "+" return 0
             SlotId(127) => {
@@ -4580,7 +4580,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] . Layout "?" return 0
             SlotId(133) => {
-                self.create_layout(result, gss_node_id, SlotId(134));
+                self.create_layout(result, gss_node_id, SlotId(134), env);
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "?" return 0
             SlotId(134) => {
@@ -4681,11 +4681,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] . Layout excepts:Symbol_Plus_8 return 0
             SlotId(140) => {
-                self.create_layout(result, gss_node_id, SlotId(141));
+                self.create_layout(result, gss_node_id, SlotId(141), env);
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout . excepts:Symbol_Plus_8 return 0
             SlotId(141) => {
-                self.create_symbol_plus_8(result, gss_node_id, SlotId(142));
+                self.create_symbol_plus_8(result, gss_node_id, SlotId(142), env);
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_8 . return 0
             SlotId(142) => {
@@ -4746,7 +4746,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] . Layout "!>>" Layout Identifier return 0
             SlotId(147) => {
-                self.create_layout(result, gss_node_id, SlotId(148));
+                self.create_layout(result, gss_node_id, SlotId(148), env);
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "!>>" Layout Identifier return 0
             SlotId(148) => {
@@ -4790,7 +4790,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "!>>" . Layout Identifier return 0
             SlotId(149) => {
-                self.create_layout(result, gss_node_id, SlotId(150));
+                self.create_layout(result, gss_node_id, SlotId(150), env);
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "!>>" Layout . Identifier return 0
             SlotId(150) => {
@@ -4891,11 +4891,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] . Layout labels:Symbol_Plus_9 return 0
             SlotId(156) => {
-                self.create_layout(result, gss_node_id, SlotId(157));
+                self.create_layout(result, gss_node_id, SlotId(157), env);
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . labels:Symbol_Plus_9 return 0
             SlotId(157) => {
-                self.create_symbol_plus_9(result, gss_node_id, SlotId(158));
+                self.create_symbol_plus_9(result, gss_node_id, SlotId(158), env);
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_9 . return 0
             SlotId(158) => {
@@ -4953,7 +4953,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : Identifier . Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(161) => {
-                self.create_layout(result, gss_node_id, SlotId(162));
+                self.create_layout(result, gss_node_id, SlotId(162), env);
             }
             //Symbol(p: i32) : Identifier Layout . "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(162) => {
@@ -4997,7 +4997,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : Identifier Layout "!<<" . Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(163) => {
-                self.create_layout(result, gss_node_id, SlotId(164));
+                self.create_layout(result, gss_node_id, SlotId(164), env);
             }
             //Symbol(p: i32) : Identifier Layout "!<<" Layout . r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(164) => {
@@ -5063,7 +5063,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : label:Identifier . Layout ":" Layout Symbol(1) return 1
             SlotId(168) => {
-                self.create_layout(result, gss_node_id, SlotId(169));
+                self.create_layout(result, gss_node_id, SlotId(169), env);
             }
             //Symbol(p: i32) : label:Identifier Layout . ":" Layout Symbol(1) return 1
             SlotId(169) => {
@@ -5107,7 +5107,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : label:Identifier Layout ":" . Layout Symbol(1) return 1
             SlotId(170) => {
-                self.create_layout(result, gss_node_id, SlotId(171));
+                self.create_layout(result, gss_node_id, SlotId(171), env);
             }
             //Symbol(p: i32) : label:Identifier Layout ":" Layout . Symbol(1) return 1
             SlotId(171) => {
@@ -5147,11 +5147,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : . Regex Layout "+"
             SlotId(174) => {
-                self.create_regex(result, gss_node_id, SlotId(175));
+                self.create_regex(result, gss_node_id, SlotId(175), env);
             }
             //Regex : Regex . Layout "+"
             SlotId(175) => {
-                self.create_layout(result, gss_node_id, SlotId(176));
+                self.create_layout(result, gss_node_id, SlotId(176), env);
             }
             //Regex : Regex Layout . "+"
             SlotId(176) => {
@@ -5221,11 +5221,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : . Regex Layout "*"
             SlotId(178) => {
-                self.create_regex(result, gss_node_id, SlotId(179));
+                self.create_regex(result, gss_node_id, SlotId(179), env);
             }
             //Regex : Regex . Layout "*"
             SlotId(179) => {
-                self.create_layout(result, gss_node_id, SlotId(180));
+                self.create_layout(result, gss_node_id, SlotId(180), env);
             }
             //Regex : Regex Layout . "*"
             SlotId(180) => {
@@ -5295,11 +5295,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : . Regex Layout "?"
             SlotId(182) => {
-                self.create_regex(result, gss_node_id, SlotId(183));
+                self.create_regex(result, gss_node_id, SlotId(183), env);
             }
             //Regex : Regex . Layout "?"
             SlotId(183) => {
-                self.create_layout(result, gss_node_id, SlotId(184));
+                self.create_layout(result, gss_node_id, SlotId(184), env);
             }
             //Regex : Regex Layout . "?"
             SlotId(184) => {
@@ -5391,23 +5391,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : "(" . Layout first:Regex Layout rest:Regex_Plus_10 Layout ")"
             SlotId(187) => {
-                self.create_layout(result, gss_node_id, SlotId(188));
+                self.create_layout(result, gss_node_id, SlotId(188), env);
             }
             //Regex : "(" Layout . first:Regex Layout rest:Regex_Plus_10 Layout ")"
             SlotId(188) => {
-                self.create_regex(result, gss_node_id, SlotId(189));
+                self.create_regex(result, gss_node_id, SlotId(189), env);
             }
             //Regex : "(" Layout first:Regex . Layout rest:Regex_Plus_10 Layout ")"
             SlotId(189) => {
-                self.create_layout(result, gss_node_id, SlotId(190));
+                self.create_layout(result, gss_node_id, SlotId(190), env);
             }
             //Regex : "(" Layout first:Regex Layout . rest:Regex_Plus_10 Layout ")"
             SlotId(190) => {
-                self.create_regex_plus_10(result, gss_node_id, SlotId(191));
+                self.create_regex_plus_10(result, gss_node_id, SlotId(191), env);
             }
             //Regex : "(" Layout first:Regex Layout rest:Regex_Plus_10 . Layout ")"
             SlotId(191) => {
-                self.create_layout(result, gss_node_id, SlotId(192));
+                self.create_layout(result, gss_node_id, SlotId(192), env);
             }
             //Regex : "(" Layout first:Regex Layout rest:Regex_Plus_10 Layout . ")"
             SlotId(192) => {
@@ -5499,15 +5499,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : "(" . Layout RegexRule_Plus_3 Layout ")"
             SlotId(195) => {
-                self.create_layout(result, gss_node_id, SlotId(196));
+                self.create_layout(result, gss_node_id, SlotId(196), env);
             }
             //Regex : "(" Layout . RegexRule_Plus_3 Layout ")"
             SlotId(196) => {
-                self.create_regex_rule_plus_3(result, gss_node_id, SlotId(197));
+                self.create_regex_rule_plus_3(result, gss_node_id, SlotId(197), env);
             }
             //Regex : "(" Layout RegexRule_Plus_3 . Layout ")"
             SlotId(197) => {
-                self.create_layout(result, gss_node_id, SlotId(198));
+                self.create_layout(result, gss_node_id, SlotId(198), env);
             }
             //Regex : "(" Layout RegexRule_Plus_3 Layout . ")"
             SlotId(198) => {
@@ -5577,7 +5577,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : . CharClass
             SlotId(200) => {
-                self.create_char_class(result, gss_node_id, SlotId(201));
+                self.create_char_class(result, gss_node_id, SlotId(201), env);
             }
             //Regex : CharClass.
             SlotId(201) => {
@@ -5762,7 +5762,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass : neg:CharClass_Opt_10 . Layout "[" Layout CharClass_Plus_11 Layout "]"
             SlotId(209) => {
-                self.create_layout(result, gss_node_id, SlotId(210));
+                self.create_layout(result, gss_node_id, SlotId(210), env);
             }
             //CharClass : neg:CharClass_Opt_10 Layout . "[" Layout CharClass_Plus_11 Layout "]"
             SlotId(210) => {
@@ -5806,15 +5806,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass : neg:CharClass_Opt_10 Layout "[" . Layout CharClass_Plus_11 Layout "]"
             SlotId(211) => {
-                self.create_layout(result, gss_node_id, SlotId(212));
+                self.create_layout(result, gss_node_id, SlotId(212), env);
             }
             //CharClass : neg:CharClass_Opt_10 Layout "[" Layout . CharClass_Plus_11 Layout "]"
             SlotId(212) => {
-                self.create_char_class_plus_11(result, gss_node_id, SlotId(213));
+                self.create_char_class_plus_11(result, gss_node_id, SlotId(213), env);
             }
             //CharClass : neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_11 . Layout "]"
             SlotId(213) => {
-                self.create_layout(result, gss_node_id, SlotId(214));
+                self.create_layout(result, gss_node_id, SlotId(214), env);
             }
             //CharClass : neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_11 Layout . "]"
             SlotId(214) => {
@@ -5884,7 +5884,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RangeElement : . Range
             SlotId(216) => {
-                self.create_range(result, gss_node_id, SlotId(217));
+                self.create_range(result, gss_node_id, SlotId(217), env);
             }
             //RangeElement : Range.
             SlotId(217) => {
@@ -5984,7 +5984,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Range : start:RangeChar . Layout "-" Layout end:RangeChar
             SlotId(221) => {
-                self.create_layout(result, gss_node_id, SlotId(222));
+                self.create_layout(result, gss_node_id, SlotId(222), env);
             }
             //Range : start:RangeChar Layout . "-" Layout end:RangeChar
             SlotId(222) => {
@@ -6028,7 +6028,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Range : start:RangeChar Layout "-" . Layout end:RangeChar
             SlotId(223) => {
-                self.create_layout(result, gss_node_id, SlotId(224));
+                self.create_layout(result, gss_node_id, SlotId(224), env);
             }
             //Range : start:RangeChar Layout "-" Layout . end:RangeChar
             SlotId(224) => {
@@ -6098,7 +6098,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout : . Layout_Star_5 !>> LayoutStart
             SlotId(226) => {
-                self.create_layout_star_5(result, gss_node_id, SlotId(227));
+                self.create_layout_star_5(result, gss_node_id, SlotId(227), env);
             }
             //Layout : Layout_Star_5 !>> LayoutStart.
             SlotId(227) => {
@@ -6128,7 +6128,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar_Opt_0 : . LayoutDef
             SlotId(228) => {
-                self.create_layout_def(result, gss_node_id, SlotId(229));
+                self.create_layout_def(result, gss_node_id, SlotId(229), env);
             }
             //Grammar_Opt_0 : LayoutDef.
             SlotId(229) => {
@@ -6184,15 +6184,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar_Plus_0 : . Grammar_Plus_0 Layout Rule
             SlotId(231) => {
-                self.create_grammar_plus_0(result, gss_node_id, SlotId(232));
+                self.create_grammar_plus_0(result, gss_node_id, SlotId(232), env);
             }
             //Grammar_Plus_0 : Grammar_Plus_0 . Layout Rule
             SlotId(232) => {
-                self.create_layout(result, gss_node_id, SlotId(233));
+                self.create_layout(result, gss_node_id, SlotId(233), env);
             }
             //Grammar_Plus_0 : Grammar_Plus_0 Layout . Rule
             SlotId(233) => {
-                self.create_rule(result, gss_node_id, SlotId(234));
+                self.create_rule(result, gss_node_id, SlotId(234), env);
             }
             //Grammar_Plus_0 : Grammar_Plus_0 Layout Rule.
             SlotId(234) => {
@@ -6222,7 +6222,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar_Plus_0 : . Rule
             SlotId(235) => {
-                self.create_rule(result, gss_node_id, SlotId(236));
+                self.create_rule(result, gss_node_id, SlotId(236), env);
             }
             //Grammar_Plus_0 : Rule.
             SlotId(236) => {
@@ -6252,7 +6252,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar_Opt_1 : . Grammar_Plus_0
             SlotId(237) => {
-                self.create_grammar_plus_0(result, gss_node_id, SlotId(238));
+                self.create_grammar_plus_0(result, gss_node_id, SlotId(238), env);
             }
             //Grammar_Opt_1 : Grammar_Plus_0.
             SlotId(238) => {
@@ -6308,7 +6308,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar_Star_0 : . Grammar_Opt_1
             SlotId(240) => {
-                self.create_grammar_opt_1(result, gss_node_id, SlotId(241));
+                self.create_grammar_opt_1(result, gss_node_id, SlotId(241), env);
             }
             //Grammar_Star_0 : Grammar_Opt_1.
             SlotId(241) => {
@@ -6338,7 +6338,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Opt_2 : . Annotation
             SlotId(242) => {
-                self.create_annotation(result, gss_node_id, SlotId(243));
+                self.create_annotation(result, gss_node_id, SlotId(243), env);
             }
             //SyntaxRule_Opt_2 : Annotation.
             SlotId(243) => {
@@ -6394,11 +6394,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Plus_1 : . SyntaxRule_Plus_1 Layout ">" Layout PriorityLevel
             SlotId(245) => {
-                self.create_syntax_rule_plus_1(result, gss_node_id, SlotId(246));
+                self.create_syntax_rule_plus_1(result, gss_node_id, SlotId(246), env);
             }
             //SyntaxRule_Plus_1 : SyntaxRule_Plus_1 . Layout ">" Layout PriorityLevel
             SlotId(246) => {
-                self.create_layout(result, gss_node_id, SlotId(247));
+                self.create_layout(result, gss_node_id, SlotId(247), env);
             }
             //SyntaxRule_Plus_1 : SyntaxRule_Plus_1 Layout . ">" Layout PriorityLevel
             SlotId(247) => {
@@ -6442,11 +6442,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Plus_1 : SyntaxRule_Plus_1 Layout ">" . Layout PriorityLevel
             SlotId(248) => {
-                self.create_layout(result, gss_node_id, SlotId(249));
+                self.create_layout(result, gss_node_id, SlotId(249), env);
             }
             //SyntaxRule_Plus_1 : SyntaxRule_Plus_1 Layout ">" Layout . PriorityLevel
             SlotId(249) => {
-                self.create_priority_level(result, gss_node_id, SlotId(250));
+                self.create_priority_level(result, gss_node_id, SlotId(250), env);
             }
             //SyntaxRule_Plus_1 : SyntaxRule_Plus_1 Layout ">" Layout PriorityLevel.
             SlotId(250) => {
@@ -6476,7 +6476,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Plus_1 : . PriorityLevel
             SlotId(251) => {
-                self.create_priority_level(result, gss_node_id, SlotId(252));
+                self.create_priority_level(result, gss_node_id, SlotId(252), env);
             }
             //SyntaxRule_Plus_1 : PriorityLevel.
             SlotId(252) => {
@@ -6506,7 +6506,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Opt_3 : . SyntaxRule_Plus_1
             SlotId(253) => {
-                self.create_syntax_rule_plus_1(result, gss_node_id, SlotId(254));
+                self.create_syntax_rule_plus_1(result, gss_node_id, SlotId(254), env);
             }
             //SyntaxRule_Opt_3 : SyntaxRule_Plus_1.
             SlotId(254) => {
@@ -6562,7 +6562,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Star_1 : . SyntaxRule_Opt_3
             SlotId(256) => {
-                self.create_syntax_rule_opt_3(result, gss_node_id, SlotId(257));
+                self.create_syntax_rule_opt_3(result, gss_node_id, SlotId(257), env);
             }
             //SyntaxRule_Star_1 : SyntaxRule_Opt_3.
             SlotId(257) => {
@@ -6592,7 +6592,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Opt_4 : . PreCondition
             SlotId(258) => {
-                self.create_pre_condition(result, gss_node_id, SlotId(259));
+                self.create_pre_condition(result, gss_node_id, SlotId(259), env);
             }
             //RegexRule_Opt_4 : PreCondition.
             SlotId(259) => {
@@ -6648,15 +6648,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_3 : . RegexRule_Plus_3 Layout Regex
             SlotId(261) => {
-                self.create_regex_rule_plus_3(result, gss_node_id, SlotId(262));
+                self.create_regex_rule_plus_3(result, gss_node_id, SlotId(262), env);
             }
             //RegexRule_Plus_3 : RegexRule_Plus_3 . Layout Regex
             SlotId(262) => {
-                self.create_layout(result, gss_node_id, SlotId(263));
+                self.create_layout(result, gss_node_id, SlotId(263), env);
             }
             //RegexRule_Plus_3 : RegexRule_Plus_3 Layout . Regex
             SlotId(263) => {
-                self.create_regex(result, gss_node_id, SlotId(264));
+                self.create_regex(result, gss_node_id, SlotId(264), env);
             }
             //RegexRule_Plus_3 : RegexRule_Plus_3 Layout Regex.
             SlotId(264) => {
@@ -6686,7 +6686,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_3 : . Regex
             SlotId(265) => {
-                self.create_regex(result, gss_node_id, SlotId(266));
+                self.create_regex(result, gss_node_id, SlotId(266), env);
             }
             //RegexRule_Plus_3 : Regex.
             SlotId(266) => {
@@ -6716,11 +6716,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_2 : . RegexRule_Plus_2 Layout "|" Layout RegexRule_Plus_3
             SlotId(267) => {
-                self.create_regex_rule_plus_2(result, gss_node_id, SlotId(268));
+                self.create_regex_rule_plus_2(result, gss_node_id, SlotId(268), env);
             }
             //RegexRule_Plus_2 : RegexRule_Plus_2 . Layout "|" Layout RegexRule_Plus_3
             SlotId(268) => {
-                self.create_layout(result, gss_node_id, SlotId(269));
+                self.create_layout(result, gss_node_id, SlotId(269), env);
             }
             //RegexRule_Plus_2 : RegexRule_Plus_2 Layout . "|" Layout RegexRule_Plus_3
             SlotId(269) => {
@@ -6764,11 +6764,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_2 : RegexRule_Plus_2 Layout "|" . Layout RegexRule_Plus_3
             SlotId(270) => {
-                self.create_layout(result, gss_node_id, SlotId(271));
+                self.create_layout(result, gss_node_id, SlotId(271), env);
             }
             //RegexRule_Plus_2 : RegexRule_Plus_2 Layout "|" Layout . RegexRule_Plus_3
             SlotId(271) => {
-                self.create_regex_rule_plus_3(result, gss_node_id, SlotId(272));
+                self.create_regex_rule_plus_3(result, gss_node_id, SlotId(272), env);
             }
             //RegexRule_Plus_2 : RegexRule_Plus_2 Layout "|" Layout RegexRule_Plus_3.
             SlotId(272) => {
@@ -6798,7 +6798,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_2 : . RegexRule_Plus_3
             SlotId(273) => {
-                self.create_regex_rule_plus_3(result, gss_node_id, SlotId(274));
+                self.create_regex_rule_plus_3(result, gss_node_id, SlotId(274), env);
             }
             //RegexRule_Plus_2 : RegexRule_Plus_3.
             SlotId(274) => {
@@ -6828,15 +6828,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_4 : . RegexRule_Plus_4 Layout PostCondition
             SlotId(275) => {
-                self.create_regex_rule_plus_4(result, gss_node_id, SlotId(276));
+                self.create_regex_rule_plus_4(result, gss_node_id, SlotId(276), env);
             }
             //RegexRule_Plus_4 : RegexRule_Plus_4 . Layout PostCondition
             SlotId(276) => {
-                self.create_layout(result, gss_node_id, SlotId(277));
+                self.create_layout(result, gss_node_id, SlotId(277), env);
             }
             //RegexRule_Plus_4 : RegexRule_Plus_4 Layout . PostCondition
             SlotId(277) => {
-                self.create_post_condition(result, gss_node_id, SlotId(278));
+                self.create_post_condition(result, gss_node_id, SlotId(278), env);
             }
             //RegexRule_Plus_4 : RegexRule_Plus_4 Layout PostCondition.
             SlotId(278) => {
@@ -6866,7 +6866,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_4 : . PostCondition
             SlotId(279) => {
-                self.create_post_condition(result, gss_node_id, SlotId(280));
+                self.create_post_condition(result, gss_node_id, SlotId(280), env);
             }
             //RegexRule_Plus_4 : PostCondition.
             SlotId(280) => {
@@ -6896,7 +6896,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Opt_5 : . RegexRule_Plus_4
             SlotId(281) => {
-                self.create_regex_rule_plus_4(result, gss_node_id, SlotId(282));
+                self.create_regex_rule_plus_4(result, gss_node_id, SlotId(282), env);
             }
             //RegexRule_Opt_5 : RegexRule_Plus_4.
             SlotId(282) => {
@@ -6952,7 +6952,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Star_2 : . RegexRule_Opt_5
             SlotId(284) => {
-                self.create_regex_rule_opt_5(result, gss_node_id, SlotId(285));
+                self.create_regex_rule_opt_5(result, gss_node_id, SlotId(285), env);
             }
             //RegexRule_Star_2 : RegexRule_Opt_5.
             SlotId(285) => {
@@ -7045,11 +7045,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Plus_5 : . PriorityLevel_Plus_5 Layout "|" Layout Alternative
             SlotId(289) => {
-                self.create_priority_level_plus_5(result, gss_node_id, SlotId(290));
+                self.create_priority_level_plus_5(result, gss_node_id, SlotId(290), env);
             }
             //PriorityLevel_Plus_5 : PriorityLevel_Plus_5 . Layout "|" Layout Alternative
             SlotId(290) => {
-                self.create_layout(result, gss_node_id, SlotId(291));
+                self.create_layout(result, gss_node_id, SlotId(291), env);
             }
             //PriorityLevel_Plus_5 : PriorityLevel_Plus_5 Layout . "|" Layout Alternative
             SlotId(291) => {
@@ -7093,11 +7093,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Plus_5 : PriorityLevel_Plus_5 Layout "|" . Layout Alternative
             SlotId(292) => {
-                self.create_layout(result, gss_node_id, SlotId(293));
+                self.create_layout(result, gss_node_id, SlotId(293), env);
             }
             //PriorityLevel_Plus_5 : PriorityLevel_Plus_5 Layout "|" Layout . Alternative
             SlotId(293) => {
-                self.create_alternative(result, gss_node_id, SlotId(294));
+                self.create_alternative(result, gss_node_id, SlotId(294), env);
             }
             //PriorityLevel_Plus_5 : PriorityLevel_Plus_5 Layout "|" Layout Alternative.
             SlotId(294) => {
@@ -7127,7 +7127,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Plus_5 : . Alternative
             SlotId(295) => {
-                self.create_alternative(result, gss_node_id, SlotId(296));
+                self.create_alternative(result, gss_node_id, SlotId(296), env);
             }
             //PriorityLevel_Plus_5 : Alternative.
             SlotId(296) => {
@@ -7157,7 +7157,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Opt_7 : . PriorityLevel_Plus_5
             SlotId(297) => {
-                self.create_priority_level_plus_5(result, gss_node_id, SlotId(298));
+                self.create_priority_level_plus_5(result, gss_node_id, SlotId(298), env);
             }
             //PriorityLevel_Opt_7 : PriorityLevel_Plus_5.
             SlotId(298) => {
@@ -7213,7 +7213,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Star_3 : . PriorityLevel_Opt_7
             SlotId(300) => {
-                self.create_priority_level_opt_7(result, gss_node_id, SlotId(301));
+                self.create_priority_level_opt_7(result, gss_node_id, SlotId(301), env);
             }
             //PriorityLevel_Star_3 : PriorityLevel_Opt_7.
             SlotId(301) => {
@@ -7243,11 +7243,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative_Plus_6 : . Alternative_Plus_6 Layout Symbol(0)
             SlotId(302) => {
-                self.create_alternative_plus_6(result, gss_node_id, SlotId(303));
+                self.create_alternative_plus_6(result, gss_node_id, SlotId(303), env);
             }
             //Alternative_Plus_6 : Alternative_Plus_6 . Layout Symbol(0)
             SlotId(303) => {
-                self.create_layout(result, gss_node_id, SlotId(304));
+                self.create_layout(result, gss_node_id, SlotId(304), env);
             }
             //Alternative_Plus_6 : Alternative_Plus_6 Layout . Symbol(0)
             SlotId(304) => {
@@ -7311,7 +7311,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative_Opt_8 : . Alternative_Plus_6
             SlotId(308) => {
-                self.create_alternative_plus_6(result, gss_node_id, SlotId(309));
+                self.create_alternative_plus_6(result, gss_node_id, SlotId(309), env);
             }
             //Alternative_Opt_8 : Alternative_Plus_6.
             SlotId(309) => {
@@ -7367,7 +7367,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative_Star_4 : . Alternative_Opt_8
             SlotId(311) => {
-                self.create_alternative_opt_8(result, gss_node_id, SlotId(312));
+                self.create_alternative_opt_8(result, gss_node_id, SlotId(312), env);
             }
             //Alternative_Star_4 : Alternative_Opt_8.
             SlotId(312) => {
@@ -7493,7 +7493,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_0 : "|" . Layout Symbol(0)
             SlotId(317) => {
-                self.create_layout(result, gss_node_id, SlotId(318));
+                self.create_layout(result, gss_node_id, SlotId(318), env);
             }
             //Symbol_Group_0 : "|" Layout . Symbol(0)
             SlotId(318) => {
@@ -7527,15 +7527,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_7 : . Symbol_Plus_7 Layout Symbol_Group_0
             SlotId(320) => {
-                self.create_symbol_plus_7(result, gss_node_id, SlotId(321));
+                self.create_symbol_plus_7(result, gss_node_id, SlotId(321), env);
             }
             //Symbol_Plus_7 : Symbol_Plus_7 . Layout Symbol_Group_0
             SlotId(321) => {
-                self.create_layout(result, gss_node_id, SlotId(322));
+                self.create_layout(result, gss_node_id, SlotId(322), env);
             }
             //Symbol_Plus_7 : Symbol_Plus_7 Layout . Symbol_Group_0
             SlotId(322) => {
-                self.create_symbol_group_0(result, gss_node_id, SlotId(323));
+                self.create_symbol_group_0(result, gss_node_id, SlotId(323), env);
             }
             //Symbol_Plus_7 : Symbol_Plus_7 Layout Symbol_Group_0.
             SlotId(323) => {
@@ -7565,7 +7565,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_7 : . Symbol_Group_0
             SlotId(324) => {
-                self.create_symbol_group_0(result, gss_node_id, SlotId(325));
+                self.create_symbol_group_0(result, gss_node_id, SlotId(325), env);
             }
             //Symbol_Plus_7 : Symbol_Group_0.
             SlotId(325) => {
@@ -7617,7 +7617,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_1 : "\" . Layout Identifier
             SlotId(327) => {
-                self.create_layout(result, gss_node_id, SlotId(328));
+                self.create_layout(result, gss_node_id, SlotId(328), env);
             }
             //Symbol_Group_1 : "\" Layout . Identifier
             SlotId(328) => {
@@ -7687,15 +7687,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_8 : . Symbol_Plus_8 Layout Symbol_Group_1
             SlotId(330) => {
-                self.create_symbol_plus_8(result, gss_node_id, SlotId(331));
+                self.create_symbol_plus_8(result, gss_node_id, SlotId(331), env);
             }
             //Symbol_Plus_8 : Symbol_Plus_8 . Layout Symbol_Group_1
             SlotId(331) => {
-                self.create_layout(result, gss_node_id, SlotId(332));
+                self.create_layout(result, gss_node_id, SlotId(332), env);
             }
             //Symbol_Plus_8 : Symbol_Plus_8 Layout . Symbol_Group_1
             SlotId(332) => {
-                self.create_symbol_group_1(result, gss_node_id, SlotId(333));
+                self.create_symbol_group_1(result, gss_node_id, SlotId(333), env);
             }
             //Symbol_Plus_8 : Symbol_Plus_8 Layout Symbol_Group_1.
             SlotId(333) => {
@@ -7725,7 +7725,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_8 : . Symbol_Group_1
             SlotId(334) => {
-                self.create_symbol_group_1(result, gss_node_id, SlotId(335));
+                self.create_symbol_group_1(result, gss_node_id, SlotId(335), env);
             }
             //Symbol_Plus_8 : Symbol_Group_1.
             SlotId(335) => {
@@ -7777,7 +7777,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_2 : "!" . Layout Identifier
             SlotId(337) => {
-                self.create_layout(result, gss_node_id, SlotId(338));
+                self.create_layout(result, gss_node_id, SlotId(338), env);
             }
             //Symbol_Group_2 : "!" Layout . Identifier
             SlotId(338) => {
@@ -7847,15 +7847,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_9 : . Symbol_Plus_9 Layout Symbol_Group_2
             SlotId(340) => {
-                self.create_symbol_plus_9(result, gss_node_id, SlotId(341));
+                self.create_symbol_plus_9(result, gss_node_id, SlotId(341), env);
             }
             //Symbol_Plus_9 : Symbol_Plus_9 . Layout Symbol_Group_2
             SlotId(341) => {
-                self.create_layout(result, gss_node_id, SlotId(342));
+                self.create_layout(result, gss_node_id, SlotId(342), env);
             }
             //Symbol_Plus_9 : Symbol_Plus_9 Layout . Symbol_Group_2
             SlotId(342) => {
-                self.create_symbol_group_2(result, gss_node_id, SlotId(343));
+                self.create_symbol_group_2(result, gss_node_id, SlotId(343), env);
             }
             //Symbol_Plus_9 : Symbol_Plus_9 Layout Symbol_Group_2.
             SlotId(343) => {
@@ -7885,7 +7885,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_9 : . Symbol_Group_2
             SlotId(344) => {
-                self.create_symbol_group_2(result, gss_node_id, SlotId(345));
+                self.create_symbol_group_2(result, gss_node_id, SlotId(345), env);
             }
             //Symbol_Plus_9 : Symbol_Group_2.
             SlotId(345) => {
@@ -7937,11 +7937,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex_Group_3 : "|" . Layout Regex
             SlotId(347) => {
-                self.create_layout(result, gss_node_id, SlotId(348));
+                self.create_layout(result, gss_node_id, SlotId(348), env);
             }
             //Regex_Group_3 : "|" Layout . Regex
             SlotId(348) => {
-                self.create_regex(result, gss_node_id, SlotId(349));
+                self.create_regex(result, gss_node_id, SlotId(349), env);
             }
             //Regex_Group_3 : "|" Layout Regex.
             SlotId(349) => {
@@ -7971,15 +7971,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex_Plus_10 : . Regex_Plus_10 Layout Regex_Group_3
             SlotId(350) => {
-                self.create_regex_plus_10(result, gss_node_id, SlotId(351));
+                self.create_regex_plus_10(result, gss_node_id, SlotId(351), env);
             }
             //Regex_Plus_10 : Regex_Plus_10 . Layout Regex_Group_3
             SlotId(351) => {
-                self.create_layout(result, gss_node_id, SlotId(352));
+                self.create_layout(result, gss_node_id, SlotId(352), env);
             }
             //Regex_Plus_10 : Regex_Plus_10 Layout . Regex_Group_3
             SlotId(352) => {
-                self.create_regex_group_3(result, gss_node_id, SlotId(353));
+                self.create_regex_group_3(result, gss_node_id, SlotId(353), env);
             }
             //Regex_Plus_10 : Regex_Plus_10 Layout Regex_Group_3.
             SlotId(353) => {
@@ -8009,7 +8009,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex_Plus_10 : . Regex_Group_3
             SlotId(354) => {
-                self.create_regex_group_3(result, gss_node_id, SlotId(355));
+                self.create_regex_group_3(result, gss_node_id, SlotId(355), env);
             }
             //Regex_Plus_10 : Regex_Group_3.
             SlotId(355) => {
@@ -8113,15 +8113,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass_Plus_11 : . CharClass_Plus_11 Layout RangeElement
             SlotId(359) => {
-                self.create_char_class_plus_11(result, gss_node_id, SlotId(360));
+                self.create_char_class_plus_11(result, gss_node_id, SlotId(360), env);
             }
             //CharClass_Plus_11 : CharClass_Plus_11 . Layout RangeElement
             SlotId(360) => {
-                self.create_layout(result, gss_node_id, SlotId(361));
+                self.create_layout(result, gss_node_id, SlotId(361), env);
             }
             //CharClass_Plus_11 : CharClass_Plus_11 Layout . RangeElement
             SlotId(361) => {
-                self.create_range_element(result, gss_node_id, SlotId(362));
+                self.create_range_element(result, gss_node_id, SlotId(362), env);
             }
             //CharClass_Plus_11 : CharClass_Plus_11 Layout RangeElement.
             SlotId(362) => {
@@ -8151,7 +8151,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass_Plus_11 : . RangeElement
             SlotId(363) => {
-                self.create_range_element(result, gss_node_id, SlotId(364));
+                self.create_range_element(result, gss_node_id, SlotId(364), env);
             }
             //CharClass_Plus_11 : RangeElement.
             SlotId(364) => {
@@ -8276,7 +8276,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Plus_12 : . Layout_Plus_12 Layout_Alt_0
             SlotId(369) => {
-                self.create_layout_plus_12(result, gss_node_id, SlotId(370));
+                self.create_layout_plus_12(result, gss_node_id, SlotId(370), env);
             }
             //Layout_Plus_12 : Layout_Plus_12 . Layout_Alt_0
             SlotId(370) => {
@@ -8366,7 +8366,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Opt_11 : . Layout_Plus_12
             SlotId(374) => {
-                self.create_layout_plus_12(result, gss_node_id, SlotId(375));
+                self.create_layout_plus_12(result, gss_node_id, SlotId(375), env);
             }
             //Layout_Opt_11 : Layout_Plus_12.
             SlotId(375) => {
@@ -8422,7 +8422,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Star_5 : . Layout_Opt_11
             SlotId(377) => {
-                self.create_layout_opt_11(result, gss_node_id, SlotId(378));
+                self.create_layout_opt_11(result, gss_node_id, SlotId(378), env);
             }
             //Layout_Star_5 : Layout_Opt_11.
             SlotId(378) => {
@@ -8528,15 +8528,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "(" . Layout Alternative_Plus_6 Layout ")" return 0
             SlotId(383) => {
-                self.create_layout(result, gss_node_id, SlotId(384));
+                self.create_layout(result, gss_node_id, SlotId(384), env);
             }
             //Symbol_except_Except(p: i32) : "(" Layout . Alternative_Plus_6 Layout ")" return 0
             SlotId(384) => {
-                self.create_alternative_plus_6(result, gss_node_id, SlotId(385));
+                self.create_alternative_plus_6(result, gss_node_id, SlotId(385), env);
             }
             //Symbol_except_Except(p: i32) : "(" Layout Alternative_Plus_6 . Layout ")" return 0
             SlotId(385) => {
-                self.create_layout(result, gss_node_id, SlotId(386));
+                self.create_layout(result, gss_node_id, SlotId(386), env);
             }
             //Symbol_except_Except(p: i32) : "(" Layout Alternative_Plus_6 Layout . ")" return 0
             SlotId(386) => {
@@ -8634,7 +8634,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "(" . Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
             SlotId(390) => {
-                self.create_layout(result, gss_node_id, SlotId(391));
+                self.create_layout(result, gss_node_id, SlotId(391), env);
             }
             //Symbol_except_Except(p: i32) : "(" Layout . first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
             SlotId(391) => {
@@ -8642,15 +8642,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "(" Layout first:Symbol(0) . Layout rest:Symbol_Plus_7 Layout ")" return 0
             SlotId(392) => {
-                self.create_layout(result, gss_node_id, SlotId(393));
+                self.create_layout(result, gss_node_id, SlotId(393), env);
             }
             //Symbol_except_Except(p: i32) : "(" Layout first:Symbol(0) Layout . rest:Symbol_Plus_7 Layout ")" return 0
             SlotId(393) => {
-                self.create_symbol_plus_7(result, gss_node_id, SlotId(394));
+                self.create_symbol_plus_7(result, gss_node_id, SlotId(394), env);
             }
             //Symbol_except_Except(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 . Layout ")" return 0
             SlotId(394) => {
-                self.create_layout(result, gss_node_id, SlotId(395));
+                self.create_layout(result, gss_node_id, SlotId(395), env);
             }
             //Symbol_except_Except(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout . ")" return 0
             SlotId(395) => {
@@ -8802,7 +8802,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
             SlotId(402) => {
-                self.create_layout(result, gss_node_id, SlotId(403));
+                self.create_layout(result, gss_node_id, SlotId(403), env);
             }
             //Symbol_except_Except(p: i32) : "{" Layout . symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
             SlotId(403) => {
@@ -8810,7 +8810,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout "}" Layout "*" return 0
             SlotId(404) => {
-                self.create_layout(result, gss_node_id, SlotId(405));
+                self.create_layout(result, gss_node_id, SlotId(405), env);
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout . sep:Symbol(0) Layout "}" Layout "*" return 0
             SlotId(405) => {
@@ -8818,7 +8818,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout "}" Layout "*" return 0
             SlotId(406) => {
-                self.create_layout(result, gss_node_id, SlotId(407));
+                self.create_layout(result, gss_node_id, SlotId(407), env);
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . "}" Layout "*" return 0
             SlotId(407) => {
@@ -8862,7 +8862,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "*" return 0
             SlotId(408) => {
-                self.create_layout(result, gss_node_id, SlotId(409));
+                self.create_layout(result, gss_node_id, SlotId(409), env);
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "*" return 0
             SlotId(409) => {
@@ -8960,7 +8960,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
             SlotId(413) => {
-                self.create_layout(result, gss_node_id, SlotId(414));
+                self.create_layout(result, gss_node_id, SlotId(414), env);
             }
             //Symbol_except_Except(p: i32) : "{" Layout . symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
             SlotId(414) => {
@@ -8968,7 +8968,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout "}" Layout "+" return 0
             SlotId(415) => {
-                self.create_layout(result, gss_node_id, SlotId(416));
+                self.create_layout(result, gss_node_id, SlotId(416), env);
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout . sep:Symbol(0) Layout "}" Layout "+" return 0
             SlotId(416) => {
@@ -8976,7 +8976,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout "}" Layout "+" return 0
             SlotId(417) => {
-                self.create_layout(result, gss_node_id, SlotId(418));
+                self.create_layout(result, gss_node_id, SlotId(418), env);
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . "}" Layout "+" return 0
             SlotId(418) => {
@@ -9020,7 +9020,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "+" return 0
             SlotId(419) => {
-                self.create_layout(result, gss_node_id, SlotId(420));
+                self.create_layout(result, gss_node_id, SlotId(420), env);
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "+" return 0
             SlotId(420) => {
@@ -9121,7 +9121,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] . Layout "*" return 0
             SlotId(426) => {
-                self.create_layout(result, gss_node_id, SlotId(427));
+                self.create_layout(result, gss_node_id, SlotId(427), env);
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "*" return 0
             SlotId(427) => {
@@ -9222,7 +9222,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] . Layout "+" return 0
             SlotId(433) => {
-                self.create_layout(result, gss_node_id, SlotId(434));
+                self.create_layout(result, gss_node_id, SlotId(434), env);
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "+" return 0
             SlotId(434) => {
@@ -9323,7 +9323,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] . Layout "?" return 0
             SlotId(440) => {
-                self.create_layout(result, gss_node_id, SlotId(441));
+                self.create_layout(result, gss_node_id, SlotId(441), env);
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "?" return 0
             SlotId(441) => {
@@ -9424,7 +9424,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] . Layout "!>>" Layout Identifier return 0
             SlotId(447) => {
-                self.create_layout(result, gss_node_id, SlotId(448));
+                self.create_layout(result, gss_node_id, SlotId(448), env);
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "!>>" Layout Identifier return 0
             SlotId(448) => {
@@ -9468,7 +9468,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "!>>" . Layout Identifier return 0
             SlotId(449) => {
-                self.create_layout(result, gss_node_id, SlotId(450));
+                self.create_layout(result, gss_node_id, SlotId(450), env);
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "!>>" Layout . Identifier return 0
             SlotId(450) => {
@@ -9569,11 +9569,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] . Layout labels:Symbol_Plus_9 return 0
             SlotId(456) => {
-                self.create_layout(result, gss_node_id, SlotId(457));
+                self.create_layout(result, gss_node_id, SlotId(457), env);
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . labels:Symbol_Plus_9 return 0
             SlotId(457) => {
-                self.create_symbol_plus_9(result, gss_node_id, SlotId(458));
+                self.create_symbol_plus_9(result, gss_node_id, SlotId(458), env);
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_9 . return 0
             SlotId(458) => {
@@ -9631,7 +9631,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : Identifier . Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(461) => {
-                self.create_layout(result, gss_node_id, SlotId(462));
+                self.create_layout(result, gss_node_id, SlotId(462), env);
             }
             //Symbol_except_Except(p: i32) : Identifier Layout . "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(462) => {
@@ -9675,7 +9675,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : Identifier Layout "!<<" . Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(463) => {
-                self.create_layout(result, gss_node_id, SlotId(464));
+                self.create_layout(result, gss_node_id, SlotId(464), env);
             }
             //Symbol_except_Except(p: i32) : Identifier Layout "!<<" Layout . r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(464) => {
@@ -9741,7 +9741,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : label:Identifier . Layout ":" Layout Symbol(1) return 1
             SlotId(468) => {
-                self.create_layout(result, gss_node_id, SlotId(469));
+                self.create_layout(result, gss_node_id, SlotId(469), env);
             }
             //Symbol_except_Except(p: i32) : label:Identifier Layout . ":" Layout Symbol(1) return 1
             SlotId(469) => {
@@ -9785,7 +9785,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : label:Identifier Layout ":" . Layout Symbol(1) return 1
             SlotId(470) => {
-                self.create_layout(result, gss_node_id, SlotId(471));
+                self.create_layout(result, gss_node_id, SlotId(471), env);
             }
             //Symbol_except_Except(p: i32) : label:Identifier Layout ":" Layout . Symbol(1) return 1
             SlotId(471) => {
@@ -9825,15 +9825,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartGrammar : . Layout start:Grammar Layout
             SlotId(474) => {
-                self.create_layout(result, gss_node_id, SlotId(475));
+                self.create_layout(result, gss_node_id, SlotId(475), env);
             }
             //StartGrammar : Layout . start:Grammar Layout
             SlotId(475) => {
-                self.create_grammar(result, gss_node_id, SlotId(476));
+                self.create_grammar(result, gss_node_id, SlotId(476), env);
             }
             //StartGrammar : Layout start:Grammar . Layout
             SlotId(476) => {
-                self.create_layout(result, gss_node_id, SlotId(477));
+                self.create_layout(result, gss_node_id, SlotId(477), env);
             }
             //StartGrammar : Layout start:Grammar Layout.
             SlotId(477) => {
@@ -9863,15 +9863,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartLayoutDef : . Layout start:LayoutDef Layout
             SlotId(478) => {
-                self.create_layout(result, gss_node_id, SlotId(479));
+                self.create_layout(result, gss_node_id, SlotId(479), env);
             }
             //StartLayoutDef : Layout . start:LayoutDef Layout
             SlotId(479) => {
-                self.create_layout_def(result, gss_node_id, SlotId(480));
+                self.create_layout_def(result, gss_node_id, SlotId(480), env);
             }
             //StartLayoutDef : Layout start:LayoutDef . Layout
             SlotId(480) => {
-                self.create_layout(result, gss_node_id, SlotId(481));
+                self.create_layout(result, gss_node_id, SlotId(481), env);
             }
             //StartLayoutDef : Layout start:LayoutDef Layout.
             SlotId(481) => {
@@ -9901,15 +9901,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartRule : . Layout start:Rule Layout
             SlotId(482) => {
-                self.create_layout(result, gss_node_id, SlotId(483));
+                self.create_layout(result, gss_node_id, SlotId(483), env);
             }
             //StartRule : Layout . start:Rule Layout
             SlotId(483) => {
-                self.create_rule(result, gss_node_id, SlotId(484));
+                self.create_rule(result, gss_node_id, SlotId(484), env);
             }
             //StartRule : Layout start:Rule . Layout
             SlotId(484) => {
-                self.create_layout(result, gss_node_id, SlotId(485));
+                self.create_layout(result, gss_node_id, SlotId(485), env);
             }
             //StartRule : Layout start:Rule Layout.
             SlotId(485) => {
@@ -9939,15 +9939,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartSyntaxRule : . Layout start:SyntaxRule Layout
             SlotId(486) => {
-                self.create_layout(result, gss_node_id, SlotId(487));
+                self.create_layout(result, gss_node_id, SlotId(487), env);
             }
             //StartSyntaxRule : Layout . start:SyntaxRule Layout
             SlotId(487) => {
-                self.create_syntax_rule(result, gss_node_id, SlotId(488));
+                self.create_syntax_rule(result, gss_node_id, SlotId(488), env);
             }
             //StartSyntaxRule : Layout start:SyntaxRule . Layout
             SlotId(488) => {
-                self.create_layout(result, gss_node_id, SlotId(489));
+                self.create_layout(result, gss_node_id, SlotId(489), env);
             }
             //StartSyntaxRule : Layout start:SyntaxRule Layout.
             SlotId(489) => {
@@ -9977,15 +9977,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartAnnotation : . Layout start:Annotation Layout
             SlotId(490) => {
-                self.create_layout(result, gss_node_id, SlotId(491));
+                self.create_layout(result, gss_node_id, SlotId(491), env);
             }
             //StartAnnotation : Layout . start:Annotation Layout
             SlotId(491) => {
-                self.create_annotation(result, gss_node_id, SlotId(492));
+                self.create_annotation(result, gss_node_id, SlotId(492), env);
             }
             //StartAnnotation : Layout start:Annotation . Layout
             SlotId(492) => {
-                self.create_layout(result, gss_node_id, SlotId(493));
+                self.create_layout(result, gss_node_id, SlotId(493), env);
             }
             //StartAnnotation : Layout start:Annotation Layout.
             SlotId(493) => {
@@ -10015,15 +10015,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartRegexRule : . Layout start:RegexRule Layout
             SlotId(494) => {
-                self.create_layout(result, gss_node_id, SlotId(495));
+                self.create_layout(result, gss_node_id, SlotId(495), env);
             }
             //StartRegexRule : Layout . start:RegexRule Layout
             SlotId(495) => {
-                self.create_regex_rule(result, gss_node_id, SlotId(496));
+                self.create_regex_rule(result, gss_node_id, SlotId(496), env);
             }
             //StartRegexRule : Layout start:RegexRule . Layout
             SlotId(496) => {
-                self.create_layout(result, gss_node_id, SlotId(497));
+                self.create_layout(result, gss_node_id, SlotId(497), env);
             }
             //StartRegexRule : Layout start:RegexRule Layout.
             SlotId(497) => {
@@ -10053,15 +10053,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartPreCondition : . Layout start:PreCondition Layout
             SlotId(498) => {
-                self.create_layout(result, gss_node_id, SlotId(499));
+                self.create_layout(result, gss_node_id, SlotId(499), env);
             }
             //StartPreCondition : Layout . start:PreCondition Layout
             SlotId(499) => {
-                self.create_pre_condition(result, gss_node_id, SlotId(500));
+                self.create_pre_condition(result, gss_node_id, SlotId(500), env);
             }
             //StartPreCondition : Layout start:PreCondition . Layout
             SlotId(500) => {
-                self.create_layout(result, gss_node_id, SlotId(501));
+                self.create_layout(result, gss_node_id, SlotId(501), env);
             }
             //StartPreCondition : Layout start:PreCondition Layout.
             SlotId(501) => {
@@ -10091,15 +10091,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartPostCondition : . Layout start:PostCondition Layout
             SlotId(502) => {
-                self.create_layout(result, gss_node_id, SlotId(503));
+                self.create_layout(result, gss_node_id, SlotId(503), env);
             }
             //StartPostCondition : Layout . start:PostCondition Layout
             SlotId(503) => {
-                self.create_post_condition(result, gss_node_id, SlotId(504));
+                self.create_post_condition(result, gss_node_id, SlotId(504), env);
             }
             //StartPostCondition : Layout start:PostCondition . Layout
             SlotId(504) => {
-                self.create_layout(result, gss_node_id, SlotId(505));
+                self.create_layout(result, gss_node_id, SlotId(505), env);
             }
             //StartPostCondition : Layout start:PostCondition Layout.
             SlotId(505) => {
@@ -10129,15 +10129,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartPriorityLevel : . Layout start:PriorityLevel Layout
             SlotId(506) => {
-                self.create_layout(result, gss_node_id, SlotId(507));
+                self.create_layout(result, gss_node_id, SlotId(507), env);
             }
             //StartPriorityLevel : Layout . start:PriorityLevel Layout
             SlotId(507) => {
-                self.create_priority_level(result, gss_node_id, SlotId(508));
+                self.create_priority_level(result, gss_node_id, SlotId(508), env);
             }
             //StartPriorityLevel : Layout start:PriorityLevel . Layout
             SlotId(508) => {
-                self.create_layout(result, gss_node_id, SlotId(509));
+                self.create_layout(result, gss_node_id, SlotId(509), env);
             }
             //StartPriorityLevel : Layout start:PriorityLevel Layout.
             SlotId(509) => {
@@ -10167,7 +10167,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartAssociativity : . Layout start:Associativity Layout
             SlotId(510) => {
-                self.create_layout(result, gss_node_id, SlotId(511));
+                self.create_layout(result, gss_node_id, SlotId(511), env);
             }
             //StartAssociativity : Layout . start:Associativity Layout
             SlotId(511) => {
@@ -10194,7 +10194,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartAssociativity : Layout start:Associativity . Layout
             SlotId(512) => {
-                self.create_layout(result, gss_node_id, SlotId(513));
+                self.create_layout(result, gss_node_id, SlotId(513), env);
             }
             //StartAssociativity : Layout start:Associativity Layout.
             SlotId(513) => {
@@ -10224,15 +10224,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartAlternative : . Layout start:Alternative Layout
             SlotId(514) => {
-                self.create_layout(result, gss_node_id, SlotId(515));
+                self.create_layout(result, gss_node_id, SlotId(515), env);
             }
             //StartAlternative : Layout . start:Alternative Layout
             SlotId(515) => {
-                self.create_alternative(result, gss_node_id, SlotId(516));
+                self.create_alternative(result, gss_node_id, SlotId(516), env);
             }
             //StartAlternative : Layout start:Alternative . Layout
             SlotId(516) => {
-                self.create_layout(result, gss_node_id, SlotId(517));
+                self.create_layout(result, gss_node_id, SlotId(517), env);
             }
             //StartAlternative : Layout start:Alternative Layout.
             SlotId(517) => {
@@ -10262,7 +10262,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartSymbol : . Layout start:Symbol(0) Layout
             SlotId(518) => {
-                self.create_layout(result, gss_node_id, SlotId(519));
+                self.create_layout(result, gss_node_id, SlotId(519), env);
             }
             //StartSymbol : Layout . start:Symbol(0) Layout
             SlotId(519) => {
@@ -10270,7 +10270,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartSymbol : Layout start:Symbol(0) . Layout
             SlotId(520) => {
-                self.create_layout(result, gss_node_id, SlotId(521));
+                self.create_layout(result, gss_node_id, SlotId(521), env);
             }
             //StartSymbol : Layout start:Symbol(0) Layout.
             SlotId(521) => {
@@ -10300,15 +10300,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartRegex : . Layout start:Regex Layout
             SlotId(522) => {
-                self.create_layout(result, gss_node_id, SlotId(523));
+                self.create_layout(result, gss_node_id, SlotId(523), env);
             }
             //StartRegex : Layout . start:Regex Layout
             SlotId(523) => {
-                self.create_regex(result, gss_node_id, SlotId(524));
+                self.create_regex(result, gss_node_id, SlotId(524), env);
             }
             //StartRegex : Layout start:Regex . Layout
             SlotId(524) => {
-                self.create_layout(result, gss_node_id, SlotId(525));
+                self.create_layout(result, gss_node_id, SlotId(525), env);
             }
             //StartRegex : Layout start:Regex Layout.
             SlotId(525) => {
@@ -10338,15 +10338,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartCharClass : . Layout start:CharClass Layout
             SlotId(526) => {
-                self.create_layout(result, gss_node_id, SlotId(527));
+                self.create_layout(result, gss_node_id, SlotId(527), env);
             }
             //StartCharClass : Layout . start:CharClass Layout
             SlotId(527) => {
-                self.create_char_class(result, gss_node_id, SlotId(528));
+                self.create_char_class(result, gss_node_id, SlotId(528), env);
             }
             //StartCharClass : Layout start:CharClass . Layout
             SlotId(528) => {
-                self.create_layout(result, gss_node_id, SlotId(529));
+                self.create_layout(result, gss_node_id, SlotId(529), env);
             }
             //StartCharClass : Layout start:CharClass Layout.
             SlotId(529) => {
@@ -10376,15 +10376,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartRangeElement : . Layout start:RangeElement Layout
             SlotId(530) => {
-                self.create_layout(result, gss_node_id, SlotId(531));
+                self.create_layout(result, gss_node_id, SlotId(531), env);
             }
             //StartRangeElement : Layout . start:RangeElement Layout
             SlotId(531) => {
-                self.create_range_element(result, gss_node_id, SlotId(532));
+                self.create_range_element(result, gss_node_id, SlotId(532), env);
             }
             //StartRangeElement : Layout start:RangeElement . Layout
             SlotId(532) => {
-                self.create_layout(result, gss_node_id, SlotId(533));
+                self.create_layout(result, gss_node_id, SlotId(533), env);
             }
             //StartRangeElement : Layout start:RangeElement Layout.
             SlotId(533) => {
@@ -10414,15 +10414,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartRange : . Layout start:Range Layout
             SlotId(534) => {
-                self.create_layout(result, gss_node_id, SlotId(535));
+                self.create_layout(result, gss_node_id, SlotId(535), env);
             }
             //StartRange : Layout . start:Range Layout
             SlotId(535) => {
-                self.create_range(result, gss_node_id, SlotId(536));
+                self.create_range(result, gss_node_id, SlotId(536), env);
             }
             //StartRange : Layout start:Range . Layout
             SlotId(536) => {
-                self.create_layout(result, gss_node_id, SlotId(537));
+                self.create_layout(result, gss_node_id, SlotId(537), env);
             }
             //StartRange : Layout start:Range Layout.
             SlotId(537) => {
@@ -10452,15 +10452,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartLayout : . Layout start:Layout Layout
             SlotId(538) => {
-                self.create_layout(result, gss_node_id, SlotId(539));
+                self.create_layout(result, gss_node_id, SlotId(539), env);
             }
             //StartLayout : Layout . start:Layout Layout
             SlotId(539) => {
-                self.create_layout(result, gss_node_id, SlotId(540));
+                self.create_layout(result, gss_node_id, SlotId(540), env);
             }
             //StartLayout : Layout start:Layout . Layout
             SlotId(540) => {
-                self.create_layout(result, gss_node_id, SlotId(541));
+                self.create_layout(result, gss_node_id, SlotId(541), env);
             }
             //StartLayout : Layout start:Layout Layout.
             SlotId(541) => {
@@ -12070,552 +12070,621 @@ impl<'i> IggyParser<'i> {
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_layout_def(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_rule(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_syntax_rule(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_annotation(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_regex_rule(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(5), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(5), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_pre_condition(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(6), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(6), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_post_condition(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(7), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(7), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_priority_level(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(8), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(8), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_associativity(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(9), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(9), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_alternative(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(10), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(10), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_regex(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(11), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(11), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_char_class(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(12), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(12), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_range_element(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(13), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(13), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_range(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(14), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(14), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_layout(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(15), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(15), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_grammar_opt_0(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(16), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(16), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_grammar_plus_0(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(17), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(17), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_grammar_opt_1(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(18), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(18), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_grammar_star_0(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(19), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(19), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_syntax_rule_opt_2(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(20), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(20), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_syntax_rule_plus_1(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(21), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(21), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_syntax_rule_opt_3(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(22), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(22), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_syntax_rule_star_1(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(23), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(23), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_regex_rule_opt_4(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(24), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(24), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_regex_rule_plus_3(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(25), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(25), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_regex_rule_plus_2(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(26), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(26), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_regex_rule_plus_4(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(27), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(27), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_regex_rule_opt_5(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(28), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(28), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_regex_rule_star_2(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(29), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(29), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_priority_level_opt_6(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(30), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(30), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_priority_level_plus_5(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(31), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(31), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_priority_level_opt_7(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(32), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(32), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_priority_level_star_3(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(33), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(33), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_alternative_plus_6(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(34), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(34), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_alternative_opt_8(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(35), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(35), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_alternative_star_4(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(36), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(36), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_alternative_opt_9(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(37), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(37), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_symbol_group_0(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(38), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(38), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_symbol_plus_7(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(39), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(39), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_symbol_group_1(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(40), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(40), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_symbol_plus_8(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(41), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(41), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_symbol_group_2(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(42), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(42), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_symbol_plus_9(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(43), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(43), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_regex_group_3(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(44), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(44), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_regex_plus_10(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(45), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(45), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_char_class_opt_10(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(46), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(46), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_char_class_plus_11(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(47), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(47), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_layout_alt_0(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(48), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(48), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_layout_plus_12(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(49), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(49), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_layout_opt_11(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(50), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(50), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_layout_star_5(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(51), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(51), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_grammar(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(52), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(52), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_layout_def(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(53), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(53), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_rule(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(54), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(54), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_syntax_rule(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(55), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(55), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_annotation(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(56), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(56), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_regex_rule(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(57), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(57), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_pre_condition(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(58), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(58), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_post_condition(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(59), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(59), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_priority_level(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(60), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(60), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_associativity(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(61), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(61), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_alternative(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(62), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(62), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_symbol(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(63), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(63), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_regex(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(64), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(64), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_char_class(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(65), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(65), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_range_element(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(66), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(66), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_range(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(67), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(67), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_start_layout(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
+        env: Option<EnvId>,
     ) {
-        self.create(NonterminalId(68), sppf_node_id, gss_node_id, return_slot);
+        self.create(NonterminalId(68), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_symbol(
         &mut self,

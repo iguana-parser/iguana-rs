@@ -1,6 +1,6 @@
 (S
   "for"
-  Layout
+  WS
   (Id
     (Char+
       Char
