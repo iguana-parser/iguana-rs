@@ -2,9 +2,9 @@
 use iguana_runtime::{
     ids::TerminalId, input::Input, scanner::Scanner, sppf::{Span, TerminalNode},
 };
-const CHAR_CLASS_0: [(char, char); 2usize] = [('a', 'z'), ('A', 'Z')];
+const CHAR_CLASS_0: [(char, char); 3usize] = [(' ', ' '), ('\n', '\n'), ('\t', '\t')];
 const CHAR_CLASS_1: [(char, char); 1usize] = [('\n', '\n')];
-const CHAR_CLASS_2: [(char, char); 3usize] = [(' ', ' '), ('\n', '\n'), ('\t', '\t')];
+const CHAR_CLASS_2: [(char, char); 2usize] = [('a', 'z'), ('A', 'Z')];
 pub struct CommentsScanner<'i> {
     pub input: &'i Input,
 }
@@ -12,14 +12,55 @@ impl<'i> CommentsScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //Identifier = ([a-z A-Z]+)
+    //Layout = (((([  \n \t]+)|(//![\n]*)))*)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
-            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
             let mut j = i;
             while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_0, false)
+                (|i| {
+                    (|i| {
+                        let i = (|i| {
+                            self.match_char_class(i, &CHAR_CLASS_0, false)
+                        })(i)?;
+                        let mut j = i;
+                        while let Some(k) = (|i| {
+                            self.match_char_class(i, &CHAR_CLASS_0, false)
+                        })(j) {
+                            j = k;
+                        }
+                        Some(j)
+                    })(i)
+                })(i)
+                    .or_else(|| {
+                        (|i| {
+                            self.match_char(i, '/')
+                                .and_then(|i| { self.match_char(i, '/') })
+                                .and_then(|i| {
+                                    let mut j = i;
+                                    while let Some(k) = (|i| {
+                                        self.match_char_class(i, &CHAR_CLASS_1, true)
+                                    })(j) {
+                                        j = k;
+                                    }
+                                    Some(j)
+                                })
+                        })(i)
+                    })
+            })(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
+    }
+    //Identifier = ([a-z A-Z]+)
+    pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        (|i| {
+            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_2, false) })(i)?;
+            let mut j = i;
+            while let Some(k) = (|i| {
+                self.match_char_class(i, &CHAR_CLASS_2, false)
             })(j) {
                 j = k;
             }
@@ -27,7 +68,7 @@ impl<'i> CommentsScanner<'i> {
         })(i)
     }
     //Comment = (//![\n]*)
-    pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             self.match_char(i, '/')
@@ -44,13 +85,13 @@ impl<'i> CommentsScanner<'i> {
         })(i)
     }
     //WS = ([  \n \t]+)
-    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
-            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_2, false) })(i)?;
+            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
             let mut j = i;
             while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_2, false)
+                self.match_char_class(i, &CHAR_CLASS_0, false)
             })(j) {
                 j = k;
             }
@@ -58,56 +99,19 @@ impl<'i> CommentsScanner<'i> {
         })(i)
     }
     //"+" = +
-    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '+')
     }
     //"*" = *
-    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '*')
     }
     //"x" = x
-    pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        self.match_char(i, 'x')
-    }
-    //Layout = ((([  \n \t]+)|(//![\n]*)))*
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        let mut j = i;
-        while let Some(k) = (|i| {
-            (|i| {
-                (|i| {
-                    let i = (|i| { self.match_char_class(i, &CHAR_CLASS_2, false) })(i)?;
-                    let mut j = i;
-                    while let Some(k) = (|i| {
-                        self.match_char_class(i, &CHAR_CLASS_2, false)
-                    })(j) {
-                        j = k;
-                    }
-                    Some(j)
-                })(i)
-            })(i)
-                .or_else(|| {
-                    (|i| {
-                        self.match_char(i, '/')
-                            .and_then(|i| { self.match_char(i, '/') })
-                            .and_then(|i| {
-                                let mut j = i;
-                                while let Some(k) = (|i| {
-                                    self.match_char_class(i, &CHAR_CLASS_1, true)
-                                })(j) {
-                                    j = k;
-                                }
-                                Some(j)
-                            })
-                    })(i)
-                })
-        })(j) {
-            j = k;
-        }
-        Some(j)
+        self.match_char(i, 'x')
     }
 }
 impl Scanner for CommentsScanner<'_> {

@@ -9,31 +9,31 @@ use iguana_runtime::{
 use crate::parser::CommentsParser;
 #[derive(Debug)]
 pub enum TokenKind {
-    //Identifier
-    T0,
-    //Comment
-    T1,
-    //WS
-    T2,
-    //"+"
-    T3,
-    //"*"
-    T4,
-    //"x"
-    T5,
     //Layout
+    T0,
+    //Identifier
+    T1,
+    //Comment
+    T2,
+    //WS
+    T3,
+    //"+"
+    T4,
+    //"*"
+    T5,
+    //"x"
     T6,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
         match self {
-            TokenKind::T0 => "Identifier",
-            TokenKind::T1 => "Comment",
-            TokenKind::T2 => "WS",
-            TokenKind::T3 => "\"+\"",
-            TokenKind::T4 => "\"*\"",
-            TokenKind::T5 => "\"x\"",
-            TokenKind::T6 => "Layout",
+            TokenKind::T0 => "Layout",
+            TokenKind::T1 => "Identifier",
+            TokenKind::T2 => "Comment",
+            TokenKind::T3 => "WS",
+            TokenKind::T4 => "\"+\"",
+            TokenKind::T5 => "\"*\"",
+            TokenKind::T6 => "\"x\"",
             _ => unreachable!(),
         }
     }
@@ -244,19 +244,19 @@ impl Token {
 }
 fn token_kind(terminal_id: TerminalId) -> TokenKind {
     match terminal_id {
-        //Identifier
-        TerminalId(0) => TokenKind::T0,
-        //Comment
-        TerminalId(1) => TokenKind::T1,
-        //WS
-        TerminalId(2) => TokenKind::T2,
-        //"+"
-        TerminalId(3) => TokenKind::T3,
-        //"*"
-        TerminalId(4) => TokenKind::T4,
-        //"x"
-        TerminalId(5) => TokenKind::T5,
         //Layout
+        TerminalId(0) => TokenKind::T0,
+        //Identifier
+        TerminalId(1) => TokenKind::T1,
+        //Comment
+        TerminalId(2) => TokenKind::T2,
+        //WS
+        TerminalId(3) => TokenKind::T3,
+        //"+"
+        TerminalId(4) => TokenKind::T4,
+        //"*"
+        TerminalId(5) => TokenKind::T5,
+        //"x"
         TerminalId(6) => TokenKind::T6,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }

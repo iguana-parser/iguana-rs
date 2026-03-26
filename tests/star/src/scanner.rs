@@ -14,17 +14,11 @@ impl<'i> StarScanner<'i> {
         let i = input_index;
         self.match_char(i, 'a')
     }
-    //Layout = ε
-    pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        Some(i)
-    }
 }
 impl Scanner for StarScanner<'_> {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         match terminal_id {
             TerminalId(0) => self.match_terminal_0(input_index),
-            TerminalId(1) => self.match_terminal_1(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

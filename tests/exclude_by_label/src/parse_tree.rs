@@ -17,8 +17,6 @@ pub enum TokenKind {
     T2,
     //")"
     T3,
-    //Layout
-    T4,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
@@ -27,7 +25,6 @@ impl TokenKind {
             TokenKind::T1 => "\"(\"",
             TokenKind::T2 => "\",\"",
             TokenKind::T3 => "\")\"",
-            TokenKind::T4 => "Layout",
             _ => unreachable!(),
         }
     }
@@ -41,7 +38,6 @@ pub enum ParseTree {
     ExprOpt0(ExprOpt0),
     //{Expr !comma ","}*
     ExprStar0(ExprStar0),
-    StartExpr(StartExpr),
     Token(Token),
 }
 impl ParseTree {
@@ -51,7 +47,6 @@ impl ParseTree {
             ParseTree::ExprPlus0(expr_plus_0) => expr_plus_0.as_parse_tree_ref(),
             ParseTree::ExprOpt0(expr_opt_0) => expr_opt_0.as_parse_tree_ref(),
             ParseTree::ExprStar0(expr_star_0) => expr_star_0.as_parse_tree_ref(),
-            ParseTree::StartExpr(start_expr) => start_expr.as_parse_tree_ref(),
             ParseTree::Token(token) => token.as_parse_tree_ref(),
         }
     }
@@ -79,12 +74,6 @@ impl ParseTree {
             _ => panic!(),
         }
     }
-    fn unwrap_start_expr(self) -> StartExpr {
-        match self {
-            ParseTree::StartExpr(start_expr) => start_expr,
-            _ => panic!(),
-        }
-    }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
@@ -98,7 +87,6 @@ pub enum ParseTreeRef<'a> {
     ExprPlus0(&'a ExprPlus0),
     ExprOpt0(&'a ExprOpt0),
     ExprStar0(&'a ExprStar0),
-    StartExpr(&'a StartExpr),
     Token(&'a Token),
 }
 impl<'a> ParseTreeRef<'a> {
@@ -114,11 +102,6 @@ impl<'a> ParseTreeRef<'a> {
                     .collect()
             }
             ParseTreeRef::ExprStar0(expr_star_0) => expr_star_0.iter().collect(),
-            ParseTreeRef::StartExpr(start_expr) => {
-                (0..start_expr.child_count())
-                    .filter_map(|i| start_expr.child(i))
-                    .collect()
-            }
             ParseTreeRef::Token(_) => vec![],
         }
     }
@@ -128,7 +111,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::ExprPlus0(_) => "{Expr !comma \",\"}+",
             ParseTreeRef::ExprOpt0(_) => "{Expr !comma \",\"}+?",
             ParseTreeRef::ExprStar0(_) => "{Expr !comma \",\"}*",
-            ParseTreeRef::StartExpr(_) => "StartExpr",
             ParseTreeRef::Token(token) => token.kind.name(),
         }
     }
@@ -138,7 +120,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::ExprPlus0(expr_plus_0) => expr_plus_0.child_count(),
             ParseTreeRef::ExprOpt0(expr_opt_0) => expr_opt_0.child_count(),
             ParseTreeRef::ExprStar0(expr_star_0) => expr_star_0.child_count(),
-            ParseTreeRef::StartExpr(start_expr) => start_expr.child_count(),
             ParseTreeRef::Token(_) => 0,
         }
     }
@@ -148,7 +129,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::ExprPlus0(expr_plus_0) => expr_plus_0.span(),
             ParseTreeRef::ExprOpt0(expr_opt_0) => expr_opt_0.span(),
             ParseTreeRef::ExprStar0(expr_star_0) => expr_star_0.span(),
-            ParseTreeRef::StartExpr(start_expr) => start_expr.span(),
             ParseTreeRef::Token(token) => token.span(),
         }
     }
@@ -173,11 +153,6 @@ impl From<ExprStar0> for ParseTree {
         ParseTree::ExprStar0(expr_star_0)
     }
 }
-impl From<StartExpr> for ParseTree {
-    fn from(start_expr: StartExpr) -> Self {
-        ParseTree::StartExpr(start_expr)
-    }
-}
 pub trait ListNode<'a> {
     fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
 }
@@ -189,39 +164,22 @@ pub trait OptNode {
 pub enum Expr {
     //Id #id
     Id { id: Token, span: Span },
-    //Expr Layout "(" Layout {Expr !comma ","}* Layout ")" #call
+    //Expr "(" {Expr !comma ","}* ")" #call
     Call {
         expr: Box<Expr>,
-        layout_1: Token,
-        lit_2: Token,
-        layout_3: Token,
+        lit_1: Token,
         expr_star_0: ExprStar0,
-        layout_5: Token,
-        lit_6: Token,
+        lit_3: Token,
         span: Span,
     },
-    //Expr Layout "," Layout Expr #comma
-    Comma {
-        expr_0: Box<Expr>,
-        layout_1: Token,
-        lit_2: Token,
-        layout_3: Token,
-        expr_4: Box<Expr>,
-        span: Span,
-    },
+    //Expr "," Expr #comma
+    Comma { expr_0: Box<Expr>, lit_1: Token, expr_2: Box<Expr>, span: Span },
 }
 //{Expr !comma ","}+
 #[derive(Debug)]
 pub enum ExprPlus0 {
-    //{Expr !comma ","}+ Layout "," Layout Expr !comma
-    Alt0 {
-        expr_plus_0: Box<ExprPlus0>,
-        layout_1: Token,
-        lit_2: Token,
-        layout_3: Token,
-        expr: Box<Expr>,
-        span: Span,
-    },
+    //{Expr !comma ","}+ "," Expr !comma
+    Alt0 { expr_plus_0: Box<ExprPlus0>, lit_1: Token, expr: Box<Expr>, span: Span },
     //Expr !comma
     Alt1 { expr: Box<Expr>, span: Span },
 }
@@ -239,14 +197,6 @@ pub struct ExprStar0 {
     pub expr_opt_0: ExprOpt0,
     pub span: Span,
 }
-//StartExpr = Layout start:Expr Layout
-#[derive(Debug)]
-pub struct StartExpr {
-    pub layout_0: Token,
-    pub start: Expr,
-    pub layout_2: Token,
-    pub span: Span,
-}
 impl Expr {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
@@ -256,34 +206,20 @@ impl Expr {
                     _ => None,
                 }
             }
-            Expr::Call {
-                expr,
-                layout_1,
-                lit_2,
-                layout_3,
-                expr_star_0,
-                layout_5,
-                lit_6,
-                ..
-            } => {
+            Expr::Call { expr, lit_1, expr_star_0, lit_3, .. } => {
                 match index {
                     0 => Some(expr.as_parse_tree_ref()),
-                    1 => Some(layout_1.as_parse_tree_ref()),
-                    2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(layout_3.as_parse_tree_ref()),
-                    4 => Some(expr_star_0.as_parse_tree_ref()),
-                    5 => Some(layout_5.as_parse_tree_ref()),
-                    6 => Some(lit_6.as_parse_tree_ref()),
+                    1 => Some(lit_1.as_parse_tree_ref()),
+                    2 => Some(expr_star_0.as_parse_tree_ref()),
+                    3 => Some(lit_3.as_parse_tree_ref()),
                     _ => None,
                 }
             }
-            Expr::Comma { expr_0, layout_1, lit_2, layout_3, expr_4, .. } => {
+            Expr::Comma { expr_0, lit_1, expr_2, .. } => {
                 match index {
                     0 => Some(expr_0.as_parse_tree_ref()),
-                    1 => Some(layout_1.as_parse_tree_ref()),
-                    2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(layout_3.as_parse_tree_ref()),
-                    4 => Some(expr_4.as_parse_tree_ref()),
+                    1 => Some(lit_1.as_parse_tree_ref()),
+                    2 => Some(expr_2.as_parse_tree_ref()),
                     _ => None,
                 }
             }
@@ -292,8 +228,8 @@ impl Expr {
     pub fn child_count(&self) -> usize {
         match self {
             Expr::Id { .. } => 1usize,
-            Expr::Call { .. } => 7usize,
-            Expr::Comma { .. } => 5usize,
+            Expr::Call { .. } => 4usize,
+            Expr::Comma { .. } => 3usize,
         }
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
@@ -310,13 +246,11 @@ impl Expr {
 impl ExprPlus0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            ExprPlus0::Alt0 { expr_plus_0, layout_1, lit_2, layout_3, expr, .. } => {
+            ExprPlus0::Alt0 { expr_plus_0, lit_1, expr, .. } => {
                 match index {
                     0 => Some(expr_plus_0.as_parse_tree_ref()),
-                    1 => Some(layout_1.as_parse_tree_ref()),
-                    2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(layout_3.as_parse_tree_ref()),
-                    4 => Some(expr.as_parse_tree_ref()),
+                    1 => Some(lit_1.as_parse_tree_ref()),
+                    2 => Some(expr.as_parse_tree_ref()),
                     _ => None,
                 }
             }
@@ -330,7 +264,7 @@ impl ExprPlus0 {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            ExprPlus0::Alt0 { .. } => 5usize,
+            ExprPlus0::Alt0 { .. } => 3usize,
             ExprPlus0::Alt1 { .. } => 1usize,
         }
     }
@@ -393,43 +327,15 @@ impl ExprStar0 {
         self.span
     }
 }
-impl StartExpr {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
-        match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
-            _ => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::StartExpr(self)
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-}
 impl<'a> ListNode<'a> for ExprPlus0 {
     fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
         let mut items = vec![];
         let mut current = self;
         loop {
             match current {
-                ExprPlus0::Alt0 {
-                    expr_plus_0: rest,
-                    layout_1: layout1,
-                    lit_2: sep,
-                    layout_3: layout2,
-                    expr: item,
-                    ..
-                } => {
+                ExprPlus0::Alt0 { expr_plus_0: rest, lit_1: sep, expr: item, .. } => {
                     items.push(item.as_parse_tree_ref());
-                    items.push(layout2.as_parse_tree_ref());
                     items.push(sep.as_parse_tree_ref());
-                    items.push(layout1.as_parse_tree_ref());
                     current = rest.as_ref();
                 }
                 ExprPlus0::Alt1 { expr: item, .. } => {
@@ -482,8 +388,6 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         TerminalId(2) => TokenKind::T2,
         //")"
         TerminalId(3) => TokenKind::T3,
-        //Layout
-        TerminalId(4) => TokenKind::T4,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -508,34 +412,31 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                         }
                             .into()
                     }
-                    //Expr : Expr Layout "(" Layout {Expr !comma ","}* Layout ")".
-                    SlotId(9) => {
-                        let [expr, layout_1, lit_2, layout_3, expr_star_0, layout_5,
-                        lit_6] = <[ParseTree; 7usize]>::try_from(children).unwrap();
+                    //Expr : Expr "(" {Expr !comma ","}* ")".
+                    SlotId(6) => {
+                        let [expr, lit_1, expr_star_0, lit_3] = <[ParseTree; 4usize]>::try_from(
+                                children,
+                            )
+                            .unwrap();
                         Expr::Call {
                             expr: Box::new(expr.unwrap_expr()),
-                            layout_1: layout_1.unwrap_token(),
-                            lit_2: lit_2.unwrap_token(),
-                            layout_3: layout_3.unwrap_token(),
+                            lit_1: lit_1.unwrap_token(),
                             expr_star_0: expr_star_0.unwrap_expr_star_0(),
-                            layout_5: layout_5.unwrap_token(),
-                            lit_6: lit_6.unwrap_token(),
+                            lit_3: lit_3.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
                     }
-                    //Expr : Expr Layout "," Layout Expr.
-                    SlotId(15) => {
-                        let [expr_0, layout_1, lit_2, layout_3, expr_4] = <[ParseTree; 5usize]>::try_from(
+                    //Expr : Expr "," Expr.
+                    SlotId(10) => {
+                        let [expr_0, lit_1, expr_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         Expr::Comma {
                             expr_0: Box::new(expr_0.unwrap_expr()),
-                            layout_1: layout_1.unwrap_token(),
-                            lit_2: lit_2.unwrap_token(),
-                            layout_3: layout_3.unwrap_token(),
-                            expr_4: Box::new(expr_4.unwrap_expr()),
+                            lit_1: lit_1.unwrap_token(),
+                            expr_2: Box::new(expr_2.unwrap_expr()),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -546,24 +447,22 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
             //Expr_Plus_0
             NonterminalId(1) => {
                 match nonterminal_node.return_slot {
-                    //{Expr !comma ","}+ : {Expr !comma ","}+ Layout "," Layout Expr !comma.
-                    SlotId(21) => {
-                        let [expr_plus_0, layout_1, lit_2, layout_3, expr] = <[ParseTree; 5usize]>::try_from(
+                    //{Expr !comma ","}+ : {Expr !comma ","}+ "," Expr !comma.
+                    SlotId(14) => {
+                        let [expr_plus_0, lit_1, expr] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         ExprPlus0::Alt0 {
                             expr_plus_0: Box::new(expr_plus_0.unwrap_expr_plus_0()),
-                            layout_1: layout_1.unwrap_token(),
-                            lit_2: lit_2.unwrap_token(),
-                            layout_3: layout_3.unwrap_token(),
+                            lit_1: lit_1.unwrap_token(),
                             expr: Box::new(expr.unwrap_expr()),
                             span: nonterminal_node.span,
                         }
                             .into()
                     }
                     //{Expr !comma ","}+ : Expr !comma.
-                    SlotId(23) => {
+                    SlotId(16) => {
                         let [expr] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         ExprPlus0::Alt1 {
                             expr: Box::new(expr.unwrap_expr()),
@@ -578,7 +477,7 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
             NonterminalId(2) => {
                 match nonterminal_node.return_slot {
                     //{Expr !comma ","}+? : {Expr !comma ","}+.
-                    SlotId(25) => {
+                    SlotId(18) => {
                         let [expr_plus_0] = <[ParseTree; 1usize]>::try_from(children)
                             .unwrap();
                         ExprOpt0::Alt0 {
@@ -588,7 +487,7 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                             .into()
                     }
                     //{Expr !comma ","}+? : .
-                    SlotId(26) => {
+                    SlotId(19) => {
                         let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
                         ExprOpt0::Alt1 {
                             span: nonterminal_node.span,
@@ -602,7 +501,7 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
             NonterminalId(3) => {
                 match nonterminal_node.return_slot {
                     //{Expr !comma ","}* : {Expr !comma ","}+?.
-                    SlotId(28) => {
+                    SlotId(21) => {
                         let [expr_opt_0] = <[ParseTree; 1usize]>::try_from(children)
                             .unwrap();
                         ExprStar0 {
@@ -618,7 +517,7 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
             NonterminalId(4) => {
                 match nonterminal_node.return_slot {
                     //Expr !comma : Id.
-                    SlotId(30) => {
+                    SlotId(23) => {
                         let [id] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         Expr::Id {
                             id: id.unwrap_token(),
@@ -626,38 +525,17 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                         }
                             .into()
                     }
-                    //Expr !comma : Expr Layout "(" Layout {Expr !comma ","}* Layout ")".
-                    SlotId(38) => {
-                        let [expr, layout_1, lit_2, layout_3, expr_star_0, layout_5,
-                        lit_6] = <[ParseTree; 7usize]>::try_from(children).unwrap();
-                        Expr::Call {
-                            expr: Box::new(expr.unwrap_expr()),
-                            layout_1: layout_1.unwrap_token(),
-                            lit_2: lit_2.unwrap_token(),
-                            layout_3: layout_3.unwrap_token(),
-                            expr_star_0: expr_star_0.unwrap_expr_star_0(),
-                            layout_5: layout_5.unwrap_token(),
-                            lit_6: lit_6.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            //StartExpr
-            NonterminalId(5) => {
-                match nonterminal_node.return_slot {
-                    //StartExpr : Layout start:Expr Layout.
-                    SlotId(42) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                    //Expr !comma : Expr "(" {Expr !comma ","}* ")".
+                    SlotId(28) => {
+                        let [expr, lit_1, expr_star_0, lit_3] = <[ParseTree; 4usize]>::try_from(
                                 children,
                             )
                             .unwrap();
-                        StartExpr {
-                            layout_0: layout_0.unwrap_token(),
-                            start: start.unwrap_expr(),
-                            layout_2: layout_2.unwrap_token(),
+                        Expr::Call {
+                            expr: Box::new(expr.unwrap_expr()),
+                            lit_1: lit_1.unwrap_token(),
+                            expr_star_0: expr_star_0.unwrap_expr_star_0(),
+                            lit_3: lit_3.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -691,9 +569,6 @@ pub fn create_parse_tree(
         }
         "Expr_Star_0" => {
             ParseTree::ExprStar0(create_parse_tree_expr_star_0(root_id, parser, builder))
-        }
-        "StartExpr" => {
-            ParseTree::StartExpr(create_parse_tree_start_expr(root_id, parser, builder))
         }
         _ => panic!(),
     }
@@ -729,14 +604,6 @@ pub fn create_parse_tree_expr_star_0(
 ) -> ExprStar0 {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_expr_star_0()
-}
-pub fn create_parse_tree_start_expr(
-    root_id: SPPFNodeId,
-    parser: &ExcludeByLabelParser,
-    builder: &ExcludeByLabelParseTreeBuilder,
-) -> StartExpr {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_start_expr()
 }
 pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
     let mut s = String::new();

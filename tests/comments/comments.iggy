@@ -1,13 +1,17 @@
 grammar Comments
 
 // Layout definition
-layout WS Comment
+layout Layout
 
 // Expressions
 Expr
   = Expr "+" Expr // addition
   | Expr "*" Expr // multiplication
   | "x" // variable
+
+@regex
+Layout
+  = (WS | Comment)*
 
 // Lexical rules
 @regex

@@ -153,18 +153,17 @@ fn nt_ident(name: &str) -> Ident {
 
 /// Returns the Rust type for a parse tree field: `Token` for terminals, or the
 /// nonterminal's PascalCase name (wrapped in `Box<>` if recursive).
-fn gen_field_type(
-    grammar: &Grammar,
-    symbol: &Symbol,
-    head: &Nonterminal,
-) -> TokenStream {
+fn gen_field_type(grammar: &Grammar, symbol: &Symbol, head: &Nonterminal) -> TokenStream {
     let def = grammar.definition(symbol.resolved_def());
     match def {
         Definition::Terminal(_) => {
             quote! { Token }
         }
         Definition::Nonterminal(nt) => {
-            let name = Ident::new(&nonterminal_type_name(grammar, def.name()), Span::call_site());
+            let name = Ident::new(
+                &nonterminal_type_name(grammar, def.name()),
+                Span::call_site(),
+            );
             if should_be_boxed(grammar, unwrap_exclude(grammar, nt), head) {
                 quote! { Box<#name> }
             } else {
@@ -283,9 +282,9 @@ fn get_symbol_base_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
         Symbol::Literal(_) => None,
         Symbol::Group(_) => None,
         Symbol::Alt(_) => None,
-        Symbol::Except { symbol, .. } | Symbol::FollowRestriction { symbol, .. } | Symbol::PrecedeRestriction { symbol, .. } => {
-            get_symbol_base_name(grammar, symbol)
-        }
+        Symbol::Except { symbol, .. }
+        | Symbol::FollowRestriction { symbol, .. }
+        | Symbol::PrecedeRestriction { symbol, .. } => get_symbol_base_name(grammar, symbol),
         Symbol::Exclude { .. } => {
             unreachable!("Exclude should be desugared before code generation")
         }
@@ -397,7 +396,9 @@ fn gen_field_name(
         Symbol::Literal(_) => format!("field_{}", position),
         Symbol::Group(_) => format!("field_{}", position),
         Symbol::Alt(_) => format!("field_{}", position),
-        Symbol::Except { symbol, .. } | Symbol::FollowRestriction { symbol, .. } | Symbol::PrecedeRestriction { symbol, .. } => {
+        Symbol::Except { symbol, .. }
+        | Symbol::FollowRestriction { symbol, .. }
+        | Symbol::PrecedeRestriction { symbol, .. } => {
             return gen_field_name(grammar, symbol, position, needs_index);
         }
         Symbol::Exclude { .. } => {
@@ -423,10 +424,11 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
         .iter()
         .enumerate()
         .map(|(index, alternative)| {
-            let fields: Vec<_> = gen_fields_for_alternative_symbols(grammar, alternative, nonterminal)
-                .into_iter()
-                .map(|(ident, ty)| quote! { #ident: #ty })
-                .collect();
+            let fields: Vec<_> =
+                gen_fields_for_alternative_symbols(grammar, alternative, nonterminal)
+                    .into_iter()
+                    .map(|(ident, ty)| quote! { #ident: #ty })
+                    .collect();
             let label = to_pascal_case(&alternative_label(alternative, index));
             let variant_name = Ident::new(&label, Span::call_site());
             let variant_comment = alternative.display_name(grammar);
@@ -953,7 +955,12 @@ fn symbol_contains_nonterminal(symbol: &Symbol, nt_name: &str) -> bool {
 
 /// Checks if `from` can transitively reach `target` through the grammar's nonterminal references.
 /// Skips EBNF-derived nonterminals since they already handle their own boxing via the origin check.
-fn is_recursive(grammar: &Grammar, from: &Nonterminal, target: &str, visited: &mut FxHashSet<String>) -> bool {
+fn is_recursive(
+    grammar: &Grammar,
+    from: &Nonterminal,
+    target: &str,
+    visited: &mut FxHashSet<String>,
+) -> bool {
     if !visited.insert(from.name.clone()) {
         return false;
     }
@@ -973,7 +980,6 @@ fn is_recursive(grammar: &Grammar, from: &Nonterminal, target: &str, visited: &m
     }
     false
 }
-
 
 fn gen_new_token_method() -> TokenStream {
     quote! {
@@ -1216,9 +1222,7 @@ fn gen_opt_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
     let inner_def = grammar.definition(inner_symbol.resolved_def());
     let inner_type = match inner_def {
         Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
-        Definition::Nonterminal(_) => {
-            nt_ident(inner_def.name())
-        }
+        Definition::Nonterminal(_) => nt_ident(inner_def.name()),
     };
     let field_name = safe_ident(&gen_field_name(grammar, inner_symbol, 0, false));
 
@@ -1498,7 +1502,10 @@ fn symbol_type(grammar: &Grammar, ident: &Identifier) -> Ident {
     if grammar.is_terminal(ident) {
         Ident::new("Token", Span::call_site())
     } else {
-        Ident::new(&nonterminal_type_name(grammar, &ident.name), Span::call_site())
+        Ident::new(
+            &nonterminal_type_name(grammar, &ident.name),
+            Span::call_site(),
+        )
     }
 }
 
@@ -1532,9 +1539,7 @@ fn get_innermost_element(grammar: &Grammar, symbol: &Symbol) -> Option<Identifie
             }
             Some(ident.clone())
         }
-        Symbol::Plus(inner, _) | Symbol::Star(inner, _) => {
-            get_innermost_element(grammar, inner)
-        }
+        Symbol::Plus(inner, _) | Symbol::Star(inner, _) => get_innermost_element(grammar, inner),
         Symbol::Group(elements) => {
             let named_elements: Vec<_> = elements
                 .iter()
@@ -1598,20 +1603,37 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let first_arm = match &nonterminal.origin {
         Some(Symbol::Plus(_symbol, sep)) => match sep {
             Some(_) => {
-                let (f0, f1, f2, f3, f4) = (
-                    &first_alt_fields[0],
-                    &first_alt_fields[1],
-                    &first_alt_fields[2],
-                    &first_alt_fields[3],
-                    &first_alt_fields[4],
-                );
-                quote! {
-                    #ident::#alt_variant { #f0: rest, #f1: layout1, #f2: sep, #f3: layout2, #f4: item, .. } => {
-                        items.push(item.as_parse_tree_ref());
-                        items.push(layout2.as_parse_tree_ref());
-                        items.push(sep.as_parse_tree_ref());
-                        items.push(layout1.as_parse_tree_ref());
-                        #deref_rest
+                if first_alt_fields.len() == 5 {
+                    // With layout: Plus ::= Plus Layout Sep Layout Item
+                    let (f0, f1, f2, f3, f4) = (
+                        &first_alt_fields[0],
+                        &first_alt_fields[1],
+                        &first_alt_fields[2],
+                        &first_alt_fields[3],
+                        &first_alt_fields[4],
+                    );
+                    quote! {
+                        #ident::#alt_variant { #f0: rest, #f1: layout1, #f2: sep, #f3: layout2, #f4: item, .. } => {
+                            items.push(item.as_parse_tree_ref());
+                            items.push(layout2.as_parse_tree_ref());
+                            items.push(sep.as_parse_tree_ref());
+                            items.push(layout1.as_parse_tree_ref());
+                            #deref_rest
+                        }
+                    }
+                } else {
+                    // Without layout: Plus ::= Plus Sep Item
+                    let (f0, f1, f2) = (
+                        &first_alt_fields[0],
+                        &first_alt_fields[1],
+                        &first_alt_fields[2],
+                    );
+                    quote! {
+                        #ident::#alt_variant { #f0: rest, #f1: sep, #f2: item, .. } => {
+                            items.push(item.as_parse_tree_ref());
+                            items.push(sep.as_parse_tree_ref());
+                            #deref_rest
+                        }
                     }
                 }
             }
@@ -1632,10 +1654,7 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                     }
                 } else {
                     // Without layout (@layout(none)): Plus ::= Plus Item | Item
-                    let (f0, f1) = (
-                        &first_alt_fields[0],
-                        &first_alt_fields[1],
-                    );
+                    let (f0, f1) = (&first_alt_fields[0], &first_alt_fields[1]);
                     quote! {
                         #ident::#alt_variant { #f0: rest, #f1: item, .. } => {
                             items.push(item.as_parse_tree_ref());
@@ -1699,7 +1718,11 @@ fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let second_arm = quote! {
         #opt_ident::#alt_variant { .. } => vec![].into_iter(),
     };
-    let boxed = should_be_boxed(grammar, unwrap_exclude(grammar, nonterminal), star_nonterminal);
+    let boxed = should_be_boxed(
+        grammar,
+        unwrap_exclude(grammar, nonterminal),
+        star_nonterminal,
+    );
     let match_expr = if boxed {
         quote! { match self.#field_name.as_ref() }
     } else {

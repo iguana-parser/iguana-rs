@@ -109,11 +109,6 @@ impl<'i> MultipleExceptScanner<'i> {
                 .and_then(|i| { self.match_char(i, 'l') })
         })(i)
     }
-    //Layout = ε
-    pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        Some(i)
-    }
 }
 impl Scanner for MultipleExceptScanner<'_> {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
@@ -123,7 +118,6 @@ impl Scanner for MultipleExceptScanner<'_> {
             TerminalId(2) => self.match_terminal_2(input_index),
             TerminalId(3) => self.match_terminal_3(input_index),
             TerminalId(4) => self.match_terminal_4(input_index),
-            TerminalId(5) => self.match_terminal_5(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

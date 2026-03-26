@@ -17,8 +17,6 @@ pub enum TokenKind {
     T2,
     //WS
     T3,
-    //Layout
-    T4,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
@@ -27,7 +25,6 @@ impl TokenKind {
             TokenKind::T1 => "Letter",
             TokenKind::T2 => "LetterOrDigit",
             TokenKind::T3 => "WS",
-            TokenKind::T4 => "Layout",
             _ => unreachable!(),
         }
     }
@@ -256,20 +253,20 @@ pub struct IdStar0 {
     pub id_opt_0: IdOpt0,
     pub span: Span,
 }
-//StartS = Layout start:S Layout
+//StartS = WS start:S WS
 #[derive(Debug)]
 pub struct StartS {
-    pub layout_0: Token,
+    pub w_s_0: Token,
     pub start: S,
-    pub layout_2: Token,
+    pub w_s_2: Token,
     pub span: Span,
 }
-//StartId = Layout start:Id Layout
+//StartId = WS start:Id WS
 #[derive(Debug)]
 pub struct StartId {
-    pub layout_0: Token,
+    pub w_s_0: Token,
     pub start: Id,
-    pub layout_2: Token,
+    pub w_s_2: Token,
     pub span: Span,
 }
 impl S {
@@ -406,9 +403,9 @@ impl IdStar0 {
 impl StartS {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
+            0 => Some(self.w_s_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            2 => Some(self.w_s_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -425,9 +422,9 @@ impl StartS {
 impl StartId {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
+            0 => Some(self.w_s_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            2 => Some(self.w_s_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -505,8 +502,6 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         TerminalId(2) => TokenKind::T2,
         //WS
         TerminalId(3) => TokenKind::T3,
-        //Layout
-        TerminalId(4) => TokenKind::T4,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -629,16 +624,16 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
             //StartS
             NonterminalId(5) => {
                 match nonterminal_node.return_slot {
-                    //StartS : Layout start:S Layout.
+                    //StartS : WS start:S WS.
                     SlotId(18) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartS {
-                            layout_0: layout_0.unwrap_token(),
+                            w_s_0: w_s_0.unwrap_token(),
                             start: start.unwrap_s(),
-                            layout_2: layout_2.unwrap_token(),
+                            w_s_2: w_s_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -649,16 +644,16 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
             //StartId
             NonterminalId(6) => {
                 match nonterminal_node.return_slot {
-                    //StartId : Layout start:Id Layout.
+                    //StartId : WS start:Id WS.
                     SlotId(22) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartId {
-                            layout_0: layout_0.unwrap_token(),
+                            w_s_0: w_s_0.unwrap_token(),
                             start: start.unwrap_id(),
-                            layout_2: layout_2.unwrap_token(),
+                            w_s_2: w_s_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()

@@ -24,11 +24,6 @@ impl<'i> GroupScanner<'i> {
         let i = input_index;
         self.match_char(i, 'd')
     }
-    //Layout = ε
-    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        Some(i)
-    }
 }
 impl Scanner for GroupScanner<'_> {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
@@ -36,7 +31,6 @@ impl Scanner for GroupScanner<'_> {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(1) => self.match_terminal_1(input_index),
             TerminalId(2) => self.match_terminal_2(input_index),
-            TerminalId(3) => self.match_terminal_3(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

@@ -89,19 +89,6 @@ impl<'i> Pepm16ExpressionsScanner<'i> {
         let i = input_index;
         self.match_char(i, 'a')
     }
-    //Layout = ([ ]*)
-    pub fn match_terminal_13(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        (|i| {
-            let mut j = i;
-            while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_0, false)
-            })(j) {
-                j = k;
-            }
-            Some(j)
-        })(i)
-    }
 }
 impl Scanner for Pepm16ExpressionsScanner<'_> {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
@@ -119,7 +106,6 @@ impl Scanner for Pepm16ExpressionsScanner<'_> {
             TerminalId(10) => self.match_terminal_10(input_index),
             TerminalId(11) => self.match_terminal_11(input_index),
             TerminalId(12) => self.match_terminal_12(input_index),
-            TerminalId(13) => self.match_terminal_13(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

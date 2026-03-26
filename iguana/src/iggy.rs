@@ -1,8 +1,7 @@
 use iggy::{
     parse_tree,
     parse_tree::{
-        IggyParseTreeBuilder, ListNode, OptNode, ParseTree, ParseTreeRef, StartGrammar,
-        create_parse_tree,
+        IggyParseTreeBuilder, ListNode, OptNode, ParseTree, StartGrammar, create_parse_tree,
     },
     parser::IggyParser,
 };
@@ -89,29 +88,18 @@ fn build_grammar(
         }
     }
 
-
-    let layout_def: Vec<Terminal> = grammar
-        .layout_def
-        .value()
-        .map(|layout_def| {
-            layout_def
-                .identifiers
-                .iter()
-                .filter_map(|node| match node {
-                    ParseTreeRef::Token(t) if t.kind.name() == "Identifier" => {
-                        Some(Terminal::new(text(input, t.span())))
-                    }
-                    _ => None,
-                })
-                .collect()
+    let layout = grammar.layout_def.value().map(|layout| {
+        Symbol::Identifier(Identifier {
+            name: text(input, layout.identifier.span()),
+            definition: None,
         })
-        .unwrap_or_default();
+    });
 
     Ok(GrammarDef {
         name,
         syntax_rules,
         lexical_rules,
-        layout_def,
+        layout,
     })
 }
 
@@ -129,7 +117,10 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
         Some(parse_tree::Annotation::NoLayout { .. }) => LayoutStrategy::None,
         Some(parse_tree::Annotation::Layout { identifier, .. }) => {
             let name = text(input, identifier.span());
-            LayoutStrategy::Custom(Identifier { name, definition: None })
+            LayoutStrategy::Custom(Identifier {
+                name,
+                definition: None,
+            })
         }
         None => LayoutStrategy::Default,
     };
@@ -148,14 +139,16 @@ fn convert_priority_level(level: &parse_tree::PriorityLevel, input: &Input) -> P
         .map(|alt| convert_alternative(alt, input))
         .collect();
 
-    let associativity = level.associativity.value().map(|assoc| {
-        match text(input, assoc.span()).as_str() {
-            "left" => Associativity::Left,
-            "right" => Associativity::Right,
-            "none" => Associativity::NonAssoc,
-            other => panic!("Unknown associativity: {other}"),
-        }
-    });
+    let associativity =
+        level
+            .associativity
+            .value()
+            .map(|assoc| match text(input, assoc.span()).as_str() {
+                "left" => Associativity::Left,
+                "right" => Associativity::Right,
+                "none" => Associativity::NonAssoc,
+                other => panic!("Unknown associativity: {other}"),
+            });
 
     PriorityLevel::with_associativity(alternatives, associativity)
 }
@@ -176,10 +169,7 @@ fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternat
             .to_string()
     });
 
-    Alternative {
-        symbols,
-        label,
-    }
+    Alternative { symbols, label }
 }
 
 fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
@@ -258,9 +248,7 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 definition: None,
             },
         },
-        parse_tree::Symbol::Exclude {
-            symbol, labels, ..
-        } => {
+        parse_tree::Symbol::Exclude { symbol, labels, .. } => {
             let labels = labels
                 .identifiers()
                 .map(|token| text(input, token.span()))
@@ -272,7 +260,6 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
         }
     }
 }
-
 
 fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRule {
     let name = text(input, rule.identifier.span());
@@ -344,7 +331,10 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
         }
         parse_tree::Regex::Identifier { identifier, .. } => {
             let name = text(input, identifier.span());
-            Regex::Identifier(Identifier { name, definition: None })
+            Regex::Identifier(Identifier {
+                name,
+                definition: None,
+            })
         }
     }
 }

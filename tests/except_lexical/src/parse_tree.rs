@@ -13,15 +13,12 @@ pub enum TokenKind {
     T0,
     //Identifier
     T1,
-    //Layout
-    T2,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
         match self {
             TokenKind::T0 => "Keyword",
             TokenKind::T1 => "Identifier",
-            TokenKind::T2 => "Layout",
             _ => unreachable!(),
         }
     }
@@ -29,26 +26,18 @@ impl TokenKind {
 #[derive(Debug)]
 pub enum ParseTree {
     S(S),
-    StartS(StartS),
     Token(Token),
 }
 impl ParseTree {
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
         match self {
             ParseTree::S(s) => s.as_parse_tree_ref(),
-            ParseTree::StartS(start_s) => start_s.as_parse_tree_ref(),
             ParseTree::Token(token) => token.as_parse_tree_ref(),
         }
     }
     fn unwrap_s(self) -> S {
         match self {
             ParseTree::S(s) => s,
-            _ => panic!(),
-        }
-    }
-    fn unwrap_start_s(self) -> StartS {
-        match self {
-            ParseTree::StartS(start_s) => start_s,
             _ => panic!(),
         }
     }
@@ -62,7 +51,6 @@ impl ParseTree {
 #[derive(Clone, Copy)]
 pub enum ParseTreeRef<'a> {
     S(&'a S),
-    StartS(&'a StartS),
     Token(&'a Token),
 }
 impl<'a> ParseTreeRef<'a> {
@@ -71,30 +59,24 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::S(s) => {
                 (0..s.child_count()).filter_map(|i| s.child(i)).collect()
             }
-            ParseTreeRef::StartS(start_s) => {
-                (0..start_s.child_count()).filter_map(|i| start_s.child(i)).collect()
-            }
             ParseTreeRef::Token(_) => vec![],
         }
     }
     pub fn display_name(&self) -> &'static str {
         match self {
             ParseTreeRef::S(_) => "S",
-            ParseTreeRef::StartS(_) => "StartS",
             ParseTreeRef::Token(token) => token.kind.name(),
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
             ParseTreeRef::S(s) => s.child_count(),
-            ParseTreeRef::StartS(start_s) => start_s.child_count(),
             ParseTreeRef::Token(_) => 0,
         }
     }
     pub fn span(&self) -> Span {
         match self {
             ParseTreeRef::S(s) => s.span(),
-            ParseTreeRef::StartS(start_s) => start_s.span(),
             ParseTreeRef::Token(token) => token.span(),
         }
     }
@@ -102,11 +84,6 @@ impl<'a> ParseTreeRef<'a> {
 impl From<S> for ParseTree {
     fn from(s: S) -> Self {
         ParseTree::S(s)
-    }
-}
-impl From<StartS> for ParseTree {
-    fn from(start_s: StartS) -> Self {
-        ParseTree::StartS(start_s)
     }
 }
 pub trait ListNode<'a> {
@@ -122,14 +99,6 @@ pub struct S {
     pub identifier: Token,
     pub span: Span,
 }
-//StartS = Layout start:S Layout
-#[derive(Debug)]
-pub struct StartS {
-    pub layout_0: Token,
-    pub start: S,
-    pub layout_2: Token,
-    pub span: Span,
-}
 impl S {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
@@ -142,25 +111,6 @@ impl S {
     }
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
         ParseTreeRef::S(self)
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-}
-impl StartS {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
-        match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
-            _ => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::StartS(self)
     }
     pub fn span(&self) -> Span {
         self.span
@@ -185,8 +135,6 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         TerminalId(0) => TokenKind::T0,
         //Identifier
         TerminalId(1) => TokenKind::T1,
-        //Layout
-        TerminalId(2) => TokenKind::T2,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -215,26 +163,6 @@ impl ParseTreeBuilder<ParseTree> for ExceptLexicalParseTreeBuilder {
                     _ => unreachable!(),
                 }
             }
-            //StartS
-            NonterminalId(1) => {
-                match nonterminal_node.return_slot {
-                    //StartS : Layout start:S Layout.
-                    SlotId(5) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
-                        StartS {
-                            layout_0: layout_0.unwrap_token(),
-                            start: start.unwrap_s(),
-                            layout_2: layout_2.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
-                    }
-                    _ => unreachable!(),
-                }
-            }
             _ => unreachable!(),
         }
     }
@@ -253,9 +181,6 @@ pub fn create_parse_tree(
 ) -> ParseTree {
     match name {
         "S" => ParseTree::S(create_parse_tree_s(root_id, parser, builder)),
-        "StartS" => {
-            ParseTree::StartS(create_parse_tree_start_s(root_id, parser, builder))
-        }
         _ => panic!(),
     }
 }
@@ -266,14 +191,6 @@ pub fn create_parse_tree_s(
 ) -> S {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
-}
-pub fn create_parse_tree_start_s(
-    root_id: SPPFNodeId,
-    parser: &ExceptLexicalParser,
-    builder: &ExceptLexicalParseTreeBuilder,
-) -> StartS {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_start_s()
 }
 pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
     let mut s = String::new();

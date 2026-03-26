@@ -69,19 +69,6 @@ impl<'i> DeepPriorityFullScanner<'i> {
         let i = input_index;
         self.match_char(i, 'a')
     }
-    //Layout = ([ ]*)
-    pub fn match_terminal_9(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        (|i| {
-            let mut j = i;
-            while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_0, false)
-            })(j) {
-                j = k;
-            }
-            Some(j)
-        })(i)
-    }
 }
 impl Scanner for DeepPriorityFullScanner<'_> {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
@@ -95,7 +82,6 @@ impl Scanner for DeepPriorityFullScanner<'_> {
             TerminalId(6) => self.match_terminal_6(input_index),
             TerminalId(7) => self.match_terminal_7(input_index),
             TerminalId(8) => self.match_terminal_8(input_index),
-            TerminalId(9) => self.match_terminal_9(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

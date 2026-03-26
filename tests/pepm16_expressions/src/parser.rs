@@ -5,22 +5,22 @@
 //   = E(0)
 // 
 // E(p: i32)
-//   = [6 >= p] l=E(p) [l == 0 || l >= 6] Layout "." Layout "f" return 0
-//   | [6 >= p] l=E(p) [l == 0 || l >= 6] Layout r=E(6) return r == 0 ? 6 : min(r, 6)
-//   | [5 >= p] l=E(p) [l == 0 || l >= 5] Layout "*" Layout r=E(6) return r == 0 ? 5 : min(r, 5)
-//   | [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "+" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
-//   | [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "-" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
-//   | "-" Layout r=E(3) return r == 0 ? 3 : min(r, 3)
-//   | "if" Layout E(0) Layout "then" Layout E(0) Layout "else" Layout E(2) return 2
-//   | [1 >= p] l=E(p) [l == 0 || l >= 2] Layout ";" Layout E(1) return 1
-//   | "(" Layout E(0) Layout ")" return 0
+//   = [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
+//   | [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
+//   | [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
+//   | [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+//   | [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+//   | "-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
+//   | "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
+//   | [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
+//   | "(" WS E(0) WS ")" return 0
 //   | "a" return 0
 // 
 // StartS
-//   = Layout start:S Layout
+//   = WS start:S WS
 // 
 // StartE
-//   = Layout start:E(0) Layout
+//   = WS start:E(0) WS
 // 
 // WS = ([ ]*)
 // "." = .
@@ -35,7 +35,6 @@
 // "(" = (
 // ")" = )
 // "a" = a
-// Layout = ([ ]*)
 use std::cell::OnceCell;
 use crate::{
     scanner::Pepm16ExpressionsScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
@@ -79,7 +78,7 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "S" => NonterminalId(0), "StartS" => NonterminalId(1), "StartE" => NonterminalId(2),
     "E" => NonterminalId(3)
 };
-pub const TERMINALS: [Terminal; 15] = [
+pub const TERMINALS: [Terminal; 14] = [
     Terminal { name: "WS" },
     Terminal { name: "\".\"" },
     Terminal { name: "\"f\"" },
@@ -93,242 +92,241 @@ pub const TERMINALS: [Terminal; 15] = [
     Terminal { name: "\"(\"" },
     Terminal { name: "\")\"" },
     Terminal { name: "\"a\"" },
-    Terminal { name: "Layout" },
     Terminal { name: "Epsilon" },
 ];
 pub const SLOTS: [Slot; 90] = [
     Slot { display_name: "S : . E(0)" },
     Slot { display_name: "S : E(0)." },
     Slot {
-        display_name: "E : . [6 >= p] l=E(p) [l == 0 || l >= 6] Layout \".\" Layout \"f\" return 0",
+        display_name: "E : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS \".\" WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] . l=E(p) [l == 0 || l >= 6] Layout \".\" Layout \"f\" return 0",
+        display_name: "E : [6 >= p] . l=E(p) [l == 0 || l >= 6] WS \".\" WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) . [l == 0 || l >= 6] Layout \".\" Layout \"f\" return 0",
+        display_name: "E : [6 >= p] l=E(p) . [l == 0 || l >= 6] WS \".\" WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] . Layout \".\" Layout \"f\" return 0",
+        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS \".\" WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout . \".\" Layout \"f\" return 0",
+        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . \".\" WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout \".\" . Layout \"f\" return 0",
+        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS \".\" . WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout \".\" Layout . \"f\" return 0",
+        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS \".\" WS . \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout \".\" Layout \"f\" . return 0",
+        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS \".\" WS \"f\" . return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout \".\" Layout \"f\" return 0.",
+        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS \".\" WS \"f\" return 0.",
     },
     Slot {
-        display_name: "E : . [6 >= p] l=E(p) [l == 0 || l >= 6] Layout r=E(6) return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] . l=E(p) [l == 0 || l >= 6] Layout r=E(6) return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : [6 >= p] . l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) . [l == 0 || l >= 6] Layout r=E(6) return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : [6 >= p] l=E(p) . [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] . Layout r=E(6) return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS r=E(6) return r == 0 ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout . r=E(6) return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . r=E(6) return r == 0 ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout r=E(6) . return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) . return r == 0 ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout r=E(6) return r == 0 ? 6 : min(r, 6).",
+        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6).",
     },
     Slot {
-        display_name: "E : . [5 >= p] l=E(p) [l == 0 || l >= 5] Layout \"*\" Layout r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : . [5 >= p] l=E(p) [l == 0 || l >= 5] WS \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] . l=E(p) [l == 0 || l >= 5] Layout \"*\" Layout r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] . l=E(p) [l == 0 || l >= 5] WS \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) . [l == 0 || l >= 5] Layout \"*\" Layout r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) . [l == 0 || l >= 5] WS \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] . Layout \"*\" Layout r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] . WS \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout . \"*\" Layout r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS . \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout \"*\" . Layout r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS \"*\" . WS r=E(6) return r == 0 ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout \"*\" Layout . r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS \"*\" WS . r=E(6) return r == 0 ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout \"*\" Layout r=E(6) . return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS \"*\" WS r=E(6) . return r == 0 ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout \"*\" Layout r=E(6) return r == 0 ? 5 : min(r, 5).",
+        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5).",
     },
     Slot {
-        display_name: "E : . [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"+\" Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] . l=E(p) [l == 0 || l >= 4] Layout \"+\" Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] . l=E(p) [l == 0 || l >= 4] WS \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) . [l == 0 || l >= 4] Layout \"+\" Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) . [l == 0 || l >= 4] WS \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] . Layout \"+\" Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout . \"+\" Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"+\" . Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"+\" . WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"+\" Layout . r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"+\" WS . r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"+\" Layout r=E(5) . return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"+\" WS r=E(5) . return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"+\" Layout r=E(5) return r == 0 ? 4 : min(r, 4).",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4).",
     },
     Slot {
-        display_name: "E : . [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"-\" Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] . l=E(p) [l == 0 || l >= 4] Layout \"-\" Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] . l=E(p) [l == 0 || l >= 4] WS \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) . [l == 0 || l >= 4] Layout \"-\" Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) . [l == 0 || l >= 4] WS \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] . Layout \"-\" Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout . \"-\" Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"-\" . Layout r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"-\" . WS r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"-\" Layout . r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"-\" WS . r=E(5) return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"-\" Layout r=E(5) . return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"-\" WS r=E(5) . return r == 0 ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"-\" Layout r=E(5) return r == 0 ? 4 : min(r, 4).",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4).",
     },
     Slot {
-        display_name: "E : . \"-\" Layout r=E(3) return r == 0 ? 3 : min(r, 3)",
+        display_name: "E : . \"-\" WS r=E(3) return r == 0 ? 3 : min(r, 3)",
     },
     Slot {
-        display_name: "E : \"-\" . Layout r=E(3) return r == 0 ? 3 : min(r, 3)",
+        display_name: "E : \"-\" . WS r=E(3) return r == 0 ? 3 : min(r, 3)",
     },
     Slot {
-        display_name: "E : \"-\" Layout . r=E(3) return r == 0 ? 3 : min(r, 3)",
+        display_name: "E : \"-\" WS . r=E(3) return r == 0 ? 3 : min(r, 3)",
     },
     Slot {
-        display_name: "E : \"-\" Layout r=E(3) . return r == 0 ? 3 : min(r, 3)",
+        display_name: "E : \"-\" WS r=E(3) . return r == 0 ? 3 : min(r, 3)",
     },
     Slot {
-        display_name: "E : \"-\" Layout r=E(3) return r == 0 ? 3 : min(r, 3).",
+        display_name: "E : \"-\" WS r=E(3) return r == 0 ? 3 : min(r, 3).",
     },
     Slot {
-        display_name: "E : . \"if\" Layout E(0) Layout \"then\" Layout E(0) Layout \"else\" Layout E(2) return 2",
+        display_name: "E : . \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : \"if\" . Layout E(0) Layout \"then\" Layout E(0) Layout \"else\" Layout E(2) return 2",
+        display_name: "E : \"if\" . WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : \"if\" Layout . E(0) Layout \"then\" Layout E(0) Layout \"else\" Layout E(2) return 2",
+        display_name: "E : \"if\" WS . E(0) WS \"then\" WS E(0) WS \"else\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : \"if\" Layout E(0) . Layout \"then\" Layout E(0) Layout \"else\" Layout E(2) return 2",
+        display_name: "E : \"if\" WS E(0) . WS \"then\" WS E(0) WS \"else\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : \"if\" Layout E(0) Layout . \"then\" Layout E(0) Layout \"else\" Layout E(2) return 2",
+        display_name: "E : \"if\" WS E(0) WS . \"then\" WS E(0) WS \"else\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : \"if\" Layout E(0) Layout \"then\" . Layout E(0) Layout \"else\" Layout E(2) return 2",
+        display_name: "E : \"if\" WS E(0) WS \"then\" . WS E(0) WS \"else\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : \"if\" Layout E(0) Layout \"then\" Layout . E(0) Layout \"else\" Layout E(2) return 2",
+        display_name: "E : \"if\" WS E(0) WS \"then\" WS . E(0) WS \"else\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : \"if\" Layout E(0) Layout \"then\" Layout E(0) . Layout \"else\" Layout E(2) return 2",
+        display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) . WS \"else\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : \"if\" Layout E(0) Layout \"then\" Layout E(0) Layout . \"else\" Layout E(2) return 2",
+        display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS . \"else\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : \"if\" Layout E(0) Layout \"then\" Layout E(0) Layout \"else\" . Layout E(2) return 2",
+        display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" . WS E(2) return 2",
     },
     Slot {
-        display_name: "E : \"if\" Layout E(0) Layout \"then\" Layout E(0) Layout \"else\" Layout . E(2) return 2",
+        display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS . E(2) return 2",
     },
     Slot {
-        display_name: "E : \"if\" Layout E(0) Layout \"then\" Layout E(0) Layout \"else\" Layout E(2) . return 2",
+        display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(2) . return 2",
     },
     Slot {
-        display_name: "E : \"if\" Layout E(0) Layout \"then\" Layout E(0) Layout \"else\" Layout E(2) return 2.",
+        display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(2) return 2.",
     },
     Slot {
-        display_name: "E : . [1 >= p] l=E(p) [l == 0 || l >= 2] Layout \";\" Layout E(1) return 1",
+        display_name: "E : . [1 >= p] l=E(p) [l == 0 || l >= 2] WS \";\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] . l=E(p) [l == 0 || l >= 2] Layout \";\" Layout E(1) return 1",
+        display_name: "E : [1 >= p] . l=E(p) [l == 0 || l >= 2] WS \";\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) . [l == 0 || l >= 2] Layout \";\" Layout E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) . [l == 0 || l >= 2] WS \";\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] . Layout \";\" Layout E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] . WS \";\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout . \";\" Layout E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS . \";\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout \";\" . Layout E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS \";\" . WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout \";\" Layout . E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS \";\" WS . E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout \";\" Layout E(1) . return 1",
+        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS \";\" WS E(1) . return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout \";\" Layout E(1) return 1.",
+        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS \";\" WS E(1) return 1.",
     },
     Slot {
-        display_name: "E : . \"(\" Layout E(0) Layout \")\" return 0",
+        display_name: "E : . \"(\" WS E(0) WS \")\" return 0",
     },
     Slot {
-        display_name: "E : \"(\" . Layout E(0) Layout \")\" return 0",
+        display_name: "E : \"(\" . WS E(0) WS \")\" return 0",
     },
     Slot {
-        display_name: "E : \"(\" Layout . E(0) Layout \")\" return 0",
+        display_name: "E : \"(\" WS . E(0) WS \")\" return 0",
     },
     Slot {
-        display_name: "E : \"(\" Layout E(0) . Layout \")\" return 0",
+        display_name: "E : \"(\" WS E(0) . WS \")\" return 0",
     },
     Slot {
-        display_name: "E : \"(\" Layout E(0) Layout . \")\" return 0",
+        display_name: "E : \"(\" WS E(0) WS . \")\" return 0",
     },
     Slot {
-        display_name: "E : \"(\" Layout E(0) Layout \")\" . return 0",
+        display_name: "E : \"(\" WS E(0) WS \")\" . return 0",
     },
     Slot {
-        display_name: "E : \"(\" Layout E(0) Layout \")\" return 0.",
+        display_name: "E : \"(\" WS E(0) WS \")\" return 0.",
     },
     Slot {
         display_name: "E : . \"a\" return 0",
@@ -340,28 +338,28 @@ pub const SLOTS: [Slot; 90] = [
         display_name: "E : \"a\" return 0.",
     },
     Slot {
-        display_name: "StartS : . Layout start:S Layout",
+        display_name: "StartS : . WS start:S WS",
     },
     Slot {
-        display_name: "StartS : Layout . start:S Layout",
+        display_name: "StartS : WS . start:S WS",
     },
     Slot {
-        display_name: "StartS : Layout start:S . Layout",
+        display_name: "StartS : WS start:S . WS",
     },
     Slot {
-        display_name: "StartS : Layout start:S Layout.",
+        display_name: "StartS : WS start:S WS.",
     },
     Slot {
-        display_name: "StartE : . Layout start:E(0) Layout",
+        display_name: "StartE : . WS start:E(0) WS",
     },
     Slot {
-        display_name: "StartE : Layout . start:E(0) Layout",
+        display_name: "StartE : WS . start:E(0) WS",
     },
     Slot {
-        display_name: "StartE : Layout start:E(0) . Layout",
+        display_name: "StartE : WS start:E(0) . WS",
     },
     Slot {
-        display_name: "StartE : Layout start:E(0) Layout.",
+        display_name: "StartE : WS start:E(0) WS.",
     },
 ];
 impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
@@ -420,13 +418,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] Layout "." Layout "f" return 0
+            //E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
             SlotId(2) => {
                 if 6 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(3), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [6 >= p] . l=E(p) [l == 0 || l >= 6] Layout "." Layout "f" return 0
+            //E(p: i32) : [6 >= p] . l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
             SlotId(3) => {
                 self.create_e(
                     result,
@@ -437,7 +435,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            //E(p: i32) : [6 >= p] l=E(p) . [l == 0 || l >= 6] Layout "." Layout "f" return 0
+            //E(p: i32) : [6 >= p] l=E(p) . [l == 0 || l >= 6] WS "." WS "f" return 0
             SlotId(4) => {
                 if (self.lookup("l", env.unwrap()) == 0)
                     || (self.lookup("l", env.unwrap()) >= 6)
@@ -445,16 +443,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.execute(input_index, SlotId(5), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] . Layout "." Layout "f" return 0
+            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS "." WS "f" return 0
             SlotId(5) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout . "." Layout "f" return 0
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . "." WS "f" return 0
                         let next_slot_id = SlotId(6);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -479,13 +477,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(5), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(5), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout . "." Layout "f" return 0
+            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . "." WS "f" return 0
             SlotId(6) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\".\"", i);
@@ -494,7 +491,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\".\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(1), i, j);
-                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout "." . Layout "f" return 0
+                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." . WS "f" return 0
                         let next_slot_id = SlotId(7);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -524,16 +521,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout "." . Layout "f" return 0
+            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." . WS "f" return 0
             SlotId(7) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout "." Layout . "f" return 0
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS . "f" return 0
                         let next_slot_id = SlotId(8);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -558,13 +555,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(7), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(7), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout "." Layout . "f" return 0
+            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS . "f" return 0
             SlotId(8) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"f\"", i);
@@ -573,7 +569,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\"f\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(2), i, j);
-                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout "." Layout "f" . return 0
+                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" . return 0
                         let next_slot_id = SlotId(9);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -603,11 +599,11 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout "." Layout "f" . return 0
+            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" . return 0
             SlotId(9) => {
                 self.execute(input_index, SlotId(10), result, gss_node_id, env);
             }
-            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout "." Layout "f" return 0.
+            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0.
             SlotId(10) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -635,13 +631,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] Layout r=E(6) return r == 0 ? 6 : min(r, 6)
+            //E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
             SlotId(11) => {
                 if 6 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(12), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [6 >= p] . l=E(p) [l == 0 || l >= 6] Layout r=E(6) return r == 0 ? 6 : min(r, 6)
+            //E(p: i32) : [6 >= p] . l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
             SlotId(12) => {
                 self.create_e(
                     result,
@@ -652,7 +648,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            //E(p: i32) : [6 >= p] l=E(p) . [l == 0 || l >= 6] Layout r=E(6) return r == 0 ? 6 : min(r, 6)
+            //E(p: i32) : [6 >= p] l=E(p) . [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
             SlotId(13) => {
                 if (self.lookup("l", env.unwrap()) == 0)
                     || (self.lookup("l", env.unwrap()) >= 6)
@@ -660,16 +656,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.execute(input_index, SlotId(14), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] . Layout r=E(6) return r == 0 ? 6 : min(r, 6)
+            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS r=E(6) return r == 0 ? 6 : min(r, 6)
             SlotId(14) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout . r=E(6) return r == 0 ? 6 : min(r, 6)
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . r=E(6) return r == 0 ? 6 : min(r, 6)
                         let next_slot_id = SlotId(15);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -694,21 +690,20 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(14), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(14), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout . r=E(6) return r == 0 ? 6 : min(r, 6)
+            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . r=E(6) return r == 0 ? 6 : min(r, 6)
             SlotId(15) => {
                 self.create_e(result, gss_node_id, SlotId(16), env, Some("r"), 6);
             }
-            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout r=E(6) . return r == 0 ? 6 : min(r, 6)
+            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) . return r == 0 ? 6 : min(r, 6)
             SlotId(16) => {
                 self.execute(input_index, SlotId(17), result, gss_node_id, env);
             }
-            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] Layout r=E(6) return r == 0 ? 6 : min(r, 6).
+            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6).
             SlotId(17) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -740,13 +735,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . [5 >= p] l=E(p) [l == 0 || l >= 5] Layout "*" Layout r=E(6) return r == 0 ? 5 : min(r, 5)
+            //E(p: i32) : . [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(18) => {
                 if 5 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(19), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [5 >= p] . l=E(p) [l == 0 || l >= 5] Layout "*" Layout r=E(6) return r == 0 ? 5 : min(r, 5)
+            //E(p: i32) : [5 >= p] . l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(19) => {
                 self.create_e(
                     result,
@@ -757,7 +752,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            //E(p: i32) : [5 >= p] l=E(p) . [l == 0 || l >= 5] Layout "*" Layout r=E(6) return r == 0 ? 5 : min(r, 5)
+            //E(p: i32) : [5 >= p] l=E(p) . [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(20) => {
                 if (self.lookup("l", env.unwrap()) == 0)
                     || (self.lookup("l", env.unwrap()) >= 5)
@@ -765,16 +760,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.execute(input_index, SlotId(21), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] . Layout "*" Layout r=E(6) return r == 0 ? 5 : min(r, 5)
+            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] . WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(21) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout . "*" Layout r=E(6) return r == 0 ? 5 : min(r, 5)
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS . "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
                         let next_slot_id = SlotId(22);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -799,13 +794,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(21), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(21), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout . "*" Layout r=E(6) return r == 0 ? 5 : min(r, 5)
+            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS . "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(22) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"*\"", i);
@@ -814,7 +808,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\"*\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(3), i, j);
-                        //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout "*" . Layout r=E(6) return r == 0 ? 5 : min(r, 5)
+                        //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" . WS r=E(6) return r == 0 ? 5 : min(r, 5)
                         let next_slot_id = SlotId(23);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -845,16 +839,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout "*" . Layout r=E(6) return r == 0 ? 5 : min(r, 5)
+            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" . WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(23) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout "*" Layout . r=E(6) return r == 0 ? 5 : min(r, 5)
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS . r=E(6) return r == 0 ? 5 : min(r, 5)
                         let next_slot_id = SlotId(24);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -879,21 +873,20 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(23), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(23), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout "*" Layout . r=E(6) return r == 0 ? 5 : min(r, 5)
+            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS . r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(24) => {
                 self.create_e(result, gss_node_id, SlotId(25), env, Some("r"), 6);
             }
-            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout "*" Layout r=E(6) . return r == 0 ? 5 : min(r, 5)
+            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) . return r == 0 ? 5 : min(r, 5)
             SlotId(25) => {
                 self.execute(input_index, SlotId(26), result, gss_node_id, env);
             }
-            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] Layout "*" Layout r=E(6) return r == 0 ? 5 : min(r, 5).
+            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5).
             SlotId(26) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -925,13 +918,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "+" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(27) => {
                 if 4 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(28), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [4 >= p] . l=E(p) [l == 0 || l >= 4] Layout "+" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] . l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(28) => {
                 self.create_e(
                     result,
@@ -942,7 +935,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            //E(p: i32) : [4 >= p] l=E(p) . [l == 0 || l >= 4] Layout "+" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) . [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(29) => {
                 if (self.lookup("l", env.unwrap()) == 0)
                     || (self.lookup("l", env.unwrap()) >= 4)
@@ -950,16 +943,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.execute(input_index, SlotId(30), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . Layout "+" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(30) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout . "+" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(31);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -984,13 +977,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(30), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(30), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout . "+" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(31) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"+\"", i);
@@ -999,7 +991,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\"+\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "+" . Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(32);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1030,16 +1022,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "+" . Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(32) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "+" Layout . r=E(5) return r == 0 ? 4 : min(r, 4)
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(33);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1064,21 +1056,20 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(32), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(32), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "+" Layout . r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(33) => {
                 self.create_e(result, gss_node_id, SlotId(34), env, Some("r"), 5);
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "+" Layout r=E(5) . return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) . return r == 0 ? 4 : min(r, 4)
             SlotId(34) => {
                 self.execute(input_index, SlotId(35), result, gss_node_id, env);
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "+" Layout r=E(5) return r == 0 ? 4 : min(r, 4).
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4).
             SlotId(35) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -1110,13 +1101,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "-" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(36) => {
                 if 4 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(37), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [4 >= p] . l=E(p) [l == 0 || l >= 4] Layout "-" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] . l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(37) => {
                 self.create_e(
                     result,
@@ -1127,7 +1118,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            //E(p: i32) : [4 >= p] l=E(p) . [l == 0 || l >= 4] Layout "-" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) . [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(38) => {
                 if (self.lookup("l", env.unwrap()) == 0)
                     || (self.lookup("l", env.unwrap()) >= 4)
@@ -1135,16 +1126,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.execute(input_index, SlotId(39), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . Layout "-" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(39) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout . "-" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(40);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1169,13 +1160,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(39), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(39), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout . "-" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(40) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"-\"", i);
@@ -1184,7 +1174,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\"-\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "-" . Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(41);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1215,16 +1205,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "-" . Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(41) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "-" Layout . r=E(5) return r == 0 ? 4 : min(r, 4)
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(42);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1249,21 +1239,20 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(41), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(41), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "-" Layout . r=E(5) return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(42) => {
                 self.create_e(result, gss_node_id, SlotId(43), env, Some("r"), 5);
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "-" Layout r=E(5) . return r == 0 ? 4 : min(r, 4)
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) . return r == 0 ? 4 : min(r, 4)
             SlotId(43) => {
                 self.execute(input_index, SlotId(44), result, gss_node_id, env);
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "-" Layout r=E(5) return r == 0 ? 4 : min(r, 4).
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4).
             SlotId(44) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -1295,7 +1284,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . "-" Layout r=E(3) return r == 0 ? 3 : min(r, 3)
+            //E(p: i32) : . "-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
             SlotId(45) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"-\"", i);
@@ -1304,7 +1293,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\"-\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //E(p: i32) : "-" . Layout r=E(3) return r == 0 ? 3 : min(r, 3)
+                        //E(p: i32) : "-" . WS r=E(3) return r == 0 ? 3 : min(r, 3)
                         let next_slot_id = SlotId(46);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -1317,16 +1306,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : "-" . Layout r=E(3) return r == 0 ? 3 : min(r, 3)
+            //E(p: i32) : "-" . WS r=E(3) return r == 0 ? 3 : min(r, 3)
             SlotId(46) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : "-" Layout . r=E(3) return r == 0 ? 3 : min(r, 3)
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : "-" WS . r=E(3) return r == 0 ? 3 : min(r, 3)
                         let next_slot_id = SlotId(47);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1351,21 +1340,20 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(46), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(46), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : "-" Layout . r=E(3) return r == 0 ? 3 : min(r, 3)
+            //E(p: i32) : "-" WS . r=E(3) return r == 0 ? 3 : min(r, 3)
             SlotId(47) => {
                 self.create_e(result, gss_node_id, SlotId(48), env, Some("r"), 3);
             }
-            //E(p: i32) : "-" Layout r=E(3) . return r == 0 ? 3 : min(r, 3)
+            //E(p: i32) : "-" WS r=E(3) . return r == 0 ? 3 : min(r, 3)
             SlotId(48) => {
                 self.execute(input_index, SlotId(49), result, gss_node_id, env);
             }
-            //E(p: i32) : "-" Layout r=E(3) return r == 0 ? 3 : min(r, 3).
+            //E(p: i32) : "-" WS r=E(3) return r == 0 ? 3 : min(r, 3).
             SlotId(49) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -1397,7 +1385,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . "if" Layout E(0) Layout "then" Layout E(0) Layout "else" Layout E(2) return 2
+            //E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(50) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"if\"", i);
@@ -1406,7 +1394,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\"if\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(6), i, j);
-                        //E(p: i32) : "if" . Layout E(0) Layout "then" Layout E(0) Layout "else" Layout E(2) return 2
+                        //E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
                         let next_slot_id = SlotId(51);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -1419,16 +1407,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : "if" . Layout E(0) Layout "then" Layout E(0) Layout "else" Layout E(2) return 2
+            //E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(51) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : "if" Layout . E(0) Layout "then" Layout E(0) Layout "else" Layout E(2) return 2
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
                         let next_slot_id = SlotId(52);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1453,26 +1441,25 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(51), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(51), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : "if" Layout . E(0) Layout "then" Layout E(0) Layout "else" Layout E(2) return 2
+            //E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(52) => {
                 self.create_e(result, gss_node_id, SlotId(53), env, None, 0);
             }
-            //E(p: i32) : "if" Layout E(0) . Layout "then" Layout E(0) Layout "else" Layout E(2) return 2
+            //E(p: i32) : "if" WS E(0) . WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(53) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : "if" Layout E(0) Layout . "then" Layout E(0) Layout "else" Layout E(2) return 2
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
                         let next_slot_id = SlotId(54);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1497,13 +1484,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(53), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(53), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : "if" Layout E(0) Layout . "then" Layout E(0) Layout "else" Layout E(2) return 2
+            //E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(54) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"then\"", i);
@@ -1512,7 +1498,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\"then\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(7), i, j);
-                        //E(p: i32) : "if" Layout E(0) Layout "then" . Layout E(0) Layout "else" Layout E(2) return 2
+                        //E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
                         let next_slot_id = SlotId(55);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1543,16 +1529,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : "if" Layout E(0) Layout "then" . Layout E(0) Layout "else" Layout E(2) return 2
+            //E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
             SlotId(55) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : "if" Layout E(0) Layout "then" Layout . E(0) Layout "else" Layout E(2) return 2
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
                         let next_slot_id = SlotId(56);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1577,26 +1563,25 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(55), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(55), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : "if" Layout E(0) Layout "then" Layout . E(0) Layout "else" Layout E(2) return 2
+            //E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
             SlotId(56) => {
                 self.create_e(result, gss_node_id, SlotId(57), env, None, 0);
             }
-            //E(p: i32) : "if" Layout E(0) Layout "then" Layout E(0) . Layout "else" Layout E(2) return 2
+            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) . WS "else" WS E(2) return 2
             SlotId(57) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : "if" Layout E(0) Layout "then" Layout E(0) Layout . "else" Layout E(2) return 2
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
                         let next_slot_id = SlotId(58);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1621,13 +1606,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(57), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(57), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : "if" Layout E(0) Layout "then" Layout E(0) Layout . "else" Layout E(2) return 2
+            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
             SlotId(58) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"else\"", i);
@@ -1636,7 +1620,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\"else\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(8), i, j);
-                        //E(p: i32) : "if" Layout E(0) Layout "then" Layout E(0) Layout "else" . Layout E(2) return 2
+                        //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
                         let next_slot_id = SlotId(59);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1667,16 +1651,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : "if" Layout E(0) Layout "then" Layout E(0) Layout "else" . Layout E(2) return 2
+            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
             SlotId(59) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : "if" Layout E(0) Layout "then" Layout E(0) Layout "else" Layout . E(2) return 2
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
                         let next_slot_id = SlotId(60);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1701,21 +1685,20 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(59), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(59), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : "if" Layout E(0) Layout "then" Layout E(0) Layout "else" Layout . E(2) return 2
+            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
             SlotId(60) => {
                 self.create_e(result, gss_node_id, SlotId(61), env, None, 2);
             }
-            //E(p: i32) : "if" Layout E(0) Layout "then" Layout E(0) Layout "else" Layout E(2) . return 2
+            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) . return 2
             SlotId(61) => {
                 self.execute(input_index, SlotId(62), result, gss_node_id, env);
             }
-            //E(p: i32) : "if" Layout E(0) Layout "then" Layout E(0) Layout "else" Layout E(2) return 2.
+            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2.
             SlotId(62) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -1743,13 +1726,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 2] Layout ";" Layout E(1) return 1
+            //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
             SlotId(63) => {
                 if 1 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(64), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [1 >= p] . l=E(p) [l == 0 || l >= 2] Layout ";" Layout E(1) return 1
+            //E(p: i32) : [1 >= p] . l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
             SlotId(64) => {
                 self.create_e(
                     result,
@@ -1760,7 +1743,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            //E(p: i32) : [1 >= p] l=E(p) . [l == 0 || l >= 2] Layout ";" Layout E(1) return 1
+            //E(p: i32) : [1 >= p] l=E(p) . [l == 0 || l >= 2] WS ";" WS E(1) return 1
             SlotId(65) => {
                 if (self.lookup("l", env.unwrap()) == 0)
                     || (self.lookup("l", env.unwrap()) >= 2)
@@ -1768,16 +1751,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.execute(input_index, SlotId(66), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] . Layout ";" Layout E(1) return 1
+            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] . WS ";" WS E(1) return 1
             SlotId(66) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout . ";" Layout E(1) return 1
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS . ";" WS E(1) return 1
                         let next_slot_id = SlotId(67);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1802,13 +1785,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(66), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(66), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout . ";" Layout E(1) return 1
+            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS . ";" WS E(1) return 1
             SlotId(67) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\";\"", i);
@@ -1817,7 +1799,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\";\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(9), i, j);
-                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout ";" . Layout E(1) return 1
+                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" . WS E(1) return 1
                         let next_slot_id = SlotId(68);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1848,16 +1830,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout ";" . Layout E(1) return 1
+            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" . WS E(1) return 1
             SlotId(68) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout ";" Layout . E(1) return 1
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS . E(1) return 1
                         let next_slot_id = SlotId(69);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1882,21 +1864,20 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(68), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(68), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout ";" Layout . E(1) return 1
+            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS . E(1) return 1
             SlotId(69) => {
                 self.create_e(result, gss_node_id, SlotId(70), env, None, 1);
             }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout ";" Layout E(1) . return 1
+            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) . return 1
             SlotId(70) => {
                 self.execute(input_index, SlotId(71), result, gss_node_id, env);
             }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] Layout ";" Layout E(1) return 1.
+            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1.
             SlotId(71) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -1924,7 +1905,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . "(" Layout E(0) Layout ")" return 0
+            //E(p: i32) : . "(" WS E(0) WS ")" return 0
             SlotId(72) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"(\"", i);
@@ -1933,7 +1914,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\"(\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(10), i, j);
-                        //E(p: i32) : "(" . Layout E(0) Layout ")" return 0
+                        //E(p: i32) : "(" . WS E(0) WS ")" return 0
                         let next_slot_id = SlotId(73);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -1946,16 +1927,16 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : "(" . Layout E(0) Layout ")" return 0
+            //E(p: i32) : "(" . WS E(0) WS ")" return 0
             SlotId(73) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : "(" Layout . E(0) Layout ")" return 0
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : "(" WS . E(0) WS ")" return 0
                         let next_slot_id = SlotId(74);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -1980,26 +1961,25 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(73), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(73), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : "(" Layout . E(0) Layout ")" return 0
+            //E(p: i32) : "(" WS . E(0) WS ")" return 0
             SlotId(74) => {
                 self.create_e(result, gss_node_id, SlotId(75), env, None, 0);
             }
-            //E(p: i32) : "(" Layout E(0) . Layout ")" return 0
+            //E(p: i32) : "(" WS E(0) . WS ")" return 0
             SlotId(75) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //E(p: i32) : "(" Layout E(0) Layout . ")" return 0
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //E(p: i32) : "(" WS E(0) WS . ")" return 0
                         let next_slot_id = SlotId(76);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -2024,13 +2004,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(75), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(75), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : "(" Layout E(0) Layout . ")" return 0
+            //E(p: i32) : "(" WS E(0) WS . ")" return 0
             SlotId(76) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\")\"", i);
@@ -2039,7 +2018,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         record!(self, MatchSuccess, "\")\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(11), i, j);
-                        //E(p: i32) : "(" Layout E(0) Layout ")" . return 0
+                        //E(p: i32) : "(" WS E(0) WS ")" . return 0
                         let next_slot_id = SlotId(77);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -2070,11 +2049,11 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                 }
             }
-            //E(p: i32) : "(" Layout E(0) Layout ")" . return 0
+            //E(p: i32) : "(" WS E(0) WS ")" . return 0
             SlotId(77) => {
                 self.execute(input_index, SlotId(78), result, gss_node_id, env);
             }
-            //E(p: i32) : "(" Layout E(0) Layout ")" return 0.
+            //E(p: i32) : "(" WS E(0) WS ")" return 0.
             SlotId(78) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -2156,42 +2135,41 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //StartS : . Layout start:S Layout
+            //StartS : . WS start:S WS
             SlotId(82) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //StartS : Layout . start:S Layout
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //StartS : WS . start:S WS
                         let next_slot_id = SlotId(83);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(82), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(82), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartS : Layout . start:S Layout
+            //StartS : WS . start:S WS
             SlotId(83) => {
                 self.create_s(result, gss_node_id, SlotId(84));
             }
-            //StartS : Layout start:S . Layout
+            //StartS : WS start:S . WS
             SlotId(84) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //StartS : Layout start:S Layout.
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //StartS : WS start:S WS.
                         let next_slot_id = SlotId(85);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -2216,13 +2194,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(84), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(84), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartS : Layout start:S Layout.
+            //StartS : WS start:S WS.
             SlotId(85) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -2248,42 +2225,41 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //StartE : . Layout start:E(0) Layout
+            //StartE : . WS start:E(0) WS
             SlotId(86) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //StartE : Layout . start:E(0) Layout
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //StartE : WS . start:E(0) WS
                         let next_slot_id = SlotId(87);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(86), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(86), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartE : Layout . start:E(0) Layout
+            //StartE : WS . start:E(0) WS
             SlotId(87) => {
                 self.create_e(result, gss_node_id, SlotId(88), env, None, 0);
             }
-            //StartE : Layout start:E(0) . Layout
+            //StartE : WS start:E(0) . WS
             SlotId(88) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(13), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(13), i, j);
-                        //StartE : Layout start:E(0) Layout.
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //StartE : WS start:E(0) WS.
                         let next_slot_id = SlotId(89);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -2308,13 +2284,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(88), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(88), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartE : Layout start:E(0) Layout.
+            //StartE : WS start:E(0) WS.
             SlotId(89) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -2366,7 +2341,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E
             NonterminalId(3) => {
-                //E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] Layout "." Layout "f" return 0
+                //E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(2),
@@ -2374,7 +2349,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] Layout r=E(6) return r == 0 ? 6 : min(r, 6)
+                //E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(11),
@@ -2382,7 +2357,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . [5 >= p] l=E(p) [l == 0 || l >= 5] Layout "*" Layout r=E(6) return r == 0 ? 5 : min(r, 5)
+                //E(p: i32) : . [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(18),
@@ -2390,7 +2365,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "+" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+                //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(27),
@@ -2398,7 +2373,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "-" Layout r=E(5) return r == 0 ? 4 : min(r, 4)
+                //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(36),
@@ -2406,7 +2381,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . "-" Layout r=E(3) return r == 0 ? 3 : min(r, 3)
+                //E(p: i32) : . "-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(45),
@@ -2414,7 +2389,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . "if" Layout E(0) Layout "then" Layout E(0) Layout "else" Layout E(2) return 2
+                //E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(50),
@@ -2422,7 +2397,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 2] Layout ";" Layout E(1) return 1
+                //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(63),
@@ -2430,7 +2405,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . "(" Layout E(0) Layout ")" return 0
+                //E(p: i32) : . "(" WS E(0) WS ")" return 0
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(72),
@@ -2449,7 +2424,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //StartS
             NonterminalId(1) => {
-                //StartS : . Layout start:S Layout
+                //StartS : . WS start:S WS
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(82),
@@ -2460,7 +2435,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //StartE
             NonterminalId(2) => {
-                //StartE : . Layout start:E(0) Layout
+                //StartE : . WS start:E(0) WS
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(86),
@@ -2684,7 +2659,7 @@ pub struct Pepm16ExpressionsParser<'i> {
     stats: Stats,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 90],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 15],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 14],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -2709,7 +2684,7 @@ impl<'i> Pepm16ExpressionsParser<'i> {
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 4],
             intermediate_nodes_index: [const { InlineMap::Empty }; 90],
-            terminal_nodes_index: [const { InlineMap::Empty }; 15],
+            terminal_nodes_index: [const { InlineMap::Empty }; 14],
             stats: Stats::default(),
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),

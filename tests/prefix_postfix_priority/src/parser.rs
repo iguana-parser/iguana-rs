@@ -6,23 +6,16 @@
 // 
 // E(p: i32)
 //   = "a" return 0
-//   | [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "!" return 0
-//   | "-" Layout E(3) return 3
-//   | [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" Layout E(2) return 2
-//   | [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1
-// 
-// StartS
-//   = Layout start:S Layout
-// 
-// StartE
-//   = Layout start:E(0) Layout
+//   | [4 >= p] l=E(p) [l == 0 || l >= 4] "!" return 0
+//   | "-" E(3) return 3
+//   | [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
+//   | [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
 // 
 // "a" = a
 // "!" = !
 // "-" = -
 // "*" = *
 // "+" = +
-// Layout = ε
 use std::cell::OnceCell;
 use crate::{
     scanner::PrefixPostfixPriorityScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
@@ -40,20 +33,10 @@ use iguana_runtime::{
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
 use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 4] = [
+pub const NONTERMINALS: [Nonterminal; 2] = [
     Nonterminal {
         name: "S",
         display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartS",
-        display: "StartS",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartE",
-        display: "StartE",
         kind: None,
     },
     Nonterminal {
@@ -63,19 +46,17 @@ pub const NONTERMINALS: [Nonterminal; 4] = [
     },
 ];
 static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "StartS" => NonterminalId(1), "StartE" => NonterminalId(2),
-    "E" => NonterminalId(3)
+    "S" => NonterminalId(0), "E" => NonterminalId(1)
 };
-pub const TERMINALS: [Terminal; 7] = [
+pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "\"a\"" },
     Terminal { name: "\"!\"" },
     Terminal { name: "\"-\"" },
     Terminal { name: "\"*\"" },
     Terminal { name: "\"+\"" },
-    Terminal { name: "Layout" },
     Terminal { name: "Epsilon" },
 ];
-pub const SLOTS: [Slot; 43] = [
+pub const SLOTS: [Slot; 29] = [
     Slot { display_name: "S : . E(0)" },
     Slot { display_name: "S : E(0)." },
     Slot {
@@ -88,118 +69,76 @@ pub const SLOTS: [Slot; 43] = [
         display_name: "E : \"a\" return 0.",
     },
     Slot {
-        display_name: "E : . [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"!\" return 0",
+        display_name: "E : . [4 >= p] l=E(p) [l == 0 || l >= 4] \"!\" return 0",
     },
     Slot {
-        display_name: "E : [4 >= p] . l=E(p) [l == 0 || l >= 4] Layout \"!\" return 0",
+        display_name: "E : [4 >= p] . l=E(p) [l == 0 || l >= 4] \"!\" return 0",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) . [l == 0 || l >= 4] Layout \"!\" return 0",
+        display_name: "E : [4 >= p] l=E(p) . [l == 0 || l >= 4] \"!\" return 0",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] . Layout \"!\" return 0",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] . \"!\" return 0",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout . \"!\" return 0",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] \"!\" . return 0",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"!\" . return 0",
+        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] \"!\" return 0.",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout \"!\" return 0.",
+        display_name: "E : . \"-\" E(3) return 3",
     },
     Slot {
-        display_name: "E : . \"-\" Layout E(3) return 3",
+        display_name: "E : \"-\" . E(3) return 3",
     },
     Slot {
-        display_name: "E : \"-\" . Layout E(3) return 3",
+        display_name: "E : \"-\" E(3) . return 3",
     },
     Slot {
-        display_name: "E : \"-\" Layout . E(3) return 3",
+        display_name: "E : \"-\" E(3) return 3.",
     },
     Slot {
-        display_name: "E : \"-\" Layout E(3) . return 3",
+        display_name: "E : . [2 >= p] l=E(p) [l == 0 || l >= 2] \"*\" E(2) return 2",
     },
     Slot {
-        display_name: "E : \"-\" Layout E(3) return 3.",
+        display_name: "E : [2 >= p] . l=E(p) [l == 0 || l >= 2] \"*\" E(2) return 2",
     },
     Slot {
-        display_name: "E : . [2 >= p] l=E(p) [l == 0 || l >= 2] Layout \"*\" Layout E(2) return 2",
+        display_name: "E : [2 >= p] l=E(p) . [l == 0 || l >= 2] \"*\" E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] . l=E(p) [l == 0 || l >= 2] Layout \"*\" Layout E(2) return 2",
+        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 2] . \"*\" E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) . [l == 0 || l >= 2] Layout \"*\" Layout E(2) return 2",
+        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 2] \"*\" . E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 2] . Layout \"*\" Layout E(2) return 2",
+        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 2] \"*\" E(2) . return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout . \"*\" Layout E(2) return 2",
+        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 2] \"*\" E(2) return 2.",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout \"*\" . Layout E(2) return 2",
+        display_name: "E : . [1 >= p] l=E(p) [l == 0 || l >= 1] \"+\" E(1) return 1",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout \"*\" Layout . E(2) return 2",
+        display_name: "E : [1 >= p] . l=E(p) [l == 0 || l >= 1] \"+\" E(1) return 1",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout \"*\" Layout E(2) . return 2",
+        display_name: "E : [1 >= p] l=E(p) . [l == 0 || l >= 1] \"+\" E(1) return 1",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout \"*\" Layout E(2) return 2.",
+        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] . \"+\" E(1) return 1",
     },
     Slot {
-        display_name: "E : . [1 >= p] l=E(p) [l == 0 || l >= 1] Layout \"+\" Layout E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] \"+\" . E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] . l=E(p) [l == 0 || l >= 1] Layout \"+\" Layout E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] \"+\" E(1) . return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) . [l == 0 || l >= 1] Layout \"+\" Layout E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] . Layout \"+\" Layout E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout . \"+\" Layout E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout \"+\" . Layout E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout \"+\" Layout . E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout \"+\" Layout E(1) . return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout \"+\" Layout E(1) return 1.",
-    },
-    Slot {
-        display_name: "StartS : . Layout start:S Layout",
-    },
-    Slot {
-        display_name: "StartS : Layout . start:S Layout",
-    },
-    Slot {
-        display_name: "StartS : Layout start:S . Layout",
-    },
-    Slot {
-        display_name: "StartS : Layout start:S Layout.",
-    },
-    Slot {
-        display_name: "StartE : . Layout start:E(0) Layout",
-    },
-    Slot {
-        display_name: "StartE : Layout . start:E(0) Layout",
-    },
-    Slot {
-        display_name: "StartE : Layout start:E(0) . Layout",
-    },
-    Slot {
-        display_name: "StartE : Layout start:E(0) Layout.",
+        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] \"+\" E(1) return 1.",
     },
 ];
 impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
@@ -291,7 +230,7 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(3);
+                let nonterminal_id = NonterminalId(1);
                 let end_slot_id = SlotId(4);
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
@@ -311,13 +250,13 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "!" return 0
+            //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] "!" return 0
             SlotId(5) => {
                 if 4 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(6), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [4 >= p] . l=E(p) [l == 0 || l >= 4] Layout "!" return 0
+            //E(p: i32) : [4 >= p] . l=E(p) [l == 0 || l >= 4] "!" return 0
             SlotId(6) => {
                 self.create_e(
                     result,
@@ -328,7 +267,7 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            //E(p: i32) : [4 >= p] l=E(p) . [l == 0 || l >= 4] Layout "!" return 0
+            //E(p: i32) : [4 >= p] l=E(p) . [l == 0 || l >= 4] "!" return 0
             SlotId(7) => {
                 if (self.lookup("l", env.unwrap()) == 0)
                     || (self.lookup("l", env.unwrap()) >= 4)
@@ -336,16 +275,16 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     self.execute(input_index, SlotId(8), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . Layout "!" return 0
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . "!" return 0
             SlotId(8) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(5), i) {
+                record!(self, MatchingTerminal, "\"!\"", i);
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "\"!\"", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout . "!" return 0
+                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] "!" . return 0
                         let next_slot_id = SlotId(9);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -370,65 +309,25 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(8), gss_node_id,
-                            result
+                            self, MatchFailed, "\"!\"", i, SlotId(8), gss_node_id, result
                         );
                     }
                 }
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout . "!" return 0
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] "!" . return 0
             SlotId(9) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"!\"", i);
-                match self.scanner.match_token(TerminalId(1), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"!\"", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
-                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "!" . return 0
-                        let next_slot_id = SlotId(10);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "\"!\"", i, SlotId(9), gss_node_id, result
-                        );
-                    }
-                }
+                self.execute(input_index, SlotId(10), result, gss_node_id, env);
             }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "!" . return 0
+            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] "!" return 0.
             SlotId(10) => {
-                self.execute(input_index, SlotId(11), result, gss_node_id, env);
-            }
-            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "!" return 0.
-            SlotId(11) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(11);
+                let nonterminal_id = NonterminalId(1);
+                let end_slot_id = SlotId(10);
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
@@ -447,8 +346,8 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . "-" Layout E(3) return 3
-            SlotId(12) => {
+            //E(p: i32) : . "-" E(3) return 3
+            SlotId(11) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"-\"", i);
                 match self.scanner.match_token(TerminalId(2), i) {
@@ -456,77 +355,37 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"-\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(2), i, j);
-                        //E(p: i32) : "-" . Layout E(3) return 3
-                        let next_slot_id = SlotId(13);
+                        //E(p: i32) : "-" . E(3) return 3
+                        let next_slot_id = SlotId(12);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"-\"", i, SlotId(12), gss_node_id,
+                            self, MatchFailed, "\"-\"", i, SlotId(11), gss_node_id,
                             result
                         );
                     }
                 }
             }
-            //E(p: i32) : "-" . Layout E(3) return 3
+            //E(p: i32) : "-" . E(3) return 3
+            SlotId(12) => {
+                self.create_e(result, gss_node_id, SlotId(13), env, None, 3);
+            }
+            //E(p: i32) : "-" E(3) . return 3
             SlotId(13) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(5), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //E(p: i32) : "-" Layout . E(3) return 3
-                        let next_slot_id = SlotId(14);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(13), gss_node_id,
-                            result
-                        );
-                    }
-                }
+                self.execute(input_index, SlotId(14), result, gss_node_id, env);
             }
-            //E(p: i32) : "-" Layout . E(3) return 3
+            //E(p: i32) : "-" E(3) return 3.
             SlotId(14) => {
-                self.create_e(result, gss_node_id, SlotId(15), env, None, 3);
-            }
-            //E(p: i32) : "-" Layout E(3) . return 3
-            SlotId(15) => {
-                self.execute(input_index, SlotId(16), result, gss_node_id, env);
-            }
-            //E(p: i32) : "-" Layout E(3) return 3.
-            SlotId(16) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(16);
+                let nonterminal_id = NonterminalId(1);
+                let end_slot_id = SlotId(14);
                 let return_value = 3;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
@@ -545,73 +404,33 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" Layout E(2) return 2
-            SlotId(17) => {
+            //E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
+            SlotId(15) => {
                 if 2 >= self.lookup("p", env.unwrap()) {
-                    self.execute(input_index, SlotId(18), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(16), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [2 >= p] . l=E(p) [l == 0 || l >= 2] Layout "*" Layout E(2) return 2
-            SlotId(18) => {
+            //E(p: i32) : [2 >= p] . l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
+            SlotId(16) => {
                 self.create_e(
                     result,
                     gss_node_id,
-                    SlotId(19),
+                    SlotId(17),
                     env,
                     Some("l"),
                     self.lookup("p", env.unwrap()),
                 );
             }
-            //E(p: i32) : [2 >= p] l=E(p) . [l == 0 || l >= 2] Layout "*" Layout E(2) return 2
-            SlotId(19) => {
+            //E(p: i32) : [2 >= p] l=E(p) . [l == 0 || l >= 2] "*" E(2) return 2
+            SlotId(17) => {
                 if (self.lookup("l", env.unwrap()) == 0)
                     || (self.lookup("l", env.unwrap()) >= 2)
                 {
-                    self.execute(input_index, SlotId(20), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(18), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] . Layout "*" Layout E(2) return 2
-            SlotId(20) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(5), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout . "*" Layout E(2) return 2
-                        let next_slot_id = SlotId(21);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(20), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout . "*" Layout E(2) return 2
-            SlotId(21) => {
+            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] . "*" E(2) return 2
+            SlotId(18) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"*\"", i);
                 match self.scanner.match_token(TerminalId(3), i) {
@@ -619,8 +438,8 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"*\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(3), i, j);
-                        //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" . Layout E(2) return 2
-                        let next_slot_id = SlotId(22);
+                        //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" . E(2) return 2
+                        let next_slot_id = SlotId(19);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
@@ -644,70 +463,30 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"*\"", i, SlotId(21), gss_node_id,
+                            self, MatchFailed, "\"*\"", i, SlotId(18), gss_node_id,
                             result
                         );
                     }
                 }
             }
-            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" . Layout E(2) return 2
-            SlotId(22) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(5), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" Layout . E(2) return 2
-                        let next_slot_id = SlotId(23);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(22), gss_node_id,
-                            result
-                        );
-                    }
-                }
+            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" . E(2) return 2
+            SlotId(19) => {
+                self.create_e(result, gss_node_id, SlotId(20), env, None, 2);
             }
-            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" Layout . E(2) return 2
-            SlotId(23) => {
-                self.create_e(result, gss_node_id, SlotId(24), env, None, 2);
+            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) . return 2
+            SlotId(20) => {
+                self.execute(input_index, SlotId(21), result, gss_node_id, env);
             }
-            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" Layout E(2) . return 2
-            SlotId(24) => {
-                self.execute(input_index, SlotId(25), result, gss_node_id, env);
-            }
-            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" Layout E(2) return 2.
-            SlotId(25) => {
+            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2.
+            SlotId(21) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(25);
+                let nonterminal_id = NonterminalId(1);
+                let end_slot_id = SlotId(21);
                 let return_value = 2;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
@@ -726,73 +505,33 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1
-            SlotId(26) => {
+            //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
+            SlotId(22) => {
                 if 1 >= self.lookup("p", env.unwrap()) {
-                    self.execute(input_index, SlotId(27), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(23), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [1 >= p] . l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1
-            SlotId(27) => {
+            //E(p: i32) : [1 >= p] . l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
+            SlotId(23) => {
                 self.create_e(
                     result,
                     gss_node_id,
-                    SlotId(28),
+                    SlotId(24),
                     env,
                     Some("l"),
                     self.lookup("p", env.unwrap()),
                 );
             }
-            //E(p: i32) : [1 >= p] l=E(p) . [l == 0 || l >= 1] Layout "+" Layout E(1) return 1
-            SlotId(28) => {
+            //E(p: i32) : [1 >= p] l=E(p) . [l == 0 || l >= 1] "+" E(1) return 1
+            SlotId(24) => {
                 if (self.lookup("l", env.unwrap()) == 0)
                     || (self.lookup("l", env.unwrap()) >= 1)
                 {
-                    self.execute(input_index, SlotId(29), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(25), result, gss_node_id, env);
                 }
             }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] . Layout "+" Layout E(1) return 1
-            SlotId(29) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(5), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout . "+" Layout E(1) return 1
-                        let next_slot_id = SlotId(30);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(29), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout . "+" Layout E(1) return 1
-            SlotId(30) => {
+            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] . "+" E(1) return 1
+            SlotId(25) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"+\"", i);
                 match self.scanner.match_token(TerminalId(4), i) {
@@ -800,8 +539,8 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"+\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" . Layout E(1) return 1
-                        let next_slot_id = SlotId(31);
+                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" . E(1) return 1
+                        let next_slot_id = SlotId(26);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
@@ -825,70 +564,30 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"+\"", i, SlotId(30), gss_node_id,
+                            self, MatchFailed, "\"+\"", i, SlotId(25), gss_node_id,
                             result
                         );
                     }
                 }
             }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" . Layout E(1) return 1
-            SlotId(31) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(5), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout . E(1) return 1
-                        let next_slot_id = SlotId(32);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(31), gss_node_id,
-                            result
-                        );
-                    }
-                }
+            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" . E(1) return 1
+            SlotId(26) => {
+                self.create_e(result, gss_node_id, SlotId(27), env, None, 1);
             }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout . E(1) return 1
-            SlotId(32) => {
-                self.create_e(result, gss_node_id, SlotId(33), env, None, 1);
+            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) . return 1
+            SlotId(27) => {
+                self.execute(input_index, SlotId(28), result, gss_node_id, env);
             }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) . return 1
-            SlotId(33) => {
-                self.execute(input_index, SlotId(34), result, gss_node_id, env);
-            }
-            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1.
-            SlotId(34) => {
+            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1.
+            SlotId(28) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(34);
+                let nonterminal_id = NonterminalId(1);
+                let end_slot_id = SlotId(28);
                 let return_value = 1;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
@@ -903,190 +602,6 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
-                }
-            }
-            //StartS : . Layout start:S Layout
-            SlotId(35) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(5), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //StartS : Layout . start:S Layout
-                        let next_slot_id = SlotId(36);
-                        let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(35), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //StartS : Layout . start:S Layout
-            SlotId(36) => {
-                self.create_s(result, gss_node_id, SlotId(37));
-            }
-            //StartS : Layout start:S . Layout
-            SlotId(37) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(5), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //StartS : Layout start:S Layout.
-                        let next_slot_id = SlotId(38);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(37), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //StartS : Layout start:S Layout.
-            SlotId(38) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(38);
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
-                {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
-                }
-            }
-            //StartE : . Layout start:E(0) Layout
-            SlotId(39) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(5), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //StartE : Layout . start:E(0) Layout
-                        let next_slot_id = SlotId(40);
-                        let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(39), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //StartE : Layout . start:E(0) Layout
-            SlotId(40) => {
-                self.create_e(result, gss_node_id, SlotId(41), env, None, 0);
-            }
-            //StartE : Layout start:E(0) . Layout
-            SlotId(41) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(5), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
-                        //StartE : Layout start:E(0) Layout.
-                        let next_slot_id = SlotId(42);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(41), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //StartE : Layout start:E(0) Layout.
-            SlotId(42) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(2);
-                let end_slot_id = SlotId(42);
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
-                {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
                     };
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
@@ -1116,7 +631,7 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                 });
             }
             //E
-            NonterminalId(3) => {
+            NonterminalId(1) => {
                 //E(p: i32) : . "a" return 0
                 self.add_descriptor(Descriptor {
                     input_index,
@@ -1125,7 +640,7 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] Layout "!" return 0
+                //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] "!" return 0
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(5),
@@ -1133,48 +648,26 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . "-" Layout E(3) return 3
+                //E(p: i32) : . "-" E(3) return 3
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(12),
+                    slot_id: SlotId(11),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "*" Layout E(2) return 2
+                //E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(17),
+                    slot_id: SlotId(15),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
                 });
-                //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1
+                //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(26),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
-            }
-            //StartS
-            NonterminalId(1) => {
-                //StartS : . Layout start:S Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(35),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
-            }
-            //StartE
-            NonterminalId(2) => {
-                //StartE : . Layout start:E(0) Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(39),
+                    slot_id: SlotId(22),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
@@ -1388,14 +881,14 @@ pub struct PrefixPostfixPriorityParser<'i> {
     descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
     //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
-    gss_nodes_index: [Vec<(u32, GssNodeId)>; 4],
+    gss_nodes_index: [Vec<(u32, GssNodeId)>; 2],
     //GSS index for nonterminal E
     gss_nodes_index_e: Vec<(u32, i32, GssNodeId)>,
     sppf_nodes: Vec<SPPFNode>,
     stats: Stats,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 43],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 7],
+    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 29],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -1413,14 +906,14 @@ impl<'i> PrefixPostfixPriorityParser<'i> {
         Self {
             start_nonterminal,
             scanner: PrefixPostfixPriorityScanner::new(input),
-            gss_nodes_index: [const { vec![] }; 4],
+            gss_nodes_index: [const { vec![] }; 2],
             gss_nodes_index_e: vec![],
             descriptors: vec![],
             gss_nodes: vec![],
             sppf_nodes: vec![],
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 4],
-            intermediate_nodes_index: [const { InlineMap::Empty }; 43],
-            terminal_nodes_index: [const { InlineMap::Empty }; 7],
+            nonterminal_nodes_index: [const { InlineMap::Empty }; 2],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 29],
+            terminal_nodes_index: [const { InlineMap::Empty }; 6],
             stats: Stats::default(),
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
@@ -1439,22 +932,6 @@ impl<'i> PrefixPostfixPriorityParser<'i> {
         return_slot: SlotId,
     ) {
         self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
-    }
-    fn create_start_s(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-    ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
-    }
-    fn create_start_e(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-    ) {
-        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot);
     }
     fn create_e(
         &mut self,
@@ -1478,7 +955,7 @@ impl<'i> PrefixPostfixPriorityParser<'i> {
         };
         //If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_e(i, p) {
-            record!(self, GSSNodeFound, NonterminalId(3), i);
+            record!(self, GSSNodeFound, NonterminalId(1), i);
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
@@ -1488,8 +965,8 @@ impl<'i> PrefixPostfixPriorityParser<'i> {
                 binding,
             );
         } else {
-            record!(self, GSSNodeNotFound, NonterminalId(3), i);
-            let new_gss_node_id = self.new_gss_node(NonterminalId(3), i);
+            record!(self, GSSNodeNotFound, NonterminalId(1), i);
+            let new_gss_node_id = self.new_gss_node(NonterminalId(1), i);
             self.add_gss_edge(
                 new_gss_node_id,
                 gss_node_id,
@@ -1501,7 +978,7 @@ impl<'i> PrefixPostfixPriorityParser<'i> {
             let (env_id, env) = self.new_env();
             env.bind("p", p);
             self.add_first_descriptors(
-                NonterminalId(3),
+                NonterminalId(1),
                 i,
                 new_gss_node_id,
                 Some(env_id),

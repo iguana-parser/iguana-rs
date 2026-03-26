@@ -4,12 +4,12 @@ use crate::grammar::{
     transformations::transform_rule_by_symbols,
 };
 
-pub fn transform(syntax_rules: Vec<SyntaxRule>, layout_def: Symbol) -> Vec<SyntaxRule> {
+pub fn transform(syntax_rules: Vec<SyntaxRule>, layout_symbol: &Symbol) -> Vec<SyntaxRule> {
     syntax_rules
         .into_iter()
         .map(|rule| {
             let layout_symbol = match &rule.layout {
-                LayoutStrategy::Default => Some(layout_def.clone()),
+                LayoutStrategy::Default => Some(layout_symbol.clone()),
                 LayoutStrategy::None => None,
                 LayoutStrategy::Custom(_id) => {
                     // TODO: resolve custom layout identifier to a Symbol

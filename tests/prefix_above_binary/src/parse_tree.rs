@@ -17,8 +17,6 @@ pub enum TokenKind {
     T2,
     //"+"
     T3,
-    //Layout
-    T4,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
@@ -27,7 +25,6 @@ impl TokenKind {
             TokenKind::T1 => "\"a\"",
             TokenKind::T2 => "\"-\"",
             TokenKind::T3 => "\"+\"",
-            TokenKind::T4 => "Layout",
             _ => unreachable!(),
         }
     }
@@ -172,32 +169,32 @@ pub struct S {
 pub enum E {
     //"a" return 0
     Alt0 { lit_0: Token, span: Span },
-    //"-" Layout E(2) return 2
-    Alt1 { lit_0: Token, layout: Token, e: Box<E>, span: Span },
-    //[1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1
+    //"-" WS E(2) return 2
+    Alt1 { lit_0: Token, w_s: Token, e: Box<E>, span: Span },
+    //[1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS E(1) return 1
     Alt2 {
         e_0: Box<E>,
-        layout_1: Token,
+        w_s_1: Token,
         lit_2: Token,
-        layout_3: Token,
+        w_s_3: Token,
         e_4: Box<E>,
         span: Span,
     },
 }
-//StartS = Layout start:S Layout
+//StartS = WS start:S WS
 #[derive(Debug)]
 pub struct StartS {
-    pub layout_0: Token,
+    pub w_s_0: Token,
     pub start: S,
-    pub layout_2: Token,
+    pub w_s_2: Token,
     pub span: Span,
 }
-//StartE = Layout start:E(0) Layout
+//StartE = WS start:E(0) WS
 #[derive(Debug)]
 pub struct StartE {
-    pub layout_0: Token,
+    pub w_s_0: Token,
     pub start: E,
-    pub layout_2: Token,
+    pub w_s_2: Token,
     pub span: Span,
 }
 impl S {
@@ -226,20 +223,20 @@ impl E {
                     _ => None,
                 }
             }
-            E::Alt1 { lit_0, layout, e, .. } => {
+            E::Alt1 { lit_0, w_s, e, .. } => {
                 match index {
                     0 => Some(lit_0.as_parse_tree_ref()),
-                    1 => Some(layout.as_parse_tree_ref()),
+                    1 => Some(w_s.as_parse_tree_ref()),
                     2 => Some(e.as_parse_tree_ref()),
                     _ => None,
                 }
             }
-            E::Alt2 { e_0, layout_1, lit_2, layout_3, e_4, .. } => {
+            E::Alt2 { e_0, w_s_1, lit_2, w_s_3, e_4, .. } => {
                 match index {
                     0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(layout_1.as_parse_tree_ref()),
+                    1 => Some(w_s_1.as_parse_tree_ref()),
                     2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(layout_3.as_parse_tree_ref()),
+                    3 => Some(w_s_3.as_parse_tree_ref()),
                     4 => Some(e_4.as_parse_tree_ref()),
                     _ => None,
                 }
@@ -267,9 +264,9 @@ impl E {
 impl StartS {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
+            0 => Some(self.w_s_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            2 => Some(self.w_s_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -286,9 +283,9 @@ impl StartS {
 impl StartE {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
+            0 => Some(self.w_s_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            2 => Some(self.w_s_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -325,8 +322,6 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         TerminalId(2) => TokenKind::T2,
         //"+"
         TerminalId(3) => TokenKind::T3,
-        //Layout
-        TerminalId(4) => TokenKind::T4,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -357,16 +352,16 @@ impl ParseTreeBuilder<ParseTree> for PrefixAboveBinaryParseTreeBuilder {
             //StartS
             NonterminalId(1) => {
                 match nonterminal_node.return_slot {
-                    //StartS : Layout start:S Layout.
+                    //StartS : WS start:S WS.
                     SlotId(22) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartS {
-                            layout_0: layout_0.unwrap_token(),
+                            w_s_0: w_s_0.unwrap_token(),
                             start: start.unwrap_s(),
-                            layout_2: layout_2.unwrap_token(),
+                            w_s_2: w_s_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -377,16 +372,16 @@ impl ParseTreeBuilder<ParseTree> for PrefixAboveBinaryParseTreeBuilder {
             //StartE
             NonterminalId(2) => {
                 match nonterminal_node.return_slot {
-                    //StartE : Layout start:E(0) Layout.
+                    //StartE : WS start:E(0) WS.
                     SlotId(26) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartE {
-                            layout_0: layout_0.unwrap_token(),
+                            w_s_0: w_s_0.unwrap_token(),
                             start: start.unwrap_e(),
-                            layout_2: layout_2.unwrap_token(),
+                            w_s_2: w_s_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -406,31 +401,29 @@ impl ParseTreeBuilder<ParseTree> for PrefixAboveBinaryParseTreeBuilder {
                         }
                             .into()
                     }
-                    //E : "-" Layout E(2) return 2.
+                    //E : "-" WS E(2) return 2.
                     SlotId(9) => {
-                        let [lit_0, layout, e] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
+                        let [lit_0, w_s, e] = <[ParseTree; 3usize]>::try_from(children)
                             .unwrap();
                         E::Alt1 {
                             lit_0: lit_0.unwrap_token(),
-                            layout: layout.unwrap_token(),
+                            w_s: w_s.unwrap_token(),
                             e: Box::new(e.unwrap_e()),
                             span: nonterminal_node.span,
                         }
                             .into()
                     }
-                    //E : [1 >= p] l=E(p) [l == 0 || l >= 1] Layout "+" Layout E(1) return 1.
+                    //E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS E(1) return 1.
                     SlotId(18) => {
-                        let [e_0, layout_1, lit_2, layout_3, e_4] = <[ParseTree; 5usize]>::try_from(
+                        let [e_0, w_s_1, lit_2, w_s_3, e_4] = <[ParseTree; 5usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         E::Alt2 {
                             e_0: Box::new(e_0.unwrap_e()),
-                            layout_1: layout_1.unwrap_token(),
+                            w_s_1: w_s_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
-                            layout_3: layout_3.unwrap_token(),
+                            w_s_3: w_s_3.unwrap_token(),
                             e_4: Box::new(e_4.unwrap_e()),
                             span: nonterminal_node.span,
                         }

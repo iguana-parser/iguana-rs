@@ -242,7 +242,10 @@ impl Symbol {
 
     pub fn resolved_def(&self) -> DefinitionId {
         self.as_identifier()
-            .expect("Symbol should be an Identifier or Call")
+            .expect(&format!(
+                "Symbol should be an Identifier or Call but was {}",
+                self
+            ))
             .definition
             .expect("Symbol should be resolved")
     }
@@ -398,7 +401,8 @@ pub struct Identifier {
 
 impl Identifier {
     pub fn resolve(&self) -> DefinitionId {
-        self.definition.expect("Identifier is not resolved")
+        self.definition
+            .unwrap_or_else(|| panic!("unresolved identifier {}", self))
     }
 }
 

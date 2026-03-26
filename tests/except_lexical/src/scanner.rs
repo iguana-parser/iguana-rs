@@ -49,18 +49,12 @@ impl<'i> ExceptLexicalScanner<'i> {
                 }
             })
     }
-    //Layout = ε
-    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
-        let i = input_index;
-        Some(i)
-    }
 }
 impl Scanner for ExceptLexicalScanner<'_> {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         match terminal_id {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(1) => self.match_terminal_1(input_index),
-            TerminalId(2) => self.match_terminal_2(input_index),
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

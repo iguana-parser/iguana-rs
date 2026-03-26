@@ -3,11 +3,11 @@
 // 
 // Expr
 //   = Id #id
-//   | Expr Layout "(" Layout Expr_Star_0 Layout ")" #call
-//   | Expr Layout "," Layout Expr #comma
+//   | Expr "(" Expr_Star_0 ")" #call
+//   | Expr "," Expr #comma
 // 
 // Expr_Plus_0
-//   = Expr_Plus_0 Layout "," Layout Expr_except_comma
+//   = Expr_Plus_0 "," Expr_except_comma
 //   | Expr_except_comma
 // 
 // Expr_Opt_0
@@ -19,16 +19,12 @@
 // 
 // Expr_except_comma
 //   = Id #id
-//   | Expr Layout "(" Layout Expr_Star_0 Layout ")" #call
-// 
-// StartExpr
-//   = Layout start:Expr Layout
+//   | Expr "(" Expr_Star_0 ")" #call
 // 
 // Id = ([a-z]+)
 // "(" = (
 // "," = ,
 // ")" = )
-// Layout = ε
 use std::cell::OnceCell;
 use crate::{
     scanner::ExcludeByLabelScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
@@ -46,7 +42,7 @@ use iguana_runtime::{
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
 use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 6] = [
+pub const NONTERMINALS: [Nonterminal; 5] = [
     Nonterminal {
         name: "Expr",
         display: "Expr",
@@ -72,89 +68,62 @@ pub const NONTERMINALS: [Nonterminal; 6] = [
         display: "Expr !comma",
         kind: None,
     },
-    Nonterminal {
-        name: "StartExpr",
-        display: "StartExpr",
-        kind: None,
-    },
 ];
 static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "Expr" => NonterminalId(0), "Expr_Plus_0" => NonterminalId(1), "Expr_Opt_0" =>
     NonterminalId(2), "Expr_Star_0" => NonterminalId(3), "Expr_except_comma" =>
-    NonterminalId(4), "StartExpr" => NonterminalId(5)
+    NonterminalId(4)
 };
-pub const TERMINALS: [Terminal; 6] = [
+pub const TERMINALS: [Terminal; 5] = [
     Terminal { name: "Id" },
     Terminal { name: "\"(\"" },
     Terminal { name: "\",\"" },
     Terminal { name: "\")\"" },
-    Terminal { name: "Layout" },
     Terminal { name: "Epsilon" },
 ];
-pub const SLOTS: [Slot; 43] = [
+pub const SLOTS: [Slot; 29] = [
     Slot {
         display_name: "Expr : . Id",
     },
     Slot { display_name: "Expr : Id." },
     Slot {
-        display_name: "Expr : . Expr Layout \"(\" Layout {Expr !comma \",\"}* Layout \")\"",
+        display_name: "Expr : . Expr \"(\" {Expr !comma \",\"}* \")\"",
     },
     Slot {
-        display_name: "Expr : Expr . Layout \"(\" Layout {Expr !comma \",\"}* Layout \")\"",
+        display_name: "Expr : Expr . \"(\" {Expr !comma \",\"}* \")\"",
     },
     Slot {
-        display_name: "Expr : Expr Layout . \"(\" Layout {Expr !comma \",\"}* Layout \")\"",
+        display_name: "Expr : Expr \"(\" . {Expr !comma \",\"}* \")\"",
     },
     Slot {
-        display_name: "Expr : Expr Layout \"(\" . Layout {Expr !comma \",\"}* Layout \")\"",
+        display_name: "Expr : Expr \"(\" {Expr !comma \",\"}* . \")\"",
     },
     Slot {
-        display_name: "Expr : Expr Layout \"(\" Layout . {Expr !comma \",\"}* Layout \")\"",
+        display_name: "Expr : Expr \"(\" {Expr !comma \",\"}* \")\".",
     },
     Slot {
-        display_name: "Expr : Expr Layout \"(\" Layout {Expr !comma \",\"}* . Layout \")\"",
+        display_name: "Expr : . Expr \",\" Expr",
     },
     Slot {
-        display_name: "Expr : Expr Layout \"(\" Layout {Expr !comma \",\"}* Layout . \")\"",
+        display_name: "Expr : Expr . \",\" Expr",
     },
     Slot {
-        display_name: "Expr : Expr Layout \"(\" Layout {Expr !comma \",\"}* Layout \")\".",
+        display_name: "Expr : Expr \",\" . Expr",
     },
     Slot {
-        display_name: "Expr : . Expr Layout \",\" Layout Expr",
+        display_name: "Expr : Expr \",\" Expr.",
     },
     Slot {
-        display_name: "Expr : Expr . Layout \",\" Layout Expr",
+        display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ \",\" Expr !comma",
     },
     Slot {
-        display_name: "Expr : Expr Layout . \",\" Layout Expr",
+        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ . \",\" Expr !comma",
     },
     Slot {
-        display_name: "Expr : Expr Layout \",\" . Layout Expr",
+        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" . Expr !comma",
     },
     Slot {
-        display_name: "Expr : Expr Layout \",\" Layout . Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr Layout \",\" Layout Expr.",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ Layout \",\" Layout Expr !comma",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ . Layout \",\" Layout Expr !comma",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ Layout . \",\" Layout Expr !comma",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ Layout \",\" . Layout Expr !comma",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ Layout \",\" Layout . Expr !comma",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ Layout \",\" Layout Expr !comma.",
+        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" Expr !comma.",
     },
     Slot {
         display_name: "{Expr !comma \",\"}+ : . Expr !comma",
@@ -184,40 +153,19 @@ pub const SLOTS: [Slot; 43] = [
         display_name: "Expr !comma : Id.",
     },
     Slot {
-        display_name: "Expr !comma : . Expr Layout \"(\" Layout {Expr !comma \",\"}* Layout \")\"",
+        display_name: "Expr !comma : . Expr \"(\" {Expr !comma \",\"}* \")\"",
     },
     Slot {
-        display_name: "Expr !comma : Expr . Layout \"(\" Layout {Expr !comma \",\"}* Layout \")\"",
+        display_name: "Expr !comma : Expr . \"(\" {Expr !comma \",\"}* \")\"",
     },
     Slot {
-        display_name: "Expr !comma : Expr Layout . \"(\" Layout {Expr !comma \",\"}* Layout \")\"",
+        display_name: "Expr !comma : Expr \"(\" . {Expr !comma \",\"}* \")\"",
     },
     Slot {
-        display_name: "Expr !comma : Expr Layout \"(\" . Layout {Expr !comma \",\"}* Layout \")\"",
+        display_name: "Expr !comma : Expr \"(\" {Expr !comma \",\"}* . \")\"",
     },
     Slot {
-        display_name: "Expr !comma : Expr Layout \"(\" Layout . {Expr !comma \",\"}* Layout \")\"",
-    },
-    Slot {
-        display_name: "Expr !comma : Expr Layout \"(\" Layout {Expr !comma \",\"}* . Layout \")\"",
-    },
-    Slot {
-        display_name: "Expr !comma : Expr Layout \"(\" Layout {Expr !comma \",\"}* Layout . \")\"",
-    },
-    Slot {
-        display_name: "Expr !comma : Expr Layout \"(\" Layout {Expr !comma \",\"}* Layout \")\".",
-    },
-    Slot {
-        display_name: "StartExpr : . Layout start:Expr Layout",
-    },
-    Slot {
-        display_name: "StartExpr : Layout . start:Expr Layout",
-    },
-    Slot {
-        display_name: "StartExpr : Layout start:Expr . Layout",
-    },
-    Slot {
-        display_name: "StartExpr : Layout start:Expr Layout.",
+        display_name: "Expr !comma : Expr \"(\" {Expr !comma \",\"}* \")\".",
     },
 ];
 impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
@@ -293,20 +241,20 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //Expr : . Expr Layout "(" Layout Expr_Star_0 Layout ")"
+            //Expr : . Expr "(" Expr_Star_0 ")"
             SlotId(2) => {
                 self.create_expr(result, gss_node_id, SlotId(3));
             }
-            //Expr : Expr . Layout "(" Layout Expr_Star_0 Layout ")"
+            //Expr : Expr . "(" Expr_Star_0 ")"
             SlotId(3) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                record!(self, MatchingTerminal, "\"(\"", i);
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "\"(\"", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //Expr : Expr Layout . "(" Layout Expr_Star_0 Layout ")"
+                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                        //Expr : Expr "(" . Expr_Star_0 ")"
                         let next_slot_id = SlotId(4);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -331,61 +279,25 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(3), gss_node_id,
-                            result
+                            self, MatchFailed, "\"(\"", i, SlotId(3), gss_node_id, result
                         );
                     }
                 }
             }
-            //Expr : Expr Layout . "(" Layout Expr_Star_0 Layout ")"
+            //Expr : Expr "(" . Expr_Star_0 ")"
             SlotId(4) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"(\"", i);
-                match self.scanner.match_token(TerminalId(1), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
-                        //Expr : Expr Layout "(" . Layout Expr_Star_0 Layout ")"
-                        let next_slot_id = SlotId(5);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", i, SlotId(4), gss_node_id, result
-                        );
-                    }
-                }
+                self.create_expr_star_0(result, gss_node_id, SlotId(5));
             }
-            //Expr : Expr Layout "(" . Layout Expr_Star_0 Layout ")"
+            //Expr : Expr "(" Expr_Star_0 . ")"
             SlotId(5) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                record!(self, MatchingTerminal, "\")\"", i);
+                match self.scanner.match_token(TerminalId(3), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "\")\"", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //Expr : Expr Layout "(" Layout . Expr_Star_0 Layout ")"
+                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                        //Expr : Expr "(" Expr_Star_0 ")".
                         let next_slot_id = SlotId(6);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -410,66 +322,51 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(5), gss_node_id,
-                            result
+                            self, MatchFailed, "\")\"", i, SlotId(5), gss_node_id, result
                         );
                     }
                 }
             }
-            //Expr : Expr Layout "(" Layout . Expr_Star_0 Layout ")"
+            //Expr : Expr "(" Expr_Star_0 ")".
             SlotId(6) => {
-                self.create_expr_star_0(result, gss_node_id, SlotId(7));
-            }
-            //Expr : Expr Layout "(" Layout Expr_Star_0 . Layout ")"
-            SlotId(7) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //Expr : Expr Layout "(" Layout Expr_Star_0 Layout . ")"
-                        let next_slot_id = SlotId(8);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(7), gss_node_id,
-                            result
-                        );
-                    }
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                let node = self.sppf_node(result);
+                let left_extent = node.left_extent();
+                let right_extent = node.right_extent();
+                let nonterminal_id = NonterminalId(0);
+                let end_slot_id = SlotId(6);
+                if let Some(nonterminal_node_id) = self
+                    .create_nonterminal_node_or_attach_children(
+                        nonterminal_id,
+                        end_slot_id,
+                        left_extent,
+                        right_extent,
+                        result,
+                    )
+                {
+                    let popped_element = PoppedElement {
+                        nonterminal_node_id,
+                        return_value: None,
+                    };
+                    self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //Expr : Expr Layout "(" Layout Expr_Star_0 Layout . ")"
+            //Expr : . Expr "," Expr
+            SlotId(7) => {
+                self.create_expr(result, gss_node_id, SlotId(8));
+            }
+            //Expr : Expr . "," Expr
             SlotId(8) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "\")\"", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "\",\"", i);
+                match self.scanner.match_token(TerminalId(2), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", i, j);
+                        record!(self, MatchSuccess, "\",\"", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
-                        //Expr : Expr Layout "(" Layout Expr_Star_0 Layout ")".
+                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                        //Expr : Expr "," . Expr
                         let next_slot_id = SlotId(9);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -494,13 +391,17 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\")\"", i, SlotId(8), gss_node_id, result
+                            self, MatchFailed, "\",\"", i, SlotId(8), gss_node_id, result
                         );
                     }
                 }
             }
-            //Expr : Expr Layout "(" Layout Expr_Star_0 Layout ")".
+            //Expr : Expr "," . Expr
             SlotId(9) => {
+                self.create_expr(result, gss_node_id, SlotId(10));
+            }
+            //Expr : Expr "," Expr.
+            SlotId(10) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -508,7 +409,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(9);
+                let end_slot_id = SlotId(10);
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children(
                         nonterminal_id,
@@ -525,51 +426,11 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //Expr : . Expr Layout "," Layout Expr
-            SlotId(10) => {
-                self.create_expr(result, gss_node_id, SlotId(11));
-            }
-            //Expr : Expr . Layout "," Layout Expr
+            //Expr_Plus_0 : . Expr_Plus_0 "," Expr_except_comma
             SlotId(11) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //Expr : Expr Layout . "," Layout Expr
-                        let next_slot_id = SlotId(12);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(11), gss_node_id,
-                            result
-                        );
-                    }
-                }
+                self.create_expr_plus_0(result, gss_node_id, SlotId(12));
             }
-            //Expr : Expr Layout . "," Layout Expr
+            //Expr_Plus_0 : Expr_Plus_0 . "," Expr_except_comma
             SlotId(12) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\",\"", i);
@@ -578,7 +439,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         record!(self, MatchSuccess, "\",\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(2), i, j);
-                        //Expr : Expr Layout "," . Layout Expr
+                        //Expr_Plus_0 : Expr_Plus_0 "," . Expr_except_comma
                         let next_slot_id = SlotId(13);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -609,206 +470,12 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                 }
             }
-            //Expr : Expr Layout "," . Layout Expr
+            //Expr_Plus_0 : Expr_Plus_0 "," . Expr_except_comma
             SlotId(13) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //Expr : Expr Layout "," Layout . Expr
-                        let next_slot_id = SlotId(14);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(13), gss_node_id,
-                            result
-                        );
-                    }
-                }
+                self.create_expr_except_comma(result, gss_node_id, SlotId(14));
             }
-            //Expr : Expr Layout "," Layout . Expr
+            //Expr_Plus_0 : Expr_Plus_0 "," Expr_except_comma.
             SlotId(14) => {
-                self.create_expr(result, gss_node_id, SlotId(15));
-            }
-            //Expr : Expr Layout "," Layout Expr.
-            SlotId(15) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(15);
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
-                {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
-                }
-            }
-            //Expr_Plus_0 : . Expr_Plus_0 Layout "," Layout Expr_except_comma
-            SlotId(16) => {
-                self.create_expr_plus_0(result, gss_node_id, SlotId(17));
-            }
-            //Expr_Plus_0 : Expr_Plus_0 . Layout "," Layout Expr_except_comma
-            SlotId(17) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //Expr_Plus_0 : Expr_Plus_0 Layout . "," Layout Expr_except_comma
-                        let next_slot_id = SlotId(18);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(17), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //Expr_Plus_0 : Expr_Plus_0 Layout . "," Layout Expr_except_comma
-            SlotId(18) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\",\"", i);
-                match self.scanner.match_token(TerminalId(2), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\",\"", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
-                        //Expr_Plus_0 : Expr_Plus_0 Layout "," . Layout Expr_except_comma
-                        let next_slot_id = SlotId(19);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "\",\"", i, SlotId(18), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //Expr_Plus_0 : Expr_Plus_0 Layout "," . Layout Expr_except_comma
-            SlotId(19) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //Expr_Plus_0 : Expr_Plus_0 Layout "," Layout . Expr_except_comma
-                        let next_slot_id = SlotId(20);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(19), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //Expr_Plus_0 : Expr_Plus_0 Layout "," Layout . Expr_except_comma
-            SlotId(20) => {
-                self.create_expr_except_comma(result, gss_node_id, SlotId(21));
-            }
-            //Expr_Plus_0 : Expr_Plus_0 Layout "," Layout Expr_except_comma.
-            SlotId(21) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -816,7 +483,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(21);
+                let end_slot_id = SlotId(14);
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children(
                         nonterminal_id,
@@ -834,11 +501,11 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 }
             }
             //Expr_Plus_0 : . Expr_except_comma
-            SlotId(22) => {
-                self.create_expr_except_comma(result, gss_node_id, SlotId(23));
+            SlotId(15) => {
+                self.create_expr_except_comma(result, gss_node_id, SlotId(16));
             }
             //Expr_Plus_0 : Expr_except_comma.
-            SlotId(23) => {
+            SlotId(16) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -846,7 +513,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(23);
+                let end_slot_id = SlotId(16);
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children(
                         nonterminal_id,
@@ -864,11 +531,11 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 }
             }
             //Expr_Opt_0 : . Expr_Plus_0
-            SlotId(24) => {
-                self.create_expr_plus_0(result, gss_node_id, SlotId(25));
+            SlotId(17) => {
+                self.create_expr_plus_0(result, gss_node_id, SlotId(18));
             }
             //Expr_Opt_0 : Expr_Plus_0.
-            SlotId(25) => {
+            SlotId(18) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -876,7 +543,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(2);
-                let end_slot_id = SlotId(25);
+                let end_slot_id = SlotId(18);
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children(
                         nonterminal_id,
@@ -894,11 +561,11 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 }
             }
             //Expr_Opt_0 : .
-            SlotId(26) => {
-                let end_slot_id = SlotId(26);
+            SlotId(19) => {
+                let end_slot_id = SlotId(19);
                 let epsilon_node_id = self
                     .get_or_create_terminal_node(
-                        TerminalId(5),
+                        TerminalId(4),
                         input_index,
                         input_index,
                     );
@@ -920,11 +587,11 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 }
             }
             //Expr_Star_0 : . Expr_Opt_0
-            SlotId(27) => {
-                self.create_expr_opt_0(result, gss_node_id, SlotId(28));
+            SlotId(20) => {
+                self.create_expr_opt_0(result, gss_node_id, SlotId(21));
             }
             //Expr_Star_0 : Expr_Opt_0.
-            SlotId(28) => {
+            SlotId(21) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -932,7 +599,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(28);
+                let end_slot_id = SlotId(21);
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children(
                         nonterminal_id,
@@ -950,7 +617,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 }
             }
             //Expr_except_comma : . Id
-            SlotId(29) => {
+            SlotId(22) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Id", i);
                 match self.scanner.match_token(TerminalId(0), i) {
@@ -959,19 +626,19 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), i, j);
                         //Expr_except_comma : Id.
-                        let next_slot_id = SlotId(30);
+                        let next_slot_id = SlotId(23);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Id", i, SlotId(29), gss_node_id, result
+                            self, MatchFailed, "Id", i, SlotId(22), gss_node_id, result
                         );
                     }
                 }
             }
             //Expr_except_comma : Id.
-            SlotId(30) => {
+            SlotId(23) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -979,7 +646,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(4);
-                let end_slot_id = SlotId(30);
+                let end_slot_id = SlotId(23);
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children(
                         nonterminal_id,
@@ -996,52 +663,12 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //Expr_except_comma : . Expr Layout "(" Layout Expr_Star_0 Layout ")"
-            SlotId(31) => {
-                self.create_expr(result, gss_node_id, SlotId(32));
+            //Expr_except_comma : . Expr "(" Expr_Star_0 ")"
+            SlotId(24) => {
+                self.create_expr(result, gss_node_id, SlotId(25));
             }
-            //Expr_except_comma : Expr . Layout "(" Layout Expr_Star_0 Layout ")"
-            SlotId(32) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //Expr_except_comma : Expr Layout . "(" Layout Expr_Star_0 Layout ")"
-                        let next_slot_id = SlotId(33);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(32), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //Expr_except_comma : Expr Layout . "(" Layout Expr_Star_0 Layout ")"
-            SlotId(33) => {
+            //Expr_except_comma : Expr . "(" Expr_Star_0 ")"
+            SlotId(25) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"(\"", i);
                 match self.scanner.match_token(TerminalId(1), i) {
@@ -1049,8 +676,8 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         record!(self, MatchSuccess, "\"(\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(1), i, j);
-                        //Expr_except_comma : Expr Layout "(" . Layout Expr_Star_0 Layout ")"
-                        let next_slot_id = SlotId(34);
+                        //Expr_except_comma : Expr "(" . Expr_Star_0 ")"
+                        let next_slot_id = SlotId(26);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
@@ -1074,98 +701,18 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"(\"", i, SlotId(33), gss_node_id,
+                            self, MatchFailed, "\"(\"", i, SlotId(25), gss_node_id,
                             result
                         );
                     }
                 }
             }
-            //Expr_except_comma : Expr Layout "(" . Layout Expr_Star_0 Layout ")"
-            SlotId(34) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //Expr_except_comma : Expr Layout "(" Layout . Expr_Star_0 Layout ")"
-                        let next_slot_id = SlotId(35);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(34), gss_node_id,
-                            result
-                        );
-                    }
-                }
+            //Expr_except_comma : Expr "(" . Expr_Star_0 ")"
+            SlotId(26) => {
+                self.create_expr_star_0(result, gss_node_id, SlotId(27));
             }
-            //Expr_except_comma : Expr Layout "(" Layout . Expr_Star_0 Layout ")"
-            SlotId(35) => {
-                self.create_expr_star_0(result, gss_node_id, SlotId(36));
-            }
-            //Expr_except_comma : Expr Layout "(" Layout Expr_Star_0 . Layout ")"
-            SlotId(36) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //Expr_except_comma : Expr Layout "(" Layout Expr_Star_0 Layout . ")"
-                        let next_slot_id = SlotId(37);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(36), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //Expr_except_comma : Expr Layout "(" Layout Expr_Star_0 Layout . ")"
-            SlotId(37) => {
+            //Expr_except_comma : Expr "(" Expr_Star_0 . ")"
+            SlotId(27) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\")\"", i);
                 match self.scanner.match_token(TerminalId(3), i) {
@@ -1173,8 +720,8 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         record!(self, MatchSuccess, "\")\"", i, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(3), i, j);
-                        //Expr_except_comma : Expr Layout "(" Layout Expr_Star_0 Layout ")".
-                        let next_slot_id = SlotId(38);
+                        //Expr_except_comma : Expr "(" Expr_Star_0 ")".
+                        let next_slot_id = SlotId(28);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
@@ -1198,14 +745,14 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\")\"", i, SlotId(37), gss_node_id,
+                            self, MatchFailed, "\")\"", i, SlotId(27), gss_node_id,
                             result
                         );
                     }
                 }
             }
-            //Expr_except_comma : Expr Layout "(" Layout Expr_Star_0 Layout ")".
-            SlotId(38) => {
+            //Expr_except_comma : Expr "(" Expr_Star_0 ")".
+            SlotId(28) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1213,99 +760,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(4);
-                let end_slot_id = SlotId(38);
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
-                {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
-                }
-            }
-            //StartExpr : . Layout start:Expr Layout
-            SlotId(39) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //StartExpr : Layout . start:Expr Layout
-                        let next_slot_id = SlotId(40);
-                        let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(39), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //StartExpr : Layout . start:Expr Layout
-            SlotId(40) => {
-                self.create_expr(result, gss_node_id, SlotId(41));
-            }
-            //StartExpr : Layout start:Expr . Layout
-            SlotId(41) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(4), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
-                        //StartExpr : Layout start:Expr Layout.
-                        let next_slot_id = SlotId(42);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(41), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //StartExpr : Layout start:Expr Layout.
-            SlotId(42) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(5);
-                let end_slot_id = SlotId(42);
+                let end_slot_id = SlotId(28);
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children(
                         nonterminal_id,
@@ -1345,7 +800,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //Expr : . Expr Layout "(" Layout Expr_Star_0 Layout ")"
+                //Expr : . Expr "(" Expr_Star_0 ")"
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(2),
@@ -1353,10 +808,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     gss_node_id,
                     env,
                 });
-                //Expr : . Expr Layout "," Layout Expr
+                //Expr : . Expr "," Expr
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(10),
+                    slot_id: SlotId(7),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
@@ -1364,10 +819,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Plus_0
             NonterminalId(1) => {
-                //Expr_Plus_0 : . Expr_Plus_0 Layout "," Layout Expr_except_comma
+                //Expr_Plus_0 : . Expr_Plus_0 "," Expr_except_comma
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(16),
+                    slot_id: SlotId(11),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
@@ -1375,7 +830,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 //Expr_Plus_0 : . Expr_except_comma
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(22),
+                    slot_id: SlotId(15),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
@@ -1386,7 +841,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 //Expr_Opt_0 : . Expr_Plus_0
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(24),
+                    slot_id: SlotId(17),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
@@ -1394,7 +849,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 //Expr_Opt_0 : .
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(26),
+                    slot_id: SlotId(19),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
@@ -1405,7 +860,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 //Expr_Star_0 : . Expr_Opt_0
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(27),
+                    slot_id: SlotId(20),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
@@ -1416,26 +871,15 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 //Expr_except_comma : . Id
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(29),
+                    slot_id: SlotId(22),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
                 });
-                //Expr_except_comma : . Expr Layout "(" Layout Expr_Star_0 Layout ")"
+                //Expr_except_comma : . Expr "(" Expr_Star_0 ")"
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(31),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
-            }
-            //StartExpr
-            NonterminalId(5) => {
-                //StartExpr : . Layout start:Expr Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(39),
+                    slot_id: SlotId(24),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
@@ -1649,12 +1093,12 @@ pub struct ExcludeByLabelParser<'i> {
     descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
     //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
-    gss_nodes_index: [Vec<(u32, GssNodeId)>; 6],
+    gss_nodes_index: [Vec<(u32, GssNodeId)>; 5],
     sppf_nodes: Vec<SPPFNode>,
     stats: Stats,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 43],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
+    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 29],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -1671,13 +1115,13 @@ impl<'i> ExcludeByLabelParser<'i> {
         Self {
             start_nonterminal,
             scanner: ExcludeByLabelScanner::new(input),
-            gss_nodes_index: [const { vec![] }; 6],
+            gss_nodes_index: [const { vec![] }; 5],
             descriptors: vec![],
             gss_nodes: vec![],
             sppf_nodes: vec![],
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 6],
-            intermediate_nodes_index: [const { InlineMap::Empty }; 43],
-            terminal_nodes_index: [const { InlineMap::Empty }; 6],
+            nonterminal_nodes_index: [const { InlineMap::Empty }; 5],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 29],
+            terminal_nodes_index: [const { InlineMap::Empty }; 5],
             stats: Stats::default(),
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
@@ -1727,14 +1171,6 @@ impl<'i> ExcludeByLabelParser<'i> {
         return_slot: SlotId,
     ) {
         self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot);
-    }
-    fn create_start_expr(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-    ) {
-        self.create(NonterminalId(5), sppf_node_id, gss_node_id, return_slot);
     }
 }
 

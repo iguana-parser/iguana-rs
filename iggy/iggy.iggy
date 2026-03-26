@@ -1,12 +1,12 @@
 grammar Iggy
 
-layout WS Comment
+layout Layout
 
 Grammar
   = "grammar" name:Identifier LayoutDef? Rule*
 
 LayoutDef
-  = "layout" Identifier*
+  = "layout" Identifier
 
 Rule
   = SyntaxRule       #SyntaxRule
@@ -77,6 +77,10 @@ RangeElement
 Range
   = start:RangeChar "-" end:RangeChar
 
+@NoLayout
+Layout
+  = (WS | Comment)* !>> LayoutStart
+
 @regex
 Keyword = "grammar" | "layout" | "left" | "right" | "none"
 
@@ -105,3 +109,6 @@ WS = [\ \n \t]+
 
 @regex
 Comment = "//" ![\n]*
+
+@regex
+LayoutStart = [\ \n] | "//"

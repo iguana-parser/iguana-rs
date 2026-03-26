@@ -2,14 +2,10 @@
 // grammar LeftRecursiveList
 // 
 // A
-//   = A Layout "a"
+//   = A "a"
 //   | "a"
 // 
-// StartA
-//   = Layout start:A Layout
-// 
 // "a" = a
-// Layout = ε
 use std::cell::OnceCell;
 use crate::{
     scanner::LeftRecursiveListScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
@@ -27,55 +23,34 @@ use iguana_runtime::{
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
 use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 2] = [
+pub const NONTERMINALS: [Nonterminal; 1] = [
     Nonterminal {
         name: "A",
         display: "A",
         kind: None,
     },
-    Nonterminal {
-        name: "StartA",
-        display: "StartA",
-        kind: None,
-    },
 ];
 static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "A" => NonterminalId(0), "StartA" => NonterminalId(1)
+    "A" => NonterminalId(0)
 };
-pub const TERMINALS: [Terminal; 3] = [
+pub const TERMINALS: [Terminal; 2] = [
     Terminal { name: "\"a\"" },
-    Terminal { name: "Layout" },
     Terminal { name: "Epsilon" },
 ];
-pub const SLOTS: [Slot; 10] = [
+pub const SLOTS: [Slot; 5] = [
     Slot {
-        display_name: "A : . A Layout \"a\"",
+        display_name: "A : . A \"a\"",
     },
     Slot {
-        display_name: "A : A . Layout \"a\"",
+        display_name: "A : A . \"a\"",
     },
     Slot {
-        display_name: "A : A Layout . \"a\"",
-    },
-    Slot {
-        display_name: "A : A Layout \"a\".",
+        display_name: "A : A \"a\".",
     },
     Slot {
         display_name: "A : . \"a\"",
     },
     Slot { display_name: "A : \"a\"." },
-    Slot {
-        display_name: "StartA : . Layout start:A Layout",
-    },
-    Slot {
-        display_name: "StartA : Layout . start:A Layout",
-    },
-    Slot {
-        display_name: "StartA : Layout start:A . Layout",
-    },
-    Slot {
-        display_name: "StartA : Layout start:A Layout.",
-    },
 ];
 impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
@@ -103,20 +78,20 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
     ) {
         record!(self, ProcessingDescriptor, input_index, slot_id, result, gss_node_id);
         match slot_id {
-            //A : . A Layout "a"
+            //A : . A "a"
             SlotId(0) => {
                 self.create_a(result, gss_node_id, SlotId(1));
             }
-            //A : A . Layout "a"
+            //A : A . "a"
             SlotId(1) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "\"a\"", i);
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "\"a\"", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
-                        //A : A Layout . "a"
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                        //A : A "a".
                         let next_slot_id = SlotId(2);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -141,53 +116,13 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(1), gss_node_id,
-                            result
+                            self, MatchFailed, "\"a\"", i, SlotId(1), gss_node_id, result
                         );
                     }
                 }
             }
-            //A : A Layout . "a"
+            //A : A "a".
             SlotId(2) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"a\"", i);
-                match self.scanner.match_token(TerminalId(0), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
-                        //A : A Layout "a".
-                        let next_slot_id = SlotId(3);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "\"a\"", i, SlotId(2), gss_node_id, result
-                        );
-                    }
-                }
-            }
-            //A : A Layout "a".
-            SlotId(3) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -195,7 +130,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(3);
+                let end_slot_id = SlotId(2);
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children(
                         nonterminal_id,
@@ -213,7 +148,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                 }
             }
             //A : . "a"
-            SlotId(4) => {
+            SlotId(3) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"a\"", i);
                 match self.scanner.match_token(TerminalId(0), i) {
@@ -222,19 +157,19 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), i, j);
                         //A : "a".
-                        let next_slot_id = SlotId(5);
+                        let next_slot_id = SlotId(4);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"a\"", i, SlotId(4), gss_node_id, result
+                            self, MatchFailed, "\"a\"", i, SlotId(3), gss_node_id, result
                         );
                     }
                 }
             }
             //A : "a".
-            SlotId(5) => {
+            SlotId(4) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -242,99 +177,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(5);
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
-                {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
-                }
-            }
-            //StartA : . Layout start:A Layout
-            SlotId(6) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(1), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
-                        //StartA : Layout . start:A Layout
-                        let next_slot_id = SlotId(7);
-                        let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(6), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //StartA : Layout . start:A Layout
-            SlotId(7) => {
-                self.create_a(result, gss_node_id, SlotId(8));
-            }
-            //StartA : Layout start:A . Layout
-            SlotId(8) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(1), i) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
-                        let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
-                        //StartA : Layout start:A Layout.
-                        let next_slot_id = SlotId(9);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
-                                right_child_id,
-                            )
-                        {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "Layout", i, SlotId(8), gss_node_id,
-                            result
-                        );
-                    }
-                }
-            }
-            //StartA : Layout start:A Layout.
-            SlotId(9) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(9);
+                let end_slot_id = SlotId(4);
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children(
                         nonterminal_id,
@@ -366,7 +209,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
         match nonterminal_id {
             //A
             NonterminalId(0) => {
-                //A : . A Layout "a"
+                //A : . A "a"
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(0),
@@ -377,18 +220,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                 //A : . "a"
                 self.add_descriptor(Descriptor {
                     input_index,
-                    slot_id: SlotId(4),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
-            }
-            //StartA
-            NonterminalId(1) => {
-                //StartA : . Layout start:A Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(6),
+                    slot_id: SlotId(3),
                     sppf_node_id: None,
                     gss_node_id,
                     env,
@@ -602,12 +434,12 @@ pub struct LeftRecursiveListParser<'i> {
     descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
     //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
-    gss_nodes_index: [Vec<(u32, GssNodeId)>; 2],
+    gss_nodes_index: [Vec<(u32, GssNodeId)>; 1],
     sppf_nodes: Vec<SPPFNode>,
     stats: Stats,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 10],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 3],
+    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 1],
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -624,13 +456,13 @@ impl<'i> LeftRecursiveListParser<'i> {
         Self {
             start_nonterminal,
             scanner: LeftRecursiveListScanner::new(input),
-            gss_nodes_index: [const { vec![] }; 2],
+            gss_nodes_index: [const { vec![] }; 1],
             descriptors: vec![],
             gss_nodes: vec![],
             sppf_nodes: vec![],
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 2],
-            intermediate_nodes_index: [const { InlineMap::Empty }; 10],
-            terminal_nodes_index: [const { InlineMap::Empty }; 3],
+            nonterminal_nodes_index: [const { InlineMap::Empty }; 1],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 5],
+            terminal_nodes_index: [const { InlineMap::Empty }; 2],
             stats: Stats::default(),
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
@@ -648,14 +480,6 @@ impl<'i> LeftRecursiveListParser<'i> {
         return_slot: SlotId,
     ) {
         self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot);
-    }
-    fn create_start_a(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-    ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot);
     }
 }
 

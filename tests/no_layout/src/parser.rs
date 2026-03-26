@@ -12,14 +12,13 @@
 //   | Char
 // 
 // StartS
-//   = Layout start:S Layout
+//   = WS start:S WS
 // 
 // StartId
-//   = Layout start:Id Layout
+//   = WS start:Id WS
 // 
 // Char = ([a-z])
 // WS = ([  \n]*)
-// Layout = ([  \n]*)
 use std::cell::OnceCell;
 use crate::{scanner::NoLayoutScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
 use iguana_runtime::{
@@ -66,10 +65,9 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "S" => NonterminalId(0), "Id" => NonterminalId(1), "Id_Plus_0" => NonterminalId(2),
     "StartS" => NonterminalId(3), "StartId" => NonterminalId(4)
 };
-pub const TERMINALS: [Terminal; 4] = [
+pub const TERMINALS: [Terminal; 3] = [
     Terminal { name: "Char" },
     Terminal { name: "WS" },
-    Terminal { name: "Layout" },
     Terminal { name: "Epsilon" },
 ];
 pub const SLOTS: [Slot; 17] = [
@@ -97,28 +95,28 @@ pub const SLOTS: [Slot; 17] = [
         display_name: "Char+ : Char.",
     },
     Slot {
-        display_name: "StartS : . Layout start:S Layout",
+        display_name: "StartS : . WS start:S WS",
     },
     Slot {
-        display_name: "StartS : Layout . start:S Layout",
+        display_name: "StartS : WS . start:S WS",
     },
     Slot {
-        display_name: "StartS : Layout start:S . Layout",
+        display_name: "StartS : WS start:S . WS",
     },
     Slot {
-        display_name: "StartS : Layout start:S Layout.",
+        display_name: "StartS : WS start:S WS.",
     },
     Slot {
-        display_name: "StartId : . Layout start:Id Layout",
+        display_name: "StartId : . WS start:Id WS",
     },
     Slot {
-        display_name: "StartId : Layout . start:Id Layout",
+        display_name: "StartId : WS . start:Id WS",
     },
     Slot {
-        display_name: "StartId : Layout start:Id . Layout",
+        display_name: "StartId : WS start:Id . WS",
     },
     Slot {
-        display_name: "StartId : Layout start:Id Layout.",
+        display_name: "StartId : WS start:Id WS.",
     },
 ];
 impl<'i> Parser<'i> for NoLayoutParser<'i> {
@@ -323,42 +321,41 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //StartS : . Layout start:S Layout
+            //StartS : . WS start:S WS
             SlotId(9) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
-                        //StartS : Layout . start:S Layout
+                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                        //StartS : WS . start:S WS
                         let next_slot_id = SlotId(10);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(9), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(9), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartS : Layout . start:S Layout
+            //StartS : WS . start:S WS
             SlotId(10) => {
                 self.create_s(result, gss_node_id, SlotId(11));
             }
-            //StartS : Layout start:S . Layout
+            //StartS : WS start:S . WS
             SlotId(11) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
-                        //StartS : Layout start:S Layout.
+                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                        //StartS : WS start:S WS.
                         let next_slot_id = SlotId(12);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -383,13 +380,12 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(11), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(11), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartS : Layout start:S Layout.
+            //StartS : WS start:S WS.
             SlotId(12) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -415,42 +411,41 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
                     self.pop(gss_node_id, end_slot_id, popped_element);
                 }
             }
-            //StartId : . Layout start:Id Layout
+            //StartId : . WS start:Id WS
             SlotId(13) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
-                        //StartId : Layout . start:Id Layout
+                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                        //StartId : WS . start:Id WS
                         let next_slot_id = SlotId(14);
                         let new_node = right_child_id;
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(13), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(13), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartId : Layout . start:Id Layout
+            //StartId : WS . start:Id WS
             SlotId(14) => {
                 self.create_id(result, gss_node_id, SlotId(15));
             }
-            //StartId : Layout start:Id . Layout
+            //StartId : WS start:Id . WS
             SlotId(15) => {
                 let i = input_index;
-                record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "WS", i);
+                match self.scanner.match_token(TerminalId(1), i) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Layout", i, j);
+                        record!(self, MatchSuccess, "WS", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
-                        //StartId : Layout start:Id Layout.
+                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                        //StartId : WS start:Id WS.
                         let next_slot_id = SlotId(16);
                         let left_child_id = result.expect("Result should not be None.");
                         let left_child = self.sppf_node(left_child_id);
@@ -475,13 +470,12 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Layout", i, SlotId(15), gss_node_id,
-                            result
+                            self, MatchFailed, "WS", i, SlotId(15), gss_node_id, result
                         );
                     }
                 }
             }
-            //StartId : Layout start:Id Layout.
+            //StartId : WS start:Id WS.
             SlotId(16) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -563,7 +557,7 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
             }
             //StartS
             NonterminalId(3) => {
-                //StartS : . Layout start:S Layout
+                //StartS : . WS start:S WS
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(9),
@@ -574,7 +568,7 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
             }
             //StartId
             NonterminalId(4) => {
-                //StartId : . Layout start:Id Layout
+                //StartId : . WS start:Id WS
                 self.add_descriptor(Descriptor {
                     input_index,
                     slot_id: SlotId(13),
@@ -796,7 +790,7 @@ pub struct NoLayoutParser<'i> {
     stats: Stats,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 17],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 3],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -819,7 +813,7 @@ impl<'i> NoLayoutParser<'i> {
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 5],
             intermediate_nodes_index: [const { InlineMap::Empty }; 17],
-            terminal_nodes_index: [const { InlineMap::Empty }; 4],
+            terminal_nodes_index: [const { InlineMap::Empty }; 3],
             stats: Stats::default(),
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),

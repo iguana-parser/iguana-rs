@@ -21,8 +21,6 @@ pub enum TokenKind {
     T4,
     //"else"
     T5,
-    //Layout
-    T6,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
@@ -33,7 +31,6 @@ impl TokenKind {
             TokenKind::T3 => "\"if\"",
             TokenKind::T4 => "\"then\"",
             TokenKind::T5 => "\"else\"",
-            TokenKind::T6 => "Layout",
             _ => unreachable!(),
         }
     }
@@ -178,45 +175,45 @@ pub struct S {
 pub enum E {
     //"a" return 0
     Alt0 { lit_0: Token, span: Span },
-    //[2 >= p] l=E(p) [l == 0 || l >= 2] Layout "+" Layout r=E(2) return r == 0 ? 2 : min(r, 2)
+    //[2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" WS r=E(2) return r == 0 ? 2 : min(r, 2)
     Alt1 {
         e_0: Box<E>,
-        layout_1: Token,
+        w_s_1: Token,
         lit_2: Token,
-        layout_3: Token,
+        w_s_3: Token,
         e_4: Box<E>,
         span: Span,
     },
-    //"if" Layout E(0) Layout "then" Layout E(0) Layout "else" Layout E(1) return 1
+    //"if" WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
     Alt2 {
         lit_0: Token,
-        layout_1: Token,
+        w_s_1: Token,
         e_2: Box<E>,
-        layout_3: Token,
+        w_s_3: Token,
         lit_4: Token,
-        layout_5: Token,
+        w_s_5: Token,
         e_6: Box<E>,
-        layout_7: Token,
+        w_s_7: Token,
         lit_8: Token,
-        layout_9: Token,
+        w_s_9: Token,
         e_10: Box<E>,
         span: Span,
     },
 }
-//StartS = Layout start:S Layout
+//StartS = WS start:S WS
 #[derive(Debug)]
 pub struct StartS {
-    pub layout_0: Token,
+    pub w_s_0: Token,
     pub start: S,
-    pub layout_2: Token,
+    pub w_s_2: Token,
     pub span: Span,
 }
-//StartE = Layout start:E(0) Layout
+//StartE = WS start:E(0) WS
 #[derive(Debug)]
 pub struct StartE {
-    pub layout_0: Token,
+    pub w_s_0: Token,
     pub start: E,
-    pub layout_2: Token,
+    pub w_s_2: Token,
     pub span: Span,
 }
 impl S {
@@ -245,41 +242,41 @@ impl E {
                     _ => None,
                 }
             }
-            E::Alt1 { e_0, layout_1, lit_2, layout_3, e_4, .. } => {
+            E::Alt1 { e_0, w_s_1, lit_2, w_s_3, e_4, .. } => {
                 match index {
                     0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(layout_1.as_parse_tree_ref()),
+                    1 => Some(w_s_1.as_parse_tree_ref()),
                     2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(layout_3.as_parse_tree_ref()),
+                    3 => Some(w_s_3.as_parse_tree_ref()),
                     4 => Some(e_4.as_parse_tree_ref()),
                     _ => None,
                 }
             }
             E::Alt2 {
                 lit_0,
-                layout_1,
+                w_s_1,
                 e_2,
-                layout_3,
+                w_s_3,
                 lit_4,
-                layout_5,
+                w_s_5,
                 e_6,
-                layout_7,
+                w_s_7,
                 lit_8,
-                layout_9,
+                w_s_9,
                 e_10,
                 ..
             } => {
                 match index {
                     0 => Some(lit_0.as_parse_tree_ref()),
-                    1 => Some(layout_1.as_parse_tree_ref()),
+                    1 => Some(w_s_1.as_parse_tree_ref()),
                     2 => Some(e_2.as_parse_tree_ref()),
-                    3 => Some(layout_3.as_parse_tree_ref()),
+                    3 => Some(w_s_3.as_parse_tree_ref()),
                     4 => Some(lit_4.as_parse_tree_ref()),
-                    5 => Some(layout_5.as_parse_tree_ref()),
+                    5 => Some(w_s_5.as_parse_tree_ref()),
                     6 => Some(e_6.as_parse_tree_ref()),
-                    7 => Some(layout_7.as_parse_tree_ref()),
+                    7 => Some(w_s_7.as_parse_tree_ref()),
                     8 => Some(lit_8.as_parse_tree_ref()),
-                    9 => Some(layout_9.as_parse_tree_ref()),
+                    9 => Some(w_s_9.as_parse_tree_ref()),
                     10 => Some(e_10.as_parse_tree_ref()),
                     _ => None,
                 }
@@ -307,9 +304,9 @@ impl E {
 impl StartS {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
+            0 => Some(self.w_s_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            2 => Some(self.w_s_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -326,9 +323,9 @@ impl StartS {
 impl StartE {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
+            0 => Some(self.w_s_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            2 => Some(self.w_s_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -369,8 +366,6 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         TerminalId(4) => TokenKind::T4,
         //"else"
         TerminalId(5) => TokenKind::T5,
-        //Layout
-        TerminalId(6) => TokenKind::T6,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -401,16 +396,16 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityParseTreeBuilder {
             //StartS
             NonterminalId(1) => {
                 match nonterminal_node.return_slot {
-                    //StartS : Layout start:S Layout.
+                    //StartS : WS start:S WS.
                     SlotId(30) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartS {
-                            layout_0: layout_0.unwrap_token(),
+                            w_s_0: w_s_0.unwrap_token(),
                             start: start.unwrap_s(),
-                            layout_2: layout_2.unwrap_token(),
+                            w_s_2: w_s_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -421,16 +416,16 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityParseTreeBuilder {
             //StartE
             NonterminalId(2) => {
                 match nonterminal_node.return_slot {
-                    //StartE : Layout start:E(0) Layout.
+                    //StartE : WS start:E(0) WS.
                     SlotId(34) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
+                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartE {
-                            layout_0: layout_0.unwrap_token(),
+                            w_s_0: w_s_0.unwrap_token(),
                             start: start.unwrap_e(),
-                            layout_2: layout_2.unwrap_token(),
+                            w_s_2: w_s_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -450,40 +445,38 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityParseTreeBuilder {
                         }
                             .into()
                     }
-                    //E : [2 >= p] l=E(p) [l == 0 || l >= 2] Layout "+" Layout r=E(2) return r == 0 ? 2 : min(r, 2).
+                    //E : [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" WS r=E(2) return r == 0 ? 2 : min(r, 2).
                     SlotId(13) => {
-                        let [e_0, layout_1, lit_2, layout_3, e_4] = <[ParseTree; 5usize]>::try_from(
+                        let [e_0, w_s_1, lit_2, w_s_3, e_4] = <[ParseTree; 5usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         E::Alt1 {
                             e_0: Box::new(e_0.unwrap_e()),
-                            layout_1: layout_1.unwrap_token(),
+                            w_s_1: w_s_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
-                            layout_3: layout_3.unwrap_token(),
+                            w_s_3: w_s_3.unwrap_token(),
                             e_4: Box::new(e_4.unwrap_e()),
                             span: nonterminal_node.span,
                         }
                             .into()
                     }
-                    //E : "if" Layout E(0) Layout "then" Layout E(0) Layout "else" Layout E(1) return 1.
+                    //E : "if" WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1.
                     SlotId(26) => {
-                        let [lit_0, layout_1, e_2, layout_3, lit_4, layout_5, e_6,
-                        layout_7, lit_8, layout_9, e_10] = <[ParseTree; 11usize]>::try_from(
-                                children,
-                            )
+                        let [lit_0, w_s_1, e_2, w_s_3, lit_4, w_s_5, e_6, w_s_7, lit_8,
+                        w_s_9, e_10] = <[ParseTree; 11usize]>::try_from(children)
                             .unwrap();
                         E::Alt2 {
                             lit_0: lit_0.unwrap_token(),
-                            layout_1: layout_1.unwrap_token(),
+                            w_s_1: w_s_1.unwrap_token(),
                             e_2: Box::new(e_2.unwrap_e()),
-                            layout_3: layout_3.unwrap_token(),
+                            w_s_3: w_s_3.unwrap_token(),
                             lit_4: lit_4.unwrap_token(),
-                            layout_5: layout_5.unwrap_token(),
+                            w_s_5: w_s_5.unwrap_token(),
                             e_6: Box::new(e_6.unwrap_e()),
-                            layout_7: layout_7.unwrap_token(),
+                            w_s_7: w_s_7.unwrap_token(),
                             lit_8: lit_8.unwrap_token(),
-                            layout_9: layout_9.unwrap_token(),
+                            w_s_9: w_s_9.unwrap_token(),
                             e_10: Box::new(e_10.unwrap_e()),
                             span: nonterminal_node.span,
                         }

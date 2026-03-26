@@ -9,13 +9,13 @@
 // StartExpr
 //   = Layout start:Expr Layout
 // 
+// Layout = (((([  \n \t]+)|(//![\n]*)))*)
 // Identifier = ([a-z A-Z]+)
 // Comment = (//![\n]*)
 // WS = ([  \n \t]+)
 // "+" = +
 // "*" = *
 // "x" = x
-// Layout = ((([  \n \t]+)|(//![\n]*)))*
 use std::cell::OnceCell;
 use crate::{scanner::CommentsScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
 use iguana_runtime::{
@@ -47,13 +47,13 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "Expr" => NonterminalId(0), "StartExpr" => NonterminalId(1)
 };
 pub const TERMINALS: [Terminal; 8] = [
+    Terminal { name: "Layout" },
     Terminal { name: "Identifier" },
     Terminal { name: "Comment" },
     Terminal { name: "WS" },
     Terminal { name: "\"+\"" },
     Terminal { name: "\"*\"" },
     Terminal { name: "\"x\"" },
-    Terminal { name: "Layout" },
     Terminal { name: "Epsilon" },
 ];
 pub const SLOTS: [Slot; 18] = [
@@ -146,11 +146,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             SlotId(1) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(6), i) {
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(6), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
                         //Expr : Expr Layout . "+" Layout Expr
                         let next_slot_id = SlotId(2);
                         let left_child_id = result.expect("Result should not be None.");
@@ -186,11 +186,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             SlotId(2) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"+\"", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                match self.scanner.match_token(TerminalId(4), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"+\"", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(4), i, j);
                         //Expr : Expr Layout "+" . Layout Expr
                         let next_slot_id = SlotId(3);
                         let left_child_id = result.expect("Result should not be None.");
@@ -225,11 +225,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             SlotId(3) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(6), i) {
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(6), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
                         //Expr : Expr Layout "+" Layout . Expr
                         let next_slot_id = SlotId(4);
                         let left_child_id = result.expect("Result should not be None.");
@@ -299,11 +299,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             SlotId(7) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(6), i) {
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(6), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
                         //Expr : Expr Layout . "*" Layout Expr
                         let next_slot_id = SlotId(8);
                         let left_child_id = result.expect("Result should not be None.");
@@ -339,11 +339,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             SlotId(8) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"*\"", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                match self.scanner.match_token(TerminalId(5), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"*\"", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
+                            .get_or_create_terminal_node(TerminalId(5), i, j);
                         //Expr : Expr Layout "*" . Layout Expr
                         let next_slot_id = SlotId(9);
                         let left_child_id = result.expect("Result should not be None.");
@@ -378,11 +378,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             SlotId(9) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(6), i) {
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(6), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
                         //Expr : Expr Layout "*" Layout . Expr
                         let next_slot_id = SlotId(10);
                         let left_child_id = result.expect("Result should not be None.");
@@ -448,11 +448,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             SlotId(12) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "\"x\"", i);
-                match self.scanner.match_token(TerminalId(5), i) {
+                match self.scanner.match_token(TerminalId(6), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"x\"", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
+                            .get_or_create_terminal_node(TerminalId(6), i, j);
                         //Expr : "x".
                         let next_slot_id = SlotId(13);
                         let new_node = right_child_id;
@@ -496,11 +496,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             SlotId(14) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(6), i) {
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(6), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
                         //StartExpr : Layout . start:Expr Layout
                         let next_slot_id = SlotId(15);
                         let new_node = right_child_id;
@@ -522,11 +522,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             SlotId(16) => {
                 let i = input_index;
                 record!(self, MatchingTerminal, "Layout", i);
-                match self.scanner.match_token(TerminalId(6), i) {
+                match self.scanner.match_token(TerminalId(0), i) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", i, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(6), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), i, j);
                         //StartExpr : Layout start:Expr Layout.
                         let next_slot_id = SlotId(17);
                         let left_child_id = result.expect("Result should not be None.");

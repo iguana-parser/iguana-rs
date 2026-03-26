@@ -9,9 +9,12 @@ use crate::{
     grammar::{
         regex::Regex,
         symbols::{Definition, DefinitionId, Expr, Identifier, Nonterminal, Symbol, Terminal},
-        transformations::{ebnf_to_bnf, exclude_desugaring, layout_insertion, precedence_desugaring, transform_regex, transform_syntax_rule},
+        transformations::{
+            ebnf_to_bnf, exclude_desugaring, layout_insertion, precedence_desugaring,
+            transform_regex, transform_syntax_rule,
+        },
     },
-    lexical_rule, priority_level,
+    priority_level,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -174,8 +177,9 @@ pub struct GrammarDef {
     pub name: String,
     pub syntax_rules: Vec<SyntaxRule>,
     pub lexical_rules: Vec<LexicalRule>,
-    // Whitespace and comment nodes
-    pub layout_def: Vec<Terminal>,
+    // The layout nonterminal is used to define whitespace/comments that can
+    // appear anywhere in the program.
+    pub layout: Option<Symbol>,
 }
 
 impl Display for SyntaxRule {
@@ -232,8 +236,8 @@ impl Display for GrammarDef {
         for lexical_rule in &self.lexical_rules {
             writeln!(f, "{} = {}", lexical_rule.head, lexical_rule.regex)?;
         }
-        if !self.layout_def.is_empty() {
-            writeln!(f, "\nlayout = {}", self.layout_def.iter().join(", "))?;
+        if let Some(layout) = &self.layout {
+            writeln!(f, "\nlayout = {}", layout)?;
         }
         Ok(())
     }
@@ -647,20 +651,22 @@ impl From<GrammarDef> for Grammar {
         let syntax_rules = grammar_def.syntax_rules;
         let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules);
         let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
-        let (syntax_rules, lexical_rules) = resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
+        let (syntax_rules, lexical_rules) =
+            resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
         let lexical_rules = inline_regex_refs(lexical_rules);
         let (syntax_rules, mut ebnf_symbols) = ebnf_to_bnf::transform(syntax_rules);
         let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
-        let (syntax_rules, lexical_rules) = resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
+        let (syntax_rules, lexical_rules) =
+            resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
         let syntax_rules = exclude_desugaring::transform(syntax_rules);
         let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
-        let (syntax_rules, lexical_rules) = resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
+        let (syntax_rules, lexical_rules) =
+            resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
         let syntax_rules = precedence_desugaring::transform(syntax_rules);
         // Create the final symbol table after all transformations. This must happen
         // after precedence desugaring because desugaring may add parameters to
         // nonterminals (e.g., E becomes E(p)), and the definitions must reflect that.
-        let (mut definitions, mut symbol_table) =
-            create_symbol_table(&syntax_rules, &lexical_rules);
+        let (definitions, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
         ebnf_symbols = ebnf_symbols
             .into_iter()
             .map(|(k, v)| (k, resolve_identifier(v, &symbol_table)))
@@ -669,56 +675,48 @@ impl From<GrammarDef> for Grammar {
             .into_iter()
             .map(|mut r| {
                 for except in &mut r.except {
-                    except.definition = Some(
-                        symbol_table
-                            .get(&except.name)
-                            .unwrap_or_else(|| panic!("Except terminal {} not found", except.name)),
-                    );
+                    except.definition =
+                        Some(symbol_table.get(&except.name).unwrap_or_else(|| {
+                            panic!("Except terminal {} not found", except.name)
+                        }));
                 }
                 if let Some(restriction) = &mut r.follow_restriction {
-                    restriction.definition = Some(
-                        symbol_table.get(&restriction.name).unwrap_or_else(|| {
-                            panic!(
-                                "Follow restriction terminal {} not found",
-                                restriction.name
-                            )
-                        }),
-                    );
+                    restriction.definition =
+                        Some(symbol_table.get(&restriction.name).unwrap_or_else(|| {
+                            panic!("Follow restriction terminal {} not found", restriction.name)
+                        }));
                 }
                 if let Some(restriction) = &mut r.precede_restriction {
-                    restriction.definition = Some(
-                        symbol_table.get(&restriction.name).unwrap_or_else(|| {
+                    restriction.definition =
+                        Some(symbol_table.get(&restriction.name).unwrap_or_else(|| {
                             panic!(
                                 "Precede restriction terminal {} not found",
                                 restriction.name
                             )
-                        }),
-                    );
+                        }));
                 }
                 r
             })
             .collect();
-        let mut lexical_rules_map: IndexMap<Terminal, LexicalRule> = lexical_rules
+
+        let syntax_rules = if let Some(layout) = &grammar_def.layout {
+            let resolved = resolve_identifier(layout.clone(), &symbol_table);
+            let mut syntax_rules = layout_insertion::transform(syntax_rules, &resolved);
+            let start_rules: Vec<_> = syntax_rules
+                .iter()
+                .filter(|r| !r.head.is_derived())
+                .map(|r| add_start_rule(&r.head, &resolved, &symbol_table))
+                .collect();
+            syntax_rules.extend(start_rules);
+            syntax_rules
+        } else {
+            syntax_rules
+        };
+
+        let lexical_rules_map: IndexMap<Terminal, LexicalRule> = lexical_rules
             .into_iter()
             .map(|r| (r.head.clone(), r))
             .collect();
-        let layout_rule = layout_rule(&grammar_def.layout_def, &lexical_rules_map);
-        let def_id = symbol_table.insert("Layout".into());
-        let layout_identifier = Symbol::Identifier(Identifier {
-            name: "Layout".into(),
-            definition: Some(def_id),
-        });
-        let mut syntax_rules = layout_insertion::transform(syntax_rules, layout_identifier.clone());
-        let layout_terminal = layout_rule.head.clone();
-        definitions.push(Definition::Terminal(layout_terminal.clone()));
-        lexical_rules_map.insert(layout_terminal, layout_rule);
-
-        let start_rules: Vec<_> = syntax_rules
-            .iter()
-            .filter(|r| !r.head.is_derived())
-            .map(|r| add_start_rule(&r.head, &layout_identifier, &symbol_table))
-            .collect();
-        syntax_rules.extend(start_rules);
         let productions: IndexMap<Nonterminal, Vec<Alternative>> =
             syntax_rules
                 .into_iter()
@@ -737,36 +735,10 @@ impl From<GrammarDef> for Grammar {
             lexical_rules: lexical_rules_map,
             definitions,
             ebnf_symbols,
-            layout_defs: grammar_def.layout_def,
+            layout: grammar_def.layout,
             symbol_table,
         }
     }
-}
-
-// TODO: for now we only support regex layouts
-fn layout_rule(
-    layout_def: &[Terminal],
-    lexical_rules_map: &IndexMap<Terminal, LexicalRule>,
-) -> LexicalRule {
-    let layout_regex = match layout_def {
-        [] => Regex::Epsilon,
-        [single] => lexical_rules_map.get(single).unwrap().regex.clone(),
-        // Wrap in Star so layout can match any interleaving of the layout terminals,
-        // e.g., layout WS Comment becomes (WS | Comment)*
-        multiple => Regex::Star(Box::new(Regex::Alt(
-            multiple
-                .iter()
-                .map(|def| {
-                    lexical_rules_map
-                        .get(def)
-                        .expect("Layout should be defined")
-                        .regex
-                        .clone()
-                })
-                .collect(),
-        ))),
-    };
-    lexical_rule!("Layout" => layout_regex)
 }
 
 fn add_start_rule(
@@ -819,7 +791,7 @@ pub struct Grammar {
     definitions: Vec<Definition>,
     ebnf_symbols: FxHashMap<Symbol, Symbol>,
     pub symbol_table: SymbolTable,
-    pub layout_defs: Vec<Terminal>,
+    pub layout: Option<Symbol>,
 }
 
 impl PartialEq for Grammar {
@@ -896,17 +868,23 @@ macro_rules! alternative {
 
 #[macro_export]
 macro_rules! left {
-    () => { $crate::grammar::def::Associativity::Left };
+    () => {
+        $crate::grammar::def::Associativity::Left
+    };
 }
 
 #[macro_export]
 macro_rules! right {
-    () => { $crate::grammar::def::Associativity::Right };
+    () => {
+        $crate::grammar::def::Associativity::Right
+    };
 }
 
 #[macro_export]
 macro_rules! non_assoc {
-    () => { $crate::grammar::def::Associativity::NonAssoc };
+    () => {
+        $crate::grammar::def::Associativity::NonAssoc
+    };
 }
 
 #[macro_export]
@@ -965,14 +943,27 @@ macro_rules! grammar_def {
         $name:literal,
         syntax: [$($syntax:expr),* $(,)?]
         $(, lexical: [$($lexical:expr),* $(,)?])?
-        $(, layout: [$($layout:expr),* $(,)?])?
+        , layout: $layout:expr
         $(,)?
     ) => {
         $crate::grammar::def::GrammarDef {
             name: $name.to_string(),
             syntax_rules: vec![$($syntax),*],
             lexical_rules: vec![$($($lexical),*)?],
-            layout_def: vec![$($($layout),*)?],
+            layout: Some($layout),
+        }
+    };
+    (
+        $name:literal,
+        syntax: [$($syntax:expr),* $(,)?]
+        $(, lexical: [$($lexical:expr),* $(,)?])?
+        $(,)?
+    ) => {
+        $crate::grammar::def::GrammarDef {
+            name: $name.to_string(),
+            syntax_rules: vec![$($syntax),*],
+            lexical_rules: vec![$($($lexical),*)?],
+            layout: None,
         }
     };
 }

@@ -588,9 +588,7 @@ fn deep_unary_case() -> GrammarDef {
         lexical: [
             lexical_rule!("WS" => r_star!(c!(' ')))
         ],
-        layout: [
-            Terminal::new("WS")
-        ],
+        layout: id!("WS"),
     )
 }
 
@@ -681,8 +679,6 @@ fn full_pepm16_example() -> GrammarDef {
         lexical: [
             lexical_rule!("WS" => r_star!(c!(' ')))
         ],
-        layout: [
-            Terminal::new("WS")
-        ],
+        layout: id!("WS"),
     )
 }
