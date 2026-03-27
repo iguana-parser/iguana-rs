@@ -948,7 +948,7 @@ impl<'a> ParserGen<'a> {
             .grammar
             .nonterminals()
             .filter(|nt| self.config.ll1_optimization && self.ff.is_ll1(nt))
-            .map(|nt| self.gen_ll1_parse_method(nt))
+            .map(|nt| self.gen_parse_method_ll1(nt))
             .collect();
         let get_gss_node_methods: Vec<_> = self
             .nonterminal_ids
@@ -1105,14 +1105,20 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_prediction_set_check(&self, prediction_set: &FxHashSet<Terminal>) -> TokenStream {
+    fn gen_prediction_set_check(
+        &self,
+        prediction_set: &FxHashSet<Terminal>,
+        input_index: TokenStream,
+    ) -> TokenStream {
         let mut checks: Vec<TokenStream> = vec![];
         for terminal in prediction_set {
             if terminal.name == "EOF" {
-                checks.push(quote! { i == self.input().len() });
+                checks.push(quote! { #input_index == self.input().len() });
             } else {
                 let terminal_id = self.terminal_ids.get_id(terminal);
-                checks.push(quote! { self.scanner.match_token(#terminal_id, i).is_some() });
+                checks.push(
+                    quote! { self.scanner.match_token(#terminal_id, #input_index).is_some() },
+                );
             }
         }
         if checks.is_empty() {
@@ -1122,7 +1128,14 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_ll1_parse_method(&self, nonterminal: &'a Nonterminal) -> TokenStream {
+    fn gen_parse_method_ll1(&self, nonterminal: &'a Nonterminal) -> TokenStream {
+        // For Plus, generate a loop rather than matching the left-recursive
+        // desugared alternatives, which would cause infinite recursion.
+        // Star is desugared as `(A+)?`, so Opt and Star are handled by the
+        // standard alternative-matching below.
+        if matches!(&nonterminal.origin, Some(Symbol::Plus(_, _))) {
+            return self.gen_plus_loop_ll1(nonterminal);
+        }
         let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
         let alternatives = self.grammar.alternatives(nonterminal);
@@ -1130,7 +1143,7 @@ impl<'a> ParserGen<'a> {
 
         for alternative in alternatives {
             let prediction_set = self.ff.prediction_set(nonterminal, alternative);
-            let condition = self.gen_prediction_set_check(&prediction_set);
+            let condition = self.gen_prediction_set_check(&prediction_set, quote! { i });
             let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
             let end_slot_id = self.slot_ids.get_id(&end_slot);
 
@@ -1165,6 +1178,126 @@ impl<'a> ParserGen<'a> {
             fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
                 #(#alt_branches)*
                 None
+            }
+        }
+    }
+
+    /// Generates an LL(1) parse method for a Plus nonterminal as a loop.
+    ///
+    /// `A+` desugars to `APlus = APlus A | A`. This is left-recursive,
+    /// so a recursive-descent parser would loop infinitely. The standard
+    /// solution is to parse it as a loop: parse one `A`, then repeat
+    /// while more `A`s follow.
+    ///
+    /// Layout and separators are handled naturally: they appear as symbols
+    /// in the recursive alternative. For example, `{A ","}+` with layout
+    /// desugars to `APlus = APlus Layout "," Layout A | A`. The loop
+    /// parses Layout, `","`, Layout, A in sequence each iteration.
+    ///
+    /// The SPPF tree is built left-associative, matching GLL's output:
+    ///
+    /// Example: `S = A*` where `A = 'x'`, input `xxx`.
+    /// After desugaring: `APlus = APlus A | A`
+    ///
+    /// ```text
+    /// Iteration 0 (base):  APlus[0,1] -> "x"[0,1]
+    /// Iteration 1 (loop):  APlus[0,2] -> Intermediate[0,2] -> (APlus[0,1], "x"[1,2])
+    /// Iteration 2 (loop):  APlus[0,3] -> Intermediate[0,3] -> (APlus[0,2], "x"[2,3])
+    /// ```
+    fn gen_plus_loop_ll1(&self, nonterminal: &'a Nonterminal) -> TokenStream {
+        let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+        let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
+        let alternatives = self.grammar.alternatives(nonterminal);
+        assert_eq!(alternatives.len(), 2);
+
+        let base_alt = &alternatives[1];
+        let recursive_alt = &alternatives[0];
+
+        let end_slots: Vec<_> = self.nonterminal_ids.end_slots(nonterminal_id).collect();
+        let recursive_end_slot_id = end_slots[0].slot_id;
+        let base_end_slot_id = end_slots[1].slot_id;
+
+        // Base case: parse the single symbol in alt 1
+        let base_symbol = base_alt.symbols.last().unwrap();
+        let base_parse = self.gen_match_symbol_ll1(base_symbol, quote! { j });
+
+        // Loop: try to parse symbols 1..n of the recursive alt (skip the
+        // self-reference). Chain positions forward without updating j.
+        // If all succeed, build intermediate nodes and advance j.
+        let symbols: Vec<_> = recursive_alt.symbols.iter().skip(1).collect();
+
+        // Phase 1: try each symbol, break if any fails
+        let mut parses = vec![];
+        let mut current_pos = quote! { j };
+        for (idx, symbol) in symbols.iter().enumerate() {
+            let node_var = format_ident!("node_{}", idx);
+            let pos_var = format_ident!("pos_{}", idx);
+            let parse = self.gen_match_symbol_ll1(symbol, current_pos.clone());
+            parses.push(quote! {
+                let Some((#node_var, #pos_var)) = #parse else { break; };
+            });
+            current_pos = quote! { #pos_var };
+        }
+
+        // Phase 2: all succeeded — update j, build intermediate nodes
+        let last_pos = format_ident!("pos_{}", symbols.len() - 1);
+        let mut build_nodes = vec![quote! { j = #last_pos; }];
+        for (idx, _) in symbols.iter().enumerate() {
+            let node_var = format_ident!("node_{}", idx);
+            let pos_var = format_ident!("pos_{}", idx);
+            let next_slot = Slot::new(nonterminal, recursive_alt, idx + 2);
+            let next_slot_id = self.slot_ids.get_id(&next_slot);
+            build_nodes.push(quote! {
+                current = self.create_intermediate_node_or_attach_children(
+                    #next_slot_id, left_extent, #pos_var, current, #node_var,
+                )?;
+            });
+        }
+
+        quote! {
+            fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
+                let mut j = i;
+                let (body_node, body_end) = (#base_parse)?;
+                j = body_end;
+                let left_extent = i;
+                let mut current = self.create_nonterminal_node_or_attach_children(
+                    #nonterminal_id, #base_end_slot_id, left_extent, j, body_node,
+                )?;
+                loop {
+                    #(#parses)*
+                    #(#build_nodes)*
+                    current = self.create_nonterminal_node_or_attach_children(
+                        #nonterminal_id, #recursive_end_slot_id, left_extent, j, current,
+                    )?;
+                }
+                Some(current)
+            }
+        }
+    }
+
+    /// Generates parse code for a symbol at position `pos`. Returns a
+    /// `TokenStream` that evaluates to `Option<(SPPFNodeId, u32)>` — the
+    /// node and end position.
+    fn gen_match_symbol_ll1(&self, symbol: &Symbol, pos: TokenStream) -> TokenStream {
+        let identifier = symbol.as_identifier().unwrap();
+        let def = self.grammar.definition(identifier.resolve());
+        match def {
+            Definition::Terminal(terminal) => {
+                let terminal_id = self.terminal_ids.get_id(terminal);
+                quote! {
+                    self.scanner.match_token(#terminal_id, #pos).map(|end| {
+                        (self.get_or_create_terminal_node(#terminal_id, #pos, end), end)
+                    })
+                }
+            }
+            Definition::Nonterminal(nt) => {
+                let nt_method = format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
+                quote! {
+                    self.#nt_method(#pos).map(|node| {
+                        let end = self.sppf_node(node).right_extent();
+                        (node, end)
+                    })
+                }
             }
         }
     }

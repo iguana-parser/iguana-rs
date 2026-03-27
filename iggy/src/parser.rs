@@ -8276,7 +8276,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Plus_12 : . Layout_Plus_12 Layout_Alt_0
             SlotId(369) => {
-                self.create_layout_plus_12(result, gss_node_id, SlotId(370), env);
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_layout_plus_12_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //Layout_Plus_12 : Layout_Plus_12 . Layout_Alt_0
+                    let next_slot_id = SlotId(370);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //Layout_Plus_12 : Layout_Plus_12 . Layout_Alt_0
             SlotId(370) => {
@@ -8366,7 +8373,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Opt_11 : . Layout_Plus_12
             SlotId(374) => {
-                self.create_layout_plus_12(result, gss_node_id, SlotId(375), env);
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_layout_plus_12_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //Layout_Opt_11 : Layout_Plus_12.
+                    let next_slot_id = SlotId(375);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //Layout_Opt_11 : Layout_Plus_12.
             SlotId(375) => {
@@ -12927,7 +12941,7 @@ impl<'i> IggyParser<'i> {
                     current,
                 );
         }
-        if self.scanner.match_token(TerminalId(7), i).is_some()
+        if self.scanner.match_token(TerminalId(13), i).is_some()
             || self.scanner.match_token(TerminalId(8), i).is_some()
             || self.scanner.match_token(TerminalId(18), i).is_some()
             || self.scanner.match_token(TerminalId(14), i).is_some()
@@ -12935,7 +12949,7 @@ impl<'i> IggyParser<'i> {
             || i == self.input().len()
             || self.scanner.match_token(TerminalId(1), i).is_some()
             || self.scanner.match_token(TerminalId(15), i).is_some()
-            || self.scanner.match_token(TerminalId(13), i).is_some()
+            || self.scanner.match_token(TerminalId(7), i).is_some()
         {
             let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
             return self
@@ -12973,6 +12987,7 @@ impl<'i> IggyParser<'i> {
         if self.scanner.match_token(TerminalId(33), i).is_some()
             || self.scanner.match_token(TerminalId(8), i).is_some()
             || self.scanner.match_token(TerminalId(7), i).is_some()
+            || i == self.input().len()
         {
             let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
             return self
@@ -13028,6 +13043,53 @@ impl<'i> IggyParser<'i> {
                 );
         }
         None
+    }
+    fn parse_layout_plus_12_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        let mut j = i;
+        let (body_node, body_end) = (self
+            .parse_layout_alt_0_ll1(j)
+            .map(|node| {
+                let end = self.sppf_node(node).right_extent();
+                (node, end)
+            }))?;
+        j = body_end;
+        let left_extent = i;
+        let mut current = self
+            .create_nonterminal_node_or_attach_children(
+                NonterminalId(49),
+                SlotId(373),
+                left_extent,
+                j,
+                body_node,
+            )?;
+        loop {
+            let Some((node_0, pos_0)) = self
+                .parse_layout_alt_0_ll1(j)
+                .map(|node| {
+                    let end = self.sppf_node(node).right_extent();
+                    (node, end)
+                }) else {
+                break;
+            };
+            j = pos_0;
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(371),
+                    left_extent,
+                    pos_0,
+                    current,
+                    node_0,
+                )?;
+            current = self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(49),
+                    SlotId(371),
+                    left_extent,
+                    j,
+                    current,
+                )?;
+        }
+        Some(current)
     }
     fn get_gss_node_symbol(&self, input_index: u32, p: i32) -> Option<GssNodeId> {
         self.gss_nodes_index_symbol

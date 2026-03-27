@@ -168,7 +168,14 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
         match slot_id {
             //S : . S_Plus_0
             SlotId(0) => {
-                self.create_s_plus_0(result, gss_node_id, SlotId(1), env);
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_s_plus_0_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //S : S_Plus_0.
+                    let next_slot_id = SlotId(1);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //S : S_Plus_0.
             SlotId(1) => {
@@ -292,7 +299,14 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
             }
             //S_Plus_0 : . S_Plus_0 WS Element
             SlotId(6) => {
-                self.create_s_plus_0(result, gss_node_id, SlotId(7), env);
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_s_plus_0_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //S_Plus_0 : S_Plus_0 . WS Element
+                    let next_slot_id = SlotId(7);
+                    let new_node = right_child_id;
+                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
             //S_Plus_0 : S_Plus_0 . WS Element
             SlotId(7) => {
@@ -442,7 +456,26 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
             }
             //StartS : WS . start:S WS
             SlotId(13) => {
-                self.create_s(result, gss_node_id, SlotId(14), env);
+                let i = input_index;
+                if let Some(right_child_id) = self.parse_s_ll1(i) {
+                    let j = self.sppf_node(right_child_id).right_extent();
+                    //StartS : WS start:S . WS
+                    let next_slot_id = SlotId(14);
+                    let left_child_id = result.expect("Result should not be None.");
+                    let left_child = self.sppf_node(left_child_id);
+                    let left_extent = left_child.left_extent();
+                    if let Some(new_node) = self
+                        .create_intermediate_node_or_attach_children(
+                            next_slot_id,
+                            left_extent,
+                            j,
+                            left_child_id,
+                            right_child_id,
+                        )
+                    {
+                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    }
+                }
             }
             //StartS : WS start:S . WS
             SlotId(14) => {
@@ -994,6 +1027,31 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
     ) {
         self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot, env);
     }
+    fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(0), i).is_some()
+            || self.scanner.match_token(TerminalId(2), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let start = j;
+                let node = self.parse_s_plus_0_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(0),
+                    SlotId(1),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
+    }
     fn parse_element_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
@@ -1030,6 +1088,125 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
                 .create_nonterminal_node_or_attach_children(
                     NonterminalId(1),
                     SlotId(5),
+                    left_extent,
+                    j,
+                    current,
+                );
+        }
+        None
+    }
+    fn parse_s_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        let mut j = i;
+        let (body_node, body_end) = (self
+            .parse_element_ll1(j)
+            .map(|node| {
+                let end = self.sppf_node(node).right_extent();
+                (node, end)
+            }))?;
+        j = body_end;
+        let left_extent = i;
+        let mut current = self
+            .create_nonterminal_node_or_attach_children(
+                NonterminalId(2),
+                SlotId(11),
+                left_extent,
+                j,
+                body_node,
+            )?;
+        loop {
+            let Some((node_0, pos_0)) = self
+                .scanner
+                .match_token(TerminalId(3), j)
+                .map(|end| {
+                    (self.get_or_create_terminal_node(TerminalId(3), j, end), end)
+                }) else {
+                break;
+            };
+            let Some((node_1, pos_1)) = self
+                .parse_element_ll1(pos_0)
+                .map(|node| {
+                    let end = self.sppf_node(node).right_extent();
+                    (node, end)
+                }) else {
+                break;
+            };
+            j = pos_1;
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(8),
+                    left_extent,
+                    pos_0,
+                    current,
+                    node_0,
+                )?;
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(9),
+                    left_extent,
+                    pos_1,
+                    current,
+                    node_1,
+                )?;
+            current = self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(2),
+                    SlotId(9),
+                    left_extent,
+                    j,
+                    current,
+                )?;
+        }
+        Some(current)
+    }
+    fn parse_start_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        if self.scanner.match_token(TerminalId(2), i).is_some()
+            || self.scanner.match_token(TerminalId(0), i).is_some()
+            || self.scanner.match_token(TerminalId(3), i).is_some()
+        {
+            let mut j = i;
+            let right_child_id = {
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(3), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child_id).left_extent();
+            let mut current = right_child_id;
+            let right_child_id = {
+                let start = j;
+                let node = self.parse_s_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(14),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            let right_child_id = {
+                let start = j;
+                let end = self.scanner.match_token(TerminalId(3), start)?;
+                let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
+                j = end;
+                node
+            };
+            current = self
+                .create_intermediate_node_or_attach_children(
+                    SlotId(15),
+                    left_extent,
+                    j,
+                    current,
+                    right_child_id,
+                )?;
+            return self
+                .create_nonterminal_node_or_attach_children(
+                    NonterminalId(3),
+                    SlotId(15),
                     left_extent,
                     j,
                     current,

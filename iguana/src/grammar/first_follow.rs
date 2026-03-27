@@ -64,15 +64,29 @@ impl<'a> FirstFollowSets<'a> {
         true
     }
 
-    /// A nonterminal is LL(1)-parseable if it has disjoint alternatives AND all
-    /// nonterminals it transitively references also have disjoint alternatives.
+    /// A nonterminal is LL(1) if it and all transitively reachable
+    /// nonterminals pass `is_nonterminal_ll1`.
     pub fn is_ll1(&self, nt: &Nonterminal) -> bool {
-        self.has_disjoint_alternatives(nt)
+        self.is_nonterminal_ll1(nt)
             && self
                 .reachability
                 .reachable(nt)
                 .iter()
-                .all(|referenced| self.has_disjoint_alternatives(referenced))
+                .all(|referenced| self.is_nonterminal_ll1(referenced))
+    }
+
+    /// A nonterminal is LL(1) if its alternatives have disjoint prediction
+    /// sets. Plus and Star are a special case: EBNF desugaring uses
+    /// left-recursion (e.g., `A+ => APlus = APlus A | A`), so the
+    /// alternatives always overlap. A Plus or Star is LL(1) if its body
+    /// element is LL(1). The LL(1) codegen generates a loop for these
+    /// instead of using the expanded left-recursive alternatives. The body
+    /// element is checked transitively by `is_ll1`.
+    fn is_nonterminal_ll1(&self, nt: &Nonterminal) -> bool {
+        if self.has_disjoint_alternatives(nt) {
+            return true;
+        }
+        matches!(&nt.origin, Some(Symbol::Plus(_, _)) | Some(Symbol::Star(_, _)))
     }
 
     /// Returns the FIRST set of an alternative. Walks symbols left to right,
@@ -178,7 +192,7 @@ impl<'a> FirstFollowSets<'a> {
         }
     }
 
-    fn first_of_symbol(&self, symbol: &Symbol) -> FxHashSet<Terminal> {
+    pub fn first_of_symbol(&self, symbol: &Symbol) -> FxHashSet<Terminal> {
         let mut result = FxHashSet::default();
         self.collect_first_of_symbol(symbol, &mut result);
         result
