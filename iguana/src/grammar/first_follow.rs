@@ -295,6 +295,8 @@ impl<'a> FirstFollowSets<'a> {
                 .insert(Self::eof());
         }
 
+        let restrictions = self.collect_follow_restrictions();
+
         let mut changed = true;
         while changed {
             changed = false;
@@ -306,13 +308,19 @@ impl<'a> FirstFollowSets<'a> {
                             continue;
                         };
 
+                        let follow_restrictions = restrictions.get(nt_b);
+
                         // Add FIRST(β) to FOLLOW(B) where β = symbols[i+1..]
                         let suffix = &symbols[i + 1..];
                         for s in suffix {
                             let firsts = self.first_of_symbol(s);
                             let follow_b = self.follow_sets.get_mut(nt_b).unwrap();
                             let old_len = follow_b.len();
-                            follow_b.extend(firsts);
+                            for t in firsts {
+                                if follow_restrictions.is_none_or(|r| !r.contains(&t)) {
+                                    follow_b.insert(t);
+                                }
+                            }
                             changed |= follow_b.len() > old_len;
                             if !self.is_nullable(s) {
                                 break;
@@ -325,13 +333,44 @@ impl<'a> FirstFollowSets<'a> {
                                 self.follow_sets[nonterminal].iter().cloned().collect();
                             let follow_b = self.follow_sets.get_mut(nt_b).unwrap();
                             let old_len = follow_b.len();
-                            follow_b.extend(follow_a);
+                            for t in follow_a {
+                                if follow_restrictions.is_none_or(|r| !r.contains(&t)) {
+                                    follow_b.insert(t);
+                                }
+                            }
                             changed |= follow_b.len() > old_len;
                         }
                     }
                 }
             }
         }
+    }
+
+    /// Collects follow restrictions from the grammar. For each `A !>> B`,
+    /// maps A's nonterminal to the set of restriction terminals.
+    fn collect_follow_restrictions(&self) -> FxHashMap<&'a Nonterminal, FxHashSet<Terminal>> {
+        let mut result: FxHashMap<&'a Nonterminal, FxHashSet<Terminal>> = FxHashMap::default();
+        for nonterminal in self.grammar.nonterminals() {
+            for alternative in self.grammar.alternatives(nonterminal) {
+                for symbol in &alternative.symbols {
+                    if let Symbol::FollowRestriction {
+                        symbol: inner,
+                        restrictions,
+                    } = symbol
+                    {
+                        if let Some(nt) = self.symbol_nonterminal(inner) {
+                            for restriction in restrictions {
+                                let def = self.grammar.definition(restriction.resolve());
+                                if let Definition::Terminal(t) = def {
+                                    result.entry(nt).or_default().insert(t.clone());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        result
     }
 }
 
