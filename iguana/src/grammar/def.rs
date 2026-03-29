@@ -384,12 +384,12 @@ fn add_lexical_rules(
         }
         Symbol::FollowRestriction {
             symbol,
-            restriction,
+            restrictions,
         } => {
             let transformed = add_lexical_rules(*symbol, lexical_rules, added_terminals);
             Symbol::FollowRestriction {
                 symbol: Box::new(transformed),
-                restriction,
+                restrictions,
             }
         }
         Symbol::PrecedeRestriction {
@@ -413,7 +413,14 @@ fn resolve_identifiers(
 ) -> (Vec<SyntaxRule>, Vec<LexicalRule>) {
     let syntax_rules = syntax_rules
         .into_iter()
-        .map(|rule| transform_syntax_rule(rule, |s| resolve_identifier(s, symbol_table)))
+        .map(|rule| {
+            let mut rule = transform_syntax_rule(rule, |s| resolve_identifier(s, symbol_table));
+            rule.head.origin = rule
+                .head
+                .origin
+                .map(|s| resolve_identifier(s, symbol_table));
+            rule
+        })
         .collect();
     let lexical_rules = lexical_rules
         .into_iter()
@@ -532,21 +539,24 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
         }
         Symbol::FollowRestriction {
             symbol,
-            restriction,
+            restrictions,
         } => {
             let resolved_symbol = resolve_identifier(*symbol, symbol_table);
-            let resolved_restriction =
-                if let Some(definition_id) = symbol_table.get(&restriction.name) {
+            let resolved_restrictions = restrictions
+                .into_iter()
+                .map(|r| {
+                    let def_id = symbol_table
+                        .get(&r.name)
+                        .unwrap_or_else(|| panic!("definition {} not found", &r.name));
                     Identifier {
-                        name: restriction.name,
-                        definition: Some(definition_id),
+                        name: r.name,
+                        definition: Some(def_id),
                     }
-                } else {
-                    panic!("Definition {} not found", &restriction.name)
-                };
+                })
+                .collect();
             Symbol::FollowRestriction {
                 symbol: Box::new(resolved_symbol),
-                restriction: resolved_restriction,
+                restrictions: resolved_restrictions,
             }
         }
         Symbol::PrecedeRestriction {

@@ -92,14 +92,12 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
         });
     }
 
-    // Replace Exclude symbols with Identifiers pointing to the new nonterminals.
-    let mut syntax_rules: Vec<SyntaxRule> = syntax_rules
-        .into_iter()
-        .map(|rule| transform_syntax_rule(rule, |symbol| replace_exclude(symbol, &exclude_map)))
-        .collect();
-
-    syntax_rules.extend(new_rules);
+    // Resolve Exclude symbols to point to the new nonterminals.
     syntax_rules
+        .into_iter()
+        .chain(new_rules)
+        .map(|rule| transform_syntax_rule(rule, |symbol| replace_exclude(symbol, &exclude_map)))
+        .collect()
 }
 
 fn replace_exclude(
@@ -113,7 +111,7 @@ fn replace_exclude(
                 .expect("Exclude symbol should wrap an Identifier")
                 .name
                 .clone();
-            let key = (nonterminal_name, labels);
+            let key = (nonterminal_name, labels.clone());
             let new_name = exclude_map
                 .get(&key)
                 .expect("Exclude combo should be in the map");
@@ -122,6 +120,26 @@ fn replace_exclude(
                 definition: None,
             })
         }
+        Symbol::Except { symbol, except } => Symbol::Except {
+            symbol: Box::new(replace_exclude(*symbol, exclude_map)),
+            except,
+        },
+        Symbol::FollowRestriction { symbol, restrictions } => Symbol::FollowRestriction {
+            symbol: Box::new(replace_exclude(*symbol, exclude_map)),
+            restrictions,
+        },
+        Symbol::PrecedeRestriction { symbol, restriction } => Symbol::PrecedeRestriction {
+            symbol: Box::new(replace_exclude(*symbol, exclude_map)),
+            restriction,
+        },
+        Symbol::Labeled { label, symbol } => Symbol::Labeled {
+            label,
+            symbol: Box::new(replace_exclude(*symbol, exclude_map)),
+        },
+        Symbol::Binding { name, symbol } => Symbol::Binding {
+            name,
+            symbol: Box::new(replace_exclude(*symbol, exclude_map)),
+        },
         other => other,
     }
 }

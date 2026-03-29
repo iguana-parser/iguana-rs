@@ -78,11 +78,11 @@ pub enum Symbol {
         except: Vec<Identifier>,
     },
     // Corresponds to the `!>>` operator in the concrete syntax.
-    // `X !>> Id` means reject the match of X if the character immediately after
-    // right_extent matches Id. Id must be a single-char regex (Char, CharRange, or CharClass).
+    // `X !>> A !>> B` rejects X if any of A, B can be matched immediately
+    // after X in the input.
     FollowRestriction {
         symbol: Box<Symbol>,
-        restriction: Identifier,
+        restrictions: Vec<Identifier>,
     },
     // Corresponds to the `<<!` operator in the concrete syntax.
     // `Id <<! X` means reject the match of X if the character immediately before
@@ -319,9 +319,10 @@ impl Symbol {
             }
             Symbol::FollowRestriction {
                 symbol,
-                restriction,
+                restrictions,
             } => {
-                format!("{} !>> {}", symbol.display_name(grammar), restriction)
+                let rs = restrictions.iter().map(|r| format!("!>> {}", r)).join(" ");
+                format!("{} {}", symbol.display_name(grammar), rs)
             }
             Symbol::PrecedeRestriction {
                 symbol,
@@ -370,8 +371,14 @@ impl Display for Symbol {
             }
             Symbol::FollowRestriction {
                 symbol,
-                restriction,
-            } => write!(f, "{} !>> {}", symbol, restriction),
+                restrictions,
+            } => {
+                write!(f, "{}", symbol)?;
+                for r in restrictions {
+                    write!(f, " !>> {}", r)?;
+                }
+                Ok(())
+            }
             Symbol::PrecedeRestriction {
                 symbol,
                 restriction,
@@ -674,13 +681,17 @@ macro_rules! except {
 
 #[macro_export]
 macro_rules! follow {
-    ($symbol:expr, $restriction:expr) => {
+    ($symbol:expr, $($restriction:expr),+ $(,)?) => {
         $crate::grammar::symbols::Symbol::FollowRestriction {
             symbol: Box::new($symbol),
-            restriction: $crate::grammar::symbols::Identifier {
-                name: $restriction.into(),
-                definition: None,
-            },
+            restrictions: vec![
+                $(
+                    $crate::grammar::symbols::Identifier {
+                        name: $restriction.into(),
+                        definition: None,
+                    },
+                )+
+            ],
         }
     };
 }

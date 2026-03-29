@@ -363,11 +363,12 @@ impl<'a> ParserGen<'a> {
                     | Symbol::Except { .. }
                     | Symbol::FollowRestriction { .. }
                     | Symbol::PrecedeRestriction { .. }
-                    | Symbol::Exclude { .. }
                     | Symbol::Call { .. }
                     | Symbol::Condition(_)
                     | Symbol::Return(_)
-                    | Symbol::Binding { .. } => quote! { None },
+                    | Symbol::Binding { .. }
+                    // Exclude-derived nonterminals have Exclude as their origin
+                    | Symbol::Exclude { .. } => quote! { None },
                 },
                 None => quote! { None },
             };
@@ -454,18 +455,15 @@ impl<'a> ParserGen<'a> {
             }
             Some(Symbol::FollowRestriction {
                 symbol,
-                restriction,
+                restrictions,
             }) => {
-                return self.gen_follow_restriction_code(symbol, restriction, &slot);
+                return self.gen_follow_restriction_code(symbol, restrictions, &slot);
             }
             Some(Symbol::PrecedeRestriction {
                 symbol,
                 restriction,
             }) => {
                 return self.gen_precede_restriction_code(symbol, restriction, &slot);
-            }
-            Some(Symbol::Exclude { .. }) => {
-                unreachable!("Exclude should be desugared before code generation")
             }
             Some(
                 Symbol::Labeled { .. }
@@ -480,6 +478,9 @@ impl<'a> ParserGen<'a> {
                 | Symbol::Binding { .. },
             )
             | None => {}
+            Some(Symbol::Exclude { .. }) => {
+                unreachable!("Exclude should be desugared before code generation")
+            }
         }
         let symbol = slot.symbol().unwrap();
         if let Some(identifier) = symbol.as_identifier() {
@@ -504,9 +505,7 @@ impl<'a> ParserGen<'a> {
                         | Symbol::Condition(_)
                         | Symbol::Return(_)
                         | Symbol::Binding { .. } => vec![],
-                        Symbol::Exclude { .. } => {
-                            unreachable!("Exclude should be desugared before code generation")
-                        }
+                        Symbol::Exclude { .. } => unreachable!("Exclude should be desugared before code generation"),
                     };
                     self.gen_nonterminal_slot(nonterminal, &arguments, slot, &[], &[])
                 }
@@ -656,7 +655,7 @@ impl<'a> ParserGen<'a> {
     fn gen_follow_restriction_code(
         &self,
         symbol: &Symbol,
-        restriction: &Identifier,
+        restrictions: &[Identifier],
         slot: &Slot<'a>,
     ) -> TokenStream {
         let Some(identifier) = symbol.as_identifier() else {
@@ -664,18 +663,18 @@ impl<'a> ParserGen<'a> {
         };
         let def_id = identifier.resolve();
         let def = &self.grammar.definition(def_id);
-        let restriction_def_id = restriction.resolve();
-        let Definition::Terminal(restriction_terminal) =
-            self.grammar.definition(restriction_def_id)
-        else {
-            panic!("Follow restriction identifier must resolve to a terminal");
-        };
-        let restriction_terminal_id = self.terminal_ids.get_id(restriction_terminal);
+        let post_conditions: Vec<_> = restrictions
+            .iter()
+            .map(|r| {
+                let Definition::Terminal(t) = self.grammar.definition(r.resolve()) else {
+                    panic!("follow restriction must resolve to a terminal");
+                };
+                let id = self.terminal_ids.get_id(t);
+                quote! { self.scanner.match_token(#id, j).is_none() }
+            })
+            .collect();
         match def {
             Definition::Terminal(terminal) => {
-                let post_conditions = vec![quote! {
-                    self.scanner.match_token(#restriction_terminal_id, j).is_none()
-                }];
                 self.gen_terminal_slot(terminal, slot.clone(), &[], &post_conditions)
             }
             Definition::Nonterminal(nonterminal) => {
@@ -683,9 +682,6 @@ impl<'a> ParserGen<'a> {
                     Symbol::Call { arguments, .. } => arguments.clone(),
                     _ => vec![],
                 };
-                let post_conditions = vec![quote! {
-                    self.scanner.match_token(#restriction_terminal_id, j).is_none()
-                }];
                 self.gen_nonterminal_slot(
                     nonterminal,
                     &arguments,
@@ -782,7 +778,7 @@ impl<'a> ParserGen<'a> {
                     }
                     if let Symbol::FollowRestriction {
                         symbol,
-                        restriction,
+                        restrictions,
                     } = symbol
                     {
                         let Some(identifier) = symbol.as_identifier() else {
@@ -792,22 +788,28 @@ impl<'a> ParserGen<'a> {
                         if !matches!(def, Definition::Nonterminal(_)) {
                             continue;
                         }
-                        let restriction_def_id = restriction.resolve();
-                        let Definition::Terminal(restriction_terminal) =
-                            self.grammar.definition(restriction_def_id)
-                        else {
-                            panic!("Follow restriction identifier must resolve to a terminal");
-                        };
-                        let restriction_terminal_id =
-                            self.terminal_ids.get_id(restriction_terminal);
+                        let checks: Vec<_> = restrictions
+                            .iter()
+                            .map(|r| {
+                                let Definition::Terminal(t) =
+                                    self.grammar.definition(r.resolve())
+                                else {
+                                    panic!("follow restriction must resolve to a terminal");
+                                };
+                                let id = self.terminal_ids.get_id(t);
+                                quote! {
+                                    self.scanner.match_token(#id, right_extent).is_none()
+                                }
+                            })
+                            .collect();
                         let slot = Slot::new(nonterminal, alternative, pos);
                         let next_slot = slot.next();
                         let slot_id = self.slot_ids.get_id(&next_slot);
                         arms.push(quote! {
-                        #slot_id => {
-                            self.scanner.match_token(#restriction_terminal_id, right_extent).is_none()
-                        }
-                    });
+                            #slot_id => {
+                                #(#checks)&&*
+                            }
+                        });
                     }
                 }
             }
@@ -1332,13 +1334,15 @@ impl<'a> ParserGen<'a> {
                             .push(quote! { self.scanner.match_token(#id, start) != Some(end) });
                     }
                 }
-                Symbol::FollowRestriction { restriction, .. } => {
-                    let Definition::Terminal(t) = self.grammar.definition(restriction.resolve())
-                    else {
-                        panic!("Follow restriction identifier must resolve to a terminal");
-                    };
-                    let id = self.terminal_ids.get_id(t);
-                    post_conditions.push(quote! { self.scanner.match_token(#id, end).is_none() });
+                Symbol::FollowRestriction { restrictions, .. } => {
+                    for r in restrictions {
+                        let Definition::Terminal(t) = self.grammar.definition(r.resolve()) else {
+                            panic!("follow restriction must resolve to a terminal");
+                        };
+                        let id = self.terminal_ids.get_id(t);
+                        post_conditions
+                            .push(quote! { self.scanner.match_token(#id, end).is_none() });
+                    }
                 }
                 Symbol::PrecedeRestriction { restriction, .. } => {
                     let Definition::Terminal(t) = self.grammar.definition(restriction.resolve())

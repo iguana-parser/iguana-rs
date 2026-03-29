@@ -361,6 +361,7 @@ fn gen_field_name(
                                     }
                                 }
                             }
+                            // Exclude-derived nonterminals have Exclude as their origin
                             Symbol::Exclude { symbol, .. } => {
                                 if let Some(inner_ident) = symbol.as_identifier() {
                                     let snake = to_snake_case(&inner_ident.name);

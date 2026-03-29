@@ -1,0 +1,12 @@
+grammar FollowRestrictionMultiple
+
+S = Id+
+
+@NoLayout
+Id = (Alpha | Digit)+ !>> Alpha !>> Digit
+
+@regex
+Alpha = [a-zA-Z]
+
+@regex
+Digit = [0-9]

@@ -37,10 +37,9 @@ where
             PriorityLevel::with_associativity(new_alternatives, priority_level.associativity)
         })
         .collect();
-    let origin = rule.head.origin.map(transform_symbol);
     let head = Nonterminal {
         name,
-        origin,
+        origin: rule.head.origin,
         parameters: rule.head.parameters,
     };
     SyntaxRule {

@@ -234,10 +234,10 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             symbol, identifier, ..
         } => Symbol::FollowRestriction {
             symbol: Box::new(convert_symbol(symbol, input)),
-            restriction: Identifier {
+            restrictions: vec![Identifier {
                 name: text(input, identifier.span()),
                 definition: None,
-            },
+            }],
         },
         parse_tree::Symbol::PrecedeRestriction {
             symbol, identifier, ..
