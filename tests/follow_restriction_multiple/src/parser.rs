@@ -191,7 +191,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
                 let i = input_index;
                 if let Some(right_child_id) = self.parse_id_plus_1_ll1(i) {
                     let j = self.sppf_node(right_child_id).right_extent();
-                    if !(self.scanner.match_token(TerminalId(1), j).is_none()) {
+                    if !(self.scanner.match_token(TerminalId(0), j).is_none()
+                        && self.scanner.match_token(TerminalId(1), j).is_none())
+                    {
                         return;
                     }
                     //Id : Id_Plus_1 !>> Alpha !>> Digit.
@@ -805,7 +807,10 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
         right_extent: u32,
     ) -> bool {
         match slot {
-            SlotId(3) => self.scanner.match_token(TerminalId(1), right_extent).is_none(),
+            SlotId(3) => {
+                self.scanner.match_token(TerminalId(0), right_extent).is_none()
+                    && self.scanner.match_token(TerminalId(1), right_extent).is_none()
+            }
             _ => true,
         }
     }
@@ -935,7 +940,9 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 let node = self.parse_id_plus_1_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
-                if !(self.scanner.match_token(TerminalId(1), end).is_none()) {
+                if !(self.scanner.match_token(TerminalId(0), end).is_none()
+                    && self.scanner.match_token(TerminalId(1), end).is_none())
+                {
                     return None;
                 }
                 node

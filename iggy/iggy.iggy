@@ -51,7 +51,7 @@ Symbol
   | Symbol "+"                               #Plus
   | Symbol "?"                               #Opt
   | Symbol!Except excepts:("\\" Identifier)+  #Except
-  | Symbol "!>>" Identifier                  #FollowRestriction
+  | Symbol!FollowRestriction restrictions:("!>>" Identifier)+ #FollowRestriction
   | Symbol labels:("!" Identifier)+          #Exclude
   > Identifier "!<<" Symbol                  #PrecedeRestriction
   > label:Identifier ":" Symbol              #Labeled

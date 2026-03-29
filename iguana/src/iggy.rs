@@ -231,13 +231,19 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 .collect(),
         },
         parse_tree::Symbol::FollowRestriction {
-            symbol, identifier, ..
+            symbol, restrictions, ..
         } => Symbol::FollowRestriction {
             symbol: Box::new(convert_symbol(symbol, input)),
-            restrictions: vec![Identifier {
-                name: text(input, identifier.span()),
-                definition: None,
-            }],
+            restrictions: restrictions
+                .iter()
+                .filter_map(|node| match node {
+                    parse_tree::ParseTreeRef::SymbolGroup2(group) => Some(Identifier {
+                        name: text(input, group.identifier.span()),
+                        definition: None,
+                    }),
+                    _ => None,
+                })
+                .collect(),
         },
         parse_tree::Symbol::PrecedeRestriction {
             symbol, identifier, ..
