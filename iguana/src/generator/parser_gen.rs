@@ -1156,9 +1156,9 @@ impl<'a> ParserGen<'a> {
                         let epsilon_node_id = self.get_or_create_terminal_node(
                             TerminalId(#epsilon_id), i, i,
                         );
-                        return self.create_nonterminal_node_or_attach_children(
+                        return Some(self.get_or_create_nonterminal_node(
                             #nonterminal_id, #end_slot_id, i, i, epsilon_node_id,
-                        );
+                        ));
                     }
                 });
             } else {
@@ -1250,9 +1250,9 @@ impl<'a> ParserGen<'a> {
             let next_slot = Slot::new(nonterminal, recursive_alt, idx + 2);
             let next_slot_id = self.slot_ids.get_id(&next_slot);
             build_nodes.push(quote! {
-                current = self.create_intermediate_node_or_attach_children(
+                current = self.get_or_create_intermediate_node(
                     #next_slot_id, left_extent, #pos_var, current, #node_var,
-                )?;
+                );
             });
         }
 
@@ -1262,15 +1262,15 @@ impl<'a> ParserGen<'a> {
                 let (body_node, body_end) = (#base_parse)?;
                 j = body_end;
                 let left_extent = i;
-                let mut current = self.create_nonterminal_node_or_attach_children(
+                let mut current = self.get_or_create_nonterminal_node(
                     #nonterminal_id, #base_end_slot_id, left_extent, j, body_node,
-                )?;
+                );
                 loop {
                     #(#parses)*
                     #(#build_nodes)*
-                    current = self.create_nonterminal_node_or_attach_children(
+                    current = self.get_or_create_nonterminal_node(
                         #nonterminal_id, #recursive_end_slot_id, left_extent, j, current,
-                    )?;
+                    );
                 }
                 Some(current)
             }
@@ -1416,17 +1416,17 @@ impl<'a> ParserGen<'a> {
                 });
             } else {
                 body.push(quote! {
-                    current = self.create_intermediate_node_or_attach_children(
+                    current = self.get_or_create_intermediate_node(
                         #next_slot_id, left_extent, j, current, right_child_id,
-                    )?;
+                    );
                 });
             }
         }
 
         body.push(quote! {
-            return self.create_nonterminal_node_or_attach_children(
+            return Some(self.get_or_create_nonterminal_node(
                 #nonterminal_id, #end_slot_id, left_extent, j, current,
-            );
+            ));
         });
 
         quote! { #(#body)* }

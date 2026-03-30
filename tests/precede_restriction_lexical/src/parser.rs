@@ -723,13 +723,13 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 node
             };
             current = self
-                .create_intermediate_node_or_attach_children(
+                .get_or_create_intermediate_node(
                     SlotId(2),
                     left_extent,
                     j,
                     current,
                     right_child_id,
-                )?;
+                );
             let right_child_id = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(0), start)?;
@@ -738,21 +738,23 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 node
             };
             current = self
-                .create_intermediate_node_or_attach_children(
+                .get_or_create_intermediate_node(
                     SlotId(3),
                     left_extent,
                     j,
                     current,
                     right_child_id,
-                )?;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(0),
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
                 );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(0),
+                        SlotId(3),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         if self.scanner.match_token(TerminalId(4), i).is_some() {
             let mut j = i;
@@ -765,14 +767,16 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(0),
-                    SlotId(5),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(0),
+                        SlotId(5),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -799,13 +803,13 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 node
             };
             current = self
-                .create_intermediate_node_or_attach_children(
+                .get_or_create_intermediate_node(
                     SlotId(8),
                     left_extent,
                     j,
                     current,
                     right_child_id,
-                )?;
+                );
             let right_child_id = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(2), start)?;
@@ -814,21 +818,23 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 node
             };
             current = self
-                .create_intermediate_node_or_attach_children(
+                .get_or_create_intermediate_node(
                     SlotId(9),
                     left_extent,
                     j,
                     current,
                     right_child_id,
-                )?;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(1),
-                    SlotId(9),
-                    left_extent,
-                    j,
-                    current,
                 );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(1),
+                        SlotId(9),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }

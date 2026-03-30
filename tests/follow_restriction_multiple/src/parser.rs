@@ -919,14 +919,16 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(0),
-                    SlotId(1),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(0),
+                        SlotId(1),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -949,14 +951,16 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(1),
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(1),
+                        SlotId(3),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -971,13 +975,13 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
         j = body_end;
         let left_extent = i;
         let mut current = self
-            .create_nonterminal_node_or_attach_children(
+            .get_or_create_nonterminal_node(
                 NonterminalId(2),
                 SlotId(8),
                 left_extent,
                 j,
                 body_node,
-            )?;
+            );
         loop {
             let Some((node_0, pos_0)) = self
                 .parse_id_ll1(j)
@@ -989,21 +993,21 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             };
             j = pos_0;
             current = self
-                .create_intermediate_node_or_attach_children(
+                .get_or_create_intermediate_node(
                     SlotId(6),
                     left_extent,
                     pos_0,
                     current,
                     node_0,
-                )?;
+                );
             current = self
-                .create_nonterminal_node_or_attach_children(
+                .get_or_create_nonterminal_node(
                     NonterminalId(2),
                     SlotId(6),
                     left_extent,
                     j,
                     current,
-                )?;
+                );
         }
         Some(current)
     }
@@ -1019,14 +1023,16 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(3),
-                    SlotId(10),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(3),
+                        SlotId(10),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         if self.scanner.match_token(TerminalId(1), i).is_some() {
             let mut j = i;
@@ -1039,14 +1045,16 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(3),
-                    SlotId(12),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(3),
+                        SlotId(12),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -1061,13 +1069,13 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
         j = body_end;
         let left_extent = i;
         let mut current = self
-            .create_nonterminal_node_or_attach_children(
+            .get_or_create_nonterminal_node(
                 NonterminalId(4),
                 SlotId(17),
                 left_extent,
                 j,
                 body_node,
-            )?;
+            );
         loop {
             let Some((node_0, pos_0)) = self
                 .parse_id_alt_0_ll1(j)
@@ -1079,21 +1087,21 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             };
             j = pos_0;
             current = self
-                .create_intermediate_node_or_attach_children(
+                .get_or_create_intermediate_node(
                     SlotId(15),
                     left_extent,
                     pos_0,
                     current,
                     node_0,
-                )?;
+                );
             current = self
-                .create_nonterminal_node_or_attach_children(
+                .get_or_create_nonterminal_node(
                     NonterminalId(4),
                     SlotId(15),
                     left_extent,
                     j,
                     current,
-                )?;
+                );
         }
         Some(current)
     }

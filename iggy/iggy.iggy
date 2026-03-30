@@ -79,10 +79,7 @@ Range
 
 @NoLayout
 Layout
-  = (WS | LineComment)* !>> WSChar !>> LineCommentStart
-
-@NoLayout
-LineComment = LineCommentStart LineCommentBody
+  = (WS | LineComment)* !>> WS !>> LineComment
 
 @regex
 Keyword = "grammar" | "layout" | "left" | "right" | "none"
@@ -114,7 +111,4 @@ WS = WSChar+
 WSChar = [\ \n \t]
 
 @regex
-LineCommentStart = "//"
-
-@regex
-LineCommentBody = ![\n]*
+LineComment = "//" ![\n]*

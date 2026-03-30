@@ -487,14 +487,16 @@ impl<'i> ExceptTerminalParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(0),
-                    SlotId(1),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(0),
+                        SlotId(1),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -513,14 +515,16 @@ impl<'i> ExceptTerminalParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(1),
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(1),
+                        SlotId(3),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }

@@ -434,6 +434,57 @@ pub trait Parser<'i> {
         Some(self.add_intermediate_node(intermediate_node))
     }
 
+    fn get_or_create_nonterminal_node(
+        &mut self,
+        nonterminal_id: NonterminalId,
+        return_slot: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+        child: SPPFNodeId,
+    ) -> SPPFNodeId {
+        if let Some(existing_node_id) =
+            self.lookup_nonterminal_node(nonterminal_id, left_extent, right_extent)
+        {
+            return existing_node_id;
+        }
+        let nonterminal_node = NonterminalNode {
+            nonterminal_id,
+            return_slot,
+            span: Span {
+                left_extent,
+                right_extent,
+            },
+            child,
+            ambiguous: false,
+        };
+        self.add_nonterminal_node(nonterminal_node)
+    }
+
+    fn get_or_create_intermediate_node(
+        &mut self,
+        slot_id: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+        left_child: SPPFNodeId,
+        right_child: SPPFNodeId,
+    ) -> SPPFNodeId {
+        if let Some(existing_node_id) =
+            self.lookup_intermediate_node(slot_id, left_extent, right_extent)
+        {
+            return existing_node_id;
+        }
+        let intermediate_node = IntermediateNode {
+            slot_id,
+            span: Span {
+                left_extent,
+                right_extent,
+            },
+            child: (left_child, right_child),
+            ambiguous: false,
+        };
+        self.add_intermediate_node(intermediate_node)
+    }
+
     fn get_or_create_terminal_node(
         &mut self,
         terminal_id: TerminalId,

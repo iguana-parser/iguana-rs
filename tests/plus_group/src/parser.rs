@@ -911,14 +911,16 @@ impl<'i> PlusGroupParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(0),
-                    SlotId(1),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(0),
+                        SlotId(1),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -934,14 +936,16 @@ impl<'i> PlusGroupParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(1),
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(1),
+                        SlotId(3),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -957,14 +961,16 @@ impl<'i> PlusGroupParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(2),
-                    SlotId(5),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(2),
+                        SlotId(5),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -980,14 +986,16 @@ impl<'i> PlusGroupParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(3),
-                    SlotId(7),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(3),
+                        SlotId(7),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -1011,13 +1019,13 @@ impl<'i> PlusGroupParser<'i> {
                 node
             };
             current = self
-                .create_intermediate_node_or_attach_children(
+                .get_or_create_intermediate_node(
                     SlotId(10),
                     left_extent,
                     j,
                     current,
                     right_child_id,
-                )?;
+                );
             let right_child_id = {
                 let start = j;
                 let node = self.parse_c_ll1(start)?;
@@ -1026,21 +1034,23 @@ impl<'i> PlusGroupParser<'i> {
                 node
             };
             current = self
-                .create_intermediate_node_or_attach_children(
+                .get_or_create_intermediate_node(
                     SlotId(11),
                     left_extent,
                     j,
                     current,
                     right_child_id,
-                )?;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(4),
-                    SlotId(11),
-                    left_extent,
-                    j,
-                    current,
                 );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(4),
+                        SlotId(11),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -1055,13 +1065,13 @@ impl<'i> PlusGroupParser<'i> {
         j = body_end;
         let left_extent = i;
         let mut current = self
-            .create_nonterminal_node_or_attach_children(
+            .get_or_create_nonterminal_node(
                 NonterminalId(5),
                 SlotId(16),
                 left_extent,
                 j,
                 body_node,
-            )?;
+            );
         loop {
             let Some((node_0, pos_0)) = self
                 .parse_s_group_0_ll1(j)
@@ -1073,21 +1083,21 @@ impl<'i> PlusGroupParser<'i> {
             };
             j = pos_0;
             current = self
-                .create_intermediate_node_or_attach_children(
+                .get_or_create_intermediate_node(
                     SlotId(14),
                     left_extent,
                     pos_0,
                     current,
                     node_0,
-                )?;
+                );
             current = self
-                .create_nonterminal_node_or_attach_children(
+                .get_or_create_nonterminal_node(
                     NonterminalId(5),
                     SlotId(14),
                     left_extent,
                     j,
                     current,
-                )?;
+                );
         }
         Some(current)
     }

@@ -796,21 +796,23 @@ impl<'i> SimpleAltParser<'i> {
                 node
             };
             current = self
-                .create_intermediate_node_or_attach_children(
+                .get_or_create_intermediate_node(
                     SlotId(2),
                     left_extent,
                     j,
                     current,
                     right_child_id,
-                )?;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(0),
-                    SlotId(2),
-                    left_extent,
-                    j,
-                    current,
                 );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(0),
+                        SlotId(2),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -826,14 +828,16 @@ impl<'i> SimpleAltParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(1),
-                    SlotId(4),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(1),
+                        SlotId(4),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -849,14 +853,16 @@ impl<'i> SimpleAltParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(2),
-                    SlotId(6),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(2),
+                        SlotId(6),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -872,14 +878,16 @@ impl<'i> SimpleAltParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(3),
-                    SlotId(8),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(3),
+                        SlotId(8),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
@@ -895,14 +903,16 @@ impl<'i> SimpleAltParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(4),
-                    SlotId(10),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(4),
+                        SlotId(10),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         if self.scanner.match_token(TerminalId(2), i).is_some() {
             let mut j = i;
@@ -915,14 +925,16 @@ impl<'i> SimpleAltParser<'i> {
             };
             let left_extent = self.sppf_node(right_child_id).left_extent();
             let mut current = right_child_id;
-            return self
-                .create_nonterminal_node_or_attach_children(
-                    NonterminalId(4),
-                    SlotId(12),
-                    left_extent,
-                    j,
-                    current,
-                );
+            return Some(
+                self
+                    .get_or_create_nonterminal_node(
+                        NonterminalId(4),
+                        SlotId(12),
+                        left_extent,
+                        j,
+                        current,
+                    ),
+            );
         }
         None
     }
