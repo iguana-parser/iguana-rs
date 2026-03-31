@@ -76,17 +76,18 @@ impl<'a> FirstFollowSets<'a> {
     }
 
     /// A nonterminal is LL(1) if its alternatives have disjoint prediction
-    /// sets. Plus and Star are a special case: EBNF desugaring uses
-    /// left-recursion (e.g., `A+ => APlus = APlus A | A`), so the
-    /// alternatives always overlap. A Plus or Star is LL(1) if its body
-    /// element is LL(1). The LL(1) codegen generates a loop for these
-    /// instead of using the expanded left-recursive alternatives. The body
-    /// element is checked transitively by `is_ll1`.
+    /// sets. Plus is a special case: EBNF desugaring produces left-recursive
+    /// rules (e.g., `A+ => APlus = APlus A | A`) whose alternatives always
+    /// overlap. The left recursion is an artifact of the desugaring. The
+    /// loop decision is a FIRST(A) membership test, so Plus is LL(1) if A
+    /// is LL(1). Star and Opt are not exempt: their nullable alternatives
+    /// pull FOLLOW into the prediction set, so disjointness depends on
+    /// context.
     fn is_nonterminal_ll1(&self, nt: &Nonterminal) -> bool {
         if self.has_disjoint_alternatives(nt) {
             return true;
         }
-        matches!(&nt.origin, Some(Symbol::Plus(_, _)) | Some(Symbol::Star(_, _)))
+        matches!(&nt.origin, Some(Symbol::Plus(_, _)))
     }
 
     /// Returns the FIRST set of an alternative. Walks symbols left to right,
