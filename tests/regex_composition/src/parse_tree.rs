@@ -256,17 +256,17 @@ pub struct IdStar0 {
 //StartS = WS start:S WS
 #[derive(Debug)]
 pub struct StartS {
-    pub w_s_0: Token,
+    pub ws_0: Token,
     pub start: S,
-    pub w_s_2: Token,
+    pub ws_2: Token,
     pub span: Span,
 }
 //StartId = WS start:Id WS
 #[derive(Debug)]
 pub struct StartId {
-    pub w_s_0: Token,
+    pub ws_0: Token,
     pub start: Id,
-    pub w_s_2: Token,
+    pub ws_2: Token,
     pub span: Span,
 }
 impl S {
@@ -403,9 +403,9 @@ impl IdStar0 {
 impl StartS {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.w_s_0.as_parse_tree_ref()),
+            0 => Some(self.ws_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.w_s_2.as_parse_tree_ref()),
+            2 => Some(self.ws_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -422,9 +422,9 @@ impl StartS {
 impl StartId {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.w_s_0.as_parse_tree_ref()),
+            0 => Some(self.ws_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.w_s_2.as_parse_tree_ref()),
+            2 => Some(self.ws_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -626,14 +626,14 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartS : WS start:S WS.
                     SlotId(18) => {
-                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
+                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartS {
-                            w_s_0: w_s_0.unwrap_token(),
+                            ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_s(),
-                            w_s_2: w_s_2.unwrap_token(),
+                            ws_2: ws_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -646,14 +646,14 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartId : WS start:Id WS.
                     SlotId(22) => {
-                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
+                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartId {
-                            w_s_0: w_s_0.unwrap_token(),
+                            ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_id(),
-                            w_s_2: w_s_2.unwrap_token(),
+                            ws_2: ws_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()

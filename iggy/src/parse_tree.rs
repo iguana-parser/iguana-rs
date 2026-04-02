@@ -2486,7 +2486,7 @@ pub enum CharClassPlus12 {
 #[derive(Debug)]
 pub enum LayoutAlt0 {
     //WS
-    Alt0 { w_s: Token, span: Span },
+    Alt0 { ws: Token, span: Span },
     //LineComment
     Alt1 { line_comment: Token, span: Span },
 }
@@ -4550,9 +4550,9 @@ impl CharClassPlus12 {
 impl LayoutAlt0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            LayoutAlt0::Alt0 { w_s, .. } => {
+            LayoutAlt0::Alt0 { ws, .. } => {
                 match index {
-                    0 => Some(w_s.as_parse_tree_ref()),
+                    0 => Some(ws.as_parse_tree_ref()),
                     _ => None,
                 }
             }
@@ -4613,6 +4613,22 @@ impl LayoutPlus13 {
             LayoutPlus13::Alt1 { span, .. } => *span,
         }
     }
+    pub fn wses(&self) -> impl Iterator<Item = &Token> {
+        self.iter()
+            .filter_map(|node| match node {
+                ParseTreeRef::LayoutAlt0(LayoutAlt0::Alt0 { ws, .. }) => Some(ws),
+                _ => None,
+            })
+    }
+    pub fn line_comments(&self) -> impl Iterator<Item = &Token> {
+        self.iter()
+            .filter_map(|node| match node {
+                ParseTreeRef::LayoutAlt0(LayoutAlt0::Alt1 { line_comment, .. }) => {
+                    Some(line_comment)
+                }
+                _ => None,
+            })
+    }
 }
 impl LayoutOpt11 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -4645,6 +4661,12 @@ impl LayoutOpt11 {
             LayoutOpt11::Alt1 { span, .. } => *span,
         }
     }
+    pub fn wses(&self) -> impl Iterator<Item = &Token> {
+        self.value().into_iter().flat_map(|inner| inner.wses())
+    }
+    pub fn line_comments(&self) -> impl Iterator<Item = &Token> {
+        self.value().into_iter().flat_map(|inner| inner.line_comments())
+    }
 }
 impl LayoutStar5 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -4661,6 +4683,12 @@ impl LayoutStar5 {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn wses(&self) -> impl Iterator<Item = &Token> {
+        self.layout_opt_11.wses()
+    }
+    pub fn line_comments(&self) -> impl Iterator<Item = &Token> {
+        self.layout_opt_11.line_comments()
     }
 }
 impl StartGrammar {
@@ -5591,9 +5619,9 @@ impl RangeElement {
     }
 }
 impl LayoutAlt0 {
-    pub fn as_w_s(&self) -> Option<&Token> {
+    pub fn as_ws(&self) -> Option<&Token> {
         match self {
-            LayoutAlt0::Alt0 { w_s, .. } => Some(w_s),
+            LayoutAlt0::Alt0 { ws, .. } => Some(ws),
             _ => None,
         }
     }
@@ -7072,9 +7100,9 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //(WS | LineComment) : WS.
                     SlotId(374) => {
-                        let [w_s] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [ws] = <[ParseTree; 1usize]>::try_from(children).unwrap();
                         LayoutAlt0::Alt0 {
-                            w_s: w_s.unwrap_token(),
+                            ws: ws.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()

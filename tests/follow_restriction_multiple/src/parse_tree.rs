@@ -349,6 +349,20 @@ impl IdPlus1 {
             IdPlus1::Alt1 { span, .. } => *span,
         }
     }
+    pub fn alphas(&self) -> impl Iterator<Item = &Token> {
+        self.iter()
+            .filter_map(|node| match node {
+                ParseTreeRef::IdAlt0(IdAlt0::Alt0 { alpha, .. }) => Some(alpha),
+                _ => None,
+            })
+    }
+    pub fn digits(&self) -> impl Iterator<Item = &Token> {
+        self.iter()
+            .filter_map(|node| match node {
+                ParseTreeRef::IdAlt0(IdAlt0::Alt1 { digit, .. }) => Some(digit),
+                _ => None,
+            })
+    }
 }
 impl<'a> ListNode<'a> for SPlus0 {
     fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {

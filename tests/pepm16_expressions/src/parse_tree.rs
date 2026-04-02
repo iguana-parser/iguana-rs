@@ -195,95 +195,81 @@ pub struct S {
 #[derive(Debug)]
 pub enum E {
     //[6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
-    Alt0 {
-        e: Box<E>,
-        w_s_1: Token,
-        lit_2: Token,
-        w_s_3: Token,
-        lit_4: Token,
-        span: Span,
-    },
+    Alt0 { e: Box<E>, ws_1: Token, lit_2: Token, ws_3: Token, lit_4: Token, span: Span },
     //[6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
-    Alt1 { e_0: Box<E>, w_s: Token, e_2: Box<E>, span: Span },
+    Alt1 { e_0: Box<E>, ws: Token, e_2: Box<E>, span: Span },
     //[5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
     Alt2 {
         e_0: Box<E>,
-        w_s_1: Token,
+        ws_1: Token,
         lit_2: Token,
-        w_s_3: Token,
+        ws_3: Token,
         e_4: Box<E>,
         span: Span,
     },
     //[4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
     Alt3 {
         e_0: Box<E>,
-        w_s_1: Token,
+        ws_1: Token,
         lit_2: Token,
-        w_s_3: Token,
+        ws_3: Token,
         e_4: Box<E>,
         span: Span,
     },
     //[4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
     Alt4 {
         e_0: Box<E>,
-        w_s_1: Token,
+        ws_1: Token,
         lit_2: Token,
-        w_s_3: Token,
+        ws_3: Token,
         e_4: Box<E>,
         span: Span,
     },
     //"-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
-    Alt5 { lit_0: Token, w_s: Token, e: Box<E>, span: Span },
+    Alt5 { lit_0: Token, ws: Token, e: Box<E>, span: Span },
     //"if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
     Alt6 {
         lit_0: Token,
-        w_s_1: Token,
+        ws_1: Token,
         e_2: Box<E>,
-        w_s_3: Token,
+        ws_3: Token,
         lit_4: Token,
-        w_s_5: Token,
+        ws_5: Token,
         e_6: Box<E>,
-        w_s_7: Token,
+        ws_7: Token,
         lit_8: Token,
-        w_s_9: Token,
+        ws_9: Token,
         e_10: Box<E>,
         span: Span,
     },
     //[1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
     Alt7 {
         e_0: Box<E>,
-        w_s_1: Token,
+        ws_1: Token,
         lit_2: Token,
-        w_s_3: Token,
+        ws_3: Token,
         e_4: Box<E>,
         span: Span,
     },
     //"(" WS E(0) WS ")" return 0
-    Alt8 {
-        lit_0: Token,
-        w_s_1: Token,
-        e: Box<E>,
-        w_s_3: Token,
-        lit_4: Token,
-        span: Span,
-    },
+    Alt8 { lit_0: Token, ws_1: Token, e: Box<E>, ws_3: Token, lit_4: Token, span: Span },
     //"a" return 0
     Alt9 { lit_0: Token, span: Span },
 }
 //StartS = WS start:S WS
 #[derive(Debug)]
 pub struct StartS {
-    pub w_s_0: Token,
+    pub ws_0: Token,
     pub start: S,
-    pub w_s_2: Token,
+    pub ws_2: Token,
     pub span: Span,
 }
 //StartE = WS start:E(0) WS
 #[derive(Debug)]
 pub struct StartE {
-    pub w_s_0: Token,
+    pub ws_0: Token,
     pub start: E,
-    pub w_s_2: Token,
+    pub ws_2: Token,
     pub span: Span,
 }
 impl S {
@@ -306,107 +292,107 @@ impl S {
 impl E {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match self {
-            E::Alt0 { e, w_s_1, lit_2, w_s_3, lit_4, .. } => {
+            E::Alt0 { e, ws_1, lit_2, ws_3, lit_4, .. } => {
                 match index {
                     0 => Some(e.as_parse_tree_ref()),
-                    1 => Some(w_s_1.as_parse_tree_ref()),
+                    1 => Some(ws_1.as_parse_tree_ref()),
                     2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(w_s_3.as_parse_tree_ref()),
+                    3 => Some(ws_3.as_parse_tree_ref()),
                     4 => Some(lit_4.as_parse_tree_ref()),
                     _ => None,
                 }
             }
-            E::Alt1 { e_0, w_s, e_2, .. } => {
+            E::Alt1 { e_0, ws, e_2, .. } => {
                 match index {
                     0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(w_s.as_parse_tree_ref()),
+                    1 => Some(ws.as_parse_tree_ref()),
                     2 => Some(e_2.as_parse_tree_ref()),
                     _ => None,
                 }
             }
-            E::Alt2 { e_0, w_s_1, lit_2, w_s_3, e_4, .. } => {
+            E::Alt2 { e_0, ws_1, lit_2, ws_3, e_4, .. } => {
                 match index {
                     0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(w_s_1.as_parse_tree_ref()),
+                    1 => Some(ws_1.as_parse_tree_ref()),
                     2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(w_s_3.as_parse_tree_ref()),
+                    3 => Some(ws_3.as_parse_tree_ref()),
                     4 => Some(e_4.as_parse_tree_ref()),
                     _ => None,
                 }
             }
-            E::Alt3 { e_0, w_s_1, lit_2, w_s_3, e_4, .. } => {
+            E::Alt3 { e_0, ws_1, lit_2, ws_3, e_4, .. } => {
                 match index {
                     0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(w_s_1.as_parse_tree_ref()),
+                    1 => Some(ws_1.as_parse_tree_ref()),
                     2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(w_s_3.as_parse_tree_ref()),
+                    3 => Some(ws_3.as_parse_tree_ref()),
                     4 => Some(e_4.as_parse_tree_ref()),
                     _ => None,
                 }
             }
-            E::Alt4 { e_0, w_s_1, lit_2, w_s_3, e_4, .. } => {
+            E::Alt4 { e_0, ws_1, lit_2, ws_3, e_4, .. } => {
                 match index {
                     0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(w_s_1.as_parse_tree_ref()),
+                    1 => Some(ws_1.as_parse_tree_ref()),
                     2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(w_s_3.as_parse_tree_ref()),
+                    3 => Some(ws_3.as_parse_tree_ref()),
                     4 => Some(e_4.as_parse_tree_ref()),
                     _ => None,
                 }
             }
-            E::Alt5 { lit_0, w_s, e, .. } => {
+            E::Alt5 { lit_0, ws, e, .. } => {
                 match index {
                     0 => Some(lit_0.as_parse_tree_ref()),
-                    1 => Some(w_s.as_parse_tree_ref()),
+                    1 => Some(ws.as_parse_tree_ref()),
                     2 => Some(e.as_parse_tree_ref()),
                     _ => None,
                 }
             }
             E::Alt6 {
                 lit_0,
-                w_s_1,
+                ws_1,
                 e_2,
-                w_s_3,
+                ws_3,
                 lit_4,
-                w_s_5,
+                ws_5,
                 e_6,
-                w_s_7,
+                ws_7,
                 lit_8,
-                w_s_9,
+                ws_9,
                 e_10,
                 ..
             } => {
                 match index {
                     0 => Some(lit_0.as_parse_tree_ref()),
-                    1 => Some(w_s_1.as_parse_tree_ref()),
+                    1 => Some(ws_1.as_parse_tree_ref()),
                     2 => Some(e_2.as_parse_tree_ref()),
-                    3 => Some(w_s_3.as_parse_tree_ref()),
+                    3 => Some(ws_3.as_parse_tree_ref()),
                     4 => Some(lit_4.as_parse_tree_ref()),
-                    5 => Some(w_s_5.as_parse_tree_ref()),
+                    5 => Some(ws_5.as_parse_tree_ref()),
                     6 => Some(e_6.as_parse_tree_ref()),
-                    7 => Some(w_s_7.as_parse_tree_ref()),
+                    7 => Some(ws_7.as_parse_tree_ref()),
                     8 => Some(lit_8.as_parse_tree_ref()),
-                    9 => Some(w_s_9.as_parse_tree_ref()),
+                    9 => Some(ws_9.as_parse_tree_ref()),
                     10 => Some(e_10.as_parse_tree_ref()),
                     _ => None,
                 }
             }
-            E::Alt7 { e_0, w_s_1, lit_2, w_s_3, e_4, .. } => {
+            E::Alt7 { e_0, ws_1, lit_2, ws_3, e_4, .. } => {
                 match index {
                     0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(w_s_1.as_parse_tree_ref()),
+                    1 => Some(ws_1.as_parse_tree_ref()),
                     2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(w_s_3.as_parse_tree_ref()),
+                    3 => Some(ws_3.as_parse_tree_ref()),
                     4 => Some(e_4.as_parse_tree_ref()),
                     _ => None,
                 }
             }
-            E::Alt8 { lit_0, w_s_1, e, w_s_3, lit_4, .. } => {
+            E::Alt8 { lit_0, ws_1, e, ws_3, lit_4, .. } => {
                 match index {
                     0 => Some(lit_0.as_parse_tree_ref()),
-                    1 => Some(w_s_1.as_parse_tree_ref()),
+                    1 => Some(ws_1.as_parse_tree_ref()),
                     2 => Some(e.as_parse_tree_ref()),
-                    3 => Some(w_s_3.as_parse_tree_ref()),
+                    3 => Some(ws_3.as_parse_tree_ref()),
                     4 => Some(lit_4.as_parse_tree_ref()),
                     _ => None,
                 }
@@ -454,9 +440,9 @@ impl E {
 impl StartS {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.w_s_0.as_parse_tree_ref()),
+            0 => Some(self.ws_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.w_s_2.as_parse_tree_ref()),
+            2 => Some(self.ws_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -473,9 +459,9 @@ impl StartS {
 impl StartE {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.w_s_0.as_parse_tree_ref()),
+            0 => Some(self.ws_0.as_parse_tree_ref()),
             1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.w_s_2.as_parse_tree_ref()),
+            2 => Some(self.ws_2.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -562,14 +548,14 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartS : WS start:S WS.
                     SlotId(85) => {
-                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
+                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartS {
-                            w_s_0: w_s_0.unwrap_token(),
+                            ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_s(),
-                            w_s_2: w_s_2.unwrap_token(),
+                            ws_2: ws_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -582,14 +568,14 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartE : WS start:E(0) WS.
                     SlotId(89) => {
-                        let [w_s_0, start, w_s_2] = <[ParseTree; 3usize]>::try_from(
+                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         StartE {
-                            w_s_0: w_s_0.unwrap_token(),
+                            ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_e(),
-                            w_s_2: w_s_2.unwrap_token(),
+                            ws_2: ws_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -602,15 +588,15 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0.
                     SlotId(10) => {
-                        let [e, w_s_1, lit_2, w_s_3, lit_4] = <[ParseTree; 5usize]>::try_from(
+                        let [e, ws_1, lit_2, ws_3, lit_4] = <[ParseTree; 5usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         E::Alt0 {
                             e: Box::new(e.unwrap_e()),
-                            w_s_1: w_s_1.unwrap_token(),
+                            ws_1: ws_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
-                            w_s_3: w_s_3.unwrap_token(),
+                            ws_3: ws_3.unwrap_token(),
                             lit_4: lit_4.unwrap_token(),
                             span: nonterminal_node.span,
                         }
@@ -618,11 +604,11 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                     }
                     //E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6).
                     SlotId(17) => {
-                        let [e_0, w_s, e_2] = <[ParseTree; 3usize]>::try_from(children)
+                        let [e_0, ws, e_2] = <[ParseTree; 3usize]>::try_from(children)
                             .unwrap();
                         E::Alt1 {
                             e_0: Box::new(e_0.unwrap_e()),
-                            w_s: w_s.unwrap_token(),
+                            ws: ws.unwrap_token(),
                             e_2: Box::new(e_2.unwrap_e()),
                             span: nonterminal_node.span,
                         }
@@ -630,15 +616,15 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                     }
                     //E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5).
                     SlotId(26) => {
-                        let [e_0, w_s_1, lit_2, w_s_3, e_4] = <[ParseTree; 5usize]>::try_from(
+                        let [e_0, ws_1, lit_2, ws_3, e_4] = <[ParseTree; 5usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         E::Alt2 {
                             e_0: Box::new(e_0.unwrap_e()),
-                            w_s_1: w_s_1.unwrap_token(),
+                            ws_1: ws_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
-                            w_s_3: w_s_3.unwrap_token(),
+                            ws_3: ws_3.unwrap_token(),
                             e_4: Box::new(e_4.unwrap_e()),
                             span: nonterminal_node.span,
                         }
@@ -646,15 +632,15 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                     }
                     //E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4).
                     SlotId(35) => {
-                        let [e_0, w_s_1, lit_2, w_s_3, e_4] = <[ParseTree; 5usize]>::try_from(
+                        let [e_0, ws_1, lit_2, ws_3, e_4] = <[ParseTree; 5usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         E::Alt3 {
                             e_0: Box::new(e_0.unwrap_e()),
-                            w_s_1: w_s_1.unwrap_token(),
+                            ws_1: ws_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
-                            w_s_3: w_s_3.unwrap_token(),
+                            ws_3: ws_3.unwrap_token(),
                             e_4: Box::new(e_4.unwrap_e()),
                             span: nonterminal_node.span,
                         }
@@ -662,15 +648,15 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                     }
                     //E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4).
                     SlotId(44) => {
-                        let [e_0, w_s_1, lit_2, w_s_3, e_4] = <[ParseTree; 5usize]>::try_from(
+                        let [e_0, ws_1, lit_2, ws_3, e_4] = <[ParseTree; 5usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         E::Alt4 {
                             e_0: Box::new(e_0.unwrap_e()),
-                            w_s_1: w_s_1.unwrap_token(),
+                            ws_1: ws_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
-                            w_s_3: w_s_3.unwrap_token(),
+                            ws_3: ws_3.unwrap_token(),
                             e_4: Box::new(e_4.unwrap_e()),
                             span: nonterminal_node.span,
                         }
@@ -678,11 +664,11 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                     }
                     //E : "-" WS r=E(3) return r == 0 ? 3 : min(r, 3).
                     SlotId(49) => {
-                        let [lit_0, w_s, e] = <[ParseTree; 3usize]>::try_from(children)
+                        let [lit_0, ws, e] = <[ParseTree; 3usize]>::try_from(children)
                             .unwrap();
                         E::Alt5 {
                             lit_0: lit_0.unwrap_token(),
-                            w_s: w_s.unwrap_token(),
+                            ws: ws.unwrap_token(),
                             e: Box::new(e.unwrap_e()),
                             span: nonterminal_node.span,
                         }
@@ -690,20 +676,19 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                     }
                     //E : "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2.
                     SlotId(62) => {
-                        let [lit_0, w_s_1, e_2, w_s_3, lit_4, w_s_5, e_6, w_s_7, lit_8,
-                        w_s_9, e_10] = <[ParseTree; 11usize]>::try_from(children)
-                            .unwrap();
+                        let [lit_0, ws_1, e_2, ws_3, lit_4, ws_5, e_6, ws_7, lit_8, ws_9,
+                        e_10] = <[ParseTree; 11usize]>::try_from(children).unwrap();
                         E::Alt6 {
                             lit_0: lit_0.unwrap_token(),
-                            w_s_1: w_s_1.unwrap_token(),
+                            ws_1: ws_1.unwrap_token(),
                             e_2: Box::new(e_2.unwrap_e()),
-                            w_s_3: w_s_3.unwrap_token(),
+                            ws_3: ws_3.unwrap_token(),
                             lit_4: lit_4.unwrap_token(),
-                            w_s_5: w_s_5.unwrap_token(),
+                            ws_5: ws_5.unwrap_token(),
                             e_6: Box::new(e_6.unwrap_e()),
-                            w_s_7: w_s_7.unwrap_token(),
+                            ws_7: ws_7.unwrap_token(),
                             lit_8: lit_8.unwrap_token(),
-                            w_s_9: w_s_9.unwrap_token(),
+                            ws_9: ws_9.unwrap_token(),
                             e_10: Box::new(e_10.unwrap_e()),
                             span: nonterminal_node.span,
                         }
@@ -711,15 +696,15 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                     }
                     //E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1.
                     SlotId(71) => {
-                        let [e_0, w_s_1, lit_2, w_s_3, e_4] = <[ParseTree; 5usize]>::try_from(
+                        let [e_0, ws_1, lit_2, ws_3, e_4] = <[ParseTree; 5usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         E::Alt7 {
                             e_0: Box::new(e_0.unwrap_e()),
-                            w_s_1: w_s_1.unwrap_token(),
+                            ws_1: ws_1.unwrap_token(),
                             lit_2: lit_2.unwrap_token(),
-                            w_s_3: w_s_3.unwrap_token(),
+                            ws_3: ws_3.unwrap_token(),
                             e_4: Box::new(e_4.unwrap_e()),
                             span: nonterminal_node.span,
                         }
@@ -727,15 +712,15 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                     }
                     //E : "(" WS E(0) WS ")" return 0.
                     SlotId(78) => {
-                        let [lit_0, w_s_1, e, w_s_3, lit_4] = <[ParseTree; 5usize]>::try_from(
+                        let [lit_0, ws_1, e, ws_3, lit_4] = <[ParseTree; 5usize]>::try_from(
                                 children,
                             )
                             .unwrap();
                         E::Alt8 {
                             lit_0: lit_0.unwrap_token(),
-                            w_s_1: w_s_1.unwrap_token(),
+                            ws_1: ws_1.unwrap_token(),
                             e: Box::new(e.unwrap_e()),
-                            w_s_3: w_s_3.unwrap_token(),
+                            ws_3: ws_3.unwrap_token(),
                             lit_4: lit_4.unwrap_token(),
                             span: nonterminal_node.span,
                         }

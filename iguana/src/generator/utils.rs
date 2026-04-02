@@ -31,11 +31,21 @@ pub fn to_pascal_case(s: &str) -> String {
         .collect()
 }
 
+/// Converts the given string to snake_case by inserting `_` at word
+/// boundaries. For PascalCase and camelCase, a boundary occurs where an
+/// uppercase letter follows a lowercase one (`LineComment` -> `line_comment`).
+/// For all-uppercase runs, letters are kept together as a single word
+/// (`WS` -> `ws`, `HTML` -> `html`). A boundary is also inserted where an
+/// uppercase run ends before a lowercase letter (`HTMLParser` -> `html_parser`).
+/// Strings that are already snake_case pass through unchanged.
 pub fn to_snake_case(s: &str) -> String {
     let mut result = String::new();
-    for (i, c) in s.chars().enumerate() {
+    let chars: Vec<char> = s.chars().collect();
+    for (i, &c) in chars.iter().enumerate() {
         if c.is_uppercase() {
-            if i > 0 && !result.ends_with('_') {
+            let prev_lower = i > 0 && chars[i - 1].is_lowercase();
+            let next_lower = i + 1 < chars.len() && chars[i + 1].is_lowercase();
+            if i > 0 && !result.ends_with('_') && (prev_lower || next_lower) {
                 result.push('_');
             }
             result.push(c.to_lowercase().next().unwrap());
@@ -108,6 +118,9 @@ mod tests {
         assert_eq!(to_snake_case("lowercase"), "lowercase");
         assert_eq!(to_snake_case(""), "");
         assert_eq!(to_snake_case("A"), "a");
-        assert_eq!(to_snake_case("ABC"), "a_b_c");
+        assert_eq!(to_snake_case("ABC"), "abc");
+        assert_eq!(to_snake_case("WS"), "ws");
+        assert_eq!(to_snake_case("HTMLParser"), "html_parser");
+        assert_eq!(to_snake_case("LineComment"), "line_comment");
     }
 }

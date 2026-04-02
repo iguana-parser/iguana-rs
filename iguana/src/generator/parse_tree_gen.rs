@@ -1383,9 +1383,16 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
 fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<TokenStream> {
     match &nonterminal.origin {
         Some(Symbol::Plus(inner, _)) => {
-            let innermost = get_innermost_element(grammar, inner)?;
+            let element_types = get_list_element_types(grammar, inner);
+            if element_types.is_empty() {
+                return None;
+            }
+            if element_types.len() > 1 {
+                return gen_alt_variant_accessors_for_plus(grammar, nonterminal, &element_types);
+            }
+            let innermost = &element_types[0];
             let child_name = get_element_type_name(grammar, nonterminal)?;
-            let innermost_type = symbol_type(grammar, &innermost);
+            let innermost_type = symbol_type(grammar, innermost);
 
             let method_name = safe_ident(&pluralize(&to_snake_case(&innermost.name)));
             let child_type = nt_ident(child_name);
@@ -1402,9 +1409,8 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
                 })
             } else if let Symbol::Group(_) = inner.as_ref() {
                 // Group case: e.g., `("|" Regex)+` or `("!" Identifier)+`
-                // Access the field directly from the group struct.
                 let field_name = safe_ident(&to_snake_case(&innermost.name));
-                if grammar.is_terminal(&innermost) {
+                if grammar.is_terminal(innermost) {
                     Some(quote! {
                         pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
                             self.iter().filter_map(|node| match node {
@@ -1425,7 +1431,6 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
                 }
             } else {
                 // Nested case: e.g., `{Regex+ "|"}+` where child is an intermediate Plus/Star type.
-                // Return Iterator<Item = impl Iterator<Item = &Regex>> to preserve grouping.
                 Some(quote! {
                     pub fn #method_name(&self) -> impl Iterator<Item = impl Iterator<Item = &#innermost_type> + '_> {
                         self.iter().filter_map(|node| match node {
@@ -1437,46 +1442,53 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             }
         }
         Some(Symbol::Star(inner, _)) => {
-            // Star is a struct that wraps an Opt type. Delegate to the inner Opt's accessor.
-            let innermost = get_innermost_element(grammar, inner)?;
-            let method_name = safe_ident(&pluralize(&to_snake_case(&innermost.name)));
-            let innermost_type = symbol_type(grammar, &innermost);
-
-            // Get the field name of the inner Opt type
+            let element_types = get_list_element_types(grammar, inner);
+            if element_types.is_empty() {
+                return None;
+            }
             let alternatives = grammar.alternatives(nonterminal);
             let opt_symbol = alternatives[0].symbols.first()?;
             let opt_field_name = safe_ident(&gen_field_name(grammar, opt_symbol, 0, false));
 
-            Some(quote! {
-                pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
-                    self.#opt_field_name.#method_name()
+            let methods: Vec<_> = element_types.iter().map(|elem| {
+                let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
+                let elem_type = symbol_type(grammar, elem);
+                quote! {
+                    pub fn #method_name(&self) -> impl Iterator<Item = &#elem_type> {
+                        self.#opt_field_name.#method_name()
+                    }
                 }
-            })
+            }).collect();
+            Some(quote! { #(#methods)* })
         }
         Some(Symbol::Opt(inner)) => {
-            // Only generate accessor for Opt types that wrap Plus/Star (e.g., `SyntaxRule+?`)
-            // Use OptNode::value() to get the inner Plus/Star, then delegate to its accessor.
+            // Opt types that wrap Plus/Star (e.g., `SyntaxRule+?`).
+            // Delegate to the inner Plus/Star's accessor via OptNode::value().
             let inner_inner = match inner.as_ref() {
                 Symbol::Plus(s, _) | Symbol::Star(s, _) => s.as_ref(),
                 _ => return None,
             };
 
-            let innermost = get_innermost_element(grammar, inner_inner)?;
-            let method_name = safe_ident(&pluralize(&to_snake_case(&innermost.name)));
-            let innermost_type = symbol_type(grammar, &innermost);
-
-            Some(quote! {
-                pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
-                    self.value().into_iter().flat_map(|inner| inner.#method_name())
+            let element_types = get_list_element_types(grammar, inner_inner);
+            if element_types.is_empty() {
+                return None;
+            }
+            let methods: Vec<_> = element_types.iter().map(|elem| {
+                let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
+                let elem_type = symbol_type(grammar, elem);
+                quote! {
+                    pub fn #method_name(&self) -> impl Iterator<Item = &#elem_type> {
+                        self.value().into_iter().flat_map(|inner| inner.#method_name())
+                    }
                 }
-            })
+            }).collect();
+            Some(quote! { #(#methods)* })
         }
         Some(Symbol::Group(elements)) => {
-            // Group case: e.g., `("|" Regex)` with exactly one named element.
-            // Generate a typed accessor that uses iter() and filters for the type.
+            // Group with exactly one named element, e.g., `("|" Regex)`.
             let named_elements: Vec<_> = elements
                 .iter()
-                .filter_map(|elem| get_innermost_element(grammar, elem))
+                .flat_map(|elem| get_list_element_types(grammar, elem))
                 .collect();
             if named_elements.len() != 1 {
                 return None;
@@ -1496,6 +1508,57 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
         }
         _ => None,
     }
+}
+
+/// Generates per-variant accessors for a Plus whose inner element is an Alt.
+/// For `(WS | LineComment)+`, generates `wses()` and `line_comments()` methods
+/// that filter the iter for each Alt variant.
+fn gen_alt_variant_accessors_for_plus(
+    grammar: &Grammar,
+    nonterminal: &Nonterminal,
+    element_types: &[Identifier],
+) -> Option<TokenStream> {
+    let child_name = get_element_type_name(grammar, nonterminal)?;
+    let child_type = nt_ident(child_name);
+    let alt_nonterminal = grammar.nonterminal(child_name)?;
+    let alt_alternatives = grammar.alternatives(alt_nonterminal);
+
+    if alt_alternatives.len() != element_types.len() {
+        return None;
+    }
+
+    let methods: Vec<_> = element_types
+        .iter()
+        .enumerate()
+        .filter_map(|(i, elem)| {
+            let alt = &alt_alternatives[i];
+            let variant_name = nt_ident(&alternative_label(alt, i));
+            let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
+            let elem_type = symbol_type(grammar, elem);
+            let field_name = safe_ident(&gen_field_name(grammar, &alt.symbols[0], 0, false));
+            let boxed = matches!(
+                grammar.definition(elem.definition?),
+                Definition::Nonterminal(nt) if should_be_boxed(grammar, nt, alt_nonterminal)
+            );
+            let some_expr = if boxed {
+                quote! { Some(#field_name.as_ref()) }
+            } else if grammar.is_terminal(elem) {
+                quote! { Some(#field_name) }
+            } else {
+                quote! { Some(#field_name) }
+            };
+            Some(quote! {
+                pub fn #method_name(&self) -> impl Iterator<Item = &#elem_type> {
+                    self.iter().filter_map(|node| match node {
+                        ParseTreeRef::#child_type(#child_type::#variant_name { #field_name, .. }) => #some_expr,
+                        _ => None,
+                    })
+                }
+            })
+        })
+        .collect();
+
+    Some(quote! { #(#methods)* })
 }
 
 /// Returns `Token` for terminal identifiers, or the pascal-cased name for nonterminals.
@@ -1520,39 +1583,67 @@ fn nonterminal_type_name(grammar: &Grammar, name: &str) -> String {
     to_pascal_case(resolved_name)
 }
 
-/// Recursively finds the innermost named element by walking through nested Plus/Star/Group symbols.
-/// Returns the `Identifier` of the element, which carries both the name and the resolved definition.
-/// For `Regex+` returns the Identifier for "Regex". For `{Regex+ "|"}+` also returns "Regex".
-/// For `("|" Regex)+` returns "Regex" (the single named element in the group).
-/// For `("!" Identifier)+` returns "Identifier" (named terminal in the group).
+/// Returns the named element types inside an EBNF symbol.
 ///
-/// Literal terminals (e.g., `"|"`, `"!"`) are filtered out, while named terminals
-/// (e.g., `Identifier`, `Keyword`) and nonterminals are kept.
-fn get_innermost_element(grammar: &Grammar, symbol: &Symbol) -> Option<Identifier> {
+/// Walks through Plus, Star, Group, and Alt wrappers to find the inner
+/// named identifiers. Literal terminals (e.g., `"!"`, `"|"`) are
+/// excluded since they carry no semantic value for typed accessors.
+///
+/// Returns a single element for simple repetitions, multiple elements
+/// for alternations:
+/// - `A+` -> `[A]`
+/// - `{A ","}+` -> `[A]`
+/// - `("!" A)+` -> `[A]`
+/// - `(A | B)+` -> `[A, B]`
+///
+/// Multiple elements occur only for `Symbol::Alt`. For alternations,
+/// only variants that are simple identifiers are included; nested EBNF
+/// variants like `A*` in `(A* | C)` are skipped since the desugared
+/// nonterminal type would not match. Returns an empty vec when no named
+/// elements are found (e.g., only literals).
+fn get_list_element_types(grammar: &Grammar, symbol: &Symbol) -> Vec<Identifier> {
     match symbol {
         Symbol::Identifier(ident) => {
             if let Some(def_id) = ident.definition {
                 if let Definition::Terminal(t) = grammar.definition(def_id) {
                     if t.is_literal() {
-                        return None;
+                        return vec![];
                     }
                 }
             }
-            Some(ident.clone())
+            vec![ident.clone()]
         }
-        Symbol::Plus(inner, _) | Symbol::Star(inner, _) => get_innermost_element(grammar, inner),
+        Symbol::Plus(inner, _) | Symbol::Star(inner, _) => get_list_element_types(grammar, inner),
+        // No recursion into Alt variants: only simple identifiers are collected.
+        // Nested EBNF like `A*` in `(A* | C)` is skipped.
+        Symbol::Alt(variants) => variants
+            .iter()
+            .filter_map(|v| match v {
+                Symbol::Identifier(ident) => {
+                    if let Some(def_id) = ident.definition {
+                        if let Definition::Terminal(t) = grammar.definition(def_id) {
+                            if t.is_literal() {
+                                return None;
+                            }
+                        }
+                    }
+                    Some(ident.clone())
+                }
+                _ => None,
+            })
+            .collect(),
         Symbol::Group(elements) => {
-            let named_elements: Vec<_> = elements
+            let named: Vec<_> = elements
                 .iter()
-                .filter_map(|elem| get_innermost_element(grammar, elem))
+                .flat_map(|elem| get_list_element_types(grammar, elem))
                 .collect();
-            if named_elements.len() == 1 {
-                named_elements.into_iter().next()
+            if named.len() == 1 {
+                named
             } else {
-                None
+                vec![]
             }
         }
-        _ => None,
+        _ => vec![],
     }
 }
 
