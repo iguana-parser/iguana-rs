@@ -6,6 +6,9 @@ edition = "2024"
 [features]
 debug-trace = []
 
+[lints]
+workspace = true
+
 [lib]
 path = "src/lib.rs"
 

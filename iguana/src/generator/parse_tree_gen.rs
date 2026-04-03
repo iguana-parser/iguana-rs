@@ -191,7 +191,7 @@ fn gen_fields_for_alternative_symbols(
         .map(|(i, s)| {
             let base_name = get_symbol_base_name(grammar, s);
             let needs_index =
-                base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
+                base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
             let field_name = gen_field_name(grammar, s, i, needs_index);
             let field_ident = safe_ident(&field_name);
             let field_type = gen_field_type(grammar, s, head);
@@ -559,7 +559,7 @@ fn child_by_index(grammar: &Grammar, alternative: &Alternative, single_rule: boo
             let i_lit = Literal::usize_unsuffixed(i);
             let base_name = get_symbol_base_name(grammar, s);
             let needs_index =
-                base_name.map_or(false, |name| counts.get(&name).copied().unwrap_or(0) > 1);
+                base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
             let field_name = safe_ident(&gen_field_name(grammar, s, i, needs_index));
             // For nonterminals with only one body, i.e., no alternatives,
             // generate the arms as 0 => Some(self.field_name.as_parse_tree_ref())
@@ -948,7 +948,7 @@ fn symbol_contains_nonterminal(symbol: &Symbol, nt_name: &str) -> bool {
             symbol_contains_nonterminal(inner, nt_name)
                 || sep
                     .as_ref()
-                    .map_or(false, |s| symbol_contains_nonterminal(s, nt_name))
+                    .is_some_and(|s| symbol_contains_nonterminal(s, nt_name))
         }
         Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => false,
     }
@@ -1542,8 +1542,6 @@ fn gen_alt_variant_accessors_for_plus(
             );
             let some_expr = if boxed {
                 quote! { Some(#field_name.as_ref()) }
-            } else if grammar.is_terminal(elem) {
-                quote! { Some(#field_name) }
             } else {
                 quote! { Some(#field_name) }
             };
