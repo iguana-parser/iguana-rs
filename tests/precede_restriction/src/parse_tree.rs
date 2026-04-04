@@ -266,6 +266,9 @@ impl Id {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn chars(&self) -> impl Iterator<Item = &Token> {
+        self.chars.chars()
+    }
 }
 impl IdPlus0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {

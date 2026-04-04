@@ -3376,6 +3376,12 @@ impl Layout {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn wses(&self) -> impl Iterator<Item = &Token> {
+        self.layout_star_5.wses()
+    }
+    pub fn line_comments(&self) -> impl Iterator<Item = &Token> {
+        self.layout_star_5.line_comments()
+    }
 }
 impl GrammarOpt0 {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -4151,12 +4157,13 @@ impl SymbolGroup0 {
     pub fn span(&self) -> Span {
         self.span
     }
-    pub fn symbol(&self) -> Option<&Symbol> {
+    pub fn symbol(&self) -> &Symbol {
         self.iter()
             .find_map(|node| match node {
                 ParseTreeRef::Symbol(inner) => Some(inner),
                 _ => None,
             })
+            .unwrap()
     }
 }
 impl SymbolPlus7 {
@@ -4219,12 +4226,13 @@ impl SymbolGroup1 {
     pub fn span(&self) -> Span {
         self.span
     }
-    pub fn identifier(&self) -> Option<&Token> {
+    pub fn identifier(&self) -> &Token {
         self.iter()
             .find_map(|node| match node {
                 ParseTreeRef::Token(inner) => Some(inner),
                 _ => None,
             })
+            .unwrap()
     }
 }
 impl SymbolPlus8 {
@@ -4287,12 +4295,13 @@ impl SymbolGroup2 {
     pub fn span(&self) -> Span {
         self.span
     }
-    pub fn identifier(&self) -> Option<&Token> {
+    pub fn identifier(&self) -> &Token {
         self.iter()
             .find_map(|node| match node {
                 ParseTreeRef::Token(inner) => Some(inner),
                 _ => None,
             })
+            .unwrap()
     }
 }
 impl SymbolPlus9 {
@@ -4355,12 +4364,13 @@ impl SymbolGroup3 {
     pub fn span(&self) -> Span {
         self.span
     }
-    pub fn identifier(&self) -> Option<&Token> {
+    pub fn identifier(&self) -> &Token {
         self.iter()
             .find_map(|node| match node {
                 ParseTreeRef::Token(inner) => Some(inner),
                 _ => None,
             })
+            .unwrap()
     }
 }
 impl SymbolPlus10 {
@@ -4423,12 +4433,13 @@ impl RegexGroup4 {
     pub fn span(&self) -> Span {
         self.span
     }
-    pub fn regex(&self) -> Option<&Regex> {
+    pub fn regex(&self) -> &Regex {
         self.iter()
             .find_map(|node| match node {
                 ParseTreeRef::Regex(inner) => Some(inner),
                 _ => None,
             })
+            .unwrap()
     }
 }
 impl RegexPlus11 {

@@ -1397,10 +1397,11 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             let method_name = safe_ident(&pluralize(&to_snake_case(&innermost.name)));
             let child_type = nt_ident(child_name);
 
+            let return_type = gen_accessor_return_type(grammar, nonterminal, innermost);
             if child_name == innermost.name {
                 // Simple case: e.g., `Regex+` or `Identifier+`
                 Some(quote! {
-                    pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
+                    pub fn #method_name(&self) -> #return_type {
                         self.iter().filter_map(|node| match node {
                             ParseTreeRef::#innermost_type(r) => Some(r),
                             _ => None,
@@ -1412,7 +1413,7 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
                 let field_name = safe_ident(&to_snake_case(&innermost.name));
                 if grammar.is_terminal(innermost) {
                     Some(quote! {
-                        pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
+                        pub fn #method_name(&self) -> #return_type {
                             self.iter().filter_map(|node| match node {
                                 ParseTreeRef::#child_type(r) => Some(&r.#field_name),
                                 _ => None,
@@ -1421,7 +1422,7 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
                     })
                 } else {
                     Some(quote! {
-                        pub fn #method_name(&self) -> impl Iterator<Item = &#innermost_type> {
+                        pub fn #method_name(&self) -> #return_type {
                             self.iter().filter_map(|node| match node {
                                 ParseTreeRef::#child_type(r) => Some(r.#field_name.as_ref()),
                                 _ => None,
@@ -1432,7 +1433,7 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             } else {
                 // Nested case: e.g., `{Regex+ "|"}+` where child is an intermediate Plus/Star type.
                 Some(quote! {
-                    pub fn #method_name(&self) -> impl Iterator<Item = impl Iterator<Item = &#innermost_type> + '_> {
+                    pub fn #method_name(&self) -> #return_type {
                         self.iter().filter_map(|node| match node {
                             ParseTreeRef::#child_type(r) => Some(r.#method_name()),
                             _ => None,
@@ -1452,9 +1453,9 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
 
             let methods: Vec<_> = element_types.iter().map(|elem| {
                 let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
-                let elem_type = symbol_type(grammar, elem);
+                let return_type = gen_accessor_return_type(grammar, nonterminal, elem);
                 quote! {
-                    pub fn #method_name(&self) -> impl Iterator<Item = &#elem_type> {
+                    pub fn #method_name(&self) -> #return_type {
                         self.#opt_field_name.#method_name()
                     }
                 }
@@ -1475,9 +1476,9 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             }
             let methods: Vec<_> = element_types.iter().map(|elem| {
                 let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
-                let elem_type = symbol_type(grammar, elem);
+                let return_type = gen_accessor_return_type(grammar, nonterminal, elem);
                 quote! {
-                    pub fn #method_name(&self) -> impl Iterator<Item = &#elem_type> {
+                    pub fn #method_name(&self) -> #return_type {
                         self.value().into_iter().flat_map(|inner| inner.#method_name())
                     }
                 }
@@ -1496,17 +1497,100 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             let innermost = &named_elements[0];
             let method_name = safe_ident(&to_snake_case(&innermost.name));
             let innermost_type = symbol_type(grammar, innermost);
+            let return_type = gen_accessor_return_type(grammar, nonterminal, innermost);
 
             Some(quote! {
-                pub fn #method_name(&self) -> Option<&#innermost_type> {
+                pub fn #method_name(&self) -> #return_type {
                     self.iter().find_map(|node| match node {
                         ParseTreeRef::#innermost_type(inner) => Some(inner),
                         _ => None,
-                    })
+                    }).unwrap()
                 }
             })
         }
-        _ => None,
+        _ => gen_delegated_accessors(grammar, nonterminal),
+    }
+}
+
+// For user-defined rules with a single-symbol alternative, delegate the
+// EBNF field's typed accessors onto the parent struct. For example, given
+// `S = Expr+`, the struct `S` gets an `exprs()` method that delegates to
+// the inner Plus field.
+// Returns None when no accessor is generated. This happens when the
+// nonterminal has more than one alternative, more than one symbol in its
+// sole alternative, the single symbol is not EBNF-derived, or the EBNF
+// child itself has no typed accessors.
+fn gen_delegated_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<TokenStream> {
+    let alternatives = grammar.alternatives(nonterminal);
+    if alternatives.len() != 1 || alternatives[0].symbols.len() != 1 {
+        return None;
+    }
+    let symbol = &alternatives[0].symbols[0];
+    let child_nt = match grammar.definition(symbol.resolved_def()) {
+        Definition::Nonterminal(nt) => nt,
+        _ => return None,
+    };
+    let inner = match child_nt.origin.as_ref() {
+        Some(Symbol::Plus(s, _) | Symbol::Star(s, _)) => s.as_ref(),
+        Some(Symbol::Opt(s)) => match s.as_ref() {
+            Symbol::Plus(s, _) | Symbol::Star(s, _) => s.as_ref(),
+            _ => return None,
+        },
+        Some(origin @ Symbol::Group(_)) => origin,
+        _ => return None,
+    };
+    let field_name = safe_ident(&gen_field_name(grammar, symbol, 0, false));
+    let element_types = get_list_element_types(grammar, inner);
+    let methods: Vec<_> = element_types.iter().map(|elem| {
+        let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
+        let return_type = gen_accessor_return_type(grammar, child_nt, elem);
+        quote! {
+            pub fn #method_name(&self) -> #return_type {
+                self.#field_name.#method_name()
+            }
+        }
+    }).collect();
+    if methods.is_empty() { None } else { Some(quote! { #(#methods)* }) }
+}
+
+// Returns the return type of a typed accessor that iterates over the children
+// of a desugared EBNF node in the parse tree.
+// - Plus (`Expr+`): `impl Iterator<Item = &Expr>`
+//   - separator (`{Expr ","}+`):
+//     `impl Iterator<Item = impl Iterator<Item = &Expr> + '_>`
+//   - alternation (`(Expr | Stmt)+`): one method per variant,
+//     `impl Iterator<Item = &Expr>` and `impl Iterator<Item = &Stmt>`
+//   - group (`("," Expr)+`): `impl Iterator<Item = &Expr>`
+// - Star (`Expr*`): desugared internally as Star -> Opt -> Plus, so the
+//   return type is determined by the inner Plus
+// - Group (`("," Expr)`): `&Expr`
+fn gen_accessor_return_type(
+    grammar: &Grammar,
+    nonterminal: &Nonterminal,
+    elem: &Identifier,
+) -> TokenStream {
+    let elem_type = symbol_type(grammar, elem);
+    match &nonterminal.origin {
+        Some(Symbol::Group(_)) => quote! { &#elem_type },
+        Some(Symbol::Plus(inner, _)) => {
+            let child_name = get_element_type_name(grammar, nonterminal);
+            let is_nested = child_name.map_or(false, |cn| cn != elem.name)
+                && !matches!(inner.as_ref(), Symbol::Group(_) | Symbol::Alt(_));
+            if is_nested {
+                quote! { impl Iterator<Item = impl Iterator<Item = &#elem_type> + '_> }
+            } else {
+                quote! { impl Iterator<Item = &#elem_type> }
+            }
+        }
+        Some(Symbol::Star(_, _) | Symbol::Opt(_)) => {
+            let alternatives = grammar.alternatives(nonterminal);
+            let child_symbol = &alternatives[0].symbols[0];
+            match grammar.definition(child_symbol.resolved_def()) {
+                Definition::Nonterminal(nt) => gen_accessor_return_type(grammar, nt, elem),
+                _ => unreachable!("Star/Opt child should be a nonterminal"),
+            }
+        }
+        _ => unreachable!("gen_accessor_return_type called on non-EBNF nonterminal"),
     }
 }
 
@@ -1534,7 +1618,7 @@ fn gen_alt_variant_accessors_for_plus(
             let alt = &alt_alternatives[i];
             let variant_name = nt_ident(&alternative_label(alt, i));
             let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
-            let elem_type = symbol_type(grammar, elem);
+            let return_type = gen_accessor_return_type(grammar, nonterminal, elem);
             let field_name = safe_ident(&gen_field_name(grammar, &alt.symbols[0], 0, false));
             let boxed = matches!(
                 grammar.definition(elem.definition?),
@@ -1546,7 +1630,7 @@ fn gen_alt_variant_accessors_for_plus(
                 quote! { Some(#field_name) }
             };
             Some(quote! {
-                pub fn #method_name(&self) -> impl Iterator<Item = &#elem_type> {
+                pub fn #method_name(&self) -> #return_type {
                     self.iter().filter_map(|node| match node {
                         ParseTreeRef::#child_type(#child_type::#variant_name { #field_name, .. }) => #some_expr,
                         _ => None,

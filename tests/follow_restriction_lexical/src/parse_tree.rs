@@ -233,6 +233,9 @@ impl S {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn elements(&self) -> impl Iterator<Item = &Element> {
+        self.elements.elements()
+    }
 }
 impl Element {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {

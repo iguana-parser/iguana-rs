@@ -305,6 +305,9 @@ impl S {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn ids(&self) -> impl Iterator<Item = &Id> {
+        self.ids.ids()
+    }
 }
 impl T {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -338,6 +341,9 @@ impl Id {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn chars(&self) -> impl Iterator<Item = &Token> {
+        self.chars.chars()
     }
 }
 impl SPlus0 {
