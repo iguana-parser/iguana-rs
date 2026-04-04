@@ -108,22 +108,10 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
             }
             //S : Id.
             SlotId(1) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(0);
                 let end_slot_id = SlotId(1);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -148,22 +136,10 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
             }
             //Id : Name \ Keyword.
             SlotId(3) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(1);
                 let end_slot_id = SlotId(3);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -195,22 +171,10 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
             }
             //Name : Identifier.
             SlotId(5) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(2);
                 let end_slot_id = SlotId(5);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -563,7 +527,9 @@ impl<'i> ExceptNonterminalParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -591,7 +557,9 @@ impl<'i> ExceptNonterminalParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -616,7 +584,9 @@ impl<'i> ExceptNonterminalParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None

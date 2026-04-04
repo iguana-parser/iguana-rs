@@ -201,12 +201,13 @@ impl<'a> ParserGen<'a> {
                                     input_index,
                                 );
                             let nonterminal_id = #nonterminal_id;
-                            if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
+                            if let Some(nonterminal_node_id) = self.get_or_create_nonterminal_node(
                                 nonterminal_id,
                                 end_slot_id,
                                 input_index,
                                 input_index,
                                 epsilon_node_id,
+                                true,
                             ) {
                                 let popped_element = PoppedElement {
                                     nonterminal_node_id,
@@ -243,12 +244,8 @@ impl<'a> ParserGen<'a> {
                         }
                     } else {
                         quote! {
-                            if let Some(nonterminal_node_id) = self.create_nonterminal_node_or_attach_children(
-                                nonterminal_id,
-                                end_slot_id,
-                                left_extent,
-                                right_extent,
-                                result,
+                            if let Some(nonterminal_node_id) = self.create_nonterminal_node(
+                                result, nonterminal_id, end_slot_id,
                             ) {
                                 let popped_element = PoppedElement {
                                     nonterminal_node_id,
@@ -258,9 +255,8 @@ impl<'a> ParserGen<'a> {
                             }
                         }
                     };
-                    quote! {
-                        #[comment = #end_slot_name]
-                        #end_slot_id => {
+                    let slot_body = if let Symbol::Return(_) = alternative.symbols.last().unwrap() {
+                        quote! {
                             let Some(result) = result else {
                                 unreachable!("result cannot be None here.")
                             };
@@ -270,6 +266,18 @@ impl<'a> ParserGen<'a> {
                             let nonterminal_id = #nonterminal_id;
                             let end_slot_id = #end_slot_id;
                             #pop
+                        }
+                    } else {
+                        quote! {
+                            let nonterminal_id = #nonterminal_id;
+                            let end_slot_id = #end_slot_id;
+                            #pop
+                        }
+                    };
+                    quote! {
+                        #[comment = #end_slot_name]
+                        #end_slot_id => {
+                            #slot_body
                         }
                     }
                 };
@@ -1141,8 +1149,8 @@ impl<'a> ParserGen<'a> {
                             TerminalId(#epsilon_id), i, i,
                         );
                         return Some(self.get_or_create_nonterminal_node(
-                            #nonterminal_id, #end_slot_id, i, i, epsilon_node_id,
-                        ));
+                            #nonterminal_id, #end_slot_id, i, i, epsilon_node_id, false,
+                        ).unwrap());
                     }
                 });
             } else {
@@ -1247,14 +1255,14 @@ impl<'a> ParserGen<'a> {
                 j = body_end;
                 let left_extent = i;
                 let mut current = self.get_or_create_nonterminal_node(
-                    #nonterminal_id, #base_end_slot_id, left_extent, j, body_node,
-                );
+                    #nonterminal_id, #base_end_slot_id, left_extent, j, body_node, false,
+                ).unwrap();
                 loop {
                     #(#parses)*
                     #(#build_nodes)*
                     current = self.get_or_create_nonterminal_node(
-                        #nonterminal_id, #recursive_end_slot_id, left_extent, j, current,
-                    );
+                        #nonterminal_id, #recursive_end_slot_id, left_extent, j, current, false,
+                    ).unwrap();
                 }
                 Some(current)
             }
@@ -1409,8 +1417,8 @@ impl<'a> ParserGen<'a> {
 
         body.push(quote! {
             return Some(self.get_or_create_nonterminal_node(
-                #nonterminal_id, #end_slot_id, left_extent, j, current,
-            ));
+                #nonterminal_id, #end_slot_id, left_extent, j, current, false,
+            ).unwrap());
         });
 
         quote! { #(#body)* }

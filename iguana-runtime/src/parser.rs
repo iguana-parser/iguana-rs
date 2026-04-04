@@ -355,31 +355,41 @@ pub trait Parser<'i> {
     /// (`left_extent`, `right_extent`). If no such node exists, it is created and
     /// added to the index; see `add_nonterminal_node`.
     ///
-    /// If the node already exists, the `child` is added to its list of children,
-    /// and returns None. This only occurs when there is an ambiguity.
-    fn create_nonterminal_node_or_attach_children(
+    /// If the node already exists and `attach_ambiguity` is true (GLL path),
+    /// `child` is added to its list of children and returns None. This only
+    /// occurs when there is an ambiguity.
+    ///
+    /// If `attach_ambiguity` is false (LL1 path), the existing node is returned
+    /// as-is. LL1 nonterminals can be called multiple times from GLL with the
+    /// same input position, producing identical children, so attaching would
+    /// create false ambiguities.
+    fn get_or_create_nonterminal_node(
         &mut self,
         nonterminal_id: NonterminalId,
         return_slot: SlotId,
         left_extent: u32,
         right_extent: u32,
         child: SPPFNodeId,
+        attach_ambiguity: bool,
     ) -> Option<SPPFNodeId> {
         if let Some(existing_node_id) =
             self.lookup_nonterminal_node(nonterminal_id, left_extent, right_extent)
         {
-            record!(self, NonterminalNodeFound, existing_node_id);
-            let node = self.sppf_node_mut(existing_node_id);
-            let SPPFNode::Nonterminal(node) = node else {
-                unreachable!("Expects a nonterminal node");
-            };
-            // Only count an ambiguous node once, i.e., when the second child is attached.
-            if !node.ambiguous {
-                node.ambiguous = true;
-                self.stats_mut().ambiguous_nodes += 1;
+            if attach_ambiguity {
+                record!(self, NonterminalNodeFound, existing_node_id);
+                let node = self.sppf_node_mut(existing_node_id);
+                let SPPFNode::Nonterminal(node) = node else {
+                    unreachable!("Expects a nonterminal node");
+                };
+                // Only count an ambiguous node once, i.e., when the second child is attached.
+                if !node.ambiguous {
+                    node.ambiguous = true;
+                    self.stats_mut().ambiguous_nodes += 1;
+                }
+                self.add_nonterminal_node_child(existing_node_id, child);
+                return None;
             }
-            self.add_nonterminal_node_child(existing_node_id, child);
-            return None;
+            return Some(existing_node_id);
         }
         let nonterminal_node = NonterminalNode {
             nonterminal_id,
@@ -464,30 +474,23 @@ pub trait Parser<'i> {
         .map(|new_node| (right_extent, new_node))
     }
 
-    fn get_or_create_nonterminal_node(
+    /// Extracts extents from the result node and creates the nonterminal SPPF
+    /// node, handling ambiguity. Returns the nonterminal node id, or None if the
+    /// node already existed and ambiguity was recorded.
+    #[inline]
+    fn create_nonterminal_node(
         &mut self,
+        result: Option<SPPFNodeId>,
         nonterminal_id: NonterminalId,
-        return_slot: SlotId,
-        left_extent: u32,
-        right_extent: u32,
-        child: SPPFNodeId,
-    ) -> SPPFNodeId {
-        if let Some(existing_node_id) =
-            self.lookup_nonterminal_node(nonterminal_id, left_extent, right_extent)
-        {
-            return existing_node_id;
-        }
-        let nonterminal_node = NonterminalNode {
-            nonterminal_id,
-            return_slot,
-            span: Span {
-                left_extent,
-                right_extent,
-            },
-            child,
-            ambiguous: false,
-        };
-        self.add_nonterminal_node(nonterminal_node)
+        end_slot_id: SlotId,
+    ) -> Option<SPPFNodeId> {
+        let result = result.expect("Result should not be None.");
+        let node = self.sppf_node(result);
+        let left_extent = node.left_extent();
+        let right_extent = node.right_extent();
+        self.get_or_create_nonterminal_node(
+            nonterminal_id, end_slot_id, left_extent, right_extent, result, true,
+        )
     }
 
     fn get_or_create_terminal_node(

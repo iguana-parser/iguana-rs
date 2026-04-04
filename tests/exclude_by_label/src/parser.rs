@@ -217,22 +217,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : Id.
             SlotId(1) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(0);
                 let end_slot_id = SlotId(1);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -319,22 +307,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : Expr "(" Expr_Star_0 ")".
             SlotId(6) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(0);
                 let end_slot_id = SlotId(6);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -387,22 +363,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : Expr "," Expr.
             SlotId(10) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(0);
                 let end_slot_id = SlotId(10);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -455,22 +419,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Plus_0 : Expr_Plus_0 "," Expr_except_comma.
             SlotId(14) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(1);
                 let end_slot_id = SlotId(14);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -485,22 +437,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Plus_0 : Expr_except_comma.
             SlotId(16) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(1);
                 let end_slot_id = SlotId(16);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -515,22 +455,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Opt_0 : Expr_Plus_0.
             SlotId(18) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(2);
                 let end_slot_id = SlotId(18);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -550,12 +478,13 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(2);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -571,22 +500,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Star_0 : Expr_Opt_0.
             SlotId(21) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(3);
                 let end_slot_id = SlotId(21);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -618,22 +535,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_except_comma : Id.
             SlotId(23) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(4);
                 let end_slot_id = SlotId(23);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -720,22 +625,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_except_comma : Expr "(" Expr_Star_0 ")".
             SlotId(28) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(4);
                 let end_slot_id = SlotId(28);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,

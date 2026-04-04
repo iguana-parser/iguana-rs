@@ -2860,22 +2860,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar : "grammar" Layout name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0.
             SlotId(7) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(0);
                 let end_slot_id = SlotId(7);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -2954,22 +2942,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //LayoutDef : "layout" Layout Identifier.
             SlotId(11) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(1);
                 let end_slot_id = SlotId(11);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -2984,22 +2960,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule : SyntaxRule.
             SlotId(13) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(2);
                 let end_slot_id = SlotId(13);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -3014,22 +2978,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule : RegexRule.
             SlotId(15) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(2);
                 let end_slot_id = SlotId(15);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -3163,22 +3115,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule : SyntaxRule_Opt_2 Layout head:Identifier Layout "=" Layout SyntaxRule_Star_1.
             SlotId(23) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(3);
                 let end_slot_id = SlotId(23);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -3210,22 +3150,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation : "@NoLayout".
             SlotId(25) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(4);
                 let end_slot_id = SlotId(25);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -3398,22 +3326,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation : "@Layout" Layout "(" Layout Identifier Layout ")".
             SlotId(33) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(4);
                 let end_slot_id = SlotId(33);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -3601,22 +3517,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule : "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2.
             SlotId(45) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(5);
                 let end_slot_id = SlotId(45);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -3695,22 +3599,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PreCondition : Identifier Layout "!<<".
             SlotId(49) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(6);
                 let end_slot_id = SlotId(49);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -3789,22 +3681,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PostCondition : "\" Layout Identifier.
             SlotId(53) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(7);
                 let end_slot_id = SlotId(53);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -3883,22 +3763,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PostCondition : "!>>" Layout Identifier.
             SlotId(57) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(7);
                 let end_slot_id = SlotId(57);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -3938,22 +3806,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel : PriorityLevel_Opt_6 Layout PriorityLevel_Star_3.
             SlotId(61) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(8);
                 let end_slot_id = SlotId(61);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -3985,22 +3841,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Associativity : "left".
             SlotId(63) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(9);
                 let end_slot_id = SlotId(63);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -4032,22 +3876,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Associativity : "right".
             SlotId(65) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(9);
                 let end_slot_id = SlotId(65);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -4079,22 +3911,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Associativity : "none".
             SlotId(67) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(9);
                 let end_slot_id = SlotId(67);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -4137,22 +3957,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative : Alternative_Star_4 Layout Alternative_Opt_9.
             SlotId(71) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(10);
                 let end_slot_id = SlotId(71);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -5733,22 +5541,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : Regex Layout "+".
             SlotId(175) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(11);
                 let end_slot_id = SlotId(175);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -5810,22 +5606,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : Regex Layout "*".
             SlotId(179) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(11);
                 let end_slot_id = SlotId(179);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -5887,22 +5671,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : Regex Layout "?".
             SlotId(183) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(11);
                 let end_slot_id = SlotId(183);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6015,22 +5787,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : "(" Layout first:Regex Layout rest:Regex_Plus_11 Layout ")".
             SlotId(191) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(11);
                 let end_slot_id = SlotId(191);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6126,22 +5886,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : "(" Layout RegexRule_Plus_3 Layout ")".
             SlotId(197) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(11);
                 let end_slot_id = SlotId(197);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6156,22 +5904,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : CharClass.
             SlotId(199) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(11);
                 let end_slot_id = SlotId(199);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6203,22 +5939,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : Char.
             SlotId(201) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(11);
                 let end_slot_id = SlotId(201);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6250,22 +5974,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : String.
             SlotId(203) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(11);
                 let end_slot_id = SlotId(203);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6297,22 +6009,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : Identifier.
             SlotId(205) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(11);
                 let end_slot_id = SlotId(205);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6446,22 +6146,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass : neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_12 Layout "]".
             SlotId(213) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(12);
                 let end_slot_id = SlotId(213);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6482,22 +6170,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RangeElement : Range.
             SlotId(215) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(13);
                 let end_slot_id = SlotId(215);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6529,22 +6205,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RangeElement : RangeChar.
             SlotId(217) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(13);
                 let end_slot_id = SlotId(217);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6670,22 +6334,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Range : start:RangeChar Layout "-" Layout end:RangeChar.
             SlotId(223) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(14);
                 let end_slot_id = SlotId(223);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6711,22 +6363,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout : Layout_Star_5 !>> WS !>> LineComment.
             SlotId(225) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(15);
                 let end_slot_id = SlotId(225);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6747,22 +6387,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar_Opt_0 : LayoutDef.
             SlotId(227) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(16);
                 let end_slot_id = SlotId(227);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6782,12 +6410,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(16);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -6820,22 +6449,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar_Plus_0 : Grammar_Plus_0 Layout Rule.
             SlotId(232) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(17);
                 let end_slot_id = SlotId(232);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6850,22 +6467,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar_Plus_0 : Rule.
             SlotId(234) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(17);
                 let end_slot_id = SlotId(234);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6880,22 +6485,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar_Opt_1 : Grammar_Plus_0.
             SlotId(236) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(18);
                 let end_slot_id = SlotId(236);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6915,12 +6508,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(18);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -6936,22 +6530,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar_Star_0 : Grammar_Opt_1.
             SlotId(239) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(19);
                 let end_slot_id = SlotId(239);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -6972,22 +6554,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Opt_2 : Annotation.
             SlotId(241) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(20);
                 let end_slot_id = SlotId(241);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7007,12 +6577,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(20);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -7092,22 +6663,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Plus_1 : SyntaxRule_Plus_1 Layout ">" Layout PriorityLevel.
             SlotId(248) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(21);
                 let end_slot_id = SlotId(248);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7122,22 +6681,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Plus_1 : PriorityLevel.
             SlotId(250) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(21);
                 let end_slot_id = SlotId(250);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7152,22 +6699,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Opt_3 : SyntaxRule_Plus_1.
             SlotId(252) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(22);
                 let end_slot_id = SlotId(252);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7187,12 +6722,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(22);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -7208,22 +6744,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Star_1 : SyntaxRule_Opt_3.
             SlotId(255) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(23);
                 let end_slot_id = SlotId(255);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7244,22 +6768,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Opt_4 : PreCondition.
             SlotId(257) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(24);
                 let end_slot_id = SlotId(257);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7279,12 +6791,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(24);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -7317,22 +6830,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_3 : RegexRule_Plus_3 Layout Regex.
             SlotId(262) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(25);
                 let end_slot_id = SlotId(262);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7347,22 +6848,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_3 : Regex.
             SlotId(264) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(25);
                 let end_slot_id = SlotId(264);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7441,22 +6930,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_2 : RegexRule_Plus_2 Layout "|" Layout RegexRule_Plus_3.
             SlotId(270) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(26);
                 let end_slot_id = SlotId(270);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7471,22 +6948,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_2 : RegexRule_Plus_3.
             SlotId(272) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(26);
                 let end_slot_id = SlotId(272);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7536,22 +7001,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_4 : RegexRule_Plus_4 Layout PostCondition.
             SlotId(276) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(27);
                 let end_slot_id = SlotId(276);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7573,22 +7026,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_4 : PostCondition.
             SlotId(278) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(27);
                 let end_slot_id = SlotId(278);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7611,22 +7052,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Opt_5 : RegexRule_Plus_4.
             SlotId(280) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(28);
                 let end_slot_id = SlotId(280);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7646,12 +7075,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(28);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -7675,22 +7105,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Star_2 : RegexRule_Opt_5.
             SlotId(283) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(29);
                 let end_slot_id = SlotId(283);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7711,22 +7129,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Opt_6 : Associativity.
             SlotId(285) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(30);
                 let end_slot_id = SlotId(285);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7746,12 +7152,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(30);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -7831,22 +7238,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Plus_5 : PriorityLevel_Plus_5 Layout "|" Layout Alternative.
             SlotId(292) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(31);
                 let end_slot_id = SlotId(292);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7861,22 +7256,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Plus_5 : Alternative.
             SlotId(294) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(31);
                 let end_slot_id = SlotId(294);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7891,22 +7274,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Opt_7 : PriorityLevel_Plus_5.
             SlotId(296) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(32);
                 let end_slot_id = SlotId(296);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7926,12 +7297,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(32);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -7947,22 +7319,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Star_3 : PriorityLevel_Opt_7.
             SlotId(299) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(33);
                 let end_slot_id = SlotId(299);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -7994,22 +7354,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative_Plus_6 : Alternative_Plus_6 Layout Symbol(0).
             SlotId(303) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(34);
                 let end_slot_id = SlotId(303);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8024,22 +7372,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative_Plus_6 : Symbol(0).
             SlotId(305) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(34);
                 let end_slot_id = SlotId(305);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8054,22 +7390,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative_Opt_8 : Alternative_Plus_6.
             SlotId(307) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(35);
                 let end_slot_id = SlotId(307);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8089,12 +7413,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(35);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -8110,22 +7435,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative_Star_4 : Alternative_Opt_8.
             SlotId(310) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(36);
                 let end_slot_id = SlotId(310);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8157,22 +7470,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative_Opt_9 : Label.
             SlotId(312) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(37);
                 let end_slot_id = SlotId(312);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8192,12 +7493,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(37);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -8247,22 +7549,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_0 : "|" Layout Symbol(0).
             SlotId(317) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(38);
                 let end_slot_id = SlotId(317);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8294,22 +7584,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_7 : Symbol_Plus_7 Layout Symbol_Group_0.
             SlotId(321) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(39);
                 let end_slot_id = SlotId(321);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8324,22 +7602,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_7 : Symbol_Group_0.
             SlotId(323) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(39);
                 let end_slot_id = SlotId(323);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8418,22 +7684,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_1 : "\" Layout Identifier.
             SlotId(327) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(40);
                 let end_slot_id = SlotId(327);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8481,22 +7735,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_8 : Symbol_Plus_8 Layout Symbol_Group_1.
             SlotId(331) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(41);
                 let end_slot_id = SlotId(331);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8518,22 +7760,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_8 : Symbol_Group_1.
             SlotId(333) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(41);
                 let end_slot_id = SlotId(333);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8612,22 +7842,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_2 : "!>>" Layout Identifier.
             SlotId(337) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(42);
                 let end_slot_id = SlotId(337);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8675,22 +7893,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_9 : Symbol_Plus_9 Layout Symbol_Group_2.
             SlotId(341) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(43);
                 let end_slot_id = SlotId(341);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8712,22 +7918,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_9 : Symbol_Group_2.
             SlotId(343) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(43);
                 let end_slot_id = SlotId(343);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8806,22 +8000,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_3 : "!" Layout Identifier.
             SlotId(347) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(44);
                 let end_slot_id = SlotId(347);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8870,22 +8052,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_10 : Symbol_Plus_10 Layout Symbol_Group_3.
             SlotId(351) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(45);
                 let end_slot_id = SlotId(351);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8907,22 +8077,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_10 : Symbol_Group_3.
             SlotId(353) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(45);
                 let end_slot_id = SlotId(353);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -8971,22 +8129,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex_Group_4 : "|" Layout Regex.
             SlotId(357) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(46);
                 let end_slot_id = SlotId(357);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -9018,22 +8164,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex_Plus_11 : Regex_Plus_11 Layout Regex_Group_4.
             SlotId(361) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(47);
                 let end_slot_id = SlotId(361);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -9048,22 +8182,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex_Plus_11 : Regex_Group_4.
             SlotId(363) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(47);
                 let end_slot_id = SlotId(363);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -9095,22 +8217,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass_Opt_10 : "!".
             SlotId(365) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(48);
                 let end_slot_id = SlotId(365);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -9130,12 +8240,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(48);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -9168,22 +8279,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass_Plus_12 : CharClass_Plus_12 Layout RangeElement.
             SlotId(370) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(49);
                 let end_slot_id = SlotId(370);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -9198,22 +8297,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass_Plus_12 : RangeElement.
             SlotId(372) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(49);
                 let end_slot_id = SlotId(372);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -9245,22 +8332,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Alt_0 : WS.
             SlotId(374) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(50);
                 let end_slot_id = SlotId(374);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -9292,22 +8367,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Alt_0 : LineComment.
             SlotId(376) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(50);
                 let end_slot_id = SlotId(376);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -9342,22 +8405,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Plus_13 : Layout_Plus_13 Layout_Alt_0.
             SlotId(379) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(51);
                 let end_slot_id = SlotId(379);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -9378,22 +8429,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Plus_13 : Layout_Alt_0.
             SlotId(381) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(51);
                 let end_slot_id = SlotId(381);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -9415,22 +8454,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Opt_11 : Layout_Plus_13.
             SlotId(383) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(52);
                 let end_slot_id = SlotId(383);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -9450,12 +8477,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 let nonterminal_id = NonterminalId(52);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
+                    .get_or_create_nonterminal_node(
                         nonterminal_id,
                         end_slot_id,
                         input_index,
                         input_index,
                         epsilon_node_id,
+                        true,
                     )
                 {
                     let popped_element = PoppedElement {
@@ -9477,22 +8505,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Star_5 : Layout_Opt_11.
             SlotId(386) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(53);
                 let end_slot_id = SlotId(386);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -12402,22 +11418,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartGrammar : Layout start:Grammar Layout.
             SlotId(576) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(54);
                 let end_slot_id = SlotId(576);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -12464,22 +11468,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartLayoutDef : Layout start:LayoutDef Layout.
             SlotId(580) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(55);
                 let end_slot_id = SlotId(580);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -12517,22 +11509,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartRule : Layout start:Rule Layout.
             SlotId(584) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(56);
                 let end_slot_id = SlotId(584);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -12570,22 +11550,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartSyntaxRule : Layout start:SyntaxRule Layout.
             SlotId(588) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(57);
                 let end_slot_id = SlotId(588);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -12632,22 +11600,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartAnnotation : Layout start:Annotation Layout.
             SlotId(592) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(58);
                 let end_slot_id = SlotId(592);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -12685,22 +11641,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartRegexRule : Layout start:RegexRule Layout.
             SlotId(596) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(59);
                 let end_slot_id = SlotId(596);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -12747,22 +11691,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartPreCondition : Layout start:PreCondition Layout.
             SlotId(600) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(60);
                 let end_slot_id = SlotId(600);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -12810,22 +11742,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartPostCondition : Layout start:PostCondition Layout.
             SlotId(604) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(61);
                 let end_slot_id = SlotId(604);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -12863,22 +11783,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartPriorityLevel : Layout start:PriorityLevel Layout.
             SlotId(608) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(62);
                 let end_slot_id = SlotId(608);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -12925,22 +11833,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartAssociativity : Layout start:Associativity Layout.
             SlotId(612) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(63);
                 let end_slot_id = SlotId(612);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -12978,22 +11874,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartAlternative : Layout start:Alternative Layout.
             SlotId(616) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(64);
                 let end_slot_id = SlotId(616);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -13031,22 +11915,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartSymbol : Layout start:Symbol(0) Layout.
             SlotId(620) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(65);
                 let end_slot_id = SlotId(620);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -13084,22 +11956,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartRegex : Layout start:Regex Layout.
             SlotId(624) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(66);
                 let end_slot_id = SlotId(624);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -13137,22 +11997,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartCharClass : Layout start:CharClass Layout.
             SlotId(628) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(67);
                 let end_slot_id = SlotId(628);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -13190,22 +12038,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartRangeElement : Layout start:RangeElement Layout.
             SlotId(632) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(68);
                 let end_slot_id = SlotId(632);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -13252,22 +12088,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartRange : Layout start:Range Layout.
             SlotId(636) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(69);
                 let end_slot_id = SlotId(636);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -13314,22 +12138,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //StartLayout : Layout start:Layout Layout.
             SlotId(640) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(70);
                 let end_slot_id = SlotId(640);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -15916,7 +14728,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -15941,7 +14755,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(15), i).is_some() {
@@ -16065,7 +14881,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16124,7 +14942,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16183,7 +15003,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(22), i).is_some() {
@@ -16239,7 +15061,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16264,7 +15088,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(24), i).is_some() {
@@ -16286,7 +15112,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(25), i).is_some() {
@@ -16308,7 +15136,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16401,7 +15231,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16465,7 +15297,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16490,7 +15324,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(7), i).is_some()
@@ -16510,7 +15346,9 @@ impl<'i> IggyParser<'i> {
                         i,
                         i,
                         epsilon_node_id,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16537,7 +15375,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(7), i).is_some()
@@ -16554,7 +15394,9 @@ impl<'i> IggyParser<'i> {
                         i,
                         i,
                         epsilon_node_id,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16576,7 +15418,9 @@ impl<'i> IggyParser<'i> {
                 left_extent,
                 j,
                 body_node,
-            );
+                false,
+            )
+            .unwrap();
         loop {
             let Some((node_0, pos_0)) = self
                 .parse_layout_ll1(j)
@@ -16622,7 +15466,9 @@ impl<'i> IggyParser<'i> {
                     left_extent,
                     j,
                     current,
-                );
+                    false,
+                )
+                .unwrap();
         }
         Some(current)
     }
@@ -16648,7 +15494,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(7), i).is_some()
@@ -16668,7 +15516,9 @@ impl<'i> IggyParser<'i> {
                         i,
                         i,
                         epsilon_node_id,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16702,7 +15552,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16730,7 +15582,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(7), i).is_some()
@@ -16756,7 +15610,9 @@ impl<'i> IggyParser<'i> {
                         i,
                         i,
                         epsilon_node_id,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16781,7 +15637,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(13), i).is_some()
@@ -16803,7 +15661,9 @@ impl<'i> IggyParser<'i> {
                         i,
                         i,
                         epsilon_node_id,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16862,7 +15722,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -16884,7 +15746,9 @@ impl<'i> IggyParser<'i> {
                 left_extent,
                 j,
                 body_node,
-            );
+                false,
+            )
+            .unwrap();
         loop {
             let Some((node_0, pos_0)) = self
                 .parse_layout_ll1(j)
@@ -16930,7 +15794,9 @@ impl<'i> IggyParser<'i> {
                     left_extent,
                     j,
                     current,
-                );
+                    false,
+                )
+                .unwrap();
         }
         Some(current)
     }
@@ -16988,7 +15854,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17010,7 +15878,9 @@ impl<'i> IggyParser<'i> {
                 left_extent,
                 j,
                 body_node,
-            );
+                false,
+            )
+            .unwrap();
         loop {
             let Some((node_0, pos_0)) = self
                 .parse_layout_ll1(j)
@@ -17056,7 +15926,9 @@ impl<'i> IggyParser<'i> {
                     left_extent,
                     j,
                     current,
-                );
+                    false,
+                )
+                .unwrap();
         }
         Some(current)
     }
@@ -17114,7 +15986,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17136,7 +16010,9 @@ impl<'i> IggyParser<'i> {
                 left_extent,
                 j,
                 body_node,
-            );
+                false,
+            )
+            .unwrap();
         loop {
             let Some((node_0, pos_0)) = self
                 .parse_layout_ll1(j)
@@ -17182,7 +16058,9 @@ impl<'i> IggyParser<'i> {
                     left_extent,
                     j,
                     current,
-                );
+                    false,
+                )
+                .unwrap();
         }
         Some(current)
     }
@@ -17206,7 +16084,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(33), i).is_some()
@@ -17223,7 +16103,9 @@ impl<'i> IggyParser<'i> {
                         i,
                         i,
                         epsilon_node_id,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17248,7 +16130,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(9), i).is_some() {
@@ -17270,7 +16154,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17292,7 +16178,9 @@ impl<'i> IggyParser<'i> {
                 left_extent,
                 j,
                 body_node,
-            );
+                false,
+            )
+            .unwrap();
         loop {
             let Some((node_0, pos_0)) = self
                 .parse_layout_alt_0_ll1(j)
@@ -17320,7 +16208,9 @@ impl<'i> IggyParser<'i> {
                     left_extent,
                     j,
                     current,
-                );
+                    false,
+                )
+                .unwrap();
         }
         Some(current)
     }
@@ -17346,7 +16236,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         if self.scanner.match_token(TerminalId(23), i).is_some()
@@ -17391,7 +16283,9 @@ impl<'i> IggyParser<'i> {
                         i,
                         i,
                         epsilon_node_id,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17450,7 +16344,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17512,7 +16408,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17575,7 +16473,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17637,7 +16537,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17700,7 +16602,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17764,7 +16668,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17826,7 +16732,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -17888,7 +16796,9 @@ impl<'i> IggyParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None

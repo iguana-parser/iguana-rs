@@ -121,22 +121,10 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             //S : S_Plus_0.
             SlotId(1) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(0);
                 let end_slot_id = SlotId(1);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -168,22 +156,10 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             //A : "a".
             SlotId(3) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(1);
                 let end_slot_id = SlotId(3);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -251,22 +227,10 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             //S_Plus_0 : S_Plus_0 "," A.
             SlotId(7) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(2);
                 let end_slot_id = SlotId(7);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -287,22 +251,10 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             //S_Plus_0 : A.
             SlotId(9) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let nonterminal_id = NonterminalId(2);
                 let end_slot_id = SlotId(9);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children(
-                        nonterminal_id,
-                        end_slot_id,
-                        left_extent,
-                        right_extent,
-                        result,
-                    )
+                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
@@ -659,7 +611,9 @@ impl<'i> PlusWithSepParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -684,7 +638,9 @@ impl<'i> PlusWithSepParser<'i> {
                         left_extent,
                         j,
                         current,
-                    ),
+                        false,
+                    )
+                    .unwrap(),
             );
         }
         None
@@ -706,7 +662,9 @@ impl<'i> PlusWithSepParser<'i> {
                 left_extent,
                 j,
                 body_node,
-            );
+                false,
+            )
+            .unwrap();
         loop {
             let Some((node_0, pos_0)) = self
                 .scanner
@@ -752,7 +710,9 @@ impl<'i> PlusWithSepParser<'i> {
                     left_extent,
                     j,
                     current,
-                );
+                    false,
+                )
+                .unwrap();
         }
         Some(current)
     }
