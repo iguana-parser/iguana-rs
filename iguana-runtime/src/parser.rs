@@ -264,7 +264,17 @@ pub trait Parser<'i> {
         self.stats_mut().gss_edges_count += 1;
     }
 
-    fn pop(&mut self, gss_node_id: GssNodeId, slot_id: SlotId, popped_element: PoppedElement) {
+    fn pop(
+        &mut self,
+        gss_node_id: GssNodeId,
+        slot_id: SlotId,
+        nonterminal_node_id: SPPFNodeId,
+        return_value: Option<i32>,
+    ) {
+        let popped_element = PoppedElement {
+            nonterminal_node_id,
+            return_value,
+        };
         record!(self, Pop, gss_node_id, slot_id, popped_element);
         let gss = self.gss_node(gss_node_id);
         if gss.contains_popped_element(&popped_element) {

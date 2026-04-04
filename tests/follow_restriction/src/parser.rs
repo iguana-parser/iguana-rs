@@ -35,8 +35,7 @@ use crate::{
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
-    gss::{GSSNode, PoppedElement},
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input, parser::{Parser, Stats, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
@@ -219,11 +218,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(0), SlotId(1))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(1), popped_element);
+                    self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
                 }
             }
             //T : . Char !>> Char
@@ -253,11 +248,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(1), SlotId(3))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(3), popped_element);
+                    self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
                 }
             }
             //Id : . Id_Plus_1 !>> Char
@@ -277,11 +268,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(2), SlotId(5))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(5), popped_element);
+                    self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
                 }
             }
             //S_Plus_0 : . S_Plus_0 WS Id
@@ -333,11 +320,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(3), SlotId(9))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(9), popped_element);
+                    self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
                 }
             }
             //S_Plus_0 : . Id
@@ -354,11 +337,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(3), SlotId(11))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(11), popped_element);
+                    self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
                 }
             }
             //Id_Plus_1 : . Id_Plus_1 Char
@@ -404,11 +383,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(4), SlotId(14))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(14), popped_element);
+                    self.pop(gss_node_id, SlotId(14), nonterminal_node_id, None);
                 }
             }
             //Id_Plus_1 : . Char
@@ -436,11 +411,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(4), SlotId(16))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(16), popped_element);
+                    self.pop(gss_node_id, SlotId(16), nonterminal_node_id, None);
                 }
             }
             //StartS : . WS start:S WS
@@ -509,11 +480,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(5), SlotId(20))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(20), popped_element);
+                    self.pop(gss_node_id, SlotId(20), nonterminal_node_id, None);
                 }
             }
             //StartT : . WS start:T WS
@@ -582,11 +549,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(6), SlotId(24))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(24), popped_element);
+                    self.pop(gss_node_id, SlotId(24), nonterminal_node_id, None);
                 }
             }
             //StartId : . WS start:Id WS
@@ -655,11 +618,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(7), SlotId(28))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(28), popped_element);
+                    self.pop(gss_node_id, SlotId(28), nonterminal_node_id, None);
                 }
             }
             _ => {

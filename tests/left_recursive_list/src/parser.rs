@@ -12,8 +12,7 @@ use crate::{
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
-    gss::{GSSNode, PoppedElement},
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input, parser::{Parser, Stats, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
@@ -110,11 +109,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(0), SlotId(2))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(2), popped_element);
+                    self.pop(gss_node_id, SlotId(2), nonterminal_node_id, None);
                 }
             }
             //A : . "a"
@@ -142,11 +137,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(0), SlotId(4))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(4), popped_element);
+                    self.pop(gss_node_id, SlotId(4), nonterminal_node_id, None);
                 }
             }
             _ => {

@@ -13,8 +13,7 @@ use std::cell::OnceCell;
 use crate::{scanner::ExpressionScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
-    gss::{GSSNode, PoppedElement},
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input, parser::{Parser, Stats, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
@@ -132,11 +131,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(0), SlotId(3))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(3), popped_element);
+                    self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
                 }
             }
             //E : . E "+" E
@@ -175,11 +170,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(0), SlotId(7))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(7), popped_element);
+                    self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
                 }
             }
             //E : . "a"
@@ -207,11 +198,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(0), SlotId(9))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(9), popped_element);
+                    self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
                 }
             }
             _ => {

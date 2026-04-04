@@ -15,8 +15,7 @@ use crate::{
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
-    gss::{GSSNode, PoppedElement},
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input, parser::{Parser, Stats, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
@@ -96,11 +95,7 @@ impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(0), SlotId(1))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(1), popped_element);
+                    self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
                 }
             }
             //Id : . Identifier \ Keyword
@@ -132,11 +127,7 @@ impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(1), SlotId(3))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(3), popped_element);
+                    self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
                 }
             }
             _ => {

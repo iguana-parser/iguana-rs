@@ -155,7 +155,7 @@ impl<'a> ParserGen<'a> {
             use iguana_runtime::{
                 descriptor::Descriptor,
                 env::{Env, EnvId},
-                gss::{GSSNode, PoppedElement},
+                gss::GSSNode,
                 ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
                 input::Input,
                 parser::{Parser, Stats, init_logger},
@@ -207,11 +207,7 @@ impl<'a> ParserGen<'a> {
                                 epsilon_node_id,
                                 true,
                             ) {
-                                let popped_element = PoppedElement {
-                                    nonterminal_node_id,
-                                    return_value: None,
-                                };
-                                self.pop(gss_node_id, #end_slot_id, popped_element);
+                                self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, None);
                             }
                         }
                     }
@@ -233,11 +229,7 @@ impl<'a> ParserGen<'a> {
                                 result,
                                 return_value
                             ) {
-                                let popped_element = PoppedElement {
-                                    nonterminal_node_id,
-                                    return_value: Some(return_value),
-                                };
-                                self.pop(gss_node_id, #end_slot_id, popped_element);
+                                self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, Some(return_value));
                             }
                         }
                     } else {
@@ -245,11 +237,7 @@ impl<'a> ParserGen<'a> {
                             if let Some(nonterminal_node_id) = self.create_nonterminal_node(
                                 result, #nonterminal_id, #end_slot_id,
                             ) {
-                                let popped_element = PoppedElement {
-                                    nonterminal_node_id,
-                                    return_value: None,
-                                };
-                                self.pop(gss_node_id, #end_slot_id, popped_element);
+                                self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, None);
                             }
                         }
                     };

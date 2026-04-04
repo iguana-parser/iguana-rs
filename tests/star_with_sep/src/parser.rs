@@ -24,8 +24,7 @@ use std::cell::OnceCell;
 use crate::{scanner::StarWithSepScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
-    gss::{GSSNode, PoppedElement},
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input, parser::{Parser, Stats, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
@@ -156,11 +155,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(0), SlotId(1))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(1), popped_element);
+                    self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
                 }
             }
             //A : . "a"
@@ -188,11 +183,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(1), SlotId(3))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(3), popped_element);
+                    self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
                 }
             }
             //S_Plus_0 : . S_Plus_0 "," A
@@ -244,11 +235,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(2), SlotId(7))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(7), popped_element);
+                    self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
                 }
             }
             //S_Plus_0 : . A
@@ -265,11 +252,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(2), SlotId(9))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(9), popped_element);
+                    self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
                 }
             }
             //S_Opt_0 : . S_Plus_0
@@ -286,11 +269,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(3), SlotId(11))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(11), popped_element);
+                    self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
                 }
             }
             //S_Opt_0 : .
@@ -311,11 +290,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(12), popped_element);
+                    self.pop(gss_node_id, SlotId(12), nonterminal_node_id, None);
                 }
             }
             //S_Star_0 : . S_Opt_0
@@ -332,11 +307,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(4), SlotId(14))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(14), popped_element);
+                    self.pop(gss_node_id, SlotId(14), nonterminal_node_id, None);
                 }
             }
             _ => {

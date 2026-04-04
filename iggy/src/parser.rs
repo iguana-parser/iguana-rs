@@ -341,8 +341,7 @@ use std::cell::OnceCell;
 use crate::{scanner::IggyScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
-    gss::{GSSNode, PoppedElement},
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input, parser::{Parser, Stats, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
@@ -2847,11 +2846,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(0), SlotId(7))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(7), popped_element);
+                    self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
                 }
             }
             //LayoutDef : . "layout" Layout Identifier
@@ -2920,11 +2915,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(1), SlotId(11))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(11), popped_element);
+                    self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
                 }
             }
             //Rule : . SyntaxRule
@@ -2936,11 +2927,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(2), SlotId(13))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(13), popped_element);
+                    self.pop(gss_node_id, SlotId(13), nonterminal_node_id, None);
                 }
             }
             //Rule : . RegexRule
@@ -2952,11 +2939,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(2), SlotId(15))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(15), popped_element);
+                    self.pop(gss_node_id, SlotId(15), nonterminal_node_id, None);
                 }
             }
             //SyntaxRule : . SyntaxRule_Opt_2 Layout head:Identifier Layout "=" Layout SyntaxRule_Star_1
@@ -3073,11 +3056,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(3), SlotId(23))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(23), popped_element);
+                    self.pop(gss_node_id, SlotId(23), nonterminal_node_id, None);
                 }
             }
             //Annotation : . "@NoLayout"
@@ -3105,11 +3084,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(4), SlotId(25))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(25), popped_element);
+                    self.pop(gss_node_id, SlotId(25), nonterminal_node_id, None);
                 }
             }
             //Annotation : . "@Layout" Layout "(" Layout Identifier Layout ")"
@@ -3260,11 +3235,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(4), SlotId(33))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(33), popped_element);
+                    self.pop(gss_node_id, SlotId(33), nonterminal_node_id, None);
                 }
             }
             //RegexRule : . "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
@@ -3432,11 +3403,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(5), SlotId(45))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(45), popped_element);
+                    self.pop(gss_node_id, SlotId(45), nonterminal_node_id, None);
                 }
             }
             //PreCondition : . Identifier Layout "!<<"
@@ -3505,11 +3472,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(6), SlotId(49))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(49), popped_element);
+                    self.pop(gss_node_id, SlotId(49), nonterminal_node_id, None);
                 }
             }
             //PostCondition : . "\" Layout Identifier
@@ -3578,11 +3541,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(7), SlotId(53))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(53), popped_element);
+                    self.pop(gss_node_id, SlotId(53), nonterminal_node_id, None);
                 }
             }
             //PostCondition : . "!>>" Layout Identifier
@@ -3651,11 +3610,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(7), SlotId(57))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(57), popped_element);
+                    self.pop(gss_node_id, SlotId(57), nonterminal_node_id, None);
                 }
             }
             //PriorityLevel : . PriorityLevel_Opt_6 Layout PriorityLevel_Star_3
@@ -3690,11 +3645,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(8), SlotId(61))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(61), popped_element);
+                    self.pop(gss_node_id, SlotId(61), nonterminal_node_id, None);
                 }
             }
             //Associativity : . "left"
@@ -3722,11 +3673,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(9), SlotId(63))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(63), popped_element);
+                    self.pop(gss_node_id, SlotId(63), nonterminal_node_id, None);
                 }
             }
             //Associativity : . "right"
@@ -3754,11 +3701,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(9), SlotId(65))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(65), popped_element);
+                    self.pop(gss_node_id, SlotId(65), nonterminal_node_id, None);
                 }
             }
             //Associativity : . "none"
@@ -3786,11 +3729,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(9), SlotId(67))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(67), popped_element);
+                    self.pop(gss_node_id, SlotId(67), nonterminal_node_id, None);
                 }
             }
             //Alternative : . Alternative_Star_4 Layout Alternative_Opt_9
@@ -3828,11 +3767,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(10), SlotId(71))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(71), popped_element);
+                    self.pop(gss_node_id, SlotId(71), nonterminal_node_id, None);
                 }
             }
             //Symbol(p: i32) : . Identifier return 0
@@ -3878,11 +3813,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(74),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(74), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
@@ -3985,11 +3921,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(81),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(81), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
@@ -4108,11 +4045,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(90),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(90), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . String return 0
@@ -4158,11 +4096,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(93),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(93), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
@@ -4330,11 +4269,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(104),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(104), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
@@ -4502,11 +4442,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(115),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(115), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
@@ -4602,11 +4543,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(122),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(122), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
@@ -4702,11 +4644,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(129),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(129), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
@@ -4802,11 +4745,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(136),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(136), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_8 return 0
@@ -4881,11 +4825,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(143),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(143), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_9 return 0
@@ -4960,11 +4905,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(150),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(150), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
@@ -5040,11 +4986,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(157),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(157), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
@@ -5155,11 +5102,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(164),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(164), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
@@ -5266,11 +5214,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(171),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(171), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Regex : . Regex Layout "+"
@@ -5327,11 +5276,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(11), SlotId(175))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(175), popped_element);
+                    self.pop(gss_node_id, SlotId(175), nonterminal_node_id, None);
                 }
             }
             //Regex : . Regex Layout "*"
@@ -5388,11 +5333,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(11), SlotId(179))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(179), popped_element);
+                    self.pop(gss_node_id, SlotId(179), nonterminal_node_id, None);
                 }
             }
             //Regex : . Regex Layout "?"
@@ -5449,11 +5390,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(11), SlotId(183))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(183), popped_element);
+                    self.pop(gss_node_id, SlotId(183), nonterminal_node_id, None);
                 }
             }
             //Regex : . "(" Layout first:Regex Layout rest:Regex_Plus_11 Layout ")"
@@ -5558,11 +5495,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(11), SlotId(191))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(191), popped_element);
+                    self.pop(gss_node_id, SlotId(191), nonterminal_node_id, None);
                 }
             }
             //Regex : . "(" Layout RegexRule_Plus_3 Layout ")"
@@ -5651,11 +5584,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(11), SlotId(197))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(197), popped_element);
+                    self.pop(gss_node_id, SlotId(197), nonterminal_node_id, None);
                 }
             }
             //Regex : . CharClass
@@ -5667,11 +5596,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(11), SlotId(199))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(199), popped_element);
+                    self.pop(gss_node_id, SlotId(199), nonterminal_node_id, None);
                 }
             }
             //Regex : . Char
@@ -5699,11 +5624,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(11), SlotId(201))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(201), popped_element);
+                    self.pop(gss_node_id, SlotId(201), nonterminal_node_id, None);
                 }
             }
             //Regex : . String
@@ -5731,11 +5652,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(11), SlotId(203))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(203), popped_element);
+                    self.pop(gss_node_id, SlotId(203), nonterminal_node_id, None);
                 }
             }
             //Regex : . Identifier
@@ -5763,11 +5680,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(11), SlotId(205))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(205), popped_element);
+                    self.pop(gss_node_id, SlotId(205), nonterminal_node_id, None);
                 }
             }
             //CharClass : . neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_12 Layout "]"
@@ -5892,11 +5805,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(12), SlotId(213))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(213), popped_element);
+                    self.pop(gss_node_id, SlotId(213), nonterminal_node_id, None);
                 }
             }
             //RangeElement : . Range
@@ -5913,11 +5822,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(13), SlotId(215))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(215), popped_element);
+                    self.pop(gss_node_id, SlotId(215), nonterminal_node_id, None);
                 }
             }
             //RangeElement : . RangeChar
@@ -5945,11 +5850,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(13), SlotId(217))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(217), popped_element);
+                    self.pop(gss_node_id, SlotId(217), nonterminal_node_id, None);
                 }
             }
             //Range : . start:RangeChar Layout "-" Layout end:RangeChar
@@ -6067,11 +5968,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(14), SlotId(223))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(223), popped_element);
+                    self.pop(gss_node_id, SlotId(223), nonterminal_node_id, None);
                 }
             }
             //Layout : . Layout_Star_5 !>> WS !>> LineComment
@@ -6093,11 +5990,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(15), SlotId(225))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(225), popped_element);
+                    self.pop(gss_node_id, SlotId(225), nonterminal_node_id, None);
                 }
             }
             //Grammar_Opt_0 : . LayoutDef
@@ -6114,11 +6007,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(16), SlotId(227))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(227), popped_element);
+                    self.pop(gss_node_id, SlotId(227), nonterminal_node_id, None);
                 }
             }
             //Grammar_Opt_0 : .
@@ -6139,11 +6028,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(228), popped_element);
+                    self.pop(gss_node_id, SlotId(228), nonterminal_node_id, None);
                 }
             }
             //Grammar_Plus_0 : . Grammar_Plus_0 Layout Rule
@@ -6171,11 +6056,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(17), SlotId(232))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(232), popped_element);
+                    self.pop(gss_node_id, SlotId(232), nonterminal_node_id, None);
                 }
             }
             //Grammar_Plus_0 : . Rule
@@ -6187,11 +6068,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(17), SlotId(234))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(234), popped_element);
+                    self.pop(gss_node_id, SlotId(234), nonterminal_node_id, None);
                 }
             }
             //Grammar_Opt_1 : . Grammar_Plus_0
@@ -6203,11 +6080,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(18), SlotId(236))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(236), popped_element);
+                    self.pop(gss_node_id, SlotId(236), nonterminal_node_id, None);
                 }
             }
             //Grammar_Opt_1 : .
@@ -6228,11 +6101,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(237), popped_element);
+                    self.pop(gss_node_id, SlotId(237), nonterminal_node_id, None);
                 }
             }
             //Grammar_Star_0 : . Grammar_Opt_1
@@ -6244,11 +6113,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(19), SlotId(239))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(239), popped_element);
+                    self.pop(gss_node_id, SlotId(239), nonterminal_node_id, None);
                 }
             }
             //SyntaxRule_Opt_2 : . Annotation
@@ -6265,11 +6130,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(20), SlotId(241))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(241), popped_element);
+                    self.pop(gss_node_id, SlotId(241), nonterminal_node_id, None);
                 }
             }
             //SyntaxRule_Opt_2 : .
@@ -6290,11 +6151,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(242), popped_element);
+                    self.pop(gss_node_id, SlotId(242), nonterminal_node_id, None);
                 }
             }
             //SyntaxRule_Plus_1 : . SyntaxRule_Plus_1 Layout ">" Layout PriorityLevel
@@ -6367,11 +6224,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(21), SlotId(248))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(248), popped_element);
+                    self.pop(gss_node_id, SlotId(248), nonterminal_node_id, None);
                 }
             }
             //SyntaxRule_Plus_1 : . PriorityLevel
@@ -6383,11 +6236,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(21), SlotId(250))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(250), popped_element);
+                    self.pop(gss_node_id, SlotId(250), nonterminal_node_id, None);
                 }
             }
             //SyntaxRule_Opt_3 : . SyntaxRule_Plus_1
@@ -6399,11 +6248,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(22), SlotId(252))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(252), popped_element);
+                    self.pop(gss_node_id, SlotId(252), nonterminal_node_id, None);
                 }
             }
             //SyntaxRule_Opt_3 : .
@@ -6424,11 +6269,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(253), popped_element);
+                    self.pop(gss_node_id, SlotId(253), nonterminal_node_id, None);
                 }
             }
             //SyntaxRule_Star_1 : . SyntaxRule_Opt_3
@@ -6440,11 +6281,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(23), SlotId(255))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(255), popped_element);
+                    self.pop(gss_node_id, SlotId(255), nonterminal_node_id, None);
                 }
             }
             //RegexRule_Opt_4 : . PreCondition
@@ -6461,11 +6298,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(24), SlotId(257))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(257), popped_element);
+                    self.pop(gss_node_id, SlotId(257), nonterminal_node_id, None);
                 }
             }
             //RegexRule_Opt_4 : .
@@ -6486,11 +6319,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(258), popped_element);
+                    self.pop(gss_node_id, SlotId(258), nonterminal_node_id, None);
                 }
             }
             //RegexRule_Plus_3 : . RegexRule_Plus_3 Layout Regex
@@ -6518,11 +6347,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(25), SlotId(262))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(262), popped_element);
+                    self.pop(gss_node_id, SlotId(262), nonterminal_node_id, None);
                 }
             }
             //RegexRule_Plus_3 : . Regex
@@ -6534,11 +6359,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(25), SlotId(264))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(264), popped_element);
+                    self.pop(gss_node_id, SlotId(264), nonterminal_node_id, None);
                 }
             }
             //RegexRule_Plus_2 : . RegexRule_Plus_2 Layout "|" Layout RegexRule_Plus_3
@@ -6611,11 +6432,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(26), SlotId(270))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(270), popped_element);
+                    self.pop(gss_node_id, SlotId(270), nonterminal_node_id, None);
                 }
             }
             //RegexRule_Plus_2 : . RegexRule_Plus_3
@@ -6627,11 +6444,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(26), SlotId(272))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(272), popped_element);
+                    self.pop(gss_node_id, SlotId(272), nonterminal_node_id, None);
                 }
             }
             //RegexRule_Plus_4 : . RegexRule_Plus_4 Layout PostCondition
@@ -6675,11 +6488,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(27), SlotId(276))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(276), popped_element);
+                    self.pop(gss_node_id, SlotId(276), nonterminal_node_id, None);
                 }
             }
             //RegexRule_Plus_4 : . PostCondition
@@ -6697,11 +6506,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(27), SlotId(278))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(278), popped_element);
+                    self.pop(gss_node_id, SlotId(278), nonterminal_node_id, None);
                 }
             }
             //RegexRule_Opt_5 : . RegexRule_Plus_4
@@ -6720,11 +6525,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(28), SlotId(280))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(280), popped_element);
+                    self.pop(gss_node_id, SlotId(280), nonterminal_node_id, None);
                 }
             }
             //RegexRule_Opt_5 : .
@@ -6745,11 +6546,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(281), popped_element);
+                    self.pop(gss_node_id, SlotId(281), nonterminal_node_id, None);
                 }
             }
             //RegexRule_Star_2 : . RegexRule_Opt_5
@@ -6768,11 +6565,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(29), SlotId(283))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(283), popped_element);
+                    self.pop(gss_node_id, SlotId(283), nonterminal_node_id, None);
                 }
             }
             //PriorityLevel_Opt_6 : . Associativity
@@ -6789,11 +6582,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(30), SlotId(285))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(285), popped_element);
+                    self.pop(gss_node_id, SlotId(285), nonterminal_node_id, None);
                 }
             }
             //PriorityLevel_Opt_6 : .
@@ -6814,11 +6603,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(286), popped_element);
+                    self.pop(gss_node_id, SlotId(286), nonterminal_node_id, None);
                 }
             }
             //PriorityLevel_Plus_5 : . PriorityLevel_Plus_5 Layout "|" Layout Alternative
@@ -6891,11 +6676,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(31), SlotId(292))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(292), popped_element);
+                    self.pop(gss_node_id, SlotId(292), nonterminal_node_id, None);
                 }
             }
             //PriorityLevel_Plus_5 : . Alternative
@@ -6907,11 +6688,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(31), SlotId(294))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(294), popped_element);
+                    self.pop(gss_node_id, SlotId(294), nonterminal_node_id, None);
                 }
             }
             //PriorityLevel_Opt_7 : . PriorityLevel_Plus_5
@@ -6923,11 +6700,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(32), SlotId(296))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(296), popped_element);
+                    self.pop(gss_node_id, SlotId(296), nonterminal_node_id, None);
                 }
             }
             //PriorityLevel_Opt_7 : .
@@ -6948,11 +6721,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(297), popped_element);
+                    self.pop(gss_node_id, SlotId(297), nonterminal_node_id, None);
                 }
             }
             //PriorityLevel_Star_3 : . PriorityLevel_Opt_7
@@ -6964,11 +6733,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(33), SlotId(299))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(299), popped_element);
+                    self.pop(gss_node_id, SlotId(299), nonterminal_node_id, None);
                 }
             }
             //Alternative_Plus_6 : . Alternative_Plus_6 Layout Symbol(0)
@@ -6996,11 +6761,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(34), SlotId(303))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(303), popped_element);
+                    self.pop(gss_node_id, SlotId(303), nonterminal_node_id, None);
                 }
             }
             //Alternative_Plus_6 : . Symbol(0)
@@ -7012,11 +6773,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(34), SlotId(305))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(305), popped_element);
+                    self.pop(gss_node_id, SlotId(305), nonterminal_node_id, None);
                 }
             }
             //Alternative_Opt_8 : . Alternative_Plus_6
@@ -7028,11 +6785,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(35), SlotId(307))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(307), popped_element);
+                    self.pop(gss_node_id, SlotId(307), nonterminal_node_id, None);
                 }
             }
             //Alternative_Opt_8 : .
@@ -7053,11 +6806,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(308), popped_element);
+                    self.pop(gss_node_id, SlotId(308), nonterminal_node_id, None);
                 }
             }
             //Alternative_Star_4 : . Alternative_Opt_8
@@ -7069,11 +6818,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(36), SlotId(310))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(310), popped_element);
+                    self.pop(gss_node_id, SlotId(310), nonterminal_node_id, None);
                 }
             }
             //Alternative_Opt_9 : . Label
@@ -7101,11 +6846,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(37), SlotId(312))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(312), popped_element);
+                    self.pop(gss_node_id, SlotId(312), nonterminal_node_id, None);
                 }
             }
             //Alternative_Opt_9 : .
@@ -7126,11 +6867,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(313), popped_element);
+                    self.pop(gss_node_id, SlotId(313), nonterminal_node_id, None);
                 }
             }
             //Symbol_Group_0 : . "|" Layout Symbol(0)
@@ -7174,11 +6911,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(38), SlotId(317))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(317), popped_element);
+                    self.pop(gss_node_id, SlotId(317), nonterminal_node_id, None);
                 }
             }
             //Symbol_Plus_7 : . Symbol_Plus_7 Layout Symbol_Group_0
@@ -7206,11 +6939,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(39), SlotId(321))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(321), popped_element);
+                    self.pop(gss_node_id, SlotId(321), nonterminal_node_id, None);
                 }
             }
             //Symbol_Plus_7 : . Symbol_Group_0
@@ -7222,11 +6951,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(39), SlotId(323))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(323), popped_element);
+                    self.pop(gss_node_id, SlotId(323), nonterminal_node_id, None);
                 }
             }
             //Symbol_Group_1 : . "\" Layout Identifier
@@ -7299,11 +7024,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(40), SlotId(327))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(327), popped_element);
+                    self.pop(gss_node_id, SlotId(327), nonterminal_node_id, None);
                 }
             }
             //Symbol_Plus_8 : . Symbol_Plus_8 Layout Symbol_Group_1
@@ -7345,11 +7066,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(41), SlotId(331))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(331), popped_element);
+                    self.pop(gss_node_id, SlotId(331), nonterminal_node_id, None);
                 }
             }
             //Symbol_Plus_8 : . Symbol_Group_1
@@ -7367,11 +7084,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(41), SlotId(333))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(333), popped_element);
+                    self.pop(gss_node_id, SlotId(333), nonterminal_node_id, None);
                 }
             }
             //Symbol_Group_2 : . "!>>" Layout Identifier
@@ -7444,11 +7157,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(42), SlotId(337))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(337), popped_element);
+                    self.pop(gss_node_id, SlotId(337), nonterminal_node_id, None);
                 }
             }
             //Symbol_Plus_9 : . Symbol_Plus_9 Layout Symbol_Group_2
@@ -7490,11 +7199,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(43), SlotId(341))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(341), popped_element);
+                    self.pop(gss_node_id, SlotId(341), nonterminal_node_id, None);
                 }
             }
             //Symbol_Plus_9 : . Symbol_Group_2
@@ -7512,11 +7217,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(43), SlotId(343))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(343), popped_element);
+                    self.pop(gss_node_id, SlotId(343), nonterminal_node_id, None);
                 }
             }
             //Symbol_Group_3 : . "!" Layout Identifier
@@ -7589,11 +7290,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(44), SlotId(347))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(347), popped_element);
+                    self.pop(gss_node_id, SlotId(347), nonterminal_node_id, None);
                 }
             }
             //Symbol_Plus_10 : . Symbol_Plus_10 Layout Symbol_Group_3
@@ -7636,11 +7333,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(45), SlotId(351))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(351), popped_element);
+                    self.pop(gss_node_id, SlotId(351), nonterminal_node_id, None);
                 }
             }
             //Symbol_Plus_10 : . Symbol_Group_3
@@ -7658,11 +7351,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(45), SlotId(353))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(353), popped_element);
+                    self.pop(gss_node_id, SlotId(353), nonterminal_node_id, None);
                 }
             }
             //Regex_Group_4 : . "|" Layout Regex
@@ -7706,11 +7395,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(46), SlotId(357))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(357), popped_element);
+                    self.pop(gss_node_id, SlotId(357), nonterminal_node_id, None);
                 }
             }
             //Regex_Plus_11 : . Regex_Plus_11 Layout Regex_Group_4
@@ -7738,11 +7423,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(47), SlotId(361))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(361), popped_element);
+                    self.pop(gss_node_id, SlotId(361), nonterminal_node_id, None);
                 }
             }
             //Regex_Plus_11 : . Regex_Group_4
@@ -7754,11 +7435,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(47), SlotId(363))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(363), popped_element);
+                    self.pop(gss_node_id, SlotId(363), nonterminal_node_id, None);
                 }
             }
             //CharClass_Opt_10 : . "!"
@@ -7786,11 +7463,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(48), SlotId(365))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(365), popped_element);
+                    self.pop(gss_node_id, SlotId(365), nonterminal_node_id, None);
                 }
             }
             //CharClass_Opt_10 : .
@@ -7811,11 +7484,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(366), popped_element);
+                    self.pop(gss_node_id, SlotId(366), nonterminal_node_id, None);
                 }
             }
             //CharClass_Plus_12 : . CharClass_Plus_12 Layout RangeElement
@@ -7843,11 +7512,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(49), SlotId(370))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(370), popped_element);
+                    self.pop(gss_node_id, SlotId(370), nonterminal_node_id, None);
                 }
             }
             //CharClass_Plus_12 : . RangeElement
@@ -7859,11 +7524,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(49), SlotId(372))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(372), popped_element);
+                    self.pop(gss_node_id, SlotId(372), nonterminal_node_id, None);
                 }
             }
             //Layout_Alt_0 : . WS
@@ -7891,11 +7552,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(50), SlotId(374))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(374), popped_element);
+                    self.pop(gss_node_id, SlotId(374), nonterminal_node_id, None);
                 }
             }
             //Layout_Alt_0 : . LineComment
@@ -7923,11 +7580,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(50), SlotId(376))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(376), popped_element);
+                    self.pop(gss_node_id, SlotId(376), nonterminal_node_id, None);
                 }
             }
             //Layout_Plus_13 : . Layout_Plus_13 Layout_Alt_0
@@ -7957,11 +7610,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(51), SlotId(379))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(379), popped_element);
+                    self.pop(gss_node_id, SlotId(379), nonterminal_node_id, None);
                 }
             }
             //Layout_Plus_13 : . Layout_Alt_0
@@ -7978,11 +7627,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(51), SlotId(381))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(381), popped_element);
+                    self.pop(gss_node_id, SlotId(381), nonterminal_node_id, None);
                 }
             }
             //Layout_Opt_11 : . Layout_Plus_13
@@ -8000,11 +7645,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(52), SlotId(383))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(383), popped_element);
+                    self.pop(gss_node_id, SlotId(383), nonterminal_node_id, None);
                 }
             }
             //Layout_Opt_11 : .
@@ -8025,11 +7666,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         true,
                     )
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(384), popped_element);
+                    self.pop(gss_node_id, SlotId(384), nonterminal_node_id, None);
                 }
             }
             //Layout_Star_5 : . Layout_Opt_11
@@ -8046,11 +7683,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(53), SlotId(386))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(386), popped_element);
+                    self.pop(gss_node_id, SlotId(386), nonterminal_node_id, None);
                 }
             }
             //Symbol_except_Except(p: i32) : . Identifier return 0
@@ -8096,11 +7729,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(389),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(389), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
@@ -8207,11 +7841,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(396),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(396), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
@@ -8334,11 +7969,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(405),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(405), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . String return 0
@@ -8384,11 +8020,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(408),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(408), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
@@ -8556,11 +8193,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(419),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(419), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
@@ -8728,11 +8366,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(430),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(430), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
@@ -8828,11 +8467,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(437),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(437), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
@@ -8928,11 +8568,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(444),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(444), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
@@ -9028,11 +8669,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(451),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(451), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_9 return 0
@@ -9107,11 +8749,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(458),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(458), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
@@ -9187,11 +8830,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(465),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(465), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
@@ -9302,11 +8946,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(472),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(472), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_Except(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
@@ -9413,11 +9058,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(479),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(479), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . Identifier return 0
@@ -9463,11 +9109,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(482),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(482), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
@@ -9574,11 +9221,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(489),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(489), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
@@ -9701,11 +9349,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(498),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(498), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . String return 0
@@ -9751,11 +9400,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(501),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(501), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
@@ -9923,11 +9573,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(512),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(512), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
@@ -10095,11 +9746,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(523),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(523), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
@@ -10195,11 +9847,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(530),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(530), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
@@ -10295,11 +9948,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(537),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(537), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
@@ -10395,11 +10049,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(544),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(544), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_8 return 0
@@ -10474,11 +10129,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(551),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(551), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
@@ -10554,11 +10210,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(558),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(558), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
@@ -10669,11 +10326,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(565),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(565), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
@@ -10780,11 +10438,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         return_value,
                     )
                 {
-                    let popped_element = PoppedElement {
+                    self.pop(
+                        gss_node_id,
+                        SlotId(572),
                         nonterminal_node_id,
-                        return_value: Some(return_value),
-                    };
-                    self.pop(gss_node_id, SlotId(572), popped_element);
+                        Some(return_value),
+                    );
                 }
             }
             //StartGrammar : . Layout start:Grammar Layout
@@ -10817,11 +10476,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(54), SlotId(576))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(576), popped_element);
+                    self.pop(gss_node_id, SlotId(576), nonterminal_node_id, None);
                 }
             }
             //StartLayoutDef : . Layout start:LayoutDef Layout
@@ -10862,11 +10517,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(55), SlotId(580))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(580), popped_element);
+                    self.pop(gss_node_id, SlotId(580), nonterminal_node_id, None);
                 }
             }
             //StartRule : . Layout start:Rule Layout
@@ -10899,11 +10550,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(56), SlotId(584))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(584), popped_element);
+                    self.pop(gss_node_id, SlotId(584), nonterminal_node_id, None);
                 }
             }
             //StartSyntaxRule : . Layout start:SyntaxRule Layout
@@ -10936,11 +10583,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(57), SlotId(588))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(588), popped_element);
+                    self.pop(gss_node_id, SlotId(588), nonterminal_node_id, None);
                 }
             }
             //StartAnnotation : . Layout start:Annotation Layout
@@ -10981,11 +10624,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(58), SlotId(592))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(592), popped_element);
+                    self.pop(gss_node_id, SlotId(592), nonterminal_node_id, None);
                 }
             }
             //StartRegexRule : . Layout start:RegexRule Layout
@@ -11018,11 +10657,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(59), SlotId(596))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(596), popped_element);
+                    self.pop(gss_node_id, SlotId(596), nonterminal_node_id, None);
                 }
             }
             //StartPreCondition : . Layout start:PreCondition Layout
@@ -11063,11 +10698,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(60), SlotId(600))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(600), popped_element);
+                    self.pop(gss_node_id, SlotId(600), nonterminal_node_id, None);
                 }
             }
             //StartPostCondition : . Layout start:PostCondition Layout
@@ -11109,11 +10740,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(61), SlotId(604))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(604), popped_element);
+                    self.pop(gss_node_id, SlotId(604), nonterminal_node_id, None);
                 }
             }
             //StartPriorityLevel : . Layout start:PriorityLevel Layout
@@ -11146,11 +10773,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(62), SlotId(608))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(608), popped_element);
+                    self.pop(gss_node_id, SlotId(608), nonterminal_node_id, None);
                 }
             }
             //StartAssociativity : . Layout start:Associativity Layout
@@ -11191,11 +10814,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(63), SlotId(612))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(612), popped_element);
+                    self.pop(gss_node_id, SlotId(612), nonterminal_node_id, None);
                 }
             }
             //StartAlternative : . Layout start:Alternative Layout
@@ -11228,11 +10847,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(64), SlotId(616))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(616), popped_element);
+                    self.pop(gss_node_id, SlotId(616), nonterminal_node_id, None);
                 }
             }
             //StartSymbol : . Layout start:Symbol(0) Layout
@@ -11265,11 +10880,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(65), SlotId(620))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(620), popped_element);
+                    self.pop(gss_node_id, SlotId(620), nonterminal_node_id, None);
                 }
             }
             //StartRegex : . Layout start:Regex Layout
@@ -11302,11 +10913,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(66), SlotId(624))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(624), popped_element);
+                    self.pop(gss_node_id, SlotId(624), nonterminal_node_id, None);
                 }
             }
             //StartCharClass : . Layout start:CharClass Layout
@@ -11339,11 +10946,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(67), SlotId(628))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(628), popped_element);
+                    self.pop(gss_node_id, SlotId(628), nonterminal_node_id, None);
                 }
             }
             //StartRangeElement : . Layout start:RangeElement Layout
@@ -11376,11 +10979,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(68), SlotId(632))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(632), popped_element);
+                    self.pop(gss_node_id, SlotId(632), nonterminal_node_id, None);
                 }
             }
             //StartRange : . Layout start:Range Layout
@@ -11421,11 +11020,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(69), SlotId(636))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(636), popped_element);
+                    self.pop(gss_node_id, SlotId(636), nonterminal_node_id, None);
                 }
             }
             //StartLayout : . Layout start:Layout Layout
@@ -11466,11 +11061,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node(result, NonterminalId(70), SlotId(640))
                 {
-                    let popped_element = PoppedElement {
-                        nonterminal_node_id,
-                        return_value: None,
-                    };
-                    self.pop(gss_node_id, SlotId(640), popped_element);
+                    self.pop(gss_node_id, SlotId(640), nonterminal_node_id, None);
                 }
             }
             _ => {
