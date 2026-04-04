@@ -131,8 +131,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
         match slot_id {
             //A : . A_Group_0
             SlotId(0) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_a_group_0_ll1(i) {
+                if let Some(right_child_id) = self.parse_a_group_0_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //A : A_Group_0.
                     let next_slot_id = SlotId(1);
@@ -168,13 +167,12 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             //B : . "b"
             SlotId(2) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"b\"", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "\"b\"", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"b\"", i, j);
+                        record!(self, MatchSuccess, "\"b\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //B : "b".
                         let next_slot_id = SlotId(3);
                         let new_node = right_child_id;
@@ -182,7 +180,8 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"b\"", i, SlotId(2), gss_node_id, result
+                            self, MatchFailed, "\"b\"", input_index, SlotId(2),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -215,13 +214,12 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             //C : . "c"
             SlotId(4) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"c\"", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "\"c\"", input_index);
+                match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"c\"", i, j);
+                        record!(self, MatchSuccess, "\"c\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         //C : "c".
                         let next_slot_id = SlotId(5);
                         let new_node = right_child_id;
@@ -229,7 +227,8 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"c\"", i, SlotId(4), gss_node_id, result
+                            self, MatchFailed, "\"c\"", input_index, SlotId(4),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -262,13 +261,12 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             //D : . "d"
             SlotId(6) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"d\"", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "\"d\"", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"d\"", i, j);
+                        record!(self, MatchSuccess, "\"d\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //D : "d".
                         let next_slot_id = SlotId(7);
                         let new_node = right_child_id;
@@ -276,7 +274,8 @@ impl<'i> Parser<'i> for GroupParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"d\"", i, SlotId(6), gss_node_id, result
+                            self, MatchFailed, "\"d\"", input_index, SlotId(6),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -309,8 +308,7 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             //A_Group_0 : . B C D
             SlotId(8) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_b_ll1(i) {
+                if let Some(right_child_id) = self.parse_b_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //A_Group_0 : B . C D
                     let next_slot_id = SlotId(9);
@@ -320,23 +318,12 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             //A_Group_0 : B . C D
             SlotId(9) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_c_ll1(i) {
+                if let Some(right_child_id) = self.parse_c_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //A_Group_0 : B C . D
                     let next_slot_id = SlotId(10);
-                    let left_child_id = result.expect("Result should not be None.");
-                    let left_child = self.sppf_node(left_child_id);
-                    let left_extent = left_child.left_extent();
-                    if let Some(new_node) = self
-                        .get_or_create_intermediate_node(
-                            next_slot_id,
-                            left_extent,
-                            j,
-                            left_child_id,
-                            right_child_id,
-                            true,
-                        )
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child_id, next_slot_id)
                     {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
@@ -344,23 +331,12 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             //A_Group_0 : B C . D
             SlotId(10) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_d_ll1(i) {
+                if let Some(right_child_id) = self.parse_d_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //A_Group_0 : B C D.
                     let next_slot_id = SlotId(11);
-                    let left_child_id = result.expect("Result should not be None.");
-                    let left_child = self.sppf_node(left_child_id);
-                    let left_extent = left_child.left_extent();
-                    if let Some(new_node) = self
-                        .get_or_create_intermediate_node(
-                            next_slot_id,
-                            left_extent,
-                            j,
-                            left_child_id,
-                            right_child_id,
-                            true,
-                        )
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child_id, next_slot_id)
                     {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }

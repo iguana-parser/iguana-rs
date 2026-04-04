@@ -96,18 +96,20 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
         match slot_id {
             //SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
             SlotId(0) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "IdentifierChars", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "IdentifierChars", input_index);
+                match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "IdentifierChars", i, j);
+                        record!(self, MatchSuccess, "IdentifierChars", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         //SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
                         let next_slot_id = SlotId(1);
-                        if self.scanner.match_token(TerminalId(2), i) != Some(j)
-                            && self.scanner.match_token(TerminalId(3), i) != Some(j)
-                            && self.scanner.match_token(TerminalId(4), i) != Some(j)
+                        if self.scanner.match_token(TerminalId(2), input_index)
+                            != Some(j)
+                            && self.scanner.match_token(TerminalId(3), input_index)
+                                != Some(j)
+                            && self.scanner.match_token(TerminalId(4), input_index)
+                                != Some(j)
                         {
                             let new_node = right_child_id;
                             self.execute(
@@ -121,7 +123,7 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "IdentifierChars", i, SlotId(0),
+                            self, MatchFailed, "IdentifierChars", input_index, SlotId(0),
                             gss_node_id, result
                         );
                     }
@@ -155,13 +157,12 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
             }
             //LexicalIdentifier : . Identifier
             SlotId(2) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Identifier", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "Identifier", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", i, j);
+                        record!(self, MatchSuccess, "Identifier", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //LexicalIdentifier : Identifier.
                         let next_slot_id = SlotId(3);
                         let new_node = right_child_id;
@@ -169,8 +170,8 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Identifier", i, SlotId(2), gss_node_id,
-                            result
+                            self, MatchFailed, "Identifier", input_index, SlotId(2),
+                            gss_node_id, result
                         );
                     }
                 }

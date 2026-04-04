@@ -196,13 +196,12 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         match slot_id {
             //Expr : . Id
             SlotId(0) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Id", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "Id", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Id", i, j);
+                        record!(self, MatchSuccess, "Id", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //Expr : Id.
                         let next_slot_id = SlotId(1);
                         let new_node = right_child_id;
@@ -210,7 +209,8 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Id", i, SlotId(0), gss_node_id, result
+                            self, MatchFailed, "Id", input_index, SlotId(0), gss_node_id,
+                            result
                         );
                     }
                 }
@@ -247,26 +247,19 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : Expr . "(" Expr_Star_0 ")"
             SlotId(3) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"(\"", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "\"(\"", input_index);
+                match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", i, j);
+                        record!(self, MatchSuccess, "\"(\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         //Expr : Expr "(" . Expr_Star_0 ")"
                         let next_slot_id = SlotId(4);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -280,7 +273,8 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"(\"", i, SlotId(3), gss_node_id, result
+                            self, MatchFailed, "\"(\"", input_index, SlotId(3),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -291,26 +285,19 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : Expr "(" Expr_Star_0 . ")"
             SlotId(5) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\")\"", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "\")\"", input_index);
+                match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", i, j);
+                        record!(self, MatchSuccess, "\")\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         //Expr : Expr "(" Expr_Star_0 ")".
                         let next_slot_id = SlotId(6);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -324,7 +311,8 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\")\"", i, SlotId(5), gss_node_id, result
+                            self, MatchFailed, "\")\"", input_index, SlotId(5),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -361,26 +349,19 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : Expr . "," Expr
             SlotId(8) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\",\"", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "\",\"", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\",\"", i, j);
+                        record!(self, MatchSuccess, "\",\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //Expr : Expr "," . Expr
                         let next_slot_id = SlotId(9);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -394,7 +375,8 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\",\"", i, SlotId(8), gss_node_id, result
+                            self, MatchFailed, "\",\"", input_index, SlotId(8),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -435,26 +417,19 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Plus_0 : Expr_Plus_0 . "," Expr_except_comma
             SlotId(12) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\",\"", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "\",\"", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\",\"", i, j);
+                        record!(self, MatchSuccess, "\",\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //Expr_Plus_0 : Expr_Plus_0 "," . Expr_except_comma
                         let next_slot_id = SlotId(13);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -468,8 +443,8 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\",\"", i, SlotId(12), gss_node_id,
-                            result
+                            self, MatchFailed, "\",\"", input_index, SlotId(12),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -622,13 +597,12 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_except_comma : . Id
             SlotId(22) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Id", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "Id", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Id", i, j);
+                        record!(self, MatchSuccess, "Id", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //Expr_except_comma : Id.
                         let next_slot_id = SlotId(23);
                         let new_node = right_child_id;
@@ -636,7 +610,8 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Id", i, SlotId(22), gss_node_id, result
+                            self, MatchFailed, "Id", input_index, SlotId(22),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -673,26 +648,19 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_except_comma : Expr . "(" Expr_Star_0 ")"
             SlotId(25) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"(\"", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "\"(\"", input_index);
+                match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", i, j);
+                        record!(self, MatchSuccess, "\"(\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         //Expr_except_comma : Expr "(" . Expr_Star_0 ")"
                         let next_slot_id = SlotId(26);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -706,8 +674,8 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"(\"", i, SlotId(25), gss_node_id,
-                            result
+                            self, MatchFailed, "\"(\"", input_index, SlotId(25),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -718,26 +686,19 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_except_comma : Expr "(" Expr_Star_0 . ")"
             SlotId(27) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\")\"", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "\")\"", input_index);
+                match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", i, j);
+                        record!(self, MatchSuccess, "\")\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         //Expr_except_comma : Expr "(" Expr_Star_0 ")".
                         let next_slot_id = SlotId(28);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -751,8 +712,8 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\")\"", i, SlotId(27), gss_node_id,
-                            result
+                            self, MatchFailed, "\")\"", input_index, SlotId(27),
+                            gss_node_id, result
                         );
                     }
                 }

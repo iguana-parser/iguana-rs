@@ -74,13 +74,12 @@ impl<'i> Parser<'i> for ExceptLexicalParser<'i> {
         match slot_id {
             //S : . Identifier
             SlotId(0) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Identifier", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "Identifier", input_index);
+                match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", i, j);
+                        record!(self, MatchSuccess, "Identifier", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         //S : Identifier.
                         let next_slot_id = SlotId(1);
                         let new_node = right_child_id;
@@ -88,8 +87,8 @@ impl<'i> Parser<'i> for ExceptLexicalParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Identifier", i, SlotId(0), gss_node_id,
-                            result
+                            self, MatchFailed, "Identifier", input_index, SlotId(0),
+                            gss_node_id, result
                         );
                     }
                 }

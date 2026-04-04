@@ -234,13 +234,12 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //E(p: i32) : . "a" return 0
             SlotId(2) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"a\"", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "\"a\"", input_index);
+                match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", i, j);
+                        record!(self, MatchSuccess, "\"a\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         //E(p: i32) : "a" . return 0
                         let next_slot_id = SlotId(3);
                         let new_node = right_child_id;
@@ -248,7 +247,8 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"a\"", i, SlotId(2), gss_node_id, result
+                            self, MatchFailed, "\"a\"", input_index, SlotId(2),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -312,26 +312,19 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] . WS "+" WS r=E(2) return r == 0 ? 2 : min(r, 2)
             SlotId(8) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] WS . "+" WS r=E(2) return r == 0 ? 2 : min(r, 2)
                         let next_slot_id = SlotId(9);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -345,33 +338,27 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(8), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(8), gss_node_id,
+                            result
                         );
                     }
                 }
             }
             //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] WS . "+" WS r=E(2) return r == 0 ? 2 : min(r, 2)
             SlotId(9) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"+\"", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "\"+\"", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", i, j);
+                        record!(self, MatchSuccess, "\"+\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" . WS r=E(2) return r == 0 ? 2 : min(r, 2)
                         let next_slot_id = SlotId(10);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -385,33 +372,27 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"+\"", i, SlotId(9), gss_node_id, result
+                            self, MatchFailed, "\"+\"", input_index, SlotId(9),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" . WS r=E(2) return r == 0 ? 2 : min(r, 2)
             SlotId(10) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" WS . r=E(2) return r == 0 ? 2 : min(r, 2)
                         let next_slot_id = SlotId(11);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -425,7 +406,8 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(10), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(10),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -472,13 +454,12 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
             SlotId(14) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"if\"", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "\"if\"", input_index);
+                match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"if\"", i, j);
+                        record!(self, MatchSuccess, "\"if\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         //E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
                         let next_slot_id = SlotId(15);
                         let new_node = right_child_id;
@@ -486,34 +467,27 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"if\"", i, SlotId(14), gss_node_id,
-                            result
+                            self, MatchFailed, "\"if\"", input_index, SlotId(14),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
             SlotId(15) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
                         let next_slot_id = SlotId(16);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -527,7 +501,8 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(15), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(15),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -538,26 +513,19 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //E(p: i32) : "if" WS E(0) . WS "then" WS E(0) WS "else" WS E(1) return 1
             SlotId(17) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(1) return 1
                         let next_slot_id = SlotId(18);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -571,33 +539,27 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(17), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(17),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(1) return 1
             SlotId(18) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"then\"", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                record!(self, MatchingTerminal, "\"then\"", input_index);
+                match self.scanner.match_token(TerminalId(4), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"then\"", i, j);
+                        record!(self, MatchSuccess, "\"then\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
+                            .get_or_create_terminal_node(TerminalId(4), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(1) return 1
                         let next_slot_id = SlotId(19);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -611,34 +573,27 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"then\"", i, SlotId(18), gss_node_id,
-                            result
+                            self, MatchFailed, "\"then\"", input_index, SlotId(18),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(1) return 1
             SlotId(19) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(1) return 1
                         let next_slot_id = SlotId(20);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -652,7 +607,8 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(19), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(19),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -663,26 +619,19 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //E(p: i32) : "if" WS E(0) WS "then" WS E(0) . WS "else" WS E(1) return 1
             SlotId(21) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(1) return 1
                         let next_slot_id = SlotId(22);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -696,33 +645,27 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(21), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(21),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(1) return 1
             SlotId(22) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"else\"", i);
-                match self.scanner.match_token(TerminalId(5), i) {
+                record!(self, MatchingTerminal, "\"else\"", input_index);
+                match self.scanner.match_token(TerminalId(5), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"else\"", i, j);
+                        record!(self, MatchSuccess, "\"else\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
+                            .get_or_create_terminal_node(TerminalId(5), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(1) return 1
                         let next_slot_id = SlotId(23);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -736,34 +679,27 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"else\"", i, SlotId(22), gss_node_id,
-                            result
+                            self, MatchFailed, "\"else\"", input_index, SlotId(22),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(1) return 1
             SlotId(23) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(1) return 1
                         let next_slot_id = SlotId(24);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -777,7 +713,8 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(23), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(23),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -820,13 +757,12 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //StartS : . WS start:S WS
             SlotId(27) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //StartS : WS . start:S WS
                         let next_slot_id = SlotId(28);
                         let new_node = right_child_id;
@@ -834,7 +770,8 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(27), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(27),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -845,26 +782,19 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //StartS : WS start:S . WS
             SlotId(29) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //StartS : WS start:S WS.
                         let next_slot_id = SlotId(30);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -878,7 +808,8 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(29), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(29),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -911,13 +842,12 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //StartE : . WS start:E(0) WS
             SlotId(31) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //StartE : WS . start:E(0) WS
                         let next_slot_id = SlotId(32);
                         let new_node = right_child_id;
@@ -925,7 +855,8 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(31), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(31),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -936,26 +867,19 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //StartE : WS start:E(0) . WS
             SlotId(33) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //StartE : WS start:E(0) WS.
                         let next_slot_id = SlotId(34);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -969,7 +893,8 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(33), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(33),
+                            gss_node_id, result
                         );
                     }
                 }

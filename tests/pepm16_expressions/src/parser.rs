@@ -445,26 +445,19 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS "." WS "f" return 0
             SlotId(5) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . "." WS "f" return 0
                         let next_slot_id = SlotId(6);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -478,33 +471,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(5), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(5), gss_node_id,
+                            result
                         );
                     }
                 }
             }
             //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . "." WS "f" return 0
             SlotId(6) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\".\"", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "\".\"", input_index);
+                match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\".\"", i, j);
+                        record!(self, MatchSuccess, "\".\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." . WS "f" return 0
                         let next_slot_id = SlotId(7);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -518,33 +505,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\".\"", i, SlotId(6), gss_node_id, result
+                            self, MatchFailed, "\".\"", input_index, SlotId(6),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." . WS "f" return 0
             SlotId(7) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS . "f" return 0
                         let next_slot_id = SlotId(8);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -558,33 +539,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(7), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(7), gss_node_id,
+                            result
                         );
                     }
                 }
             }
             //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS . "f" return 0
             SlotId(8) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"f\"", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "\"f\"", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"f\"", i, j);
+                        record!(self, MatchSuccess, "\"f\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" . return 0
                         let next_slot_id = SlotId(9);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -598,7 +573,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"f\"", i, SlotId(8), gss_node_id, result
+                            self, MatchFailed, "\"f\"", input_index, SlotId(8),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -662,26 +638,19 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS r=E(6) return r == 0 ? 6 : min(r, 6)
             SlotId(14) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . r=E(6) return r == 0 ? 6 : min(r, 6)
                         let next_slot_id = SlotId(15);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -695,7 +664,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(14), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(14),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -767,26 +737,19 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] . WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(21) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS . "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
                         let next_slot_id = SlotId(22);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -800,33 +763,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(21), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(21),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS . "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(22) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"*\"", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "\"*\"", input_index);
+                match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", i, j);
+                        record!(self, MatchSuccess, "\"*\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" . WS r=E(6) return r == 0 ? 5 : min(r, 5)
                         let next_slot_id = SlotId(23);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -840,34 +797,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"*\"", i, SlotId(22), gss_node_id,
-                            result
+                            self, MatchFailed, "\"*\"", input_index, SlotId(22),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" . WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(23) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS . r=E(6) return r == 0 ? 5 : min(r, 5)
                         let next_slot_id = SlotId(24);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -881,7 +831,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(23), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(23),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -953,26 +904,19 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(30) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(31);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -986,33 +930,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(30), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(30),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(31) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"+\"", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                record!(self, MatchingTerminal, "\"+\"", input_index);
+                match self.scanner.match_token(TerminalId(4), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", i, j);
+                        record!(self, MatchSuccess, "\"+\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
+                            .get_or_create_terminal_node(TerminalId(4), input_index, j);
                         //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(32);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1026,34 +964,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"+\"", i, SlotId(31), gss_node_id,
-                            result
+                            self, MatchFailed, "\"+\"", input_index, SlotId(31),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(32) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(33);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1067,7 +998,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(32), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(32),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -1139,26 +1071,19 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(39) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(40);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1172,33 +1097,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(39), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(39),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(40) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"-\"", i);
-                match self.scanner.match_token(TerminalId(5), i) {
+                record!(self, MatchingTerminal, "\"-\"", input_index);
+                match self.scanner.match_token(TerminalId(5), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"-\"", i, j);
+                        record!(self, MatchSuccess, "\"-\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
+                            .get_or_create_terminal_node(TerminalId(5), input_index, j);
                         //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(41);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1212,34 +1131,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"-\"", i, SlotId(40), gss_node_id,
-                            result
+                            self, MatchFailed, "\"-\"", input_index, SlotId(40),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(41) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
                         let next_slot_id = SlotId(42);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1253,7 +1165,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(41), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(41),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -1300,13 +1213,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : . "-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
             SlotId(45) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"-\"", i);
-                match self.scanner.match_token(TerminalId(5), i) {
+                record!(self, MatchingTerminal, "\"-\"", input_index);
+                match self.scanner.match_token(TerminalId(5), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"-\"", i, j);
+                        record!(self, MatchSuccess, "\"-\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(5), i, j);
+                            .get_or_create_terminal_node(TerminalId(5), input_index, j);
                         //E(p: i32) : "-" . WS r=E(3) return r == 0 ? 3 : min(r, 3)
                         let next_slot_id = SlotId(46);
                         let new_node = right_child_id;
@@ -1314,34 +1226,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"-\"", i, SlotId(45), gss_node_id,
-                            result
+                            self, MatchFailed, "\"-\"", input_index, SlotId(45),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "-" . WS r=E(3) return r == 0 ? 3 : min(r, 3)
             SlotId(46) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "-" WS . r=E(3) return r == 0 ? 3 : min(r, 3)
                         let next_slot_id = SlotId(47);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1355,7 +1260,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(46), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(46),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -1402,13 +1308,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(50) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"if\"", i);
-                match self.scanner.match_token(TerminalId(6), i) {
+                record!(self, MatchingTerminal, "\"if\"", input_index);
+                match self.scanner.match_token(TerminalId(6), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"if\"", i, j);
+                        record!(self, MatchSuccess, "\"if\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(6), i, j);
+                            .get_or_create_terminal_node(TerminalId(6), input_index, j);
                         //E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
                         let next_slot_id = SlotId(51);
                         let new_node = right_child_id;
@@ -1416,34 +1321,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"if\"", i, SlotId(50), gss_node_id,
-                            result
+                            self, MatchFailed, "\"if\"", input_index, SlotId(50),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(51) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
                         let next_slot_id = SlotId(52);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1457,7 +1355,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(51), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(51),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -1468,26 +1367,19 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : "if" WS E(0) . WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(53) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
                         let next_slot_id = SlotId(54);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1501,33 +1393,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(53), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(53),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(54) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"then\"", i);
-                match self.scanner.match_token(TerminalId(7), i) {
+                record!(self, MatchingTerminal, "\"then\"", input_index);
+                match self.scanner.match_token(TerminalId(7), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"then\"", i, j);
+                        record!(self, MatchSuccess, "\"then\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(7), i, j);
+                            .get_or_create_terminal_node(TerminalId(7), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
                         let next_slot_id = SlotId(55);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1541,34 +1427,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"then\"", i, SlotId(54), gss_node_id,
-                            result
+                            self, MatchFailed, "\"then\"", input_index, SlotId(54),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
             SlotId(55) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
                         let next_slot_id = SlotId(56);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1582,7 +1461,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(55), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(55),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -1593,26 +1473,19 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : "if" WS E(0) WS "then" WS E(0) . WS "else" WS E(2) return 2
             SlotId(57) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
                         let next_slot_id = SlotId(58);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1626,33 +1499,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(57), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(57),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
             SlotId(58) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"else\"", i);
-                match self.scanner.match_token(TerminalId(8), i) {
+                record!(self, MatchingTerminal, "\"else\"", input_index);
+                match self.scanner.match_token(TerminalId(8), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"else\"", i, j);
+                        record!(self, MatchSuccess, "\"else\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(8), i, j);
+                            .get_or_create_terminal_node(TerminalId(8), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
                         let next_slot_id = SlotId(59);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1666,34 +1533,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"else\"", i, SlotId(58), gss_node_id,
-                            result
+                            self, MatchFailed, "\"else\"", input_index, SlotId(58),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
             SlotId(59) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
                         let next_slot_id = SlotId(60);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1707,7 +1567,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(59), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(59),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -1775,26 +1636,19 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] . WS ";" WS E(1) return 1
             SlotId(66) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS . ";" WS E(1) return 1
                         let next_slot_id = SlotId(67);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1808,33 +1662,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(66), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(66),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS . ";" WS E(1) return 1
             SlotId(67) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\";\"", i);
-                match self.scanner.match_token(TerminalId(9), i) {
+                record!(self, MatchingTerminal, "\";\"", input_index);
+                match self.scanner.match_token(TerminalId(9), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\";\"", i, j);
+                        record!(self, MatchSuccess, "\";\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(9), i, j);
+                            .get_or_create_terminal_node(TerminalId(9), input_index, j);
                         //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" . WS E(1) return 1
                         let next_slot_id = SlotId(68);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1848,34 +1696,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\";\"", i, SlotId(67), gss_node_id,
-                            result
+                            self, MatchFailed, "\";\"", input_index, SlotId(67),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" . WS E(1) return 1
             SlotId(68) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS . E(1) return 1
                         let next_slot_id = SlotId(69);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1889,7 +1730,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(68), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(68),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -1932,13 +1774,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : . "(" WS E(0) WS ")" return 0
             SlotId(72) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"(\"", i);
-                match self.scanner.match_token(TerminalId(10), i) {
+                record!(self, MatchingTerminal, "\"(\"", input_index);
+                match self.scanner.match_token(TerminalId(10), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", i, j);
+                        record!(self, MatchSuccess, "\"(\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(10), i, j);
+                            .get_or_create_terminal_node(TerminalId(10), input_index, j);
                         //E(p: i32) : "(" . WS E(0) WS ")" return 0
                         let next_slot_id = SlotId(73);
                         let new_node = right_child_id;
@@ -1946,34 +1787,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"(\"", i, SlotId(72), gss_node_id,
-                            result
+                            self, MatchFailed, "\"(\"", input_index, SlotId(72),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "(" . WS E(0) WS ")" return 0
             SlotId(73) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "(" WS . E(0) WS ")" return 0
                         let next_slot_id = SlotId(74);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -1987,7 +1821,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(73), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(73),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -1998,26 +1833,19 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : "(" WS E(0) . WS ")" return 0
             SlotId(75) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "(" WS E(0) WS . ")" return 0
                         let next_slot_id = SlotId(76);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -2031,33 +1859,27 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(75), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(75),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //E(p: i32) : "(" WS E(0) WS . ")" return 0
             SlotId(76) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\")\"", i);
-                match self.scanner.match_token(TerminalId(11), i) {
+                record!(self, MatchingTerminal, "\")\"", input_index);
+                match self.scanner.match_token(TerminalId(11), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", i, j);
+                        record!(self, MatchSuccess, "\")\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(11), i, j);
+                            .get_or_create_terminal_node(TerminalId(11), input_index, j);
                         //E(p: i32) : "(" WS E(0) WS ")" . return 0
                         let next_slot_id = SlotId(77);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -2071,8 +1893,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\")\"", i, SlotId(76), gss_node_id,
-                            result
+                            self, MatchFailed, "\")\"", input_index, SlotId(76),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -2111,13 +1933,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : . "a" return 0
             SlotId(79) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"a\"", i);
-                match self.scanner.match_token(TerminalId(12), i) {
+                record!(self, MatchingTerminal, "\"a\"", input_index);
+                match self.scanner.match_token(TerminalId(12), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", i, j);
+                        record!(self, MatchSuccess, "\"a\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(12), i, j);
+                            .get_or_create_terminal_node(TerminalId(12), input_index, j);
                         //E(p: i32) : "a" . return 0
                         let next_slot_id = SlotId(80);
                         let new_node = right_child_id;
@@ -2125,8 +1946,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"a\"", i, SlotId(79), gss_node_id,
-                            result
+                            self, MatchFailed, "\"a\"", input_index, SlotId(79),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -2165,13 +1986,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //StartS : . WS start:S WS
             SlotId(82) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //StartS : WS . start:S WS
                         let next_slot_id = SlotId(83);
                         let new_node = right_child_id;
@@ -2179,7 +1999,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(82), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(82),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -2190,26 +2011,19 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //StartS : WS start:S . WS
             SlotId(84) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //StartS : WS start:S WS.
                         let next_slot_id = SlotId(85);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -2223,7 +2037,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(84), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(84),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -2256,13 +2071,12 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //StartE : . WS start:E(0) WS
             SlotId(86) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //StartE : WS . start:E(0) WS
                         let next_slot_id = SlotId(87);
                         let new_node = right_child_id;
@@ -2270,7 +2084,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(86), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(86),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -2281,26 +2096,19 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //StartE : WS start:E(0) . WS
             SlotId(88) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //StartE : WS start:E(0) WS.
                         let next_slot_id = SlotId(89);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -2314,7 +2122,8 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(88), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(88),
+                            gss_node_id, result
                         );
                     }
                 }

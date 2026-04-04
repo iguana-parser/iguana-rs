@@ -84,8 +84,7 @@ impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
         match slot_id {
             //S : . Id
             SlotId(0) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_id_ll1(i) {
+                if let Some(right_child_id) = self.parse_id_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //S : Id.
                     let next_slot_id = SlotId(1);
@@ -121,16 +120,17 @@ impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
             }
             //Id : . Identifier \ Keyword
             SlotId(2) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Identifier", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "Identifier", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", i, j);
+                        record!(self, MatchSuccess, "Identifier", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //Id : Identifier \ Keyword.
                         let next_slot_id = SlotId(3);
-                        if self.scanner.match_token(TerminalId(1), i) != Some(j) {
+                        if self.scanner.match_token(TerminalId(1), input_index)
+                            != Some(j)
+                        {
                             let new_node = right_child_id;
                             self.execute(
                                 j,
@@ -143,8 +143,8 @@ impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Identifier", i, SlotId(2), gss_node_id,
-                            result
+                            self, MatchFailed, "Identifier", input_index, SlotId(2),
+                            gss_node_id, result
                         );
                     }
                 }

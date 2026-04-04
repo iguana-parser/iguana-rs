@@ -534,16 +534,8 @@ impl<'a> ParserGen<'a> {
             }
         } else {
             quote! {
-                let left_child_id = result.expect("Result should not be None.");
-                let left_child = self.sppf_node(left_child_id);
-                let left_extent = left_child.left_extent();
-                if let Some(new_node) = self.get_or_create_intermediate_node(
-                    next_slot_id,
-                    left_extent,
-                    j,
-                    left_child_id,
-                    right_child_id,
-                    true,
+                if let Some((j, new_node)) = self.create_intermediate_node(
+                    result, right_child_id, next_slot_id,
                 ) {
                     self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                 }
@@ -572,15 +564,14 @@ impl<'a> ParserGen<'a> {
         quote! {
             #[comment = #current_slot_name]
             #slot_id => {
-                let i = input_index;
                 #pre_condition_check
-                record!(self, MatchingTerminal, #terminal_name, i);
-                match self.scanner.match_token(#terminal_id, i) {
+                record!(self, MatchingTerminal, #terminal_name, input_index);
+                match self.scanner.match_token(#terminal_id, input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, #terminal_name, i, j);
+                        record!(self, MatchSuccess, #terminal_name, input_index, j);
                         let right_child_id = self.get_or_create_terminal_node(
                             #terminal_id,
-                            i,
+                            input_index,
                             j,
                         );
                         #[comment = #next_slot_name]
@@ -588,7 +579,7 @@ impl<'a> ParserGen<'a> {
                         #new_node
                     }
                     None => {
-                        record!(self, MatchFailed, #terminal_name, i, #slot_id, gss_node_id, result);
+                        record!(self, MatchFailed, #terminal_name, input_index, #slot_id, gss_node_id, result);
                     }
                 }
             }
@@ -623,7 +614,7 @@ impl<'a> ParserGen<'a> {
                     .iter()
                     .map(|id| {
                         quote! {
-                            self.scanner.match_token(#id, i) != Some(j)
+                            self.scanner.match_token(#id, input_index) != Some(j)
                         }
                     })
                     .collect();
@@ -638,7 +629,7 @@ impl<'a> ParserGen<'a> {
                     .iter()
                     .map(|id| {
                         quote! {
-                            self.scanner.match_token(#id, i) != Some(j)
+                            self.scanner.match_token(#id, input_index) != Some(j)
                         }
                     })
                     .collect();
@@ -715,7 +706,7 @@ impl<'a> ParserGen<'a> {
         match def {
             Definition::Terminal(terminal) => {
                 let pre_conditions = vec![quote! {
-                    i == 0 || self.scanner.match_token(#restriction_terminal_id, i - 1).is_none()
+                    input_index == 0 || self.scanner.match_token(#restriction_terminal_id, input_index - 1).is_none()
                 }];
                 self.gen_terminal_slot(terminal, slot.clone(), &pre_conditions, &[])
             }
@@ -856,16 +847,8 @@ impl<'a> ParserGen<'a> {
                 }
             } else {
                 quote! {
-                    let left_child_id = result.expect("Result should not be None.");
-                    let left_child = self.sppf_node(left_child_id);
-                    let left_extent = left_child.left_extent();
-                    if let Some(new_node) = self.get_or_create_intermediate_node(
-                        next_slot_id,
-                        left_extent,
-                        j,
-                        left_child_id,
-                        right_child_id,
-                        true,
+                    if let Some((j, new_node)) = self.create_intermediate_node(
+                        result, right_child_id, next_slot_id,
                     ) {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
@@ -875,9 +858,8 @@ impl<'a> ParserGen<'a> {
             quote! {
                 #[comment = #slot_name]
                 #slot_id => {
-                    let i = input_index;
                     #pre_condition_check
-                    if let Some(right_child_id) = self.#method_name(i) {
+                    if let Some(right_child_id) = self.#method_name(input_index) {
                         let j = self.sppf_node(right_child_id).right_extent();
                         #post_condition_check
                         #[comment = #next_slot_name]

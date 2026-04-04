@@ -114,13 +114,12 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
         match slot_id {
             //S : . "for" WS Id
             SlotId(0) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"for\"", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "\"for\"", input_index);
+                match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"for\"", i, j);
+                        record!(self, MatchSuccess, "\"for\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         //S : "for" . WS Id
                         let next_slot_id = SlotId(1);
                         let new_node = right_child_id;
@@ -128,34 +127,27 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"for\"", i, SlotId(0), gss_node_id,
-                            result
+                            self, MatchFailed, "\"for\"", input_index, SlotId(0),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //S : "for" . WS Id
             SlotId(1) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //S : "for" WS . Id
                         let next_slot_id = SlotId(2);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -169,33 +161,27 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(1), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(1), gss_node_id,
+                            result
                         );
                     }
                 }
             }
             //S : "for" WS . Id
             SlotId(2) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Id", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "Id", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Id", i, j);
+                        record!(self, MatchSuccess, "Id", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //S : "for" WS Id.
                         let next_slot_id = SlotId(3);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -209,7 +195,8 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Id", i, SlotId(2), gss_node_id, result
+                            self, MatchFailed, "Id", input_index, SlotId(2), gss_node_id,
+                            result
                         );
                     }
                 }
@@ -242,13 +229,12 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             //S : . "forall"
             SlotId(4) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"forall\"", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                record!(self, MatchingTerminal, "\"forall\"", input_index);
+                match self.scanner.match_token(TerminalId(4), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"forall\"", i, j);
+                        record!(self, MatchSuccess, "\"forall\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
+                            .get_or_create_terminal_node(TerminalId(4), input_index, j);
                         //S : "forall".
                         let next_slot_id = SlotId(5);
                         let new_node = right_child_id;
@@ -256,8 +242,8 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"forall\"", i, SlotId(4), gss_node_id,
-                            result
+                            self, MatchFailed, "\"forall\"", input_index, SlotId(4),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -290,13 +276,12 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             //StartS : . WS start:S WS
             SlotId(6) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //StartS : WS . start:S WS
                         let next_slot_id = SlotId(7);
                         let new_node = right_child_id;
@@ -304,30 +289,20 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(6), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(6), gss_node_id,
+                            result
                         );
                     }
                 }
             }
             //StartS : WS . start:S WS
             SlotId(7) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_s_ll1(i) {
+                if let Some(right_child_id) = self.parse_s_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //StartS : WS start:S . WS
                     let next_slot_id = SlotId(8);
-                    let left_child_id = result.expect("Result should not be None.");
-                    let left_child = self.sppf_node(left_child_id);
-                    let left_extent = left_child.left_extent();
-                    if let Some(new_node) = self
-                        .get_or_create_intermediate_node(
-                            next_slot_id,
-                            left_extent,
-                            j,
-                            left_child_id,
-                            right_child_id,
-                            true,
-                        )
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child_id, next_slot_id)
                     {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
@@ -335,26 +310,19 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             //StartS : WS start:S . WS
             SlotId(8) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //StartS : WS start:S WS.
                         let next_slot_id = SlotId(9);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -368,7 +336,8 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(8), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(8), gss_node_id,
+                            result
                         );
                     }
                 }

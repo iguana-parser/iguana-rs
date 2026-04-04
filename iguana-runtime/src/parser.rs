@@ -445,6 +445,25 @@ pub trait Parser<'i> {
         Some(self.add_intermediate_node(intermediate_node))
     }
 
+    /// Combines the left child (result from previous slots) and a right child into
+    /// an intermediate node. Returns the right extent and new node id, or None if
+    /// the node already existed and ambiguity was recorded.
+    #[inline]
+    fn create_intermediate_node(
+        &mut self,
+        result: Option<SPPFNodeId>,
+        right_child_id: SPPFNodeId,
+        next_slot_id: SlotId,
+    ) -> Option<(u32, SPPFNodeId)> {
+        let right_extent = self.sppf_node(right_child_id).right_extent();
+        let left_child_id = result.expect("Result should not be None.");
+        let left_extent = self.sppf_node(left_child_id).left_extent();
+        self.get_or_create_intermediate_node(
+            next_slot_id, left_extent, right_extent, left_child_id, right_child_id, true,
+        )
+        .map(|new_node| (right_extent, new_node))
+    }
+
     fn get_or_create_nonterminal_node(
         &mut self,
         nonterminal_id: NonterminalId,

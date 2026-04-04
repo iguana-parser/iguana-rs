@@ -189,8 +189,7 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
         match slot_id {
             //S : . Id
             SlotId(0) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_id_ll1(i) {
+                if let Some(right_child_id) = self.parse_id_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //S : Id.
                     let next_slot_id = SlotId(1);
@@ -226,13 +225,12 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //Id : . Letter Id_Star_0
             SlotId(2) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Letter", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "Letter", input_index);
+                match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Letter", i, j);
+                        record!(self, MatchSuccess, "Letter", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         //Id : Letter . Id_Star_0
                         let next_slot_id = SlotId(3);
                         let new_node = right_child_id;
@@ -240,31 +238,20 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Letter", i, SlotId(2), gss_node_id,
-                            result
+                            self, MatchFailed, "Letter", input_index, SlotId(2),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //Id : Letter . Id_Star_0
             SlotId(3) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_id_star_0_ll1(i) {
+                if let Some(right_child_id) = self.parse_id_star_0_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //Id : Letter Id_Star_0.
                     let next_slot_id = SlotId(4);
-                    let left_child_id = result.expect("Result should not be None.");
-                    let left_child = self.sppf_node(left_child_id);
-                    let left_extent = left_child.left_extent();
-                    if let Some(new_node) = self
-                        .get_or_create_intermediate_node(
-                            next_slot_id,
-                            left_extent,
-                            j,
-                            left_child_id,
-                            right_child_id,
-                            true,
-                        )
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child_id, next_slot_id)
                     {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
@@ -298,8 +285,7 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //Id_Plus_0 : . Id_Plus_0 LetterOrDigit
             SlotId(5) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_id_plus_0_ll1(i) {
+                if let Some(right_child_id) = self.parse_id_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //Id_Plus_0 : Id_Plus_0 . LetterOrDigit
                     let next_slot_id = SlotId(6);
@@ -309,26 +295,19 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //Id_Plus_0 : Id_Plus_0 . LetterOrDigit
             SlotId(6) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "LetterOrDigit", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "LetterOrDigit", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "LetterOrDigit", i, j);
+                        record!(self, MatchSuccess, "LetterOrDigit", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //Id_Plus_0 : Id_Plus_0 LetterOrDigit.
                         let next_slot_id = SlotId(7);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -342,7 +321,7 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "LetterOrDigit", i, SlotId(6),
+                            self, MatchFailed, "LetterOrDigit", input_index, SlotId(6),
                             gss_node_id, result
                         );
                     }
@@ -376,13 +355,12 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //Id_Plus_0 : . LetterOrDigit
             SlotId(8) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "LetterOrDigit", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "LetterOrDigit", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "LetterOrDigit", i, j);
+                        record!(self, MatchSuccess, "LetterOrDigit", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //Id_Plus_0 : LetterOrDigit.
                         let next_slot_id = SlotId(9);
                         let new_node = right_child_id;
@@ -390,7 +368,7 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "LetterOrDigit", i, SlotId(8),
+                            self, MatchFailed, "LetterOrDigit", input_index, SlotId(8),
                             gss_node_id, result
                         );
                     }
@@ -424,8 +402,7 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //Id_Opt_0 : . Id_Plus_0
             SlotId(10) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_id_plus_0_ll1(i) {
+                if let Some(right_child_id) = self.parse_id_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //Id_Opt_0 : Id_Plus_0.
                     let next_slot_id = SlotId(11);
@@ -487,8 +464,7 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //Id_Star_0 : . Id_Opt_0
             SlotId(13) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_id_opt_0_ll1(i) {
+                if let Some(right_child_id) = self.parse_id_opt_0_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //Id_Star_0 : Id_Opt_0.
                     let next_slot_id = SlotId(14);
@@ -524,13 +500,12 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //StartS : . WS start:S WS
             SlotId(15) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         //StartS : WS . start:S WS
                         let next_slot_id = SlotId(16);
                         let new_node = right_child_id;
@@ -538,30 +513,20 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(15), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(15),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //StartS : WS . start:S WS
             SlotId(16) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_s_ll1(i) {
+                if let Some(right_child_id) = self.parse_s_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //StartS : WS start:S . WS
                     let next_slot_id = SlotId(17);
-                    let left_child_id = result.expect("Result should not be None.");
-                    let left_child = self.sppf_node(left_child_id);
-                    let left_extent = left_child.left_extent();
-                    if let Some(new_node) = self
-                        .get_or_create_intermediate_node(
-                            next_slot_id,
-                            left_extent,
-                            j,
-                            left_child_id,
-                            right_child_id,
-                            true,
-                        )
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child_id, next_slot_id)
                     {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
@@ -569,26 +534,19 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //StartS : WS start:S . WS
             SlotId(17) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         //StartS : WS start:S WS.
                         let next_slot_id = SlotId(18);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -602,7 +560,8 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(17), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(17),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -635,13 +594,12 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //StartId : . WS start:Id WS
             SlotId(19) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         //StartId : WS . start:Id WS
                         let next_slot_id = SlotId(20);
                         let new_node = right_child_id;
@@ -649,30 +607,20 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(19), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(19),
+                            gss_node_id, result
                         );
                     }
                 }
             }
             //StartId : WS . start:Id WS
             SlotId(20) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_id_ll1(i) {
+                if let Some(right_child_id) = self.parse_id_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //StartId : WS start:Id . WS
                     let next_slot_id = SlotId(21);
-                    let left_child_id = result.expect("Result should not be None.");
-                    let left_child = self.sppf_node(left_child_id);
-                    let left_extent = left_child.left_extent();
-                    if let Some(new_node) = self
-                        .get_or_create_intermediate_node(
-                            next_slot_id,
-                            left_extent,
-                            j,
-                            left_child_id,
-                            right_child_id,
-                            true,
-                        )
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child_id, next_slot_id)
                     {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
@@ -680,26 +628,19 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //StartId : WS start:Id . WS
             SlotId(21) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "WS", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "WS", input_index);
+                match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "WS", i, j);
+                        record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         //StartId : WS start:Id WS.
                         let next_slot_id = SlotId(22);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -713,7 +654,8 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "WS", i, SlotId(21), gss_node_id, result
+                            self, MatchFailed, "WS", input_index, SlotId(21),
+                            gss_node_id, result
                         );
                     }
                 }

@@ -188,13 +188,12 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
             }
             //E(p: i32) : . "a" return 0
             SlotId(2) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"a\"", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "\"a\"", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", i, j);
+                        record!(self, MatchSuccess, "\"a\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : "a" . return 0
                         let next_slot_id = SlotId(3);
                         let new_node = right_child_id;
@@ -202,7 +201,8 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"a\"", i, SlotId(2), gss_node_id, result
+                            self, MatchFailed, "\"a\"", input_index, SlotId(2),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -266,26 +266,19 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
             }
             //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] . "*" E(2) return 2
             SlotId(8) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"*\"", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "\"*\"", input_index);
+                match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", i, j);
+                        record!(self, MatchSuccess, "\"*\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" . E(2) return 2
                         let next_slot_id = SlotId(9);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -299,7 +292,8 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"*\"", i, SlotId(8), gss_node_id, result
+                            self, MatchFailed, "\"*\"", input_index, SlotId(8),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -367,26 +361,19 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] . "+" E(1) return 1
             SlotId(15) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"+\"", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "\"+\"", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", i, j);
+                        record!(self, MatchSuccess, "\"+\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" . E(1) return 1
                         let next_slot_id = SlotId(16);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -400,8 +387,8 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"+\"", i, SlotId(15), gss_node_id,
-                            result
+                            self, MatchFailed, "\"+\"", input_index, SlotId(15),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -469,26 +456,19 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] . "-" E(1) return 1
             SlotId(22) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"-\"", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "\"-\"", input_index);
+                match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"-\"", i, j);
+                        record!(self, MatchSuccess, "\"-\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "-" . E(1) return 1
                         let next_slot_id = SlotId(23);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -502,8 +482,8 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"-\"", i, SlotId(22), gss_node_id,
-                            result
+                            self, MatchFailed, "\"-\"", input_index, SlotId(22),
+                            gss_node_id, result
                         );
                     }
                 }

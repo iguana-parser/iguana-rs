@@ -96,8 +96,7 @@ impl<'i> Parser<'i> for PlusParser<'i> {
         match slot_id {
             //S : . S_Plus_0
             SlotId(0) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_s_plus_0_ll1(i) {
+                if let Some(right_child_id) = self.parse_s_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //S : S_Plus_0.
                     let next_slot_id = SlotId(1);
@@ -133,13 +132,12 @@ impl<'i> Parser<'i> for PlusParser<'i> {
             }
             //A : . "a"
             SlotId(2) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"a\"", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "\"a\"", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", i, j);
+                        record!(self, MatchSuccess, "\"a\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //A : "a".
                         let next_slot_id = SlotId(3);
                         let new_node = right_child_id;
@@ -147,7 +145,8 @@ impl<'i> Parser<'i> for PlusParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"a\"", i, SlotId(2), gss_node_id, result
+                            self, MatchFailed, "\"a\"", input_index, SlotId(2),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -180,8 +179,7 @@ impl<'i> Parser<'i> for PlusParser<'i> {
             }
             //S_Plus_0 : . S_Plus_0 A
             SlotId(4) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_s_plus_0_ll1(i) {
+                if let Some(right_child_id) = self.parse_s_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //S_Plus_0 : S_Plus_0 . A
                     let next_slot_id = SlotId(5);
@@ -191,23 +189,12 @@ impl<'i> Parser<'i> for PlusParser<'i> {
             }
             //S_Plus_0 : S_Plus_0 . A
             SlotId(5) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_a_ll1(i) {
+                if let Some(right_child_id) = self.parse_a_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //S_Plus_0 : S_Plus_0 A.
                     let next_slot_id = SlotId(6);
-                    let left_child_id = result.expect("Result should not be None.");
-                    let left_child = self.sppf_node(left_child_id);
-                    let left_extent = left_child.left_extent();
-                    if let Some(new_node) = self
-                        .get_or_create_intermediate_node(
-                            next_slot_id,
-                            left_extent,
-                            j,
-                            left_child_id,
-                            right_child_id,
-                            true,
-                        )
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child_id, next_slot_id)
                     {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
@@ -241,8 +228,7 @@ impl<'i> Parser<'i> for PlusParser<'i> {
             }
             //S_Plus_0 : . A
             SlotId(7) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_a_ll1(i) {
+                if let Some(right_child_id) = self.parse_a_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //S_Plus_0 : A.
                     let next_slot_id = SlotId(8);

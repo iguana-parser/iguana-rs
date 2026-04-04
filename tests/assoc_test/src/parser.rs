@@ -234,26 +234,19 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] . "+" E(4) return 3
             SlotId(5) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"+\"", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "\"+\"", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", i, j);
+                        record!(self, MatchSuccess, "\"+\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] "+" . E(4) return 3
                         let next_slot_id = SlotId(6);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -267,7 +260,8 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"+\"", i, SlotId(5), gss_node_id, result
+                            self, MatchFailed, "\"+\"", input_index, SlotId(5),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -335,26 +329,19 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] . "-" E(4) return 3
             SlotId(12) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"-\"", i);
-                match self.scanner.match_token(TerminalId(1), i) {
+                record!(self, MatchingTerminal, "\"-\"", input_index);
+                match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"-\"", i, j);
+                        record!(self, MatchSuccess, "\"-\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(1), i, j);
+                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] "-" . E(4) return 3
                         let next_slot_id = SlotId(13);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -368,8 +355,8 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"-\"", i, SlotId(12), gss_node_id,
-                            result
+                            self, MatchFailed, "\"-\"", input_index, SlotId(12),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -437,26 +424,19 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 3] . ";" E(2) return 2
             SlotId(19) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\";\"", i);
-                match self.scanner.match_token(TerminalId(2), i) {
+                record!(self, MatchingTerminal, "\";\"", input_index);
+                match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\";\"", i, j);
+                        record!(self, MatchSuccess, "\";\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(2), i, j);
+                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 3] ";" . E(2) return 2
                         let next_slot_id = SlotId(20);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -470,8 +450,8 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\";\"", i, SlotId(19), gss_node_id,
-                            result
+                            self, MatchFailed, "\";\"", input_index, SlotId(19),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -539,26 +519,19 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] . "<" E(2) return 1
             SlotId(26) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"<\"", i);
-                match self.scanner.match_token(TerminalId(3), i) {
+                record!(self, MatchingTerminal, "\"<\"", input_index);
+                match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"<\"", i, j);
+                        record!(self, MatchSuccess, "\"<\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(3), i, j);
+                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] "<" . E(2) return 1
                         let next_slot_id = SlotId(27);
-                        let left_child_id = result.expect("Result should not be None.");
-                        let left_child = self.sppf_node(left_child_id);
-                        let left_extent = left_child.left_extent();
-                        if let Some(new_node) = self
-                            .get_or_create_intermediate_node(
-                                next_slot_id,
-                                left_extent,
-                                j,
-                                left_child_id,
+                        if let Some((j, new_node)) = self
+                            .create_intermediate_node(
+                                result,
                                 right_child_id,
-                                true,
+                                next_slot_id,
                             )
                         {
                             self.execute(
@@ -572,8 +545,8 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"<\"", i, SlotId(26), gss_node_id,
-                            result
+                            self, MatchFailed, "\"<\"", input_index, SlotId(26),
+                            gss_node_id, result
                         );
                     }
                 }
@@ -616,13 +589,12 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             //E(p: i32) : . "a" return 0
             SlotId(30) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "\"a\"", i);
-                match self.scanner.match_token(TerminalId(4), i) {
+                record!(self, MatchingTerminal, "\"a\"", input_index);
+                match self.scanner.match_token(TerminalId(4), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", i, j);
+                        record!(self, MatchSuccess, "\"a\"", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(4), i, j);
+                            .get_or_create_terminal_node(TerminalId(4), input_index, j);
                         //E(p: i32) : "a" . return 0
                         let next_slot_id = SlotId(31);
                         let new_node = right_child_id;
@@ -630,8 +602,8 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "\"a\"", i, SlotId(30), gss_node_id,
-                            result
+                            self, MatchFailed, "\"a\"", input_index, SlotId(30),
+                            gss_node_id, result
                         );
                     }
                 }

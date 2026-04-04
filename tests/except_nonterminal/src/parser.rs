@@ -98,8 +98,7 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
         match slot_id {
             //S : . Id
             SlotId(0) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_id_ll1(i) {
+                if let Some(right_child_id) = self.parse_id_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
                     //S : Id.
                     let next_slot_id = SlotId(1);
@@ -135,10 +134,10 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
             }
             //Id : . Name \ Keyword
             SlotId(2) => {
-                let i = input_index;
-                if let Some(right_child_id) = self.parse_name_ll1(i) {
+                if let Some(right_child_id) = self.parse_name_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
-                    if !(self.scanner.match_token(TerminalId(1), i) != Some(j)) {
+                    if !(self.scanner.match_token(TerminalId(1), input_index) != Some(j))
+                    {
                         return;
                     }
                     //Id : Name \ Keyword.
@@ -175,13 +174,12 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
             }
             //Name : . Identifier
             SlotId(4) => {
-                let i = input_index;
-                record!(self, MatchingTerminal, "Identifier", i);
-                match self.scanner.match_token(TerminalId(0), i) {
+                record!(self, MatchingTerminal, "Identifier", input_index);
+                match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", i, j);
+                        record!(self, MatchSuccess, "Identifier", input_index, j);
                         let right_child_id = self
-                            .get_or_create_terminal_node(TerminalId(0), i, j);
+                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         //Name : Identifier.
                         let next_slot_id = SlotId(5);
                         let new_node = right_child_id;
@@ -189,8 +187,8 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
                     }
                     None => {
                         record!(
-                            self, MatchFailed, "Identifier", i, SlotId(4), gss_node_id,
-                            result
+                            self, MatchFailed, "Identifier", input_index, SlotId(4),
+                            gss_node_id, result
                         );
                     }
                 }
