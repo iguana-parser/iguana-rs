@@ -537,12 +537,13 @@ impl<'a> ParserGen<'a> {
                 let left_child_id = result.expect("Result should not be None.");
                 let left_child = self.sppf_node(left_child_id);
                 let left_extent = left_child.left_extent();
-                if let Some(new_node) = self.create_intermediate_node_or_attach_children(
+                if let Some(new_node) = self.get_or_create_intermediate_node(
                     next_slot_id,
                     left_extent,
                     j,
                     left_child_id,
                     right_child_id,
+                    true,
                 ) {
                     self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                 }
@@ -858,12 +859,13 @@ impl<'a> ParserGen<'a> {
                     let left_child_id = result.expect("Result should not be None.");
                     let left_child = self.sppf_node(left_child_id);
                     let left_extent = left_child.left_extent();
-                    if let Some(new_node) = self.create_intermediate_node_or_attach_children(
+                    if let Some(new_node) = self.get_or_create_intermediate_node(
                         next_slot_id,
                         left_extent,
                         j,
                         left_child_id,
                         right_child_id,
+                        true,
                     ) {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
                     }
@@ -1251,8 +1253,8 @@ impl<'a> ParserGen<'a> {
             let next_slot_id = self.slot_ids.get_id(&next_slot);
             build_nodes.push(quote! {
                 current = self.get_or_create_intermediate_node(
-                    #next_slot_id, left_extent, #pos_var, current, #node_var,
-                );
+                    #next_slot_id, left_extent, #pos_var, current, #node_var, false,
+                ).unwrap();
             });
         }
 
@@ -1417,8 +1419,8 @@ impl<'a> ParserGen<'a> {
             } else {
                 body.push(quote! {
                     current = self.get_or_create_intermediate_node(
-                        #next_slot_id, left_extent, j, current, right_child_id,
-                    );
+                        #next_slot_id, left_extent, j, current, right_child_id, false,
+                    ).unwrap();
                 });
             }
         }

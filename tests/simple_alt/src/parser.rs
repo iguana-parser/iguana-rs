@@ -155,12 +155,13 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     let left_child = self.sppf_node(left_child_id);
                     let left_extent = left_child.left_extent();
                     if let Some(new_node) = self
-                        .create_intermediate_node_or_attach_children(
+                        .get_or_create_intermediate_node(
                             next_slot_id,
                             left_extent,
                             j,
                             left_child_id,
                             right_child_id,
+                            true,
                         )
                     {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -802,7 +803,9 @@ impl<'i> SimpleAltParser<'i> {
                     j,
                     current,
                     right_child_id,
-                );
+                    false,
+                )
+                .unwrap();
             return Some(
                 self
                     .get_or_create_nonterminal_node(

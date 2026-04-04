@@ -157,12 +157,13 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
                         if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
+                            .get_or_create_intermediate_node(
                                 next_slot_id,
                                 left_extent,
                                 j,
                                 left_child_id,
                                 right_child_id,
+                                true,
                             )
                         {
                             self.execute(
@@ -197,12 +198,13 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
                         if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
+                            .get_or_create_intermediate_node(
                                 next_slot_id,
                                 left_extent,
                                 j,
                                 left_child_id,
                                 right_child_id,
+                                true,
                             )
                         {
                             self.execute(
@@ -236,12 +238,13 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
                         if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
+                            .get_or_create_intermediate_node(
                                 next_slot_id,
                                 left_extent,
                                 j,
                                 left_child_id,
                                 right_child_id,
+                                true,
                             )
                         {
                             self.execute(
@@ -310,12 +313,13 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
                         if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
+                            .get_or_create_intermediate_node(
                                 next_slot_id,
                                 left_extent,
                                 j,
                                 left_child_id,
                                 right_child_id,
+                                true,
                             )
                         {
                             self.execute(
@@ -350,12 +354,13 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
                         if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
+                            .get_or_create_intermediate_node(
                                 next_slot_id,
                                 left_extent,
                                 j,
                                 left_child_id,
                                 right_child_id,
+                                true,
                             )
                         {
                             self.execute(
@@ -389,12 +394,13 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
                         if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
+                            .get_or_create_intermediate_node(
                                 next_slot_id,
                                 left_extent,
                                 j,
                                 left_child_id,
                                 right_child_id,
+                                true,
                             )
                         {
                             self.execute(
@@ -533,12 +539,13 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
                         if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
+                            .get_or_create_intermediate_node(
                                 next_slot_id,
                                 left_extent,
                                 j,
                                 left_child_id,
                                 right_child_id,
+                                true,
                             )
                         {
                             self.execute(

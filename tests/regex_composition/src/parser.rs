@@ -257,12 +257,13 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     let left_child = self.sppf_node(left_child_id);
                     let left_extent = left_child.left_extent();
                     if let Some(new_node) = self
-                        .create_intermediate_node_or_attach_children(
+                        .get_or_create_intermediate_node(
                             next_slot_id,
                             left_extent,
                             j,
                             left_child_id,
                             right_child_id,
+                            true,
                         )
                     {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -321,12 +322,13 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
                         if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
+                            .get_or_create_intermediate_node(
                                 next_slot_id,
                                 left_extent,
                                 j,
                                 left_child_id,
                                 right_child_id,
+                                true,
                             )
                         {
                             self.execute(
@@ -552,12 +554,13 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     let left_child = self.sppf_node(left_child_id);
                     let left_extent = left_child.left_extent();
                     if let Some(new_node) = self
-                        .create_intermediate_node_or_attach_children(
+                        .get_or_create_intermediate_node(
                             next_slot_id,
                             left_extent,
                             j,
                             left_child_id,
                             right_child_id,
+                            true,
                         )
                     {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -579,12 +582,13 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
                         if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
+                            .get_or_create_intermediate_node(
                                 next_slot_id,
                                 left_extent,
                                 j,
                                 left_child_id,
                                 right_child_id,
+                                true,
                             )
                         {
                             self.execute(
@@ -661,12 +665,13 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     let left_child = self.sppf_node(left_child_id);
                     let left_extent = left_child.left_extent();
                     if let Some(new_node) = self
-                        .create_intermediate_node_or_attach_children(
+                        .get_or_create_intermediate_node(
                             next_slot_id,
                             left_extent,
                             j,
                             left_child_id,
                             right_child_id,
+                            true,
                         )
                     {
                         self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
@@ -688,12 +693,13 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                         let left_child = self.sppf_node(left_child_id);
                         let left_extent = left_child.left_extent();
                         if let Some(new_node) = self
-                            .create_intermediate_node_or_attach_children(
+                            .get_or_create_intermediate_node(
                                 next_slot_id,
                                 left_extent,
                                 j,
                                 left_child_id,
                                 right_child_id,
+                                true,
                             )
                         {
                             self.execute(
@@ -1205,7 +1211,9 @@ impl<'i> RegexCompositionParser<'i> {
                     j,
                     current,
                     right_child_id,
-                );
+                    false,
+                )
+                .unwrap();
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -1254,7 +1262,9 @@ impl<'i> RegexCompositionParser<'i> {
                     pos_0,
                     current,
                     node_0,
-                );
+                    false,
+                )
+                .unwrap();
             current = self
                 .get_or_create_nonterminal_node(
                     NonterminalId(2),
@@ -1362,7 +1372,9 @@ impl<'i> RegexCompositionParser<'i> {
                     j,
                     current,
                     right_child_id,
-                );
+                    false,
+                )
+                .unwrap();
             let right_child_id = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(3), start)?;
@@ -1377,7 +1389,9 @@ impl<'i> RegexCompositionParser<'i> {
                     j,
                     current,
                     right_child_id,
-                );
+                    false,
+                )
+                .unwrap();
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -1419,7 +1433,9 @@ impl<'i> RegexCompositionParser<'i> {
                     j,
                     current,
                     right_child_id,
-                );
+                    false,
+                )
+                .unwrap();
             let right_child_id = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(3), start)?;
@@ -1434,7 +1450,9 @@ impl<'i> RegexCompositionParser<'i> {
                     j,
                     current,
                     right_child_id,
-                );
+                    false,
+                )
+                .unwrap();
             return Some(
                 self
                     .get_or_create_nonterminal_node(

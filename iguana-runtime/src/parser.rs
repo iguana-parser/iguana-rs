@@ -302,12 +302,13 @@ pub trait Parser<'i> {
     ) -> Option<SPPFNodeId> {
         let (right_child_id, right_extent) = right_child;
         if let Some((left_child_id, left_extent)) = left_child {
-            self.create_intermediate_node_or_attach_children(
+            self.get_or_create_intermediate_node(
                 slot_id,
                 left_extent,
                 right_extent,
                 left_child_id,
                 right_child_id,
+                true,
             )
         } else {
             Some(right_child_id)
@@ -397,30 +398,40 @@ pub trait Parser<'i> {
     /// (`left_extent`, `right_extent`). If no such node exists, it is created and
     /// added to the index; see `add_intermediate_node`.
     ///
-    /// If the node already exists, the `(left_child, right_child)` is added to its list of children,
-    /// and returns None. This only occurs when there is an ambiguity.
-    fn create_intermediate_node_or_attach_children(
+    /// If the node already exists and `attach_ambiguity` is true (GLL path),
+    /// `(left_child, right_child)` is added to its list of children and returns
+    /// None. This only occurs when there is an ambiguity.
+    ///
+    /// If `attach_ambiguity` is false (LL1 path), the existing node is returned
+    /// as-is. LL1 nonterminals can be called multiple times from GLL with the
+    /// same input position, producing identical children, so attaching would
+    /// create false ambiguities.
+    fn get_or_create_intermediate_node(
         &mut self,
         slot_id: SlotId,
         left_extent: u32,
         right_extent: u32,
         left_child: SPPFNodeId,
         right_child: SPPFNodeId,
+        attach_ambiguity: bool,
     ) -> Option<SPPFNodeId> {
         if let Some(existing_node_id) =
             self.lookup_intermediate_node(slot_id, left_extent, right_extent)
         {
-            record!(self, IntermediateNodeFound, existing_node_id);
-            let SPPFNode::Intermediate(node) = self.sppf_node_mut(existing_node_id) else {
-                unreachable!("It's a nonterminal node");
-            };
-            // Only count an ambiguous node once, i.e., when the second child is attached.
-            if !node.ambiguous {
-                node.ambiguous = true;
-                self.stats_mut().ambiguous_nodes += 1;
+            if attach_ambiguity {
+                record!(self, IntermediateNodeFound, existing_node_id);
+                let SPPFNode::Intermediate(node) = self.sppf_node_mut(existing_node_id) else {
+                    unreachable!("It's a nonterminal node");
+                };
+                // Only count an ambiguous node once, i.e., when the second child is attached.
+                if !node.ambiguous {
+                    node.ambiguous = true;
+                    self.stats_mut().ambiguous_nodes += 1;
+                }
+                self.add_intermediate_node_child(existing_node_id, left_child, right_child);
+                return None;
             }
-            self.add_intermediate_node_child(existing_node_id, left_child, right_child);
-            return None;
+            return Some(existing_node_id);
         }
         let intermediate_node = IntermediateNode {
             slot_id,
@@ -458,31 +469,6 @@ pub trait Parser<'i> {
             ambiguous: false,
         };
         self.add_nonterminal_node(nonterminal_node)
-    }
-
-    fn get_or_create_intermediate_node(
-        &mut self,
-        slot_id: SlotId,
-        left_extent: u32,
-        right_extent: u32,
-        left_child: SPPFNodeId,
-        right_child: SPPFNodeId,
-    ) -> SPPFNodeId {
-        if let Some(existing_node_id) =
-            self.lookup_intermediate_node(slot_id, left_extent, right_extent)
-        {
-            return existing_node_id;
-        }
-        let intermediate_node = IntermediateNode {
-            slot_id,
-            span: Span {
-                left_extent,
-                right_extent,
-            },
-            child: (left_child, right_child),
-            ambiguous: false,
-        };
-        self.add_intermediate_node(intermediate_node)
     }
 
     fn get_or_create_terminal_node(
