@@ -90,22 +90,11 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //A : A "a".
-                        let next_slot_id = SlotId(2);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(2))
                         {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
+                            //A : A "a".
+                            self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -118,16 +107,14 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             }
             //A : A "a".
             SlotId(2) => {
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(2);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(0), SlotId(2))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(2), popped_element);
                 }
             }
             //A : . "a"
@@ -138,10 +125,9 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //A : "a".
-                        let next_slot_id = SlotId(4);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //A : "a".
+                        self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -153,16 +139,14 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             }
             //A : "a".
             SlotId(4) => {
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(4);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(0), SlotId(4))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(4), popped_element);
                 }
             }
             _ => {

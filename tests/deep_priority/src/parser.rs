@@ -208,16 +208,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //S : E(0).
             SlotId(1) => {
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(1);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(0), SlotId(1))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(1), popped_element);
                 }
             }
             //E(p: i32) : . "a" return 0
@@ -228,10 +226,9 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //E(p: i32) : "a" . return 0
-                        let next_slot_id = SlotId(3);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //E(p: i32) : "a" . return 0
+                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -253,13 +250,11 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(4);
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        nonterminal_id,
-                        end_slot_id,
+                        NonterminalId(3),
+                        SlotId(4),
                         left_extent,
                         right_extent,
                         result,
@@ -270,7 +265,7 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         nonterminal_node_id,
                         return_value: Some(return_value),
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(4), popped_element);
                 }
             }
             //E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" WS r=E(2) return r == 0 ? 2 : min(r, 2)
@@ -306,22 +301,11 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] WS . "+" WS r=E(2) return r == 0 ? 2 : min(r, 2)
-                        let next_slot_id = SlotId(9);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(9))
                         {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
+                            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] WS . "+" WS r=E(2) return r == 0 ? 2 : min(r, 2)
+                            self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -340,18 +324,13 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"+\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" . WS r=E(2) return r == 0 ? 2 : min(r, 2)
-                        let next_slot_id = SlotId(10);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(10))
                         {
+                            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" . WS r=E(2) return r == 0 ? 2 : min(r, 2)
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(10),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -374,18 +353,13 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" WS . r=E(2) return r == 0 ? 2 : min(r, 2)
-                        let next_slot_id = SlotId(11);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(11))
                         {
+                            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" WS . r=E(2) return r == 0 ? 2 : min(r, 2)
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(11),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -416,8 +390,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(13);
                 let return_value = if self.lookup("r", env.unwrap()) == 0 {
                     2
                 } else {
@@ -425,8 +397,8 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                 };
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        nonterminal_id,
-                        end_slot_id,
+                        NonterminalId(3),
+                        SlotId(13),
                         left_extent,
                         right_extent,
                         result,
@@ -437,7 +409,7 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         nonterminal_node_id,
                         return_value: Some(return_value),
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(13), popped_element);
                 }
             }
             //E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
@@ -448,10 +420,9 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"if\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        //E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
-                        let next_slot_id = SlotId(15);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
+                        self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -469,18 +440,13 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
-                        let next_slot_id = SlotId(16);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(16))
                         {
+                            //E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(16),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -507,18 +473,13 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(1) return 1
-                        let next_slot_id = SlotId(18);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(18))
                         {
+                            //E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(1) return 1
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(18),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -541,18 +502,13 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"then\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(4), input_index, j);
-                        //E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(1) return 1
-                        let next_slot_id = SlotId(19);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(19))
                         {
+                            //E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(1) return 1
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(19),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -575,18 +531,13 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(1) return 1
-                        let next_slot_id = SlotId(20);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(20))
                         {
+                            //E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(1) return 1
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(20),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -613,18 +564,13 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(1) return 1
-                        let next_slot_id = SlotId(22);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(22))
                         {
+                            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(1) return 1
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(22),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -647,18 +593,13 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"else\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(5), input_index, j);
-                        //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(1) return 1
-                        let next_slot_id = SlotId(23);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(23))
                         {
+                            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(1) return 1
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(23),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -681,18 +622,13 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(1) return 1
-                        let next_slot_id = SlotId(24);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(24))
                         {
+                            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(1) return 1
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(24),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -723,13 +659,11 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(26);
                 let return_value = 1;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        nonterminal_id,
-                        end_slot_id,
+                        NonterminalId(3),
+                        SlotId(26),
                         left_extent,
                         right_extent,
                         result,
@@ -740,7 +674,7 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         nonterminal_node_id,
                         return_value: Some(return_value),
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(26), popped_element);
                 }
             }
             //StartS : . WS start:S WS
@@ -751,10 +685,9 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //StartS : WS . start:S WS
-                        let next_slot_id = SlotId(28);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //StartS : WS . start:S WS
+                        self.execute(j, SlotId(28), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -776,18 +709,13 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //StartS : WS start:S WS.
-                        let next_slot_id = SlotId(30);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(30))
                         {
+                            //StartS : WS start:S WS.
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(30),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -804,16 +732,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //StartS : WS start:S WS.
             SlotId(30) => {
-                let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(30);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(1), SlotId(30))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(30), popped_element);
                 }
             }
             //StartE : . WS start:E(0) WS
@@ -824,10 +750,9 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //StartE : WS . start:E(0) WS
-                        let next_slot_id = SlotId(32);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //StartE : WS . start:E(0) WS
+                        self.execute(j, SlotId(32), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -849,18 +774,13 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //StartE : WS start:E(0) WS.
-                        let next_slot_id = SlotId(34);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(34))
                         {
+                            //StartE : WS start:E(0) WS.
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(34),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -877,16 +797,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //StartE : WS start:E(0) WS.
             SlotId(34) => {
-                let nonterminal_id = NonterminalId(2);
-                let end_slot_id = SlotId(34);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(2), SlotId(34))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(34), popped_element);
                 }
             }
             _ => {

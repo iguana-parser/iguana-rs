@@ -120,10 +120,9 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                         record!(self, MatchSuccess, "\"for\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        //S : "for" . WS Id
-                        let next_slot_id = SlotId(1);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //S : "for" . WS Id
+                        self.execute(j, SlotId(1), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -141,22 +140,11 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //S : "for" WS . Id
-                        let next_slot_id = SlotId(2);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(2))
                         {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
+                            //S : "for" WS . Id
+                            self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -175,22 +163,11 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                         record!(self, MatchSuccess, "Id", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //S : "for" WS Id.
-                        let next_slot_id = SlotId(3);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(3))
                         {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
+                            //S : "for" WS Id.
+                            self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -203,16 +180,14 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             //S : "for" WS Id.
             SlotId(3) => {
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(3);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(0), SlotId(3))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(3), popped_element);
                 }
             }
             //S : . "forall"
@@ -223,10 +198,9 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                         record!(self, MatchSuccess, "\"forall\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(4), input_index, j);
-                        //S : "forall".
-                        let next_slot_id = SlotId(5);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //S : "forall".
+                        self.execute(j, SlotId(5), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -238,16 +212,14 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             //S : "forall".
             SlotId(5) => {
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(5);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(0), SlotId(5))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(5), popped_element);
                 }
             }
             //StartS : . WS start:S WS
@@ -258,10 +230,9 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //StartS : WS . start:S WS
-                        let next_slot_id = SlotId(7);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //StartS : WS . start:S WS
+                        self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -275,12 +246,11 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             SlotId(7) => {
                 if let Some(right_child_id) = self.parse_s_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
-                    //StartS : WS start:S . WS
-                    let next_slot_id = SlotId(8);
                     if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child_id, next_slot_id)
+                        .create_intermediate_node(result, right_child_id, SlotId(8))
                     {
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //StartS : WS start:S . WS
+                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -292,22 +262,11 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                         record!(self, MatchSuccess, "WS", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //StartS : WS start:S WS.
-                        let next_slot_id = SlotId(9);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(9))
                         {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
+                            //StartS : WS start:S WS.
+                            self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -320,16 +279,14 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             //StartS : WS start:S WS.
             SlotId(9) => {
-                let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(9);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(1), SlotId(9))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(9), popped_element);
                 }
             }
             _ => {

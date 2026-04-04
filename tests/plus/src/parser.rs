@@ -98,24 +98,21 @@ impl<'i> Parser<'i> for PlusParser<'i> {
             SlotId(0) => {
                 if let Some(right_child_id) = self.parse_s_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
-                    //S : S_Plus_0.
-                    let next_slot_id = SlotId(1);
                     let new_node = right_child_id;
-                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    //S : S_Plus_0.
+                    self.execute(j, SlotId(1), Some(new_node), gss_node_id, env);
                 }
             }
             //S : S_Plus_0.
             SlotId(1) => {
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(1);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(0), SlotId(1))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(1), popped_element);
                 }
             }
             //A : . "a"
@@ -126,10 +123,9 @@ impl<'i> Parser<'i> for PlusParser<'i> {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //A : "a".
-                        let next_slot_id = SlotId(3);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //A : "a".
+                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -141,77 +137,68 @@ impl<'i> Parser<'i> for PlusParser<'i> {
             }
             //A : "a".
             SlotId(3) => {
-                let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(3);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(1), SlotId(3))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(3), popped_element);
                 }
             }
             //S_Plus_0 : . S_Plus_0 A
             SlotId(4) => {
                 if let Some(right_child_id) = self.parse_s_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
-                    //S_Plus_0 : S_Plus_0 . A
-                    let next_slot_id = SlotId(5);
                     let new_node = right_child_id;
-                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    //S_Plus_0 : S_Plus_0 . A
+                    self.execute(j, SlotId(5), Some(new_node), gss_node_id, env);
                 }
             }
             //S_Plus_0 : S_Plus_0 . A
             SlotId(5) => {
                 if let Some(right_child_id) = self.parse_a_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
-                    //S_Plus_0 : S_Plus_0 A.
-                    let next_slot_id = SlotId(6);
                     if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child_id, next_slot_id)
+                        .create_intermediate_node(result, right_child_id, SlotId(6))
                     {
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //S_Plus_0 : S_Plus_0 A.
+                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //S_Plus_0 : S_Plus_0 A.
             SlotId(6) => {
-                let nonterminal_id = NonterminalId(2);
-                let end_slot_id = SlotId(6);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(2), SlotId(6))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(6), popped_element);
                 }
             }
             //S_Plus_0 : . A
             SlotId(7) => {
                 if let Some(right_child_id) = self.parse_a_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
-                    //S_Plus_0 : A.
-                    let next_slot_id = SlotId(8);
                     let new_node = right_child_id;
-                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    //S_Plus_0 : A.
+                    self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
                 }
             }
             //S_Plus_0 : A.
             SlotId(8) => {
-                let nonterminal_id = NonterminalId(2);
-                let end_slot_id = SlotId(8);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(2), SlotId(8))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(8), popped_element);
                 }
             }
             _ => {

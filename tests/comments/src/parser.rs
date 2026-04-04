@@ -150,22 +150,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         record!(self, MatchSuccess, "Layout", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //Expr : Expr Layout . "+" Layout Expr
-                        let next_slot_id = SlotId(2);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(2))
                         {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
+                            //Expr : Expr Layout . "+" Layout Expr
+                            self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -184,22 +173,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         record!(self, MatchSuccess, "\"+\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(4), input_index, j);
-                        //Expr : Expr Layout "+" . Layout Expr
-                        let next_slot_id = SlotId(3);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(3))
                         {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
+                            //Expr : Expr Layout "+" . Layout Expr
+                            self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -218,22 +196,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         record!(self, MatchSuccess, "Layout", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //Expr : Expr Layout "+" Layout . Expr
-                        let next_slot_id = SlotId(4);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(4))
                         {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
+                            //Expr : Expr Layout "+" Layout . Expr
+                            self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -250,16 +217,14 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //Expr : Expr Layout "+" Layout Expr.
             SlotId(5) => {
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(5);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(0), SlotId(5))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(5), popped_element);
                 }
             }
             //Expr : . Expr Layout "*" Layout Expr
@@ -274,22 +239,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         record!(self, MatchSuccess, "Layout", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //Expr : Expr Layout . "*" Layout Expr
-                        let next_slot_id = SlotId(8);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(8))
                         {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
+                            //Expr : Expr Layout . "*" Layout Expr
+                            self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -308,22 +262,11 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         record!(self, MatchSuccess, "\"*\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(5), input_index, j);
-                        //Expr : Expr Layout "*" . Layout Expr
-                        let next_slot_id = SlotId(9);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(9))
                         {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
+                            //Expr : Expr Layout "*" . Layout Expr
+                            self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -342,18 +285,13 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         record!(self, MatchSuccess, "Layout", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //Expr : Expr Layout "*" Layout . Expr
-                        let next_slot_id = SlotId(10);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(10))
                         {
+                            //Expr : Expr Layout "*" Layout . Expr
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(10),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -374,16 +312,14 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //Expr : Expr Layout "*" Layout Expr.
             SlotId(11) => {
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(11);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(0), SlotId(11))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(11), popped_element);
                 }
             }
             //Expr : . "x"
@@ -394,10 +330,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         record!(self, MatchSuccess, "\"x\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(6), input_index, j);
-                        //Expr : "x".
-                        let next_slot_id = SlotId(13);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //Expr : "x".
+                        self.execute(j, SlotId(13), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -409,16 +344,14 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //Expr : "x".
             SlotId(13) => {
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(13);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(0), SlotId(13))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(13), popped_element);
                 }
             }
             //StartExpr : . Layout start:Expr Layout
@@ -429,10 +362,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         record!(self, MatchSuccess, "Layout", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //StartExpr : Layout . start:Expr Layout
-                        let next_slot_id = SlotId(15);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //StartExpr : Layout . start:Expr Layout
+                        self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -454,18 +386,13 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         record!(self, MatchSuccess, "Layout", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //StartExpr : Layout start:Expr Layout.
-                        let next_slot_id = SlotId(17);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(17))
                         {
+                            //StartExpr : Layout start:Expr Layout.
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(17),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -482,16 +409,14 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //StartExpr : Layout start:Expr Layout.
             SlotId(17) => {
-                let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(17);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(1), SlotId(17))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(17), popped_element);
                 }
             }
             _ => {

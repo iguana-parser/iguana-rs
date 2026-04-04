@@ -137,37 +137,33 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             SlotId(0) => {
                 if let Some(right_child_id) = self.parse_b_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
-                    //A : B . A_Alt_0
-                    let next_slot_id = SlotId(1);
                     let new_node = right_child_id;
-                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    //A : B . A_Alt_0
+                    self.execute(j, SlotId(1), Some(new_node), gss_node_id, env);
                 }
             }
             //A : B . A_Alt_0
             SlotId(1) => {
                 if let Some(right_child_id) = self.parse_a_alt_0_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
-                    //A : B A_Alt_0.
-                    let next_slot_id = SlotId(2);
                     if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child_id, next_slot_id)
+                        .create_intermediate_node(result, right_child_id, SlotId(2))
                     {
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //A : B A_Alt_0.
+                        self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //A : B A_Alt_0.
             SlotId(2) => {
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(2);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(0), SlotId(2))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(2), popped_element);
                 }
             }
             //B : . "b"
@@ -178,10 +174,9 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                         record!(self, MatchSuccess, "\"b\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //B : "b".
-                        let next_slot_id = SlotId(4);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //B : "b".
+                        self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -193,16 +188,14 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             //B : "b".
             SlotId(4) => {
-                let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(4);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(1), SlotId(4))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(4), popped_element);
                 }
             }
             //C : . "c"
@@ -213,10 +206,9 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                         record!(self, MatchSuccess, "\"c\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //C : "c".
-                        let next_slot_id = SlotId(6);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //C : "c".
+                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -228,16 +220,14 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             //C : "c".
             SlotId(6) => {
-                let nonterminal_id = NonterminalId(2);
-                let end_slot_id = SlotId(6);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(2), SlotId(6))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(6), popped_element);
                 }
             }
             //D : . "d"
@@ -248,10 +238,9 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                         record!(self, MatchSuccess, "\"d\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //D : "d".
-                        let next_slot_id = SlotId(8);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //D : "d".
+                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -263,64 +252,56 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             //D : "d".
             SlotId(8) => {
-                let nonterminal_id = NonterminalId(3);
-                let end_slot_id = SlotId(8);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(3), SlotId(8))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(8), popped_element);
                 }
             }
             //A_Alt_0 : . C
             SlotId(9) => {
                 if let Some(right_child_id) = self.parse_c_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
-                    //A_Alt_0 : C.
-                    let next_slot_id = SlotId(10);
                     let new_node = right_child_id;
-                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    //A_Alt_0 : C.
+                    self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
                 }
             }
             //A_Alt_0 : C.
             SlotId(10) => {
-                let nonterminal_id = NonterminalId(4);
-                let end_slot_id = SlotId(10);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(4), SlotId(10))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(10), popped_element);
                 }
             }
             //A_Alt_0 : . D
             SlotId(11) => {
                 if let Some(right_child_id) = self.parse_d_ll1(input_index) {
                     let j = self.sppf_node(right_child_id).right_extent();
-                    //A_Alt_0 : D.
-                    let next_slot_id = SlotId(12);
                     let new_node = right_child_id;
-                    self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                    //A_Alt_0 : D.
+                    self.execute(j, SlotId(12), Some(new_node), gss_node_id, env);
                 }
             }
             //A_Alt_0 : D.
             SlotId(12) => {
-                let nonterminal_id = NonterminalId(4);
-                let end_slot_id = SlotId(12);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(4), SlotId(12))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(12), popped_element);
                 }
             }
             _ => {

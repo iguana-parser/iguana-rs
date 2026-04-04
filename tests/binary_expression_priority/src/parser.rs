@@ -162,16 +162,14 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
             }
             //S : E(0).
             SlotId(1) => {
-                let nonterminal_id = NonterminalId(0);
-                let end_slot_id = SlotId(1);
                 if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, nonterminal_id, end_slot_id)
+                    .create_nonterminal_node(result, NonterminalId(0), SlotId(1))
                 {
                     let popped_element = PoppedElement {
                         nonterminal_node_id,
                         return_value: None,
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(1), popped_element);
                 }
             }
             //E(p: i32) : . "a" return 0
@@ -182,10 +180,9 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //E(p: i32) : "a" . return 0
-                        let next_slot_id = SlotId(3);
                         let new_node = right_child_id;
-                        self.execute(j, next_slot_id, Some(new_node), gss_node_id, env);
+                        //E(p: i32) : "a" . return 0
+                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -207,13 +204,11 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(4);
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        nonterminal_id,
-                        end_slot_id,
+                        NonterminalId(1),
+                        SlotId(4),
                         left_extent,
                         right_extent,
                         result,
@@ -224,7 +219,7 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                         nonterminal_node_id,
                         return_value: Some(return_value),
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(4), popped_element);
                 }
             }
             //E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
@@ -260,22 +255,11 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"*\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" . E(2) return 2
-                        let next_slot_id = SlotId(9);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(9))
                         {
-                            self.execute(
-                                j,
-                                next_slot_id,
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
+                            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" . E(2) return 2
+                            self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                         }
                     }
                     None => {
@@ -302,13 +286,11 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(11);
                 let return_value = 2;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        nonterminal_id,
-                        end_slot_id,
+                        NonterminalId(1),
+                        SlotId(11),
                         left_extent,
                         right_extent,
                         result,
@@ -319,7 +301,7 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                         nonterminal_node_id,
                         return_value: Some(return_value),
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(11), popped_element);
                 }
             }
             //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
@@ -355,18 +337,13 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"+\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" . E(1) return 1
-                        let next_slot_id = SlotId(16);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(16))
                         {
+                            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" . E(1) return 1
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(16),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -397,13 +374,11 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(18);
                 let return_value = 1;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        nonterminal_id,
-                        end_slot_id,
+                        NonterminalId(1),
+                        SlotId(18),
                         left_extent,
                         right_extent,
                         result,
@@ -414,7 +389,7 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                         nonterminal_node_id,
                         return_value: Some(return_value),
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(18), popped_element);
                 }
             }
             //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "-" E(1) return 1
@@ -450,18 +425,13 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                         record!(self, MatchSuccess, "\"-\"", input_index, j);
                         let right_child_id = self
                             .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "-" . E(1) return 1
-                        let next_slot_id = SlotId(23);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(
-                                result,
-                                right_child_id,
-                                next_slot_id,
-                            )
+                            .create_intermediate_node(result, right_child_id, SlotId(23))
                         {
+                            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "-" . E(1) return 1
                             self.execute(
                                 j,
-                                next_slot_id,
+                                SlotId(23),
                                 Some(new_node),
                                 gss_node_id,
                                 env,
@@ -492,13 +462,11 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                 let node = self.sppf_node(result);
                 let left_extent = node.left_extent();
                 let right_extent = node.right_extent();
-                let nonterminal_id = NonterminalId(1);
-                let end_slot_id = SlotId(25);
                 let return_value = 1;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        nonterminal_id,
-                        end_slot_id,
+                        NonterminalId(1),
+                        SlotId(25),
                         left_extent,
                         right_extent,
                         result,
@@ -509,7 +477,7 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                         nonterminal_node_id,
                         return_value: Some(return_value),
                     };
-                    self.pop(gss_node_id, end_slot_id, popped_element);
+                    self.pop(gss_node_id, SlotId(25), popped_element);
                 }
             }
             _ => {
