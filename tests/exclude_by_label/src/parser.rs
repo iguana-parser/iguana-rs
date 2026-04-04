@@ -199,11 +199,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Id", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //Expr : Id.
-                        self.execute(j, SlotId(1), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -231,10 +230,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(4))
+                            .create_intermediate_node(result, right_child, SlotId(4))
                         {
                             //Expr : Expr "(" . Expr_Star_0 ")"
                             self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
@@ -258,10 +257,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(6))
+                            .create_intermediate_node(result, right_child, SlotId(6))
                         {
                             //Expr : Expr "(" Expr_Star_0 ")".
                             self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
@@ -293,10 +292,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\",\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(9))
+                            .create_intermediate_node(result, right_child, SlotId(9))
                         {
                             //Expr : Expr "," . Expr
                             self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
@@ -332,10 +331,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\",\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(13))
+                            .create_intermediate_node(result, right_child, SlotId(13))
                         {
                             //Expr_Plus_0 : Expr_Plus_0 "," . Expr_except_comma
                             self.execute(
@@ -430,11 +429,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Id", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //Expr_except_comma : Id.
-                        self.execute(j, SlotId(23), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(23), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -462,10 +460,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(26))
+                            .create_intermediate_node(result, right_child, SlotId(26))
                         {
                             //Expr_except_comma : Expr "(" . Expr_Star_0 ")"
                             self.execute(
@@ -495,10 +493,10 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(28))
+                            .create_intermediate_node(result, right_child, SlotId(28))
                         {
                             //Expr_except_comma : Expr "(" Expr_Star_0 ")".
                             self.execute(

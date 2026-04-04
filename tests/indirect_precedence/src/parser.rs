@@ -172,11 +172,10 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"-\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //E(p: i32) : "-" . E(2) return 2
-                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -200,15 +199,13 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let return_value = 2;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
                         NonterminalId(3),
                         SlotId(5),
-                        left_extent,
-                        right_extent,
+                        node.left_extent(),
+                        node.right_extent(),
                         result,
                         return_value,
                     )
@@ -252,10 +249,10 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(10))
+                            .create_intermediate_node(result, right_child, SlotId(10))
                         {
                             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "*" . F return 0
                             self.execute(
@@ -289,15 +286,13 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
                         NonterminalId(3),
                         SlotId(12),
-                        left_extent,
-                        right_extent,
+                        node.left_extent(),
+                        node.right_extent(),
                         result,
                         return_value,
                     )
@@ -316,11 +311,10 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        let new_node = right_child_id;
                         //E(p: i32) : "a" . return 0
-                        self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(14), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -340,15 +334,13 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
                         NonterminalId(3),
                         SlotId(15),
-                        left_extent,
-                        right_extent,
+                        node.left_extent(),
+                        node.right_extent(),
                         result,
                         return_value,
                     )
@@ -371,10 +363,10 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"/\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(18))
+                            .create_intermediate_node(result, right_child, SlotId(18))
                         {
                             //F : E(0) "/" . K
                             self.execute(

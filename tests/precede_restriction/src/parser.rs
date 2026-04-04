@@ -173,11 +173,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"for\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        let new_node = right_child_id;
                         //S : "for" . WS Id
-                        self.execute(j, SlotId(1), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -193,10 +192,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(2))
+                            .create_intermediate_node(result, right_child, SlotId(2))
                         {
                             //S : "for" WS . Id
                             self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
@@ -212,10 +211,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
             }
             //S : "for" WS . Id
             SlotId(2) => {
-                if let Some(right_child_id) = self.parse_id_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
+                if let Some(right_child) = self.parse_id_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child_id, SlotId(3))
+                        .create_intermediate_node(result, right_child, SlotId(3))
                     {
                         //S : "for" WS Id.
                         self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
@@ -236,11 +235,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"forall\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        let new_node = right_child_id;
                         //S : "forall".
-                        self.execute(j, SlotId(5), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -268,11 +266,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 {
                     return;
                 }
-                if let Some(right_child_id) = self.parse_id_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_id_plus_0_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //Id : Char !<< Id_Plus_0.
-                    self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
                 }
             }
             //Id : Char !<< Id_Plus_0.
@@ -285,11 +282,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
             }
             //Id_Plus_0 : . Id_Plus_0 Char
             SlotId(8) => {
-                if let Some(right_child_id) = self.parse_id_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_id_plus_0_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //Id_Plus_0 : Id_Plus_0 . Char
-                    self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }
             }
             //Id_Plus_0 : Id_Plus_0 . Char
@@ -298,10 +294,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Char", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(10))
+                            .create_intermediate_node(result, right_child, SlotId(10))
                         {
                             //Id_Plus_0 : Id_Plus_0 Char.
                             self.execute(
@@ -335,11 +331,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Char", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //Id_Plus_0 : Char.
-                        self.execute(j, SlotId(12), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(12), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -363,11 +358,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        let new_node = right_child_id;
                         //StartS : WS . start:S WS
-                        self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(14), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -379,10 +373,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
             }
             //StartS : WS . start:S WS
             SlotId(14) => {
-                if let Some(right_child_id) = self.parse_s_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
+                if let Some(right_child) = self.parse_s_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child_id, SlotId(15))
+                        .create_intermediate_node(result, right_child, SlotId(15))
                     {
                         //StartS : WS start:S . WS
                         self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
@@ -395,10 +389,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(16))
+                            .create_intermediate_node(result, right_child, SlotId(16))
                         {
                             //StartS : WS start:S WS.
                             self.execute(
@@ -432,11 +426,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        let new_node = right_child_id;
                         //StartId : WS . start:Id WS
-                        self.execute(j, SlotId(18), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(18), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -448,10 +441,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
             }
             //StartId : WS . start:Id WS
             SlotId(18) => {
-                if let Some(right_child_id) = self.parse_id_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
+                if let Some(right_child) = self.parse_id_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child_id, SlotId(19))
+                        .create_intermediate_node(result, right_child, SlotId(19))
                     {
                         //StartId : WS start:Id . WS
                         self.execute(j, SlotId(19), Some(new_node), gss_node_id, env);
@@ -464,10 +457,10 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(20))
+                            .create_intermediate_node(result, right_child, SlotId(20))
                         {
                             //StartId : WS start:Id WS.
                             self.execute(
@@ -829,16 +822,16 @@ impl<'i> PrecedeRestrictionParser<'i> {
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(2), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(2), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
-            let right_child_id = {
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(1), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
@@ -851,11 +844,11 @@ impl<'i> PrecedeRestrictionParser<'i> {
                     left_extent,
                     j,
                     current,
-                    right_child_id,
+                    right_child,
                     false,
                 )
                 .unwrap();
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let node = self.parse_id_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
@@ -868,7 +861,7 @@ impl<'i> PrecedeRestrictionParser<'i> {
                     left_extent,
                     j,
                     current,
-                    right_child_id,
+                    right_child,
                     false,
                 )
                 .unwrap();
@@ -887,15 +880,15 @@ impl<'i> PrecedeRestrictionParser<'i> {
         }
         if self.scanner.match_token(TerminalId(3), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(3), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -917,15 +910,15 @@ impl<'i> PrecedeRestrictionParser<'i> {
             if !(j == 0 || self.scanner.match_token(TerminalId(0), j - 1).is_none()) {
                 return None;
             }
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let node = self.parse_id_plus_0_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -1000,16 +993,16 @@ impl<'i> PrecedeRestrictionParser<'i> {
             || self.scanner.match_token(TerminalId(1), i).is_some()
         {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(1), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
-            let right_child_id = {
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
+            let right_child = {
                 let start = j;
                 let node = self.parse_s_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
@@ -1022,11 +1015,11 @@ impl<'i> PrecedeRestrictionParser<'i> {
                     left_extent,
                     j,
                     current,
-                    right_child_id,
+                    right_child,
                     false,
                 )
                 .unwrap();
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(1), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
@@ -1039,7 +1032,7 @@ impl<'i> PrecedeRestrictionParser<'i> {
                     left_extent,
                     j,
                     current,
-                    right_child_id,
+                    right_child,
                     false,
                 )
                 .unwrap();
@@ -1063,16 +1056,16 @@ impl<'i> PrecedeRestrictionParser<'i> {
             || self.scanner.match_token(TerminalId(1), i).is_some()
         {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(1), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
-            let right_child_id = {
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
+            let right_child = {
                 let start = j;
                 let node = self.parse_id_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
@@ -1085,11 +1078,11 @@ impl<'i> PrecedeRestrictionParser<'i> {
                     left_extent,
                     j,
                     current,
-                    right_child_id,
+                    right_child,
                     false,
                 )
                 .unwrap();
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(1), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
@@ -1102,7 +1095,7 @@ impl<'i> PrecedeRestrictionParser<'i> {
                     left_extent,
                     j,
                     current,
-                    right_child_id,
+                    right_child,
                     false,
                 )
                 .unwrap();

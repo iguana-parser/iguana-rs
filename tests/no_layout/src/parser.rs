@@ -146,11 +146,10 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
         match slot_id {
             //S : . Id
             SlotId(0) => {
-                if let Some(right_child_id) = self.parse_id_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_id_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //S : Id.
-                    self.execute(j, SlotId(1), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
             //S : Id.
@@ -163,11 +162,10 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
             }
             //Id : . Id_Plus_0
             SlotId(2) => {
-                if let Some(right_child_id) = self.parse_id_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_id_plus_0_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //Id : Id_Plus_0.
-                    self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
             }
             //Id : Id_Plus_0.
@@ -180,11 +178,10 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
             }
             //Id_Plus_0 : . Id_Plus_0 Char
             SlotId(4) => {
-                if let Some(right_child_id) = self.parse_id_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_id_plus_0_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //Id_Plus_0 : Id_Plus_0 . Char
-                    self.execute(j, SlotId(5), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
             }
             //Id_Plus_0 : Id_Plus_0 . Char
@@ -193,10 +190,10 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Char", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(6))
+                            .create_intermediate_node(result, right_child, SlotId(6))
                         {
                             //Id_Plus_0 : Id_Plus_0 Char.
                             self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
@@ -224,11 +221,10 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Char", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //Id_Plus_0 : Char.
-                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -252,11 +248,10 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        let new_node = right_child_id;
                         //StartS : WS . start:S WS
-                        self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(10), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -268,10 +263,10 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
             }
             //StartS : WS . start:S WS
             SlotId(10) => {
-                if let Some(right_child_id) = self.parse_s_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
+                if let Some(right_child) = self.parse_s_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child_id, SlotId(11))
+                        .create_intermediate_node(result, right_child, SlotId(11))
                     {
                         //StartS : WS start:S . WS
                         self.execute(j, SlotId(11), Some(new_node), gss_node_id, env);
@@ -284,10 +279,10 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(12))
+                            .create_intermediate_node(result, right_child, SlotId(12))
                         {
                             //StartS : WS start:S WS.
                             self.execute(
@@ -321,11 +316,10 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        let new_node = right_child_id;
                         //StartId : WS . start:Id WS
-                        self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(14), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -337,10 +331,10 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
             }
             //StartId : WS . start:Id WS
             SlotId(14) => {
-                if let Some(right_child_id) = self.parse_id_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
+                if let Some(right_child) = self.parse_id_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child_id, SlotId(15))
+                        .create_intermediate_node(result, right_child, SlotId(15))
                     {
                         //StartId : WS start:Id . WS
                         self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
@@ -353,10 +347,10 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(16))
+                            .create_intermediate_node(result, right_child, SlotId(16))
                         {
                             //StartId : WS start:Id WS.
                             self.execute(
@@ -715,15 +709,15 @@ impl<'i> NoLayoutParser<'i> {
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let node = self.parse_id_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -742,15 +736,15 @@ impl<'i> NoLayoutParser<'i> {
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let node = self.parse_id_plus_0_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -824,16 +818,16 @@ impl<'i> NoLayoutParser<'i> {
             || self.scanner.match_token(TerminalId(1), i).is_some()
         {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(1), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
-            let right_child_id = {
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
+            let right_child = {
                 let start = j;
                 let node = self.parse_s_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
@@ -846,11 +840,11 @@ impl<'i> NoLayoutParser<'i> {
                     left_extent,
                     j,
                     current,
-                    right_child_id,
+                    right_child,
                     false,
                 )
                 .unwrap();
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(1), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
@@ -863,7 +857,7 @@ impl<'i> NoLayoutParser<'i> {
                     left_extent,
                     j,
                     current,
-                    right_child_id,
+                    right_child,
                     false,
                 )
                 .unwrap();
@@ -887,16 +881,16 @@ impl<'i> NoLayoutParser<'i> {
             || self.scanner.match_token(TerminalId(1), i).is_some()
         {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(1), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
-            let right_child_id = {
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
+            let right_child = {
                 let start = j;
                 let node = self.parse_id_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
@@ -909,11 +903,11 @@ impl<'i> NoLayoutParser<'i> {
                     left_extent,
                     j,
                     current,
-                    right_child_id,
+                    right_child,
                     false,
                 )
                 .unwrap();
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(1), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
@@ -926,7 +920,7 @@ impl<'i> NoLayoutParser<'i> {
                     left_extent,
                     j,
                     current,
-                    right_child_id,
+                    right_child,
                     false,
                 )
                 .unwrap();

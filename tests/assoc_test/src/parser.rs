@@ -219,10 +219,10 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(6))
+                            .create_intermediate_node(result, right_child, SlotId(6))
                         {
                             //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] "+" . E(4) return 3
                             self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
@@ -250,15 +250,13 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let return_value = 3;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
                         NonterminalId(1),
                         SlotId(8),
-                        left_extent,
-                        right_extent,
+                        node.left_extent(),
+                        node.right_extent(),
                         result,
                         return_value,
                     )
@@ -302,10 +300,10 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"-\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(13))
+                            .create_intermediate_node(result, right_child, SlotId(13))
                         {
                             //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] "-" . E(4) return 3
                             self.execute(
@@ -339,15 +337,13 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let return_value = 3;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
                         NonterminalId(1),
                         SlotId(15),
-                        left_extent,
-                        right_extent,
+                        node.left_extent(),
+                        node.right_extent(),
                         result,
                         return_value,
                     )
@@ -391,10 +387,10 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                 match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\";\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(20))
+                            .create_intermediate_node(result, right_child, SlotId(20))
                         {
                             //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 3] ";" . E(2) return 2
                             self.execute(
@@ -428,15 +424,13 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let return_value = 2;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
                         NonterminalId(1),
                         SlotId(22),
-                        left_extent,
-                        right_extent,
+                        node.left_extent(),
+                        node.right_extent(),
                         result,
                         return_value,
                     )
@@ -480,10 +474,10 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                 match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"<\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(27))
+                            .create_intermediate_node(result, right_child, SlotId(27))
                         {
                             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] "<" . E(2) return 1
                             self.execute(
@@ -517,15 +511,13 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let return_value = 1;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
                         NonterminalId(1),
                         SlotId(29),
-                        left_extent,
-                        right_extent,
+                        node.left_extent(),
+                        node.right_extent(),
                         result,
                         return_value,
                     )
@@ -544,11 +536,10 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                 match self.scanner.match_token(TerminalId(4), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(4), input_index, j);
-                        let new_node = right_child_id;
                         //E(p: i32) : "a" . return 0
-                        self.execute(j, SlotId(31), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(31), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -568,15 +559,13 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
                         NonterminalId(1),
                         SlotId(32),
-                        left_extent,
-                        right_extent,
+                        node.left_extent(),
+                        node.right_extent(),
                         result,
                         return_value,
                     )

@@ -147,10 +147,10 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(2))
+                            .create_intermediate_node(result, right_child, SlotId(2))
                         {
                             //Expr : Expr Layout . "+" Layout Expr
                             self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
@@ -170,10 +170,10 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                 match self.scanner.match_token(TerminalId(4), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(4), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(3))
+                            .create_intermediate_node(result, right_child, SlotId(3))
                         {
                             //Expr : Expr Layout "+" . Layout Expr
                             self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
@@ -193,10 +193,10 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(4))
+                            .create_intermediate_node(result, right_child, SlotId(4))
                         {
                             //Expr : Expr Layout "+" Layout . Expr
                             self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
@@ -232,10 +232,10 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(8))
+                            .create_intermediate_node(result, right_child, SlotId(8))
                         {
                             //Expr : Expr Layout . "*" Layout Expr
                             self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
@@ -255,10 +255,10 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                 match self.scanner.match_token(TerminalId(5), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(5), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(9))
+                            .create_intermediate_node(result, right_child, SlotId(9))
                         {
                             //Expr : Expr Layout "*" . Layout Expr
                             self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
@@ -278,10 +278,10 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(10))
+                            .create_intermediate_node(result, right_child, SlotId(10))
                         {
                             //Expr : Expr Layout "*" Layout . Expr
                             self.execute(
@@ -319,11 +319,10 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                 match self.scanner.match_token(TerminalId(6), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"x\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(6), input_index, j);
-                        let new_node = right_child_id;
                         //Expr : "x".
-                        self.execute(j, SlotId(13), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(13), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -347,11 +346,10 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //StartExpr : Layout . start:Expr Layout
-                        self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(15), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -371,10 +369,10 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(17))
+                            .create_intermediate_node(result, right_child, SlotId(17))
                         {
                             //StartExpr : Layout start:Expr Layout.
                             self.execute(

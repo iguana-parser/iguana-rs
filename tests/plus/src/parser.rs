@@ -95,11 +95,10 @@ impl<'i> Parser<'i> for PlusParser<'i> {
         match slot_id {
             //S : . S_Plus_0
             SlotId(0) => {
-                if let Some(right_child_id) = self.parse_s_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_s_plus_0_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //S : S_Plus_0.
-                    self.execute(j, SlotId(1), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
             //S : S_Plus_0.
@@ -116,11 +115,10 @@ impl<'i> Parser<'i> for PlusParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //A : "a".
-                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -140,19 +138,18 @@ impl<'i> Parser<'i> for PlusParser<'i> {
             }
             //S_Plus_0 : . S_Plus_0 A
             SlotId(4) => {
-                if let Some(right_child_id) = self.parse_s_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_s_plus_0_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //S_Plus_0 : S_Plus_0 . A
-                    self.execute(j, SlotId(5), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
             }
             //S_Plus_0 : S_Plus_0 . A
             SlotId(5) => {
-                if let Some(right_child_id) = self.parse_a_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
+                if let Some(right_child) = self.parse_a_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child_id, SlotId(6))
+                        .create_intermediate_node(result, right_child, SlotId(6))
                     {
                         //S_Plus_0 : S_Plus_0 A.
                         self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
@@ -169,11 +166,10 @@ impl<'i> Parser<'i> for PlusParser<'i> {
             }
             //S_Plus_0 : . A
             SlotId(7) => {
-                if let Some(right_child_id) = self.parse_a_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_a_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //S_Plus_0 : A.
-                    self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
                 }
             }
             //S_Plus_0 : A.
@@ -489,15 +485,15 @@ impl<'i> PlusParser<'i> {
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let node = self.parse_s_plus_0_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -516,15 +512,15 @@ impl<'i> PlusParser<'i> {
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(0), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(

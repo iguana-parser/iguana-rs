@@ -191,11 +191,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        let new_node = right_child_id;
                         //E(p: i32) : "a" . return 0
-                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -215,15 +214,13 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
                         NonterminalId(3),
                         SlotId(4),
-                        left_extent,
-                        right_extent,
+                        node.left_extent(),
+                        node.right_extent(),
                         result,
                         return_value,
                     )
@@ -242,11 +239,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                 match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"-\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        let new_node = right_child_id;
                         //E(p: i32) : "-" . WS E(2) return 2
-                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(6), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -262,10 +258,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(7))
+                            .create_intermediate_node(result, right_child, SlotId(7))
                         {
                             //E(p: i32) : "-" WS . E(2) return 2
                             self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
@@ -293,15 +289,13 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let return_value = 2;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
                         NonterminalId(3),
                         SlotId(9),
-                        left_extent,
-                        right_extent,
+                        node.left_extent(),
+                        node.right_extent(),
                         result,
                         return_value,
                     )
@@ -345,10 +339,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(14))
+                            .create_intermediate_node(result, right_child, SlotId(14))
                         {
                             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] WS . "+" WS E(1) return 1
                             self.execute(
@@ -374,10 +368,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                 match self.scanner.match_token(TerminalId(3), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(3), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(15))
+                            .create_intermediate_node(result, right_child, SlotId(15))
                         {
                             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" . WS E(1) return 1
                             self.execute(
@@ -403,10 +397,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(16))
+                            .create_intermediate_node(result, right_child, SlotId(16))
                         {
                             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS . E(1) return 1
                             self.execute(
@@ -440,15 +434,13 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let left_extent = node.left_extent();
-                let right_extent = node.right_extent();
                 let return_value = 1;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
                         NonterminalId(3),
                         SlotId(18),
-                        left_extent,
-                        right_extent,
+                        node.left_extent(),
+                        node.right_extent(),
                         result,
                         return_value,
                     )
@@ -467,11 +459,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //StartS : WS . start:S WS
-                        self.execute(j, SlotId(20), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(20), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -491,10 +482,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(22))
+                            .create_intermediate_node(result, right_child, SlotId(22))
                         {
                             //StartS : WS start:S WS.
                             self.execute(
@@ -528,11 +519,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //StartE : WS . start:E(0) WS
-                        self.execute(j, SlotId(24), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(24), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -552,10 +542,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(26))
+                            .create_intermediate_node(result, right_child, SlotId(26))
                         {
                             //StartE : WS start:E(0) WS.
                             self.execute(

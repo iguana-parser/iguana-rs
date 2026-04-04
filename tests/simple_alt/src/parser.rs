@@ -134,19 +134,18 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
         match slot_id {
             //A : . B A_Alt_0
             SlotId(0) => {
-                if let Some(right_child_id) = self.parse_b_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_b_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //A : B . A_Alt_0
-                    self.execute(j, SlotId(1), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
             //A : B . A_Alt_0
             SlotId(1) => {
-                if let Some(right_child_id) = self.parse_a_alt_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
+                if let Some(right_child) = self.parse_a_alt_0_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child_id, SlotId(2))
+                        .create_intermediate_node(result, right_child, SlotId(2))
                     {
                         //A : B A_Alt_0.
                         self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
@@ -167,11 +166,10 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"b\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //B : "b".
-                        self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(4), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -195,11 +193,10 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"c\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        let new_node = right_child_id;
                         //C : "c".
-                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(6), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -223,11 +220,10 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                 match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"d\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        let new_node = right_child_id;
                         //D : "d".
-                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -247,11 +243,10 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             //A_Alt_0 : . C
             SlotId(9) => {
-                if let Some(right_child_id) = self.parse_c_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_c_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //A_Alt_0 : C.
-                    self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(10), Some(right_child), gss_node_id, env);
                 }
             }
             //A_Alt_0 : C.
@@ -264,11 +259,10 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             //A_Alt_0 : . D
             SlotId(11) => {
-                if let Some(right_child_id) = self.parse_d_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_d_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //A_Alt_0 : D.
-                    self.execute(j, SlotId(12), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(12), Some(right_child), gss_node_id, env);
                 }
             }
             //A_Alt_0 : D.
@@ -610,16 +604,16 @@ impl<'i> SimpleAltParser<'i> {
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let node = self.parse_b_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
-            let right_child_id = {
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
+            let right_child = {
                 let start = j;
                 let node = self.parse_a_alt_0_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
@@ -632,7 +626,7 @@ impl<'i> SimpleAltParser<'i> {
                     left_extent,
                     j,
                     current,
-                    right_child_id,
+                    right_child,
                     false,
                 )
                 .unwrap();
@@ -654,15 +648,15 @@ impl<'i> SimpleAltParser<'i> {
     fn parse_b_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(0), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -681,15 +675,15 @@ impl<'i> SimpleAltParser<'i> {
     fn parse_c_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(1), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(1), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -708,15 +702,15 @@ impl<'i> SimpleAltParser<'i> {
     fn parse_d_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(2), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(2), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -735,15 +729,15 @@ impl<'i> SimpleAltParser<'i> {
     fn parse_a_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(1), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let node = self.parse_c_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -759,15 +753,15 @@ impl<'i> SimpleAltParser<'i> {
         }
         if self.scanner.match_token(TerminalId(2), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let node = self.parse_d_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(

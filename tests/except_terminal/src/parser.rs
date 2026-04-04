@@ -83,11 +83,10 @@ impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
         match slot_id {
             //S : . Id
             SlotId(0) => {
-                if let Some(right_child_id) = self.parse_id_ll1(input_index) {
-                    let j = self.sppf_node(right_child_id).right_extent();
-                    let new_node = right_child_id;
+                if let Some(right_child) = self.parse_id_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
                     //S : Id.
-                    self.execute(j, SlotId(1), Some(new_node), gss_node_id, env);
+                    self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
             //S : Id.
@@ -104,14 +103,19 @@ impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if self.scanner.match_token(TerminalId(1), input_index)
                             != Some(j)
                         {
-                            let new_node = right_child_id;
                             //Id : Identifier \ Keyword.
-                            self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
+                            self.execute(
+                                j,
+                                SlotId(3),
+                                Some(right_child),
+                                gss_node_id,
+                                env,
+                            );
                         }
                     }
                     None => {
@@ -419,15 +423,15 @@ impl<'i> ExceptTerminalParser<'i> {
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let node = self.parse_id_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -446,7 +450,7 @@ impl<'i> ExceptTerminalParser<'i> {
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(0), start)?;
                 if !(self.scanner.match_token(TerminalId(1), start) != Some(end)) {
@@ -456,8 +460,8 @@ impl<'i> ExceptTerminalParser<'i> {
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(

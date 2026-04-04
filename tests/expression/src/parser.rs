@@ -105,10 +105,10 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(2))
+                            .create_intermediate_node(result, right_child, SlotId(2))
                         {
                             //E : E "*" . E
                             self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
@@ -144,10 +144,10 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(6))
+                            .create_intermediate_node(result, right_child, SlotId(6))
                         {
                             //E : E "+" . E
                             self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
@@ -179,11 +179,10 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                 match self.scanner.match_token(TerminalId(2), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        let new_node = right_child_id;
                         //E : "a".
-                        self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(

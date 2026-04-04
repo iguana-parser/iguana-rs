@@ -99,7 +99,7 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
                 match self.scanner.match_token(TerminalId(1), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "IdentifierChars", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(1), input_index, j);
                         if self.scanner.match_token(TerminalId(2), input_index)
                             != Some(j)
@@ -108,9 +108,14 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
                             && self.scanner.match_token(TerminalId(4), input_index)
                                 != Some(j)
                         {
-                            let new_node = right_child_id;
                             //SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
-                            self.execute(j, SlotId(1), Some(new_node), gss_node_id, env);
+                            self.execute(
+                                j,
+                                SlotId(1),
+                                Some(right_child),
+                                gss_node_id,
+                                env,
+                            );
                         }
                     }
                     None => {
@@ -135,11 +140,10 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //LexicalIdentifier : Identifier.
-                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
@@ -446,7 +450,7 @@ impl<'i> MultipleExceptParser<'i> {
     fn parse_syntax_identifier_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(1), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(1), start)?;
                 if !(self.scanner.match_token(TerminalId(2), start) != Some(end)
@@ -459,8 +463,8 @@ impl<'i> MultipleExceptParser<'i> {
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(
@@ -479,15 +483,15 @@ impl<'i> MultipleExceptParser<'i> {
     fn parse_lexical_identifier_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {
             let mut j = i;
-            let right_child_id = {
+            let right_child = {
                 let start = j;
                 let end = self.scanner.match_token(TerminalId(0), start)?;
                 let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
                 j = end;
                 node
             };
-            let left_extent = self.sppf_node(right_child_id).left_extent();
-            let mut current = right_child_id;
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
             return Some(
                 self
                     .get_or_create_nonterminal_node(

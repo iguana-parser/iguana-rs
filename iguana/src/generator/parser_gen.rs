@@ -213,21 +213,25 @@ impl<'a> ParserGen<'a> {
                     }
                 } else {
                     let last_symbol = alternative.symbols.last().unwrap();
-                    let pop = if let Symbol::Return(expr) = last_symbol {
+                    let slot_body = if let Symbol::Return(expr) = last_symbol {
                         let expr = Self::gen_expr(expr);
                         let create_method = format_ident!(
                             "create_nonterminal_node_or_attach_children_{}",
                             to_snake_case(&nonterminal.name)
                         );
                         quote! {
+                            let Some(result) = result else {
+                                unreachable!("result cannot be None here.")
+                            };
+                            let node = self.sppf_node(result);
                             let return_value = #expr;
                             if let Some(nonterminal_node_id) = self.#create_method(
                                 #nonterminal_id,
                                 #end_slot_id,
-                                left_extent,
-                                right_extent,
+                                node.left_extent(),
+                                node.right_extent(),
                                 result,
-                                return_value
+                                return_value,
                             ) {
                                 self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, Some(return_value));
                             }
@@ -239,21 +243,6 @@ impl<'a> ParserGen<'a> {
                             ) {
                                 self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, None);
                             }
-                        }
-                    };
-                    let slot_body = if let Symbol::Return(_) = alternative.symbols.last().unwrap() {
-                        quote! {
-                            let Some(result) = result else {
-                                unreachable!("result cannot be None here.")
-                            };
-                            let node = self.sppf_node(result);
-                            let left_extent = node.left_extent();
-                            let right_extent = node.right_extent();
-                            #pop
-                        }
-                    } else {
-                        quote! {
-                            #pop
                         }
                     };
                     quote! {
@@ -528,14 +517,13 @@ impl<'a> ParserGen<'a> {
         // At grammar position 0, we do not need to create an intermediate node.
         let new_node = if slot.is_first() {
             quote! {
-                let new_node = right_child_id;
                 #[comment = #next_slot_name]
-                self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
+                self.execute(j, #next_slot_id, Some(right_child), gss_node_id, env);
             }
         } else {
             quote! {
                 if let Some((j, new_node)) = self.create_intermediate_node(
-                    result, right_child_id, #next_slot_id,
+                    result, right_child, #next_slot_id,
                 ) {
                     #[comment = #next_slot_name]
                     self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
@@ -567,7 +555,7 @@ impl<'a> ParserGen<'a> {
                 match self.scanner.match_token(#terminal_id, input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, #terminal_name, input_index, j);
-                        let right_child_id = self.get_or_create_terminal_node(
+                        let right_child = self.get_or_create_terminal_node(
                             #terminal_id,
                             input_index,
                             j,
@@ -838,14 +826,13 @@ impl<'a> ParserGen<'a> {
             };
             let new_node = if slot.is_first() {
                 quote! {
-                    let new_node = right_child_id;
                     #[comment = #next_slot_name]
-                    self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
+                    self.execute(j, #next_slot_id, Some(right_child), gss_node_id, env);
                 }
             } else {
                 quote! {
                     if let Some((j, new_node)) = self.create_intermediate_node(
-                        result, right_child_id, #next_slot_id,
+                        result, right_child, #next_slot_id,
                     ) {
                         #[comment = #next_slot_name]
                         self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
@@ -857,8 +844,8 @@ impl<'a> ParserGen<'a> {
                 #[comment = #slot_name]
                 #slot_id => {
                     #pre_condition_check
-                    if let Some(right_child_id) = self.#method_name(input_index) {
-                        let j = self.sppf_node(right_child_id).right_extent();
+                    if let Some(right_child) = self.#method_name(input_index) {
+                        let j = self.sppf_node(right_child).right_extent();
                         #post_condition_check
                         #new_node
                     }
@@ -1358,7 +1345,7 @@ impl<'a> ParserGen<'a> {
                     };
                     body.push(quote! {
                         #pre_check
-                        let right_child_id = {
+                        let right_child = {
                             let start = j;
                             let end = self.scanner.match_token(#terminal_id, start)?;
                             #post_check
@@ -1377,7 +1364,7 @@ impl<'a> ParserGen<'a> {
                     };
                     body.push(quote! {
                         #pre_check
-                        let right_child_id = {
+                        let right_child = {
                             let start = j;
                             let node = self.#nt_method(start)?;
                             let end = self.sppf_node(node).right_extent();
@@ -1391,13 +1378,13 @@ impl<'a> ParserGen<'a> {
 
             if is_first {
                 body.push(quote! {
-                    let left_extent = self.sppf_node(right_child_id).left_extent();
-                    let mut current = right_child_id;
+                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let mut current = right_child;
                 });
             } else {
                 body.push(quote! {
                     current = self.get_or_create_intermediate_node(
-                        #next_slot_id, left_extent, j, current, right_child_id, false,
+                        #next_slot_id, left_extent, j, current, right_child, false,
                     ).unwrap();
                 });
             }

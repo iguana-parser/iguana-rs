@@ -87,10 +87,10 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
                         if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child_id, SlotId(2))
+                            .create_intermediate_node(result, right_child, SlotId(2))
                         {
                             //A : A "a".
                             self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
@@ -118,11 +118,10 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                 match self.scanner.match_token(TerminalId(0), input_index) {
                     Some(j) => {
                         record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child_id = self
+                        let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        let new_node = right_child_id;
                         //A : "a".
-                        self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(4), Some(right_child), gss_node_id, env);
                     }
                     None => {
                         record!(
