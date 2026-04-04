@@ -260,7 +260,6 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             //S_Group_0 : A . B C
             SlotId(9) => {
                 if let Some(right_child) = self.parse_b_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
                         .create_intermediate_node(result, right_child, SlotId(10))
                     {
@@ -272,7 +271,6 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             //S_Group_0 : A B . C
             SlotId(10) => {
                 if let Some(right_child) = self.parse_c_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
                         .create_intermediate_node(result, right_child, SlotId(11))
                     {
@@ -300,7 +298,6 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             //S_Plus_0 : S_Plus_0 . S_Group_0
             SlotId(13) => {
                 if let Some(right_child) = self.parse_s_group_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
                         .create_intermediate_node(result, right_child, SlotId(14))
                     {
@@ -619,60 +616,6 @@ impl<'i> PlusGroupParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
-    }
-    fn create_s(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_a(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_b(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_c(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_s_group_0(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_s_plus_0(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(5), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some() {

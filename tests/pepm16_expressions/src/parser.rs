@@ -1784,7 +1784,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //StartS : WS . start:S WS
             SlotId(83) => {
-                self.create_s(result, gss_node_id, SlotId(84), env);
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(84), env);
             }
             //StartS : WS start:S . WS
             SlotId(84) => {
@@ -2182,33 +2182,6 @@ impl<'i> Pepm16ExpressionsParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
-    }
-    fn create_s(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_start_s(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_start_e(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn create_e(
         &mut self,

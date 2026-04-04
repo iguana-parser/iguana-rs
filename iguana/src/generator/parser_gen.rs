@@ -824,31 +824,44 @@ impl<'a> ParserGen<'a> {
             } else {
                 quote! { if !(#(#post_conditions)&&*) { return; } }
             };
-            let new_node = if slot.is_first() {
+            let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+            if slot.is_first() {
                 quote! {
-                    #[comment = #next_slot_name]
-                    self.execute(j, #next_slot_id, Some(right_child), gss_node_id, env);
+                    #[comment = #slot_name]
+                    #slot_id => {
+                        #pre_condition_check
+                        if let Some(right_child) = self.#method_name(input_index) {
+                            let j = self.sppf_node(right_child).right_extent();
+                            #post_condition_check
+                            #[comment = #next_slot_name]
+                            self.execute(j, #next_slot_id, Some(right_child), gss_node_id, env);
+                        }
+                    }
                 }
             } else {
                 quote! {
-                    if let Some((j, new_node)) = self.create_intermediate_node(
-                        result, right_child, #next_slot_id,
-                    ) {
-                        #[comment = #next_slot_name]
-                        self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
+                    #[comment = #slot_name]
+                    #slot_id => {
+                        #pre_condition_check
+                        if let Some(right_child) = self.#method_name(input_index) {
+                            #post_condition_check
+                            if let Some((j, new_node)) = self.create_intermediate_node(
+                                result, right_child, #next_slot_id,
+                            ) {
+                                #[comment = #next_slot_name]
+                                self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
+                            }
+                        }
                     }
                 }
-            };
-            let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+            }
+        } else if nonterminal.parameters.is_empty() {
+            let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
             quote! {
                 #[comment = #slot_name]
                 #slot_id => {
                     #pre_condition_check
-                    if let Some(right_child) = self.#method_name(input_index) {
-                        let j = self.sppf_node(right_child).right_extent();
-                        #post_condition_check
-                        #new_node
-                    }
+                    self.create(#nonterminal_id, result, gss_node_id, #next_slot_id, env);
                 }
             }
         } else {
@@ -859,11 +872,8 @@ impl<'a> ParserGen<'a> {
             } else {
                 quote! { None }
             };
-            let arguments = if nonterminal.parameters.is_empty() {
-                quote! { result, gss_node_id, #next_slot_id, env }
-            } else {
-                quote! { result, gss_node_id, #next_slot_id, env, #bindings, #(#arguments),* }
-            };
+            let arguments =
+                quote! { result, gss_node_id, #next_slot_id, env, #bindings, #(#arguments),* };
             quote! {
                 #[comment = #slot_name]
                 #slot_id => {
@@ -911,6 +921,7 @@ impl<'a> ParserGen<'a> {
             .nonterminal_ids
             .nonterminals()
             .enumerate()
+            .filter(|(_, n)| !n.parameters.is_empty())
             .map(|(i, n)| Self::gen_create_method(n, i))
             .collect();
         let ll1_parse_methods: Vec<_> = self
@@ -1780,81 +1791,67 @@ impl<'a> ParserGen<'a> {
     fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
         let create_method_name = format_ident!("create_{}", to_snake_case(&nt.name));
         let id = Literal::usize_unsuffixed(id);
-        if nt.parameters.is_empty() {
-            quote! {
-                fn #create_method_name(
-                    &mut self,
-                    sppf_node_id: Option<SPPFNodeId>,
-                    gss_node_id: GssNodeId,
-                    return_slot: SlotId,
-                    env: Option<EnvId>,
-                ) {
-                    self.create(NonterminalId(#id), sppf_node_id, gss_node_id, return_slot, env);
+        let get_gss_node_method_name =
+            format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
+        let add_gss_node_method_name =
+            format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
+        let parameters: Vec<_> = nt
+            .parameters
+            .iter()
+            .map(|Parameter { name, ty }| {
+                let name = format_ident!("{}", name);
+                quote! { #name: #ty }
+            })
+            .collect();
+        let bindings: Vec<_> = nt
+            .parameters
+            .iter()
+            .map(|p| {
+                let key = &p.name;
+                let value = format_ident!("{}", p.name);
+                quote! {
+                    env.bind(#key, #value);
                 }
-            }
-        } else {
-            let get_gss_node_method_name =
-                format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
-            let add_gss_node_method_name =
-                format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
-            let parameters: Vec<_> = nt
-                .parameters
-                .iter()
-                .map(|Parameter { name, ty }| {
-                    let name = format_ident!("{}", name);
-                    quote! { #name: #ty }
-                })
-                .collect();
-            let bindings: Vec<_> = nt
-                .parameters
-                .iter()
-                .map(|p| {
-                    let key = &p.name;
-                    let value = format_ident!("{}", p.name);
-                    quote! {
-                        env.bind(#key, #value);
-                    }
-                })
-                .collect();
-            let param_names: Vec<_> = nt
-                .parameters
-                .iter()
-                .map(|p| format_ident!("{}", p.name))
-                .collect();
-            quote! {
-                fn #create_method_name(
-                    &mut self,
-                    sppf_node_id: Option<SPPFNodeId>,
-                    gss_node_id: GssNodeId,
-                    return_slot: SlotId,
-                    env: Option<EnvId>,
-                    binding: Option<&'static str>,
-                    #(#parameters,)*
-                ) {
-                    record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-                    let left_child = sppf_node_id.map(|id| {
-                        let node = self.sppf_node(id);
-                        (id, node.left_extent())
-                    });
-                    let gss_node = self.gss_node(gss_node_id);
-                    let i = match left_child {
-                        Some((id, _)) => self.sppf_node(id).right_extent(),
-                        None => gss_node.index,
-                    };
-                    #[comment = "If there is already a GSS node for this call, add an edge."]
-                    if let Some(existing_gss_node_id) = self.#get_gss_node_method_name(i, #(#param_names),*) {
-                        record!(self, GSSNodeFound, NonterminalId(#id), i);
-                        self.add_edge_to_existing_gss_node(existing_gss_node_id, gss_node_id, left_child, return_slot, env, binding);
-                    } else {
-                        record!(self, GSSNodeNotFound, NonterminalId(#id), i);
-                        let new_gss_node_id = self.new_gss_node(NonterminalId(#id), i);
-                        self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env, binding);
-                        // Create a new environment to bind the parameter.
-                        let (env_id, env) = self.new_env();
-                        #(#bindings)*
-                        self.add_first_descriptors(NonterminalId(#id), i, new_gss_node_id, Some(env_id));
-                        self.#add_gss_node_method_name(i, #(#param_names,)* new_gss_node_id);
-                    }
+            })
+            .collect();
+        let param_names: Vec<_> = nt
+            .parameters
+            .iter()
+            .map(|p| format_ident!("{}", p.name))
+            .collect();
+        quote! {
+            fn #create_method_name(
+                &mut self,
+                sppf_node_id: Option<SPPFNodeId>,
+                gss_node_id: GssNodeId,
+                return_slot: SlotId,
+                env: Option<EnvId>,
+                binding: Option<&'static str>,
+                #(#parameters,)*
+            ) {
+                record!(self, Call, sppf_node_id, gss_node_id, return_slot);
+                let left_child = sppf_node_id.map(|id| {
+                    let node = self.sppf_node(id);
+                    (id, node.left_extent())
+                });
+                let gss_node = self.gss_node(gss_node_id);
+                let i = match left_child {
+                    Some((id, _)) => self.sppf_node(id).right_extent(),
+                    None => gss_node.index,
+                };
+                #[comment = "If there is already a GSS node for this call, add an edge."]
+                if let Some(existing_gss_node_id) = self.#get_gss_node_method_name(i, #(#param_names),*) {
+                    record!(self, GSSNodeFound, NonterminalId(#id), i);
+                    self.add_edge_to_existing_gss_node(existing_gss_node_id, gss_node_id, left_child, return_slot, env, binding);
+                } else {
+                    record!(self, GSSNodeNotFound, NonterminalId(#id), i);
+                    let new_gss_node_id = self.new_gss_node(NonterminalId(#id), i);
+                    self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env, binding);
+                    // Create a new environment to bind the parameter.
+                    let (env_id, env) = self.new_env();
+                    #(#bindings)*
+                    self.add_first_descriptors(NonterminalId(#id), i, new_gss_node_id, Some(env_id));
+                    self.#add_gss_node_method_name(i, #(#param_names,)* new_gss_node_id);
                 }
             }
         }

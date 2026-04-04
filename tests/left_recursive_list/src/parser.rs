@@ -79,7 +79,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
         match slot_id {
             //A : . A "a"
             SlotId(0) => {
-                self.create_a(result, gss_node_id, SlotId(1), env);
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(1), env);
             }
             //A : A . "a"
             SlotId(1) => {
@@ -405,15 +405,6 @@ impl<'i> LeftRecursiveListParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
-    }
-    fn create_a(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
     }
 }
 

@@ -233,7 +233,6 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             //StartS : WS . start:S WS
             SlotId(7) => {
                 if let Some(right_child) = self.parse_s_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
                         .create_intermediate_node(result, right_child, SlotId(8))
                     {
@@ -543,24 +542,6 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
-    }
-    fn create_s(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_start_s(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(3), i).is_some() {

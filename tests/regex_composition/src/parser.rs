@@ -224,7 +224,6 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             //Id : Letter . Id_Star_0
             SlotId(3) => {
                 if let Some(right_child) = self.parse_id_star_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
                         .create_intermediate_node(result, right_child, SlotId(4))
                     {
@@ -382,7 +381,6 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             //StartS : WS . start:S WS
             SlotId(16) => {
                 if let Some(right_child) = self.parse_s_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
                         .create_intermediate_node(result, right_child, SlotId(17))
                     {
@@ -450,7 +448,6 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             //StartId : WS . start:Id WS
             SlotId(20) => {
                 if let Some(right_child) = self.parse_id_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
                         .create_intermediate_node(result, right_child, SlotId(21))
                     {
@@ -789,69 +786,6 @@ impl<'i> RegexCompositionParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
-    }
-    fn create_s(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_id(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_id_plus_0(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_id_opt_0(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_id_star_0(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_start_s(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(5), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_start_id(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(6), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(1), i).is_some() {

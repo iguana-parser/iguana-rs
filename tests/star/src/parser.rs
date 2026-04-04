@@ -170,7 +170,6 @@ impl<'i> Parser<'i> for StarParser<'i> {
             //S_Plus_0 : S_Plus_0 . A
             SlotId(5) => {
                 if let Some(right_child) = self.parse_a_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
                     if let Some((j, new_node)) = self
                         .create_intermediate_node(result, right_child, SlotId(6))
                     {
@@ -541,51 +540,6 @@ impl<'i> StarParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
-    }
-    fn create_s(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_a(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_s_plus_0(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_s_opt_0(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_s_star_0(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot, env);
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         if self.scanner.match_token(TerminalId(0), i).is_some()

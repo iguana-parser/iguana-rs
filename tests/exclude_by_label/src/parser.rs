@@ -222,7 +222,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : . Expr "(" Expr_Star_0 ")"
             SlotId(2) => {
-                self.create_expr(result, gss_node_id, SlotId(3), env);
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(3), env);
             }
             //Expr : Expr . "(" Expr_Star_0 ")"
             SlotId(3) => {
@@ -249,7 +249,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : Expr "(" . Expr_Star_0 ")"
             SlotId(4) => {
-                self.create_expr_star_0(result, gss_node_id, SlotId(5), env);
+                self.create(NonterminalId(3), result, gss_node_id, SlotId(5), env);
             }
             //Expr : Expr "(" Expr_Star_0 . ")"
             SlotId(5) => {
@@ -284,7 +284,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : . Expr "," Expr
             SlotId(7) => {
-                self.create_expr(result, gss_node_id, SlotId(8), env);
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(8), env);
             }
             //Expr : Expr . "," Expr
             SlotId(8) => {
@@ -311,7 +311,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : Expr "," . Expr
             SlotId(9) => {
-                self.create_expr(result, gss_node_id, SlotId(10), env);
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(10), env);
             }
             //Expr : Expr "," Expr.
             SlotId(10) => {
@@ -323,7 +323,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Plus_0 : . Expr_Plus_0 "," Expr_except_comma
             SlotId(11) => {
-                self.create_expr_plus_0(result, gss_node_id, SlotId(12), env);
+                self.create(NonterminalId(1), result, gss_node_id, SlotId(12), env);
             }
             //Expr_Plus_0 : Expr_Plus_0 . "," Expr_except_comma
             SlotId(12) => {
@@ -356,7 +356,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Plus_0 : Expr_Plus_0 "," . Expr_except_comma
             SlotId(13) => {
-                self.create_expr_except_comma(result, gss_node_id, SlotId(14), env);
+                self.create(NonterminalId(4), result, gss_node_id, SlotId(14), env);
             }
             //Expr_Plus_0 : Expr_Plus_0 "," Expr_except_comma.
             SlotId(14) => {
@@ -368,7 +368,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Plus_0 : . Expr_except_comma
             SlotId(15) => {
-                self.create_expr_except_comma(result, gss_node_id, SlotId(16), env);
+                self.create(NonterminalId(4), result, gss_node_id, SlotId(16), env);
             }
             //Expr_Plus_0 : Expr_except_comma.
             SlotId(16) => {
@@ -380,7 +380,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Opt_0 : . Expr_Plus_0
             SlotId(17) => {
-                self.create_expr_plus_0(result, gss_node_id, SlotId(18), env);
+                self.create(NonterminalId(1), result, gss_node_id, SlotId(18), env);
             }
             //Expr_Opt_0 : Expr_Plus_0.
             SlotId(18) => {
@@ -413,7 +413,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Star_0 : . Expr_Opt_0
             SlotId(20) => {
-                self.create_expr_opt_0(result, gss_node_id, SlotId(21), env);
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(21), env);
             }
             //Expr_Star_0 : Expr_Opt_0.
             SlotId(21) => {
@@ -452,7 +452,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_except_comma : . Expr "(" Expr_Star_0 ")"
             SlotId(24) => {
-                self.create_expr(result, gss_node_id, SlotId(25), env);
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(25), env);
             }
             //Expr_except_comma : Expr . "(" Expr_Star_0 ")"
             SlotId(25) => {
@@ -485,7 +485,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_except_comma : Expr "(" . Expr_Star_0 ")"
             SlotId(26) => {
-                self.create_expr_star_0(result, gss_node_id, SlotId(27), env);
+                self.create(NonterminalId(3), result, gss_node_id, SlotId(27), env);
             }
             //Expr_except_comma : Expr "(" Expr_Star_0 . ")"
             SlotId(27) => {
@@ -817,51 +817,6 @@ impl<'i> ExcludeByLabelParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
-    }
-    fn create_expr(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_expr_plus_0(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(1), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_expr_opt_0(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(2), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_expr_star_0(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(3), sppf_node_id, gss_node_id, return_slot, env);
-    }
-    fn create_expr_except_comma(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(4), sppf_node_id, gss_node_id, return_slot, env);
     }
 }
 

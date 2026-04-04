@@ -750,15 +750,6 @@ impl<'i> BinaryExpressionPriorityParser<'i> {
             trace_events: None,
         }
     }
-    fn create_s(
-        &mut self,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-    ) {
-        self.create(NonterminalId(0), sppf_node_id, gss_node_id, return_slot, env);
-    }
     fn create_e(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
