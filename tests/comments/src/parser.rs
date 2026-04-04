@@ -435,40 +435,15 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             //Expr
             NonterminalId(0) => {
                 //Expr : . Expr Layout "+" Layout Expr
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(0),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 //Expr : . Expr Layout "*" Layout Expr
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(6),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 //Expr : . "x"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(12),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
             }
-            //StartExpr
+            //StartExpr : . Layout start:Expr Layout
             NonterminalId(1) => {
-                //StartExpr : . Layout start:Expr Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(14),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

@@ -117,16 +117,9 @@ impl<'i> Parser<'i> for ExceptLexicalParser<'i> {
         env: Option<EnvId>,
     ) {
         match nonterminal_id {
-            //S
+            //S : . Identifier
             NonterminalId(0) => {
-                //S : . Identifier
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(0),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

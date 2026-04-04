@@ -230,29 +230,11 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             //E
             NonterminalId(0) => {
                 //E : . E "*" E
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(0),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 //E : . E "+" E
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(4),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 //E : . "a"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(8),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

@@ -303,30 +303,36 @@ impl<'a> ParserGen<'a> {
         let mut nonterminal_quotes = vec![];
         for nonterminal in self.grammar.nonterminals() {
             let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
-            let nt_name = &nonterminal.name;
-            let mut alternative_quotes = vec![];
             let alternatives = self.grammar.alternatives(nonterminal);
-            for alternative in alternatives {
-                let first_slot = Slot::new(nonterminal, alternative, 0);
+            if alternatives.len() == 1 {
+                let first_slot = Slot::new(nonterminal, &alternatives[0], 0);
                 let first_slot_name = first_slot.name();
                 let first_slot_id = self.slot_ids.get_id(&first_slot);
-                alternative_quotes.push(quote! {
+                nonterminal_quotes.push(quote! {
                     #[comment = #first_slot_name]
-                    self.add_descriptor(Descriptor {
-                        input_index,
-                        slot_id: #first_slot_id,
-                        sppf_node_id: None,
-                        gss_node_id,
-                        env,
+                    #nonterminal_id => {
+                        self.add_first_descriptor(#first_slot_id, input_index, gss_node_id, env);
+                    }
+                });
+            } else {
+                let nt_name = &nonterminal.name;
+                let mut alternative_quotes = vec![];
+                for alternative in alternatives {
+                    let first_slot = Slot::new(nonterminal, alternative, 0);
+                    let first_slot_name = first_slot.name();
+                    let first_slot_id = self.slot_ids.get_id(&first_slot);
+                    alternative_quotes.push(quote! {
+                        #[comment = #first_slot_name]
+                        self.add_first_descriptor(#first_slot_id, input_index, gss_node_id, env);
                     });
+                }
+                nonterminal_quotes.push(quote! {
+                    #[comment = #nt_name]
+                    #nonterminal_id => {
+                        #( #alternative_quotes)*
+                    }
                 });
             }
-            nonterminal_quotes.push(quote! {
-                #[comment = #nt_name]
-                #nonterminal_id => {
-                    #( #alternative_quotes)*
-                }
-            });
         }
         quote! {
             fn add_first_descriptors(

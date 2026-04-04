@@ -422,68 +422,28 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
         env: Option<EnvId>,
     ) {
         match nonterminal_id {
-            //S
+            //S : . Id
             NonterminalId(0) => {
-                //S : . Id
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(0),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
-            //Id
+            //Id : . Id_Plus_0
             NonterminalId(1) => {
-                //Id : . Id_Plus_0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(2),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
             }
             //Id_Plus_0
             NonterminalId(2) => {
                 //Id_Plus_0 : . Id_Plus_0 Char
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(4),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 //Id_Plus_0 : . Char
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(7),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
             }
-            //StartS
+            //StartS : . WS start:S WS
             NonterminalId(3) => {
-                //StartS : . WS start:S WS
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(9),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
             }
-            //StartId
+            //StartId : . WS start:Id WS
             NonterminalId(4) => {
-                //StartId : . WS start:Id WS
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(13),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

@@ -11486,1443 +11486,493 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         env: Option<EnvId>,
     ) {
         match nonterminal_id {
-            //Grammar
+            //Grammar : . "grammar" Layout name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0
             NonterminalId(0) => {
-                //Grammar : . "grammar" Layout name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(0),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
-            //LayoutDef
+            //LayoutDef : . "layout" Layout Identifier
             NonterminalId(1) => {
-                //LayoutDef : . "layout" Layout Identifier
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(8),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
             }
             //Rule
             NonterminalId(2) => {
                 //Rule : . SyntaxRule
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(12),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 //Rule : . RegexRule
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(14),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
             }
-            //SyntaxRule
+            //SyntaxRule : . SyntaxRule_Opt_2 Layout head:Identifier Layout "=" Layout SyntaxRule_Star_1
             NonterminalId(3) => {
-                //SyntaxRule : . SyntaxRule_Opt_2 Layout head:Identifier Layout "=" Layout SyntaxRule_Star_1
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(16),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
             }
             //Annotation
             NonterminalId(4) => {
                 //Annotation : . "@NoLayout"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(24),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
                 //Annotation : . "@Layout" Layout "(" Layout Identifier Layout ")"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(26),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
             }
-            //RegexRule
+            //RegexRule : . "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
             NonterminalId(5) => {
-                //RegexRule : . "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(34),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
             }
-            //PreCondition
+            //PreCondition : . Identifier Layout "!<<"
             NonterminalId(6) => {
-                //PreCondition : . Identifier Layout "!<<"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(46),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(46), input_index, gss_node_id, env);
             }
             //PostCondition
             NonterminalId(7) => {
                 //PostCondition : . "\" Layout Identifier
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(50),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
                 //PostCondition : . "!>>" Layout Identifier
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(54),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(54), input_index, gss_node_id, env);
             }
-            //PriorityLevel
+            //PriorityLevel : . PriorityLevel_Opt_6 Layout PriorityLevel_Star_3
             NonterminalId(8) => {
-                //PriorityLevel : . PriorityLevel_Opt_6 Layout PriorityLevel_Star_3
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(58),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(58), input_index, gss_node_id, env);
             }
             //Associativity
             NonterminalId(9) => {
                 //Associativity : . "left"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(62),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(62), input_index, gss_node_id, env);
                 //Associativity : . "right"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(64),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
                 //Associativity : . "none"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(66),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
             }
-            //Alternative
+            //Alternative : . Alternative_Star_4 Layout Alternative_Opt_9
             NonterminalId(10) => {
-                //Alternative : . Alternative_Star_4 Layout Alternative_Opt_9
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(68),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(68), input_index, gss_node_id, env);
             }
             //Symbol
             NonterminalId(71) => {
                 //Symbol(p: i32) : . Identifier return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(72),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(75),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(75), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(82),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . String return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(91),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(91), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(94),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(94), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(105),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(105), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(116),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(116), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(123),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(123), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(130),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(130), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_8 return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(137),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(137), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_9 return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(144),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(144), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(151),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(151), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(158),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(158), input_index, gss_node_id, env);
                 //Symbol(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(165),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(165), input_index, gss_node_id, env);
             }
             //Regex
             NonterminalId(11) => {
                 //Regex : . Regex Layout "+"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(172),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(172), input_index, gss_node_id, env);
                 //Regex : . Regex Layout "*"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(176),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(176), input_index, gss_node_id, env);
                 //Regex : . Regex Layout "?"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(180),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(180), input_index, gss_node_id, env);
                 //Regex : . "(" Layout first:Regex Layout rest:Regex_Plus_11 Layout ")"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(184),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(184), input_index, gss_node_id, env);
                 //Regex : . "(" Layout RegexRule_Plus_3 Layout ")"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(192),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(192), input_index, gss_node_id, env);
                 //Regex : . CharClass
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(198),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(198), input_index, gss_node_id, env);
                 //Regex : . Char
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(200),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(200), input_index, gss_node_id, env);
                 //Regex : . String
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(202),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(202), input_index, gss_node_id, env);
                 //Regex : . Identifier
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(204),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(204), input_index, gss_node_id, env);
             }
-            //CharClass
+            //CharClass : . neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_12 Layout "]"
             NonterminalId(12) => {
-                //CharClass : . neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_12 Layout "]"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(206),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(206), input_index, gss_node_id, env);
             }
             //RangeElement
             NonterminalId(13) => {
                 //RangeElement : . Range
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(214),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(214), input_index, gss_node_id, env);
                 //RangeElement : . RangeChar
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(216),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(216), input_index, gss_node_id, env);
             }
-            //Range
+            //Range : . start:RangeChar Layout "-" Layout end:RangeChar
             NonterminalId(14) => {
-                //Range : . start:RangeChar Layout "-" Layout end:RangeChar
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(218),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(218), input_index, gss_node_id, env);
             }
-            //Layout
+            //Layout : . Layout_Star_5 !>> WS !>> LineComment
             NonterminalId(15) => {
-                //Layout : . Layout_Star_5 !>> WS !>> LineComment
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(224),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(224), input_index, gss_node_id, env);
             }
             //Grammar_Opt_0
             NonterminalId(16) => {
                 //Grammar_Opt_0 : . LayoutDef
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(226),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(226), input_index, gss_node_id, env);
                 //Grammar_Opt_0 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(228),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(228), input_index, gss_node_id, env);
             }
             //Grammar_Plus_0
             NonterminalId(17) => {
                 //Grammar_Plus_0 : . Grammar_Plus_0 Layout Rule
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(229),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(229), input_index, gss_node_id, env);
                 //Grammar_Plus_0 : . Rule
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(233),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(233), input_index, gss_node_id, env);
             }
             //Grammar_Opt_1
             NonterminalId(18) => {
                 //Grammar_Opt_1 : . Grammar_Plus_0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(235),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(235), input_index, gss_node_id, env);
                 //Grammar_Opt_1 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(237),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(237), input_index, gss_node_id, env);
             }
-            //Grammar_Star_0
+            //Grammar_Star_0 : . Grammar_Opt_1
             NonterminalId(19) => {
-                //Grammar_Star_0 : . Grammar_Opt_1
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(238),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(238), input_index, gss_node_id, env);
             }
             //SyntaxRule_Opt_2
             NonterminalId(20) => {
                 //SyntaxRule_Opt_2 : . Annotation
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(240),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(240), input_index, gss_node_id, env);
                 //SyntaxRule_Opt_2 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(242),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(242), input_index, gss_node_id, env);
             }
             //SyntaxRule_Plus_1
             NonterminalId(21) => {
                 //SyntaxRule_Plus_1 : . SyntaxRule_Plus_1 Layout ">" Layout PriorityLevel
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(243),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(243), input_index, gss_node_id, env);
                 //SyntaxRule_Plus_1 : . PriorityLevel
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(249),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(249), input_index, gss_node_id, env);
             }
             //SyntaxRule_Opt_3
             NonterminalId(22) => {
                 //SyntaxRule_Opt_3 : . SyntaxRule_Plus_1
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(251),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(251), input_index, gss_node_id, env);
                 //SyntaxRule_Opt_3 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(253),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(253), input_index, gss_node_id, env);
             }
-            //SyntaxRule_Star_1
+            //SyntaxRule_Star_1 : . SyntaxRule_Opt_3
             NonterminalId(23) => {
-                //SyntaxRule_Star_1 : . SyntaxRule_Opt_3
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(254),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(254), input_index, gss_node_id, env);
             }
             //RegexRule_Opt_4
             NonterminalId(24) => {
                 //RegexRule_Opt_4 : . PreCondition
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(256),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(256), input_index, gss_node_id, env);
                 //RegexRule_Opt_4 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(258),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(258), input_index, gss_node_id, env);
             }
             //RegexRule_Plus_3
             NonterminalId(25) => {
                 //RegexRule_Plus_3 : . RegexRule_Plus_3 Layout Regex
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(259),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(259), input_index, gss_node_id, env);
                 //RegexRule_Plus_3 : . Regex
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(263),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(263), input_index, gss_node_id, env);
             }
             //RegexRule_Plus_2
             NonterminalId(26) => {
                 //RegexRule_Plus_2 : . RegexRule_Plus_2 Layout "|" Layout RegexRule_Plus_3
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(265),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(265), input_index, gss_node_id, env);
                 //RegexRule_Plus_2 : . RegexRule_Plus_3
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(271),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(271), input_index, gss_node_id, env);
             }
             //RegexRule_Plus_4
             NonterminalId(27) => {
                 //RegexRule_Plus_4 : . RegexRule_Plus_4 Layout PostCondition
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(273),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(273), input_index, gss_node_id, env);
                 //RegexRule_Plus_4 : . PostCondition
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(277),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(277), input_index, gss_node_id, env);
             }
             //RegexRule_Opt_5
             NonterminalId(28) => {
                 //RegexRule_Opt_5 : . RegexRule_Plus_4
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(279),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(279), input_index, gss_node_id, env);
                 //RegexRule_Opt_5 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(281),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(281), input_index, gss_node_id, env);
             }
-            //RegexRule_Star_2
+            //RegexRule_Star_2 : . RegexRule_Opt_5
             NonterminalId(29) => {
-                //RegexRule_Star_2 : . RegexRule_Opt_5
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(282),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(282), input_index, gss_node_id, env);
             }
             //PriorityLevel_Opt_6
             NonterminalId(30) => {
                 //PriorityLevel_Opt_6 : . Associativity
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(284),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(284), input_index, gss_node_id, env);
                 //PriorityLevel_Opt_6 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(286),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(286), input_index, gss_node_id, env);
             }
             //PriorityLevel_Plus_5
             NonterminalId(31) => {
                 //PriorityLevel_Plus_5 : . PriorityLevel_Plus_5 Layout "|" Layout Alternative
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(287),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(287), input_index, gss_node_id, env);
                 //PriorityLevel_Plus_5 : . Alternative
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(293),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(293), input_index, gss_node_id, env);
             }
             //PriorityLevel_Opt_7
             NonterminalId(32) => {
                 //PriorityLevel_Opt_7 : . PriorityLevel_Plus_5
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(295),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(295), input_index, gss_node_id, env);
                 //PriorityLevel_Opt_7 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(297),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(297), input_index, gss_node_id, env);
             }
-            //PriorityLevel_Star_3
+            //PriorityLevel_Star_3 : . PriorityLevel_Opt_7
             NonterminalId(33) => {
-                //PriorityLevel_Star_3 : . PriorityLevel_Opt_7
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(298),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(298), input_index, gss_node_id, env);
             }
             //Alternative_Plus_6
             NonterminalId(34) => {
                 //Alternative_Plus_6 : . Alternative_Plus_6 Layout Symbol(0)
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(300),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(300), input_index, gss_node_id, env);
                 //Alternative_Plus_6 : . Symbol(0)
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(304),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(304), input_index, gss_node_id, env);
             }
             //Alternative_Opt_8
             NonterminalId(35) => {
                 //Alternative_Opt_8 : . Alternative_Plus_6
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(306),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(306), input_index, gss_node_id, env);
                 //Alternative_Opt_8 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(308),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(308), input_index, gss_node_id, env);
             }
-            //Alternative_Star_4
+            //Alternative_Star_4 : . Alternative_Opt_8
             NonterminalId(36) => {
-                //Alternative_Star_4 : . Alternative_Opt_8
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(309),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(309), input_index, gss_node_id, env);
             }
             //Alternative_Opt_9
             NonterminalId(37) => {
                 //Alternative_Opt_9 : . Label
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(311),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(311), input_index, gss_node_id, env);
                 //Alternative_Opt_9 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(313),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(313), input_index, gss_node_id, env);
             }
-            //Symbol_Group_0
+            //Symbol_Group_0 : . "|" Layout Symbol(0)
             NonterminalId(38) => {
-                //Symbol_Group_0 : . "|" Layout Symbol(0)
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(314),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(314), input_index, gss_node_id, env);
             }
             //Symbol_Plus_7
             NonterminalId(39) => {
                 //Symbol_Plus_7 : . Symbol_Plus_7 Layout Symbol_Group_0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(318),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(318), input_index, gss_node_id, env);
                 //Symbol_Plus_7 : . Symbol_Group_0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(322),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(322), input_index, gss_node_id, env);
             }
-            //Symbol_Group_1
+            //Symbol_Group_1 : . "\" Layout Identifier
             NonterminalId(40) => {
-                //Symbol_Group_1 : . "\" Layout Identifier
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(324),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(324), input_index, gss_node_id, env);
             }
             //Symbol_Plus_8
             NonterminalId(41) => {
                 //Symbol_Plus_8 : . Symbol_Plus_8 Layout Symbol_Group_1
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(328),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(328), input_index, gss_node_id, env);
                 //Symbol_Plus_8 : . Symbol_Group_1
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(332),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(332), input_index, gss_node_id, env);
             }
-            //Symbol_Group_2
+            //Symbol_Group_2 : . "!>>" Layout Identifier
             NonterminalId(42) => {
-                //Symbol_Group_2 : . "!>>" Layout Identifier
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(334),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(334), input_index, gss_node_id, env);
             }
             //Symbol_Plus_9
             NonterminalId(43) => {
                 //Symbol_Plus_9 : . Symbol_Plus_9 Layout Symbol_Group_2
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(338),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(338), input_index, gss_node_id, env);
                 //Symbol_Plus_9 : . Symbol_Group_2
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(342),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(342), input_index, gss_node_id, env);
             }
-            //Symbol_Group_3
+            //Symbol_Group_3 : . "!" Layout Identifier
             NonterminalId(44) => {
-                //Symbol_Group_3 : . "!" Layout Identifier
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(344),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(344), input_index, gss_node_id, env);
             }
             //Symbol_Plus_10
             NonterminalId(45) => {
                 //Symbol_Plus_10 : . Symbol_Plus_10 Layout Symbol_Group_3
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(348),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(348), input_index, gss_node_id, env);
                 //Symbol_Plus_10 : . Symbol_Group_3
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(352),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(352), input_index, gss_node_id, env);
             }
-            //Regex_Group_4
+            //Regex_Group_4 : . "|" Layout Regex
             NonterminalId(46) => {
-                //Regex_Group_4 : . "|" Layout Regex
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(354),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(354), input_index, gss_node_id, env);
             }
             //Regex_Plus_11
             NonterminalId(47) => {
                 //Regex_Plus_11 : . Regex_Plus_11 Layout Regex_Group_4
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(358),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(358), input_index, gss_node_id, env);
                 //Regex_Plus_11 : . Regex_Group_4
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(362),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(362), input_index, gss_node_id, env);
             }
             //CharClass_Opt_10
             NonterminalId(48) => {
                 //CharClass_Opt_10 : . "!"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(364),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(364), input_index, gss_node_id, env);
                 //CharClass_Opt_10 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(366),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(366), input_index, gss_node_id, env);
             }
             //CharClass_Plus_12
             NonterminalId(49) => {
                 //CharClass_Plus_12 : . CharClass_Plus_12 Layout RangeElement
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(367),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(367), input_index, gss_node_id, env);
                 //CharClass_Plus_12 : . RangeElement
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(371),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(371), input_index, gss_node_id, env);
             }
             //Layout_Alt_0
             NonterminalId(50) => {
                 //Layout_Alt_0 : . WS
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(373),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(373), input_index, gss_node_id, env);
                 //Layout_Alt_0 : . LineComment
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(375),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(375), input_index, gss_node_id, env);
             }
             //Layout_Plus_13
             NonterminalId(51) => {
                 //Layout_Plus_13 : . Layout_Plus_13 Layout_Alt_0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(377),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(377), input_index, gss_node_id, env);
                 //Layout_Plus_13 : . Layout_Alt_0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(380),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(380), input_index, gss_node_id, env);
             }
             //Layout_Opt_11
             NonterminalId(52) => {
                 //Layout_Opt_11 : . Layout_Plus_13
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(382),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(382), input_index, gss_node_id, env);
                 //Layout_Opt_11 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(384),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(384), input_index, gss_node_id, env);
             }
-            //Layout_Star_5
+            //Layout_Star_5 : . Layout_Opt_11
             NonterminalId(53) => {
-                //Layout_Star_5 : . Layout_Opt_11
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(385),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(385), input_index, gss_node_id, env);
             }
             //Symbol_except_Except
             NonterminalId(72) => {
                 //Symbol_except_Except(p: i32) : . Identifier return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(387),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(387), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(390),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(390), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(397),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(397), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . String return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(406),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(406), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(409),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(409), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(420),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(420), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(431),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(431), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(438),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(438), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(445),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(445), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_9 return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(452),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(452), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(459),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(459), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(466),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(466), input_index, gss_node_id, env);
                 //Symbol_except_Except(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(473),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(473), input_index, gss_node_id, env);
             }
             //Symbol_except_FollowRestriction
             NonterminalId(73) => {
                 //Symbol_except_FollowRestriction(p: i32) : . Identifier return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(480),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(480), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(483),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(483), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(490),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(490), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . String return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(499),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(499), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(502),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(502), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(513),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(513), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(524),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(524), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(531),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(531), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(538),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(538), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_8 return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(545),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(545), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(552),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(552), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(559),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(559), input_index, gss_node_id, env);
                 //Symbol_except_FollowRestriction(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(566),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(566), input_index, gss_node_id, env);
             }
-            //StartGrammar
+            //StartGrammar : . Layout start:Grammar Layout
             NonterminalId(54) => {
-                //StartGrammar : . Layout start:Grammar Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(573),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(573), input_index, gss_node_id, env);
             }
-            //StartLayoutDef
+            //StartLayoutDef : . Layout start:LayoutDef Layout
             NonterminalId(55) => {
-                //StartLayoutDef : . Layout start:LayoutDef Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(577),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(577), input_index, gss_node_id, env);
             }
-            //StartRule
+            //StartRule : . Layout start:Rule Layout
             NonterminalId(56) => {
-                //StartRule : . Layout start:Rule Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(581),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(581), input_index, gss_node_id, env);
             }
-            //StartSyntaxRule
+            //StartSyntaxRule : . Layout start:SyntaxRule Layout
             NonterminalId(57) => {
-                //StartSyntaxRule : . Layout start:SyntaxRule Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(585),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(585), input_index, gss_node_id, env);
             }
-            //StartAnnotation
+            //StartAnnotation : . Layout start:Annotation Layout
             NonterminalId(58) => {
-                //StartAnnotation : . Layout start:Annotation Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(589),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(589), input_index, gss_node_id, env);
             }
-            //StartRegexRule
+            //StartRegexRule : . Layout start:RegexRule Layout
             NonterminalId(59) => {
-                //StartRegexRule : . Layout start:RegexRule Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(593),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(593), input_index, gss_node_id, env);
             }
-            //StartPreCondition
+            //StartPreCondition : . Layout start:PreCondition Layout
             NonterminalId(60) => {
-                //StartPreCondition : . Layout start:PreCondition Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(597),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(597), input_index, gss_node_id, env);
             }
-            //StartPostCondition
+            //StartPostCondition : . Layout start:PostCondition Layout
             NonterminalId(61) => {
-                //StartPostCondition : . Layout start:PostCondition Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(601),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(601), input_index, gss_node_id, env);
             }
-            //StartPriorityLevel
+            //StartPriorityLevel : . Layout start:PriorityLevel Layout
             NonterminalId(62) => {
-                //StartPriorityLevel : . Layout start:PriorityLevel Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(605),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(605), input_index, gss_node_id, env);
             }
-            //StartAssociativity
+            //StartAssociativity : . Layout start:Associativity Layout
             NonterminalId(63) => {
-                //StartAssociativity : . Layout start:Associativity Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(609),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(609), input_index, gss_node_id, env);
             }
-            //StartAlternative
+            //StartAlternative : . Layout start:Alternative Layout
             NonterminalId(64) => {
-                //StartAlternative : . Layout start:Alternative Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(613),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(613), input_index, gss_node_id, env);
             }
-            //StartSymbol
+            //StartSymbol : . Layout start:Symbol(0) Layout
             NonterminalId(65) => {
-                //StartSymbol : . Layout start:Symbol(0) Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(617),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(617), input_index, gss_node_id, env);
             }
-            //StartRegex
+            //StartRegex : . Layout start:Regex Layout
             NonterminalId(66) => {
-                //StartRegex : . Layout start:Regex Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(621),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(621), input_index, gss_node_id, env);
             }
-            //StartCharClass
+            //StartCharClass : . Layout start:CharClass Layout
             NonterminalId(67) => {
-                //StartCharClass : . Layout start:CharClass Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(625),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(625), input_index, gss_node_id, env);
             }
-            //StartRangeElement
+            //StartRangeElement : . Layout start:RangeElement Layout
             NonterminalId(68) => {
-                //StartRangeElement : . Layout start:RangeElement Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(629),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(629), input_index, gss_node_id, env);
             }
-            //StartRange
+            //StartRange : . Layout start:Range Layout
             NonterminalId(69) => {
-                //StartRange : . Layout start:Range Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(633),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(633), input_index, gss_node_id, env);
             }
-            //StartLayout
+            //StartLayout : . Layout start:Layout Layout
             NonterminalId(70) => {
-                //StartLayout : . Layout start:Layout Layout
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(637),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(637), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

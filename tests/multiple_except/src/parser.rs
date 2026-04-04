@@ -179,27 +179,13 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
         env: Option<EnvId>,
     ) {
         match nonterminal_id {
-            //SyntaxIdentifier
+            //SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
             NonterminalId(0) => {
-                //SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(0),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
-            //LexicalIdentifier
+            //LexicalIdentifier : . Identifier
             NonterminalId(1) => {
-                //LexicalIdentifier : . Identifier
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(2),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

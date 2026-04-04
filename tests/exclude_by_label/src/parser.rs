@@ -583,97 +583,36 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             //Expr
             NonterminalId(0) => {
                 //Expr : . Id
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(0),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 //Expr : . Expr "(" Expr_Star_0 ")"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(2),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 //Expr : . Expr "," Expr
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(7),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
             }
             //Expr_Plus_0
             NonterminalId(1) => {
                 //Expr_Plus_0 : . Expr_Plus_0 "," Expr_except_comma
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(11),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 //Expr_Plus_0 : . Expr_except_comma
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(15),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
             }
             //Expr_Opt_0
             NonterminalId(2) => {
                 //Expr_Opt_0 : . Expr_Plus_0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(17),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(17), input_index, gss_node_id, env);
                 //Expr_Opt_0 : .
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(19),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
             }
-            //Expr_Star_0
+            //Expr_Star_0 : . Expr_Opt_0
             NonterminalId(3) => {
-                //Expr_Star_0 : . Expr_Opt_0
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(20),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(20), input_index, gss_node_id, env);
             }
             //Expr_except_comma
             NonterminalId(4) => {
                 //Expr_except_comma : . Id
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(22),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(22), input_index, gss_node_id, env);
                 //Expr_except_comma : . Expr "(" Expr_Star_0 ")"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(24),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

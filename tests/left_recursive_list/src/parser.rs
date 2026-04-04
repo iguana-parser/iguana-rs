@@ -165,21 +165,9 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             //A
             NonterminalId(0) => {
                 //A : . A "a"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(0),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 //A : . "a"
-                self.add_descriptor(Descriptor {
-                    input_index,
-                    slot_id: SlotId(3),
-                    sppf_node_id: None,
-                    gss_node_id,
-                    env,
-                });
+                self.add_first_descriptor(SlotId(3), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

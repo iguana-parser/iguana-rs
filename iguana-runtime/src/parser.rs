@@ -61,6 +61,21 @@ pub trait Parser<'i> {
     fn sppf_node_mut(&mut self, id: SPPFNodeId) -> &mut SPPFNode;
     fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode;
     fn add_descriptor(&mut self, descriptor: Descriptor);
+    fn add_first_descriptor(
+        &mut self,
+        slot_id: SlotId,
+        input_index: u32,
+        gss_node_id: GssNodeId,
+        env: Option<EnvId>,
+    ) {
+        self.add_descriptor(Descriptor {
+            input_index,
+            slot_id,
+            sppf_node_id: None,
+            gss_node_id,
+            env,
+        });
+    }
     fn next_descriptor(&mut self) -> Option<Descriptor>;
     fn input(&self) -> &'i Input;
     fn stats(&self) -> &Stats;
