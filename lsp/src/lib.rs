@@ -1,3 +1,4 @@
+pub mod format;
 pub mod semantic_tokens;
 
 use iggy::parse_tree::ParseTree;
