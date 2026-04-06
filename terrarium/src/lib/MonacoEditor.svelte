@@ -21,6 +21,28 @@
 
     monaco.languages.register({ id: "iggy" });
 
+    // Monarch baseline tokenizer — provides instant, synchronous syntax
+    // highlighting so the editor is never "white". Semantic tokens from the
+    // backend are layered on top and override these where they apply.
+    monaco.languages.setMonarchTokensProvider("iggy", {
+      keywords: ["grammar", "layout", "left", "right", "none"],
+      tokenizer: {
+        root: [
+          [/\/\/.*$/, "comment"],
+          [/@(regex|NoLayout|Layout)\b/, "decorator"],
+          [/#[A-Za-z_]\w*/, "comment"],           // labels
+          [/"[^"]*"/, "string"],
+          [/'[^']*'/, "string"],
+          [/!>>|!<</, "operator"],
+          [/[=|>*+?!:\\(){}\[\]\-]/, "operator"],
+          [
+            /[A-Za-z_]\w*/,
+            { cases: { "@keywords": "keyword", "@default": "type" } },
+          ],
+        ],
+      },
+    });
+
     // Define theme rules for semantic token types
     monaco.editor.defineTheme("iggy-dark", {
       base: "vs-dark",
@@ -133,6 +155,23 @@
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD, () => {
       editor.getAction("editor.action.deleteLines")?.run();
     });
+
+    // Cmd+Shift+F / Ctrl+Shift+F: Format grammar
+    // Uses executeEdits (not setValue) to avoid resetting semantic tokens,
+    // which would cause a white flash while tokens are re-fetched.
+    editor.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF,
+      async () => {
+        const model = editor.getModel();
+        if (!model) return;
+        const source = model.getValue();
+        const formatted = await invoke<string | null>("format_grammar", { source });
+        if (formatted === null || formatted === source) return;
+        editor.executeEdits("format", [
+          { range: model.getFullModelRange(), text: formatted },
+        ]);
+      },
+    );
 
     editor.onDidChangeModelContent(() => {
       if (ignoreChange) return;

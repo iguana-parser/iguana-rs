@@ -195,6 +195,26 @@ async analyzeGrammar(source: string) : Promise<AnalyzeResult> {
     return await TAURI_INVOKE("analyze_grammar", { source });
 },
 /**
+ * Profile grammar parsing with pprof and save a flamegraph SVG.
+ * Returns the path to the generated SVG file.
+ */
+async profileGrammar(source: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("profile_grammar", { source }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Format the grammar using the cached parse result.
+ * Falls back to parsing the source if no cached result exists.
+ * Returns None if parsing fails (grammar cannot be formatted).
+ */
+async formatGrammar(source: string) : Promise<string | null> {
+    return await TAURI_INVOKE("format_grammar", { source });
+},
+/**
  * Return semantic tokens from the cached parse result.
  */
 async getSemanticTokens() : Promise<SemanticTokenData[]> {

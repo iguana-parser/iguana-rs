@@ -582,6 +582,22 @@ fn analyze_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> 
     }
 }
 
+/// Format the grammar using the cached parse result.
+/// Falls back to parsing the source if no cached result exists.
+/// Returns None if parsing fails (grammar cannot be formatted).
+#[tauri::command]
+#[specta::specta]
+fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> Option<String> {
+    let st = state.lock().unwrap();
+    if let Some(ref parse_result) = st.parse_result {
+        lsp::format::format(parse_result)
+    } else {
+        drop(st);
+        let result = lsp::parse(&source);
+        lsp::format::format(&result)
+    }
+}
+
 /// Return semantic tokens from the cached parse result.
 #[tauri::command]
 #[specta::specta]
@@ -954,6 +970,7 @@ pub fn run() {
         get_debug_errors,
         get_event_log,
         analyze_grammar,
+        format_grammar,
         get_semantic_tokens,
         get_semantic_tokens_legend
     ]);

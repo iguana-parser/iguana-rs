@@ -4,7 +4,7 @@ use std::error::Error;
 
 use lsp_server::Connection;
 use lsp_types::{
-    SemanticTokensFullOptions, SemanticTokensOptions, ServerCapabilities,
+    OneOf, SemanticTokensFullOptions, SemanticTokensOptions, ServerCapabilities,
 };
 
 use crate::server::main_loop;
@@ -24,6 +24,7 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
             }
             .into(),
         ),
+        document_formatting_provider: Some(OneOf::Left(true)),
         ..Default::default()
     })
     .unwrap();
