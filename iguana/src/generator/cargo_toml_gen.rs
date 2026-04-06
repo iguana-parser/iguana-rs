@@ -21,6 +21,7 @@ rustc-hash = "2.1.1"
 serde_json = "1.0"
 dhat = "0.3"
 phf = {{ version = "0.11", features = ["macros"] }}
+pprof = {{ version = "0.14", features = ["flamegraph"], optional = true }}
 
 [lints]
 workspace = true
@@ -28,6 +29,7 @@ workspace = true
 [features]
 dhat-heap = []
 debug-trace = ["iguana-runtime/debug-trace"]
+profile = ["pprof"]
     "#,
         to_snake_case(grammar_name)
     )

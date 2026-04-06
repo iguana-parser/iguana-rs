@@ -2,3 +2,4 @@
 /.idea
 .vscode/launch.json
 **/.DS_Store
+iggy/flamegraph.svg
