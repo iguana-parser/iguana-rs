@@ -156,6 +156,22 @@
       }
     });
 
+    const unlistenProfileProgress = listen<{ stage: string; message: string }>("profile-progress", (event) => {
+      setStatus(event.payload.message, "info");
+    });
+
+    const unlistenProfileResult = listen<{ success: boolean; message: string }>("profile-result", (event) => {
+      isProfiling = false;
+      if (event.payload.success) {
+        setStatus("Flamegraph opened in browser", "success");
+        logOutput(event.payload.message);
+      } else {
+        setStatus("Profiling failed", "error");
+        logError(`Profiling failed\n${event.payload.message}`);
+        outputPanelOpen = true;
+      }
+    });
+
     // Track window width for proportional column resizing
     let lastWindowWidth = window.innerWidth;
 
@@ -310,6 +326,7 @@
   let parserDirectory = $state<string | null>(null);
   let parserName = $state<string | null>(null);
   let isBuilding = $state(false);
+  let isProfiling = $state(false);
   let buildStatus = $state<"none" | "success" | "error">("none");
   let buildError = $state<string | null>(null);
   let showReadyStatus = $state(false);
@@ -1095,7 +1112,7 @@
   }
 
   // Resizable panes
-  let leftPanelWidth = $state(350);
+  let leftPanelWidth = $state(400);
   let callStackHeight = $state(200);
   let inputHeight = $state(200);
   let currentDescHeight = $state(120);  // ~25% of column
@@ -1268,6 +1285,14 @@
     } else if (output.has_gss) {
       await fetchGss();
     }
+  }
+
+  function profileParser() {
+    if (!parserDirectory || buildStatus !== "success" || !startNonterminal) return;
+    isProfiling = true;
+    const startSymbol = `Start${startNonterminal}`;
+    logCommand(`${parserName} <input> --start ${startSymbol} --profile 1000`);
+    commands.profile(parserDirectory, inputText, startSymbol, 1000);
   }
 
   async function setupVscodeDebug() {
@@ -2358,7 +2383,12 @@
             {/if}
           </div>
         </div>
-        <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Parse</button>
+        <div class="parse-actions">
+          <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Parse</button>
+          <button class="parse-btn" onclick={profileParser} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal || isProfiling}>
+            {isProfiling ? "Profiling..." : "Profile"}
+          </button>
+        </div>
       </div>
 
     <!-- Input Area -->
@@ -3523,10 +3553,17 @@
   .header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 8px 12px;
     padding: 12px;
     border-bottom: 1px solid #3c3c3c;
     background: #2d2d2d;
+  }
+
+  .parse-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
   }
 
   .dropdown-wrapper {

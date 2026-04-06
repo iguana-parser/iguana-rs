@@ -6,6 +6,7 @@ use iguana::visualization::{gss::GSS, sppf::SPPF};
 use serde::Serialize;
 use specta::Type;
 use tauri::Emitter;
+use tauri_plugin_opener::OpenerExt;
 use tauri_specta::{collect_commands, Builder};
 use tempfile::{NamedTempFile, TempDir};
 use toml::Value;
@@ -127,12 +128,12 @@ fn read_parser_name(directory: &str) -> Result<String, String> {
         .ok_or_else(|| "No valid Iguana parser found in this directory.".to_string())
 }
 
-fn get_parser_binary_path(directory: &str) -> Result<PathBuf, String> {
+fn find_parser_binary(directory: &str, profile: &str) -> Result<PathBuf, String> {
     let parser_name = read_parser_name(directory)?;
     let dir_path = Path::new(directory);
 
     // First, check local target directory (standalone project)
-    let local_path = dir_path.join("target").join("debug").join(&parser_name);
+    let local_path = dir_path.join("target").join(profile).join(&parser_name);
     if local_path.exists() {
         return Ok(local_path);
     }
@@ -145,7 +146,8 @@ fn get_parser_binary_path(directory: &str) -> Result<PathBuf, String> {
         if parent_cargo.exists() {
             if let Ok(content) = fs::read_to_string(&parent_cargo) {
                 if content.contains("[workspace]") {
-                    let workspace_path = parent.join("target").join("debug").join(&parser_name);
+                    let workspace_path =
+                        parent.join("target").join(profile).join(&parser_name);
                     if workspace_path.exists() {
                         return Ok(workspace_path);
                     }
@@ -156,9 +158,14 @@ fn get_parser_binary_path(directory: &str) -> Result<PathBuf, String> {
     }
 
     Err(format!(
-        "Parser binary '{}' not found. Please build first.",
-        parser_name
+        "Parser binary '{}' not found in {} profile. Please build first.",
+        parser_name, profile
     ))
+}
+
+fn get_parser_binary_path(directory: &str) -> Result<PathBuf, String> {
+    find_parser_binary(directory, "release")
+        .or_else(|_| find_parser_binary(directory, "debug"))
 }
 
 #[tauri::command]
@@ -220,7 +227,7 @@ fn build_parser(directory: String, app: tauri::AppHandle) {
         );
 
         let build_output = Command::new("cargo")
-            .args(["build", "--features", "debug-trace"])
+            .args(["build", "--release", "--features", "debug-trace,profile"])
             .current_dir(&directory)
             .output();
 
@@ -396,6 +403,123 @@ fn get_parse_tree(state: tauri::State<Mutex<ParseState>>) -> Result<String, Stri
 
     fs::read_to_string(parse_tree_path)
         .map_err(|e| format!("Failed to read parse tree file: {}", e))
+}
+
+/// Profile the parser by building with --features profile (release mode),
+/// running the parser in a loop under a sampling profiler, and opening the
+/// resulting flamegraph SVG in the default browser.
+#[tauri::command]
+#[specta::specta]
+fn profile(
+    directory: String,
+    input: String,
+    start_nonterminal: String,
+    iterations: u32,
+    app: tauri::AppHandle,
+) {
+    thread::spawn(move || {
+        let _ = app.emit(
+            "profile-progress",
+            BuildProgress {
+                stage: "profile".into(),
+                message: "Profiling...".into(),
+            },
+        );
+
+        let parser_path = match find_parser_binary(&directory, "release") {
+            Ok(p) => p,
+            Err(e) => {
+                let _ = app.emit(
+                    "profile-result",
+                    BuildResult {
+                        success: false,
+                        message: e,
+                        duration_ms: None,
+                    },
+                );
+                return;
+            }
+        };
+
+        // Write input to a temp file
+        let mut input_file = match NamedTempFile::new() {
+            Ok(f) => f,
+            Err(e) => {
+                let _ = app.emit(
+                    "profile-result",
+                    BuildResult {
+                        success: false,
+                        message: format!("Failed to create temp file: {}", e),
+                        duration_ms: None,
+                    },
+                );
+                return;
+            }
+        };
+        if let Err(e) = input_file.write_all(input.as_bytes()) {
+            let _ = app.emit(
+                "profile-result",
+                BuildResult {
+                    success: false,
+                    message: format!("Failed to write input: {}", e),
+                    duration_ms: None,
+                },
+            );
+            return;
+        }
+
+        let flamegraph_path = Path::new(&directory).join("flamegraph.svg");
+
+        let output = Command::new(&parser_path)
+            .arg(input_file.path())
+            .arg("--start")
+            .arg(&start_nonterminal)
+            .arg("--profile")
+            .arg(iterations.to_string())
+            .arg("--profile-output")
+            .arg(&flamegraph_path)
+            .output();
+
+        match output {
+            Ok(output) if output.status.success() => {
+                // Open the flamegraph SVG in the default browser
+                let url = format!("file://{}", flamegraph_path.display());
+                let _ = app.opener().open_url(&url, None::<&str>);
+                let _ = app.emit(
+                    "profile-result",
+                    BuildResult {
+                        success: true,
+                        message: format!(
+                            "Flamegraph written to {}",
+                            flamegraph_path.display()
+                        ),
+                        duration_ms: None,
+                    },
+                );
+            }
+            Ok(output) => {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                let _ = app.emit(
+                    "profile-result",
+                    BuildResult {
+                        success: false,
+                        message: format!("Profiling failed: {}", stderr),
+                        duration_ms: None,
+                    },
+                );
+            }
+            Err(e) => {
+                let _ = app.emit(
+                    "profile-result",
+                    BuildResult {
+                        success: false,
+                        message: format!("Failed to run parser: {}", e),
+                        duration_ms: None,
+                    },
+                );
+            }
+        }
+    });
 }
 
 /// Sets up VS Code debug configuration for the current parser.
@@ -952,6 +1076,7 @@ pub fn run() {
         build_parser,
         generate_parser,
         parse,
+        profile,
         get_sppf,
         get_gss,
         get_parse_tree,

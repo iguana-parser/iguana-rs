@@ -43,6 +43,14 @@ async parse(directory: string, input: string, startNonterminal: string) : Promis
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Profile the parser by building with --features profile (release mode),
+ * running the parser in a loop under a sampling profiler, and opening the
+ * resulting flamegraph SVG in the default browser.
+ */
+async profile(directory: string, input: string, startNonterminal: string, iterations: number) : Promise<void> {
+    await TAURI_INVOKE("profile", { directory, input, startNonterminal, iterations });
+},
 async getSppf() : Promise<Result<SPPF, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_sppf") };
@@ -193,18 +201,6 @@ async getEventLog() : Promise<Result<EventLogEntry[], string>> {
  */
 async analyzeGrammar(source: string) : Promise<AnalyzeResult> {
     return await TAURI_INVOKE("analyze_grammar", { source });
-},
-/**
- * Profile grammar parsing with pprof and save a flamegraph SVG.
- * Returns the path to the generated SVG file.
- */
-async profileGrammar(source: string) : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("profile_grammar", { source }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
 },
 /**
  * Format the grammar using the cached parse result.
