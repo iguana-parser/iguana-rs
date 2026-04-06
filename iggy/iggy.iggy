@@ -9,25 +9,25 @@ LayoutDef
   = "layout" Identifier
 
 Rule
-  = SyntaxRule       #SyntaxRule
-  | RegexRule        #RegexRule
+  = SyntaxRule #SyntaxRule
+  | RegexRule  #RegexRule
 
 SyntaxRule
-  = Annotation? head:Identifier "=" {PriorityLevel ">"}*
+  = Annotation? head:Identifier "=" { PriorityLevel ">" }*
 
 Annotation
-  = "@NoLayout"                        #NoLayout
-  | "@Layout" "(" Identifier ")"       #Layout
+  = "@NoLayout"                  #NoLayout
+  | "@Layout" "(" Identifier ")" #Layout
 
 RegexRule
   = "@regex" Identifier "=" PreCondition? body:{ Regex+ "|" }+ PostCondition*
 
 PreCondition
-  = Identifier "!<<"                   #PrecedeRestriction
+  = Identifier "!<<" #PrecedeRestriction
 
 PostCondition
-  = "\\" Identifier              #Except
-  | "!>>" Identifier             #FollowRestriction
+  = "\\" Identifier  #Except
+  | "!>>" Identifier #FollowRestriction
 
 PriorityLevel
   = Associativity? { Alternative "|" }*
@@ -41,31 +41,31 @@ Alternative
   = Symbol* Label?
 
 Symbol
-  = Identifier                               #Identifier
-  | "(" Symbol+ ")"                          #Group
-  | "(" first:Symbol rest:("|" Symbol)+ ")"  #Alt
-  | String                                    #Lit
-  | "{" symbol:Symbol sep:Symbol "}" "*"     #StarSep
-  | "{" symbol:Symbol sep:Symbol "}" "+"     #PlusSep
-  > Symbol "*"                               #Star
-  | Symbol "+"                               #Plus
-  | Symbol "?"                               #Opt
-  | Symbol!Except excepts:("\\" Identifier)+  #Except
+  = Identifier                                                #Identifier
+  | "(" Symbol+ ")"                                           #Group
+  | "(" first:Symbol rest:("|" Symbol)+ ")"                   #Alt
+  | String                                                    #Lit
+  | "{" symbol:Symbol sep:Symbol "}" "*"                      #StarSep
+  | "{" symbol:Symbol sep:Symbol "}" "+"                      #PlusSep
+  > Symbol "*"                                                #Star
+  | Symbol "+"                                                #Plus
+  | Symbol "?"                                                #Opt
+  | Symbol!Except excepts:("\\" Identifier)+                  #Except
   | Symbol!FollowRestriction restrictions:("!>>" Identifier)+ #FollowRestriction
-  | Symbol labels:("!" Identifier)+          #Exclude
-  > Identifier "!<<" Symbol                  #PrecedeRestriction
-  > label:Identifier ":" Symbol              #Labeled
+  | Symbol labels:("!" Identifier)+                           #Exclude
+  > Identifier "!<<" Symbol                                   #PrecedeRestriction
+  > label:Identifier ":" Symbol                               #Labeled
 
 Regex
-  = Regex "+"                                 #Plus
-  | Regex "*"                                 #Star
-  | Regex "?"                                 #Opt
-  | "(" first:Regex rest:("|" Regex)+ ")"     #Alt
-  | "(" Regex+ ")"                            #Group
-  | CharClass                                 #CharClass
-  | Char                                       #Char
-  | String                                    #String
-  | Identifier                                #Identifier
+  = Regex "+"                             #Plus
+  | Regex "*"                             #Star
+  | Regex "?"                             #Opt
+  | "(" first:Regex rest:("|" Regex)+ ")" #Alt
+  | "(" Regex+ ")"                        #Group
+  | CharClass                             #CharClass
+  | Char                                  #Char
+  | String                                #String
+  | Identifier                            #Identifier
 
 CharClass
   = neg:"!"? "[" RangeElement+ "]"
@@ -85,7 +85,7 @@ Layout
 Keyword = "grammar" | "layout" | "left" | "right" | "none"
 
 @regex
-Identifier = [a-zA-Z_][a-zA-Z_0-9]* \ Keyword
+Identifier = [a-zA-Z_] [a-zA-Z_0-9]* \ Keyword
 
 @regex
 String = "\"" (EscapeChar | !["\\])* "\""
@@ -94,21 +94,19 @@ String = "\"" (EscapeChar | !["\\])* "\""
 Char = "'" (EscapeChar | !['\\]) "'"
 
 @regex
-EscapeChar = "\\" [" ' \\ t f r n]
+EscapeChar = "\\" ["'\\tfrn]
 
 @regex
-RangeChar
-  = ![\\ \- \[ \] \t \f \r \n \ ]
-  | "\\" [\\ \- \[ \] t f r n \ ]
+RangeChar = ![\\\-\[\]\t\f\r\n\ ] | "\\" [\\\-\[\]tfrn\ ]
 
 @regex
-Label = "#" [a-zA-Z_][a-zA-Z_0-9]*
+Label = "#" [a-zA-Z_] [a-zA-Z_0-9]*
 
 @regex
 WS = WSChar+
 
 @regex
-WSChar = [\ \n \t]
+WSChar = [\ \n\t]
 
 @regex
 LineComment = "//" ![\n]*
