@@ -1,10 +1,11 @@
-use std::{iter, slice};
+use std::{array, iter, slice};
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub enum InlineVec<T> {
     #[default]
     Empty,
     Single(T),
+    Pair(T, T),
     Multiple(Vec<T>),
 }
 
@@ -13,9 +14,14 @@ impl<T> InlineVec<T> {
         match self {
             InlineVec::Empty => *self = InlineVec::Single(value),
             InlineVec::Single(_) => match std::mem::take(self) {
-                InlineVec::Single(current_value) => {
+                InlineVec::Single(t) => *self = InlineVec::Pair(t, value),
+                _ => unreachable!(),
+            },
+            InlineVec::Pair(_, _) => match std::mem::take(self) {
+                InlineVec::Pair(first, second) => {
                     let mut v = Vec::with_capacity(8);
-                    v.push(current_value);
+                    v.push(first);
+                    v.push(second);
                     v.push(value);
                     *self = InlineVec::Multiple(v)
                 }
@@ -29,6 +35,7 @@ impl<T> InlineVec<T> {
         match self {
             InlineVec::Empty => 0,
             InlineVec::Single(_) => 1,
+            InlineVec::Pair(_, _) => 2,
             InlineVec::Multiple(v) => v.len(),
         }
     }
@@ -45,6 +52,7 @@ impl<T> InlineVec<T> {
         match self {
             InlineVec::Empty => None,
             InlineVec::Single(v) => Some(v),
+            InlineVec::Pair(first, _) => Some(first),
             InlineVec::Multiple(v) => v.first(),
         }
     }
@@ -53,6 +61,7 @@ impl<T> InlineVec<T> {
 pub enum Iter<'a, T> {
     Empty(iter::Empty<&'a T>),
     Single(iter::Once<&'a T>),
+    Pair(array::IntoIter<&'a T, 2>),
     Multiple(slice::Iter<'a, T>),
 }
 
@@ -61,8 +70,9 @@ impl<'a, T> Iterator for Iter<'a, T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {
-            Iter::Empty(empty) => empty.next(),
-            Iter::Single(once) => once.next(),
+            Iter::Empty(iter) => iter.next(),
+            Iter::Single(iter) => iter.next(),
+            Iter::Pair(iter) => iter.next(),
             Iter::Multiple(iter) => iter.next(),
         }
     }
@@ -76,6 +86,7 @@ impl<'a, T> IntoIterator for &'a InlineVec<T> {
         match self {
             InlineVec::Empty => Iter::Empty(iter::empty()),
             InlineVec::Single(x) => Iter::Single(iter::once(x)),
+            InlineVec::Pair(first, second) => Iter::Pair([first, second].into_iter()),
             InlineVec::Multiple(v) => Iter::Multiple(v.iter()),
         }
     }
@@ -85,6 +96,9 @@ impl<'a, T> IntoIterator for &'a InlineVec<T> {
 macro_rules! inline_vec {
     () => {
         $crate::utils::inline_vec::InlineVec::Empty
+    };
+    ($first:expr, $second:expr $(,)?) => {
+        $crate::utils::inline_vec::InlineVec::Pair($first, $second)
     };
     ($first:expr, $($rest:expr),+ $(,)?) => {
         $crate::utils::inline_vec::InlineVec::Multiple(vec![$first $(, $rest)+])
@@ -119,10 +133,26 @@ mod tests {
     fn test_add_to_single() {
         let mut l = InlineVec::Single(1);
         l.push(2);
+        assert_eq!(l, InlineVec::Pair(1, 2));
+        assert_eq!(l.len(), 2);
+        let elements: Vec<&usize> = l.into_iter().collect();
+        assert_eq!(elements, vec![&1, &2]);
+    }
+
+    #[test]
+    fn test_add_to_pair() {
+        let mut l = InlineVec::Pair(1, 2);
         l.push(3);
+        assert_eq!(l, InlineVec::Multiple(vec![1, 2, 3]));
         assert_eq!(l.len(), 3);
         let elements: Vec<&usize> = l.into_iter().collect();
         assert_eq!(elements, vec![&1, &2, &3]);
+    }
+
+    #[test]
+    fn test_pair_first() {
+        let l = InlineVec::Pair(1, 2);
+        assert_eq!(l.first(), Some(&1));
     }
 
     #[test]
@@ -141,6 +171,18 @@ mod tests {
     fn single_with_trailing_comma() {
         let v = inline_vec![1,];
         assert_eq!(v, InlineVec::Single(1));
+    }
+
+    #[test]
+    fn pair_without_trailing_comma() {
+        let v = inline_vec![1, 2];
+        assert_eq!(v, InlineVec::Pair(1, 2));
+    }
+
+    #[test]
+    fn pair_with_trailing_comma() {
+        let v = inline_vec![1, 2,];
+        assert_eq!(v, InlineVec::Pair(1, 2));
     }
 
     #[test]
