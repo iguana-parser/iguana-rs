@@ -258,14 +258,13 @@ impl ParseTreeBuilder<ParseTree> for AssocTestParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : E(0).
                     SlotId(1) => {
-                        let [e] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [e] = children.into_array::<1usize>();
                         S {
                             e: e.unwrap_e(),
                             span: nonterminal_node.span,
@@ -280,8 +279,7 @@ impl ParseTreeBuilder<ParseTree> for AssocTestParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //E : [3 >= p] l=E(p) [l == 0 || l >= 3] "+" E(4) return 3.
                     SlotId(8) => {
-                        let [e_0, lit_1, e_2] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                         E::Alt0 {
                             e_0: Box::new(e_0.unwrap_e()),
                             lit_1: lit_1.unwrap_token(),
@@ -292,8 +290,7 @@ impl ParseTreeBuilder<ParseTree> for AssocTestParseTreeBuilder {
                     }
                     //E : [3 >= p] l=E(p) [l == 0 || l >= 3] "-" E(4) return 3.
                     SlotId(15) => {
-                        let [e_0, lit_1, e_2] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                         E::Alt1 {
                             e_0: Box::new(e_0.unwrap_e()),
                             lit_1: lit_1.unwrap_token(),
@@ -304,8 +301,7 @@ impl ParseTreeBuilder<ParseTree> for AssocTestParseTreeBuilder {
                     }
                     //E : [2 >= p] l=E(p) [l == 0 || l >= 3] ";" E(2) return 2.
                     SlotId(22) => {
-                        let [e_0, lit_1, e_2] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                         E::Alt2 {
                             e_0: Box::new(e_0.unwrap_e()),
                             lit_1: lit_1.unwrap_token(),
@@ -316,8 +312,7 @@ impl ParseTreeBuilder<ParseTree> for AssocTestParseTreeBuilder {
                     }
                     //E : [1 >= p] l=E(p) [l == 0 || l >= 2] "<" E(2) return 1.
                     SlotId(29) => {
-                        let [e_0, lit_1, e_2] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                         E::Alt3 {
                             e_0: Box::new(e_0.unwrap_e()),
                             lit_1: lit_1.unwrap_token(),
@@ -328,7 +323,7 @@ impl ParseTreeBuilder<ParseTree> for AssocTestParseTreeBuilder {
                     }
                     //E : "a" return 0.
                     SlotId(32) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         E::Alt4 {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,

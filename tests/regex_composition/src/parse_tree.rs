@@ -512,14 +512,13 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : Id.
                     SlotId(1) => {
-                        let [id] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [id] = children.into_array::<1usize>();
                         S {
                             id: id.unwrap_id(),
                             span: nonterminal_node.span,
@@ -534,10 +533,7 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //Id : Letter LetterOrDigit*.
                     SlotId(4) => {
-                        let [letter, letter_or_digits] = <[ParseTree; 2usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [letter, letter_or_digits] = children.into_array::<2usize>();
                         Id {
                             letter: letter.unwrap_token(),
                             letter_or_digits: letter_or_digits.unwrap_id_star_0(),
@@ -553,10 +549,8 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //LetterOrDigit+ : LetterOrDigit+ LetterOrDigit.
                     SlotId(7) => {
-                        let [letter_or_digits, letter_or_digit_1] = <[ParseTree; 2usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [letter_or_digits, letter_or_digit_1] = children
+                            .into_array::<2usize>();
                         IdPlus0::Alt0 {
                             letter_or_digits: Box::new(
                                 letter_or_digits.unwrap_id_plus_0(),
@@ -568,8 +562,7 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
                     }
                     //LetterOrDigit+ : LetterOrDigit.
                     SlotId(9) => {
-                        let [letter_or_digit] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [letter_or_digit] = children.into_array::<1usize>();
                         IdPlus0::Alt1 {
                             letter_or_digit: letter_or_digit.unwrap_token(),
                             span: nonterminal_node.span,
@@ -584,10 +577,7 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //LetterOrDigit+? : LetterOrDigit+.
                     SlotId(11) => {
-                        let [letter_or_digits] = <[ParseTree; 1usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [letter_or_digits] = children.into_array::<1usize>();
                         IdOpt0::Alt0 {
                             letter_or_digits: letter_or_digits.unwrap_id_plus_0(),
                             span: nonterminal_node.span,
@@ -596,7 +586,7 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
                     }
                     //LetterOrDigit+? : .
                     SlotId(12) => {
-                        let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
+                        let [] = children.into_array::<0usize>();
                         IdOpt0::Alt1 {
                             span: nonterminal_node.span,
                         }
@@ -610,8 +600,7 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //LetterOrDigit* : LetterOrDigit+?.
                     SlotId(14) => {
-                        let [id_opt_0] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [id_opt_0] = children.into_array::<1usize>();
                         IdStar0 {
                             id_opt_0: id_opt_0.unwrap_id_opt_0(),
                             span: nonterminal_node.span,
@@ -626,10 +615,7 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartS : WS start:S WS.
                     SlotId(18) => {
-                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
                         StartS {
                             ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_s(),
@@ -646,10 +632,7 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartId : WS start:Id WS.
                     SlotId(22) => {
-                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
                         StartId {
                             ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_id(),

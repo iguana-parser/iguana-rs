@@ -145,15 +145,13 @@ impl ParseTreeBuilder<ParseTree> for ExceptLexicalParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : Identifier.
                     SlotId(1) => {
-                        let [identifier] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [identifier] = children.into_array::<1usize>();
                         S {
                             identifier: identifier.unwrap_token(),
                             span: nonterminal_node.span,

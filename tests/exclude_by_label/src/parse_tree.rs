@@ -398,14 +398,13 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //Expr
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //Expr : Id.
                     SlotId(1) => {
-                        let [id] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [id] = children.into_array::<1usize>();
                         Expr::Id {
                             id: id.unwrap_token(),
                             span: nonterminal_node.span,
@@ -414,10 +413,8 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                     }
                     //Expr : Expr "(" {Expr !comma ","}* ")".
                     SlotId(6) => {
-                        let [expr, lit_1, expr_star_0, lit_3] = <[ParseTree; 4usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [expr, lit_1, expr_star_0, lit_3] = children
+                            .into_array::<4usize>();
                         Expr::Call {
                             expr: Box::new(expr.unwrap_expr()),
                             lit_1: lit_1.unwrap_token(),
@@ -429,10 +426,7 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                     }
                     //Expr : Expr "," Expr.
                     SlotId(10) => {
-                        let [expr_0, lit_1, expr_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [expr_0, lit_1, expr_2] = children.into_array::<3usize>();
                         Expr::Comma {
                             expr_0: Box::new(expr_0.unwrap_expr()),
                             lit_1: lit_1.unwrap_token(),
@@ -449,10 +443,7 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //{Expr !comma ","}+ : {Expr !comma ","}+ "," Expr !comma.
                     SlotId(14) => {
-                        let [expr_plus_0, lit_1, expr] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [expr_plus_0, lit_1, expr] = children.into_array::<3usize>();
                         ExprPlus0::Alt0 {
                             expr_plus_0: Box::new(expr_plus_0.unwrap_expr_plus_0()),
                             lit_1: lit_1.unwrap_token(),
@@ -463,7 +454,7 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                     }
                     //{Expr !comma ","}+ : Expr !comma.
                     SlotId(16) => {
-                        let [expr] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [expr] = children.into_array::<1usize>();
                         ExprPlus0::Alt1 {
                             expr: Box::new(expr.unwrap_expr()),
                             span: nonterminal_node.span,
@@ -478,8 +469,7 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //{Expr !comma ","}+? : {Expr !comma ","}+.
                     SlotId(18) => {
-                        let [expr_plus_0] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [expr_plus_0] = children.into_array::<1usize>();
                         ExprOpt0::Alt0 {
                             expr_plus_0: expr_plus_0.unwrap_expr_plus_0(),
                             span: nonterminal_node.span,
@@ -488,7 +478,7 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                     }
                     //{Expr !comma ","}+? : .
                     SlotId(19) => {
-                        let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
+                        let [] = children.into_array::<0usize>();
                         ExprOpt0::Alt1 {
                             span: nonterminal_node.span,
                         }
@@ -502,8 +492,7 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //{Expr !comma ","}* : {Expr !comma ","}+?.
                     SlotId(21) => {
-                        let [expr_opt_0] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [expr_opt_0] = children.into_array::<1usize>();
                         ExprStar0 {
                             expr_opt_0: expr_opt_0.unwrap_expr_opt_0(),
                             span: nonterminal_node.span,
@@ -518,7 +507,7 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //Expr !comma : Id.
                     SlotId(23) => {
-                        let [id] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [id] = children.into_array::<1usize>();
                         Expr::Id {
                             id: id.unwrap_token(),
                             span: nonterminal_node.span,
@@ -527,10 +516,8 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
                     }
                     //Expr !comma : Expr "(" {Expr !comma ","}* ")".
                     SlotId(28) => {
-                        let [expr, lit_1, expr_star_0, lit_3] = <[ParseTree; 4usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [expr, lit_1, expr_star_0, lit_3] = children
+                            .into_array::<4usize>();
                         Expr::Call {
                             expr: Box::new(expr.unwrap_expr()),
                             lit_1: lit_1.unwrap_token(),

@@ -336,15 +336,13 @@ impl ParseTreeBuilder<ParseTree> for GroupParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //A
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //A : (B C D).
                     SlotId(1) => {
-                        let [a_group_0] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [a_group_0] = children.into_array::<1usize>();
                         A {
                             a_group_0: a_group_0.unwrap_a_group_0(),
                             span: nonterminal_node.span,
@@ -359,7 +357,7 @@ impl ParseTreeBuilder<ParseTree> for GroupParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //B : "b".
                     SlotId(3) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         B {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -374,7 +372,7 @@ impl ParseTreeBuilder<ParseTree> for GroupParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //C : "c".
                     SlotId(5) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         C {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -389,7 +387,7 @@ impl ParseTreeBuilder<ParseTree> for GroupParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //D : "d".
                     SlotId(7) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         D {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -404,8 +402,7 @@ impl ParseTreeBuilder<ParseTree> for GroupParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //(B C D) : B C D.
                     SlotId(11) => {
-                        let [b, c, d] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [b, c, d] = children.into_array::<3usize>();
                         AGroup0 {
                             b: Box::new(b.unwrap_b()),
                             c: Box::new(c.unwrap_c()),

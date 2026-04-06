@@ -357,15 +357,13 @@ impl ParseTreeBuilder<ParseTree> for SimpleAltParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //A
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //A : B (C | D).
                     SlotId(2) => {
-                        let [b, a_alt_0] = <[ParseTree; 2usize]>::try_from(children)
-                            .unwrap();
+                        let [b, a_alt_0] = children.into_array::<2usize>();
                         A {
                             b: b.unwrap_b(),
                             a_alt_0: a_alt_0.unwrap_a_alt_0(),
@@ -381,7 +379,7 @@ impl ParseTreeBuilder<ParseTree> for SimpleAltParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //B : "b".
                     SlotId(4) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         B {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -396,7 +394,7 @@ impl ParseTreeBuilder<ParseTree> for SimpleAltParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //C : "c".
                     SlotId(6) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         C {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -411,7 +409,7 @@ impl ParseTreeBuilder<ParseTree> for SimpleAltParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //D : "d".
                     SlotId(8) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         D {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -426,7 +424,7 @@ impl ParseTreeBuilder<ParseTree> for SimpleAltParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //(C | D) : C.
                     SlotId(10) => {
-                        let [c] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [c] = children.into_array::<1usize>();
                         AAlt0::Alt0 {
                             c: Box::new(c.unwrap_c()),
                             span: nonterminal_node.span,
@@ -435,7 +433,7 @@ impl ParseTreeBuilder<ParseTree> for SimpleAltParseTreeBuilder {
                     }
                     //(C | D) : D.
                     SlotId(12) => {
-                        let [d] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [d] = children.into_array::<1usize>();
                         AAlt0::Alt1 {
                             d: Box::new(d.unwrap_d()),
                             span: nonterminal_node.span,

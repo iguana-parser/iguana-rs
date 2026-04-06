@@ -456,14 +456,13 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionMultipleParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : Id+.
                     SlotId(1) => {
-                        let [ids] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [ids] = children.into_array::<1usize>();
                         S {
                             ids: ids.unwrap_s_plus_0(),
                             span: nonterminal_node.span,
@@ -478,8 +477,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionMultipleParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //Id : (Alpha | Digit)+ !>> Alpha !>> Digit.
                     SlotId(3) => {
-                        let [id_plus_1] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [id_plus_1] = children.into_array::<1usize>();
                         Id {
                             id_plus_1: id_plus_1.unwrap_id_plus_1(),
                             span: nonterminal_node.span,
@@ -494,8 +492,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionMultipleParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //Id+ : Id+ Id.
                     SlotId(6) => {
-                        let [ids, id_1] = <[ParseTree; 2usize]>::try_from(children)
-                            .unwrap();
+                        let [ids, id_1] = children.into_array::<2usize>();
                         SPlus0::Alt0 {
                             ids: Box::new(ids.unwrap_s_plus_0()),
                             id_1: Box::new(id_1.unwrap_id()),
@@ -505,7 +502,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionMultipleParseTreeBuilder {
                     }
                     //Id+ : Id.
                     SlotId(8) => {
-                        let [id] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [id] = children.into_array::<1usize>();
                         SPlus0::Alt1 {
                             id: Box::new(id.unwrap_id()),
                             span: nonterminal_node.span,
@@ -520,7 +517,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionMultipleParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //(Alpha | Digit) : Alpha.
                     SlotId(10) => {
-                        let [alpha] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [alpha] = children.into_array::<1usize>();
                         IdAlt0::Alt0 {
                             alpha: alpha.unwrap_token(),
                             span: nonterminal_node.span,
@@ -529,7 +526,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionMultipleParseTreeBuilder {
                     }
                     //(Alpha | Digit) : Digit.
                     SlotId(12) => {
-                        let [digit] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [digit] = children.into_array::<1usize>();
                         IdAlt0::Alt1 {
                             digit: digit.unwrap_token(),
                             span: nonterminal_node.span,
@@ -544,10 +541,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionMultipleParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //(Alpha | Digit)+ : (Alpha | Digit)+ (Alpha | Digit).
                     SlotId(15) => {
-                        let [id_plus_1, id_alt_0] = <[ParseTree; 2usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [id_plus_1, id_alt_0] = children.into_array::<2usize>();
                         IdPlus1::Alt0 {
                             id_plus_1: Box::new(id_plus_1.unwrap_id_plus_1()),
                             id_alt_0: id_alt_0.unwrap_id_alt_0(),
@@ -557,8 +551,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionMultipleParseTreeBuilder {
                     }
                     //(Alpha | Digit)+ : (Alpha | Digit).
                     SlotId(17) => {
-                        let [id_alt_0] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [id_alt_0] = children.into_array::<1usize>();
                         IdPlus1::Alt1 {
                             id_alt_0: id_alt_0.unwrap_id_alt_0(),
                             span: nonterminal_node.span,

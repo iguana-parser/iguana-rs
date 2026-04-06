@@ -846,7 +846,7 @@ fn gen_nonterminal_node_method(
                     quote! {
                         #[comment = #slot_name]
                         #end_slot_id => {
-                            let [#(#field_names),*] = <[ParseTree; #num_symbols]>::try_from(children).unwrap();
+                            let [#(#field_names),*] = children.into_array::<#num_symbols>();
                             #construction.into()
                         }
                     }
@@ -868,7 +868,6 @@ fn gen_nonterminal_node_method(
             nonterminal_node: &NonterminalNode,
             children: OneOrMany<ParseTree>
         ) -> ParseTree {
-            let children = children.into_vec();
             match nonterminal_node.nonterminal_id {
                 #(#nonterminal_cases),*
                 _ => unreachable!()

@@ -253,14 +253,13 @@ impl ParseTreeBuilder<ParseTree> for OptParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : A?.
                     SlotId(1) => {
-                        let [a] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [a] = children.into_array::<1usize>();
                         S {
                             a: a.unwrap_s_opt_0(),
                             span: nonterminal_node.span,
@@ -275,7 +274,7 @@ impl ParseTreeBuilder<ParseTree> for OptParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //A : "a".
                     SlotId(3) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         A {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -290,7 +289,7 @@ impl ParseTreeBuilder<ParseTree> for OptParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //A? : A.
                     SlotId(5) => {
-                        let [a] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [a] = children.into_array::<1usize>();
                         SOpt0::Alt0 {
                             a: Box::new(a.unwrap_a()),
                             span: nonterminal_node.span,
@@ -299,7 +298,7 @@ impl ParseTreeBuilder<ParseTree> for OptParseTreeBuilder {
                     }
                     //A? : .
                     SlotId(6) => {
-                        let [] = <[ParseTree; 0usize]>::try_from(children).unwrap();
+                        let [] = children.into_array::<0usize>();
                         SOpt0::Alt1 {
                             span: nonterminal_node.span,
                         }

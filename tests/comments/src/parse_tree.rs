@@ -268,17 +268,14 @@ impl ParseTreeBuilder<ParseTree> for CommentsParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //Expr
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //Expr : Expr Layout "+" Layout Expr.
                     SlotId(5) => {
-                        let [expr_0, layout_1, lit_2, layout_3, expr_4] = <[ParseTree; 5usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [expr_0, layout_1, lit_2, layout_3, expr_4] = children
+                            .into_array::<5usize>();
                         Expr::Alt0 {
                             expr_0: Box::new(expr_0.unwrap_expr()),
                             layout_1: layout_1.unwrap_token(),
@@ -291,10 +288,8 @@ impl ParseTreeBuilder<ParseTree> for CommentsParseTreeBuilder {
                     }
                     //Expr : Expr Layout "*" Layout Expr.
                     SlotId(11) => {
-                        let [expr_0, layout_1, lit_2, layout_3, expr_4] = <[ParseTree; 5usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [expr_0, layout_1, lit_2, layout_3, expr_4] = children
+                            .into_array::<5usize>();
                         Expr::Alt1 {
                             expr_0: Box::new(expr_0.unwrap_expr()),
                             layout_1: layout_1.unwrap_token(),
@@ -307,7 +302,7 @@ impl ParseTreeBuilder<ParseTree> for CommentsParseTreeBuilder {
                     }
                     //Expr : "x".
                     SlotId(13) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         Expr::Alt2 {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -322,10 +317,8 @@ impl ParseTreeBuilder<ParseTree> for CommentsParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartExpr : Layout start:Expr Layout.
                     SlotId(17) => {
-                        let [layout_0, start, layout_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [layout_0, start, layout_2] = children
+                            .into_array::<3usize>();
                         StartExpr {
                             layout_0: layout_0.unwrap_token(),
                             start: start.unwrap_expr(),

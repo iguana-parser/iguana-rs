@@ -318,14 +318,13 @@ impl ParseTreeBuilder<ParseTree> for IndirectPrecedenceParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : E(0).
                     SlotId(1) => {
-                        let [e] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [e] = children.into_array::<1usize>();
                         S {
                             e: e.unwrap_e(),
                             span: nonterminal_node.span,
@@ -340,8 +339,7 @@ impl ParseTreeBuilder<ParseTree> for IndirectPrecedenceParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //F : E(0) "/" K.
                     SlotId(19) => {
-                        let [e, lit_1, k] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [e, lit_1, k] = children.into_array::<3usize>();
                         F {
                             e: Box::new(e.unwrap_e()),
                             lit_1: lit_1.unwrap_token(),
@@ -358,7 +356,7 @@ impl ParseTreeBuilder<ParseTree> for IndirectPrecedenceParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //K : E(0).
                     SlotId(21) => {
-                        let [e] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [e] = children.into_array::<1usize>();
                         K {
                             e: Box::new(e.unwrap_e()),
                             span: nonterminal_node.span,
@@ -373,8 +371,7 @@ impl ParseTreeBuilder<ParseTree> for IndirectPrecedenceParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //E : "-" E(2) return 2.
                     SlotId(5) => {
-                        let [lit_0, e] = <[ParseTree; 2usize]>::try_from(children)
-                            .unwrap();
+                        let [lit_0, e] = children.into_array::<2usize>();
                         E::Alt0 {
                             lit_0: lit_0.unwrap_token(),
                             e: Box::new(e.unwrap_e()),
@@ -384,8 +381,7 @@ impl ParseTreeBuilder<ParseTree> for IndirectPrecedenceParseTreeBuilder {
                     }
                     //E : [1 >= p] l=E(p) [l == 0 || l >= 1] "*" F return 0.
                     SlotId(12) => {
-                        let [e, lit_1, f] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [e, lit_1, f] = children.into_array::<3usize>();
                         E::Alt1 {
                             e: Box::new(e.unwrap_e()),
                             lit_1: lit_1.unwrap_token(),
@@ -396,7 +392,7 @@ impl ParseTreeBuilder<ParseTree> for IndirectPrecedenceParseTreeBuilder {
                     }
                     //E : "a" return 0.
                     SlotId(15) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         E::Alt2 {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,

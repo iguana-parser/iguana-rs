@@ -181,15 +181,13 @@ impl ParseTreeBuilder<ParseTree> for ExpressionParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //E
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //E : E "*" E.
                     SlotId(3) => {
-                        let [e_0, lit_1, e_2] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                         E::Mul {
                             e_0: Box::new(e_0.unwrap_e()),
                             lit_1: lit_1.unwrap_token(),
@@ -200,8 +198,7 @@ impl ParseTreeBuilder<ParseTree> for ExpressionParseTreeBuilder {
                     }
                     //E : E "+" E.
                     SlotId(7) => {
-                        let [e_0, lit_1, e_2] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                         E::Add {
                             e_0: Box::new(e_0.unwrap_e()),
                             lit_1: lit_1.unwrap_token(),
@@ -212,7 +209,7 @@ impl ParseTreeBuilder<ParseTree> for ExpressionParseTreeBuilder {
                     }
                     //E : "a".
                     SlotId(9) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         E::Lit {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,

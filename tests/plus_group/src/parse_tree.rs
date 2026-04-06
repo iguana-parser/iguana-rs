@@ -417,15 +417,13 @@ impl ParseTreeBuilder<ParseTree> for PlusGroupParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : (A B C)+.
                     SlotId(1) => {
-                        let [s_plus_0] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [s_plus_0] = children.into_array::<1usize>();
                         S {
                             s_plus_0: s_plus_0.unwrap_s_plus_0(),
                             span: nonterminal_node.span,
@@ -440,7 +438,7 @@ impl ParseTreeBuilder<ParseTree> for PlusGroupParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //A : "a".
                     SlotId(3) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         A {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -455,7 +453,7 @@ impl ParseTreeBuilder<ParseTree> for PlusGroupParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //B : "b".
                     SlotId(5) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         B {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -470,7 +468,7 @@ impl ParseTreeBuilder<ParseTree> for PlusGroupParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //C : "c".
                     SlotId(7) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         C {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -485,8 +483,7 @@ impl ParseTreeBuilder<ParseTree> for PlusGroupParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //(A B C) : A B C.
                     SlotId(11) => {
-                        let [a, b, c] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [a, b, c] = children.into_array::<3usize>();
                         SGroup0 {
                             a: Box::new(a.unwrap_a()),
                             b: Box::new(b.unwrap_b()),
@@ -503,10 +500,7 @@ impl ParseTreeBuilder<ParseTree> for PlusGroupParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //(A B C)+ : (A B C)+ (A B C).
                     SlotId(14) => {
-                        let [s_plus_0, s_group_0] = <[ParseTree; 2usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [s_plus_0, s_group_0] = children.into_array::<2usize>();
                         SPlus0::Alt0 {
                             s_plus_0: Box::new(s_plus_0.unwrap_s_plus_0()),
                             s_group_0: s_group_0.unwrap_s_group_0(),
@@ -516,8 +510,7 @@ impl ParseTreeBuilder<ParseTree> for PlusGroupParseTreeBuilder {
                     }
                     //(A B C)+ : (A B C).
                     SlotId(16) => {
-                        let [s_group_0] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [s_group_0] = children.into_array::<1usize>();
                         SPlus0::Alt1 {
                             s_group_0: s_group_0.unwrap_s_group_0(),
                             span: nonterminal_node.span,

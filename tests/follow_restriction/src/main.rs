@@ -11,6 +11,8 @@ use iguana_runtime::{
         sppf::{build_sppf_graph, write_sppf_dot},
     },
 };
+#[cfg(feature = "profile")]
+use pprof::ProfilerGuardBuilder;
 use follow_restriction::{
     parse_tree::{
         FollowRestrictionParseTreeBuilder, create_parse_tree, to_json, to_sexpr,
@@ -70,6 +72,14 @@ struct Cli {
     /// Used by Terrarium for parse tree rendering.
     #[arg(long, value_name = "FILE")]
     write_parse_tree: Option<PathBuf>,
+    /// Profile the parser by running it N times in a loop under a
+    /// sampling profiler, then write a flamegraph SVG.
+    /// Requires the "profile" feature: cargo build --features profile
+    #[arg(long, value_name = "N")]
+    profile: Option<u32>,
+    /// Output path for the flamegraph SVG (used with --profile).
+    #[arg(long, value_name = "FILE", default_value = "flamegraph.svg")]
+    profile_output: PathBuf,
 }
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
@@ -128,6 +138,34 @@ fn main() -> Result<(), io::Error> {
             io::ErrorKind::InvalidInput,
             format!("Unknown nonterminal: '{}'", start_nonterminal_name),
         ))?;
+    #[cfg(feature = "profile")]
+    if let Some(iterations) = cli.profile {
+        let parse_tree_builder = FollowRestrictionParseTreeBuilder;
+        let guard = ProfilerGuardBuilder::default().frequency(999).build().unwrap();
+        for _ in 0..iterations {
+            let mut parser = FollowRestrictionParser::new(&input, start_nonterminal_id);
+            let result = parser.run();
+            if let ParseResult::Success(success) = result {
+                let _ = create_parse_tree(
+                    success.sppf_node_id,
+                    &start_nonterminal_name,
+                    &parser,
+                    &parse_tree_builder,
+                );
+            }
+        }
+        let report = guard.report().build().unwrap();
+        let file = File::create(&cli.profile_output)?;
+        report.flamegraph(&file).unwrap();
+        eprintln!("Flamegraph written to {}", cli.profile_output.display());
+        return Ok(());
+    }
+    #[cfg(not(feature = "profile"))]
+    if cli.profile.is_some() {
+        eprintln!(
+            "Warning: --profile flag ignored. Recompile with `--features profile` to enable profiling."
+        );
+    }
     let mut parser = FollowRestrictionParser::new(&input, start_nonterminal_id);
     #[cfg(feature = "debug-trace")]
     if cli.trace.is_some() {

@@ -158,15 +158,13 @@ impl ParseTreeBuilder<ParseTree> for LeftRecursiveListParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //A
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //A : A "a".
                     SlotId(2) => {
-                        let [a, lit_1] = <[ParseTree; 2usize]>::try_from(children)
-                            .unwrap();
+                        let [a, lit_1] = children.into_array::<2usize>();
                         A::Alt0 {
                             a: Box::new(a.unwrap_a()),
                             lit_1: lit_1.unwrap_token(),
@@ -176,7 +174,7 @@ impl ParseTreeBuilder<ParseTree> for LeftRecursiveListParseTreeBuilder {
                     }
                     //A : "a".
                     SlotId(4) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         A::Alt1 {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,

@@ -34,6 +34,33 @@ impl<T: fmt::Debug> OneOrMany<T> {
         }
     }
 
+    /// Destructure into a fixed-size array without allocating a `Vec` for the
+    /// `Zero` and `One` cases. For `Many`, the existing `Vec` is consumed in place.
+    ///
+    /// The variant must match `N` (`Zero` ↔ 0, `One` ↔ 1, `Many` ↔ >1). The codegen
+    /// guarantees this; any mismatch indicates a bug.
+    pub fn into_array<const N: usize>(self) -> [T; N] {
+        match self {
+            OneOrMany::Zero => {
+                if N != 0 {
+                    unreachable!()
+                }
+                std::array::from_fn(|_| unreachable!())
+            }
+            OneOrMany::One(item) => {
+                if N != 1 {
+                    unreachable!()
+                }
+                let mut item = Some(item);
+                std::array::from_fn(|_| item.take().unwrap())
+            }
+            OneOrMany::Many(items) => match <[T; N]>::try_from(items) {
+                Ok(arr) => arr,
+                Err(_) => unreachable!(),
+            },
+        }
+    }
+
     pub fn unwrap_one(self) -> T {
         match self {
             OneOrMany::One(item) => item,

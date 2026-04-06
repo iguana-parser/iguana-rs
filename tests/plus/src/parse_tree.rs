@@ -274,14 +274,13 @@ impl ParseTreeBuilder<ParseTree> for PlusParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : A+.
                     SlotId(1) => {
-                        let [r#as] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [r#as] = children.into_array::<1usize>();
                         S {
                             r#as: r#as.unwrap_s_plus_0(),
                             span: nonterminal_node.span,
@@ -296,7 +295,7 @@ impl ParseTreeBuilder<ParseTree> for PlusParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //A : "a".
                     SlotId(3) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         A {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -311,8 +310,7 @@ impl ParseTreeBuilder<ParseTree> for PlusParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //A+ : A+ A.
                     SlotId(6) => {
-                        let [r#as, a_1] = <[ParseTree; 2usize]>::try_from(children)
-                            .unwrap();
+                        let [r#as, a_1] = children.into_array::<2usize>();
                         SPlus0::Alt0 {
                             r#as: Box::new(r#as.unwrap_s_plus_0()),
                             a_1: Box::new(a_1.unwrap_a()),
@@ -322,7 +320,7 @@ impl ParseTreeBuilder<ParseTree> for PlusParseTreeBuilder {
                     }
                     //A+ : A.
                     SlotId(8) => {
-                        let [a] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [a] = children.into_array::<1usize>();
                         SPlus0::Alt1 {
                             a: Box::new(a.unwrap_a()),
                             span: nonterminal_node.span,

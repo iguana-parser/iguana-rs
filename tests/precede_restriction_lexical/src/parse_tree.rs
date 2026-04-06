@@ -226,15 +226,13 @@ impl ParseTreeBuilder<ParseTree> for PrecedeRestrictionLexicalParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : "for" WS Id.
                     SlotId(3) => {
-                        let [lit_0, ws, id] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [lit_0, ws, id] = children.into_array::<3usize>();
                         S::Alt0 {
                             lit_0: lit_0.unwrap_token(),
                             ws: ws.unwrap_token(),
@@ -245,7 +243,7 @@ impl ParseTreeBuilder<ParseTree> for PrecedeRestrictionLexicalParseTreeBuilder {
                     }
                     //S : "forall".
                     SlotId(5) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         S::Alt1 {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -260,10 +258,7 @@ impl ParseTreeBuilder<ParseTree> for PrecedeRestrictionLexicalParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartS : WS start:S WS.
                     SlotId(9) => {
-                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
                         StartS {
                             ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_s(),

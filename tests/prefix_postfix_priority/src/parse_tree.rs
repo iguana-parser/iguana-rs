@@ -256,14 +256,13 @@ impl ParseTreeBuilder<ParseTree> for PrefixPostfixPriorityParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : E(0).
                     SlotId(1) => {
-                        let [e] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [e] = children.into_array::<1usize>();
                         S {
                             e: e.unwrap_e(),
                             span: nonterminal_node.span,
@@ -278,7 +277,7 @@ impl ParseTreeBuilder<ParseTree> for PrefixPostfixPriorityParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //E : "a" return 0.
                     SlotId(4) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         E::Alt0 {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
@@ -287,8 +286,7 @@ impl ParseTreeBuilder<ParseTree> for PrefixPostfixPriorityParseTreeBuilder {
                     }
                     //E : [4 >= p] l=E(p) [l == 0 || l >= 4] "!" return 0.
                     SlotId(10) => {
-                        let [e, lit_1] = <[ParseTree; 2usize]>::try_from(children)
-                            .unwrap();
+                        let [e, lit_1] = children.into_array::<2usize>();
                         E::Alt1 {
                             e: Box::new(e.unwrap_e()),
                             lit_1: lit_1.unwrap_token(),
@@ -298,8 +296,7 @@ impl ParseTreeBuilder<ParseTree> for PrefixPostfixPriorityParseTreeBuilder {
                     }
                     //E : "-" E(3) return 3.
                     SlotId(14) => {
-                        let [lit_0, e] = <[ParseTree; 2usize]>::try_from(children)
-                            .unwrap();
+                        let [lit_0, e] = children.into_array::<2usize>();
                         E::Alt2 {
                             lit_0: lit_0.unwrap_token(),
                             e: Box::new(e.unwrap_e()),
@@ -309,8 +306,7 @@ impl ParseTreeBuilder<ParseTree> for PrefixPostfixPriorityParseTreeBuilder {
                     }
                     //E : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2.
                     SlotId(21) => {
-                        let [e_0, lit_1, e_2] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                         E::Alt3 {
                             e_0: Box::new(e_0.unwrap_e()),
                             lit_1: lit_1.unwrap_token(),
@@ -321,8 +317,7 @@ impl ParseTreeBuilder<ParseTree> for PrefixPostfixPriorityParseTreeBuilder {
                     }
                     //E : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1.
                     SlotId(28) => {
-                        let [e_0, lit_1, e_2] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                         E::Alt4 {
                             e_0: Box::new(e_0.unwrap_e()),
                             lit_1: lit_1.unwrap_token(),

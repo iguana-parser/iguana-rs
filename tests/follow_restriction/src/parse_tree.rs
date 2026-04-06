@@ -556,14 +556,13 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : Id+.
                     SlotId(1) => {
-                        let [ids] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [ids] = children.into_array::<1usize>();
                         S {
                             ids: ids.unwrap_s_plus_0(),
                             span: nonterminal_node.span,
@@ -578,7 +577,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //T : Char !>> Char.
                     SlotId(3) => {
-                        let [char] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [char] = children.into_array::<1usize>();
                         T {
                             char: char.unwrap_token(),
                             span: nonterminal_node.span,
@@ -593,7 +592,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //Id : Char+ !>> Char.
                     SlotId(5) => {
-                        let [chars] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [chars] = children.into_array::<1usize>();
                         Id {
                             chars: chars.unwrap_id_plus_1(),
                             span: nonterminal_node.span,
@@ -608,8 +607,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //Id+ : Id+ WS Id.
                     SlotId(9) => {
-                        let [ids, ws, id_2] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [ids, ws, id_2] = children.into_array::<3usize>();
                         SPlus0::Alt0 {
                             ids: Box::new(ids.unwrap_s_plus_0()),
                             ws: ws.unwrap_token(),
@@ -620,7 +618,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
                     }
                     //Id+ : Id.
                     SlotId(11) => {
-                        let [id] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [id] = children.into_array::<1usize>();
                         SPlus0::Alt1 {
                             id: Box::new(id.unwrap_id()),
                             span: nonterminal_node.span,
@@ -635,8 +633,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //Char+ : Char+ Char.
                     SlotId(14) => {
-                        let [chars, char_1] = <[ParseTree; 2usize]>::try_from(children)
-                            .unwrap();
+                        let [chars, char_1] = children.into_array::<2usize>();
                         IdPlus1::Alt0 {
                             chars: Box::new(chars.unwrap_id_plus_1()),
                             char_1: char_1.unwrap_token(),
@@ -646,7 +643,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
                     }
                     //Char+ : Char.
                     SlotId(16) => {
-                        let [char] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [char] = children.into_array::<1usize>();
                         IdPlus1::Alt1 {
                             char: char.unwrap_token(),
                             span: nonterminal_node.span,
@@ -661,10 +658,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartS : WS start:S WS.
                     SlotId(20) => {
-                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
                         StartS {
                             ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_s(),
@@ -681,10 +675,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartT : WS start:T WS.
                     SlotId(24) => {
-                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
                         StartT {
                             ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_t(),
@@ -701,10 +692,7 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartId : WS start:Id WS.
                     SlotId(28) => {
-                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
                         StartId {
                             ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_id(),

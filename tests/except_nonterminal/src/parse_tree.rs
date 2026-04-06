@@ -231,14 +231,13 @@ impl ParseTreeBuilder<ParseTree> for ExceptNonterminalParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : Id.
                     SlotId(1) => {
-                        let [id] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [id] = children.into_array::<1usize>();
                         S {
                             id: id.unwrap_id(),
                             span: nonterminal_node.span,
@@ -253,7 +252,7 @@ impl ParseTreeBuilder<ParseTree> for ExceptNonterminalParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //Id : Name \ Keyword.
                     SlotId(3) => {
-                        let [name] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [name] = children.into_array::<1usize>();
                         Id {
                             name: name.unwrap_name(),
                             span: nonterminal_node.span,
@@ -268,8 +267,7 @@ impl ParseTreeBuilder<ParseTree> for ExceptNonterminalParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //Name : Identifier.
                     SlotId(5) => {
-                        let [identifier] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [identifier] = children.into_array::<1usize>();
                         Name {
                             identifier: identifier.unwrap_token(),
                             span: nonterminal_node.span,

@@ -217,17 +217,13 @@ impl ParseTreeBuilder<ParseTree> for MultipleExceptParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //SyntaxIdentifier
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
                     SlotId(1) => {
-                        let [identifier_chars] = <[ParseTree; 1usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [identifier_chars] = children.into_array::<1usize>();
                         SyntaxIdentifier {
                             identifier_chars: identifier_chars.unwrap_token(),
                             span: nonterminal_node.span,
@@ -242,8 +238,7 @@ impl ParseTreeBuilder<ParseTree> for MultipleExceptParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //LexicalIdentifier : Identifier.
                     SlotId(3) => {
-                        let [identifier] = <[ParseTree; 1usize]>::try_from(children)
-                            .unwrap();
+                        let [identifier] = children.into_array::<1usize>();
                         LexicalIdentifier {
                             identifier: identifier.unwrap_token(),
                             span: nonterminal_node.span,

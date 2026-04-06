@@ -445,14 +445,13 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityFullParseTreeBuilder {
         nonterminal_node: &NonterminalNode,
         children: OneOrMany<ParseTree>,
     ) -> ParseTree {
-        let children = children.into_vec();
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
                 match nonterminal_node.return_slot {
                     //S : E(0).
                     SlotId(1) => {
-                        let [e] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [e] = children.into_array::<1usize>();
                         S {
                             e: e.unwrap_e(),
                             span: nonterminal_node.span,
@@ -467,10 +466,7 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityFullParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartS : WS start:S WS.
                     SlotId(53) => {
-                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
                         StartS {
                             ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_s(),
@@ -487,10 +483,7 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityFullParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //StartE : WS start:E(0) WS.
                     SlotId(57) => {
-                        let [ws_0, start, ws_2] = <[ParseTree; 3usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
                         StartE {
                             ws_0: ws_0.unwrap_token(),
                             start: start.unwrap_e(),
@@ -507,10 +500,8 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityFullParseTreeBuilder {
                 match nonterminal_node.return_slot {
                     //E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5).
                     SlotId(10) => {
-                        let [e_0, ws_1, lit_2, ws_3, e_4] = <[ParseTree; 5usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [e_0, ws_1, lit_2, ws_3, e_4] = children
+                            .into_array::<5usize>();
                         E::Alt0 {
                             e_0: Box::new(e_0.unwrap_e()),
                             ws_1: ws_1.unwrap_token(),
@@ -523,10 +514,8 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityFullParseTreeBuilder {
                     }
                     //E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4).
                     SlotId(19) => {
-                        let [e_0, ws_1, lit_2, ws_3, e_4] = <[ParseTree; 5usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [e_0, ws_1, lit_2, ws_3, e_4] = children
+                            .into_array::<5usize>();
                         E::Alt1 {
                             e_0: Box::new(e_0.unwrap_e()),
                             ws_1: ws_1.unwrap_token(),
@@ -539,8 +528,7 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityFullParseTreeBuilder {
                     }
                     //E : "-" WS r=E(3) return r == 0 ? 3 : min(r, 3).
                     SlotId(24) => {
-                        let [lit_0, ws, e] = <[ParseTree; 3usize]>::try_from(children)
-                            .unwrap();
+                        let [lit_0, ws, e] = children.into_array::<3usize>();
                         E::Alt2 {
                             lit_0: lit_0.unwrap_token(),
                             ws: ws.unwrap_token(),
@@ -552,7 +540,7 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityFullParseTreeBuilder {
                     //E : "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2.
                     SlotId(37) => {
                         let [lit_0, ws_1, e_2, ws_3, lit_4, ws_5, e_6, ws_7, lit_8, ws_9,
-                        e_10] = <[ParseTree; 11usize]>::try_from(children).unwrap();
+                        e_10] = children.into_array::<11usize>();
                         E::Alt3 {
                             lit_0: lit_0.unwrap_token(),
                             ws_1: ws_1.unwrap_token(),
@@ -571,10 +559,8 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityFullParseTreeBuilder {
                     }
                     //E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1.
                     SlotId(46) => {
-                        let [e_0, ws_1, lit_2, ws_3, e_4] = <[ParseTree; 5usize]>::try_from(
-                                children,
-                            )
-                            .unwrap();
+                        let [e_0, ws_1, lit_2, ws_3, e_4] = children
+                            .into_array::<5usize>();
                         E::Alt4 {
                             e_0: Box::new(e_0.unwrap_e()),
                             ws_1: ws_1.unwrap_token(),
@@ -587,7 +573,7 @@ impl ParseTreeBuilder<ParseTree> for DeepPriorityFullParseTreeBuilder {
                     }
                     //E : "a" return 0.
                     SlotId(49) => {
-                        let [lit_0] = <[ParseTree; 1usize]>::try_from(children).unwrap();
+                        let [lit_0] = children.into_array::<1usize>();
                         E::Alt5 {
                             lit_0: lit_0.unwrap_token(),
                             span: nonterminal_node.span,
