@@ -600,12 +600,16 @@ pub trait Parser<'i> {
 }
 
 pub fn init_logger() {
-    let _ = env_logger::Builder::from_default_env()
-        .format(|buf, record| {
-            use std::io::Write;
-            writeln!(buf, "{}: {}", record.level(), record.args())
-        })
-        .try_init();
+    use std::sync::Once;
+    static INIT: Once = Once::new();
+    INIT.call_once(|| {
+        let _ = env_logger::Builder::from_default_env()
+            .format(|buf, record| {
+                use std::io::Write;
+                writeln!(buf, "{}: {}", record.level(), record.args())
+            })
+            .try_init();
+    });
 }
 
 #[derive(Default, Debug, Clone)]
