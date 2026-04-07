@@ -3,6 +3,7 @@ pub mod env;
 pub mod gss;
 pub mod ids;
 pub mod input;
+pub mod instrument;
 pub mod parse_tree;
 pub mod parser;
 pub mod scanner;

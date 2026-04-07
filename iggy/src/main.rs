@@ -238,6 +238,16 @@ fn main() -> Result<(), io::Error> {
             println!("Parse failed");
         }
     }
+    #[cfg(feature = "instrument")]
+    {
+        for node in parser.gss_nodes() {
+            iguana_runtime::instrument::record(
+                "GssNode::popped_elements: InlineSet",
+                node.popped_elements().len(),
+            );
+        }
+        iguana_runtime::instrument::dump();
+    }
     Ok(())
 }
 #[cfg(feature = "debug-trace")]

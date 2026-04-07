@@ -30,6 +30,7 @@ workspace = true
 dhat-heap = []
 debug-trace = ["iguana-runtime/debug-trace"]
 profile = ["pprof"]
+instrument = ["iguana-runtime/instrument"]
     "#,
         to_snake_case(grammar_name)
     )
