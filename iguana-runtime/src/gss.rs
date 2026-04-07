@@ -15,7 +15,7 @@ pub struct GSSNode {
     pub index: u32,
     #[serde(skip)]
     #[specta(skip)]
-    edges: InlineVec<GSSEdge>,
+    edges: InlineVec<GSSEdge, 16>,
     #[serde(skip)]
     #[specta(skip)]
     popped_elements: InlineSet<PoppedElement>,
@@ -58,7 +58,7 @@ impl GSSNode {
         &mut self.popped_elements
     }
 
-    pub fn edges(&self) -> &InlineVec<GSSEdge> {
+    pub fn edges(&self) -> &InlineVec<GSSEdge, 16> {
         &self.edges
     }
 }

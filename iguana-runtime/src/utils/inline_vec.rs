@@ -1,7 +1,17 @@
 use std::{array, iter, slice};
 
+/// A vector optimized for the common case of holding 0, 1, or 2 elements
+/// without any heap allocation. Once it grows beyond 2 elements it spills
+/// into a heap-allocated `Vec`.
+///
+/// `SPILL_CAP` is the initial `Vec::with_capacity` used when transitioning
+/// from `Pair` to `Multiple`. Tune this per use site (via a type alias) to
+/// match the observed size distribution: pick a value just above the largest
+/// common cluster so the first heap allocation already fits and avoids any
+/// realloc. Default is 8, which is a good fit when the long tail dies off
+/// before 8 elements.
 #[derive(Debug, Default, Clone, PartialEq)]
-pub enum InlineVec<T> {
+pub enum InlineVec<T, const SPILL_CAP: usize = 8> {
     #[default]
     Empty,
     Single(T),
@@ -9,7 +19,7 @@ pub enum InlineVec<T> {
     Multiple(Vec<T>),
 }
 
-impl<T> InlineVec<T> {
+impl<T, const SPILL_CAP: usize> InlineVec<T, SPILL_CAP> {
     pub fn push(&mut self, value: T) {
         match self {
             InlineVec::Empty => *self = InlineVec::Single(value),
@@ -19,7 +29,7 @@ impl<T> InlineVec<T> {
             },
             InlineVec::Pair(_, _) => match std::mem::take(self) {
                 InlineVec::Pair(first, second) => {
-                    let mut v = Vec::with_capacity(8);
+                    let mut v = Vec::with_capacity(SPILL_CAP);
                     v.push(first);
                     v.push(second);
                     v.push(value);
@@ -78,7 +88,7 @@ impl<'a, T> Iterator for Iter<'a, T> {
     }
 }
 
-impl<'a, T> IntoIterator for &'a InlineVec<T> {
+impl<'a, T, const SPILL_CAP: usize> IntoIterator for &'a InlineVec<T, SPILL_CAP> {
     type Item = &'a T;
     type IntoIter = Iter<'a, T>;
 
@@ -116,13 +126,13 @@ mod tests {
 
     #[test]
     fn test_default() {
-        let l: InlineVec<usize> = InlineVec::default();
+        let l: InlineVec<usize, 8> = InlineVec::default();
         assert_eq!(l.len(), 0);
     }
 
     #[test]
     fn test_add_to_empty() {
-        let mut l = InlineVec::default();
+        let mut l: InlineVec<usize, 8> = InlineVec::default();
         l.push(1);
         assert_eq!(l.len(), 1);
         let elements: Vec<&usize> = l.into_iter().collect();
@@ -131,69 +141,69 @@ mod tests {
 
     #[test]
     fn test_add_to_single() {
-        let mut l = InlineVec::Single(1);
+        let mut l: InlineVec<i32, 8> = InlineVec::Single(1);
         l.push(2);
         assert_eq!(l, InlineVec::Pair(1, 2));
         assert_eq!(l.len(), 2);
-        let elements: Vec<&usize> = l.into_iter().collect();
+        let elements: Vec<&i32> = l.into_iter().collect();
         assert_eq!(elements, vec![&1, &2]);
     }
 
     #[test]
     fn test_add_to_pair() {
-        let mut l = InlineVec::Pair(1, 2);
+        let mut l: InlineVec<i32, 8> = InlineVec::Pair(1, 2);
         l.push(3);
         assert_eq!(l, InlineVec::Multiple(vec![1, 2, 3]));
         assert_eq!(l.len(), 3);
-        let elements: Vec<&usize> = l.into_iter().collect();
+        let elements: Vec<&i32> = l.into_iter().collect();
         assert_eq!(elements, vec![&1, &2, &3]);
     }
 
     #[test]
     fn test_pair_first() {
-        let l = InlineVec::Pair(1, 2);
+        let l: InlineVec<i32, 8> = InlineVec::Pair(1, 2);
         assert_eq!(l.first(), Some(&1));
     }
 
     #[test]
     fn empty_form() {
-        let v: InlineVec<usize> = inline_vec![];
+        let v: InlineVec<usize, 8> = inline_vec![];
         assert_eq!(v, InlineVec::Empty);
     }
 
     #[test]
     fn single_without_trailing_comma() {
-        let v = inline_vec![1];
+        let v: InlineVec<i32, 8> = inline_vec![1];
         assert_eq!(v, InlineVec::Single(1));
     }
 
     #[test]
     fn single_with_trailing_comma() {
-        let v = inline_vec![1,];
+        let v: InlineVec<i32, 8> = inline_vec![1,];
         assert_eq!(v, InlineVec::Single(1));
     }
 
     #[test]
     fn pair_without_trailing_comma() {
-        let v = inline_vec![1, 2];
+        let v: InlineVec<i32, 8> = inline_vec![1, 2];
         assert_eq!(v, InlineVec::Pair(1, 2));
     }
 
     #[test]
     fn pair_with_trailing_comma() {
-        let v = inline_vec![1, 2,];
+        let v: InlineVec<i32, 8> = inline_vec![1, 2,];
         assert_eq!(v, InlineVec::Pair(1, 2));
     }
 
     #[test]
     fn multiple_without_trailing_comma() {
-        let v = inline_vec![1, 2, 3];
+        let v: InlineVec<i32, 8> = inline_vec![1, 2, 3];
         assert_eq!(v, InlineVec::Multiple(vec![1, 2, 3]));
     }
 
     #[test]
     fn multiple_with_trailing_comma() {
-        let v = inline_vec![1, 2, 3,];
+        let v: InlineVec<i32, 8> = inline_vec![1, 2, 3,];
         assert_eq!(v, InlineVec::Multiple(vec![1, 2, 3]));
     }
 }

@@ -595,6 +595,8 @@ pub trait Parser<'i> {
 
     fn lookup(&self, name: &str, env_id: EnvId) -> i32;
 
+    fn envs(&self) -> &[Env];
+
     #[cfg(feature = "debug-trace")]
     fn add_trace_event(&mut self, event: TraceEvent);
 }

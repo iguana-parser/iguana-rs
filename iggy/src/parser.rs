@@ -11428,6 +11428,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         new_env.bindings = bindings;
         (new_id, new_env)
     }
+    fn envs(&self) -> &[Env] {
+        &self.envs
+    }
     fn post_conditions(
         &self,
         slot: SlotId,

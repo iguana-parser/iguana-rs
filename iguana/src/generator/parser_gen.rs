@@ -94,6 +94,7 @@ impl<'a> ParserGen<'a> {
         let new_env_method = Self::gen_new_env_method();
         let lookup_method = Self::gen_lookup_method();
         let clone_env_method = Self::gen_clone_env();
+        let envs_method = Self::gen_envs_method();
         let post_conditions_method = self.gen_post_conditions_method();
         let parser_struct = self.gen_parser_struct();
         let parser_impl = self.gen_parser_impl();
@@ -140,6 +141,7 @@ impl<'a> ParserGen<'a> {
                 #new_env_method
                 #lookup_method
                 #clone_env_method
+                #envs_method
                 #post_conditions_method
             }
             #parser_struct
@@ -2017,6 +2019,14 @@ impl<'a> ParserGen<'a> {
                 let (new_id, new_env) = self.new_env();
                 new_env.bindings = bindings;
                 (new_id, new_env)
+            }
+        }
+    }
+
+    fn gen_envs_method() -> TokenStream {
+        quote! {
+            fn envs(&self) -> &[Env] {
+                &self.envs
             }
         }
     }

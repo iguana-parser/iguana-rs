@@ -287,6 +287,16 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         "GssNode::popped_elements: InlineSet",
                         node.popped_elements().len(),
                     );
+                    iguana_runtime::instrument::record(
+                        "GssNode::edges: InlineVec",
+                        node.edges().len(),
+                    );
+                }
+                for env in parser.envs() {
+                    iguana_runtime::instrument::record(
+                        "Env::bindings: InlineVec",
+                        env.bindings.len(),
+                    );
                 }
                 iguana_runtime::instrument::dump();
             }
