@@ -49,6 +49,10 @@ impl Span {
             right_extent,
         }
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.left_extent == self.right_extent
+    }
 }
 
 impl Hash for Span {
