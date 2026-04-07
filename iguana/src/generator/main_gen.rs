@@ -104,6 +104,15 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             /// Output path for the flamegraph SVG (used with --profile).
             #[arg(long, value_name = "FILE", default_value = "flamegraph.svg")]
             profile_output: PathBuf,
+
+            /// Write parser stats (counters + histograms) as JSON.
+            /// Requires the "instrument" feature.
+            #[arg(long, value_name = "FILE")]
+            write_stats: Option<PathBuf>,
+
+            /// Write parse + tree construction timings as JSON.
+            #[arg(long, value_name = "FILE")]
+            write_timings: Option<PathBuf>,
         }
 
         #[cfg(feature = "dhat-heap")]
@@ -241,13 +250,36 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         writeln!(writer, "{}", serde_json::to_string(&gss_nodes).unwrap())?;
                     }
 
+                    // Time tree construction once (separately from --write-parse-tree)
+                    // so we can report it via --write-timings even if no parse-tree file is requested.
+                    let tc_start = std::time::Instant::now();
+                    let parse_tree_opt = if cli.write_parse_tree.is_some()
+                        || cli.write_timings.is_some()
+                        || (cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() && cli.trace.is_none())
+                    {
+                        Some(create_parse_tree(node_id, &start_nonterminal_name, &parser, &parse_tree_builder))
+                    } else {
+                        None
+                    };
+                    let tree_construction_ms = parse_tree_opt.as_ref().map(|_| tc_start.elapsed().as_millis());
+
                     // Handle --write-parse-tree (write parse tree as JSON for visualization)
-                    if let Some(ref path) = cli.write_parse_tree {
-                        let parse_tree = create_parse_tree(node_id, &start_nonterminal_name, &parser, &parse_tree_builder);
+                    if let (Some(path), Some(parse_tree)) = (cli.write_parse_tree.as_ref(), parse_tree_opt.as_ref()) {
                         let json = to_json(parse_tree.as_parse_tree_ref());
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
                         writeln!(writer, "{}", json)?;
+                    }
+
+                    // Handle --write-timings (write parse + tree construction timings as JSON)
+                    if let Some(ref path) = cli.write_timings {
+                        let timings = serde_json::json!({
+                            "parse_ms": parse_success.duration.as_millis(),
+                            "tree_construction_ms": tree_construction_ms,
+                        });
+                        let file = File::create(path)?;
+                        let mut writer = BufWriter::new(file);
+                        writeln!(writer, "{}", serde_json::to_string(&timings).unwrap())?;
                     }
 
                     // Handle --vis (visualization as SVG)
@@ -272,8 +304,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     // Print parse tree if no write flags specified and not tracing
                     // (trace mode skips parse tree to avoid panics on ambiguous grammars)
                     if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() && cli.trace.is_none() {
-                        let parse_tree = create_parse_tree(node_id, &start_nonterminal_name, &parser, &parse_tree_builder);
-                        println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
+                        if let Some(ref parse_tree) = parse_tree_opt {
+                            println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
+                        }
                     }
                 }
                 ParseResult::Failure() => {
@@ -281,7 +314,20 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 }
             }
             #[cfg(feature = "instrument")]
-            eprintln!("{}", parser.record_stats());
+            {
+                let stats = parser.record_stats();
+                if let Some(ref path) = cli.write_stats {
+                    let file = File::create(path)?;
+                    let mut writer = BufWriter::new(file);
+                    writeln!(writer, "{}", serde_json::to_string(&stats).unwrap())?;
+                } else {
+                    eprintln!("{}", stats);
+                }
+            }
+            #[cfg(not(feature = "instrument"))]
+            if cli.write_stats.is_some() {
+                eprintln!("Warning: --write-stats flag ignored. Recompile with `--features instrument` to enable stats.");
+            }
             Ok(())
         }
 

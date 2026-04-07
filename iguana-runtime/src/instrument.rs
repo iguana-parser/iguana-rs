@@ -20,7 +20,9 @@ mod imp {
     use std::collections::BTreeMap;
     use std::fmt;
 
-    #[derive(Debug, Default, Clone)]
+    use serde::Serialize;
+
+    #[derive(Debug, Default, Clone, Serialize)]
     pub struct Stats {
         pub descriptors_count: usize,
         pub gss_nodes_count: usize,

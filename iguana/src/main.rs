@@ -40,6 +40,10 @@ enum Commands {
         /// Output timing information as JSON (for tool integration)
         #[arg(long)]
         json: bool,
+
+        /// Disable LL(1) optimization in code generation
+        #[arg(long)]
+        no_ll1: bool,
     },
     Run,
     /// Test-related commands
@@ -80,6 +84,7 @@ fn main() -> std::io::Result<()> {
             grammar,
             output,
             json,
+            no_ll1,
         } => {
             let resolved_path;
             let path = match grammar.as_deref() {
@@ -91,7 +96,10 @@ fn main() -> std::io::Result<()> {
             };
             let source = std::fs::read_to_string(path)?;
             let grammar_def = parse_grammar(&source).map_err(std::io::Error::other)?;
-            let result = generate(&grammar_def.into(), &output, GenConfig::default())?;
+            let config = GenConfig {
+                ll1_optimization: !no_ll1,
+            };
+            let result = generate(&grammar_def.into(), &output, config)?;
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
             } else {
