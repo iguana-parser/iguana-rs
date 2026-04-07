@@ -79,8 +79,9 @@ impl<'a> ParserGen<'a> {
         let new_nonterminal_node_method = Self::gen_add_nonterminal_node_method();
         let new_intermediate_node_method = Self::gen_add_intermediate_node_method();
         let input_len_method = Self::gen_input_method();
-        let stats_method = Self::gen_stats_method();
-        let stats_mut_method = Self::gen_stats_mut_method();
+        let sppf_nodes_method = Self::gen_sppf_nodes_method();
+        let increment_descriptor_count_method = Self::gen_increment_descriptor_count_method();
+        let count_methods = Self::gen_count_methods();
         let lookup_nonterminal_node_method = Self::gen_lookup_nonterminal_node_method();
         let lookup_intermediate_node_method = Self::gen_lookup_intermediate_node_method();
         let lookup_terminal_node_method = Self::gen_lookup_terminal_node_method();
@@ -95,6 +96,7 @@ impl<'a> ParserGen<'a> {
         let lookup_method = Self::gen_lookup_method();
         let clone_env_method = Self::gen_clone_env();
         let envs_method = Self::gen_envs_method();
+        let record_stats_method = Self::gen_record_stats_method();
         let post_conditions_method = self.gen_post_conditions_method();
         let parser_struct = self.gen_parser_struct();
         let parser_impl = self.gen_parser_impl();
@@ -126,8 +128,9 @@ impl<'a> ParserGen<'a> {
                 #new_nonterminal_node_method
                 #new_intermediate_node_method
                 #input_len_method
-                #stats_method
-                #stats_mut_method
+                #sppf_nodes_method
+                #increment_descriptor_count_method
+                #count_methods
                 #lookup_nonterminal_node_method
                 #lookup_intermediate_node_method
                 #lookup_terminal_node_method
@@ -142,6 +145,7 @@ impl<'a> ParserGen<'a> {
                 #lookup_method
                 #clone_env_method
                 #envs_method
+                #record_stats_method
                 #post_conditions_method
             }
             #parser_struct
@@ -160,7 +164,7 @@ impl<'a> ParserGen<'a> {
                 gss::GSSNode,
                 ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
                 input::Input,
-                parser::{Parser, Stats, init_logger},
+                parser::{Parser, init_logger},
                 record,
                 scanner::Scanner,
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
@@ -1002,7 +1006,8 @@ impl<'a> ParserGen<'a> {
                     #nonterminal_nodes_index_field,
                     #intermediate_nodes_index_field,
                     #terminal_nodes_index_field,
-                    stats: Stats::default(),
+                    #[cfg(feature = "instrument")]
+                    descriptors_count: 0,
                     intermediate_nodes_children: vec![],
                     intermediate_nodes_children_map: OnceCell::new(),
                     nonterminal_nodes_children: vec![],
@@ -1043,7 +1048,8 @@ impl<'a> ParserGen<'a> {
                 gss_nodes_index: [Vec<(u32, GssNodeId)>; #nonterminal_ids_len],
                 #(#gss_nodes_index_fields,)*
                 sppf_nodes: Vec<SPPFNode>,
-                stats: Stats,
+                #[cfg(feature = "instrument")]
+                descriptors_count: usize,
                 nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #nonterminal_ids_len],
                 intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #slot_ids_len],
                 terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
@@ -1535,7 +1541,6 @@ impl<'a> ParserGen<'a> {
                 let gss_node = GSSNode::new(gss_node_id, nonterminal_id, input_index);
                 record!(self, GSSNodeCreated, nonterminal_id, input_index);
                 self.gss_nodes.push(gss_node);
-                self.stats.gss_nodes_count += 1;
                 gss_node_id
             }
         }
@@ -1584,7 +1589,8 @@ impl<'a> ParserGen<'a> {
                     descriptor.sppf_node_id,
                     descriptor.gss_node_id
                 );
-                self.stats_mut().descriptors_count += 1;
+                #[cfg(feature = "instrument")]
+                self.increment_descriptor_count();
                 self.descriptors.push(descriptor);
             }
         }
@@ -1602,7 +1608,6 @@ impl<'a> ParserGen<'a> {
         quote! {
             fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
                 let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-                self.stats.terminal_nodes_count += 1;
                 self.terminal_nodes_index[terminal_node.terminal_id.index()]
                     .insert(terminal_node.span, terminal_node_id);
                 record!(self, TerminalNodeCreated, terminal_node.terminal_id, terminal_node.span);
@@ -1616,7 +1621,6 @@ impl<'a> ParserGen<'a> {
         quote! {
             fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
                 let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-                self.stats.nonterminal_nodes_count += 1;
                 self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
                     .insert(nonterminal_node.span, nonterminal_node_id);
                 record!(
@@ -1636,7 +1640,6 @@ impl<'a> ParserGen<'a> {
         quote! {
             fn add_intermediate_node(&mut self, intermediate_node: IntermediateNode) -> SPPFNodeId {
                 let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-                self.stats.intermediate_nodes_count += 1;
                 self.intermediate_nodes_index[intermediate_node.slot_id.index()]
                     .insert(intermediate_node.span, intermediate_node_id);
                 record!(
@@ -1661,18 +1664,62 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_stats_method() -> TokenStream {
+    fn gen_sppf_nodes_method() -> TokenStream {
         quote! {
-            fn stats(&self) -> &Stats {
-                &self.stats
+            fn sppf_nodes(&self) -> &[SPPFNode] {
+                &self.sppf_nodes
             }
         }
     }
 
-    fn gen_stats_mut_method() -> TokenStream {
+    fn gen_increment_descriptor_count_method() -> TokenStream {
         quote! {
-            fn stats_mut(&mut self) -> &mut Stats {
-                &mut self.stats
+            #[cfg(feature = "instrument")]
+            fn increment_descriptor_count(&mut self) {
+                self.descriptors_count += 1;
+            }
+        }
+    }
+
+    fn gen_count_methods() -> TokenStream {
+        quote! {
+            #[cfg(feature = "instrument")]
+            fn count_descriptors(&self) -> usize {
+                self.descriptors_count
+            }
+
+            #[cfg(feature = "instrument")]
+            fn count_gss_nodes(&self) -> usize {
+                self.gss_nodes.len()
+            }
+
+            #[cfg(feature = "instrument")]
+            fn count_gss_edges(&self) -> usize {
+                self.gss_nodes.iter().map(|n| n.edges().len()).sum()
+            }
+
+            #[cfg(feature = "instrument")]
+            fn count_nonterminal_nodes(&self) -> usize {
+                self.sppf_nodes.iter().filter(|n| matches!(n, SPPFNode::Nonterminal(_))).count()
+            }
+
+            #[cfg(feature = "instrument")]
+            fn count_intermediate_nodes(&self) -> usize {
+                self.sppf_nodes.iter().filter(|n| matches!(n, SPPFNode::Intermediate(_))).count()
+            }
+
+            #[cfg(feature = "instrument")]
+            fn count_terminal_nodes(&self) -> usize {
+                self.sppf_nodes.iter().filter(|n| matches!(n, SPPFNode::Terminal(_))).count()
+            }
+
+            #[cfg(feature = "instrument")]
+            fn count_ambiguous_nodes(&self) -> usize {
+                self.sppf_nodes.iter().filter(|n| match n {
+                    SPPFNode::Nonterminal(nn) => nn.ambiguous,
+                    SPPFNode::Intermediate(in_) => in_.ambiguous,
+                    SPPFNode::Terminal(_) => false,
+                }).count()
             }
         }
     }
@@ -1888,7 +1935,6 @@ impl<'a> ParserGen<'a> {
         quote! {
             fn #method_name(&mut self, nonterminal_node: NonterminalNode, return_value: i32) -> SPPFNodeId {
                 let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-                self.stats.nonterminal_nodes_count += 1;
                 self.#field_name
                     .entry(nonterminal_node.span)
                     .or_default()
@@ -1932,10 +1978,7 @@ impl<'a> ParserGen<'a> {
                     let SPPFNode::Nonterminal(node) = node else {
                         unreachable!("Expects a nonterminal node");
                     };
-                    if !node.ambiguous {
-                        node.ambiguous = true;
-                        self.stats_mut().ambiguous_nodes += 1;
-                    }
+                    node.ambiguous = true;
                     self.add_nonterminal_node_child(existing_node_id, child);
                     return None;
                 }
@@ -2027,6 +2070,43 @@ impl<'a> ParserGen<'a> {
         quote! {
             fn envs(&self) -> &[Env] {
                 &self.envs
+            }
+        }
+    }
+
+    fn gen_record_stats_method() -> TokenStream {
+        quote! {
+            #[cfg(feature = "instrument")]
+            fn record_stats(&self) -> iguana_runtime::instrument::Stats {
+                let mut stats = iguana_runtime::instrument::Stats::new();
+
+                // Counters
+                stats.descriptors_count = self.count_descriptors();
+                stats.gss_nodes_count = self.count_gss_nodes();
+                stats.gss_edges_count = self.count_gss_edges();
+                stats.nonterminal_nodes_count = self.count_nonterminal_nodes();
+                stats.intermediate_nodes_count = self.count_intermediate_nodes();
+                stats.terminal_nodes_count = self.count_terminal_nodes();
+                stats.ambiguous_nodes_count = self.count_ambiguous_nodes();
+
+                // Histograms
+                for node in self.gss_nodes() {
+                    stats.record("GssNode::edges: InlineVec", node.edges().len());
+                    stats.record("GssNode::popped_elements: InlineSet", node.popped_elements().len());
+                }
+                for env in self.envs() {
+                    stats.record("Env::bindings: InlineVec", env.bindings.len());
+                }
+                for m in self.nonterminal_nodes_index.iter() {
+                    stats.record("Parser::nonterminal_nodes_index: InlineMap", m.len());
+                }
+                for m in self.intermediate_nodes_index.iter() {
+                    stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
+                }
+                for m in self.terminal_nodes_index.iter() {
+                    stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
+                }
+                stats
             }
         }
     }

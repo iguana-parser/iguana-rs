@@ -76,8 +76,8 @@ pub fn render_gss<'i>(parser: &impl Parser<'i>, path: impl AsRef<Path>) -> io::R
 }
 
 pub fn build_gss_dot_graph<'i, P: Parser<'i>>(parser: &P) -> GSS {
-    let mut nodes = Vec::with_capacity(parser.stats().gss_nodes_count);
-    let mut edges = Vec::with_capacity(parser.stats().gss_edges_count);
+    let mut nodes = Vec::new();
+    let mut edges = Vec::new();
     for gss_node in parser.gss_nodes() {
         nodes.push(GSSDotNode {
             id: gss_node.id,

@@ -138,7 +138,7 @@ impl<'a, 'i, P: Parser<'i>> SPPFGraphBuilder<'a, P> {
             nodes: vec![],
             edges: vec![],
             visited_nodes: FxHashSet::default(),
-            current_packed_node_id: parser.stats().count_all_sppf_nodes(),
+            current_packed_node_id: parser.sppf_nodes().len(),
         }
     }
     fn build(mut self, start_id: SPPFNodeId) -> SPPF {

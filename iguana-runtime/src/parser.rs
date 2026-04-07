@@ -23,7 +23,6 @@ pub enum ParseResult {
 pub struct ParseSuccess {
     pub sppf_node_id: SPPFNodeId,
     pub duration: Duration,
-    pub stats: Stats,
 }
 
 pub trait Parser<'i> {
@@ -78,8 +77,27 @@ pub trait Parser<'i> {
     }
     fn next_descriptor(&mut self) -> Option<Descriptor>;
     fn input(&self) -> &'i Input;
-    fn stats(&self) -> &Stats;
-    fn stats_mut(&mut self) -> &mut Stats;
+
+    fn sppf_nodes(&self) -> &[SPPFNode];
+
+    #[cfg(feature = "instrument")]
+    fn increment_descriptor_count(&mut self);
+    #[cfg(feature = "instrument")]
+    fn count_descriptors(&self) -> usize;
+    #[cfg(feature = "instrument")]
+    fn count_gss_nodes(&self) -> usize;
+    #[cfg(feature = "instrument")]
+    fn count_gss_edges(&self) -> usize;
+    #[cfg(feature = "instrument")]
+    fn count_nonterminal_nodes(&self) -> usize;
+    #[cfg(feature = "instrument")]
+    fn count_intermediate_nodes(&self) -> usize;
+    #[cfg(feature = "instrument")]
+    fn count_terminal_nodes(&self) -> usize;
+    #[cfg(feature = "instrument")]
+    fn count_ambiguous_nodes(&self) -> usize;
+    #[cfg(feature = "instrument")]
+    fn record_stats(&self) -> crate::instrument::Stats;
     fn add_nonterminal_node_child(&mut self, node: SPPFNodeId, child: SPPFNodeId);
     fn add_intermediate_node_child(
         &mut self,
@@ -261,7 +279,6 @@ pub trait Parser<'i> {
             dest_gss_node_id,
             return_slot
         );
-        self.stats_mut().gss_edges_count += 1;
     }
 
     fn pop(
@@ -406,11 +423,7 @@ pub trait Parser<'i> {
                 let SPPFNode::Nonterminal(node) = node else {
                     unreachable!("Expects a nonterminal node");
                 };
-                // Only count an ambiguous node once, i.e., when the second child is attached.
-                if !node.ambiguous {
-                    node.ambiguous = true;
-                    self.stats_mut().ambiguous_nodes += 1;
-                }
+                node.ambiguous = true;
                 self.add_nonterminal_node_child(existing_node_id, child);
                 return None;
             }
@@ -458,11 +471,7 @@ pub trait Parser<'i> {
                 let SPPFNode::Intermediate(node) = self.sppf_node_mut(existing_node_id) else {
                     unreachable!("It's a nonterminal node");
                 };
-                // Only count an ambiguous node once, i.e., when the second child is attached.
-                if !node.ambiguous {
-                    node.ambiguous = true;
-                    self.stats_mut().ambiguous_nodes += 1;
-                }
+                node.ambiguous = true;
                 self.add_intermediate_node_child(existing_node_id, left_child, right_child);
                 return None;
             }
@@ -575,7 +584,6 @@ pub trait Parser<'i> {
             ParseResult::Success(ParseSuccess {
                 sppf_node_id,
                 duration,
-                stats: self.stats().clone(),
             })
         } else {
             ParseResult::Failure()
@@ -614,19 +622,3 @@ pub fn init_logger() {
     });
 }
 
-#[derive(Default, Debug, Clone)]
-pub struct Stats {
-    pub descriptors_count: usize,
-    pub gss_nodes_count: usize,
-    pub gss_edges_count: usize,
-    pub nonterminal_nodes_count: usize,
-    pub intermediate_nodes_count: usize,
-    pub terminal_nodes_count: usize,
-    pub ambiguous_nodes: usize,
-}
-
-impl Stats {
-    pub fn count_all_sppf_nodes(&self) -> usize {
-        self.nonterminal_nodes_count + self.intermediate_nodes_count + self.terminal_nodes_count
-    }
-}

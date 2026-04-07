@@ -239,25 +239,7 @@ fn main() -> Result<(), io::Error> {
         }
     }
     #[cfg(feature = "instrument")]
-    {
-        for node in parser.gss_nodes() {
-            iguana_runtime::instrument::record(
-                "GssNode::popped_elements: InlineSet",
-                node.popped_elements().len(),
-            );
-            iguana_runtime::instrument::record(
-                "GssNode::edges: InlineVec",
-                node.edges().len(),
-            );
-        }
-        for env in parser.envs() {
-            iguana_runtime::instrument::record(
-                "Env::bindings: InlineVec",
-                env.bindings.len(),
-            );
-        }
-        iguana_runtime::instrument::dump();
-    }
+    eprintln!("{}", parser.record_stats());
     Ok(())
 }
 #[cfg(feature = "debug-trace")]

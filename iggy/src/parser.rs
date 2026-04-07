@@ -342,7 +342,7 @@ use crate::{scanner::IggyScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
-    input::Input, parser::{Parser, Stats, init_logger},
+    input::Input, parser::{Parser, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
@@ -11268,7 +11268,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         let gss_node = GSSNode::new(gss_node_id, nonterminal_id, input_index);
         record!(self, GSSNodeCreated, nonterminal_id, input_index);
         self.gss_nodes.push(gss_node);
-        self.stats.gss_nodes_count += 1;
         gss_node_id
     }
     fn gss_node(&self, id: GssNodeId) -> &GSSNode {
@@ -11288,7 +11287,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             self, DescriptorAdded, descriptor.input_index, descriptor.slot_id, descriptor
             .sppf_node_id, descriptor.gss_node_id
         );
-        self.stats_mut().descriptors_count += 1;
+        #[cfg(feature = "instrument")] self.increment_descriptor_count();
         self.descriptors.push(descriptor);
     }
     fn next_descriptor(&mut self) -> Option<Descriptor> {
@@ -11296,7 +11295,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     }
     fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
         let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.stats.terminal_nodes_count += 1;
         self.terminal_nodes_index[terminal_node.terminal_id.index()]
             .insert(terminal_node.span, terminal_node_id);
         record!(
@@ -11307,7 +11305,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     }
     fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
         let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.stats.nonterminal_nodes_count += 1;
         self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
             .insert(nonterminal_node.span, nonterminal_node_id);
         record!(
@@ -11322,7 +11319,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         intermediate_node: IntermediateNode,
     ) -> SPPFNodeId {
         let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.stats.intermediate_nodes_count += 1;
         self.intermediate_nodes_index[intermediate_node.slot_id.index()]
             .insert(intermediate_node.span, intermediate_node_id);
         record!(
@@ -11335,11 +11331,47 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     fn input(&self) -> &'i Input {
         self.scanner.input
     }
-    fn stats(&self) -> &Stats {
-        &self.stats
+    fn sppf_nodes(&self) -> &[SPPFNode] {
+        &self.sppf_nodes
     }
-    fn stats_mut(&mut self) -> &mut Stats {
-        &mut self.stats
+    #[cfg(feature = "instrument")]
+    fn increment_descriptor_count(&mut self) {
+        self.descriptors_count += 1;
+    }
+    #[cfg(feature = "instrument")]
+    fn count_descriptors(&self) -> usize {
+        self.descriptors_count
+    }
+    #[cfg(feature = "instrument")]
+    fn count_gss_nodes(&self) -> usize {
+        self.gss_nodes.len()
+    }
+    #[cfg(feature = "instrument")]
+    fn count_gss_edges(&self) -> usize {
+        self.gss_nodes.iter().map(|n| n.edges().len()).sum()
+    }
+    #[cfg(feature = "instrument")]
+    fn count_nonterminal_nodes(&self) -> usize {
+        self.sppf_nodes.iter().filter(|n| matches!(n, SPPFNode::Nonterminal(_))).count()
+    }
+    #[cfg(feature = "instrument")]
+    fn count_intermediate_nodes(&self) -> usize {
+        self.sppf_nodes.iter().filter(|n| matches!(n, SPPFNode::Intermediate(_))).count()
+    }
+    #[cfg(feature = "instrument")]
+    fn count_terminal_nodes(&self) -> usize {
+        self.sppf_nodes.iter().filter(|n| matches!(n, SPPFNode::Terminal(_))).count()
+    }
+    #[cfg(feature = "instrument")]
+    fn count_ambiguous_nodes(&self) -> usize {
+        self.sppf_nodes
+            .iter()
+            .filter(|n| match n {
+                SPPFNode::Nonterminal(nn) => nn.ambiguous,
+                SPPFNode::Intermediate(in_) => in_.ambiguous,
+                SPPFNode::Terminal(_) => false,
+            })
+            .count()
     }
     fn lookup_nonterminal_node(
         &self,
@@ -11431,6 +11463,38 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     fn envs(&self) -> &[Env] {
         &self.envs
     }
+    #[cfg(feature = "instrument")]
+    fn record_stats(&self) -> iguana_runtime::instrument::Stats {
+        let mut stats = iguana_runtime::instrument::Stats::new();
+        stats.descriptors_count = self.count_descriptors();
+        stats.gss_nodes_count = self.count_gss_nodes();
+        stats.gss_edges_count = self.count_gss_edges();
+        stats.nonterminal_nodes_count = self.count_nonterminal_nodes();
+        stats.intermediate_nodes_count = self.count_intermediate_nodes();
+        stats.terminal_nodes_count = self.count_terminal_nodes();
+        stats.ambiguous_nodes_count = self.count_ambiguous_nodes();
+        for node in self.gss_nodes() {
+            stats.record("GssNode::edges: InlineVec", node.edges().len());
+            stats
+                .record(
+                    "GssNode::popped_elements: InlineSet",
+                    node.popped_elements().len(),
+                );
+        }
+        for env in self.envs() {
+            stats.record("Env::bindings: InlineVec", env.bindings.len());
+        }
+        for m in self.nonterminal_nodes_index.iter() {
+            stats.record("Parser::nonterminal_nodes_index: InlineMap", m.len());
+        }
+        for m in self.intermediate_nodes_index.iter() {
+            stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
+        }
+        for m in self.terminal_nodes_index.iter() {
+            stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
+        }
+        stats
+    }
     fn post_conditions(
         &self,
         slot: SlotId,
@@ -11460,7 +11524,8 @@ pub struct IggyParser<'i> {
     //GSS index for nonterminal Symbol_except_FollowRestriction
     gss_nodes_index_symbol_except_follow_restriction: Vec<(u32, i32, GssNodeId)>,
     sppf_nodes: Vec<SPPFNode>,
-    stats: Stats,
+    #[cfg(feature = "instrument")]
+    descriptors_count: usize,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 74],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 641],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 37],
@@ -11499,7 +11564,8 @@ impl<'i> IggyParser<'i> {
             nonterminal_nodes_index: [const { InlineMap::Empty }; 74],
             intermediate_nodes_index: [const { InlineMap::Empty }; 641],
             terminal_nodes_index: [const { InlineMap::Empty }; 37],
-            stats: Stats::default(),
+            #[cfg(feature = "instrument")]
+            descriptors_count: 0,
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_children: vec![],
@@ -13894,7 +13960,6 @@ impl<'i> IggyParser<'i> {
         return_value: i32,
     ) -> SPPFNodeId {
         let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.stats.nonterminal_nodes_count += 1;
         self.nonterminal_nodes_index_symbol
             .entry(nonterminal_node.span)
             .or_default()
@@ -13912,7 +13977,6 @@ impl<'i> IggyParser<'i> {
         return_value: i32,
     ) -> SPPFNodeId {
         let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.stats.nonterminal_nodes_count += 1;
         self.nonterminal_nodes_index_symbol_except_except
             .entry(nonterminal_node.span)
             .or_default()
@@ -13930,7 +13994,6 @@ impl<'i> IggyParser<'i> {
         return_value: i32,
     ) -> SPPFNodeId {
         let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.stats.nonterminal_nodes_count += 1;
         self.nonterminal_nodes_index_symbol_except_follow_restriction
             .entry(nonterminal_node.span)
             .or_default()
@@ -13959,10 +14022,7 @@ impl<'i> IggyParser<'i> {
             let SPPFNode::Nonterminal(node) = node else {
                 unreachable!("Expects a nonterminal node");
             };
-            if !node.ambiguous {
-                node.ambiguous = true;
-                self.stats_mut().ambiguous_nodes += 1;
-            }
+            node.ambiguous = true;
             self.add_nonterminal_node_child(existing_node_id, child);
             return None;
         }
@@ -13996,10 +14056,7 @@ impl<'i> IggyParser<'i> {
             let SPPFNode::Nonterminal(node) = node else {
                 unreachable!("Expects a nonterminal node");
             };
-            if !node.ambiguous {
-                node.ambiguous = true;
-                self.stats_mut().ambiguous_nodes += 1;
-            }
+            node.ambiguous = true;
             self.add_nonterminal_node_child(existing_node_id, child);
             return None;
         }
@@ -14039,10 +14096,7 @@ impl<'i> IggyParser<'i> {
             let SPPFNode::Nonterminal(node) = node else {
                 unreachable!("Expects a nonterminal node");
             };
-            if !node.ambiguous {
-                node.ambiguous = true;
-                self.stats_mut().ambiguous_nodes += 1;
-            }
+            node.ambiguous = true;
             self.add_nonterminal_node_child(existing_node_id, child);
             return None;
         }
