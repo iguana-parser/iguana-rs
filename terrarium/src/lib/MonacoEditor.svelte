@@ -21,6 +21,7 @@
 
     monaco.languages.register({ id: "iggy" });
 
+
     // Monarch baseline tokenizer — provides instant, synchronous syntax
     // highlighting so the editor is never "white". Semantic tokens from the
     // backend are layered on top and override these where they apply.
@@ -56,7 +57,13 @@
         { token: "decorator", foreground: "dcdcaa" },
         { token: "comment", foreground: "808080" }, // labels
       ],
-      colors: {},
+      colors: {
+        // Range highlight (used by Cmd+O symbol picker reveal). vs-dark's
+        // default is nearly invisible; bump it to a noticeable blue tint that
+        // matches Terrarium's input-highlight color (#264f78).
+        "editor.rangeHighlightBackground": "#264f784d",
+        "editor.rangeHighlightBorder": "#00000000",
+      },
     });
 
     // Fetch legend from backend, then register provider
@@ -105,6 +112,39 @@
         });
       },
     );
+
+    // Document symbols (Cmd+O / quick outline). Reads from the cached parse
+    // result; analyze_grammar runs on every keystroke so the cache is fresh.
+    monaco.languages.registerDocumentSymbolProvider("iggy", {
+      displayName: "Iggy",
+      async provideDocumentSymbols() {
+        type Sym = {
+          name: string;
+          kind: number;
+          range: { start_line: number; start_char: number; end_line: number; end_char: number };
+          selection_range: { start_line: number; start_char: number; end_line: number; end_char: number };
+          children: Sym[];
+        };
+        const symbols = await invoke<Sym[]>("get_document_symbols");
+        const toRange = (r: Sym["range"]) => ({
+          startLineNumber: r.start_line + 1,
+          startColumn: r.start_char + 1,
+          endLineNumber: r.end_line + 1,
+          endColumn: r.end_char + 1,
+        });
+        const convert = (s: Sym): monaco.languages.DocumentSymbol => ({
+          name: s.name,
+          detail: "",
+          // LSP SymbolKind codes are 1-based; Monaco's enum is 0-based.
+          kind: s.kind - 1,
+          tags: [],
+          range: toRange(s.range),
+          selectionRange: toRange(s.selection_range),
+          children: s.children.map(convert),
+        });
+        return symbols.map(convert);
+      },
+    });
   }
 
   interface Props {
@@ -149,6 +189,39 @@
     // global handler in +page.svelte listens for.
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG, () => {
       window.dispatchEvent(new CustomEvent("terrarium-generate"));
+    });
+
+    // Override Cmd+P (Monaco's quickCommand picker) and Cmd+1/2/3.
+    // editor.addCommand registers at a lower weight than Monaco built-ins, so
+    // for keys with built-in bindings we have to go through the private
+    // _standaloneKeybindingService.addDynamicKeybinding API. This is the same
+    // hack monaco-vim uses. The leading "-" entry unbinds the built-in.
+    const kbService = (editor as any)._standaloneKeybindingService;
+    function bind(keybinding: number, handler: () => void, unbindBuiltin?: string) {
+      if (unbindBuiltin) {
+        kbService.addDynamicKeybinding(`-${unbindBuiltin}`, keybinding, () => {});
+      }
+      kbService.addDynamicKeybinding(`terrarium.kb.${keybinding}`, keybinding, handler);
+    }
+    bind(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP,
+      () => window.dispatchEvent(new CustomEvent("terrarium-parse")),
+      "editor.action.quickCommand",
+    );
+    bind(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit1, () =>
+      window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "design" })),
+    );
+    bind(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit2, () =>
+      window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "parse" })),
+    );
+    bind(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit3, () =>
+      window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "debug" })),
+    );
+
+    // Cmd+O: Show symbols in file (Eclipse-style). Triggers Monaco's built-in
+    // quick outline picker, which reads from the DocumentSymbolProvider above.
+    bind(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyO, () => {
+      editor.getAction("editor.action.quickOutline")?.run();
     });
 
     // Cmd+D / Ctrl+D: Delete current line

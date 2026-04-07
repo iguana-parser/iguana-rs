@@ -3,9 +3,9 @@ mod trace_replay;
 use std::{fs, io::Write, path::Path, path::PathBuf, process::Command, sync::Mutex, thread};
 
 use iguana::visualization::{gss::GSS, sppf::SPPF};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::Emitter;
+use tauri::{Emitter, Manager};
 use tauri_plugin_opener::OpenerExt;
 use tauri_specta::{collect_commands, Builder};
 use tempfile::{NamedTempFile, TempDir};
@@ -29,6 +29,25 @@ struct SemanticTokensLegendData {
     token_types: Vec<String>,
 }
 
+#[derive(Clone, Serialize, Type)]
+struct RangeData {
+    start_line: u32,
+    start_char: u32,
+    end_line: u32,
+    end_char: u32,
+}
+
+/// Specta-compatible wrapper for lsp_types::DocumentSymbol.
+/// `kind` is the numeric LSP SymbolKind (e.g. 5 = Class, 9 = Constructor, 10 = Enum).
+#[derive(Clone, Serialize, Type)]
+struct DocumentSymbolData {
+    name: String,
+    kind: u32,
+    range: RangeData,
+    selection_range: RangeData,
+    children: Vec<DocumentSymbolData>,
+}
+
 /// Debug SPPF info returned to the frontend.
 #[derive(Clone, Serialize, Type)]
 struct DebugSPPFInfo {
@@ -49,6 +68,30 @@ struct BuildResult {
     message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     duration_ms: Option<u64>,
+    /// Features the binary was built with. None when build failed or for non-build events.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    features: Option<BuildFeatures>,
+}
+
+/// Cargo features the current parser binary was built with.
+#[derive(Clone, Copy, Default, Serialize, Type)]
+struct BuildFeatures {
+    instrument: bool,
+    debug_trace: bool,
+}
+
+/// Parser stats from --write-stats output (instrument feature).
+#[derive(Clone, Serialize, Deserialize, Type)]
+struct StatsData {
+    descriptors_count: u32,
+    gss_nodes_count: u32,
+    gss_edges_count: u32,
+    nonterminal_nodes_count: u32,
+    intermediate_nodes_count: u32,
+    terminal_nodes_count: u32,
+    ambiguous_nodes_count: u32,
+    /// Map from collection name (e.g. "Env::bindings: InlineVec") to recorded sizes.
+    histograms: std::collections::BTreeMap<String, Vec<u32>>,
 }
 
 /// Result of analyzing/parsing a grammar source.
@@ -68,6 +111,13 @@ struct GrammarState {
     cached_tokens: Vec<SemanticTokenData>,
 }
 
+/// Tracks the cargo features the current parser binary was built with.
+/// `None` means no successful build yet (or the binary is stale).
+#[derive(Default)]
+struct BuildState {
+    features: Option<BuildFeatures>,
+}
+
 #[derive(Default)]
 struct ParseState {
     _temp_dir: Option<TempDir>,
@@ -82,6 +132,7 @@ struct ParseOutput {
     success: bool,
     error: Option<String>,
     duration_ms: Option<u32>,
+    tree_construction_ms: Option<u32>,
     has_sppf: bool,
     has_gss: bool,
     has_parse_tree: bool,
@@ -215,8 +266,27 @@ fn save_grammar(directory: String, filename: String, content: String) -> Result<
 
 #[tauri::command]
 #[specta::specta]
-fn build_parser(directory: String, app: tauri::AppHandle) {
-    // Spawn blocking work in a separate thread
+fn build_parser(
+    directory: String,
+    instrument: bool,
+    debug_trace: bool,
+    app: tauri::AppHandle,
+    state: tauri::State<'_, Mutex<BuildState>>,
+) {
+    // Build feature list. `profile` is always on (no runtime cost when --profile not passed).
+    let mut features = vec!["profile".to_string()];
+    if instrument {
+        features.push("instrument".into());
+    }
+    if debug_trace {
+        features.push("debug-trace".into());
+    }
+    let features_arg = features.join(",");
+    let built_features = BuildFeatures { instrument, debug_trace };
+
+    // Mark current binary as stale until rebuild completes.
+    state.lock().unwrap().features = None;
+
     thread::spawn(move || {
         let _ = app.emit(
             "build-progress",
@@ -227,18 +297,22 @@ fn build_parser(directory: String, app: tauri::AppHandle) {
         );
 
         let build_output = Command::new("cargo")
-            .args(["build", "--release", "--features", "debug-trace,profile"])
+            .args(["build", "--release", "--features", &features_arg])
             .current_dir(&directory)
             .output();
 
         match build_output {
             Ok(output) if output.status.success() => {
+                if let Some(state) = app.try_state::<Mutex<BuildState>>() {
+                    state.lock().unwrap().features = Some(built_features);
+                }
                 let _ = app.emit(
                     "build-result",
                     BuildResult {
                         success: true,
                         message: "Build successful".into(),
                         duration_ms: None,
+                        features: Some(built_features),
                     },
                 );
             }
@@ -250,6 +324,7 @@ fn build_parser(directory: String, app: tauri::AppHandle) {
                         success: false,
                         message: stderr.into_owned(),
                         duration_ms: None,
+                        features: None,
                     },
                 );
             }
@@ -260,6 +335,7 @@ fn build_parser(directory: String, app: tauri::AppHandle) {
                         success: false,
                         message: format!("Failed to run cargo build: {}", e),
                         duration_ms: None,
+                        features: None,
                     },
                 );
             }
@@ -288,6 +364,7 @@ fn parse(
     let sppf_path = temp_dir.path().join("sppf.json");
     let gss_path = temp_dir.path().join("gss.json");
     let parse_tree_path = temp_dir.path().join("parse_tree.json");
+    let timings_path = temp_dir.path().join("timings.json");
 
     let output = Command::new(&parser_path)
         .env("RUST_BACKTRACE", "1")  // Always show backtraces for debugging
@@ -300,6 +377,8 @@ fn parse(
         .arg(&gss_path)
         .arg("--write-parse-tree")
         .arg(&parse_tree_path)
+        .arg("--write-timings")
+        .arg(&timings_path)
         .output()
         .map_err(|e| format!("Failed to run parser: {}", e))?;
 
@@ -318,14 +397,21 @@ fn parse(
     parse_state.gss_path = if has_gss { Some(gss_path) } else { None };
     parse_state.parse_tree_path = if has_parse_tree { Some(parse_tree_path) } else { None };
 
-    // Parse duration from stdout (format: "Parse success in <ms>ms")
-    let duration_ms = stdout
-        .lines()
-        .find_map(|line| {
-            line.strip_prefix("Parse success in ")
-                .and_then(|rest| rest.strip_suffix("ms"))
-                .and_then(|ms| ms.parse::<u32>().ok())
-        });
+    // Read timings from JSON file written by --write-timings
+    let (duration_ms, tree_construction_ms) = if timings_path.exists() {
+        match fs::read_to_string(&timings_path)
+            .ok()
+            .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
+        {
+            Some(v) => (
+                v.get("parse_ms").and_then(|n| n.as_u64()).map(|n| n as u32),
+                v.get("tree_construction_ms").and_then(|n| n.as_u64()).map(|n| n as u32),
+            ),
+            None => (None, None),
+        }
+    } else {
+        (None, None)
+    };
 
     // Determine success/error status
     if stdout.lines().any(|line| line.trim() == "Parse failed") {
@@ -333,6 +419,7 @@ fn parse(
             success: false,
             error: Some("Parse error".to_string()),
             duration_ms: None,
+            tree_construction_ms: None,
             has_sppf,
             has_gss,
             has_parse_tree,
@@ -344,6 +431,7 @@ fn parse(
             success: false,
             error: Some(format!("Parser error: {}", stderr.trim())),
             duration_ms: None,
+            tree_construction_ms: None,
             has_sppf,
             has_gss,
             has_parse_tree,
@@ -354,6 +442,7 @@ fn parse(
         success: true,
         error: None,
         duration_ms,
+        tree_construction_ms,
         has_sppf,
         has_gss,
         has_parse_tree,
@@ -405,6 +494,57 @@ fn get_parse_tree(state: tauri::State<Mutex<ParseState>>) -> Result<String, Stri
         .map_err(|e| format!("Failed to read parse tree file: {}", e))
 }
 
+/// Returns the cargo features the current parser binary was built with,
+/// or `None` if no successful build has happened yet.
+#[tauri::command]
+#[specta::specta]
+fn get_build_features(state: tauri::State<Mutex<BuildState>>) -> Option<BuildFeatures> {
+    state.lock().unwrap().features
+}
+
+/// Run the parser with --write-stats and return the parsed Stats JSON.
+/// Requires the binary to have been built with the `instrument` feature.
+#[tauri::command]
+#[specta::specta]
+fn get_stats(
+    directory: String,
+    input: String,
+    start_nonterminal: String,
+) -> Result<StatsData, String> {
+    let parser_path = get_parser_binary_path(&directory)?;
+
+    let mut input_file = NamedTempFile::new()
+        .map_err(|e| format!("Failed to create temp file: {}", e))?;
+    input_file
+        .write_all(input.as_bytes())
+        .map_err(|e| format!("Failed to write input: {}", e))?;
+
+    let temp_dir =
+        TempDir::new().map_err(|e| format!("Failed to create temp directory: {}", e))?;
+    let stats_path = temp_dir.path().join("stats.json");
+
+    let output = Command::new(&parser_path)
+        .arg(input_file.path())
+        .arg("--start")
+        .arg(&start_nonterminal)
+        .arg("--write-stats")
+        .arg(&stats_path)
+        .output()
+        .map_err(|e| format!("Failed to run parser: {}", e))?;
+
+    if !stats_path.exists() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!(
+            "Parser did not write stats. Was it built with --features instrument? {}",
+            stderr.trim()
+        ));
+    }
+
+    let content = fs::read_to_string(&stats_path)
+        .map_err(|e| format!("Failed to read stats file: {}", e))?;
+    serde_json::from_str(&content).map_err(|e| format!("Failed to parse stats JSON: {}", e))
+}
+
 /// Profile the parser by building with --features profile (release mode),
 /// running the parser in a loop under a sampling profiler, and opening the
 /// resulting flamegraph SVG in the default browser.
@@ -435,6 +575,7 @@ fn profile(
                         success: false,
                         message: e,
                         duration_ms: None,
+                        features: None,
                     },
                 );
                 return;
@@ -451,6 +592,7 @@ fn profile(
                         success: false,
                         message: format!("Failed to create temp file: {}", e),
                         duration_ms: None,
+                        features: None,
                     },
                 );
                 return;
@@ -463,6 +605,7 @@ fn profile(
                     success: false,
                     message: format!("Failed to write input: {}", e),
                     duration_ms: None,
+                    features: None,
                 },
             );
             return;
@@ -494,6 +637,7 @@ fn profile(
                             flamegraph_path.display()
                         ),
                         duration_ms: None,
+                        features: None,
                     },
                 );
             }
@@ -505,6 +649,7 @@ fn profile(
                         success: false,
                         message: format!("Profiling failed: {}", stderr),
                         duration_ms: None,
+                        features: None,
                     },
                 );
             }
@@ -515,6 +660,7 @@ fn profile(
                         success: false,
                         message: format!("Failed to run parser: {}", e),
                         duration_ms: None,
+                        features: None,
                     },
                 );
             }
@@ -613,7 +759,7 @@ fn get_nonterminals(directory: String) -> Result<Vec<String>, String> {
 
 #[tauri::command]
 #[specta::specta]
-fn generate_parser(directory: String, app: tauri::AppHandle) {
+fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
     thread::spawn(move || {
         let _ = app.emit(
             "generate-progress",
@@ -632,7 +778,9 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
             let result = iguana::generator::generate(
                 &grammar_def.into(),
                 dir,
-                iguana::generator::GenConfig::default(),
+                iguana::generator::GenConfig {
+                    ll1_optimization: !no_ll1,
+                },
             )
             .map_err(|e| e.to_string())?;
             Ok(result.total_duration_ms)
@@ -646,6 +794,7 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
                         success: true,
                         message: "Generation successful".into(),
                         duration_ms: Some(duration_ms),
+                        features: None,
                     },
                 );
             }
@@ -656,6 +805,7 @@ fn generate_parser(directory: String, app: tauri::AppHandle) {
                         success: false,
                         message,
                         duration_ms: None,
+                        features: None,
                     },
                 );
             }
@@ -751,6 +901,57 @@ fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<Semantic
     } else {
         // Fallback: return cached tokens so highlighting stays stable while typing
         st.cached_tokens.clone()
+    }
+}
+
+/// Return document symbols (rule heads + alternative labels) from the cached parse result.
+#[tauri::command]
+#[specta::specta]
+fn get_document_symbols(state: tauri::State<Mutex<GrammarState>>) -> Vec<DocumentSymbolData> {
+    let st = state.lock().unwrap();
+    let Some(ref result) = st.parse_result else {
+        return vec![];
+    };
+    lsp::document_symbols::document_symbols(result)
+        .into_iter()
+        .map(convert_symbol)
+        .collect()
+}
+
+/// Map the LSP SymbolKind constants we actually use to their numeric codes.
+/// The `.0` field of `lsp_types::SymbolKind` is private, so we match by const.
+fn symbol_kind_code(kind: lsp_types::SymbolKind) -> u32 {
+    use lsp_types::SymbolKind;
+    match kind {
+        SymbolKind::CLASS => 5,
+        SymbolKind::CONSTRUCTOR => 9,
+        SymbolKind::ENUM => 10,
+        _ => 1, // FILE, harmless fallback
+    }
+}
+
+fn convert_symbol(s: lsp_types::DocumentSymbol) -> DocumentSymbolData {
+    DocumentSymbolData {
+        name: s.name,
+        kind: symbol_kind_code(s.kind),
+        range: RangeData {
+            start_line: s.range.start.line,
+            start_char: s.range.start.character,
+            end_line: s.range.end.line,
+            end_char: s.range.end.character,
+        },
+        selection_range: RangeData {
+            start_line: s.selection_range.start.line,
+            start_char: s.selection_range.start.character,
+            end_line: s.selection_range.end.line,
+            end_char: s.selection_range.end.character,
+        },
+        children: s
+            .children
+            .unwrap_or_default()
+            .into_iter()
+            .map(convert_symbol)
+            .collect(),
     }
 }
 
@@ -1076,6 +1277,8 @@ pub fn run() {
         build_parser,
         generate_parser,
         parse,
+        get_stats,
+        get_build_features,
         profile,
         get_sppf,
         get_gss,
@@ -1097,7 +1300,8 @@ pub fn run() {
         analyze_grammar,
         format_grammar,
         get_semantic_tokens,
-        get_semantic_tokens_legend
+        get_semantic_tokens_legend,
+        get_document_symbols
     ]);
 
     #[cfg(debug_assertions)]
@@ -1110,6 +1314,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(Mutex::new(ParseState::default()))
+        .manage(Mutex::new(BuildState::default()))
         .manage(Mutex::new(DebugState::default()))
         .manage(Mutex::new(GrammarState {
             parse_result: None,

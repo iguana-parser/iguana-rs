@@ -29,11 +29,11 @@ async saveGrammar(directory: string, filename: string, content: string) : Promis
     else return { status: "error", error: e  as any };
 }
 },
-async buildParser(directory: string) : Promise<void> {
-    await TAURI_INVOKE("build_parser", { directory });
+async buildParser(directory: string, instrument: boolean, debugTrace: boolean) : Promise<void> {
+    await TAURI_INVOKE("build_parser", { directory, instrument, debugTrace });
 },
-async generateParser(directory: string) : Promise<void> {
-    await TAURI_INVOKE("generate_parser", { directory });
+async generateParser(directory: string, noLl1: boolean) : Promise<void> {
+    await TAURI_INVOKE("generate_parser", { directory, noLl1 });
 },
 async parse(directory: string, input: string, startNonterminal: string) : Promise<Result<ParseOutput, string>> {
     try {
@@ -42,6 +42,25 @@ async parse(directory: string, input: string, startNonterminal: string) : Promis
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+/**
+ * Run the parser with --write-stats and return the parsed Stats JSON.
+ * Requires the binary to have been built with the `instrument` feature.
+ */
+async getStats(directory: string, input: string, startNonterminal: string) : Promise<Result<StatsData, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_stats", { directory, input, startNonterminal }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Returns the cargo features the current parser binary was built with,
+ * or `None` if no successful build has happened yet.
+ */
+async getBuildFeatures() : Promise<BuildFeatures | null> {
+    return await TAURI_INVOKE("get_build_features");
 },
 /**
  * Profile the parser by building with --features profile (release mode),
@@ -218,6 +237,12 @@ async getSemanticTokens() : Promise<SemanticTokenData[]> {
 },
 async getSemanticTokensLegend() : Promise<SemanticTokensLegendData> {
     return await TAURI_INVOKE("get_semantic_tokens_legend");
+},
+/**
+ * Return document symbols (rule heads + alternative labels) from the cached parse result.
+ */
+async getDocumentSymbols() : Promise<DocumentSymbolData[]> {
+    return await TAURI_INVOKE("get_document_symbols");
 }
 }
 
@@ -243,6 +268,10 @@ parse_duration_ms: number;
  * Time spent constructing the typed parse tree from the SPPF (milliseconds).
  */
 tree_construction_duration_ms: number }
+/**
+ * Cargo features the current parser binary was built with.
+ */
+export type BuildFeatures = { instrument: boolean; debug_trace: boolean }
 /**
  * GSS edge for debug visualization.
  */
@@ -315,6 +344,11 @@ current_node_id: number | null }
 export type DebugSPPFNode = { id: number; kind: DebugSPPFNodeKind; label: string; left_extent: number; right_extent: number; children: number[] }
 export type DebugSPPFNodeKind = "Terminal" | "Nonterminal" | "Intermediate"
 /**
+ * Specta-compatible wrapper for lsp_types::DocumentSymbol.
+ * `kind` is the numeric LSP SymbolKind (e.g. 5 = Class, 9 = Constructor, 10 = Enum).
+ */
+export type DocumentSymbolData = { name: string; kind: number; range: RangeData; selection_range: RangeData; children: DocumentSymbolData[] }
+/**
  * Error info for the dropdown list.
  */
 export type ErrorInfo = { 
@@ -365,7 +399,8 @@ export type NodeKind = { Nonterminal: { ambiguous: boolean } } | { Intermediate:
 /**
  * Result of a parse operation, indicating which outputs are available.
  */
-export type ParseOutput = { success: boolean; error: string | null; duration_ms: number | null; has_sppf: boolean; has_gss: boolean; has_parse_tree: boolean }
+export type ParseOutput = { success: boolean; error: string | null; duration_ms: number | null; tree_construction_ms: number | null; has_sppf: boolean; has_gss: boolean; has_parse_tree: boolean }
+export type RangeData = { start_line: number; start_char: number; end_line: number; end_char: number }
 export type SPPF = { nodes: SPPFDotNode[]; edges: SPPFDotEdge[] }
 export type SPPFDotEdge = { src: SPPFNodeId; dest: SPPFNodeId }
 export type SPPFDotNode = { id: SPPFNodeId; kind: NodeKind; label: string; left_extent: number; right_extent: number }
@@ -384,6 +419,14 @@ export type SemanticTokenData = { delta_line: number; delta_start: number; lengt
  * Semantic token legend (token type names).
  */
 export type SemanticTokensLegendData = { token_types: string[] }
+/**
+ * Parser stats from --write-stats output (instrument feature).
+ */
+export type StatsData = { descriptors_count: number; gss_nodes_count: number; gss_edges_count: number; nonterminal_nodes_count: number; intermediate_nodes_count: number; terminal_nodes_count: number; ambiguous_nodes_count: number; 
+/**
+ * Map from collection name (e.g. "Env::bindings: InlineVec") to recorded sizes.
+ */
+histograms: Partial<{ [key in string]: number[] }> }
 
 /** tauri-specta globals **/
 

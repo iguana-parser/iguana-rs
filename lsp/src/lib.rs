@@ -1,4 +1,6 @@
+pub mod document_symbols;
 pub mod format;
+pub mod layout;
 pub mod semantic_tokens;
 
 use iggy::parse_tree::ParseTree;

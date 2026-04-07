@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { commands, type SPPF, type GSS, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo, type ErrorInfo } from "../bindings";
+  import { commands, type SPPF, type GSS, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo, type ErrorInfo, type StatsData, type BuildFeatures } from "../bindings";
   import { listen, emit } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { createMaximizeToggle } from "$lib/window-utils";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Cog, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List } from "lucide-svelte";
+  import { FolderOpen, Cog, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
   import {
@@ -101,11 +101,24 @@
       // Progress is shown in title bar status, not status bar
     });
 
-    const unlistenResult = listen<{ success: boolean; message: string }>("build-result", async (event) => {
-      isBuilding = false;
+    const unlistenResult = listen<{ success: boolean; message: string; features?: BuildFeatures | null }>("build-result", async (event) => {
       statusMessage = null;  // Clear status message
+      if (!event.payload.success) {
+        isBuilding = false;
+      }
       if (event.payload.success) {
         buildStatus = "success";
+        buildDurationMs = buildStartTime != null ? Math.round(performance.now() - buildStartTime) : null;
+        buildFeatures = event.payload.features ?? null;
+        // If the new binary lacks debug-trace, leave Debug mode.
+        // If it lacks instrument, clear stats and leave the Stats tab.
+        if (buildFeatures && !buildFeatures.debug_trace && activeMode === "debug") {
+          activeMode = "parse";
+        }
+        if (!buildFeatures?.instrument) {
+          statsData = null;
+          if (activeTab === "stats") activeTab = "parse-tree";
+        }
         logOutput("Build successful");
         if (parserDirectory) {
           // Fetch parser name and nonterminals in parallel
@@ -131,6 +144,7 @@
         readyStatusTimeout = setTimeout(() => {
           showReadyStatus = false;
         }, 3000);
+        isBuilding = false;
       } else {
         buildStatus = "error";
         buildError = event.payload.message;
@@ -139,15 +153,18 @@
       }
     });
 
-    const unlistenGenerateResult = listen<{ success: boolean; message: string; duration_ms?: number }>("generate-result", (event) => {
+    const unlistenGenerateResult = listen<{ success: boolean; message: string; duration_ms?: number }>("generate-result", async (event) => {
       isGenerating = false;
       statusMessage = null;  // Clear status message
       if (event.payload.success) {
         generateStatus = "success";
-        const durationStr = event.payload.duration_ms != null ? ` (${event.payload.duration_ms}ms)` : "";
+        generateDurationMs = event.payload.duration_ms ?? (generateStartTime != null ? Math.round(performance.now() - generateStartTime) : null);
+        const durationStr = generateDurationMs != null ? ` (${generateDurationMs}ms)` : "";
         logOutput(`Parser generated successfully${durationStr}`);
         setStatus(`Generated${durationStr}`, "success");
         setTimeout(() => { generateStatus = "none"; }, 2000);
+        // Chain into build with the current build config
+        await buildParser();
       } else {
         generateStatus = "error";
         logError(event.payload.message);
@@ -306,6 +323,29 @@
     }
     window.addEventListener("terrarium-generate", handleTerrariumGenerate);
 
+    // Listen for Cmd+P from Monaco editor (only fires when editor has focus)
+    function handleTerrariumParse() {
+      if (activeMode === "design") {
+        // In Design mode, re-run the same grammar analysis that fires on every
+        // keystroke (uses linked iggy via lsp::parse, no generated parser needed).
+        commands.analyzeGrammar(grammarText).then(onGrammarAnalyze);
+        return;
+      }
+      if (buildStatus === "success" && startNonterminal) {
+        parse();
+      }
+    }
+    window.addEventListener("terrarium-parse", handleTerrariumParse);
+
+    // Listen for Cmd+1/2/3 from Monaco editor (only fires when editor has focus)
+    function handleTerrariumMode(e: Event) {
+      const mode = (e as CustomEvent).detail as "design" | "parse" | "debug";
+      if (mode === "design") activeMode = "design";
+      else if (mode === "parse" && buildStatus === "success") activeMode = "parse";
+      else if (mode === "debug" && buildStatus === "success" && buildFeatures?.debug_trace) activeMode = "debug";
+    }
+    window.addEventListener("terrarium-mode", handleTerrariumMode);
+
     return () => {
       unlistenProgress.then(fn => fn());
       unlistenResult.then(fn => fn());
@@ -319,6 +359,8 @@
       unlistenMainClose.then(fn => fn());
       window.removeEventListener('resize', handleWindowResize);
       window.removeEventListener("terrarium-generate", handleTerrariumGenerate);
+      window.removeEventListener("terrarium-parse", handleTerrariumParse);
+      window.removeEventListener("terrarium-mode", handleTerrariumMode);
     };
   });
 
@@ -431,7 +473,20 @@
   let debugGssCy: cytoscape.Core | null = null;
 
   // Graph tab
-  let activeTab = $state<"gss" | "sppf" | "parse-tree">("parse-tree");
+  let activeTab = $state<"gss" | "sppf" | "parse-tree" | "stats">("parse-tree");
+
+  // Build configuration (chosen by user in Generate dropdown)
+  let buildConfig = $state({ ll1: true, instrument: false, debugTrace: false });
+  let generateDurationMs = $state<number | null>(null);
+  let buildDurationMs = $state<number | null>(null);
+  let buildStartTime: number | null = null;
+  let generateStartTime: number | null = null;
+  // Features the current binary was actually built with (null = no successful build)
+  let buildFeatures = $state<BuildFeatures | null>(null);
+  // Generate dropdown popover
+  let generateMenuOpen = $state(false);
+  // Stats panel
+  let statsData = $state<StatsData | null>(null);
 
   // Show spans in graph labels (hidden by default)
   let showSpans = $state(false);
@@ -1184,8 +1239,10 @@
         logOutput(`Grammar: ${filename}`);
       }
 
-      // Auto-build the parser
-      await buildParser();
+      // No auto-build: user must press Generate explicitly.
+      buildFeatures = null;
+      // Force back to Design mode since Parse/Debug are gated on a successful build.
+      activeMode = "design";
     }
   }
 
@@ -1197,26 +1254,47 @@
   async function buildParser() {
     if (!parserDirectory) return;
     isBuilding = true;
+    buildStartTime = performance.now();
     buildError = null;
     statusMessage = null;  // Let isBuilding control the status display
-    logCommand(`cargo build --features debug-trace`);
+    const featList = ["profile"];
+    if (buildConfig.instrument) featList.push("instrument");
+    if (buildConfig.debugTrace) featList.push("debug-trace");
+    logCommand(`cargo build --release --features ${featList.join(",")}`);
     // Command returns immediately, results come via events
-    await commands.buildParser(parserDirectory);
+    await commands.buildParser(parserDirectory, buildConfig.instrument, buildConfig.debugTrace);
   }
 
   async function generateParser() {
     if (!parserDirectory) return;
     isGenerating = true;
+    generateStartTime = performance.now();
+    generateDurationMs = null;
+    buildDurationMs = null;
     generateStatus = "none";
-    logCommand(`iguana generate --output .`);
-    // Command returns immediately, results come via events
-    await commands.generateParser(parserDirectory);
+    const ll1Flag = buildConfig.ll1 ? "" : " --no-ll1";
+    logCommand(`iguana generate --output .${ll1Flag}`);
+    // Command returns immediately, results come via events; build chains after generate succeeds
+    await commands.generateParser(parserDirectory, !buildConfig.ll1);
   }
 
   function clearStatus() {
     statusMessage = null;
     statusTooltip = null;
     showStatusDetails = false;
+  }
+
+  async function fetchStats() {
+    if (!parserDirectory || !startNonterminal) return;
+    const startSymbol = `Start${startNonterminal}`;
+    const result = await commands.getStats(parserDirectory, inputText, startSymbol);
+    if (result.status === "ok") {
+      statsData = result.data;
+    } else {
+      statsData = null;
+      logError(result.error);
+      outputPanelOpen = true;
+    }
   }
 
   async function parse() {
@@ -1227,6 +1305,7 @@
     sppf = null;
     gss = null;
     parseTree = null;
+    statsData = null;
     parseResultAvailable = false;
     parseTreeSelectedSpan = null;
     sppfSelectedSpan = null;
@@ -1250,9 +1329,13 @@
     parseResultAvailable = output.has_sppf || output.has_gss || output.has_parse_tree;
 
     if (output.success) {
-      const durationStr = output.duration_ms != null ? ` (${output.duration_ms}ms)` : "";
+      const totalMs = (output.duration_ms ?? 0) + (output.tree_construction_ms ?? 0);
+      const durationStr = output.duration_ms != null ? ` (${totalMs}ms)` : "";
       logOutput(`Parse successful${durationStr}`);
-      setStatus(`Parse successful${durationStr}`, "success");
+      const tooltip = output.duration_ms != null
+        ? `Parse: ${output.duration_ms}ms\nTree construction: ${output.tree_construction_ms ?? '?'}ms`
+        : undefined;
+      setStatus(`Parse successful${durationStr}`, "success", tooltip);
     } else {
       // Partial success - show error but still display available data
       if (output.error) {
@@ -1279,11 +1362,18 @@
       await fetchGss();
     } else if (activeTab === "parse-tree" && output.has_parse_tree) {
       await fetchParseTree();
+    } else if (activeTab === "stats" && buildFeatures?.instrument) {
+      await fetchStats();
     } else if (output.has_sppf) {
       // If active tab data not available, try to show something
       await fetchSppf();
     } else if (output.has_gss) {
       await fetchGss();
+    }
+
+    // Always fetch stats when instrument is enabled (independent of active tab)
+    if (buildFeatures?.instrument && activeTab !== "stats") {
+      await fetchStats();
     }
   }
 
@@ -1374,6 +1464,7 @@
       case "sppf": return cy;
       case "gss": return gssCy;
       case "parse-tree": return parseTreeCy;
+      default: return null;
     }
   }
 
@@ -2115,6 +2206,9 @@
     if (!target.closest('.title-bar-menu')) {
       titleBarMenuOpen = false;
     }
+    if (!target.closest('.generate-split')) {
+      generateMenuOpen = false;
+    }
   }
 
   function startWindowDrag() {
@@ -2124,18 +2218,33 @@
   const toggleMaximize = createMaximizeToggle();
 
   function handleKeyDown(e: KeyboardEvent) {
-    // Cmd+O to open parser directory (works everywhere, including in editors)
-    if ((e.metaKey || e.ctrlKey) && e.key === 'o') {
+    // Cmd+G to generate & build parser (any mode)
+    if ((e.metaKey || e.ctrlKey) && e.key === 'g') {
       e.preventDefault();
-      selectDirectory();
+      if (grammarFileName && !isGenerating && !isBuilding) {
+        generateParser();
+      }
       return;
     }
 
-    // Cmd+G to generate parser
-    if ((e.metaKey || e.ctrlKey) && e.key === 'g') {
+    // Cmd+1/2/3 to switch modes (if enabled)
+    if ((e.metaKey || e.ctrlKey) && (e.key === '1' || e.key === '2' || e.key === '3')) {
       e.preventDefault();
-      if (grammarFileName && !isGenerating) {
-        generateParser();
+      if (e.key === '1') activeMode = "design";
+      else if (e.key === '2' && buildStatus === "success") activeMode = "parse";
+      else if (e.key === '3' && buildStatus === "success" && buildFeatures?.debug_trace) activeMode = "debug";
+      return;
+    }
+
+    // Cmd+P to parse (always, in any mode).
+    // In Design mode this re-runs grammar analysis (linked iggy, no build needed);
+    // elsewhere it runs the generated parser on the test input.
+    if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
+      e.preventDefault();
+      if (activeMode === "design") {
+        commands.analyzeGrammar(grammarText).then(onGrammarAnalyze);
+      } else if (buildStatus === "success" && startNonterminal) {
+        parse();
       }
       return;
     }
@@ -2149,6 +2258,14 @@
 
     // Escape to close modals, deselect text, blur active element, and clear graph selections
     if (e.key === 'Escape') {
+      // If focus is inside Monaco, let the editor handle Escape exclusively
+      // (closing the quick outline / suggest / find widgets, etc.) and don't
+      // run any of our global Escape side effects. Otherwise dismissing a
+      // Monaco overlay would also clear graph selections, deselect text, etc.
+      const active = document.activeElement as HTMLElement | null;
+      if (active?.closest('.monaco-editor')) {
+        return;
+      }
       // Close context menu first
       if (sppfContextMenu) {
         sppfContextMenu = null;
@@ -2164,7 +2281,7 @@
         return;
       }
       window.getSelection()?.removeAllRanges();
-      (document.activeElement as HTMLElement)?.blur();
+      active?.blur();
       // Clear all graph selections and edge highlights
       if (cy) {
         if (sppfSelectedNodeId) cy.getElementById(sppfSelectedNodeId).removeClass('selected');
@@ -2255,30 +2372,59 @@
           {/if}
         </div>
         <div class="palette-status-area">
-          {#if isBuilding}
-            <Loader2 size={14} class="spinning" />
-          {:else if showReadyStatus}
-            <CheckCircle size={14} class="palette-status-success" />
-          {:else if buildStatus === "error"}
+          {#if buildStatus === "error"}
             <AlertTriangle size={14} class="palette-status-error" />
           {/if}
         </div>
       </button>
-    </div>
-    <div class="title-bar-right">
       {#if grammarFileName}
-        <button
-          class="title-bar-icon-btn"
+        <div
+          class="generate-split"
           class:generate-success={generateStatus === "success"}
           class:generate-error={generateStatus === "error"}
-          onclick={generateParser}
+          class:busy={isGenerating || isBuilding}
           onmousedown={(e) => e.stopPropagation()}
-          disabled={isGenerating}
-          title="Generate Parser"
+          ondblclick={(e) => e.stopPropagation()}
         >
-          <Cog size={18} class={isGenerating ? "spinning" : ""} />
-        </button>
+          <button
+            class="generate-main"
+            onclick={generateParser}
+            disabled={isGenerating || isBuilding}
+            title={isBuilding ? "Building..." : isGenerating ? "Generating..." : "Generate & Build Parser"}
+          >
+            {#if isGenerating || isBuilding}
+              <Loader2 size={15} class="spinning" />
+            {:else}
+              <Hammer size={15} />
+            {/if}
+          </button>
+          <button
+            class="generate-chevron"
+            onclick={() => generateMenuOpen = !generateMenuOpen}
+            title="Generate options"
+          >
+            <ChevronDown size={11} />
+          </button>
+          {#if generateMenuOpen}
+            <div class="generate-menu">
+              <label class="generate-menu-item">
+                <input type="checkbox" bind:checked={buildConfig.ll1} />
+                <span>LL(1) optimization</span>
+              </label>
+              <label class="generate-menu-item">
+                <input type="checkbox" bind:checked={buildConfig.instrument} />
+                <span>Instrument (stats)</span>
+              </label>
+              <label class="generate-menu-item">
+                <input type="checkbox" bind:checked={buildConfig.debugTrace} />
+                <span>Debug trace</span>
+              </label>
+            </div>
+          {/if}
+        </div>
       {/if}
+    </div>
+    <div class="title-bar-right">
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div class="title-bar-menu" onmousedown={(e) => e.stopPropagation()}>
         <button
@@ -2325,16 +2471,22 @@
       <button
         class="activity-btn"
         class:active={activeMode === "parse"}
-        onclick={() => activeMode = "parse"}
-        title="Parse"
+        onclick={() => { if (buildStatus === "success") activeMode = "parse"; }}
+        disabled={buildStatus !== "success"}
+        title={buildStatus === "success" ? "Parse" : "Generate the parser to enable Parse mode"}
       >
         <GitFork size={24} style="transform: rotate(180deg)" />
       </button>
       <button
         class="activity-btn"
         class:active={activeMode === "debug"}
-        onclick={() => activeMode = "debug"}
-        title="Debug"
+        onclick={() => { if (buildStatus === "success" && buildFeatures?.debug_trace) activeMode = "debug"; }}
+        disabled={buildStatus !== "success" || !buildFeatures?.debug_trace}
+        title={buildStatus !== "success"
+          ? "Generate the parser to enable Debug mode"
+          : buildFeatures?.debug_trace
+            ? "Debug"
+            : "Enable Debug Trace in Generate options to use Debug mode"}
       >
         <Bug size={24} />
       </button>
@@ -2406,14 +2558,6 @@
           bind:value={inputText}
           placeholder="Enter code to parse..."
           spellcheck="false"
-          onkeydown={(e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
-              e.preventDefault();
-              if (inputText !== lastParsedInput) {
-                parse();
-              }
-            }
-          }}
         ></textarea>
       {/if}
     </div>
@@ -2440,6 +2584,12 @@
           class:active={activeTab === "gss"}
           onclick={() => activeTab = "gss"}
         >GSS</button>
+        {#if buildFeatures?.instrument}
+          <button
+            class:active={activeTab === "stats"}
+            onclick={async () => { activeTab = "stats"; if (!statsData && parseResultAvailable) await fetchStats(); }}
+          >Stats</button>
+        {/if}
       </div>
       {#if activeTab === "parse-tree"}
         <div class="view-toggle-row">
@@ -2610,6 +2760,71 @@
               </button>
             </div>
           {/if}
+        {:else if activeTab === "stats"}
+          <div class="stats-panel">
+            {#if !buildFeatures?.instrument}
+              <div class="stats-empty">Rebuild with the Instrument option enabled to collect stats.</div>
+            {:else if !statsData}
+              <div class="stats-empty">
+                Run a parse to collect stats.
+                {#if parseResultAvailable}
+                  <div style="margin-top: 8px;">
+                    <button class="parse-btn" onclick={fetchStats}>Collect now</button>
+                  </div>
+                {/if}
+              </div>
+            {:else}
+              <div class="stats-counters">
+                <div><span class="stats-label">descriptors</span><span class="stats-value">{statsData.descriptors_count}</span></div>
+                <div><span class="stats-label">gss_nodes</span><span class="stats-value">{statsData.gss_nodes_count}</span></div>
+                <div><span class="stats-label">gss_edges</span><span class="stats-value">{statsData.gss_edges_count}</span></div>
+                <div><span class="stats-label">nonterminal_nodes</span><span class="stats-value">{statsData.nonterminal_nodes_count}</span></div>
+                <div><span class="stats-label">intermediate_nodes</span><span class="stats-value">{statsData.intermediate_nodes_count}</span></div>
+                <div><span class="stats-label">terminal_nodes</span><span class="stats-value">{statsData.terminal_nodes_count}</span></div>
+                <div><span class="stats-label">ambiguous_nodes</span><span class="stats-value">{statsData.ambiguous_nodes_count}</span></div>
+              </div>
+              {#if Object.keys(statsData.histograms).length > 0}
+                <div class="stats-histograms">
+                  <h4>Size histograms</h4>
+                  {#each Object.entries(statsData.histograms) as [name, lens] (name)}
+                    {@const lensArr = lens as number[]}
+                    {@const buckets = (() => {
+                      const b = [0, 0, 0, 0, 0, 0, 0, 0];
+                      for (const l of lensArr) {
+                        if (l === 0) b[0]++;
+                        else if (l === 1) b[1]++;
+                        else if (l === 2) b[2]++;
+                        else if (l <= 4) b[3]++;
+                        else if (l <= 8) b[4]++;
+                        else if (l <= 16) b[5]++;
+                        else if (l <= 32) b[6]++;
+                        else b[7]++;
+                      }
+                      return b;
+                    })()}
+                    {@const labels = ['0', '1', '2', '3-4', '5-8', '9-16', '17-32', '33+']}
+                    {@const max = Math.max(1, ...buckets)}
+                    {@const n = lensArr.length}
+                    {@const sum = lensArr.reduce((a: number, b: number) => a + b, 0)}
+                    {@const maxv = Math.max(0, ...lensArr)}
+                    <div class="histogram">
+                      <div class="histogram-name">{name}</div>
+                      <div class="histogram-meta">n={n}  max={maxv}  avg={(sum / Math.max(1, n)).toFixed(2)}</div>
+                      {#each buckets as count, i}
+                        <div class="histogram-row">
+                          <span class="histogram-bucket">{labels[i]}</span>
+                          <div class="histogram-bar-container">
+                            <div class="histogram-bar" style="width: {(count * 100) / max}%"></div>
+                          </div>
+                          <span class="histogram-count">{count}</span>
+                        </div>
+                      {/each}
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            {/if}
+          </div>
         {/if}
       </div>
     </div>
@@ -2926,20 +3141,24 @@
   <!-- Status Bar (full width) -->
   <div class="status-bar">
     <div class="status-left">
-      <button class="status-text-btn" onclick={() => outputPanelOpen = !outputPanelOpen}>
-        {#if isBuilding}
-          Building...
-        {:else if isGenerating}
-          Generating...
+      <button
+        class="status-text-btn"
+        onclick={() => outputPanelOpen = !outputPanelOpen}
+      >
+        {#if isGenerating || isBuilding}
+          Generating Parser...
         {:else if statusMessage}
           {statusMessage}
         {:else if parserDirectory && buildStatus === "success"}
-          Ready
+          Parser Generated
         {:else}
           No parser selected
         {/if}
         {#if statusTooltip}
           <span class="status-tooltip">{statusTooltip}</span>
+        {:else if parserDirectory && buildStatus === "success" && !isBuilding && !isGenerating && !statusMessage}
+          <span class="status-tooltip">Generation: {generateDurationMs ?? '?'}ms
+Compilation: {buildDurationMs ?? '?'}ms</span>
         {/if}
       </button>
     </div>
@@ -3001,11 +3220,31 @@
             <h4>Global</h4>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>O</kbd></span>
-              <span class="shortcut-desc">Open parser directory</span>
+              <span class="shortcut-desc">Show symbols in file (Design mode)</span>
             </div>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>G</kbd></span>
-              <span class="shortcut-desc">Generate parser</span>
+              <span class="shortcut-desc">Generate &amp; build parser</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>P</kbd></span>
+              <span class="shortcut-desc">Parse input (any mode)</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>1</kbd></span>
+              <span class="shortcut-desc">Switch to Design mode</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>2</kbd></span>
+              <span class="shortcut-desc">Switch to Parse mode</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>3</kbd></span>
+              <span class="shortcut-desc">Switch to Debug mode</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>F</kbd></span>
+              <span class="shortcut-desc">Format grammar (Design mode)</span>
             </div>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>?</kbd></span>
@@ -3014,13 +3253,6 @@
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>Esc</kbd></span>
               <span class="shortcut-desc">Clear selection / close modal</span>
-            </div>
-          </div>
-          <div class="shortcuts-section">
-            <h4>Parse Mode</h4>
-            <div class="shortcut-row">
-              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>P</kbd></span>
-              <span class="shortcut-desc">Parse input</span>
             </div>
           </div>
           <div class="shortcuts-section">
@@ -4713,4 +4945,137 @@
     }
   }
 
+  .generate-split {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    margin-left: 8px;
+    height: 24px;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    background: #2d2d2d;
+  }
+  .generate-split.busy { cursor: wait; pointer-events: none; }
+  .generate-main:first-child { border-top-left-radius: 3px; border-bottom-left-radius: 3px; }
+  .generate-chevron:last-child { border-top-right-radius: 3px; border-bottom-right-radius: 3px; }
+  .generate-split:hover:not(.busy) { background: #3a3a3a; }
+  .generate-split.disabled { opacity: 0.5; }
+  .generate-split.generate-error { border-color: #e05050; }
+  .generate-main,
+  .generate-chevron {
+    background: transparent;
+    border: 0;
+    color: #cccccc;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .generate-main { padding: 0 7px; }
+  .generate-chevron {
+    padding: 0 4px;
+    border-left: 1px solid #3c3c3c;
+  }
+  .generate-main:hover,
+  .generate-chevron:hover { background: rgba(255, 255, 255, 0.06); }
+  .generate-main:disabled,
+  .generate-chevron:disabled { cursor: default; }
+  .generate-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: #252526;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    padding: 6px 4px;
+    min-width: 200px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+  .generate-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: #cccccc;
+    font-size: 12px;
+  }
+  .generate-menu-item:hover {
+    background: #2a2d2e;
+  }
+  .generate-menu-item input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .stats-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #cccccc;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0 6px;
+  }
+  .stats-toggle input { margin: 0; cursor: pointer; }
+
+  .activity-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .stats-panel {
+    padding: 16px 20px;
+    overflow: auto;
+    color: #cccccc;
+    font-family: Menlo, monospace;
+    font-size: 12px;
+    width: 100%;
+    height: 100%;
+    align-self: stretch;
+    box-sizing: border-box;
+  }
+  .stats-empty { color: #888; padding: 8px 0; }
+  .stats-counters > div {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid #2d2d2d;
+  }
+  .stats-label { color: #888; }
+  .stats-value { color: #4ec9b0; font-weight: 600; }
+  .stats-histograms { margin-top: 18px; }
+  .stats-histograms h4 { margin: 0 0 10px 0; color: #ddd; font-size: 12px; font-weight: 600; }
+  .histogram { margin-bottom: 14px; }
+  .histogram-name { color: #569cd6; margin-bottom: 2px; }
+  .histogram-meta { color: #888; margin-bottom: 4px; font-size: 11px; }
+  .histogram-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 16px;
+  }
+  .histogram-bucket {
+    width: 38px;
+    text-align: right;
+    color: #888;
+  }
+  .histogram-bar-container {
+    flex: 1;
+    background: #1e1e1e;
+    height: 10px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .histogram-bar {
+    background: #4ec9b0;
+    height: 100%;
+  }
+  .histogram-count {
+    width: 36px;
+    color: #aaa;
+  }
 </style>

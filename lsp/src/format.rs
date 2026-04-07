@@ -18,6 +18,7 @@
 // - Comments are emitted from Layout nodes during the tree walk
 // - Final newline at end of file
 
+use crate::layout::is_same_line;
 use crate::ParseResult;
 use iggy::parse_tree::*;
 use iguana_runtime::input::Input;
@@ -59,18 +60,12 @@ impl<'a> Formatter<'a> {
         self.input.substring(span.left_extent, span.right_extent)
     }
 
-    fn is_same_line(&self, pos_a: u32, pos_b: u32) -> bool {
-        let (line_a, _) = self.input.line_column(pos_a);
-        let (line_b, _) = self.input.line_column(pos_b);
-        line_a == line_b
-    }
-
     /// Emit comments from a layout node. Trailing comments (same line as
     /// the previous token) get a space prefix. Standalone comments get
     /// their own line.
     fn emit_comments(&self, out: &mut String, layout: &Layout, previous: Span) {
         for comment in layout.line_comments() {
-            if self.is_same_line(comment.span().left_extent, previous.right_extent) {
+            if is_same_line(self.input, comment.span().left_extent, previous.right_extent) {
                 out.push(' ');
                 out.push_str(&self.text(comment.span()));
             } else {
