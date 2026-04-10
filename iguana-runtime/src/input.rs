@@ -69,12 +69,12 @@ impl Input {
         // If the input index is greater than the length of the input,
         // return (last_line, last_column), where last_column is the column number
         // after the last character on the last line.
-        if input_index >= self.len() {
-            println!("{:?}", self.line_start_end_offsets);
-            let last_line = self.line_start_end_offsets.len() - 1;
-            let (start_offset, end_offset) = self.line_start_end_offsets[last_line];
-            return (last_line as u32, end_offset - start_offset);
-        }
+        assert!(
+            input_index < self.len(),
+            "input_index {} out of bounds (input length {})",
+            input_index,
+            self.len()
+        );
         let mut low: u32 = 0;
         let mut high: u32 = self.line_start_end_offsets.len() as u32 - 1;
         while low <= high {
@@ -146,9 +146,10 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "input_index 6 out of bounds")]
     fn test_line_column_out_of_bounds() {
         let input = Input::from("abc\nde");
-        assert_eq!(input.line_column(6), (1, 2));
+        input.line_column(6);
     }
 
     #[test]

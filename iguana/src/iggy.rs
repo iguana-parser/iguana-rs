@@ -67,7 +67,7 @@ fn text(input: &Input, span: Span) -> String {
     input.substring(span.left_extent, span.right_extent)
 }
 
-fn build_grammar(
+pub fn build_grammar(
     start_grammar: &parse_tree::StartGrammar,
     input: &Input,
 ) -> Result<GrammarDef, Error> {
