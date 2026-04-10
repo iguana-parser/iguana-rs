@@ -2,16 +2,14 @@ pub mod document_symbols;
 pub mod format;
 pub mod layout;
 pub mod semantic_tokens;
+pub mod spans;
 
 use iggy::parse_tree::ParseTree;
+use iguana::grammar::def::GrammarDef;
 use iguana_runtime::input::Input;
+use spans::GrammarSpans;
 use std::time::Duration;
 
-/// Result of parsing a grammar source. Holds the parse tree (if successful)
-/// and the input needed for span-to-position conversions.
-///
-/// This is the central cached state that all language intelligence features
-/// (semantic tokens, diagnostics, go-to-definition, etc.) read from.
 pub struct ParseResult {
     pub tree: Option<ParseTree>,
     pub input: Input,
@@ -21,9 +19,28 @@ pub struct ParseResult {
     pub tree_construction_duration: Duration,
 }
 
+/// Build a GrammarDef from a successful parse result.
+pub fn build_grammar_def(result: &ParseResult) -> Option<GrammarDef> {
+    let tree = result.tree.as_ref()?;
+    let ParseTree::StartGrammar(start) = tree else {
+        return None;
+    };
+    iguana::iggy::build_grammar(start, &result.input).ok()
+}
+
+/// Build the side table from a GrammarDef and its parse tree.
+pub fn build_spans<'a>(
+    grammar_def: &'a GrammarDef,
+    result: &ParseResult,
+) -> Option<GrammarSpans<'a>> {
+    let tree = result.tree.as_ref()?;
+    let ParseTree::StartGrammar(start) = tree else {
+        return None;
+    };
+    Some(spans::build_spans(grammar_def, start, &result.input))
+}
+
 /// Parse the grammar source and return a ParseResult.
-/// This is a stateless function — caching is the caller's responsibility
-/// (Terrarium backend or LSP server).
 pub fn parse(source: &str) -> ParseResult {
     let input = Input::from(source);
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {

@@ -7,195 +7,118 @@
 //
 // Skipped: layout def, field labels (left:, right:), symbol references in bodies.
 
-use crate::layout::{leading_comments, trailing_comment};
-use crate::ParseResult;
-use iggy::parse_tree::*;
-use iguana_runtime::input::Input;
-use iguana_runtime::sppf::Span;
+use by_address::ByAddress;
+use iguana::grammar::def::GrammarDef;
+use iguana_runtime::{input::Input, sppf::Span};
 use lsp_types::{DocumentSymbol, Position, Range, SymbolKind};
 
-/// Walk down the right spine of `node`, skipping `Layout` children, and
-/// return the right_extent of the rightmost non-layout `Token` leaf. Iggy's
-/// typed parse tree folds trailing layout into each non-leaf node's `.span()`,
-/// so for things like a top-level rule, `node.span().right_extent` overshoots
-/// into the next rule. This walk finds the actual end of the node's content.
-fn rightmost_token_end(node: ParseTreeRef<'_>) -> Option<u32> {
-    if let ParseTreeRef::Token(t) = node {
-        return Some(t.span().right_extent);
-    }
-    for child in node.children().iter().rev() {
-        if matches!(child, ParseTreeRef::Layout(_)) {
+use crate::spans::GrammarSpans;
+
+pub fn document_symbols(
+    grammar_def: &GrammarDef,
+    spans: &GrammarSpans<'_>,
+    input: &Input,
+) -> Vec<DocumentSymbol> {
+    let mut out = Vec::new();
+
+    for rule in &grammar_def.syntax_rules {
+        let Some(meta) = spans.syntax_rules.get(&ByAddress(rule)) else {
             continue;
+        };
+        let Some(rule_span) = meta.span else {
+            continue;
+        };
+
+        let mut range = to_range(rule_span, input);
+        if let Some(first) = meta.leading_comments.first() {
+            let (l, c) = input.line_column(first.left_extent);
+            range.start = Position::new(l, c);
         }
-        if let Some(end) = rightmost_token_end(*child) {
-            return Some(end);
+        if let Some(trailing) = meta.trailing_comment {
+            let (l, c) = input.line_column(trailing.right_extent);
+            range.end = Position::new(l, c);
         }
-    }
-    None
-}
 
-pub fn document_symbols(result: &ParseResult) -> Vec<DocumentSymbol> {
-    let Some(ref tree) = result.tree else {
-        return vec![];
-    };
-    let ParseTree::StartGrammar(start) = tree else {
-        return vec![];
-    };
-    let grammar = &start.start;
+        let head_name = &rule.head.name;
+        let head_end = rule_span.left_extent + head_name.len() as u32;
+        let head_span = Span::new(rule_span.left_extent, head_end);
 
-    let mut walker = Walker {
-        input: &result.input,
-        last_layout: None,
-        out: Vec::new(),
-    };
-    walker.walk(grammar.as_parse_tree_ref());
-    walker.out
-}
-
-/// Depth-first traversal of the grammar parse tree. Maintains a single piece
-/// of state — the most recently visited `Layout` node, no matter how deeply
-/// nested. Whenever we arrive at a `Rule`, that variable holds the layout
-/// that immediately precedes the rule's head, which we use to attach leading
-/// `// ...` comments. After recursing through the rule's subtree, the same
-/// variable now holds the rule's *trailing* layout (the last layout visited
-/// inside the subtree), which we use to attach a trailing same-line comment.
-struct Walker<'a> {
-    input: &'a Input,
-    last_layout: Option<&'a Layout>,
-    out: Vec<DocumentSymbol>,
-}
-
-impl<'a> Walker<'a> {
-    fn walk(&mut self, node: ParseTreeRef<'a>) {
-        match node {
-            ParseTreeRef::Layout(l) => {
-                // Skip empty layouts so they don't overwrite the previous
-                // meaningful one.
-                if !l.span().is_empty() {
-                    self.last_layout = Some(l);
-                }
-                // Don't descend into layouts.
-            }
-            ParseTreeRef::Rule(rule) => {
-                let (mut symbol, head_start, content_end) = match rule {
-                    Rule::SyntaxRule { syntax_rule, .. } => {
-                        let s = syntax_rule_symbol(syntax_rule, self.input);
-                        let head_start = syntax_rule.head.span().left_extent;
-                        let end = rightmost_token_end(syntax_rule.as_parse_tree_ref())
-                            .unwrap_or(syntax_rule.head.span().right_extent);
-                        (s, head_start, end)
+        let mut children: Vec<DocumentSymbol> = Vec::new();
+        for level in &rule.priority_levels {
+            for alt in &level.alternatives {
+                if let Some(ref label) = alt.label {
+                    if let Some(alt_meta) = spans.alternatives.get(&ByAddress(alt)) {
+                        if let Some(alt_span) = alt_meta.span {
+                            #[allow(deprecated)]
+                            children.push(DocumentSymbol {
+                                name: format!("#{}", label),
+                                detail: None,
+                                kind: SymbolKind::CONSTRUCTOR,
+                                tags: None,
+                                deprecated: None,
+                                range: to_range(alt_span, input),
+                                selection_range: to_range(alt_span, input),
+                                children: None,
+                            });
+                        }
                     }
-                    Rule::RegexRule { regex_rule, .. } => {
-                        let s = regex_rule_symbol(regex_rule, self.input);
-                        let head_start = regex_rule.identifier.span().left_extent;
-                        let end = rightmost_token_end(regex_rule.as_parse_tree_ref())
-                            .unwrap_or(regex_rule.identifier.span().right_extent);
-                        (s, head_start, end)
-                    }
-                };
-
-                // Leading: extend range start to include consecutive `//`
-                // comments immediately above the rule's head.
-                if let Some(layout) = self.last_layout {
-                    let leading = leading_comments(layout, self.input, head_start);
-                    if let Some(first) = leading.first() {
-                        let (l, c) = self.input.line_column(first.span().left_extent);
-                        symbol.range.start = Position::new(l, c);
-                    }
-                }
-
-                // Recurse into the rule subtree purely as a side effect: we
-                // need to keep visiting Layout nodes so `last_layout` ends up
-                // pointing at this rule's trailing layout (the last layout
-                // visited inside the subtree).
-                for child in node.children().iter() {
-                    self.walk(*child);
-                }
-
-                // Trailing: extend range end to include a same-line `// ...`
-                // comment sitting right after the rule's content.
-                if let Some(layout) = self.last_layout {
-                    if let Some(c) = trailing_comment(layout, self.input, content_end) {
-                        let (l, col) = self.input.line_column(c.span().right_extent);
-                        symbol.range.end = Position::new(l, col);
-                    }
-                }
-
-                self.out.push(symbol);
-            }
-            _ => {
-                for child in node.children().iter() {
-                    self.walk(*child);
                 }
             }
         }
+
+        #[allow(deprecated)]
+        out.push(DocumentSymbol {
+            name: head_name.clone(),
+            detail: None,
+            kind: SymbolKind::CLASS,
+            tags: None,
+            deprecated: None,
+            range,
+            selection_range: to_range(head_span, input),
+            children: if children.is_empty() {
+                None
+            } else {
+                Some(children)
+            },
+        });
     }
-}
 
-fn syntax_rule_symbol(rule: &SyntaxRule, input: &Input) -> DocumentSymbol {
-    let name = input.substring(rule.head.span().left_extent, rule.head.span().right_extent);
-    let start = rule.head.span().left_extent;
-    let end = rightmost_token_end(rule.as_parse_tree_ref())
-        .unwrap_or(rule.head.span().right_extent);
-    let range_span = Span { left_extent: start, right_extent: end };
+    for rule in &grammar_def.lexical_rules {
+        let Some(meta) = spans.lexical_rules.get(&ByAddress(rule)) else {
+            continue;
+        };
+        let Some(rule_span) = meta.span else {
+            continue;
+        };
 
-    let mut children: Vec<DocumentSymbol> = Vec::new();
-    for level in rule.priority_levels.priority_levels() {
-        for alt in level.alternatives.alternatives() {
-            if let Some(label) = alt.label.value() {
-                let label_span = label.span();
-                let label_text = input.substring(label_span.left_extent, label_span.right_extent);
-                #[allow(deprecated)]
-                let alt_start = alt.span().left_extent;
-                let alt_end = rightmost_token_end(alt.as_parse_tree_ref())
-                    .unwrap_or(label_span.right_extent);
-                children.push(DocumentSymbol {
-                    name: label_text,
-                    detail: None,
-                    kind: SymbolKind::CONSTRUCTOR,
-                    tags: None,
-                    deprecated: None,
-                    range: to_range(Span { left_extent: alt_start, right_extent: alt_end }, input),
-                    selection_range: to_range(label_span, input),
-                    children: None,
-                });
-            }
+        let mut range = to_range(rule_span, input);
+        if let Some(first) = meta.leading_comments.first() {
+            let (l, c) = input.line_column(first.left_extent);
+            range.start = Position::new(l, c);
         }
+        if let Some(trailing) = meta.trailing_comment {
+            let (l, c) = input.line_column(trailing.right_extent);
+            range.end = Position::new(l, c);
+        }
+
+        let head_name = &rule.head.name;
+        let head_end = rule_span.left_extent + head_name.len() as u32;
+        let head_span = Span::new(rule_span.left_extent, head_end);
+
+        #[allow(deprecated)]
+        out.push(DocumentSymbol {
+            name: head_name.clone(),
+            detail: None,
+            kind: SymbolKind::ENUM,
+            tags: None,
+            deprecated: None,
+            range,
+            selection_range: to_range(head_span, input),
+            children: None,
+        });
     }
 
-    #[allow(deprecated)]
-    DocumentSymbol {
-        name,
-        detail: None,
-        kind: SymbolKind::CLASS,
-        tags: None,
-        deprecated: None,
-        range: to_range(range_span, input),
-        selection_range: to_range(rule.head.span(), input),
-        children: if children.is_empty() { None } else { Some(children) },
-    }
-}
-
-fn regex_rule_symbol(rule: &RegexRule, input: &Input) -> DocumentSymbol {
-    let name = input.substring(
-        rule.identifier.span().left_extent,
-        rule.identifier.span().right_extent,
-    );
-    let start = rule.identifier.span().left_extent;
-    let end = rightmost_token_end(rule.as_parse_tree_ref())
-        .unwrap_or(rule.identifier.span().right_extent);
-    let range_span = Span { left_extent: start, right_extent: end };
-    #[allow(deprecated)]
-    DocumentSymbol {
-        name,
-        detail: None,
-        kind: SymbolKind::ENUM,
-        tags: None,
-        deprecated: None,
-        range: to_range(range_span, input),
-        selection_range: to_range(rule.identifier.span(), input),
-        children: None,
-    }
+    out
 }
 
 fn to_range(span: Span, input: &Input) -> Range {
@@ -211,13 +134,29 @@ fn to_range(span: Span, input: &Input) -> Range {
 mod tests {
     use super::*;
 
-    fn syms(source: &str) -> Vec<DocumentSymbol> {
-        document_symbols(&crate::parse(source))
+    fn symbols(source: &str) -> Vec<DocumentSymbol> {
+        let source = source.strip_prefix('\n').unwrap_or(source);
+        let result = crate::parse(source);
+        let Some(grammar_def) = crate::build_grammar_def(&result) else {
+            return vec![];
+        };
+        let Some(spans) = crate::build_spans(&grammar_def, &result) else {
+            return vec![];
+        };
+        document_symbols(&grammar_def, &spans, &result.input)
     }
 
     #[test]
     fn nonterminals_and_terminals() {
-        let s = syms("grammar T\n\nExpr\n  = \"x\"\n\n@regex\nNumber = [0-9]+\n");
+        let s = symbols(r#"
+grammar T
+
+Expr
+  = "x"
+
+@regex
+Number = [0-9]+
+"#);
         assert_eq!(s.len(), 2);
         assert_eq!(s[0].name, "Expr");
         assert_eq!(s[0].kind, SymbolKind::CLASS);
@@ -227,9 +166,17 @@ mod tests {
 
     #[test]
     fn labels_become_children() {
-        let s = syms(
-            "grammar T\n\nExpr\n  = l:Expr \"+\" r:Expr #Add\n  | l:Expr \"*\" r:Expr #Mul\n  | Number #Lit\n\n@regex\nNumber = [0-9]+\n",
-        );
+        let s = symbols(r#"
+grammar T
+
+Expr
+  = l:Expr "+" r:Expr #Add
+  | l:Expr "*" r:Expr #Mul
+  | Number #Lit
+
+@regex
+Number = [0-9]+
+"#);
         assert_eq!(s.len(), 2);
         let children = s[0].children.as_ref().unwrap();
         assert_eq!(children.len(), 3);
@@ -243,24 +190,31 @@ mod tests {
 
     #[test]
     fn unlabeled_alternative_no_child() {
-        let s = syms("grammar T\n\nA\n  = \"x\"\n");
+        let s = symbols(r#"
+grammar T
+
+A
+  = "x"
+"#);
         assert_eq!(s.len(), 1);
         assert!(s[0].children.is_none());
     }
 
     #[test]
     fn parse_failure_returns_empty() {
-        assert!(syms("not a grammar {{{").is_empty());
+        assert!(symbols("not a grammar {{{").is_empty());
     }
 
     #[test]
     fn leading_comment_block_extends_range_start() {
-        // // first comment line
-        // // second comment line
-        // Expr
-        //   = "x"
-        let src = "grammar T\n\n// first\n// second\nExpr\n  = \"x\"\n";
-        let s = syms(src);
+        let s = symbols(r#"
+grammar T
+
+// first
+// second
+Expr
+  = "x"
+"#);
         assert_eq!(s.len(), 1);
         // Range should start at line 2 (zero-based), col 0 — the `// first`
         assert_eq!(s[0].range.start.line, 2);
@@ -271,12 +225,12 @@ mod tests {
 
     #[test]
     fn trailing_same_line_comment_extends_range_end() {
-        // Expr  // trailing
-        //   = "x"
-        // Wait, the trailing comment must be on the same line as the rule's
-        // last token, which is `"x"` on line 1 (zero-based).
-        let src = "grammar T\n\nExpr\n  = \"x\" // trailing\n";
-        let s = syms(src);
+        let s = symbols(r#"
+grammar T
+
+Expr
+  = "x" // trailing
+"#);
         assert_eq!(s.len(), 1);
         // Range end should sit past the trailing comment.
         assert_eq!(s[0].range.end.line, 3);
@@ -284,14 +238,106 @@ mod tests {
         assert!(s[0].range.end.character >= 18, "got {}", s[0].range.end.character);
     }
 
+    /// Rule ranges must not overlap: each rule's range.end must be <= the
+    /// next rule's range.start. This catches the bug where parse tree spans
+    /// include trailing layout and bleed into the next rule.
+    #[test]
+    fn rule_ranges_do_not_overlap() {
+        let s = symbols(r#"
+grammar T
+
+A
+  = B C?
+
+B
+  = "x"*
+
+C
+  = "y"+
+"#);
+        assert_eq!(s.len(), 3);
+        for i in 0..s.len() - 1 {
+            let end = &s[i].range.end;
+            let start = &s[i + 1].range.start;
+            assert!(
+                (end.line, end.character) <= (start.line, start.character),
+                "{} range end ({},{}) overlaps {} range start ({},{})",
+                s[i].name,
+                end.line,
+                end.character,
+                s[i + 1].name,
+                start.line,
+                start.character,
+            );
+        }
+    }
+
+    /// The last rule in the file must not have a range extending past the
+    /// last line of actual content (the bug that triggered the println in
+    /// line_column when right_extent == input.len()).
+    #[test]
+    fn last_rule_range_does_not_exceed_content() {
+        let s = symbols(r#"
+grammar T
+
+@regex
+Id = [a-z]+
+"#);
+        assert_eq!(s.len(), 1);
+        // Line 3 (zero-based) is `Id = [a-z]+`, the range end must sit on
+        // that line, not beyond it.
+        assert_eq!(s[0].range.end.line, 3);
+    }
+
+    #[test]
+    fn multiple_rules_with_nullable_symbols() {
+        let s = symbols(r#"
+grammar T
+
+A
+  = "a" B?
+
+B
+  = "b"
+"#);
+        assert_eq!(s.len(), 2);
+        assert_eq!(s[0].name, "A");
+        assert_eq!(s[1].name, "B");
+        // A's range must end before B's range starts.
+        assert!(
+            s[0].range.end.line < s[1].range.start.line
+                || (s[0].range.end.line == s[1].range.start.line
+                    && s[0].range.end.character <= s[1].range.start.character),
+        );
+    }
+
+    #[test]
+    fn nested_optional_and_star_symbols() {
+        let s = symbols(r#"
+grammar T
+
+A
+  = ("x" B?)*
+
+B
+  = "y"
+"#);
+        assert_eq!(s.len(), 2);
+        assert_eq!(s[0].name, "A");
+        assert_eq!(s[1].name, "B");
+        assert!(s[0].range.end.line < s[1].range.start.line);
+    }
+
     #[test]
     fn blank_line_separated_comment_is_not_leading() {
-        // // floating
-        //
-        // Expr
-        //   = "x"
-        let src = "grammar T\n\n// floating\n\nExpr\n  = \"x\"\n";
-        let s = syms(src);
+        let s = symbols(r#"
+grammar T
+
+// floating
+
+Expr
+  = "x"
+"#);
         assert_eq!(s.len(), 1);
         // The comment is separated from Expr by a blank line, so it's NOT
         // attached. Range should start at the head.

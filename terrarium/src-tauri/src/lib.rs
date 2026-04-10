@@ -912,7 +912,13 @@ fn get_document_symbols(state: tauri::State<Mutex<GrammarState>>) -> Vec<Documen
     let Some(ref result) = st.parse_result else {
         return vec![];
     };
-    lsp::document_symbols::document_symbols(result)
+    let Some(grammar_def) = lsp::build_grammar_def(result) else {
+        return vec![];
+    };
+    let Some(spans) = lsp::build_spans(&grammar_def, result) else {
+        return vec![];
+    };
+    lsp::document_symbols::document_symbols(&grammar_def, &spans, &result.input)
         .into_iter()
         .map(convert_symbol)
         .collect()
