@@ -104,11 +104,33 @@ struct AnalyzeResult {
     tree_construction_duration_ms: u32,
 }
 
-/// Cached grammar analysis state.
-/// Stores the parse result and a fallback token cache for when parsing fails.
+/// Version-keyed parse cache. Every feature command calls `ensure_parsed()`
+/// which re-parses only if the source text has changed since the last parse.
 struct GrammarState {
+    /// The source text that produced the current `parse_result`.
+    source: Option<String>,
     parse_result: Option<lsp::ParseResult>,
-    cached_tokens: Vec<SemanticTokenData>,
+}
+
+impl GrammarState {
+    /// Ensure `parse_result` is up-to-date for `source`. Re-parses only when
+    /// the source text has changed. Returns the parse timings.
+    fn ensure_parsed(&mut self, source: &str) -> (u32, u32) {
+        if self.source.as_deref() == Some(source) {
+            if let Some(ref r) = self.parse_result {
+                return (
+                    r.parse_duration.as_millis() as u32,
+                    r.tree_construction_duration.as_millis() as u32,
+                );
+            }
+        }
+        let result = lsp::parse(source);
+        let parse_ms = result.parse_duration.as_millis() as u32;
+        let tree_ms = result.tree_construction_duration.as_millis() as u32;
+        self.source = Some(source.to_string());
+        self.parse_result = Some(result);
+        (parse_ms, tree_ms)
+    }
 }
 
 /// Tracks the cargo features the current parser binary was built with.
@@ -836,18 +858,14 @@ fn find_iggy_file(directory: &Path) -> Result<PathBuf, std::io::Error> {
 
 // ============ Language Intelligence Commands ============
 
-/// Parse the grammar source and cache the result. All other language intelligence
-/// commands (semantic tokens, diagnostics, etc.) read from this cache.
+/// Parse the grammar source and cache the result. Re-parses only if the source
+/// text has changed since the last parse.
 #[tauri::command]
 #[specta::specta]
 fn analyze_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> AnalyzeResult {
-    let result = lsp::parse(&source);
-    let parse_duration_ms = result.parse_duration.as_millis() as u32;
-    let tree_construction_duration_ms = result.tree_construction_duration.as_millis() as u32;
-    let success = result.tree.is_some();
-
     let mut st = state.lock().unwrap();
-    st.parse_result = Some(result);
+    let (parse_duration_ms, tree_construction_duration_ms) = st.ensure_parsed(&source);
+    let success = st.parse_result.as_ref().map_or(false, |r| r.tree.is_some());
 
     AnalyzeResult {
         success,
@@ -862,24 +880,17 @@ fn analyze_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> 
 #[tauri::command]
 #[specta::specta]
 fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> Option<String> {
-    let st = state.lock().unwrap();
-    if let Some(ref parse_result) = st.parse_result {
-        lsp::format::format(parse_result)
-    } else {
-        drop(st);
-        let result = lsp::parse(&source);
-        lsp::format::format(&result)
-    }
+    let mut st = state.lock().unwrap();
+    st.ensure_parsed(&source);
+    st.parse_result.as_ref().and_then(lsp::format::format)
 }
 
 /// Return semantic tokens from the cached parse result.
 #[tauri::command]
 #[specta::specta]
 fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<SemanticTokenData> {
-    let mut st = state.lock().unwrap();
-
-    let tokens: Vec<SemanticTokenData> = st
-        .parse_result
+    let st = state.lock().unwrap();
+    st.parse_result
         .as_ref()
         .map(|r| {
             lsp::semantic_tokens::semantic_tokens(r)
@@ -893,22 +904,19 @@ fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<Semantic
                 })
                 .collect()
         })
-        .unwrap_or_default();
-
-    if !tokens.is_empty() {
-        st.cached_tokens = tokens.clone();
-        tokens
-    } else {
-        // Fallback: return cached tokens so highlighting stays stable while typing
-        st.cached_tokens.clone()
-    }
+        .unwrap_or_default()
 }
 
-/// Return document symbols (rule heads + alternative labels) from the cached parse result.
+/// Return document symbols (rule heads + alternative labels).
+/// Ensures the parse result is fresh for the given source.
 #[tauri::command]
 #[specta::specta]
-fn get_document_symbols(state: tauri::State<Mutex<GrammarState>>) -> Vec<DocumentSymbolData> {
-    let st = state.lock().unwrap();
+fn get_document_symbols(
+    source: String,
+    state: tauri::State<Mutex<GrammarState>>,
+) -> Vec<DocumentSymbolData> {
+    let mut st = state.lock().unwrap();
+    st.ensure_parsed(&source);
     let Some(ref result) = st.parse_result else {
         return vec![];
     };
@@ -1323,8 +1331,8 @@ pub fn run() {
         .manage(Mutex::new(BuildState::default()))
         .manage(Mutex::new(DebugState::default()))
         .manage(Mutex::new(GrammarState {
+            source: None,
             parse_result: None,
-            cached_tokens: Vec::new(),
         }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())

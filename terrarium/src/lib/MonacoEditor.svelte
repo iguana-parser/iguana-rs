@@ -113,11 +113,11 @@
       },
     );
 
-    // Document symbols (Cmd+O / quick outline). Reads from the cached parse
-    // result; analyze_grammar runs on every keystroke so the cache is fresh.
+    // Document symbols (Cmd+O / quick outline). Passes the current source
+    // so the backend can ensure the parse result is fresh for this version.
     monaco.languages.registerDocumentSymbolProvider("iggy", {
       displayName: "Iggy",
-      async provideDocumentSymbols() {
+      async provideDocumentSymbols(model) {
         type Sym = {
           name: string;
           kind: number;
@@ -125,7 +125,9 @@
           selection_range: { start_line: number; start_char: number; end_line: number; end_char: number };
           children: Sym[];
         };
-        const symbols = await invoke<Sym[]>("get_document_symbols");
+        const symbols = await invoke<Sym[]>("get_document_symbols", {
+          source: model.getValue(),
+        });
         const toRange = (r: Sym["range"]) => ({
           startLineNumber: r.start_line + 1,
           startColumn: r.start_char + 1,

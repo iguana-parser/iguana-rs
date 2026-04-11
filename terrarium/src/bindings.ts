@@ -215,8 +215,8 @@ async getEventLog() : Promise<Result<EventLogEntry[], string>> {
 }
 },
 /**
- * Parse the grammar source and cache the result. All other language intelligence
- * commands (semantic tokens, diagnostics, etc.) read from this cache.
+ * Parse the grammar source and cache the result. Re-parses only if the source
+ * text has changed since the last parse.
  */
 async analyzeGrammar(source: string) : Promise<AnalyzeResult> {
     return await TAURI_INVOKE("analyze_grammar", { source });
@@ -239,10 +239,11 @@ async getSemanticTokensLegend() : Promise<SemanticTokensLegendData> {
     return await TAURI_INVOKE("get_semantic_tokens_legend");
 },
 /**
- * Return document symbols (rule heads + alternative labels) from the cached parse result.
+ * Return document symbols (rule heads + alternative labels).
+ * Ensures the parse result is fresh for the given source.
  */
-async getDocumentSymbols() : Promise<DocumentSymbolData[]> {
-    return await TAURI_INVOKE("get_document_symbols");
+async getDocumentSymbols(source: string) : Promise<DocumentSymbolData[]> {
+    return await TAURI_INVOKE("get_document_symbols", { source });
 }
 }
 
