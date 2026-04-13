@@ -48,6 +48,11 @@ struct DocumentSymbolData {
     children: Vec<DocumentSymbolData>,
 }
 
+#[derive(Clone, Serialize, Type)]
+struct LocationData {
+    range: RangeData,
+}
+
 /// Debug SPPF info returned to the frontend.
 #[derive(Clone, Serialize, Type)]
 struct DebugSPPFInfo {
@@ -932,6 +937,69 @@ fn get_document_symbols(
         .collect()
 }
 
+/// Return the definition location of the symbol at the given position.
+#[tauri::command]
+#[specta::specta]
+fn get_definition(
+    source: String,
+    line: u32,
+    column: u32,
+    state: tauri::State<Mutex<GrammarState>>,
+) -> Option<LocationData> {
+    let mut st = state.lock().unwrap();
+    st.ensure_parsed(&source);
+    let result = st.parse_result.as_ref()?;
+    let grammar_def = lsp::build_grammar_def(result)?;
+    let spans = lsp::build_spans(&grammar_def, result)?;
+    let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
+    let offset = result.input.offset(line, column);
+    let loc = lsp::references::definition(&grammar_def, &spans, &result.input, &uri, offset)?;
+    Some(LocationData {
+        range: RangeData {
+            start_line: loc.range.start.line,
+            start_char: loc.range.start.character,
+            end_line: loc.range.end.line,
+            end_char: loc.range.end.character,
+        },
+    })
+}
+
+/// Return all references to the symbol at the given position.
+#[tauri::command]
+#[specta::specta]
+fn get_references(
+    source: String,
+    line: u32,
+    column: u32,
+    include_declaration: bool,
+    state: tauri::State<Mutex<GrammarState>>,
+) -> Vec<LocationData> {
+    let mut st = state.lock().unwrap();
+    st.ensure_parsed(&source);
+    let Some(ref result) = st.parse_result else {
+        return vec![];
+    };
+    let Some(grammar_def) = lsp::build_grammar_def(result) else {
+        return vec![];
+    };
+    let Some(spans) = lsp::build_spans(&grammar_def, result) else {
+        return vec![];
+    };
+    let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
+    let offset = result.input.offset(line, column);
+    lsp::references::references(&grammar_def, &spans, &result.input, &uri, offset, include_declaration)
+        .into_iter()
+        .map(|loc| LocationData {
+            range: RangeData {
+                start_line: loc.range.start.line,
+                start_char: loc.range.start.character,
+                end_line: loc.range.end.line,
+                end_char: loc.range.end.character,
+            },
+        })
+        .collect()
+}
+
 /// Map the LSP SymbolKind constants we actually use to their numeric codes.
 /// The `.0` field of `lsp_types::SymbolKind` is private, so we match by const.
 fn symbol_kind_code(kind: lsp_types::SymbolKind) -> u32 {
@@ -1315,7 +1383,9 @@ pub fn run() {
         format_grammar,
         get_semantic_tokens,
         get_semantic_tokens_legend,
-        get_document_symbols
+        get_document_symbols,
+        get_definition,
+        get_references
     ]);
 
     #[cfg(debug_assertions)]

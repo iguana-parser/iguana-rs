@@ -1,8 +1,10 @@
 pub mod document_symbols;
 pub mod format;
 pub mod layout;
+pub mod references;
 pub mod semantic_tokens;
 pub mod spans;
+pub mod symbols;
 
 use iggy::parse_tree::ParseTree;
 use iguana::grammar::def::GrammarDef;
@@ -25,7 +27,9 @@ pub fn build_grammar_def(result: &ParseResult) -> Option<GrammarDef> {
     let ParseTree::StartGrammar(start) = tree else {
         return None;
     };
-    iguana::iggy::build_grammar(start, &result.input).ok()
+    iguana::iggy::build_grammar(start, &result.input)
+        .ok()
+        .map(|def| def.resolve())
 }
 
 /// Build the side table from a GrammarDef and its parse tree.

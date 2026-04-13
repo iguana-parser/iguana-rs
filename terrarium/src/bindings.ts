@@ -244,6 +244,18 @@ async getSemanticTokensLegend() : Promise<SemanticTokensLegendData> {
  */
 async getDocumentSymbols(source: string) : Promise<DocumentSymbolData[]> {
     return await TAURI_INVOKE("get_document_symbols", { source });
+},
+/**
+ * Return the definition location of the symbol at the given position.
+ */
+async getDefinition(source: string, line: number, column: number) : Promise<LocationData | null> {
+    return await TAURI_INVOKE("get_definition", { source, line, column });
+},
+/**
+ * Return all references to the symbol at the given position.
+ */
+async getReferences(source: string, line: number, column: number, includeDeclaration: boolean) : Promise<LocationData[]> {
+    return await TAURI_INVOKE("get_references", { source, line, column, includeDeclaration });
 }
 }
 
@@ -396,6 +408,7 @@ export type GSSDotNode = { id: GssNodeId; label: string }
  * is bounded by the input length (u32).
  */
 export type GssNodeId = number
+export type LocationData = { range: RangeData }
 export type NodeKind = { Nonterminal: { ambiguous: boolean } } | { Intermediate: { ambiguous: boolean } } | "Terminal" | "Packed"
 /**
  * Result of a parse operation, indicating which outputs are available.

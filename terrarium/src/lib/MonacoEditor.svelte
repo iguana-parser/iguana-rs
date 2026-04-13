@@ -113,6 +113,14 @@
       },
     );
 
+    type Range = { start_line: number; start_char: number; end_line: number; end_char: number };
+    const toRange = (r: Range) => ({
+      startLineNumber: r.start_line + 1,
+      startColumn: r.start_char + 1,
+      endLineNumber: r.end_line + 1,
+      endColumn: r.end_char + 1,
+    });
+
     // Document symbols (Cmd+O / quick outline). Passes the current source
     // so the backend can ensure the parse result is fresh for this version.
     monaco.languages.registerDocumentSymbolProvider("iggy", {
@@ -121,18 +129,12 @@
         type Sym = {
           name: string;
           kind: number;
-          range: { start_line: number; start_char: number; end_line: number; end_char: number };
-          selection_range: { start_line: number; start_char: number; end_line: number; end_char: number };
+          range: Range;
+          selection_range: Range;
           children: Sym[];
         };
         const symbols = await invoke<Sym[]>("get_document_symbols", {
           source: model.getValue(),
-        });
-        const toRange = (r: Sym["range"]) => ({
-          startLineNumber: r.start_line + 1,
-          startColumn: r.start_char + 1,
-          endLineNumber: r.end_line + 1,
-          endColumn: r.end_char + 1,
         });
         const convert = (s: Sym): monaco.languages.DocumentSymbol => ({
           name: s.name,
@@ -145,6 +147,38 @@
           children: s.children.map(convert),
         });
         return symbols.map(convert);
+      },
+    });
+
+    // Go to Definition (F12, F3 bound separately below)
+    monaco.languages.registerDefinitionProvider("iggy", {
+      async provideDefinition(model, position) {
+        const loc = await invoke<{ range: Range } | null>("get_definition", {
+          source: model.getValue(),
+          line: position.lineNumber - 1,
+          column: position.column - 1,
+        });
+        if (!loc) return null;
+        return {
+          uri: model.uri,
+          range: toRange(loc.range),
+        };
+      },
+    });
+
+    // Find All References (Shift+F12)
+    monaco.languages.registerReferenceProvider("iggy", {
+      async provideReferences(model, position, context) {
+        const locs = await invoke<{ range: Range }[]>("get_references", {
+          source: model.getValue(),
+          line: position.lineNumber - 1,
+          column: position.column - 1,
+          includeDeclaration: context.includeDeclaration,
+        });
+        return locs.map((loc) => ({
+          uri: model.uri,
+          range: toRange(loc.range),
+        }));
       },
     });
   }
@@ -219,6 +253,11 @@
     bind(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit3, () =>
       window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "debug" })),
     );
+
+    // F3: Go to Definition (Eclipse-style keybinding)
+    bind(monaco.KeyCode.F3, () => {
+      editor.getAction("editor.action.revealDefinition")?.run();
+    }, "editor.action.nextMatchFindAction");
 
     // Cmd+O: Show symbols in file (Eclipse-style). Triggers Monaco's built-in
     // quick outline picker, which reads from the DocumentSymbolProvider above.

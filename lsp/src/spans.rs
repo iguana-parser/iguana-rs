@@ -2,7 +2,7 @@ use by_address::ByAddress;
 use iggy::parse_tree::{self, Layout, ParseTreeRef};
 use iguana::grammar::{
     def::{Alternative, GrammarDef, LexicalRule, SyntaxRule},
-    symbols::Symbol,
+    symbols::{DefinitionId, Symbol},
 };
 use iguana_runtime::{input::Input, sppf::Span};
 use rustc_hash::FxHashMap;
@@ -41,6 +41,10 @@ pub struct GrammarSpans<'a> {
     pub lexical_rules: FxHashMap<ByAddress<&'a LexicalRule>, Metadata>,
     pub alternatives: FxHashMap<ByAddress<&'a Alternative>, Metadata>,
     pub symbols: FxHashMap<ByAddress<&'a Symbol>, Metadata>,
+    /// Maps a DefinitionId to its rule head span.
+    pub definition_spans: FxHashMap<DefinitionId, Span>,
+    /// Maps a DefinitionId to all the spans where it is referenced in rule bodies.
+    pub reference_spans: FxHashMap<DefinitionId, Vec<Span>>,
 }
 
 /// Walks the parse tree top-down to populate GrammarSpans. The walk mirrors
@@ -104,6 +108,11 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                             trailing_comment: trailing,
                         },
                     );
+                    let head_span = syntax_rule.head.span();
+                    let def_id = DefinitionId(
+                        (self.grammar_def.lexical_rules.len() + self.syntax_idx) as u16,
+                    );
+                    self.spans.definition_spans.insert(def_id, head_span);
                     self.syntax_idx += 1;
                 }
                 parse_tree::Rule::RegexRule { regex_rule, .. } => {
@@ -138,6 +147,9 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                             trailing_comment: trailing,
                         },
                     );
+                    let head_span = regex_rule.identifier.span();
+                    let def_id = DefinitionId(self.lexical_idx as u16);
+                    self.spans.definition_spans.insert(def_id, head_span);
                     self.lexical_idx += 1;
                 }
             },
@@ -223,13 +235,28 @@ fn collect_symbol_spans<'a>(
     pt_sym: &parse_tree::Symbol,
     spans: &mut GrammarSpans<'a>,
 ) {
+    let sym_span = pt_sym.span();
     spans.symbols.insert(
         ByAddress(gr_sym),
         Metadata {
-            span: Some(pt_sym.span()),
+            span: Some(sym_span),
             ..Default::default()
         },
     );
+    // Record reference spans for identifiers.
+    match gr_sym {
+        Symbol::Identifier(id) => {
+            if let Some(def_id) = id.definition {
+                spans.reference_spans.entry(def_id).or_default().push(sym_span);
+            }
+        }
+        Symbol::Call { name, .. } => {
+            if let Some(def_id) = name.definition {
+                spans.reference_spans.entry(def_id).or_default().push(sym_span);
+            }
+        }
+        _ => {}
+    }
     match (gr_sym, pt_sym) {
         (Symbol::Star(gr_inner, None), parse_tree::Symbol::Star { symbol, .. })
         | (Symbol::Plus(gr_inner, None), parse_tree::Symbol::Plus { symbol, .. })

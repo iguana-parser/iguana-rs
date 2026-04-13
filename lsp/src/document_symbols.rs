@@ -9,6 +9,7 @@
 
 use by_address::ByAddress;
 use iguana::grammar::def::GrammarDef;
+use iguana::grammar::symbols::DefinitionId;
 use iguana_runtime::{input::Input, sppf::Span};
 use lsp_types::{DocumentSymbol, Position, Range, SymbolKind};
 
@@ -21,7 +22,9 @@ pub fn document_symbols(
 ) -> Vec<DocumentSymbol> {
     let mut out = Vec::new();
 
-    for rule in &grammar_def.syntax_rules {
+    let num_lexical = grammar_def.lexical_rules.len();
+
+    for (i, rule) in grammar_def.syntax_rules.iter().enumerate() {
         let Some(meta) = spans.syntax_rules.get(&ByAddress(rule)) else {
             continue;
         };
@@ -39,9 +42,12 @@ pub fn document_symbols(
             range.end = Position::new(l, c);
         }
 
-        let head_name = &rule.head.name;
-        let head_end = rule_span.left_extent + head_name.len() as u32;
-        let head_span = Span::new(rule_span.left_extent, head_end);
+        let def_id = DefinitionId((num_lexical + i) as u16);
+        let head_span = spans
+            .definition_spans
+            .get(&def_id)
+            .copied()
+            .unwrap_or(rule_span);
 
         let mut children: Vec<DocumentSymbol> = Vec::new();
         for level in &rule.priority_levels {
@@ -68,7 +74,7 @@ pub fn document_symbols(
 
         #[allow(deprecated)]
         out.push(DocumentSymbol {
-            name: head_name.clone(),
+            name: rule.head.name.clone(),
             detail: None,
             kind: SymbolKind::CLASS,
             tags: None,
@@ -83,7 +89,7 @@ pub fn document_symbols(
         });
     }
 
-    for rule in &grammar_def.lexical_rules {
+    for (i, rule) in grammar_def.lexical_rules.iter().enumerate() {
         let Some(meta) = spans.lexical_rules.get(&ByAddress(rule)) else {
             continue;
         };
@@ -101,13 +107,16 @@ pub fn document_symbols(
             range.end = Position::new(l, c);
         }
 
-        let head_name = &rule.head.name;
-        let head_end = rule_span.left_extent + head_name.len() as u32;
-        let head_span = Span::new(rule_span.left_extent, head_end);
+        let def_id = DefinitionId(i as u16);
+        let head_span = spans
+            .definition_spans
+            .get(&def_id)
+            .copied()
+            .unwrap_or(rule_span);
 
         #[allow(deprecated)]
         out.push(DocumentSymbol {
-            name: head_name.clone(),
+            name: rule.head.name.clone(),
             detail: None,
             kind: SymbolKind::ENUM,
             tags: None,
