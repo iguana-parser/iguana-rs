@@ -1352,6 +1352,7 @@
         const [filename, content] = grammarResult.data;
         grammarFileName = filename;
         grammarText = content;
+        editorInstance?.focus();
 
         logOutput(`Grammar: ${filename}`);
       }
@@ -2348,6 +2349,15 @@
   const toggleMaximize = createMaximizeToggle();
 
   function handleKeyDown(e: KeyboardEvent) {
+    // Cmd+O: open grammar when no grammar is loaded (otherwise Monaco handles it for symbols)
+    if ((e.metaKey || e.ctrlKey) && e.key === 'o' && !e.shiftKey) {
+      if (!grammarFileName) {
+        e.preventDefault();
+        selectDirectory();
+      }
+      return;
+    }
+
     // Cmd+G to generate & build parser (any mode)
     if ((e.metaKey || e.ctrlKey) && e.key === 'g') {
       e.preventDefault();

@@ -222,72 +222,68 @@
       "semanticHighlighting.enabled": true,
     });
 
-    // Override Cmd+G / Ctrl+G: Monaco uses it for "Find Next", but Terrarium
-    // uses it globally for "Generate Parser". Dispatch a custom event that the
-    // global handler in +page.svelte listens for.
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG, () => {
-      window.dispatchEvent(new CustomEvent("terrarium-generate"));
+    // -- Custom commands ------------------------------------------------
+    // Register named commands so addKeybindingRules can reference them.
+    monaco.editor.addCommand({
+      id: "terrarium.generate",
+      run: () => window.dispatchEvent(new CustomEvent("terrarium-generate")),
     });
-
-    // Override Cmd+P (Monaco's quickCommand picker) and Cmd+1/2/3.
-    // editor.addCommand registers at a lower weight than Monaco built-ins, so
-    // for keys with built-in bindings we have to go through the private
-    // _standaloneKeybindingService.addDynamicKeybinding API. This is the same
-    // hack monaco-vim uses. The leading "-" entry unbinds the built-in.
-    const kbService = (editor as any)._standaloneKeybindingService;
-    function bind(keybinding: number, handler: () => void, unbindBuiltin?: string) {
-      if (unbindBuiltin) {
-        kbService.addDynamicKeybinding(`-${unbindBuiltin}`, keybinding, () => {});
-      }
-      kbService.addDynamicKeybinding(`terrarium.kb.${keybinding}`, keybinding, handler);
-    }
-    bind(
-      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP,
-      () => window.dispatchEvent(new CustomEvent("terrarium-parse")),
-      "editor.action.quickCommand",
-    );
-    bind(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit1, () =>
-      window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "design" })),
-    );
-    bind(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit2, () =>
-      window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "parse" })),
-    );
-    bind(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit3, () =>
-      window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "debug" })),
-    );
-
-    // F3: Go to Definition (Eclipse-style keybinding)
-    bind(monaco.KeyCode.F3, () => {
-      editor.getAction("editor.action.revealDefinition")?.run();
-    }, "editor.action.nextMatchFindAction");
-
-    // Cmd+O: Show symbols in file (Eclipse-style). Triggers Monaco's built-in
-    // quick outline picker, which reads from the DocumentSymbolProvider above.
-    bind(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyO, () => {
-      editor.getAction("editor.action.quickOutline")?.run();
+    monaco.editor.addCommand({
+      id: "terrarium.parse",
+      run: () => window.dispatchEvent(new CustomEvent("terrarium-parse")),
     });
-
-    // Cmd+D / Ctrl+D: Delete current line
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD, () => {
-      editor.getAction("editor.action.deleteLines")?.run();
+    monaco.editor.addCommand({
+      id: "terrarium.mode.design",
+      run: () => window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "design" })),
     });
-
-    // Cmd+Shift+F / Ctrl+Shift+F: Format grammar
-    // Uses executeEdits (not setValue) to avoid resetting semantic tokens,
-    // which would cause a white flash while tokens are re-fetched.
-    editor.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF,
-      async () => {
+    monaco.editor.addCommand({
+      id: "terrarium.mode.parse",
+      run: () => window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "parse" })),
+    });
+    monaco.editor.addCommand({
+      id: "terrarium.mode.debug",
+      run: () => window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "debug" })),
+    });
+    monaco.editor.addCommand({
+      id: "terrarium.formatGrammar",
+      run: async () => {
         const model = editor.getModel();
         if (!model) return;
         const source = model.getValue();
         const formatted = await invoke<string | null>("format_grammar", { source });
         if (formatted === null || formatted === source) return;
+        // Uses executeEdits (not setValue) to avoid resetting semantic tokens,
+        // which would cause a white flash while tokens are re-fetched.
         editor.executeEdits("format", [
           { range: model.getFullModelRange(), text: formatted },
         ]);
       },
-    );
+    });
+
+    // -- Keybinding rules -----------------------------------------------
+    // Declarative remapping via the public API (replaces the private
+    // _standaloneKeybindingService hack). A null command unbinds Monaco's
+    // built-in action for that key.
+    monaco.editor.addKeybindingRules([
+      // Cmd+G: Generate (unbind Monaco "Find Next")
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG, command: "terrarium.generate" },
+      // Cmd+P: Parse (unbind Monaco "Quick Command")
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, command: "terrarium.parse" },
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, command: "-editor.action.quickCommand" },
+      // Cmd+1/2/3: Switch mode
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit1, command: "terrarium.mode.design" },
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit2, command: "terrarium.mode.parse" },
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit3, command: "terrarium.mode.debug" },
+      // F3: Go to Definition (unbind Monaco "Find Next Match")
+      { keybinding: monaco.KeyCode.F3, command: "editor.action.revealDefinition" },
+      { keybinding: monaco.KeyCode.F3, command: "-editor.action.nextMatchFindAction" },
+      // Cmd+O: Quick Outline
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyO, command: "editor.action.quickOutline" },
+      // Cmd+D: Delete line
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD, command: "editor.action.deleteLines" },
+      // Cmd+Shift+F: Format grammar
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF, command: "terrarium.formatGrammar" },
+    ]);
 
     editor.onDidChangeModelContent(() => {
       if (ignoreChange) return;
