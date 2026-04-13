@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { commands, type SPPF, type GSS, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo, type ErrorInfo, type StatsData, type BuildFeatures } from "../bindings";
+  import { commands, type SPPF, type GSS, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo, type ErrorInfo, type StatsData, type BuildFeatures, type DocumentSymbolData } from "../bindings";
   import { listen, emit } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
@@ -400,6 +400,102 @@
     }, 500);
   }
 
+  // Outline panel
+  let outlineOpen = $state(false);
+  let outlinePanelWidth = $state(200);
+  let isDraggingOutline = $state(false);
+  let outlineSymbols = $state<DocumentSymbolData[]>([]);
+  let outlineExpanded = $state(new Set<string>());
+  let outlineSelectedIndex = $state(-1);
+  let outlineListEl: HTMLDivElement;
+  let editorInstance: import("monaco-editor").editor.IStandaloneCodeEditor | undefined;
+
+  interface OutlineItem {
+    sym: DocumentSymbolData;
+    isChild: boolean;
+  }
+
+  // Flat list of visible outline items (respects expand/collapse).
+  function visibleOutlineItems(): OutlineItem[] {
+    const items: OutlineItem[] = [];
+    for (const sym of outlineSymbols) {
+      items.push({ sym, isChild: false });
+      if (sym.children.length > 0 && outlineExpanded.has(sym.name)) {
+        for (const child of sym.children) {
+          items.push({ sym: child, isChild: true });
+        }
+      }
+    }
+    return items;
+  }
+
+  function toggleOutlineNode(name: string) {
+    const next = new Set(outlineExpanded);
+    if (next.has(name)) next.delete(name);
+    else next.add(name);
+    outlineExpanded = next;
+  }
+
+  function scrollOutlineItemIntoView() {
+    const el = outlineListEl?.querySelector('.outline-item.selected') as HTMLElement | null;
+    el?.scrollIntoView({ block: 'nearest' });
+  }
+
+  function handleOutlineKeydown(e: KeyboardEvent) {
+    const items = visibleOutlineItems();
+    if (items.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      outlineSelectedIndex = Math.min(outlineSelectedIndex + 1, items.length - 1);
+      revealSymbol(items[outlineSelectedIndex].sym);
+      tick().then(scrollOutlineItemIntoView);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      outlineSelectedIndex = Math.max(outlineSelectedIndex - 1, 0);
+      revealSymbol(items[outlineSelectedIndex].sym);
+      tick().then(scrollOutlineItemIntoView);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      if (outlineSelectedIndex >= 0 && outlineSelectedIndex < items.length) {
+        const item = items[outlineSelectedIndex];
+        if (!item.isChild && item.sym.children.length > 0 && !outlineExpanded.has(item.sym.name)) {
+          toggleOutlineNode(item.sym.name);
+        }
+      }
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      if (outlineSelectedIndex >= 0 && outlineSelectedIndex < items.length) {
+        const item = items[outlineSelectedIndex];
+        if (!item.isChild && outlineExpanded.has(item.sym.name)) {
+          toggleOutlineNode(item.sym.name);
+        } else if (item.isChild) {
+          // Jump to parent
+          for (let j = outlineSelectedIndex - 1; j >= 0; j--) {
+            if (!items[j].isChild) {
+              outlineSelectedIndex = j;
+              revealSymbol(items[j].sym);
+              tick().then(scrollOutlineItemIntoView);
+              break;
+            }
+          }
+        }
+      }
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (outlineSelectedIndex >= 0 && outlineSelectedIndex < items.length) {
+        const item = items[outlineSelectedIndex];
+        if (!item.isChild && item.sym.children.length > 0) {
+          toggleOutlineNode(item.sym.name);
+        }
+        revealSymbol(item.sym);
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      editorInstance?.focus();
+    }
+  }
+
   // Called by MonacoEditor after each grammar analysis (parse)
   function onGrammarAnalyze(result: { success: boolean; parse_duration_ms: number; tree_construction_duration_ms: number }) {
     if (result.success) {
@@ -410,6 +506,27 @@
         `Parse: ${result.parse_duration_ms}ms\nTree construction: ${result.tree_construction_duration_ms}ms`,
       );
     }
+    // Refresh outline symbols
+    commands.getDocumentSymbols(grammarText).then((symbols) => {
+      outlineSymbols = symbols;
+    });
+  }
+
+  function onEditorReady(editor: import("monaco-editor").editor.IStandaloneCodeEditor) {
+    editorInstance = editor;
+  }
+
+  function revealSymbol(sym: DocumentSymbolData, focusEditor = false) {
+    if (!editorInstance) return;
+    const range = {
+      startLineNumber: sym.selection_range.start_line + 1,
+      startColumn: sym.selection_range.start_char + 1,
+      endLineNumber: sym.selection_range.end_line + 1,
+      endColumn: sym.selection_range.end_char + 1,
+    };
+    editorInstance.revealRangeInCenter(range);
+    editorInstance.setSelection(range);
+    if (focusEditor) editorInstance.focus();
   }
 
   // Status bar state
@@ -2107,9 +2224,21 @@
     e.preventDefault();
   }
 
+  function startOutlineDrag(e: MouseEvent) {
+    isDraggingOutline = true;
+    e.preventDefault();
+  }
+
   function onMouseMove(e: MouseEvent) {
     if (isDraggingVertical) {
       leftPanelWidth = Math.max(250, Math.min(600, e.clientX));
+    }
+    if (isDraggingOutline) {
+      const mainArea = document.querySelector('.main-area');
+      if (mainArea) {
+        const rect = mainArea.getBoundingClientRect();
+        outlinePanelWidth = Math.max(120, Math.min(400, rect.right - e.clientX));
+      }
     }
     if (isDraggingHorizontal) {
       const container = document.querySelector('.right-panel');
@@ -2195,6 +2324,7 @@
     isDraggingDebugAction = false;
     isDraggingDebugStack = false;
     isDraggingDebugGraph = false;
+    isDraggingOutline = false;
   }
 
   function handleWindowClick(e: MouseEvent) {
@@ -2350,7 +2480,7 @@
 
 <svelte:window onmousemove={onMouseMove} onmouseup={onMouseUp} onclick={handleWindowClick} onkeydown={handleKeyDown} />
 
-<div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebug1 || isDraggingDebug2 || isDraggingDebugAction || isDraggingDebugStack || isDraggingDebugGraph} class:dragging-horizontal={isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebugAction || isDraggingDebugStack || isDraggingDebugGraph}>
+<div class="app" class:dragging={isDraggingVertical || isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebug1 || isDraggingDebug2 || isDraggingDebugAction || isDraggingDebugStack || isDraggingDebugGraph || isDraggingOutline} class:dragging-horizontal={isDraggingHorizontal || isDraggingInput || isDraggingCurrent || isDraggingOutput || isDraggingDebugAction || isDraggingDebugStack || isDraggingDebugGraph}>
   <!-- Title Bar (full width) -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="title-bar" onmousedown={startWindowDrag} ondblclick={toggleMaximize}>
@@ -2499,7 +2629,50 @@
   <!-- Design Mode -->
   <div class="design-mode">
     <div class="design-editor">
-      <MonacoEditor bind:value={grammarText} language="iggy" onchange={onGrammarEdit} onanalyze={onGrammarAnalyze} />
+      <MonacoEditor bind:value={grammarText} language="iggy" onchange={onGrammarEdit} onanalyze={onGrammarAnalyze} onready={onEditorReady} />
+    </div>
+    {#if outlineOpen}
+    <div class="resize-handle-vertical" onmousedown={startOutlineDrag}></div>
+    <div class="outline-panel" style="width: {outlinePanelWidth}px">
+      <div class="outline-header">
+        <span class="outline-title">Outline</span>
+      </div>
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="outline-list" tabindex="0" onkeydown={handleOutlineKeydown} bind:this={outlineListEl}>
+        {#each visibleOutlineItems() as item, i}
+          <button
+            class="outline-item"
+            class:outline-child={item.isChild}
+            class:selected={i === outlineSelectedIndex}
+            onmousedown={(e) => { e.preventDefault(); outlineSelectedIndex = i; revealSymbol(item.sym); outlineListEl?.focus(); }}
+          >
+            {#if !item.isChild && item.sym.children.length > 0}
+              <!-- svelte-ignore a11y_click_events_have_key_events -->
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
+              <span class="outline-chevron" onclick={(e) => { e.stopPropagation(); toggleOutlineNode(item.sym.name); }}>
+                {#if outlineExpanded.has(item.sym.name)}
+                  <ChevronDown size={14} />
+                {:else}
+                  <ChevronRight size={14} />
+                {/if}
+              </span>
+            {:else if !item.isChild}
+              <span class="outline-chevron-placeholder"></span>
+            {/if}
+            <span class="outline-icon" class:outline-icon-label={item.isChild}>{item.isChild ? '#' : item.sym.kind === 5 ? 'S' : item.sym.kind === 11 ? 'N' : 'R'}</span>
+            <span class="outline-name">{item.sym.name}</span>
+          </button>
+        {/each}
+      </div>
+    </div>
+    {/if}
+    <div class="outline-strip">
+      <button class="outline-strip-btn" class:active={outlineOpen} onclick={() => outlineOpen = !outlineOpen} title="Toggle outline">
+        <List size={18} />
+      </button>
     </div>
   </div>
   {:else if activeMode === "parse"}
@@ -3380,13 +3553,151 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
   .design-mode {
     flex: 1;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     min-height: 0;
   }
 
   .design-editor {
     flex: 1;
     min-height: 0;
+    min-width: 0;
+  }
+
+  .outline-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: #1e1e1e;
+    border-left: 1px solid #3c3c3c;
+    overflow: hidden;
+  }
+
+  .outline-header {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 8px 0 12px;
+    border-bottom: 1px solid #3c3c3c;
+    flex-shrink: 0;
+  }
+
+  .outline-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #bbbbbb;
+    letter-spacing: 0.5px;
+    flex: 1;
+  }
+
+  .outline-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 36px;
+    background: #252526;
+    border: none;
+    border-left: 1px solid #3c3c3c;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .outline-strip-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: none;
+    color: #888;
+    cursor: pointer;
+  }
+
+  .outline-strip-btn:hover {
+    background: #2a2d2e;
+    color: #d4d4d4;
+  }
+
+  .outline-strip-btn.active {
+    color: #d4d4d4;
+  }
+
+  .outline-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
+    outline: none;
+  }
+
+  .outline-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 2px 4px 2px 4px;
+    border: none;
+    background: none;
+    color: #d4d4d4;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    gap: 4px;
+    text-align: left;
+  }
+
+  .outline-item:hover {
+    background: #2a2d2e;
+  }
+
+  .outline-item.selected {
+    background: #04395e;
+  }
+
+  .outline-item.selected:hover {
+    background: #04395e;
+  }
+
+  .outline-child {
+    padding-left: 32px;
+  }
+
+  .outline-chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: #888;
+    cursor: pointer;
+  }
+
+  .outline-chevron:hover {
+    color: #d4d4d4;
+  }
+
+  .outline-chevron-placeholder {
+    width: 16px;
+    flex-shrink: 0;
+  }
+
+  .outline-icon {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4ec9b0;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .outline-icon-label {
+    color: #dcdcaa;
+  }
+
+  .outline-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* Title Bar */

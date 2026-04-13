@@ -1,5 +1,5 @@
 use crate::ParseResult;
-use iggy::parse_tree::{ParseTreeRef, Token, TokenKind};
+use iggy::parse_tree::{ParseTreeRef, Token};
 use iguana_runtime::input::Input;
 use iguana_runtime::sppf::Span;
 use lsp_types::{Position, Range, SemanticToken, SemanticTokenType, SemanticTokensLegend};

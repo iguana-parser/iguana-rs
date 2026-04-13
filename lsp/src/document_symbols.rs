@@ -1,14 +1,15 @@
 // Document symbols for iggy grammars.
 //
 // Lists jump-target definitions in the file:
-// - Nonterminal rule heads (syntax rules)   -> SymbolKind::CLASS
-// - Terminal rule heads (regex rules)       -> SymbolKind::ENUM
+// - Syntax rules                            -> SymbolKind::CLASS
+// - @NoLayout syntax rules                  -> SymbolKind::INTERFACE
+// - Regex rules                             -> SymbolKind::ENUM
 // - Alternative labels (#Name)              -> SymbolKind::CONSTRUCTOR (children of their rule)
 //
 // Skipped: layout def, field labels (left:, right:), symbol references in bodies.
 
 use by_address::ByAddress;
-use iguana::grammar::def::GrammarDef;
+use iguana::grammar::def::{GrammarDef, LayoutStrategy};
 use iguana::grammar::symbols::DefinitionId;
 use iguana_runtime::{input::Input, sppf::Span};
 use lsp_types::{DocumentSymbol, Position, Range, SymbolKind};
@@ -57,7 +58,7 @@ pub fn document_symbols(
                         if let Some(alt_span) = alt_meta.span {
                             #[allow(deprecated)]
                             children.push(DocumentSymbol {
-                                name: format!("#{}", label),
+                                name: label.clone(),
                                 detail: None,
                                 kind: SymbolKind::CONSTRUCTOR,
                                 tags: None,
@@ -76,7 +77,13 @@ pub fn document_symbols(
         out.push(DocumentSymbol {
             name: rule.head.name.clone(),
             detail: None,
-            kind: SymbolKind::CLASS,
+            // INTERFACE distinguishes @NoLayout rules from regular syntax rules
+            // (CLASS) in the outline view.
+            kind: if matches!(rule.layout, LayoutStrategy::None) {
+                SymbolKind::INTERFACE
+            } else {
+                SymbolKind::CLASS
+            },
             tags: None,
             deprecated: None,
             range,
@@ -189,10 +196,10 @@ Number = [0-9]+
         assert_eq!(s.len(), 2);
         let children = s[0].children.as_ref().unwrap();
         assert_eq!(children.len(), 3);
-        assert_eq!(children[0].name, "#Add");
+        assert_eq!(children[0].name, "Add");
         assert_eq!(children[0].kind, SymbolKind::CONSTRUCTOR);
-        assert_eq!(children[1].name, "#Mul");
-        assert_eq!(children[2].name, "#Lit");
+        assert_eq!(children[1].name, "Mul");
+        assert_eq!(children[2].name, "Lit");
         assert_eq!(s[1].name, "Number");
         assert_eq!(s[1].kind, SymbolKind::ENUM);
     }

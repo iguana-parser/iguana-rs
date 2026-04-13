@@ -1008,6 +1008,7 @@ fn symbol_kind_code(kind: lsp_types::SymbolKind) -> u32 {
         SymbolKind::CLASS => 5,
         SymbolKind::CONSTRUCTOR => 9,
         SymbolKind::ENUM => 10,
+        SymbolKind::INTERFACE => 11,
         _ => 1, // FILE, harmless fallback
     }
 }

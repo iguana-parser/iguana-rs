@@ -58,10 +58,11 @@
         { token: "comment", foreground: "808080" }, // labels
       ],
       colors: {
-        // Range highlight (used by Cmd+O symbol picker reveal). vs-dark's
-        // default is nearly invisible; bump it to a noticeable blue tint that
-        // matches Terrarium's input-highlight color (#264f78).
-        "editor.rangeHighlightBackground": "#264f784d",
+        "editor.inactiveSelectionBackground": "#264f78",
+        "editor.selectionHighlightBackground": "#264f784d",
+        "editor.wordHighlightBackground": "#264f784d",
+        "editor.wordHighlightStrongBackground": "#264f784d",
+        "editor.rangeHighlightBackground": "#264f78",
         "editor.rangeHighlightBorder": "#00000000",
       },
     });
@@ -188,9 +189,10 @@
     language?: string;
     onchange?: (value: string) => void;
     onanalyze?: (result: { success: boolean; parse_duration_ms: number; tree_construction_duration_ms: number }) => void;
+    onready?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
   }
 
-  let { value = $bindable(""), language = "plaintext", onchange, onanalyze }: Props = $props();
+  let { value = $bindable(""), language = "plaintext", onchange, onanalyze, onready }: Props = $props();
 
   // Keep the module-level callback in sync with the prop
   $effect(() => {
@@ -293,6 +295,8 @@
       value = newValue;
       onchange?.(newValue);
     });
+
+    onready?.(editor);
   });
 
   onDestroy(() => {
