@@ -315,6 +315,12 @@
       await mainWindow.destroy();
     });
 
+    // Listen for "Open Grammar" from command palette
+    function handleTerrariumOpenGrammar() {
+      selectDirectory();
+    }
+    window.addEventListener("terrarium-open-grammar", handleTerrariumOpenGrammar);
+
     // Listen for Cmd+G from Monaco editor (which can't bubble keyboard events)
     function handleTerrariumGenerate() {
       if (grammarFileName && !isGenerating) {
@@ -358,6 +364,7 @@
       unlistenDebugStepChanged.then(fn => fn());
       unlistenMainClose.then(fn => fn());
       window.removeEventListener('resize', handleWindowResize);
+      window.removeEventListener("terrarium-open-grammar", handleTerrariumOpenGrammar);
       window.removeEventListener("terrarium-generate", handleTerrariumGenerate);
       window.removeEventListener("terrarium-parse", handleTerrariumParse);
       window.removeEventListener("terrarium-mode", handleTerrariumMode);
@@ -2349,6 +2356,16 @@
   const toggleMaximize = createMaximizeToggle();
 
   function handleKeyDown(e: KeyboardEvent) {
+    // Cmd+Shift+P: command palette (global — focus editor first so Monaco can open it)
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'p') {
+      e.preventDefault();
+      if (editorInstance) {
+        editorInstance.focus();
+        editorInstance.trigger("keyboard", "editor.action.quickCommand", null);
+      }
+      return;
+    }
+
     // Cmd+O: open grammar when no grammar is loaded (otherwise Monaco handles it for symbols)
     if ((e.metaKey || e.ctrlKey) && e.key === 'o' && !e.shiftKey) {
       if (!grammarFileName) {
@@ -3402,8 +3419,8 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
           <div class="shortcuts-section">
             <h4>Global</h4>
             <div class="shortcut-row">
-              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>O</kbd></span>
-              <span class="shortcut-desc">Show symbols in file (Design mode)</span>
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>P</kbd></span>
+              <span class="shortcut-desc">Command palette</span>
             </div>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>G</kbd></span>
@@ -3411,7 +3428,7 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
             </div>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>P</kbd></span>
-              <span class="shortcut-desc">Parse input (any mode)</span>
+              <span class="shortcut-desc">Parse input</span>
             </div>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>1</kbd></span>
@@ -3426,10 +3443,6 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
               <span class="shortcut-desc">Switch to Debug mode</span>
             </div>
             <div class="shortcut-row">
-              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>F</kbd></span>
-              <span class="shortcut-desc">Format grammar (Design mode)</span>
-            </div>
-            <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>?</kbd></span>
               <span class="shortcut-desc">Show keyboard shortcuts</span>
             </div>
@@ -3440,6 +3453,26 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
           </div>
           <div class="shortcuts-section">
             <h4>Editor</h4>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>O</kbd></span>
+              <span class="shortcut-desc">Show symbols in file</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>F3</kbd></span>
+              <span class="shortcut-desc">Go to definition</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⇧</kbd><kbd>F12</kbd></span>
+              <span class="shortcut-desc">Find all references</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>[</kbd> / <kbd>⌘</kbd><kbd>]</kbd></span>
+              <span class="shortcut-desc">Navigate back / forward</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>F</kbd></span>
+              <span class="shortcut-desc">Format grammar</span>
+            </div>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>F</kbd></span>
               <span class="shortcut-desc">Find</span>

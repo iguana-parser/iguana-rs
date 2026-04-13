@@ -222,30 +222,48 @@
       "semanticHighlighting.enabled": true,
     });
 
-    // -- Custom commands ------------------------------------------------
-    // Register named commands so addKeybindingRules can reference them.
-    monaco.editor.addCommand({
+    // -- Actions ----------------------------------------------------------
+    // Registered via addAction so they appear in the command palette
+    // (Cmd+Shift+P) with their labels and keybindings.
+    editor.addAction({
+      id: "terrarium.openGrammar",
+      label: "Open Grammar",
+      run: () => window.dispatchEvent(new CustomEvent("terrarium-open-grammar")),
+    });
+    editor.addAction({
       id: "terrarium.generate",
+      label: "Generate Parser",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG],
       run: () => window.dispatchEvent(new CustomEvent("terrarium-generate")),
     });
-    monaco.editor.addCommand({
+    editor.addAction({
       id: "terrarium.parse",
+      label: "Parse Input",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP],
       run: () => window.dispatchEvent(new CustomEvent("terrarium-parse")),
     });
-    monaco.editor.addCommand({
+    editor.addAction({
       id: "terrarium.mode.design",
+      label: "Switch to Design Mode",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit1],
       run: () => window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "design" })),
     });
-    monaco.editor.addCommand({
+    editor.addAction({
       id: "terrarium.mode.parse",
+      label: "Switch to Parse Mode",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit2],
       run: () => window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "parse" })),
     });
-    monaco.editor.addCommand({
+    editor.addAction({
       id: "terrarium.mode.debug",
+      label: "Switch to Debug Mode",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit3],
       run: () => window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "debug" })),
     });
-    monaco.editor.addCommand({
+    editor.addAction({
       id: "terrarium.formatGrammar",
+      label: "Format Grammar",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF],
       run: async () => {
         const model = editor.getModel();
         if (!model) return;
@@ -261,28 +279,24 @@
     });
 
     // -- Keybinding rules -----------------------------------------------
-    // Declarative remapping via the public API (replaces the private
-    // _standaloneKeybindingService hack). A null command unbinds Monaco's
-    // built-in action for that key.
+    // Declarative remapping for built-in Monaco actions.
     monaco.editor.addKeybindingRules([
-      // Cmd+G: Generate (unbind Monaco "Find Next")
-      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG, command: "terrarium.generate" },
-      // Cmd+P: Parse (unbind Monaco "Quick Command")
-      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, command: "terrarium.parse" },
+      // Unbind Monaco built-ins that conflict with Terrarium shortcuts
       { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, command: "-editor.action.quickCommand" },
-      // Cmd+1/2/3: Switch mode
-      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit1, command: "terrarium.mode.design" },
-      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit2, command: "terrarium.mode.parse" },
-      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit3, command: "terrarium.mode.debug" },
-      // F3: Go to Definition (unbind Monaco "Find Next Match")
-      { keybinding: monaco.KeyCode.F3, command: "editor.action.revealDefinition" },
       { keybinding: monaco.KeyCode.F3, command: "-editor.action.nextMatchFindAction" },
+      // F3: Go to Definition
+      { keybinding: monaco.KeyCode.F3, command: "editor.action.revealDefinition" },
       // Cmd+O: Quick Outline
       { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyO, command: "editor.action.quickOutline" },
+      // Cmd+Shift+P: Command palette
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyP, command: "editor.action.quickCommand" },
       // Cmd+D: Delete line
       { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD, command: "editor.action.deleteLines" },
-      // Cmd+Shift+F: Format grammar
-      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF, command: "terrarium.formatGrammar" },
+      // Cmd+[/]: Cursor back/forward (unbind indent/outdent)
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.BracketLeft, command: "-editor.action.outdentLines" },
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.BracketRight, command: "-editor.action.indentLines" },
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.BracketLeft, command: "cursorUndo" },
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.BracketRight, command: "cursorRedo" },
     ]);
 
     editor.onDidChangeModelContent(() => {
