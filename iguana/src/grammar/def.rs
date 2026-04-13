@@ -182,6 +182,20 @@ pub struct GrammarDef {
     pub layout: Option<Symbol>,
 }
 
+impl GrammarDef {
+    pub fn resolve(self) -> GrammarDef {
+        let (_, symbol_table) = create_symbol_table(&self.syntax_rules, &self.lexical_rules);
+        let (syntax_rules, lexical_rules) =
+            resolve_identifiers(self.syntax_rules, self.lexical_rules, &symbol_table);
+        GrammarDef {
+            name: self.name,
+            syntax_rules,
+            lexical_rules,
+            layout: self.layout,
+        }
+    }
+}
+
 impl Display for SyntaxRule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.layout {
