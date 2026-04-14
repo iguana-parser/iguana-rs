@@ -1,4 +1,5 @@
 pub mod document_symbols;
+pub mod folding;
 pub mod format;
 pub mod layout;
 pub mod references;

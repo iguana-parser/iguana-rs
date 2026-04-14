@@ -182,6 +182,21 @@
         }));
       },
     });
+
+    // Code Folding
+    monaco.languages.registerFoldingRangeProvider("iggy", {
+      async provideFoldingRanges(model) {
+        const ranges = await invoke<{ start_line: number; end_line: number }[]>(
+          "get_folding_ranges",
+          { source: model.getValue() },
+        );
+        return ranges.map((r) => ({
+          start: r.start_line + 1,
+          end: r.end_line + 1,
+          kind: monaco.languages.FoldingRangeKind.Region,
+        }));
+      },
+    });
   }
 
   interface Props {

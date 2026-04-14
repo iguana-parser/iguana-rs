@@ -256,6 +256,12 @@ async getDefinition(source: string, line: number, column: number) : Promise<Loca
  */
 async getReferences(source: string, line: number, column: number, includeDeclaration: boolean) : Promise<LocationData[]> {
     return await TAURI_INVOKE("get_references", { source, line, column, includeDeclaration });
+},
+/**
+ * Return folding ranges for the grammar.
+ */
+async getFoldingRanges(source: string) : Promise<FoldingRangeData[]> {
+    return await TAURI_INVOKE("get_folding_ranges", { source });
 }
 }
 
@@ -397,6 +403,7 @@ message: string;
  * Event type for styling (e.g., "processing", "match_success", "match_failed", "gss", "sppf", "layout")
  */
 event_type: string }
+export type FoldingRangeData = { start_line: number; end_line: number }
 export type GSS = { nodes: GSSDotNode[]; edges: GSSDotEdge[] }
 export type GSSDotEdge = { src: GssNodeId; dest: GssNodeId; label: string }
 export type GSSDotNode = { id: GssNodeId; label: string }

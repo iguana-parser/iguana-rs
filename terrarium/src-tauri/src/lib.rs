@@ -53,6 +53,12 @@ struct LocationData {
     range: RangeData,
 }
 
+#[derive(Clone, Serialize, Type)]
+struct FoldingRangeData {
+    start_line: u32,
+    end_line: u32,
+}
+
 /// Debug SPPF info returned to the frontend.
 #[derive(Clone, Serialize, Type)]
 struct DebugSPPFInfo {
@@ -1000,6 +1006,33 @@ fn get_references(
         .collect()
 }
 
+/// Return folding ranges for the grammar.
+#[tauri::command]
+#[specta::specta]
+fn get_folding_ranges(
+    source: String,
+    state: tauri::State<Mutex<GrammarState>>,
+) -> Vec<FoldingRangeData> {
+    let mut st = state.lock().unwrap();
+    st.ensure_parsed(&source);
+    let Some(ref result) = st.parse_result else {
+        return vec![];
+    };
+    let Some(grammar_def) = lsp::build_grammar_def(result) else {
+        return vec![];
+    };
+    let Some(spans) = lsp::build_spans(&grammar_def, result) else {
+        return vec![];
+    };
+    lsp::folding::folding_ranges(&grammar_def, &spans, &result.input)
+        .into_iter()
+        .map(|r| FoldingRangeData {
+            start_line: r.start_line,
+            end_line: r.end_line,
+        })
+        .collect()
+}
+
 /// Map the LSP SymbolKind constants we actually use to their numeric codes.
 /// The `.0` field of `lsp_types::SymbolKind` is private, so we match by const.
 fn symbol_kind_code(kind: lsp_types::SymbolKind) -> u32 {
@@ -1386,7 +1419,8 @@ pub fn run() {
         get_semantic_tokens_legend,
         get_document_symbols,
         get_definition,
-        get_references
+        get_references,
+        get_folding_ranges
     ]);
 
     #[cfg(debug_assertions)]
