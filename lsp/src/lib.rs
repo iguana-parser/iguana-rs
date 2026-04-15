@@ -1,3 +1,4 @@
+pub mod diagnostics;
 pub mod document_symbols;
 pub mod folding;
 pub mod format;

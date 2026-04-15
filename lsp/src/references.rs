@@ -1,4 +1,3 @@
-use iguana::grammar::def::GrammarDef;
 use iguana_runtime::{input::Input, sppf::Span};
 use lsp_types::{Location, Position, Range, Uri};
 
@@ -7,13 +6,12 @@ use crate::symbols::find_definition_at_offset;
 
 /// Find the definition (rule head) of the symbol at `offset`.
 pub fn definition(
-    grammar_def: &GrammarDef,
     spans: &GrammarSpans<'_>,
     input: &Input,
     uri: &Uri,
     offset: u32,
 ) -> Option<Location> {
-    let def_id = find_definition_at_offset(grammar_def, spans, offset)?;
+    let def_id = find_definition_at_offset(spans, offset)?;
     let &head_span = spans.definition_spans.get(&def_id)?;
     Some(location(uri, head_span, input))
 }
@@ -21,14 +19,13 @@ pub fn definition(
 /// Find all references to the symbol at `offset` in the grammar source.
 /// If `include_declaration` is true, the defining rule head is included.
 pub fn references(
-    grammar_def: &GrammarDef,
     spans: &GrammarSpans<'_>,
     input: &Input,
     uri: &Uri,
     offset: u32,
     include_declaration: bool,
 ) -> Vec<Location> {
-    let Some(def_id) = find_definition_at_offset(grammar_def, spans, offset) else {
+    let Some(def_id) = find_definition_at_offset(spans, offset) else {
         return vec![];
     };
 
@@ -76,7 +73,7 @@ mod tests {
         };
         let uri: Uri = "file:///test.iggy".parse().unwrap();
         let offset = result.input.offset(line, column);
-        references(&grammar_def, &spans, &result.input, &uri, offset, include_declaration)
+        references(&spans, &result.input, &uri, offset, include_declaration)
     }
 
     #[test]
@@ -202,7 +199,7 @@ A
         let spans = crate::build_spans(&grammar_def, &result)?;
         let uri: Uri = "file:///test.iggy".parse().unwrap();
         let offset = result.input.offset(line, column);
-        definition(&grammar_def, &spans, &result.input, &uri, offset)
+        definition(&spans, &result.input, &uri, offset)
     }
 
     #[test]

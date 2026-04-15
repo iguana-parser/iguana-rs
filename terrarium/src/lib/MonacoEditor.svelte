@@ -21,6 +21,10 @@
 
     monaco.languages.register({ id: "iggy" });
 
+    // Language configuration — tells Monaco how to toggle comments (Cmd+/).
+    monaco.languages.setLanguageConfiguration("iggy", {
+      comments: { lineComment: "//" },
+    });
 
     // Monarch baseline tokenizer — provides instant, synchronous syntax
     // highlighting so the editor is never "white". Semantic tokens from the
@@ -85,6 +89,21 @@
             }>("analyze_grammar", { source: model.getValue() });
 
             onAnalyzeCallback?.(analyzeResult);
+
+            // Push diagnostics (unresolved references, etc.)
+            type DiagData = { range: Range; severity: number; message: string };
+            const diags = await invoke<DiagData[]>("get_diagnostics", {
+              source: model.getValue(),
+            });
+            monaco.editor.setModelMarkers(
+              model,
+              "iggy",
+              diags.map((d) => ({
+                ...toRange(d.range),
+                severity: d.severity,
+                message: d.message,
+              })),
+            );
 
             // Then: extract semantic tokens from the cached parse result
             const tokens = await invoke<

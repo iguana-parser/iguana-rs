@@ -2,7 +2,7 @@ use by_address::ByAddress;
 use iggy::parse_tree::{self, Layout, ParseTreeRef};
 use iguana::grammar::{
     def::{Alternative, GrammarDef, LexicalRule, SyntaxRule},
-    symbols::{DefinitionId, Symbol},
+    symbols::{DefinitionId, Identifier, Symbol},
 };
 use iguana_runtime::{input::Input, sppf::Span};
 use rustc_hash::FxHashMap;
@@ -41,10 +41,23 @@ pub struct GrammarSpans<'a> {
     pub lexical_rules: FxHashMap<ByAddress<&'a LexicalRule>, Metadata>,
     pub alternatives: FxHashMap<ByAddress<&'a Alternative>, Metadata>,
     pub symbols: FxHashMap<ByAddress<&'a Symbol>, Metadata>,
+    pub identifiers: FxHashMap<ByAddress<&'a Identifier>, Span>,
     /// Maps a DefinitionId to its rule head span.
     pub definition_spans: FxHashMap<DefinitionId, Span>,
     /// Maps a DefinitionId to all the spans where it is referenced in rule bodies.
     pub reference_spans: FxHashMap<DefinitionId, Vec<Span>>,
+}
+
+impl<'a> GrammarSpans<'a> {
+    pub fn symbol_span(&self, symbol: &'a Symbol) -> Option<Span> {
+        self.symbols
+            .get(&ByAddress(symbol))
+            .and_then(|meta| meta.span)
+    }
+
+    pub fn identifier_span(&self, id: &'a Identifier) -> Option<Span> {
+        self.identifiers.get(&ByAddress(id)).copied()
+    }
 }
 
 /// Walks the parse tree top-down to populate GrammarSpans. The walk mirrors
@@ -243,14 +256,15 @@ fn collect_symbol_spans<'a>(
             ..Default::default()
         },
     );
-    // Record reference spans for identifiers.
     match gr_sym {
         Symbol::Identifier(id) => {
+            spans.identifiers.insert(ByAddress(id), sym_span);
             if let Some(def_id) = id.definition {
                 spans.reference_spans.entry(def_id).or_default().push(sym_span);
             }
         }
         Symbol::Call { name, .. } => {
+            spans.identifiers.insert(ByAddress(name), sym_span);
             if let Some(def_id) = name.definition {
                 spans.reference_spans.entry(def_id).or_default().push(sym_span);
             }
@@ -282,20 +296,36 @@ fn collect_symbol_spans<'a>(
             }
         }
         (Symbol::Labeled { symbol: gr_inner, .. }, parse_tree::Symbol::Labeled { symbol, .. })
-        | (Symbol::Except { symbol: gr_inner, .. }, parse_tree::Symbol::Except { symbol, .. })
-        | (
-            Symbol::FollowRestriction { symbol: gr_inner, .. },
-            parse_tree::Symbol::FollowRestriction { symbol, .. },
-        )
-        | (
-            Symbol::PrecedeRestriction { symbol: gr_inner, .. },
-            parse_tree::Symbol::PrecedeRestriction { symbol, .. },
-        )
         | (
             Symbol::Exclude { symbol: gr_inner, .. },
             parse_tree::Symbol::Exclude { symbol, .. },
         ) => {
             collect_symbol_spans(gr_inner, symbol, spans);
+        }
+        (
+            Symbol::Except { symbol: gr_inner, except, .. },
+            parse_tree::Symbol::Except { symbol, excepts, .. },
+        ) => {
+            collect_symbol_spans(gr_inner, symbol, spans);
+            for (id, token) in except.iter().zip(excepts.identifiers()) {
+                spans.identifiers.insert(ByAddress(id), token.span());
+            }
+        }
+        (
+            Symbol::FollowRestriction { symbol: gr_inner, restrictions: gr_restrictions, .. },
+            parse_tree::Symbol::FollowRestriction { symbol, restrictions, .. },
+        ) => {
+            collect_symbol_spans(gr_inner, symbol, spans);
+            for (id, token) in gr_restrictions.iter().zip(restrictions.identifiers()) {
+                spans.identifiers.insert(ByAddress(id), token.span());
+            }
+        }
+        (
+            Symbol::PrecedeRestriction { symbol: gr_inner, restriction, .. },
+            parse_tree::Symbol::PrecedeRestriction { symbol, identifier, .. },
+        ) => {
+            collect_symbol_spans(gr_inner, symbol, spans);
+            spans.identifiers.insert(ByAddress(restriction), identifier.span());
         }
         _ => {}
     }

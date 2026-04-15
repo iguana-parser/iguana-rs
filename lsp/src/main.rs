@@ -4,7 +4,8 @@ use std::error::Error;
 
 use lsp_server::Connection;
 use lsp_types::{
-    OneOf, SemanticTokensFullOptions, SemanticTokensOptions, ServerCapabilities,
+    FoldingRangeProviderCapability, OneOf, SemanticTokensFullOptions, SemanticTokensOptions,
+    ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind,
 };
 
 use crate::server::main_loop;
@@ -27,6 +28,9 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
         document_formatting_provider: Some(OneOf::Left(true)),
         definition_provider: Some(OneOf::Left(true)),
         references_provider: Some(OneOf::Left(true)),
+        document_symbol_provider: Some(OneOf::Left(true)),
+        folding_range_provider: Some(FoldingRangeProviderCapability::Simple(true)),
+        text_document_sync: Some(TextDocumentSyncCapability::Kind(TextDocumentSyncKind::FULL)),
         ..Default::default()
     })
     .unwrap();

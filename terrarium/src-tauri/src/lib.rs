@@ -59,6 +59,13 @@ struct FoldingRangeData {
     end_line: u32,
 }
 
+#[derive(Clone, Serialize, Type)]
+struct DiagnosticData {
+    range: RangeData,
+    severity: u32,
+    message: String,
+}
+
 /// Debug SPPF info returned to the frontend.
 #[derive(Clone, Serialize, Type)]
 struct DebugSPPFInfo {
@@ -117,15 +124,18 @@ struct AnalyzeResult {
 
 /// Version-keyed parse cache. Every feature command calls `ensure_parsed()`
 /// which re-parses only if the source text has changed since the last parse.
+/// `grammar_def` is rebuilt from the parse result after each successful parse
+/// and reused by all feature commands.
 struct GrammarState {
     /// The source text that produced the current `parse_result`.
     source: Option<String>,
     parse_result: Option<lsp::ParseResult>,
+    grammar_def: Option<iguana::grammar::def::GrammarDef>,
 }
 
 impl GrammarState {
-    /// Ensure `parse_result` is up-to-date for `source`. Re-parses only when
-    /// the source text has changed. Returns the parse timings.
+    /// Ensure `parse_result` and `grammar_def` are up-to-date for `source`.
+    /// Re-parses only when the source text has changed. Returns the parse timings.
     fn ensure_parsed(&mut self, source: &str) -> (u32, u32) {
         if self.source.as_deref() == Some(source) {
             if let Some(ref r) = self.parse_result {
@@ -138,6 +148,7 @@ impl GrammarState {
         let result = lsp::parse(source);
         let parse_ms = result.parse_duration.as_millis() as u32;
         let tree_ms = result.tree_construction_duration.as_millis() as u32;
+        self.grammar_def = lsp::build_grammar_def(&result);
         self.source = Some(source.to_string());
         self.parse_result = Some(result);
         (parse_ms, tree_ms)
@@ -808,8 +819,11 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
             let source = fs::read_to_string(&iggy_file).map_err(|e| e.to_string())?;
             let grammar_def = iguana::iggy::parse_grammar(&source)
                 .map_err(|e| format!("{}", e))?;
+            let grammar: iguana::grammar::def::Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
+                format!("Unresolved identifiers: {}", names.join(", "))
+            })?;
             let result = iguana::generator::generate(
-                &grammar_def.into(),
+                &grammar,
                 dir,
                 iguana::generator::GenConfig {
                     ll1_optimization: !no_ll1,
@@ -931,13 +945,13 @@ fn get_document_symbols(
     let Some(ref result) = st.parse_result else {
         return vec![];
     };
-    let Some(grammar_def) = lsp::build_grammar_def(result) else {
+    let Some(ref grammar_def) = st.grammar_def else {
         return vec![];
     };
-    let Some(spans) = lsp::build_spans(&grammar_def, result) else {
+    let Some(spans) = lsp::build_spans(grammar_def, result) else {
         return vec![];
     };
-    lsp::document_symbols::document_symbols(&grammar_def, &spans, &result.input)
+    lsp::document_symbols::document_symbols(grammar_def, &spans, &result.input)
         .into_iter()
         .map(convert_symbol)
         .collect()
@@ -955,11 +969,11 @@ fn get_definition(
     let mut st = state.lock().unwrap();
     st.ensure_parsed(&source);
     let result = st.parse_result.as_ref()?;
-    let grammar_def = lsp::build_grammar_def(result)?;
-    let spans = lsp::build_spans(&grammar_def, result)?;
+    let grammar_def = st.grammar_def.as_ref()?;
+    let spans = lsp::build_spans(grammar_def, result)?;
     let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
     let offset = result.input.offset(line, column);
-    let loc = lsp::references::definition(&grammar_def, &spans, &result.input, &uri, offset)?;
+    let loc = lsp::references::definition(&spans, &result.input, &uri, offset)?;
     Some(LocationData {
         range: RangeData {
             start_line: loc.range.start.line,
@@ -985,15 +999,15 @@ fn get_references(
     let Some(ref result) = st.parse_result else {
         return vec![];
     };
-    let Some(grammar_def) = lsp::build_grammar_def(result) else {
+    let Some(ref grammar_def) = st.grammar_def else {
         return vec![];
     };
-    let Some(spans) = lsp::build_spans(&grammar_def, result) else {
+    let Some(spans) = lsp::build_spans(grammar_def, result) else {
         return vec![];
     };
     let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
     let offset = result.input.offset(line, column);
-    lsp::references::references(&grammar_def, &spans, &result.input, &uri, offset, include_declaration)
+    lsp::references::references(&spans, &result.input, &uri, offset, include_declaration)
         .into_iter()
         .map(|loc| LocationData {
             range: RangeData {
@@ -1018,17 +1032,59 @@ fn get_folding_ranges(
     let Some(ref result) = st.parse_result else {
         return vec![];
     };
-    let Some(grammar_def) = lsp::build_grammar_def(result) else {
+    let Some(ref grammar_def) = st.grammar_def else {
         return vec![];
     };
-    let Some(spans) = lsp::build_spans(&grammar_def, result) else {
+    let Some(spans) = lsp::build_spans(grammar_def, result) else {
         return vec![];
     };
-    lsp::folding::folding_ranges(&grammar_def, &spans, &result.input)
+    lsp::folding::folding_ranges(grammar_def, &spans, &result.input)
         .into_iter()
         .map(|r| FoldingRangeData {
             start_line: r.start_line,
             end_line: r.end_line,
+        })
+        .collect()
+}
+
+/// Return diagnostics (e.g. unresolved references) for the grammar.
+#[tauri::command]
+#[specta::specta]
+fn get_diagnostics(
+    source: String,
+    state: tauri::State<Mutex<GrammarState>>,
+) -> Vec<DiagnosticData> {
+    let mut st = state.lock().unwrap();
+    st.ensure_parsed(&source);
+    let Some(ref result) = st.parse_result else {
+        return vec![];
+    };
+    let Some(ref grammar_def) = st.grammar_def else {
+        return vec![];
+    };
+    let Some(spans) = lsp::build_spans(grammar_def, result) else {
+        return vec![];
+    };
+    lsp::diagnostics::diagnostics(grammar_def, &spans, &result.input)
+        .into_iter()
+        .map(|d| {
+            let severity = match d.severity {
+                Some(lsp_types::DiagnosticSeverity::ERROR) => 8, // Monaco MarkerSeverity.Error
+                Some(lsp_types::DiagnosticSeverity::WARNING) => 4,
+                Some(lsp_types::DiagnosticSeverity::INFORMATION) => 2,
+                Some(lsp_types::DiagnosticSeverity::HINT) => 1,
+                _ => 8,
+            };
+            DiagnosticData {
+                range: RangeData {
+                    start_line: d.range.start.line,
+                    start_char: d.range.start.character,
+                    end_line: d.range.end.line,
+                    end_char: d.range.end.character,
+                },
+                severity,
+                message: d.message,
+            }
         })
         .collect()
 }
@@ -1420,7 +1476,8 @@ pub fn run() {
         get_document_symbols,
         get_definition,
         get_references,
-        get_folding_ranges
+        get_folding_ranges,
+        get_diagnostics
     ]);
 
     #[cfg(debug_assertions)]
@@ -1438,6 +1495,7 @@ pub fn run() {
         .manage(Mutex::new(GrammarState {
             source: None,
             parse_result: None,
+            grammar_def: None,
         }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())

@@ -2406,8 +2406,10 @@
       return;
     }
 
-    // Cmd+/ to show keyboard shortcuts (displayed as ⌘? like Slack)
-    if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+    // Cmd+/ — toggle line comment (handled by Monaco, just don't intercept it)
+
+    // Cmd+Shift+/ (⌘?) — show keyboard shortcuts
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === '/') {
       e.preventDefault();
       showShortcutsModal = !showShortcutsModal;
       return;
@@ -3476,6 +3478,10 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>F</kbd></span>
               <span class="shortcut-desc">Find</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>/</kbd></span>
+              <span class="shortcut-desc">Toggle comment</span>
             </div>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>D</kbd></span>

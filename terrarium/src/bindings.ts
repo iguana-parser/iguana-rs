@@ -262,6 +262,12 @@ async getReferences(source: string, line: number, column: number, includeDeclara
  */
 async getFoldingRanges(source: string) : Promise<FoldingRangeData[]> {
     return await TAURI_INVOKE("get_folding_ranges", { source });
+},
+/**
+ * Return diagnostics (e.g. unresolved references) for the grammar.
+ */
+async getDiagnostics(source: string) : Promise<DiagnosticData[]> {
+    return await TAURI_INVOKE("get_diagnostics", { source });
 }
 }
 
@@ -362,6 +368,7 @@ current_node_id: number | null }
  */
 export type DebugSPPFNode = { id: number; kind: DebugSPPFNodeKind; label: string; left_extent: number; right_extent: number; children: number[] }
 export type DebugSPPFNodeKind = "Terminal" | "Nonterminal" | "Intermediate"
+export type DiagnosticData = { range: RangeData; severity: number; message: string }
 /**
  * Specta-compatible wrapper for lsp_types::DocumentSymbol.
  * `kind` is the numeric LSP SymbolKind (e.g. 5 = Class, 9 = Constructor, 10 = Enum).

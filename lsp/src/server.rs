@@ -1,10 +1,15 @@
 use std::error::Error;
 
-use lsp_server::{Connection, Message, Request, RequestId, Response};
+use lsp_server::{Connection, Message, Notification, Request, RequestId, Response};
+use lsp_types::notification::Notification as LspNotification;
 use lsp_types::request::{
-    Formatting, GotoDefinition, References, Request as LspRequest, SemanticTokensFullRequest,
+    DocumentSymbolRequest, FoldingRangeRequest, Formatting, GotoDefinition, References,
+    Request as LspRequest, SemanticTokensFullRequest,
 };
-use lsp_types::{Position, Range, SemanticTokens, SemanticTokensResult, TextEdit};
+use lsp_types::{
+    DocumentSymbolResponse, Position, PublishDiagnosticsParams, Range, SemanticTokens,
+    SemanticTokensResult, TextEdit, Uri,
+};
 
 pub fn main_loop(
     connection: Connection,
@@ -101,7 +106,6 @@ pub fn main_loop(
                             let offset = parse_result.input.offset(pos.line, pos.character);
                             let include_declaration = params.context.include_declaration;
                             Some(lsp::references::references(
-                                &grammar_def,
                                 &spans,
                                 &parse_result.input,
                                 uri,
@@ -136,7 +140,6 @@ pub fn main_loop(
                             let pos = params.text_document_position_params.position;
                             let offset = parse_result.input.offset(pos.line, pos.character);
                             lsp::references::definition(
-                                &grammar_def,
                                 &spans,
                                 &parse_result.input,
                                 uri,
@@ -154,15 +157,131 @@ pub fn main_loop(
                         };
                         connection.sender.send(Message::Response(resp))?;
                     }
+                    DocumentSymbolRequest::METHOD => {
+                        let (id, params) = cast::<DocumentSymbolRequest>(req);
+                        let uri = &params.text_document.uri;
+                        let path = uri.path().as_str();
+                        let source = match std::fs::read_to_string(path) {
+                            Ok(s) => s,
+                            Err(e) => {
+                                eprintln!("failed to read {}: {}", path, e);
+                                continue;
+                            }
+                        };
+                        let parse_result = lsp::parse(&source);
+                        let symbols = (|| {
+                            let grammar_def = lsp::build_grammar_def(&parse_result)?;
+                            let spans = lsp::build_spans(&grammar_def, &parse_result)?;
+                            Some(lsp::document_symbols::document_symbols(
+                                &grammar_def,
+                                &spans,
+                                &parse_result.input,
+                            ))
+                        })()
+                        .unwrap_or_default();
+                        let result = serde_json::to_value(
+                            &DocumentSymbolResponse::Nested(symbols),
+                        )
+                        .unwrap();
+                        let resp = Response {
+                            id,
+                            result: Some(result),
+                            error: None,
+                        };
+                        connection.sender.send(Message::Response(resp))?;
+                    }
+                    FoldingRangeRequest::METHOD => {
+                        let (id, params) = cast::<FoldingRangeRequest>(req);
+                        let uri = &params.text_document.uri;
+                        let path = uri.path().as_str();
+                        let source = match std::fs::read_to_string(path) {
+                            Ok(s) => s,
+                            Err(e) => {
+                                eprintln!("failed to read {}: {}", path, e);
+                                continue;
+                            }
+                        };
+                        let parse_result = lsp::parse(&source);
+                        let ranges = (|| {
+                            let grammar_def = lsp::build_grammar_def(&parse_result)?;
+                            let spans = lsp::build_spans(&grammar_def, &parse_result)?;
+                            Some(lsp::folding::folding_ranges(
+                                &grammar_def,
+                                &spans,
+                                &parse_result.input,
+                            ))
+                        })()
+                        .unwrap_or_default();
+                        let result = serde_json::to_value(&ranges).unwrap();
+                        let resp = Response {
+                            id,
+                            result: Some(result),
+                            error: None,
+                        };
+                        connection.sender.send(Message::Response(resp))?;
+                    }
                     _ => {}
                 }
             }
             Message::Response(resp) => {
                 eprintln!("got response: {resp:?}");
             }
-            Message::Notification(_) => {}
+            Message::Notification(notif) => {
+                match notif.method.as_str() {
+                    lsp_types::notification::DidOpenTextDocument::METHOD => {
+                        let params: lsp_types::DidOpenTextDocumentParams =
+                            serde_json::from_value(notif.params).unwrap();
+                        publish_diagnostics(
+                            &connection,
+                            params.text_document.uri,
+                            &params.text_document.text,
+                        )?;
+                    }
+                    lsp_types::notification::DidChangeTextDocument::METHOD => {
+                        let params: lsp_types::DidChangeTextDocumentParams =
+                            serde_json::from_value(notif.params).unwrap();
+                        if let Some(change) = params.content_changes.into_iter().last() {
+                            publish_diagnostics(
+                                &connection,
+                                params.text_document.uri,
+                                &change.text,
+                            )?;
+                        }
+                    }
+                    _ => {}
+                }
+            }
         }
     }
+    Ok(())
+}
+
+fn publish_diagnostics(
+    connection: &Connection,
+    uri: Uri,
+    source: &str,
+) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
+    let parse_result = lsp::parse(source);
+    let diagnostics = (|| {
+        let grammar_def = lsp::build_grammar_def(&parse_result)?;
+        let spans = lsp::build_spans(&grammar_def, &parse_result)?;
+        Some(lsp::diagnostics::diagnostics(
+            &grammar_def,
+            &spans,
+            &parse_result.input,
+        ))
+    })()
+    .unwrap_or_default();
+    let params = PublishDiagnosticsParams {
+        uri,
+        diagnostics,
+        version: None,
+    };
+    let notif = Notification {
+        method: lsp_types::notification::PublishDiagnostics::METHOD.to_string(),
+        params: serde_json::to_value(params).unwrap(),
+    };
+    connection.sender.send(Message::Notification(notif))?;
     Ok(())
 }
 
