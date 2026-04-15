@@ -99,7 +99,10 @@ fn main() -> std::io::Result<()> {
             let config = GenConfig {
                 ll1_optimization: !no_ll1,
             };
-            let result = generate(&grammar_def.into(), &output, config)?;
+            let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
+                std::io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
+            })?;
+            let result = generate(&grammar, &output, config)?;
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
             } else {
@@ -378,8 +381,11 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
         }
     };
     let source = std::fs::read_to_string(path)?;
-    let grammar = parse_grammar(&source).map_err(std::io::Error::other)?;
-    generate(&grammar.into(), output, GenConfig::default())?;
+    let grammar_def = parse_grammar(&source).map_err(std::io::Error::other)?;
+    let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
+        std::io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
+    })?;
+    generate(&grammar, output, GenConfig::default())?;
     Ok(())
 }
 
@@ -395,7 +401,7 @@ fn grammar3() -> Grammar {
             ))
         ]
     )
-    .into()
+    .try_into().unwrap()
 }
 
 #[allow(dead_code)]
@@ -408,7 +414,7 @@ fn ambiguous_grammar() -> Grammar {
             syntax_rule!("A" => alternative!(lit!("a")))
         ]
     )
-    .into()
+    .try_into().unwrap()
 }
 
 fn nonterminal_parameters() -> GrammarDef {

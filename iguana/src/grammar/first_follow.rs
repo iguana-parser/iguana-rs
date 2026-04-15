@@ -378,6 +378,7 @@ impl<'a> FirstFollowSets<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::grammar::def::GrammarDef;
     use crate::{alternative, grammar_def, id, lit, priority_level, syntax_rule};
 
     // ---------------------------------------------------------------
@@ -389,7 +390,7 @@ mod tests {
     //   Tp = "*" F Tp | ε
     //   F  = "(" E ")" | "id"
     // ---------------------------------------------------------------
-    fn expression_grammar() -> Grammar {
+    fn expression_grammar() -> GrammarDef {
         grammar_def!("expr",
             syntax: [
                 syntax_rule!("E" => alternative!(id!("T"), id!("Ep"))),
@@ -407,12 +408,12 @@ mod tests {
                     alternative!(lit!("id"))
                 ))
             ]
-        ).into()
+        )
     }
 
     #[test]
     fn test_expression_grammar() {
-        let grammar = expression_grammar();
+        let grammar: Grammar = expression_grammar().try_into().unwrap();
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
@@ -498,7 +499,7 @@ mod tests {
     //   B = "b" | ε
     //   C = "c" | ε
     // ---------------------------------------------------------------
-    fn nullable_prefix_grammar() -> Grammar {
+    fn nullable_prefix_grammar() -> GrammarDef {
         grammar_def!("nullable",
             syntax: [
                 syntax_rule!("S" => alternative!(id!("A"), id!("B"), id!("C"), lit!("d"))),
@@ -506,12 +507,12 @@ mod tests {
                 syntax_rule!("B" => priority_level!(alternative!(lit!("b")), alternative!())),
                 syntax_rule!("C" => priority_level!(alternative!(lit!("c")), alternative!()))
             ]
-        ).into()
+        )
     }
 
     #[test]
     fn test_nullable_prefix_grammar() {
-        let grammar = nullable_prefix_grammar();
+        let grammar: Grammar = nullable_prefix_grammar().try_into().unwrap();
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
@@ -568,7 +569,7 @@ mod tests {
     //   A = "a" | ε
     //   B = S "d" | ε
     // ---------------------------------------------------------------
-    fn recursive_first_grammar() -> Grammar {
+    fn recursive_first_grammar() -> GrammarDef {
         grammar_def!("recursive",
             syntax: [
                 syntax_rule!("S" => alternative!(id!("A"), id!("B"), lit!("c"))),
@@ -578,12 +579,12 @@ mod tests {
                     alternative!()
                 ))
             ]
-        ).into()
+        )
     }
 
     #[test]
     fn test_recursive_first_grammar() {
-        let grammar = recursive_first_grammar();
+        let grammar: Grammar = recursive_first_grammar().try_into().unwrap();
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
@@ -633,7 +634,7 @@ mod tests {
     // Prediction set of A → ε = FOLLOW(A) = {"a"}.
     // Conflict on "a" → not LL(1).
     // ---------------------------------------------------------------
-    fn appel_conflict_grammar() -> Grammar {
+    fn appel_conflict_grammar() -> GrammarDef {
         grammar_def!("appel",
             syntax: [
                 syntax_rule!("S" => priority_level!(
@@ -645,12 +646,12 @@ mod tests {
                     alternative!()
                 ))
             ]
-        ).into()
+        )
     }
 
     #[test]
     fn test_appel_conflict_grammar() {
-        let grammar = appel_conflict_grammar();
+        let grammar: Grammar = appel_conflict_grammar().try_into().unwrap();
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
@@ -692,7 +693,7 @@ mod tests {
     // Prediction set of A → ε = FOLLOW(A) = {"b"}.
     // Conflict on "b" → not LL(1).
     // ---------------------------------------------------------------
-    fn grune_conflict_grammar() -> Grammar {
+    fn grune_conflict_grammar() -> GrammarDef {
         grammar_def!("grune",
             syntax: [
                 syntax_rule!("S" => alternative!(id!("A"), lit!("b"))),
@@ -701,12 +702,12 @@ mod tests {
                     alternative!()
                 ))
             ]
-        ).into()
+        )
     }
 
     #[test]
     fn test_grune_conflict_grammar() {
-        let grammar = grune_conflict_grammar();
+        let grammar: Grammar = grune_conflict_grammar().try_into().unwrap();
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables

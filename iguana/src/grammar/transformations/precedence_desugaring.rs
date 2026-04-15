@@ -622,8 +622,8 @@ mod tests {
 
     #[test]
     fn test_desugaring() {
-        let actual: Grammar = input_grammar().into();
-        let expected: Grammar = expected_grammar().into();
+        let actual: Grammar = input_grammar().try_into().unwrap();
+        let expected: Grammar = expected_grammar().try_into().unwrap();
         assert_eq!(actual, expected);
     }
 
@@ -703,8 +703,8 @@ mod tests {
 
     #[test]
     fn test_prefix_postfix_desugaring() {
-        let actual: Grammar = prefix_postfix_input().into();
-        let expected: Grammar = prefix_postfix_expected().into();
+        let actual: Grammar = prefix_postfix_input().try_into().unwrap();
+        let expected: Grammar = prefix_postfix_expected().try_into().unwrap();
         assert_eq!(actual, expected);
     }
 
@@ -737,8 +737,8 @@ mod tests {
             ]
         );
 
-        let actual: Grammar = input.into();
-        let expected: Grammar = expected.into();
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
         assert_eq!(actual, expected);
     }
 
@@ -771,8 +771,8 @@ mod tests {
             ]
         );
 
-        let actual: Grammar = input.into();
-        let expected: Grammar = expected.into();
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
         assert_eq!(actual, expected);
     }
 
@@ -805,8 +805,8 @@ mod tests {
             ]
         );
 
-        let actual: Grammar = input.into();
-        let expected: Grammar = expected.into();
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
         assert_eq!(actual, expected);
     }
 
@@ -892,8 +892,8 @@ mod tests {
             ]
         );
 
-        let actual: Grammar = input.into();
-        let expected: Grammar = expected.into();
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
         assert_eq!(actual, expected);
     }
 
@@ -952,8 +952,8 @@ mod tests {
             ]
         );
 
-        let actual: Grammar = input.into();
-        let expected: Grammar = expected.into();
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
         assert_eq!(actual, expected);
     }
 
@@ -1000,8 +1000,8 @@ mod tests {
             ]
         );
 
-        let actual: Grammar = input.into();
-        let expected: Grammar = expected.into();
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
         assert_eq!(actual, expected);
     }
 
@@ -1093,8 +1093,8 @@ mod tests {
             ]
         );
 
-        let actual: Grammar = input.into();
-        let expected: Grammar = expected.into();
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
         assert_eq!(actual, expected);
     }
 
@@ -1180,8 +1180,8 @@ mod tests {
             ]
         );
 
-        let actual: Grammar = input.into();
-        let expected: Grammar = expected.into();
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
         assert_eq!(actual, expected);
     }
 }

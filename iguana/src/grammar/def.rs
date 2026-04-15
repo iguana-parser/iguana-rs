@@ -11,7 +11,7 @@ use crate::{
         symbols::{Definition, DefinitionId, Expr, Identifier, Nonterminal, Symbol, Terminal},
         transformations::{
             ebnf_to_bnf, exclude_desugaring, layout_insertion, precedence_desugaring,
-            transform_regex, transform_syntax_rule,
+            transform_regex, transform_syntax_rule, visit_syntax_rule,
         },
     },
     priority_level,
@@ -193,6 +193,69 @@ impl GrammarDef {
             lexical_rules,
             layout: self.layout,
         }
+    }
+
+    pub fn for_each_symbol(&self, f: &mut impl FnMut(&Symbol)) {
+        for rule in &self.syntax_rules {
+            visit_syntax_rule(rule, f);
+        }
+    }
+
+    pub fn for_each_identifier(&self, f: &mut impl FnMut(&Identifier)) {
+        self.for_each_symbol(&mut |symbol| match symbol {
+            Symbol::Identifier(id) | Symbol::Call { name: id, .. } => f(id),
+            Symbol::Except { except, .. } => except.iter().for_each(&mut *f),
+            Symbol::FollowRestriction { restrictions, .. } => {
+                restrictions.iter().for_each(&mut *f)
+            }
+            Symbol::PrecedeRestriction { restriction, .. } => f(restriction),
+            _ => {}
+        });
+        for rule in &self.lexical_rules {
+            visit_regex_identifiers(&rule.regex, f);
+        }
+    }
+
+    pub fn unresolved_identifiers(&self) -> Vec<String> {
+        let mut unresolved = Vec::new();
+        self.for_each_identifier(&mut |id| {
+            if id.definition.is_none() {
+                unresolved.push(id.name.clone());
+            }
+        });
+        unresolved
+    }
+
+}
+
+impl TryFrom<GrammarDef> for Grammar {
+    type Error = Vec<String>;
+
+    /// Resolves identifiers, checks for unresolved references, then runs the
+    /// full transformation pipeline (EBNF-to-BNF, precedence desugaring,
+    /// layout insertion, etc.).
+    fn try_from(grammar_def: GrammarDef) -> Result<Self, Self::Error> {
+        let resolved = grammar_def.resolve();
+        let unresolved = resolved.unresolved_identifiers();
+        if !unresolved.is_empty() {
+            return Err(unresolved);
+        }
+        Ok(build_grammar(resolved))
+    }
+}
+
+fn visit_regex_identifiers(regex: &Regex, f: &mut impl FnMut(&Identifier)) {
+    match regex {
+        Regex::Identifier(id) => f(id),
+        Regex::Seq(rs) | Regex::Alt(rs) => {
+            for r in rs {
+                visit_regex_identifiers(r, f);
+            }
+        }
+        Regex::Star(r) | Regex::Plus(r) | Regex::Opt(r) => {
+            visit_regex_identifiers(r, f);
+        }
+        Regex::Char(_) | Regex::CharRange(_) | Regex::CharClass(_) | Regex::Epsilon => {}
     }
 }
 
@@ -440,15 +503,10 @@ fn resolve_identifiers(
         .into_iter()
         .map(|mut rule| {
             rule.regex = transform_regex(rule.regex, &mut |regex| match regex {
-                Regex::Identifier(id) => {
-                    let definition = symbol_table
-                        .get(&id.name)
-                        .unwrap_or_else(|| panic!("Undefined @regex rule: {}", id.name));
-                    Regex::Identifier(Identifier {
-                        name: id.name,
-                        definition: Some(definition),
-                    })
-                }
+                Regex::Identifier(id) => Regex::Identifier(Identifier {
+                    definition: symbol_table.get(&id.name),
+                    name: id.name,
+                }),
                 other => other,
             });
             rule
@@ -466,29 +524,17 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 symbol: Box::new(transformed),
             }
         }
-        Symbol::Call { name, arguments } => {
-            if let Some(definition_id) = symbol_table.get(&name.name) {
-                Symbol::Call {
-                    name: Identifier {
-                        name: name.name,
-                        definition: Some(definition_id),
-                    },
-                    arguments,
-                }
-            } else {
-                panic!("Definition {} not found", &name.name)
-            }
-        }
-        Symbol::Identifier(identifier) => {
-            if let Some(definition_id) = symbol_table.get(&identifier.name) {
-                Symbol::Identifier(Identifier {
-                    name: identifier.name,
-                    definition: Some(definition_id),
-                })
-            } else {
-                panic!("Definition {} not found", &identifier.name)
-            }
-        }
+        Symbol::Call { name, arguments } => Symbol::Call {
+            name: Identifier {
+                definition: symbol_table.get(&name.name),
+                name: name.name,
+            },
+            arguments,
+        },
+        Symbol::Identifier(identifier) => Symbol::Identifier(Identifier {
+            definition: symbol_table.get(&identifier.name),
+            name: identifier.name,
+        }),
         Symbol::Group(symbols) => {
             let resolved_symbols = symbols
                 .into_iter()
@@ -535,15 +581,9 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
             let resolved_symbol = resolve_identifier(*symbol, symbol_table);
             let resolved_except = except
                 .into_iter()
-                .map(|e| {
-                    if let Some(definition_id) = symbol_table.get(&e.name) {
-                        Identifier {
-                            name: e.name,
-                            definition: Some(definition_id),
-                        }
-                    } else {
-                        panic!("Definition {} not found", &e.name)
-                    }
+                .map(|e| Identifier {
+                    definition: symbol_table.get(&e.name),
+                    name: e.name,
                 })
                 .collect();
             Symbol::Except {
@@ -558,14 +598,9 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
             let resolved_symbol = resolve_identifier(*symbol, symbol_table);
             let resolved_restrictions = restrictions
                 .into_iter()
-                .map(|r| {
-                    let def_id = symbol_table
-                        .get(&r.name)
-                        .unwrap_or_else(|| panic!("definition {} not found", &r.name));
-                    Identifier {
-                        name: r.name,
-                        definition: Some(def_id),
-                    }
+                .map(|r| Identifier {
+                    definition: symbol_table.get(&r.name),
+                    name: r.name,
                 })
                 .collect();
             Symbol::FollowRestriction {
@@ -578,15 +613,10 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
             restriction,
         } => {
             let resolved_symbol = resolve_identifier(*symbol, symbol_table);
-            let resolved_restriction =
-                if let Some(definition_id) = symbol_table.get(&restriction.name) {
-                    Identifier {
-                        name: restriction.name,
-                        definition: Some(definition_id),
-                    }
-                } else {
-                    panic!("Definition {} not found", &restriction.name)
-                };
+            let resolved_restriction = Identifier {
+                definition: symbol_table.get(&restriction.name),
+                name: restriction.name,
+            };
             Symbol::PrecedeRestriction {
                 symbol: Box::new(resolved_symbol),
                 restriction: resolved_restriction,
@@ -669,99 +699,100 @@ fn inline_regex(
     }
 }
 
-impl From<GrammarDef> for Grammar {
-    fn from(grammar_def: GrammarDef) -> Self {
-        let mut lexical_rules = grammar_def.lexical_rules;
-        let syntax_rules = grammar_def.syntax_rules;
-        let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules);
-        let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
-        let (syntax_rules, lexical_rules) =
-            resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
-        let lexical_rules = inline_regex_refs(lexical_rules);
-        let (syntax_rules, mut ebnf_symbols) = ebnf_to_bnf::transform(syntax_rules);
-        let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
-        let (syntax_rules, lexical_rules) =
-            resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
-        let syntax_rules = exclude_desugaring::transform(syntax_rules);
-        let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
-        let (syntax_rules, lexical_rules) =
-            resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
-        let syntax_rules = precedence_desugaring::transform(syntax_rules);
-        // Create the final symbol table after all transformations. This must happen
-        // after precedence desugaring because desugaring may add parameters to
-        // nonterminals (e.g., E becomes E(p)), and the definitions must reflect that.
-        let (definitions, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
-        ebnf_symbols = ebnf_symbols
-            .into_iter()
-            .map(|(k, v)| (k, resolve_identifier(v, &symbol_table)))
-            .collect();
-        let lexical_rules: Vec<LexicalRule> = lexical_rules
-            .into_iter()
-            .map(|mut r| {
-                for except in &mut r.except {
-                    except.definition =
-                        Some(symbol_table.get(&except.name).unwrap_or_else(|| {
-                            panic!("Except terminal {} not found", except.name)
-                        }));
-                }
-                if let Some(restriction) = &mut r.follow_restriction {
-                    restriction.definition =
-                        Some(symbol_table.get(&restriction.name).unwrap_or_else(|| {
-                            panic!("Follow restriction terminal {} not found", restriction.name)
-                        }));
-                }
-                if let Some(restriction) = &mut r.precede_restriction {
-                    restriction.definition =
-                        Some(symbol_table.get(&restriction.name).unwrap_or_else(|| {
-                            panic!(
-                                "Precede restriction terminal {} not found",
-                                restriction.name
-                            )
-                        }));
-                }
-                r
-            })
-            .collect();
+/// Runs the full transformation pipeline on a resolved GrammarDef: adds
+/// literal terminals, inlines regex references, desugars EBNF/exclude/
+/// precedence, inserts layout, and assembles the final Grammar.
+fn build_grammar(grammar_def: GrammarDef) -> Grammar {
+    let mut lexical_rules = grammar_def.lexical_rules;
+    let syntax_rules = grammar_def.syntax_rules;
+    let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules);
+    let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
+    let (syntax_rules, lexical_rules) =
+        resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
+    let lexical_rules = inline_regex_refs(lexical_rules);
+    let (syntax_rules, mut ebnf_symbols) = ebnf_to_bnf::transform(syntax_rules);
+    let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
+    let (syntax_rules, lexical_rules) =
+        resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
+    let syntax_rules = exclude_desugaring::transform(syntax_rules);
+    let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
+    let (syntax_rules, lexical_rules) =
+        resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
+    let syntax_rules = precedence_desugaring::transform(syntax_rules);
+    // Create the final symbol table after all transformations. This must happen
+    // after precedence desugaring because desugaring may add parameters to
+    // nonterminals (e.g., E becomes E(p)), and the definitions must reflect that.
+    let (definitions, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
+    ebnf_symbols = ebnf_symbols
+        .into_iter()
+        .map(|(k, v)| (k, resolve_identifier(v, &symbol_table)))
+        .collect();
+    let lexical_rules: Vec<LexicalRule> = lexical_rules
+        .into_iter()
+        .map(|mut r| {
+            for except in &mut r.except {
+                except.definition =
+                    Some(symbol_table.get(&except.name).unwrap_or_else(|| {
+                        panic!("Except terminal {} not found", except.name)
+                    }));
+            }
+            if let Some(restriction) = &mut r.follow_restriction {
+                restriction.definition =
+                    Some(symbol_table.get(&restriction.name).unwrap_or_else(|| {
+                        panic!("Follow restriction terminal {} not found", restriction.name)
+                    }));
+            }
+            if let Some(restriction) = &mut r.precede_restriction {
+                restriction.definition =
+                    Some(symbol_table.get(&restriction.name).unwrap_or_else(|| {
+                        panic!(
+                            "Precede restriction terminal {} not found",
+                            restriction.name
+                        )
+                    }));
+            }
+            r
+        })
+        .collect();
 
-        let syntax_rules = if let Some(layout) = &grammar_def.layout {
-            let resolved = resolve_identifier(layout.clone(), &symbol_table);
-            let mut syntax_rules = layout_insertion::transform(syntax_rules, &resolved);
-            let start_rules: Vec<_> = syntax_rules
-                .iter()
-                .filter(|r| !r.head.is_derived())
-                .map(|r| add_start_rule(&r.head, &resolved, &symbol_table))
-                .collect();
-            syntax_rules.extend(start_rules);
-            syntax_rules
-        } else {
-            syntax_rules
-        };
-
-        let lexical_rules_map: IndexMap<Terminal, LexicalRule> = lexical_rules
-            .into_iter()
-            .map(|r| (r.head.clone(), r))
+    let syntax_rules = if let Some(layout) = &grammar_def.layout {
+        let resolved = resolve_identifier(layout.clone(), &symbol_table);
+        let mut syntax_rules = layout_insertion::transform(syntax_rules, &resolved);
+        let start_rules: Vec<_> = syntax_rules
+            .iter()
+            .filter(|r| !r.head.is_derived())
+            .map(|r| add_start_rule(&r.head, &resolved, &symbol_table))
             .collect();
-        let productions: IndexMap<Nonterminal, Vec<Alternative>> =
-            syntax_rules
-                .into_iter()
-                .fold(IndexMap::new(), |mut acc, r| {
-                    let alternatives: Vec<Alternative> = r
-                        .priority_levels
-                        .into_iter()
-                        .flat_map(|l| l.alternatives)
-                        .collect();
-                    acc.entry(r.head).or_default().extend(alternatives);
-                    acc
-                });
-        Self {
-            name: grammar_def.name,
-            productions,
-            lexical_rules: lexical_rules_map,
-            definitions,
-            ebnf_symbols,
-            layout: grammar_def.layout,
-            symbol_table,
-        }
+        syntax_rules.extend(start_rules);
+        syntax_rules
+    } else {
+        syntax_rules
+    };
+
+    let lexical_rules_map: IndexMap<Terminal, LexicalRule> = lexical_rules
+        .into_iter()
+        .map(|r| (r.head.clone(), r))
+        .collect();
+    let productions: IndexMap<Nonterminal, Vec<Alternative>> =
+        syntax_rules
+            .into_iter()
+            .fold(IndexMap::new(), |mut acc, r| {
+                let alternatives: Vec<Alternative> = r
+                    .priority_levels
+                    .into_iter()
+                    .flat_map(|l| l.alternatives)
+                    .collect();
+                acc.entry(r.head).or_default().extend(alternatives);
+                acc
+            });
+    Grammar {
+        name: grammar_def.name,
+        productions,
+        lexical_rules: lexical_rules_map,
+        definitions,
+        ebnf_symbols,
+        layout: grammar_def.layout,
+        symbol_table,
     }
 }
 
