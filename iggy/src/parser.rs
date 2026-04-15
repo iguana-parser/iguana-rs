@@ -10760,9 +10760,18 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Rule
             NonterminalId(2) => {
                 //Rule : . SyntaxRule
-                self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                }
                 //Rule : . RegexRule
-                self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(18), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
+                }
             }
             //SyntaxRule : . SyntaxRule_Opt_2 Layout head:Identifier Layout "=" Layout SyntaxRule_Star_1
             NonterminalId(3) => {
@@ -10771,9 +10780,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Annotation
             NonterminalId(4) => {
                 //Annotation : . "@NoLayout"
-                self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(14), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
+                }
                 //Annotation : . "@Layout" Layout "(" Layout Identifier Layout ")"
-                self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(15), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
+                }
             }
             //RegexRule : . "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
             NonterminalId(5) => {
@@ -10786,9 +10799,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //PostCondition
             NonterminalId(7) => {
                 //PostCondition : . "\" Layout Identifier
-                self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(21), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
+                }
                 //PostCondition : . "!>>" Layout Identifier
-                self.add_first_descriptor(SlotId(54), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(22), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(54), input_index, gss_node_id, env);
+                }
             }
             //PriorityLevel : . PriorityLevel_Opt_6 Layout PriorityLevel_Star_3
             NonterminalId(8) => {
@@ -10797,11 +10814,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Associativity
             NonterminalId(9) => {
                 //Associativity : . "left"
-                self.add_first_descriptor(SlotId(62), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(23), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(62), input_index, gss_node_id, env);
+                }
                 //Associativity : . "right"
-                self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(24), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
+                }
                 //Associativity : . "none"
-                self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(25), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
+                }
             }
             //Alternative : . Alternative_Star_4 Layout Alternative_Opt_9
             NonterminalId(10) => {
@@ -10810,54 +10833,242 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Symbol
             NonterminalId(71) => {
                 //Symbol(p: i32) : . Identifier return 0
-                self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
+                }
                 //Symbol(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                self.add_first_descriptor(SlotId(75), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(75), input_index, gss_node_id, env);
+                }
                 //Symbol(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
+                }
                 //Symbol(p: i32) : . String return 0
-                self.add_first_descriptor(SlotId(91), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(91), input_index, gss_node_id, env);
+                }
                 //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                self.add_first_descriptor(SlotId(94), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(94), input_index, gss_node_id, env);
+                }
                 //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                self.add_first_descriptor(SlotId(105), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(105),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
-                self.add_first_descriptor(SlotId(116), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(116),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
-                self.add_first_descriptor(SlotId(123), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(123),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
-                self.add_first_descriptor(SlotId(130), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(130),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_8 return 0
-                self.add_first_descriptor(SlotId(137), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(137),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_9 return 0
-                self.add_first_descriptor(SlotId(144), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(144),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
-                self.add_first_descriptor(SlotId(151), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(151),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                self.add_first_descriptor(SlotId(158), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(158),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                self.add_first_descriptor(SlotId(165), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(165),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Regex
             NonterminalId(11) => {
                 //Regex : . Regex Layout "+"
-                self.add_first_descriptor(SlotId(172), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(172),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Regex : . Regex Layout "*"
-                self.add_first_descriptor(SlotId(176), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(176),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Regex : . Regex Layout "?"
-                self.add_first_descriptor(SlotId(180), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(180),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Regex : . "(" Layout first:Regex Layout rest:Regex_Plus_11 Layout ")"
-                self.add_first_descriptor(SlotId(184), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(184),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Regex : . "(" Layout RegexRule_Plus_3 Layout ")"
-                self.add_first_descriptor(SlotId(192), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(192),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Regex : . CharClass
-                self.add_first_descriptor(SlotId(198), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(198),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Regex : . Char
-                self.add_first_descriptor(SlotId(200), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(3), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(200),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Regex : . String
-                self.add_first_descriptor(SlotId(202), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(202),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Regex : . Identifier
-                self.add_first_descriptor(SlotId(204), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(204),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //CharClass : . neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_12 Layout "]"
             NonterminalId(12) => {
@@ -10866,9 +11077,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //RangeElement
             NonterminalId(13) => {
                 //RangeElement : . Range
-                self.add_first_descriptor(SlotId(214), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(5), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(214),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //RangeElement : . RangeChar
-                self.add_first_descriptor(SlotId(216), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(5), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(216),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Range : . start:RangeChar Layout "-" Layout end:RangeChar
             NonterminalId(14) => {
@@ -10881,23 +11106,93 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Grammar_Opt_0
             NonterminalId(16) => {
                 //Grammar_Opt_0 : . LayoutDef
-                self.add_first_descriptor(SlotId(226), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(11), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(226),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Grammar_Opt_0 : .
-                self.add_first_descriptor(SlotId(228), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || input_index == self.input().len()
+                {
+                    self.add_first_descriptor(
+                        SlotId(228),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Grammar_Plus_0
             NonterminalId(17) => {
                 //Grammar_Plus_0 : . Grammar_Plus_0 Layout Rule
-                self.add_first_descriptor(SlotId(229), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(229),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Grammar_Plus_0 : . Rule
-                self.add_first_descriptor(SlotId(233), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(233),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Grammar_Opt_1
             NonterminalId(18) => {
                 //Grammar_Opt_1 : . Grammar_Plus_0
-                self.add_first_descriptor(SlotId(235), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(235),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Grammar_Opt_1 : .
-                self.add_first_descriptor(SlotId(237), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || input_index == self.input().len()
+                {
+                    self.add_first_descriptor(
+                        SlotId(237),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Grammar_Star_0 : . Grammar_Opt_1
             NonterminalId(19) => {
@@ -10906,23 +11201,122 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //SyntaxRule_Opt_2
             NonterminalId(20) => {
                 //SyntaxRule_Opt_2 : . Annotation
-                self.add_first_descriptor(SlotId(240), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(240),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //SyntaxRule_Opt_2 : .
-                self.add_first_descriptor(SlotId(242), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || input_index == self.input().len()
+                {
+                    self.add_first_descriptor(
+                        SlotId(242),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //SyntaxRule_Plus_1
             NonterminalId(21) => {
                 //SyntaxRule_Plus_1 : . SyntaxRule_Plus_1 Layout ">" Layout PriorityLevel
-                self.add_first_descriptor(SlotId(243), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(23), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(243),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //SyntaxRule_Plus_1 : . PriorityLevel
-                self.add_first_descriptor(SlotId(249), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(23), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(249),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //SyntaxRule_Opt_3
             NonterminalId(22) => {
                 //SyntaxRule_Opt_3 : . SyntaxRule_Plus_1
-                self.add_first_descriptor(SlotId(251), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(23), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(251),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //SyntaxRule_Opt_3 : .
-                self.add_first_descriptor(SlotId(253), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || input_index == self.input().len()
+                {
+                    self.add_first_descriptor(
+                        SlotId(253),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //SyntaxRule_Star_1 : . SyntaxRule_Opt_3
             NonterminalId(23) => {
@@ -10931,37 +11325,161 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //RegexRule_Opt_4
             NonterminalId(24) => {
                 //RegexRule_Opt_4 : . PreCondition
-                self.add_first_descriptor(SlotId(256), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(256),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //RegexRule_Opt_4 : .
-                self.add_first_descriptor(SlotId(258), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(258),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //RegexRule_Plus_3
             NonterminalId(25) => {
                 //RegexRule_Plus_3 : . RegexRule_Plus_3 Layout Regex
-                self.add_first_descriptor(SlotId(259), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(259),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //RegexRule_Plus_3 : . Regex
-                self.add_first_descriptor(SlotId(263), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(263),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //RegexRule_Plus_2
             NonterminalId(26) => {
                 //RegexRule_Plus_2 : . RegexRule_Plus_2 Layout "|" Layout RegexRule_Plus_3
-                self.add_first_descriptor(SlotId(265), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(265),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //RegexRule_Plus_2 : . RegexRule_Plus_3
-                self.add_first_descriptor(SlotId(271), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(271),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //RegexRule_Plus_4
             NonterminalId(27) => {
                 //RegexRule_Plus_4 : . RegexRule_Plus_4 Layout PostCondition
-                self.add_first_descriptor(SlotId(273), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(273),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //RegexRule_Plus_4 : . PostCondition
-                self.add_first_descriptor(SlotId(277), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(277),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //RegexRule_Opt_5
             NonterminalId(28) => {
                 //RegexRule_Opt_5 : . RegexRule_Plus_4
-                self.add_first_descriptor(SlotId(279), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(279),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //RegexRule_Opt_5 : .
-                self.add_first_descriptor(SlotId(281), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || input_index == self.input().len()
+                {
+                    self.add_first_descriptor(
+                        SlotId(281),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //RegexRule_Star_2 : . RegexRule_Opt_5
             NonterminalId(29) => {
@@ -10970,23 +11488,123 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //PriorityLevel_Opt_6
             NonterminalId(30) => {
                 //PriorityLevel_Opt_6 : . Associativity
-                self.add_first_descriptor(SlotId(284), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(23), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(284),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //PriorityLevel_Opt_6 : .
-                self.add_first_descriptor(SlotId(286), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(286),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //PriorityLevel_Plus_5
             NonterminalId(31) => {
                 //PriorityLevel_Plus_5 : . PriorityLevel_Plus_5 Layout "|" Layout Alternative
-                self.add_first_descriptor(SlotId(287), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(287),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //PriorityLevel_Plus_5 : . Alternative
-                self.add_first_descriptor(SlotId(293), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(293),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //PriorityLevel_Opt_7
             NonterminalId(32) => {
                 //PriorityLevel_Opt_7 : . PriorityLevel_Plus_5
-                self.add_first_descriptor(SlotId(295), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(295),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //PriorityLevel_Opt_7 : .
-                self.add_first_descriptor(SlotId(297), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(297),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //PriorityLevel_Star_3 : . PriorityLevel_Opt_7
             NonterminalId(33) => {
@@ -10995,16 +11613,66 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Alternative_Plus_6
             NonterminalId(34) => {
                 //Alternative_Plus_6 : . Alternative_Plus_6 Layout Symbol(0)
-                self.add_first_descriptor(SlotId(300), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(300),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Alternative_Plus_6 : . Symbol(0)
-                self.add_first_descriptor(SlotId(304), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(304),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Alternative_Opt_8
             NonterminalId(35) => {
                 //Alternative_Opt_8 : . Alternative_Plus_6
-                self.add_first_descriptor(SlotId(306), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(306),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Alternative_Opt_8 : .
-                self.add_first_descriptor(SlotId(308), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(308),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Alternative_Star_4 : . Alternative_Opt_8
             NonterminalId(36) => {
@@ -11013,9 +11681,32 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Alternative_Opt_9
             NonterminalId(37) => {
                 //Alternative_Opt_9 : . Label
-                self.add_first_descriptor(SlotId(311), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(6), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(311),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Alternative_Opt_9 : .
-                self.add_first_descriptor(SlotId(313), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(313),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Symbol_Group_0 : . "|" Layout Symbol(0)
             NonterminalId(38) => {
@@ -11024,9 +11715,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Symbol_Plus_7
             NonterminalId(39) => {
                 //Symbol_Plus_7 : . Symbol_Plus_7 Layout Symbol_Group_0
-                self.add_first_descriptor(SlotId(318), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(19), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(318),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_Plus_7 : . Symbol_Group_0
-                self.add_first_descriptor(SlotId(322), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(19), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(322),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Symbol_Group_1 : . "\" Layout Identifier
             NonterminalId(40) => {
@@ -11035,9 +11740,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Symbol_Plus_8
             NonterminalId(41) => {
                 //Symbol_Plus_8 : . Symbol_Plus_8 Layout Symbol_Group_1
-                self.add_first_descriptor(SlotId(328), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(21), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(328),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_Plus_8 : . Symbol_Group_1
-                self.add_first_descriptor(SlotId(332), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(21), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(332),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Symbol_Group_2 : . "!>>" Layout Identifier
             NonterminalId(42) => {
@@ -11046,9 +11765,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Symbol_Plus_9
             NonterminalId(43) => {
                 //Symbol_Plus_9 : . Symbol_Plus_9 Layout Symbol_Group_2
-                self.add_first_descriptor(SlotId(338), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(22), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(338),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_Plus_9 : . Symbol_Group_2
-                self.add_first_descriptor(SlotId(342), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(22), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(342),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Symbol_Group_3 : . "!" Layout Identifier
             NonterminalId(44) => {
@@ -11057,9 +11790,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Symbol_Plus_10
             NonterminalId(45) => {
                 //Symbol_Plus_10 : . Symbol_Plus_10 Layout Symbol_Group_3
-                self.add_first_descriptor(SlotId(348), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(31), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(348),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_Plus_10 : . Symbol_Group_3
-                self.add_first_descriptor(SlotId(352), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(31), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(352),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Regex_Group_4 : . "|" Layout Regex
             NonterminalId(46) => {
@@ -11068,44 +11815,170 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Regex_Plus_11
             NonterminalId(47) => {
                 //Regex_Plus_11 : . Regex_Plus_11 Layout Regex_Group_4
-                self.add_first_descriptor(SlotId(358), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(19), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(358),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Regex_Plus_11 : . Regex_Group_4
-                self.add_first_descriptor(SlotId(362), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(19), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(362),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //CharClass_Opt_10
             NonterminalId(48) => {
                 //CharClass_Opt_10 : . "!"
-                self.add_first_descriptor(SlotId(364), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(31), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(364),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //CharClass_Opt_10 : .
-                self.add_first_descriptor(SlotId(366), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || input_index == self.input().len()
+                {
+                    self.add_first_descriptor(
+                        SlotId(366),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //CharClass_Plus_12
             NonterminalId(49) => {
                 //CharClass_Plus_12 : . CharClass_Plus_12 Layout RangeElement
-                self.add_first_descriptor(SlotId(367), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(5), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(367),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //CharClass_Plus_12 : . RangeElement
-                self.add_first_descriptor(SlotId(371), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(5), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(371),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Layout_Alt_0
             NonterminalId(50) => {
                 //Layout_Alt_0 : . WS
-                self.add_first_descriptor(SlotId(373), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(7), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(373),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Layout_Alt_0 : . LineComment
-                self.add_first_descriptor(SlotId(375), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(9), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(375),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Layout_Plus_13
             NonterminalId(51) => {
                 //Layout_Plus_13 : . Layout_Plus_13 Layout_Alt_0
-                self.add_first_descriptor(SlotId(377), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(377),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Layout_Plus_13 : . Layout_Alt_0
-                self.add_first_descriptor(SlotId(380), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(380),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Layout_Opt_11
             NonterminalId(52) => {
                 //Layout_Opt_11 : . Layout_Plus_13
-                self.add_first_descriptor(SlotId(382), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(382),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Layout_Opt_11 : .
-                self.add_first_descriptor(SlotId(384), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(23), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(384),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Layout_Star_5 : . Layout_Opt_11
             NonterminalId(53) => {
@@ -11114,60 +11987,282 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             //Symbol_except_Except
             NonterminalId(72) => {
                 //Symbol_except_Except(p: i32) : . Identifier return 0
-                self.add_first_descriptor(SlotId(387), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(387),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                self.add_first_descriptor(SlotId(390), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(390),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                self.add_first_descriptor(SlotId(397), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(397),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . String return 0
-                self.add_first_descriptor(SlotId(406), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(406),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                self.add_first_descriptor(SlotId(409), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(409),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                self.add_first_descriptor(SlotId(420), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(420),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
-                self.add_first_descriptor(SlotId(431), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(431),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
-                self.add_first_descriptor(SlotId(438), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(438),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
-                self.add_first_descriptor(SlotId(445), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(445),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_9 return 0
-                self.add_first_descriptor(SlotId(452), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(452),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
-                self.add_first_descriptor(SlotId(459), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(459),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                self.add_first_descriptor(SlotId(466), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(466),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_Except(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                self.add_first_descriptor(SlotId(473), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(473),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //Symbol_except_FollowRestriction
             NonterminalId(73) => {
                 //Symbol_except_FollowRestriction(p: i32) : . Identifier return 0
-                self.add_first_descriptor(SlotId(480), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(480),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                self.add_first_descriptor(SlotId(483), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(483),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                self.add_first_descriptor(SlotId(490), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(490),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . String return 0
-                self.add_first_descriptor(SlotId(499), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(499),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                self.add_first_descriptor(SlotId(502), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(502),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                self.add_first_descriptor(SlotId(513), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(513),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
-                self.add_first_descriptor(SlotId(524), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(524),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
-                self.add_first_descriptor(SlotId(531), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(531),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
-                self.add_first_descriptor(SlotId(538), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(538),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_8 return 0
-                self.add_first_descriptor(SlotId(545), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(545),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
-                self.add_first_descriptor(SlotId(552), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                {
+                    self.add_first_descriptor(
+                        SlotId(552),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                self.add_first_descriptor(SlotId(559), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(559),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
                 //Symbol_except_FollowRestriction(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                self.add_first_descriptor(SlotId(566), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(
+                        SlotId(566),
+                        input_index,
+                        gss_node_id,
+                        env,
+                    );
+                }
             }
             //StartGrammar : . Layout start:Grammar Layout
             NonterminalId(54) => {
@@ -11506,6 +12601,808 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 self.scanner.match_token(TerminalId(7), right_extent).is_none()
                     && self.scanner.match_token(TerminalId(9), right_extent).is_none()
             }
+            _ => true,
+        }
+    }
+    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+        match nonterminal_id {
+            NonterminalId(0) => {
+                input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(1) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(2) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(3) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(4) => {
+                self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(5) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(6) => {
+                self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(7) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(8) => {
+                self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(9) => {
+                self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(10) => {
+                self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(71) => {
+                self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(11) => {
+                self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(12) => {
+                self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(13) => {
+                self.scanner.match_token(TerminalId(34), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(14) => {
+                input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(15) => {
+                self.scanner.match_token(TerminalId(23), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+            }
+            NonterminalId(16) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(17) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(18) => {
+                input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(19) => {
+                input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(20) => {
+                input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(21) => {
+                self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+            }
+            NonterminalId(22) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(23) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(24) => {
+                self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(25) => {
+                self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(26) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(27) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(28) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(29) => {
+                self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(30) => {
+                self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(31) => {
+                self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+            }
+            NonterminalId(32) => {
+                self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(33) => {
+                self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+            }
+            NonterminalId(34) => {
+                self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+            }
+            NonterminalId(35) => {
+                self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(36) => {
+                self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+            }
+            NonterminalId(37) => {
+                self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+            }
+            NonterminalId(38) => {
+                self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(39) => {
+                input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(40) => {
+                self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(41) => {
+                self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(42) => {
+                self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(43) => {
+                self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(44) => {
+                self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(45) => {
+                self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(46) => {
+                self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(47) => {
+                input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(48) => {
+                input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(49) => {
+                input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(50) => {
+                self.scanner.match_token(TerminalId(23), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+            }
+            NonterminalId(51) => {
+                self.scanner.match_token(TerminalId(23), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+            }
+            NonterminalId(52) => {
+                self.scanner.match_token(TerminalId(23), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+            }
+            NonterminalId(53) => {
+                self.scanner.match_token(TerminalId(23), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
+                    || input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+            }
+            NonterminalId(72) => {
+                input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(73) => {
+                input_index == self.input().len()
+                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+            }
+            NonterminalId(54) => input_index == self.input().len(),
+            NonterminalId(55) => input_index == self.input().len(),
+            NonterminalId(56) => input_index == self.input().len(),
+            NonterminalId(57) => input_index == self.input().len(),
+            NonterminalId(58) => input_index == self.input().len(),
+            NonterminalId(59) => input_index == self.input().len(),
+            NonterminalId(60) => input_index == self.input().len(),
+            NonterminalId(61) => input_index == self.input().len(),
+            NonterminalId(62) => input_index == self.input().len(),
+            NonterminalId(63) => input_index == self.input().len(),
+            NonterminalId(64) => input_index == self.input().len(),
+            NonterminalId(65) => input_index == self.input().len(),
+            NonterminalId(66) => input_index == self.input().len(),
+            NonterminalId(67) => input_index == self.input().len(),
+            NonterminalId(68) => input_index == self.input().len(),
+            NonterminalId(69) => input_index == self.input().len(),
+            NonterminalId(70) => input_index == self.input().len(),
             _ => true,
         }
     }

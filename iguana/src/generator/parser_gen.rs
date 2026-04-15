@@ -98,6 +98,7 @@ impl<'a> ParserGen<'a> {
         let envs_method = Self::gen_envs_method();
         let record_stats_method = Self::gen_record_stats_method();
         let post_conditions_method = self.gen_post_conditions_method();
+        let follow_set_check_method = self.gen_follow_set_check_method();
         let parser_struct = self.gen_parser_struct();
         let parser_impl = self.gen_parser_impl();
         let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
@@ -147,6 +148,7 @@ impl<'a> ParserGen<'a> {
                 #envs_method
                 #record_stats_method
                 #post_conditions_method
+                #follow_set_check_method
             }
             #parser_struct
             #parser_impl
@@ -304,9 +306,14 @@ impl<'a> ParserGen<'a> {
                     let first_slot = Slot::new(nonterminal, alternative, 0);
                     let first_slot_name = first_slot.name();
                     let first_slot_id = self.slot_ids.get_id(&first_slot);
+                    let prediction_set = self.ff.prediction_set(nonterminal, alternative);
+                    let condition =
+                        self.gen_terminal_set_match_check(&prediction_set, quote! { input_index });
                     alternative_quotes.push(quote! {
                         #[comment = #first_slot_name]
-                        self.add_first_descriptor(#first_slot_id, input_index, gss_node_id, env);
+                        if #condition {
+                            self.add_first_descriptor(#first_slot_id, input_index, gss_node_id, env);
+                        }
                     });
                 }
                 nonterminal_quotes.push(quote! {
@@ -806,6 +813,25 @@ impl<'a> ParserGen<'a> {
         }
     }
 
+    fn gen_follow_set_check_method(&self) -> TokenStream {
+        let mut arms = vec![];
+        for nonterminal in self.grammar.nonterminals() {
+            let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
+            let condition = self.gen_terminal_set_match_check(self.ff.follow_set(nonterminal), quote! { input_index });
+            arms.push(quote! {
+                #nonterminal_id => { #condition }
+            });
+        }
+        quote! {
+            fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+                match nonterminal_id {
+                    #(#arms)*
+                    _ => true,
+                }
+            }
+        }
+    }
+
     fn gen_nonterminal_slot(
         &self,
         nonterminal: &'a Nonterminal,
@@ -1093,9 +1119,9 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_prediction_set_check(
+    fn gen_terminal_set_match_check<'t>(
         &self,
-        prediction_set: &FxHashSet<Terminal>,
+        prediction_set: impl IntoIterator<Item = &'t Terminal>,
         input_index: TokenStream,
     ) -> TokenStream {
         let mut checks: Vec<TokenStream> = vec![];
@@ -1131,7 +1157,7 @@ impl<'a> ParserGen<'a> {
 
         for alternative in alternatives {
             let prediction_set = self.ff.prediction_set(nonterminal, alternative);
-            let condition = self.gen_prediction_set_check(&prediction_set, quote! { i });
+            let condition = self.gen_terminal_set_match_check(&prediction_set, quote! { i });
             let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
             let end_slot_id = self.slot_ids.get_id(&end_slot);
 

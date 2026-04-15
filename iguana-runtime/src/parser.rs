@@ -138,6 +138,10 @@ pub trait Parser<'i> {
     /// Returns `true` if the result should be accepted, `false` if it should be rejected.
     fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> bool;
 
+    /// Checks whether the input at the given position is in the follow set of the nonterminal.
+    /// Returns `true` if the input matches, `false` otherwise.
+    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool;
+
     /// Creates a new GSS node if it does not exist.
     /// If a GSS node with the same nonterminal name and input index exists, just adds an edge.
     /// `create` corresponds to a function call in recursive-descent parsers.
@@ -205,7 +209,9 @@ pub trait Parser<'i> {
         env: Option<EnvId>,
         binding: Option<&'static str>,
     ) {
-        let left_extent = self.gss_node(existing_gss_node_id).index;
+        let existing_gss_node = self.gss_node(existing_gss_node_id);
+        let left_extent = existing_gss_node.index;
+        let nonterminal_id = existing_gss_node.nonterminal_id;
         let popped_elements = std::mem::take(
             self.gss_node_mut(existing_gss_node_id)
                 .popped_elements_mut(),
@@ -215,6 +221,9 @@ pub trait Parser<'i> {
         for popped_element in popped_elements.iter() {
             let popped_node = self.sppf_node(popped_element.nonterminal_node_id);
             let right_extent = popped_node.right_extent();
+            if !self.follow_set_check(nonterminal_id, right_extent) {
+                continue;
+            }
             if !self.post_conditions(return_slot, left_extent, right_extent) {
                 continue;
             }
@@ -294,6 +303,7 @@ pub trait Parser<'i> {
         };
         record!(self, Pop, gss_node_id, slot_id, popped_element);
         let gss = self.gss_node(gss_node_id);
+        let nonterminal_id = gss.nonterminal_id;
         if gss.contains_popped_element(&popped_element) {
             record!(self, NodeAlreadyInPoppedElements);
             return;
@@ -301,6 +311,9 @@ pub trait Parser<'i> {
         let left_extent = gss.index;
         let node = self.sppf_node(popped_element.nonterminal_node_id);
         let right_extent = node.right_extent();
+        if !self.follow_set_check(nonterminal_id, right_extent) {
+            return;
+        }
         let right_child = (popped_element.nonterminal_node_id, right_extent);
         record!(self, AddToPoppedElements, gss_node_id, popped_element);
         let gss = self.gss_node_mut(gss_node_id);

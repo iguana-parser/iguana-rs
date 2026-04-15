@@ -455,6 +455,14 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
             _ => true,
         }
     }
+    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+        match nonterminal_id {
+            NonterminalId(0) => input_index == self.input().len(),
+            NonterminalId(1) => input_index == self.input().len(),
+            NonterminalId(2) => input_index == self.input().len(),
+            _ => true,
+        }
+    }
 }
 pub struct ExceptNonterminalParser<'i> {
     start_nonterminal: NonterminalId,

@@ -540,25 +540,41 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             //Expr
             NonterminalId(0) => {
                 //Expr : . Id
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                }
                 //Expr : . Expr "(" Expr_Star_0 ")"
-                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
+                }
                 //Expr : . Expr "," Expr
-                self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
+                }
             }
             //Expr_Plus_0
             NonterminalId(1) => {
                 //Expr_Plus_0 : . Expr_Plus_0 "," Expr_except_comma
-                self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
+                }
                 //Expr_Plus_0 : . Expr_except_comma
-                self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
+                }
             }
             //Expr_Opt_0
             NonterminalId(2) => {
                 //Expr_Opt_0 : . Expr_Plus_0
-                self.add_first_descriptor(SlotId(17), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(17), input_index, gss_node_id, env);
+                }
                 //Expr_Opt_0 : .
-                self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || input_index == self.input().len()
+                {
+                    self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
+                }
             }
             //Expr_Star_0 : . Expr_Opt_0
             NonterminalId(3) => {
@@ -567,9 +583,13 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             //Expr_except_comma
             NonterminalId(4) => {
                 //Expr_except_comma : . Id
-                self.add_first_descriptor(SlotId(22), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(22), input_index, gss_node_id, env);
+                }
                 //Expr_except_comma : . Expr "(" Expr_Star_0 ")"
-                self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
+                }
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -836,6 +856,34 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         right_extent: u32,
     ) -> bool {
         match slot {
+            _ => true,
+        }
+    }
+    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+        match nonterminal_id {
+            NonterminalId(0) => {
+                self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(1) => {
+                self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(2) => {
+                self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(3) => {
+                self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(4) => {
+                self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                    || input_index == self.input().len()
+            }
             _ => true,
         }
     }

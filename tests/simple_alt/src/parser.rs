@@ -304,9 +304,13 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             //A_Alt_0
             NonterminalId(4) => {
                 //A_Alt_0 : . C
-                self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
+                }
                 //A_Alt_0 : . D
-                self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
+                }
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -573,6 +577,20 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
         right_extent: u32,
     ) -> bool {
         match slot {
+            _ => true,
+        }
+    }
+    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+        match nonterminal_id {
+            NonterminalId(0) => input_index == self.input().len(),
+            NonterminalId(1) => {
+                self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(2) => input_index == self.input().len(),
+            NonterminalId(3) => input_index == self.input().len(),
+            NonterminalId(4) => input_index == self.input().len(),
             _ => true,
         }
     }

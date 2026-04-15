@@ -33,6 +33,10 @@ impl<'a> FirstFollowSets<'a> {
         Terminal::new("EOF")
     }
 
+    pub fn follow_set(&self, nt: &Nonterminal) -> impl Iterator<Item = &Terminal> {
+        self.follow_sets[nt].iter()
+    }
+
     /// Returns the prediction set (director set) for an alternative of a nonterminal.
     ///
     /// The prediction set is:

@@ -349,23 +349,43 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             //S_Plus_0
             NonterminalId(2) => {
                 //S_Plus_0 : . S_Plus_0 Id
-                self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(0), input_index).is_some()
+                {
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
                 //S_Plus_0 : . Id
-                self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(0), input_index).is_some()
+                {
+                    self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
+                }
             }
             //Id_Alt_0
             NonterminalId(3) => {
                 //Id_Alt_0 : . Alpha
-                self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
+                }
                 //Id_Alt_0 : . Digit
-                self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
+                }
             }
             //Id_Plus_1
             NonterminalId(4) => {
                 //Id_Plus_1 : . Id_Plus_1 Id_Alt_0
-                self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(0), input_index).is_some()
+                {
+                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
+                }
                 //Id_Plus_1 : . Id_Alt_0
-                self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(0), input_index).is_some()
+                {
+                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
+                }
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -636,6 +656,24 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
                 self.scanner.match_token(TerminalId(0), right_extent).is_none()
                     && self.scanner.match_token(TerminalId(1), right_extent).is_none()
             }
+            _ => true,
+        }
+    }
+    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+        match nonterminal_id {
+            NonterminalId(0) => input_index == self.input().len(),
+            NonterminalId(1) => {
+                self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(0), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(2) => {
+                self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(0), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(3) => input_index == self.input().len(),
+            NonterminalId(4) => input_index == self.input().len(),
             _ => true,
         }
     }

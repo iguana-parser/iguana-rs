@@ -288,9 +288,13 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             //S
             NonterminalId(0) => {
                 //S : . "for" WS Id
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(3), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                }
                 //S : . "forall"
-                self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(4), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
             }
             //StartS : . WS start:S WS
             NonterminalId(1) => {
@@ -561,6 +565,16 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
         right_extent: u32,
     ) -> bool {
         match slot {
+            _ => true,
+        }
+    }
+    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+        match nonterminal_id {
+            NonterminalId(0) => {
+                self.scanner.match_token(TerminalId(2), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(1) => input_index == self.input().len(),
             _ => true,
         }
     }

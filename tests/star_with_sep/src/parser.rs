@@ -327,16 +327,24 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
             //S_Plus_0
             NonterminalId(2) => {
                 //S_Plus_0 : . S_Plus_0 "," A
-                self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
                 //S_Plus_0 : . A
-                self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
+                }
             }
             //S_Opt_0
             NonterminalId(3) => {
                 //S_Opt_0 : . S_Plus_0
-                self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
+                }
                 //S_Opt_0 : .
-                self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                if input_index == self.input().len() {
+                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                }
             }
             //S_Star_0 : . S_Opt_0
             NonterminalId(4) => {
@@ -607,6 +615,22 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
         right_extent: u32,
     ) -> bool {
         match slot {
+            _ => true,
+        }
+    }
+    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+        match nonterminal_id {
+            NonterminalId(0) => input_index == self.input().len(),
+            NonterminalId(1) => {
+                self.scanner.match_token(TerminalId(0), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(2) => {
+                self.scanner.match_token(TerminalId(0), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(3) => input_index == self.input().len(),
+            NonterminalId(4) => input_index == self.input().len(),
             _ => true,
         }
     }

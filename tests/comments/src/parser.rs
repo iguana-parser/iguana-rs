@@ -416,11 +416,17 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             //Expr
             NonterminalId(0) => {
                 //Expr : . Expr Layout "+" Layout Expr
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(6), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                }
                 //Expr : . Expr Layout "*" Layout Expr
-                self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(6), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                }
                 //Expr : . "x"
-                self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(6), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                }
             }
             //StartExpr : . Layout start:Expr Layout
             NonterminalId(1) => {
@@ -691,6 +697,18 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
         right_extent: u32,
     ) -> bool {
         match slot {
+            _ => true,
+        }
+    }
+    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+        match nonterminal_id {
+            NonterminalId(0) => {
+                self.scanner.match_token(TerminalId(4), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(0), input_index).is_some()
+                    || input_index == self.input().len()
+            }
+            NonterminalId(1) => input_index == self.input().len(),
             _ => true,
         }
     }

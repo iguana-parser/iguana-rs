@@ -216,11 +216,17 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             //E
             NonterminalId(0) => {
                 //E : . E "*" E
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                }
                 //E : . E "+" E
-                self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
                 //E : . "a"
-                self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
+                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
+                }
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -487,6 +493,16 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
         right_extent: u32,
     ) -> bool {
         match slot {
+            _ => true,
+        }
+    }
+    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+        match nonterminal_id {
+            NonterminalId(0) => {
+                self.scanner.match_token(TerminalId(1), input_index).is_some()
+                    || self.scanner.match_token(TerminalId(0), input_index).is_some()
+                    || input_index == self.input().len()
+            }
             _ => true,
         }
     }
