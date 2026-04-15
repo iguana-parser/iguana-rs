@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
 
 use rustc_hash::FxHashMap;
@@ -17,12 +18,30 @@ use crate::trace::TraceEvent;
 
 pub enum ParseResult {
     Success(ParseSuccess),
-    Failure(),
+    Failure(ParseError),
 }
 
 pub struct ParseSuccess {
     pub sppf_node_id: SPPFNodeId,
     pub duration: Duration,
+}
+
+#[derive(Debug, Clone)]
+pub struct ParseError {
+    pub input_index: u32,
+    pub slot_id: SlotId,
+    pub gss_node_id: Option<GssNodeId>,
+    pub kind: ParseErrorKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum ParseErrorKind {
+    /// Terminal match failed: expected one of these terminals at this position.
+    UnexpectedToken { expected: Vec<TerminalId> },
+    /// Nonterminal except (`\`): matched a nonterminal but it was excluded.
+    ExcludedMatch { excluded_by: Vec<TerminalId> },
+    /// Follow restriction (`!>>`): the symbol after the match is forbidden.
+    ForbiddenFollow { forbidden: Vec<TerminalId> },
 }
 
 pub trait Parser<'i> {
@@ -31,6 +50,7 @@ pub trait Parser<'i> {
     fn terminal_name(terminal_id: TerminalId) -> &'static str;
     fn slot_name(slot_id: SlotId) -> &'static str;
     fn epsilon() -> TerminalId;
+    fn eof() -> TerminalId;
     fn execute(
         &mut self,
         input_index: u32,
@@ -135,12 +155,16 @@ pub trait Parser<'i> {
 
     /// Checks whether the post-conditions for a given slot are satisfied.
     /// Called during pop and edge processing to filter results (e.g., nonterminal except).
-    /// Returns `true` if the result should be accepted, `false` if it should be rejected.
-    fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> bool;
-
+    /// Returns `None` if the result should be accepted, or `Some(error_kind)` if rejected.
+    fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> Option<ParseErrorKind>;
     /// Checks whether the input at the given position is in the follow set of the nonterminal.
-    /// Returns `true` if the input matches, `false` otherwise.
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool;
+    /// Returns the terminal IDs in the follow set of the given nonterminal.
+    fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId>;
+    /// Returns the parse error at the farthest input position, if any.
+    fn parse_error(&self) -> Option<&ParseError>;
+    /// Records a parse error at the given input position.
+    fn add_parse_error(&mut self, input_index: u32, slot_id: SlotId, gss_node_id: Option<GssNodeId>, kind: ParseErrorKind);
 
     /// Creates a new GSS node if it does not exist.
     /// If a GSS node with the same nonterminal name and input index exists, just adds an edge.
@@ -222,9 +246,12 @@ pub trait Parser<'i> {
             let popped_node = self.sppf_node(popped_element.nonterminal_node_id);
             let right_extent = popped_node.right_extent();
             if !self.follow_set_check(nonterminal_id, right_extent) {
+                let expected = self.follow_set_terminals(nonterminal_id);
+                self.add_parse_error(right_extent, return_slot, Some(existing_gss_node_id), ParseErrorKind::UnexpectedToken { expected });
                 continue;
             }
-            if !self.post_conditions(return_slot, left_extent, right_extent) {
+            if let Some(error_kind) = self.post_conditions(return_slot, left_extent, right_extent) {
+                self.add_parse_error(right_extent, return_slot, Some(existing_gss_node_id), error_kind);
                 continue;
             }
             let right_child = (popped_element.nonterminal_node_id, right_extent);
@@ -312,6 +339,8 @@ pub trait Parser<'i> {
         let node = self.sppf_node(popped_element.nonterminal_node_id);
         let right_extent = node.right_extent();
         if !self.follow_set_check(nonterminal_id, right_extent) {
+            let expected = self.follow_set_terminals(nonterminal_id);
+            self.add_parse_error(right_extent, slot_id, Some(gss_node_id), ParseErrorKind::UnexpectedToken { expected });
             return;
         }
         let right_child = (popped_element.nonterminal_node_id, right_extent);
@@ -320,7 +349,8 @@ pub trait Parser<'i> {
         gss.add_to_popped_elements(popped_element);
         let edges = gss.edges().clone();
         for edge in edges.iter() {
-            if !self.post_conditions(edge.return_slot, left_extent, right_extent) {
+            if let Some(error_kind) = self.post_conditions(edge.return_slot, left_extent, right_extent) {
+                self.add_parse_error(right_extent, edge.return_slot, Some(gss_node_id), error_kind);
                 continue;
             }
             let left_child = edge
@@ -598,8 +628,24 @@ pub trait Parser<'i> {
                 sppf_node_id,
                 duration,
             })
+        } else if let Some(error) = self.parse_error() {
+            ParseResult::Failure(error.clone())
         } else {
-            ParseResult::Failure()
+            // No error was recorded, but the start nonterminal doesn't span the full input.
+            // Find the farthest position reached by the start nonterminal.
+            let start_gss = self.gss_node(start_gss_node_id);
+            let farthest = start_gss
+                .popped_elements()
+                .iter()
+                .map(|pe| self.sppf_node(pe.nonterminal_node_id).right_extent())
+                .max()
+                .unwrap_or(0);
+            ParseResult::Failure(ParseError {
+                input_index: farthest,
+                slot_id: SlotId(0),
+                gss_node_id: Some(start_gss_node_id),
+                kind: ParseErrorKind::UnexpectedToken { expected: vec![] },
+            })
         }
     }
     fn gss_nodes(&self) -> impl Iterator<Item = &GSSNode>;

@@ -29,13 +29,14 @@
 // LetterOrDigit = (([a-z A-Z _])|([0-9]))
 // WS = ([  \n]*)
 use std::cell::OnceCell;
+use std::collections::BTreeMap;
 use crate::{
     scanner::RegexCompositionScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
-    input::Input, parser::{Parser, init_logger},
+    input::Input, parser::{Parser, ParseError, ParseErrorKind, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
@@ -86,12 +87,13 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "Id_Opt_0" => NonterminalId(3), "Id_Star_0" => NonterminalId(4), "StartS" =>
     NonterminalId(5), "StartId" => NonterminalId(6)
 };
-pub const TERMINALS: [Terminal; 5] = [
+pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Digit" },
     Terminal { name: "Letter" },
     Terminal { name: "LetterOrDigit" },
     Terminal { name: "WS" },
     Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
 ];
 pub const SLOTS: [Slot; 23] = [
     Slot { display_name: "S : . Id" },
@@ -174,6 +176,9 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
         SLOTS[slot_id.index()].display_name
     }
     fn epsilon() -> TerminalId {
+        TerminalId((TERMINALS.len() - 2) as u16)
+    }
+    fn eof() -> TerminalId {
         TerminalId((TERMINALS.len() - 1) as u16)
     }
     fn execute(
@@ -217,6 +222,14 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                         record!(
                             self, MatchFailed, "Letter", input_index, SlotId(2),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(2),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -268,6 +281,14 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                             self, MatchFailed, "LetterOrDigit", input_index, SlotId(6),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(6),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
                     }
                 }
             }
@@ -294,6 +315,14 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                         record!(
                             self, MatchFailed, "LetterOrDigit", input_index, SlotId(8),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(8),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
                         );
                     }
                 }
@@ -375,6 +404,14 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(15),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(15),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
+                        );
                     }
                 }
             }
@@ -415,6 +452,14 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(17),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(17),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
+                        );
                     }
                 }
             }
@@ -441,6 +486,14 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                         record!(
                             self, MatchFailed, "WS", input_index, SlotId(19),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(19),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
                         );
                     }
                 }
@@ -482,6 +535,14 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(21),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(21),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
+                        );
                     }
                 }
             }
@@ -516,26 +577,50 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //Id_Plus_0
             NonterminalId(2) => {
+                let mut matched = false;
                 //Id_Plus_0 : . Id_Plus_0 LetterOrDigit
-                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
                 }
                 //Id_Plus_0 : . LetterOrDigit
-                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(5),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(2)],
+                        },
+                    );
                 }
             }
             //Id_Opt_0
             NonterminalId(3) => {
+                let mut matched = false;
                 //Id_Opt_0 : . Id_Plus_0
-                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
                 //Id_Opt_0 : .
-                if input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                {
+                if self.scanner.match_any(&[TerminalId(5), TerminalId(3)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(10),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(3), TerminalId(2), TerminalId(5)],
+                        },
+                    );
                 }
             }
             //Id_Star_0 : . Id_Opt_0
@@ -813,38 +898,68 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
         slot: SlotId,
         left_extent: u32,
         right_extent: u32,
-    ) -> bool {
+    ) -> Option<ParseErrorKind> {
         match slot {
-            _ => true,
+            _ => None,
         }
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => {
-                self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner.match_any(&[TerminalId(3), TerminalId(5)], input_index)
             }
             NonterminalId(1) => {
-                self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner.match_any(&[TerminalId(3), TerminalId(5)], input_index)
             }
             NonterminalId(2) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(5), TerminalId(2), TerminalId(3)],
+                        input_index,
+                    )
             }
             NonterminalId(3) => {
-                self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner.match_any(&[TerminalId(3), TerminalId(5)], input_index)
             }
             NonterminalId(4) => {
-                self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner.match_any(&[TerminalId(3), TerminalId(5)], input_index)
             }
-            NonterminalId(5) => input_index == self.input().len(),
-            NonterminalId(6) => input_index == self.input().len(),
+            NonterminalId(5) => self.scanner.match_any(&[TerminalId(5)], input_index),
+            NonterminalId(6) => self.scanner.match_any(&[TerminalId(5)], input_index),
             _ => true,
         }
+    }
+    fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
+        match nonterminal_id {
+            NonterminalId(0) => vec![TerminalId(3), TerminalId(5)],
+            NonterminalId(1) => vec![TerminalId(3), TerminalId(5)],
+            NonterminalId(2) => vec![TerminalId(5), TerminalId(2), TerminalId(3)],
+            NonterminalId(3) => vec![TerminalId(3), TerminalId(5)],
+            NonterminalId(4) => vec![TerminalId(3), TerminalId(5)],
+            NonterminalId(5) => vec![TerminalId(5)],
+            NonterminalId(6) => vec![TerminalId(5)],
+            _ => vec![],
+        }
+    }
+    fn parse_error(&self) -> Option<&ParseError> {
+        self.parse_errors.values().next_back()?.first()
+    }
+    fn add_parse_error(
+        &mut self,
+        input_index: u32,
+        slot_id: SlotId,
+        gss_node_id: Option<GssNodeId>,
+        kind: ParseErrorKind,
+    ) {
+        self.parse_errors
+            .entry(input_index)
+            .or_default()
+            .push(ParseError {
+                input_index,
+                slot_id,
+                gss_node_id,
+                kind,
+            });
     }
 }
 pub struct RegexCompositionParser<'i> {
@@ -859,7 +974,7 @@ pub struct RegexCompositionParser<'i> {
     descriptors_count: usize,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 7],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 23],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -867,6 +982,7 @@ pub struct RegexCompositionParser<'i> {
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
     envs: Vec<Env>,
+    parse_errors: BTreeMap<u32, Vec<ParseError>>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -882,7 +998,7 @@ impl<'i> RegexCompositionParser<'i> {
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 7],
             intermediate_nodes_index: [const { InlineMap::Empty }; 23],
-            terminal_nodes_index: [const { InlineMap::Empty }; 5],
+            terminal_nodes_index: [const { InlineMap::Empty }; 6],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             intermediate_nodes_children: vec![],
@@ -890,12 +1006,13 @@ impl<'i> RegexCompositionParser<'i> {
             nonterminal_nodes_children: vec![],
             nonterminal_nodes_children_map: OnceCell::new(),
             envs: vec![],
+            parse_errors: BTreeMap::new(),
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(1), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(1)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -918,15 +1035,37 @@ impl<'i> RegexCompositionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(0),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(1)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(1), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(1)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(3),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -962,8 +1101,17 @@ impl<'i> RegexCompositionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(2),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(1)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_id_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
@@ -1019,7 +1167,7 @@ impl<'i> RegexCompositionParser<'i> {
         Some(current)
     }
     fn parse_id_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(2), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(2)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -1042,31 +1190,37 @@ impl<'i> RegexCompositionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self.scanner.match_any(&[TerminalId(5), TerminalId(3)], i) {
+                let epsilon_node_id = self
+                    .get_or_create_terminal_node(TerminalId(4), i, i);
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(3),
+                            SlotId(12),
+                            i,
+                            i,
+                            epsilon_node_id,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(10),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![TerminalId(3), TerminalId(2), TerminalId(5)],
+                    },
+                );
+                None
+            }
         }
-        if i == self.input().len()
-            || self.scanner.match_token(TerminalId(3), i).is_some()
-        {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(4), i, i);
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(3),
-                        SlotId(12),
-                        i,
-                        i,
-                        epsilon_node_id,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
     fn parse_id_star_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if i == self.input().len()
-            || self.scanner.match_token(TerminalId(2), i).is_some()
-            || self.scanner.match_token(TerminalId(3), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(5), TerminalId(2), TerminalId(3)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -1089,17 +1243,37 @@ impl<'i> RegexCompositionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(13),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(3), TerminalId(2), TerminalId(5)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_start_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(3), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(1), TerminalId(3)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(3), start)?;
+                let end = match self.scanner.match_token(TerminalId(3), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(16),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
                 j = end;
                 node
@@ -1125,7 +1299,20 @@ impl<'i> RegexCompositionParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(3), start)?;
+                let end = match self.scanner.match_token(TerminalId(3), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(18),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
                 j = end;
                 node
@@ -1152,17 +1339,37 @@ impl<'i> RegexCompositionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(15),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(1), TerminalId(3)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_start_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(3), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(1), TerminalId(3)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(3), start)?;
+                let end = match self.scanner.match_token(TerminalId(3), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(20),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
                 j = end;
                 node
@@ -1188,7 +1395,20 @@ impl<'i> RegexCompositionParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(3), start)?;
+                let end = match self.scanner.match_token(TerminalId(3), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(22),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
                 j = end;
                 node
@@ -1215,8 +1435,17 @@ impl<'i> RegexCompositionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(19),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(1), TerminalId(3)],
+                },
+            );
+            None
         }
-        None
     }
 }
 

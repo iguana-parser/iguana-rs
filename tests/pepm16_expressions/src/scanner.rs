@@ -106,6 +106,9 @@ impl Scanner for Pepm16ExpressionsScanner<'_> {
             TerminalId(10) => self.match_terminal_10(input_index),
             TerminalId(11) => self.match_terminal_11(input_index),
             TerminalId(12) => self.match_terminal_12(input_index),
+            TerminalId(14) => {
+                if input_index == self.input.len() { Some(input_index) } else { None }
+            }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

@@ -14,6 +14,7 @@
 // "for" = for
 // "forall" = forall
 use std::cell::OnceCell;
+use std::collections::BTreeMap;
 use crate::{
     scanner::PrecedeRestrictionLexicalScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},
@@ -21,7 +22,7 @@ use crate::{
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
-    input::Input, parser::{Parser, init_logger},
+    input::Input, parser::{Parser, ParseError, ParseErrorKind, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
@@ -45,13 +46,14 @@ pub const NONTERMINALS: [Nonterminal; 2] = [
 static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "S" => NonterminalId(0), "StartS" => NonterminalId(1)
 };
-pub const TERMINALS: [Terminal; 6] = [
+pub const TERMINALS: [Terminal; 7] = [
     Terminal { name: "Id" },
     Terminal { name: "Char" },
     Terminal { name: "WS" },
     Terminal { name: "\"for\"" },
     Terminal { name: "\"forall\"" },
     Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
 ];
 pub const SLOTS: [Slot; 10] = [
     Slot {
@@ -99,6 +101,9 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
         SLOTS[slot_id.index()].display_name
     }
     fn epsilon() -> TerminalId {
+        TerminalId((TERMINALS.len() - 2) as u16)
+    }
+    fn eof() -> TerminalId {
         TerminalId((TERMINALS.len() - 1) as u16)
     }
     fn execute(
@@ -127,6 +132,14 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                             self, MatchFailed, "\"for\"", input_index, SlotId(0),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(0),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
+                        );
                     }
                 }
             }
@@ -150,6 +163,14 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(1), gss_node_id,
                             result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(1),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
                     }
                 }
             }
@@ -172,6 +193,14 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                         record!(
                             self, MatchFailed, "Id", input_index, SlotId(2), gss_node_id,
                             result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(2),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
                         );
                     }
                 }
@@ -200,6 +229,14 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                             self, MatchFailed, "\"forall\"", input_index, SlotId(4),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(4),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(4)],
+                            },
+                        );
                     }
                 }
             }
@@ -226,6 +263,14 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                         record!(
                             self, MatchFailed, "WS", input_index, SlotId(6), gss_node_id,
                             result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(6),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
                         );
                     }
                 }
@@ -261,6 +306,14 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(8), gss_node_id,
                             result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(8),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
                     }
                 }
             }
@@ -287,13 +340,26 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
         match nonterminal_id {
             //S
             NonterminalId(0) => {
+                let mut matched = false;
                 //S : . "for" WS Id
-                if self.scanner.match_token(TerminalId(3), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(3)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 //S : . "forall"
-                if self.scanner.match_token(TerminalId(4), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(4)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(0),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(4), TerminalId(3)],
+                        },
+                    );
                 }
             }
             //StartS : . WS start:S WS
@@ -563,20 +629,46 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
         slot: SlotId,
         left_extent: u32,
         right_extent: u32,
-    ) -> bool {
+    ) -> Option<ParseErrorKind> {
         match slot {
-            _ => true,
+            _ => None,
         }
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => {
-                self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner.match_any(&[TerminalId(2), TerminalId(6)], input_index)
             }
-            NonterminalId(1) => input_index == self.input().len(),
+            NonterminalId(1) => self.scanner.match_any(&[TerminalId(6)], input_index),
             _ => true,
         }
+    }
+    fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
+        match nonterminal_id {
+            NonterminalId(0) => vec![TerminalId(2), TerminalId(6)],
+            NonterminalId(1) => vec![TerminalId(6)],
+            _ => vec![],
+        }
+    }
+    fn parse_error(&self) -> Option<&ParseError> {
+        self.parse_errors.values().next_back()?.first()
+    }
+    fn add_parse_error(
+        &mut self,
+        input_index: u32,
+        slot_id: SlotId,
+        gss_node_id: Option<GssNodeId>,
+        kind: ParseErrorKind,
+    ) {
+        self.parse_errors
+            .entry(input_index)
+            .or_default()
+            .push(ParseError {
+                input_index,
+                slot_id,
+                gss_node_id,
+                kind,
+            });
     }
 }
 pub struct PrecedeRestrictionLexicalParser<'i> {
@@ -591,7 +683,7 @@ pub struct PrecedeRestrictionLexicalParser<'i> {
     descriptors_count: usize,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 10],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 7],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -599,6 +691,7 @@ pub struct PrecedeRestrictionLexicalParser<'i> {
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
     envs: Vec<Env>,
+    parse_errors: BTreeMap<u32, Vec<ParseError>>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -614,7 +707,7 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 2],
             intermediate_nodes_index: [const { InlineMap::Empty }; 10],
-            terminal_nodes_index: [const { InlineMap::Empty }; 6],
+            terminal_nodes_index: [const { InlineMap::Empty }; 7],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             intermediate_nodes_children: vec![],
@@ -622,16 +715,30 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
             nonterminal_nodes_children: vec![],
             nonterminal_nodes_children_map: OnceCell::new(),
             envs: vec![],
+            parse_errors: BTreeMap::new(),
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(3), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(3)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(3), start)?;
+                let end = match self.scanner.match_token(TerminalId(3), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(1),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
                 j = end;
                 node
@@ -640,7 +747,20 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
             let mut current = right_child;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(2), start)?;
+                let end = match self.scanner.match_token(TerminalId(2), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(2),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
@@ -657,7 +777,20 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(0), start)?;
+                let end = match self.scanner.match_token(TerminalId(0), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(3),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
                 j = end;
                 node
@@ -684,42 +817,76 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self.scanner.match_any(&[TerminalId(4)], i) {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let end = match self.scanner.match_token(TerminalId(4), start) {
+                        Some(end) => end,
+                        None => {
+                            self.add_parse_error(
+                                start,
+                                SlotId(5),
+                                None,
+                                ParseErrorKind::UnexpectedToken {
+                                    expected: vec![TerminalId(4)],
+                                },
+                            );
+                            return None;
+                        }
+                    };
+                    let node = self
+                        .get_or_create_terminal_node(TerminalId(4), start, end);
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(0),
+                            SlotId(5),
+                            left_extent,
+                            j,
+                            current,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(0),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![TerminalId(4), TerminalId(3)],
+                    },
+                );
+                None
+            }
         }
-        if self.scanner.match_token(TerminalId(4), i).is_some() {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let end = self.scanner.match_token(TerminalId(4), start)?;
-                let node = self.get_or_create_terminal_node(TerminalId(4), start, end);
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(0),
-                        SlotId(5),
-                        left_extent,
-                        j,
-                        current,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
     fn parse_start_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(3), i).is_some()
-            || self.scanner.match_token(TerminalId(4), i).is_some()
-            || self.scanner.match_token(TerminalId(2), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(3), TerminalId(4), TerminalId(2)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(2), start)?;
+                let end = match self.scanner.match_token(TerminalId(2), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(7),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
@@ -745,7 +912,20 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(2), start)?;
+                let end = match self.scanner.match_token(TerminalId(2), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(9),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
@@ -772,8 +952,17 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(6),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(2), TerminalId(4), TerminalId(3)],
+                },
+            );
+            None
         }
-        None
     }
 }
 

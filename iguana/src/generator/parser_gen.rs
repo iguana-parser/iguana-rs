@@ -66,6 +66,7 @@ impl<'a> ParserGen<'a> {
         let terminal_name_method = Self::gen_terminal_name_method();
         let slot_name_method = Self::gen_slot_name_method();
         let epsilon_method = Self::gen_epsilon_method();
+        let eof_method = Self::gen_eof_method();
         let get_gss_node_method = Self::gen_get_gss_node_method();
         let gen_add_gss_node_method = Self::gen_add_gss_node_method();
         let gen_new_gss_node_method = Self::gen_new_gss_node_method();
@@ -99,6 +100,7 @@ impl<'a> ParserGen<'a> {
         let record_stats_method = Self::gen_record_stats_method();
         let post_conditions_method = self.gen_post_conditions_method();
         let follow_set_check_method = self.gen_follow_set_check_method();
+        let follow_set_terminals_method = self.gen_follow_set_terminals_method();
         let parser_struct = self.gen_parser_struct();
         let parser_impl = self.gen_parser_impl();
         let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
@@ -114,6 +116,7 @@ impl<'a> ParserGen<'a> {
                 #terminal_name_method
                 #slot_name_method
                 #epsilon_method
+                #eof_method
                 #execute_method
                 #first_descriptors
                 #get_gss_node_method
@@ -149,6 +152,20 @@ impl<'a> ParserGen<'a> {
                 #record_stats_method
                 #post_conditions_method
                 #follow_set_check_method
+                #follow_set_terminals_method
+
+                fn parse_error(&self) -> Option<&ParseError> {
+                    self.parse_errors.values().next_back()?.first()
+                }
+
+                fn add_parse_error(&mut self, input_index: u32, slot_id: SlotId, gss_node_id: Option<GssNodeId>, kind: ParseErrorKind) {
+                    self.parse_errors.entry(input_index).or_default().push(ParseError {
+                        input_index,
+                        slot_id,
+                        gss_node_id,
+                        kind,
+                    });
+                }
             }
             #parser_struct
             #parser_impl
@@ -159,6 +176,7 @@ impl<'a> ParserGen<'a> {
         let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&self.grammar.name));
         quote! {
             use std::cell::OnceCell;
+            use std::collections::BTreeMap;
             use crate::{scanner::#scanner_name, types::{EbnfKind, Nonterminal, Slot, Terminal}};
             use iguana_runtime::{
                 descriptor::Descriptor,
@@ -166,7 +184,7 @@ impl<'a> ParserGen<'a> {
                 gss::GSSNode,
                 ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
                 input::Input,
-                parser::{Parser, init_logger},
+                parser::{Parser, ParseError, ParseErrorKind, init_logger},
                 record,
                 scanner::Scanner,
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
@@ -312,14 +330,36 @@ impl<'a> ParserGen<'a> {
                     alternative_quotes.push(quote! {
                         #[comment = #first_slot_name]
                         if #condition {
+                            matched = true;
                             self.add_first_descriptor(#first_slot_id, input_index, gss_node_id, env);
                         }
                     });
                 }
+                let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
+                let all_expected: Vec<_> = alternatives
+                    .iter()
+                    .flat_map(|alt| self.ff.prediction_set(nonterminal, alt))
+                    .collect::<FxHashSet<_>>()
+                    .into_iter()
+                    .map(|t| {
+                        if t.name == "EOF" {
+                            quote! { TerminalId(#eof_id) }
+                        } else {
+                            let id = self.terminal_ids.get_id(&t);
+                            quote! { #id }
+                        }
+                    })
+                    .collect();
+                let first_slot = Slot::new(nonterminal, &alternatives[0], 0);
+                let first_slot_id = self.slot_ids.get_id(&first_slot);
                 nonterminal_quotes.push(quote! {
                     #[comment = #nt_name]
                     #nonterminal_id => {
+                        let mut matched = false;
                         #( #alternative_quotes)*
+                        if !matched {
+                            self.add_parse_error(input_index, #first_slot_id, Some(gss_node_id), ParseErrorKind::UnexpectedToken { expected: vec![#(#all_expected),*] });
+                        }
                     }
                 });
             }
@@ -402,7 +442,7 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_terminals(&self) -> TokenStream {
-        let terminals_len = Literal::usize_unsuffixed(self.terminal_ids.len() + 1);
+        let terminals_len = Literal::usize_unsuffixed(self.terminal_ids.len() + 2);
         let terminals: Vec<_> = self
             .terminal_ids
             .terminals()
@@ -420,8 +460,13 @@ impl<'a> ParserGen<'a> {
                 name: "Epsilon"
             }
         };
+        let eof = quote! {
+            Terminal {
+                name: "EOF"
+            }
+        };
         quote! {
-            pub const TERMINALS: [Terminal; #terminals_len] = [#(#terminals,)* #epsilon];
+            pub const TERMINALS: [Terminal; #terminals_len] = [#(#terminals,)* #epsilon, #eof];
         }
     }
 
@@ -547,7 +592,9 @@ impl<'a> ParserGen<'a> {
             new_node
         } else {
             quote! {
-                if #(#post_conditions)&&* {
+                if let Some(error_kind) = self.post_conditions(#next_slot_id, input_index, j) {
+                    self.add_parse_error(j, #next_slot_id, Some(gss_node_id), error_kind);
+                } else {
                     #new_node
                 }
             }
@@ -577,6 +624,7 @@ impl<'a> ParserGen<'a> {
                     }
                     None => {
                         record!(self, MatchFailed, #terminal_name, input_index, #slot_id, gss_node_id, result);
+                        self.add_parse_error(input_index, #slot_id, Some(gss_node_id), ParseErrorKind::UnexpectedToken { expected: vec![#terminal_id] });
                     }
                 }
             }
@@ -736,32 +784,38 @@ impl<'a> ParserGen<'a> {
                         let Some(identifier) = symbol.as_identifier() else {
                             continue;
                         };
-                        let def = self.grammar.definition(identifier.resolve());
-                        if !matches!(def, Definition::Nonterminal(_)) {
-                            continue;
-                        }
-                        let checks: Vec<_> = except
-                        .iter()
-                        .map(|e| {
-                            let except_def_id = e.resolve();
-                            let Definition::Terminal(except_terminal) =
-                                self.grammar.definition(except_def_id)
-                            else {
-                                panic!("Except identifier must resolve to a terminal");
-                            };
-                            let except_terminal_id =
-                                self.terminal_ids.get_id(except_terminal);
-                            quote! {
-                                self.scanner.match_token(#except_terminal_id, left_extent) != Some(right_extent)
-                            }
-                        })
-                        .collect();
+                        let except_ids: Vec<_> = except
+                            .iter()
+                            .map(|e| {
+                                let except_def_id = e.resolve();
+                                let Definition::Terminal(except_terminal) =
+                                    self.grammar.definition(except_def_id)
+                                else {
+                                    panic!("Except identifier must resolve to a terminal");
+                                };
+                                self.terminal_ids.get_id(except_terminal)
+                            })
+                            .collect();
+                        let checks: Vec<_> = except_ids
+                            .iter()
+                            .map(|id| {
+                                quote! {
+                                    self.scanner.match_token(#id, left_extent) == Some(right_extent)
+                                }
+                            })
+                            .collect();
                         let slot = Slot::new(nonterminal, alternative, pos);
                         let next_slot = slot.next();
                         let slot_id = self.slot_ids.get_id(&next_slot);
                         arms.push(quote! {
                             #slot_id => {
-                                #(#checks)&&*
+                                if #(#checks)||* {
+                                    Some(ParseErrorKind::ExcludedMatch {
+                                        excluded_by: vec![#(#except_ids),*],
+                                    })
+                                } else {
+                                    None
+                                }
                             }
                         });
                     }
@@ -773,11 +827,7 @@ impl<'a> ParserGen<'a> {
                         let Some(identifier) = symbol.as_identifier() else {
                             continue;
                         };
-                        let def = self.grammar.definition(identifier.resolve());
-                        if !matches!(def, Definition::Nonterminal(_)) {
-                            continue;
-                        }
-                        let checks: Vec<_> = restrictions
+                        let restriction_ids: Vec<_> = restrictions
                             .iter()
                             .map(|r| {
                                 let Definition::Terminal(t) =
@@ -785,9 +835,14 @@ impl<'a> ParserGen<'a> {
                                 else {
                                     panic!("follow restriction must resolve to a terminal");
                                 };
-                                let id = self.terminal_ids.get_id(t);
+                                self.terminal_ids.get_id(t)
+                            })
+                            .collect();
+                        let checks: Vec<_> = restriction_ids
+                            .iter()
+                            .map(|id| {
                                 quote! {
-                                    self.scanner.match_token(#id, right_extent).is_none()
+                                    self.scanner.match_token(#id, right_extent).is_some()
                                 }
                             })
                             .collect();
@@ -796,7 +851,13 @@ impl<'a> ParserGen<'a> {
                         let slot_id = self.slot_ids.get_id(&next_slot);
                         arms.push(quote! {
                             #slot_id => {
-                                #(#checks)&&*
+                                if #(#checks)||* {
+                                    Some(ParseErrorKind::ForbiddenFollow {
+                                        forbidden: vec![#(#restriction_ids),*],
+                                    })
+                                } else {
+                                    None
+                                }
                             }
                         });
                     }
@@ -804,10 +865,10 @@ impl<'a> ParserGen<'a> {
             }
         }
         quote! {
-            fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> bool {
+            fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> Option<ParseErrorKind> {
                 match slot {
                     #(#arms)*
-                    _ => true,
+                    _ => None,
                 }
             }
         }
@@ -827,6 +888,34 @@ impl<'a> ParserGen<'a> {
                 match nonterminal_id {
                     #(#arms)*
                     _ => true,
+                }
+            }
+        }
+    }
+
+    fn gen_follow_set_terminals_method(&self) -> TokenStream {
+        let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
+        let mut arms = vec![];
+        for nonterminal in self.grammar.nonterminals() {
+            let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
+            let terminal_ids: Vec<_> = self.ff.follow_set(nonterminal)
+                .map(|t| {
+                    if t.name == "EOF" {
+                        quote! { TerminalId(#eof_id) }
+                    } else {
+                        let id = self.terminal_ids.get_id(t);
+                        quote! { #id }
+                    }
+                }).collect();
+            arms.push(quote! {
+                #nonterminal_id => { vec![#(#terminal_ids),*] }
+            });
+        }
+        quote! {
+            fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
+                match nonterminal_id {
+                    #(#arms)*
+                    _ => vec![],
                 }
             }
         }
@@ -854,7 +943,12 @@ impl<'a> ParserGen<'a> {
             let post_condition_check = if post_conditions.is_empty() {
                 quote! {}
             } else {
-                quote! { if !(#(#post_conditions)&&*) { return; } }
+                quote! {
+                    if let Some(error_kind) = self.post_conditions(#next_slot_id, input_index, j) {
+                        self.add_parse_error(j, #next_slot_id, Some(gss_node_id), error_kind);
+                        return;
+                    }
+                }
             };
             let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
             if slot.is_first() {
@@ -871,11 +965,17 @@ impl<'a> ParserGen<'a> {
                     }
                 }
             } else {
+                let compute_j = if post_conditions.is_empty() {
+                    quote! {}
+                } else {
+                    quote! { let j = self.sppf_node(right_child).right_extent(); }
+                };
                 quote! {
                     #[comment = #slot_name]
                     #slot_id => {
                         #pre_condition_check
                         if let Some(right_child) = self.#method_name(input_index) {
+                            #compute_j
                             #post_condition_check
                             if let Some((j, new_node)) = self.create_intermediate_node(
                                 result, right_child, #next_slot_id,
@@ -1040,6 +1140,7 @@ impl<'a> ParserGen<'a> {
                     nonterminal_nodes_children_map: OnceCell::new(),
                     #(#return_value_fields,)*
                     envs: vec![],
+                    parse_errors: BTreeMap::new(),
                     #[cfg(feature = "debug-trace")]
                     trace_events: None,
                 }
@@ -1050,7 +1151,7 @@ impl<'a> ParserGen<'a> {
     fn gen_parser_struct(&self) -> TokenStream {
         let grammar_name = &self.grammar.name;
         let nonterminal_ids_len = Literal::usize_unsuffixed(self.nonterminal_ids.len());
-        let terminal_ids_len = Literal::usize_unsuffixed(self.terminal_ids.len() + 1);
+        let terminal_ids_len = Literal::usize_unsuffixed(self.terminal_ids.len() + 2);
         let gss_nodes_index_fields: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
@@ -1085,6 +1186,7 @@ impl<'a> ParserGen<'a> {
                 nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
                 #(#specialized_nonterminal_nodes_index_fields,)*
                 envs: Vec<Env>,
+                parse_errors: BTreeMap<u32, Vec<ParseError>>,
                 #[cfg(feature = "debug-trace")]
                 pub trace_events: Option<Vec<TraceEvent>>,
             }
@@ -1113,7 +1215,7 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_terminal_nodes_index_field(&self) -> TokenStream {
-        let terminal_ids_len = Literal::usize_unsuffixed(self.terminal_ids.len() + 1);
+        let terminal_ids_len = Literal::usize_unsuffixed(self.terminal_ids.len() + 2);
         quote! {
             terminal_nodes_index: [const { InlineMap::Empty }; #terminal_ids_len]
         }
@@ -1124,21 +1226,22 @@ impl<'a> ParserGen<'a> {
         prediction_set: impl IntoIterator<Item = &'t Terminal>,
         input_index: TokenStream,
     ) -> TokenStream {
-        let mut checks: Vec<TokenStream> = vec![];
-        for terminal in prediction_set {
-            if terminal.name == "EOF" {
-                checks.push(quote! { #input_index == self.input().len() });
-            } else {
-                let terminal_id = self.terminal_ids.get_id(terminal);
-                checks.push(
-                    quote! { self.scanner.match_token(#terminal_id, #input_index).is_some() },
-                );
-            }
-        }
-        if checks.is_empty() {
+        let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
+        let terminal_ids: Vec<TokenStream> = prediction_set
+            .into_iter()
+            .map(|t| {
+                if t.name == "EOF" {
+                    quote! { TerminalId(#eof_id) }
+                } else {
+                    let id = self.terminal_ids.get_id(t);
+                    quote! { #id }
+                }
+            })
+            .collect();
+        if terminal_ids.is_empty() {
             quote! { false }
         } else {
-            quote! { #(#checks)||* }
+            quote! { self.scanner.match_any(&[#(#terminal_ids),*], #input_index) }
         }
     }
 
@@ -1153,45 +1256,67 @@ impl<'a> ParserGen<'a> {
         let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
         let alternatives = self.grammar.alternatives(nonterminal);
-        let mut alt_branches: Vec<TokenStream> = vec![];
+        let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
+        let all_expected: Vec<_> = alternatives
+            .iter()
+            .flat_map(|alt| self.ff.prediction_set(nonterminal, alt))
+            .collect::<FxHashSet<_>>()
+            .into_iter()
+            .map(|t| {
+                if t.name == "EOF" {
+                    quote! { TerminalId(#eof_id) }
+                } else {
+                    let id = self.terminal_ids.get_id(&t);
+                    quote! { #id }
+                }
+            })
+            .collect();
+        let first_slot = Slot::new(nonterminal, &alternatives[0], 0);
+        let first_slot_id = self.slot_ids.get_id(&first_slot);
 
-        for alternative in alternatives {
+        // Build if-else if-else chain
+        let mut chain = quote! {
+            self.add_parse_error(i, #first_slot_id, None, ParseErrorKind::UnexpectedToken { expected: vec![#(#all_expected),*] });
+            None
+        };
+
+        for alternative in alternatives.iter().rev() {
             let prediction_set = self.ff.prediction_set(nonterminal, alternative);
             let condition = self.gen_terminal_set_match_check(&prediction_set, quote! { i });
             let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
             let end_slot_id = self.slot_ids.get_id(&end_slot);
 
-            if alternative.symbols.is_empty() {
+            let body = if alternative.symbols.is_empty() {
                 let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
-                alt_branches.push(quote! {
-                    if #condition {
-                        let epsilon_node_id = self.get_or_create_terminal_node(
-                            TerminalId(#epsilon_id), i, i,
-                        );
-                        return Some(self.get_or_create_nonterminal_node(
-                            #nonterminal_id, #end_slot_id, i, i, epsilon_node_id, false,
-                        ).unwrap());
-                    }
-                });
+                quote! {
+                    let epsilon_node_id = self.get_or_create_terminal_node(
+                        TerminalId(#epsilon_id), i, i,
+                    );
+                    return Some(self.get_or_create_nonterminal_node(
+                        #nonterminal_id, #end_slot_id, i, i, epsilon_node_id, false,
+                    ).unwrap());
+                }
             } else {
-                let body = self.gen_parse_alternative_ll1(
+                self.gen_parse_alternative_ll1(
                     nonterminal,
                     alternative,
                     nonterminal_id,
                     end_slot_id,
-                );
-                alt_branches.push(quote! {
-                    if #condition {
-                        #body
-                    }
-                });
-            }
+                )
+            };
+
+            chain = quote! {
+                if #condition {
+                    #body
+                } else {
+                    #chain
+                }
+            };
         }
 
         quote! {
             fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
-                #(#alt_branches)*
-                None
+                #chain
             }
         }
     }
@@ -1380,19 +1505,31 @@ impl<'a> ParserGen<'a> {
                 quote! { if !(#(#pre_conditions)&&*) { return None; } }
             };
 
+            let post_check = if post_conditions.is_empty() {
+                quote! {}
+            } else {
+                quote! {
+                    if let Some(error_kind) = self.post_conditions(#next_slot_id, start, end) {
+                        self.add_parse_error(end, #next_slot_id, None, error_kind);
+                        return None;
+                    }
+                }
+            };
+
             match def {
                 Definition::Terminal(terminal) => {
                     let terminal_id = self.terminal_ids.get_id(terminal);
-                    let post_check = if post_conditions.is_empty() {
-                        quote! {}
-                    } else {
-                        quote! { if !(#(#post_conditions)&&*) { return None; } }
-                    };
                     body.push(quote! {
                         #pre_check
                         let right_child = {
                             let start = j;
-                            let end = self.scanner.match_token(#terminal_id, start)?;
+                            let end = match self.scanner.match_token(#terminal_id, start) {
+                                Some(end) => end,
+                                None => {
+                                    self.add_parse_error(start, #next_slot_id, None, ParseErrorKind::UnexpectedToken { expected: vec![#terminal_id] });
+                                    return None;
+                                }
+                            };
                             #post_check
                             let node = self.get_or_create_terminal_node(#terminal_id, start, end);
                             j = end;
@@ -1402,11 +1539,6 @@ impl<'a> ParserGen<'a> {
                 }
                 Definition::Nonterminal(nt) => {
                     let nt_method = format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
-                    let post_check = if post_conditions.is_empty() {
-                        quote! {}
-                    } else {
-                        quote! { if !(#(#post_conditions)&&*) { return None; } }
-                    };
                     body.push(quote! {
                         #pre_check
                         let right_child = {
@@ -1479,6 +1611,14 @@ impl<'a> ParserGen<'a> {
     fn gen_epsilon_method() -> TokenStream {
         quote! {
             fn epsilon() -> TerminalId {
+                TerminalId((TERMINALS.len() - 2) as u16)
+            }
+        }
+    }
+
+    fn gen_eof_method() -> TokenStream {
+        quote! {
+            fn eof() -> TerminalId {
                 TerminalId((TERMINALS.len() - 1) as u16)
             }
         }

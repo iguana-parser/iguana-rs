@@ -1,4 +1,4 @@
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote};
 
 use crate::{
@@ -141,6 +141,7 @@ fn gen_match_token(terminal_ids: &TerminalIds) -> TokenStream {
         })
         .collect();
 
+    let eof_id = Literal::u16_unsuffixed(terminal_ids.len() as u16 + 1);
     let match_token = if match_terminal_arms.is_empty() {
         quote! {
             None
@@ -149,6 +150,9 @@ fn gen_match_token(terminal_ids: &TerminalIds) -> TokenStream {
         quote! {
             match terminal_id {
                 #(#match_terminal_arms)*
+                TerminalId(#eof_id) => {
+                    if input_index == self.input.len() { Some(input_index) } else { None }
+                }
                 _ => {
                     unreachable!("Unknown token type: {terminal_id}");
                 }

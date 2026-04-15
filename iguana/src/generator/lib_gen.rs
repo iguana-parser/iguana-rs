@@ -48,7 +48,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         tree_construction_duration,
                     })
                 }
-                ParseResult::Failure() => None,
+                ParseResult::Failure(_) => None,
             }
         }
     }

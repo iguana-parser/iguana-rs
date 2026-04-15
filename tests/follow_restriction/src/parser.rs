@@ -30,13 +30,14 @@
 // Char = ([a-z])
 // WS = ([ ]*)
 use std::cell::OnceCell;
+use std::collections::BTreeMap;
 use crate::{
     scanner::FollowRestrictionScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
-    input::Input, parser::{Parser, init_logger},
+    input::Input, parser::{Parser, ParseError, ParseErrorKind, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
@@ -92,10 +93,11 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "S_Plus_0" => NonterminalId(3), "Id_Plus_1" => NonterminalId(4), "StartS" =>
     NonterminalId(5), "StartT" => NonterminalId(6), "StartId" => NonterminalId(7)
 };
-pub const TERMINALS: [Terminal; 3] = [
+pub const TERMINALS: [Terminal; 4] = [
     Terminal { name: "Char" },
     Terminal { name: "WS" },
     Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
 ];
 pub const SLOTS: [Slot; 29] = [
     Slot { display_name: "S : . Id+" },
@@ -192,6 +194,9 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
         SLOTS[slot_id.index()].display_name
     }
     fn epsilon() -> TerminalId {
+        TerminalId((TERMINALS.len() - 2) as u16)
+    }
+    fn eof() -> TerminalId {
         TerminalId((TERMINALS.len() - 1) as u16)
     }
     fn execute(
@@ -228,7 +233,16 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         record!(self, MatchSuccess, "Char", input_index, j);
                         let right_child = self
                             .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if self.scanner.match_token(TerminalId(0), j).is_none() {
+                        if let Some(error_kind) = self
+                            .post_conditions(SlotId(3), input_index, j)
+                        {
+                            self.add_parse_error(
+                                j,
+                                SlotId(3),
+                                Some(gss_node_id),
+                                error_kind,
+                            );
+                        } else {
                             //T : Char !>> Char.
                             self.execute(
                                 j,
@@ -243,6 +257,14 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         record!(
                             self, MatchFailed, "Char", input_index, SlotId(2),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(2),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
                         );
                     }
                 }
@@ -259,7 +281,15 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             SlotId(4) => {
                 if let Some(right_child) = self.parse_id_plus_1_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    if !(self.scanner.match_token(TerminalId(0), j).is_none()) {
+                    if let Some(error_kind) = self
+                        .post_conditions(SlotId(5), input_index, j)
+                    {
+                        self.add_parse_error(
+                            j,
+                            SlotId(5),
+                            Some(gss_node_id),
+                            error_kind,
+                        );
                         return;
                     }
                     //Id : Id_Plus_1 !>> Char.
@@ -301,6 +331,14 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         record!(
                             self, MatchFailed, "WS", input_index, SlotId(7), gss_node_id,
                             result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(7),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -374,6 +412,14 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                             self, MatchFailed, "Char", input_index, SlotId(13),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(13),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
                     }
                 }
             }
@@ -401,6 +447,14 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                             self, MatchFailed, "Char", input_index, SlotId(15),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(15),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
                     }
                 }
             }
@@ -427,6 +481,14 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         record!(
                             self, MatchFailed, "WS", input_index, SlotId(17),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(17),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -468,6 +530,14 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(19),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(19),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -494,6 +564,14 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         record!(
                             self, MatchFailed, "WS", input_index, SlotId(21),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(21),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -535,6 +613,14 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(23),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(23),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -561,6 +647,14 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         record!(
                             self, MatchFailed, "WS", input_index, SlotId(25),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(25),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -602,6 +696,14 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(27),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(27),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -640,24 +742,50 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             }
             //S_Plus_0
             NonterminalId(3) => {
+                let mut matched = false;
                 //S_Plus_0 : . S_Plus_0 WS Id
-                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 //S_Plus_0 : . Id
-                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(6),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(0)],
+                        },
+                    );
                 }
             }
             //Id_Plus_1
             NonterminalId(4) => {
+                let mut matched = false;
                 //Id_Plus_1 : . Id_Plus_1 Char
-                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
                 //Id_Plus_1 : . Char
-                if self.scanner.match_token(TerminalId(0), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(12),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(0)],
+                        },
+                    );
                 }
             }
             //StartS : . WS start:S WS
@@ -935,41 +1063,92 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
         slot: SlotId,
         left_extent: u32,
         right_extent: u32,
-    ) -> bool {
+    ) -> Option<ParseErrorKind> {
         match slot {
-            SlotId(5) => self.scanner.match_token(TerminalId(0), right_extent).is_none(),
-            _ => true,
+            SlotId(3) => {
+                if self.scanner.match_token(TerminalId(0), right_extent).is_some() {
+                    Some(ParseErrorKind::ForbiddenFollow {
+                        forbidden: vec![TerminalId(0)],
+                    })
+                } else {
+                    None
+                }
+            }
+            SlotId(5) => {
+                if self.scanner.match_token(TerminalId(0), right_extent).is_some() {
+                    Some(ParseErrorKind::ForbiddenFollow {
+                        forbidden: vec![TerminalId(0)],
+                    })
+                } else {
+                    None
+                }
+            }
+            _ => None,
         }
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => {
-                self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner.match_any(&[TerminalId(1), TerminalId(3)], input_index)
             }
             NonterminalId(1) => {
-                self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner.match_any(&[TerminalId(1), TerminalId(3)], input_index)
             }
             NonterminalId(2) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(0), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(3), TerminalId(0), TerminalId(1)],
+                        input_index,
+                    )
             }
             NonterminalId(3) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(0), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(3), TerminalId(0), TerminalId(1)],
+                        input_index,
+                    )
             }
             NonterminalId(4) => {
-                self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner.match_any(&[TerminalId(1), TerminalId(3)], input_index)
             }
-            NonterminalId(5) => input_index == self.input().len(),
-            NonterminalId(6) => input_index == self.input().len(),
-            NonterminalId(7) => input_index == self.input().len(),
+            NonterminalId(5) => self.scanner.match_any(&[TerminalId(3)], input_index),
+            NonterminalId(6) => self.scanner.match_any(&[TerminalId(3)], input_index),
+            NonterminalId(7) => self.scanner.match_any(&[TerminalId(3)], input_index),
             _ => true,
         }
+    }
+    fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
+        match nonterminal_id {
+            NonterminalId(0) => vec![TerminalId(1), TerminalId(3)],
+            NonterminalId(1) => vec![TerminalId(1), TerminalId(3)],
+            NonterminalId(2) => vec![TerminalId(3), TerminalId(0), TerminalId(1)],
+            NonterminalId(3) => vec![TerminalId(3), TerminalId(0), TerminalId(1)],
+            NonterminalId(4) => vec![TerminalId(1), TerminalId(3)],
+            NonterminalId(5) => vec![TerminalId(3)],
+            NonterminalId(6) => vec![TerminalId(3)],
+            NonterminalId(7) => vec![TerminalId(3)],
+            _ => vec![],
+        }
+    }
+    fn parse_error(&self) -> Option<&ParseError> {
+        self.parse_errors.values().next_back()?.first()
+    }
+    fn add_parse_error(
+        &mut self,
+        input_index: u32,
+        slot_id: SlotId,
+        gss_node_id: Option<GssNodeId>,
+        kind: ParseErrorKind,
+    ) {
+        self.parse_errors
+            .entry(input_index)
+            .or_default()
+            .push(ParseError {
+                input_index,
+                slot_id,
+                gss_node_id,
+                kind,
+            });
     }
 }
 pub struct FollowRestrictionParser<'i> {
@@ -984,7 +1163,7 @@ pub struct FollowRestrictionParser<'i> {
     descriptors_count: usize,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 8],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 29],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 3],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -992,6 +1171,7 @@ pub struct FollowRestrictionParser<'i> {
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
     envs: Vec<Env>,
+    parse_errors: BTreeMap<u32, Vec<ParseError>>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -1007,7 +1187,7 @@ impl<'i> FollowRestrictionParser<'i> {
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 8],
             intermediate_nodes_index: [const { InlineMap::Empty }; 29],
-            terminal_nodes_index: [const { InlineMap::Empty }; 3],
+            terminal_nodes_index: [const { InlineMap::Empty }; 4],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             intermediate_nodes_children: vec![],
@@ -1015,12 +1195,13 @@ impl<'i> FollowRestrictionParser<'i> {
             nonterminal_nodes_children: vec![],
             nonterminal_nodes_children_map: OnceCell::new(),
             envs: vec![],
+            parse_errors: BTreeMap::new(),
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(0), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(0)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -1043,16 +1224,39 @@ impl<'i> FollowRestrictionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(0),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(0)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_t_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(0), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(0)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(0), start)?;
-                if !(self.scanner.match_token(TerminalId(0), end).is_none()) {
+                let end = match self.scanner.match_token(TerminalId(0), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(3),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
+                        return None;
+                    }
+                };
+                if let Some(error_kind) = self.post_conditions(SlotId(3), start, end) {
+                    self.add_parse_error(end, SlotId(3), None, error_kind);
                     return None;
                 }
                 let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
@@ -1073,18 +1277,28 @@ impl<'i> FollowRestrictionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(2),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(0)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(0), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(0)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
                 let node = self.parse_id_plus_1_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
-                if !(self.scanner.match_token(TerminalId(0), end).is_none()) {
+                if let Some(error_kind) = self.post_conditions(SlotId(5), start, end) {
+                    self.add_parse_error(end, SlotId(5), None, error_kind);
                     return None;
                 }
                 node
@@ -1103,8 +1317,17 @@ impl<'i> FollowRestrictionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(4),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(0)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_s_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
@@ -1231,13 +1454,24 @@ impl<'i> FollowRestrictionParser<'i> {
         Some(current)
     }
     fn parse_start_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(0), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(0), TerminalId(1)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(18),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -1263,7 +1497,20 @@ impl<'i> FollowRestrictionParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(20),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -1290,17 +1537,37 @@ impl<'i> FollowRestrictionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(17),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(0), TerminalId(1)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_start_t_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(0), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(0), TerminalId(1)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(22),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -1326,7 +1593,20 @@ impl<'i> FollowRestrictionParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(24),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -1353,17 +1633,37 @@ impl<'i> FollowRestrictionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(21),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(0), TerminalId(1)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_start_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(0), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(0), TerminalId(1)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(26),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -1389,7 +1689,20 @@ impl<'i> FollowRestrictionParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(28),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -1416,8 +1729,17 @@ impl<'i> FollowRestrictionParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(25),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(0), TerminalId(1)],
+                },
+            );
+            None
         }
-        None
     }
 }
 

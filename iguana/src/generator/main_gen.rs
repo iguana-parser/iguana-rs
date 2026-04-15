@@ -17,7 +17,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         use clap::Parser as ClapParser;
         use iguana_runtime::{
             input::Input,
-            parser::{ParseResult, Parser},
+            parser::{ParseResult, ParseErrorKind, Parser},
             visualization::{dot::write_svg, gss::{build_gss_dot_graph, render_gss}, sppf::{build_sppf_graph, write_sppf_dot}},
         };
 
@@ -309,8 +309,28 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         }
                     }
                 }
-                ParseResult::Failure() => {
-                    println!("Parse failed");
+                ParseResult::Failure(error) => {
+                    let (line, column) = input.line_column(error.input_index);
+                    match &error.kind {
+                        ParseErrorKind::UnexpectedToken { expected } => {
+                            let names: Vec<_> = expected.iter()
+                                .map(|t| #parser::terminal_name(*t))
+                                .collect();
+                            println!("Parse failed at line {line}, column {column}: expected {}", names.join(", "));
+                        }
+                        ParseErrorKind::ExcludedMatch { excluded_by } => {
+                            let names: Vec<_> = excluded_by.iter()
+                                .map(|t| #parser::terminal_name(*t))
+                                .collect();
+                            println!("Parse failed at line {line}, column {column}: matched token is excluded by {}", names.join(", "));
+                        }
+                        ParseErrorKind::ForbiddenFollow { forbidden } => {
+                            let names: Vec<_> = forbidden.iter()
+                                .map(|t| #parser::terminal_name(*t))
+                                .collect();
+                            println!("Parse failed at line {line}, column {column}: forbidden follow {}", names.join(", "));
+                        }
+                    }
                 }
             }
             #[cfg(feature = "instrument")]

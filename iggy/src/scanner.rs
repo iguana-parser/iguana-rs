@@ -446,6 +446,9 @@ impl Scanner for IggyScanner<'_> {
             TerminalId(33) => self.match_terminal_33(input_index),
             TerminalId(34) => self.match_terminal_34(input_index),
             TerminalId(35) => self.match_terminal_35(input_index),
+            TerminalId(37) => {
+                if input_index == self.input.len() { Some(input_index) } else { None }
+            }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

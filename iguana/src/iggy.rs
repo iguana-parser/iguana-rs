@@ -57,9 +57,12 @@ fn parse(input: &Input) -> Result<StartGrammar, Error> {
             };
             Ok(start_grammar)
         }
-        ParseResult::Failure() => Err(Error {
-            message: "Parse error".into(),
-        }),
+        ParseResult::Failure(error) => {
+            let (line, column) = input.line_column(error.input_index);
+            Err(Error {
+                message: format!("Parse error at line {line}, column {column}"),
+            })
+        }
     }
 }
 

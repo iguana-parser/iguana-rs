@@ -82,6 +82,9 @@ impl Scanner for DeepPriorityFullScanner<'_> {
             TerminalId(6) => self.match_terminal_6(input_index),
             TerminalId(7) => self.match_terminal_7(input_index),
             TerminalId(8) => self.match_terminal_8(input_index),
+            TerminalId(10) => {
+                if input_index == self.input.len() { Some(input_index) } else { None }
+            }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

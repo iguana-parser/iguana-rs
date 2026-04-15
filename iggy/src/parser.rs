@@ -338,11 +338,12 @@
 // "]" = ]
 // "-" = -
 use std::cell::OnceCell;
+use std::collections::BTreeMap;
 use crate::{scanner::IggyScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
-    input::Input, parser::{Parser, init_logger},
+    input::Input, parser::{Parser, ParseError, ParseErrorKind, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
@@ -762,7 +763,7 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "Symbol_except_Except" => NonterminalId(72), "Symbol_except_FollowRestriction" =>
     NonterminalId(73)
 };
-pub const TERMINALS: [Terminal; 37] = [
+pub const TERMINALS: [Terminal; 38] = [
     Terminal { name: "Keyword" },
     Terminal { name: "Identifier" },
     Terminal { name: "String" },
@@ -800,6 +801,7 @@ pub const TERMINALS: [Terminal; 37] = [
     Terminal { name: "\"]\"" },
     Terminal { name: "\"-\"" },
     Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
 ];
 pub const SLOTS: [Slot; 641] = [
     Slot {
@@ -2734,6 +2736,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         SLOTS[slot_id.index()].display_name
     }
     fn epsilon() -> TerminalId {
+        TerminalId((TERMINALS.len() - 2) as u16)
+    }
+    fn eof() -> TerminalId {
         TerminalId((TERMINALS.len() - 1) as u16)
     }
     fn execute(
@@ -2761,6 +2766,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"grammar\"", input_index, SlotId(0),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(0),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(10)],
+                            },
                         );
                     }
                 }
@@ -2795,6 +2808,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "Identifier", input_index, SlotId(2),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(2),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -2860,6 +2881,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"layout\"", input_index, SlotId(8),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(8),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(11)],
+                            },
+                        );
                     }
                 }
             }
@@ -2899,6 +2928,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "Identifier", input_index, SlotId(10),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(10),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -2981,6 +3018,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(18),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(18),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -3020,6 +3065,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"=\"", input_index, SlotId(20),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(20),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(12)],
+                            },
                         );
                     }
                 }
@@ -3063,6 +3116,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"@NoLayout\"", input_index, SlotId(24),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(24),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(14)],
+                            },
+                        );
                     }
                 }
             }
@@ -3089,6 +3150,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"@Layout\"", input_index, SlotId(26),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(26),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(15)],
+                            },
                         );
                     }
                 }
@@ -3130,6 +3199,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"(\"", input_index, SlotId(28),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(28),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(16)],
+                            },
+                        );
                     }
                 }
             }
@@ -3169,6 +3246,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "Identifier", input_index, SlotId(30),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(30),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -3210,6 +3295,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\")\"", input_index, SlotId(32),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(32),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(17)],
+                            },
+                        );
                     }
                 }
             }
@@ -3236,6 +3329,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"@regex\"", input_index, SlotId(34),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(34),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(18)],
+                            },
                         );
                     }
                 }
@@ -3277,6 +3378,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(36),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(36),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -3316,6 +3425,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"=\"", input_index, SlotId(38),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(38),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(12)],
+                            },
                         );
                     }
                 }
@@ -3397,6 +3514,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(46),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(46),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -3437,6 +3562,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"!<<\"", input_index, SlotId(48),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(48),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(20)],
+                            },
+                        );
                     }
                 }
             }
@@ -3463,6 +3596,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"\\\"", input_index, SlotId(50),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(50),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(21)],
+                            },
                         );
                     }
                 }
@@ -3504,6 +3645,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(52),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(52),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -3530,6 +3679,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"!>>\"", input_index, SlotId(54),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(54),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(22)],
+                            },
                         );
                     }
                 }
@@ -3570,6 +3727,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "Identifier", input_index, SlotId(56),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(56),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -3631,6 +3796,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"left\"", input_index, SlotId(62),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(62),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(23)],
+                            },
+                        );
                     }
                 }
             }
@@ -3658,6 +3831,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"right\"", input_index, SlotId(64),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(64),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(24)],
+                            },
+                        );
                     }
                 }
             }
@@ -3684,6 +3865,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"none\"", input_index, SlotId(66),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(66),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(25)],
+                            },
                         );
                     }
                 }
@@ -3747,6 +3936,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(72),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(72),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -3794,6 +3991,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"(\"", input_index, SlotId(75),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(75),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(16)],
+                            },
                         );
                     }
                 }
@@ -3850,6 +4055,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\")\"", input_index, SlotId(79),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(79),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(17)],
+                            },
+                        );
                     }
                 }
             }
@@ -3897,6 +4110,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"(\"", input_index, SlotId(82),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(82),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(16)],
+                            },
                         );
                     }
                 }
@@ -3968,6 +4189,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\")\"", input_index, SlotId(88),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(88),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(17)],
+                            },
+                        );
                     }
                 }
             }
@@ -4016,6 +4245,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "String", input_index, SlotId(91),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(91),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
                     }
                 }
             }
@@ -4063,6 +4300,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"{\"", input_index, SlotId(94),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(94),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(26)],
+                            },
                         );
                     }
                 }
@@ -4134,6 +4379,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"}\"", input_index, SlotId(100),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(100),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(27)],
+                            },
+                        );
                     }
                 }
             }
@@ -4173,6 +4426,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"*\"", input_index, SlotId(102),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(102),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(28)],
+                            },
                         );
                     }
                 }
@@ -4227,6 +4488,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"{\"", input_index, SlotId(105),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(105),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(26)],
+                            },
                         );
                     }
                 }
@@ -4298,6 +4567,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"}\"", input_index, SlotId(111),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(111),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(27)],
+                            },
+                        );
                     }
                 }
             }
@@ -4337,6 +4614,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"+\"", input_index, SlotId(113),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(113),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(29)],
+                            },
                         );
                     }
                 }
@@ -4432,6 +4717,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"*\"", input_index, SlotId(120),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(120),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(28)],
+                            },
+                        );
                     }
                 }
             }
@@ -4526,6 +4819,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"+\"", input_index, SlotId(127),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(127),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(29)],
+                            },
+                        );
                     }
                 }
             }
@@ -4619,6 +4920,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"?\"", input_index, SlotId(134),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(134),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(30)],
+                            },
                         );
                     }
                 }
@@ -4902,6 +5211,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(158),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(158),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -4941,6 +5258,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"!<<\"", input_index, SlotId(160),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(160),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(20)],
+                            },
                         );
                     }
                 }
@@ -5015,6 +5340,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(165),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(165),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -5054,6 +5387,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\":\"", input_index, SlotId(167),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(167),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(32)],
+                            },
                         );
                     }
                 }
@@ -5143,6 +5484,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"+\"", input_index, SlotId(174),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(174),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(29)],
+                            },
+                        );
                     }
                 }
             }
@@ -5194,6 +5543,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"*\"", input_index, SlotId(178),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(178),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(28)],
+                            },
                         );
                     }
                 }
@@ -5247,6 +5604,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"?\"", input_index, SlotId(182),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(182),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(30)],
+                            },
+                        );
                     }
                 }
             }
@@ -5279,6 +5644,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"(\"", input_index, SlotId(184),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(184),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(16)],
+                            },
                         );
                     }
                 }
@@ -5350,6 +5723,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\")\"", input_index, SlotId(190),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(190),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(17)],
+                            },
+                        );
                     }
                 }
             }
@@ -5382,6 +5763,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"(\"", input_index, SlotId(192),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(192),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(16)],
+                            },
                         );
                     }
                 }
@@ -5438,6 +5827,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\")\"", input_index, SlotId(196),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(196),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(17)],
+                            },
+                        );
                     }
                 }
             }
@@ -5483,6 +5880,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Char", input_index, SlotId(200),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(200),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
+                        );
                     }
                 }
             }
@@ -5516,6 +5921,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "String", input_index, SlotId(202),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(202),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
                     }
                 }
             }
@@ -5548,6 +5961,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "Identifier", input_index, SlotId(204),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(204),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -5606,6 +6027,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"[\"", input_index, SlotId(208),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(208),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(33)],
+                            },
+                        );
                     }
                 }
             }
@@ -5661,6 +6090,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"]\"", input_index, SlotId(212),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(212),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(34)],
+                            },
+                        );
                     }
                 }
             }
@@ -5710,6 +6147,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "RangeChar", input_index, SlotId(216),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(216),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(5)],
+                            },
+                        );
                     }
                 }
             }
@@ -5742,6 +6187,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "RangeChar", input_index, SlotId(218),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(218),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(5)],
+                            },
                         );
                     }
                 }
@@ -5783,6 +6236,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"-\"", input_index, SlotId(220),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(220),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(35)],
+                            },
+                        );
                     }
                 }
             }
@@ -5823,6 +6284,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "RangeChar", input_index, SlotId(222),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(222),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(5)],
+                            },
+                        );
                     }
                 }
             }
@@ -5838,9 +6307,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             SlotId(224) => {
                 if let Some(right_child) = self.parse_layout_star_5_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    if !(self.scanner.match_token(TerminalId(7), j).is_none()
-                        && self.scanner.match_token(TerminalId(9), j).is_none())
+                    if let Some(error_kind) = self
+                        .post_conditions(SlotId(225), input_index, j)
                     {
+                        self.add_parse_error(
+                            j,
+                            SlotId(225),
+                            Some(gss_node_id),
+                            error_kind,
+                        );
                         return;
                     }
                     //Layout : Layout_Star_5 !>> WS !>> LineComment.
@@ -6054,6 +6529,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\">\"", input_index, SlotId(245),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(245),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(13)],
+                            },
+                        );
                     }
                 }
             }
@@ -6253,6 +6736,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"|\"", input_index, SlotId(267),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(267),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(19)],
+                            },
                         );
                     }
                 }
@@ -6479,6 +6970,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"|\"", input_index, SlotId(289),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(289),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(19)],
+                            },
+                        );
                     }
                 }
             }
@@ -6668,6 +7167,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Label", input_index, SlotId(311),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(311),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(6)],
+                            },
+                        );
                     }
                 }
             }
@@ -6721,6 +7228,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"|\"", input_index, SlotId(314),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(314),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(19)],
+                            },
                         );
                     }
                 }
@@ -6809,6 +7324,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"\\\"", input_index, SlotId(324),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(324),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(21)],
+                            },
+                        );
                     }
                 }
             }
@@ -6848,6 +7371,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "Identifier", input_index, SlotId(326),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(326),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -6936,6 +7467,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"!>>\"", input_index, SlotId(334),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(334),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(22)],
+                            },
+                        );
                     }
                 }
             }
@@ -6975,6 +7514,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "Identifier", input_index, SlotId(336),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(336),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -7063,6 +7610,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"!\"", input_index, SlotId(344),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(344),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(31)],
+                            },
+                        );
                     }
                 }
             }
@@ -7102,6 +7657,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "Identifier", input_index, SlotId(346),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(346),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -7190,6 +7753,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"|\"", input_index, SlotId(354),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(354),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(19)],
+                            },
+                        );
                     }
                 }
             }
@@ -7276,6 +7847,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"!\"", input_index, SlotId(364),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(364),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(31)],
+                            },
                         );
                     }
                 }
@@ -7370,6 +7949,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(373),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(373),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(7)],
+                            },
+                        );
                     }
                 }
             }
@@ -7402,6 +7989,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "LineComment", input_index, SlotId(375),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(375),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(9)],
+                            },
                         );
                     }
                 }
@@ -7532,6 +8127,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(387),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(387),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -7585,6 +8188,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"(\"", input_index, SlotId(390),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(390),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(16)],
+                            },
                         );
                     }
                 }
@@ -7641,6 +8252,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\")\"", input_index, SlotId(394),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(394),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(17)],
+                            },
+                        );
                     }
                 }
             }
@@ -7694,6 +8313,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"(\"", input_index, SlotId(397),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(397),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(16)],
+                            },
                         );
                     }
                 }
@@ -7765,6 +8392,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\")\"", input_index, SlotId(403),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(403),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(17)],
+                            },
+                        );
                     }
                 }
             }
@@ -7819,6 +8454,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "String", input_index, SlotId(406),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(406),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
                     }
                 }
             }
@@ -7872,6 +8515,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"{\"", input_index, SlotId(409),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(409),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(26)],
+                            },
                         );
                     }
                 }
@@ -7943,6 +8594,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"}\"", input_index, SlotId(415),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(415),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(27)],
+                            },
+                        );
                     }
                 }
             }
@@ -7982,6 +8641,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"*\"", input_index, SlotId(417),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(417),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(28)],
+                            },
                         );
                     }
                 }
@@ -8036,6 +8703,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"{\"", input_index, SlotId(420),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(420),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(26)],
+                            },
                         );
                     }
                 }
@@ -8107,6 +8782,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"}\"", input_index, SlotId(426),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(426),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(27)],
+                            },
+                        );
                     }
                 }
             }
@@ -8146,6 +8829,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"+\"", input_index, SlotId(428),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(428),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(29)],
+                            },
                         );
                     }
                 }
@@ -8241,6 +8932,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"*\"", input_index, SlotId(435),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(435),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(28)],
+                            },
+                        );
                     }
                 }
             }
@@ -8335,6 +9034,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"+\"", input_index, SlotId(442),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(442),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(29)],
+                            },
+                        );
                     }
                 }
             }
@@ -8428,6 +9135,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"?\"", input_index, SlotId(449),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(449),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(30)],
+                            },
                         );
                     }
                 }
@@ -8635,6 +9350,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(466),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(466),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -8674,6 +9397,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"!<<\"", input_index, SlotId(468),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(468),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(20)],
+                            },
                         );
                     }
                 }
@@ -8748,6 +9479,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(473),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(473),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -8787,6 +9526,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\":\"", input_index, SlotId(475),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(475),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(32)],
+                            },
                         );
                     }
                 }
@@ -8857,6 +9604,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(480),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(480),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -8910,6 +9665,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"(\"", input_index, SlotId(483),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(483),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(16)],
+                            },
                         );
                     }
                 }
@@ -8966,6 +9729,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\")\"", input_index, SlotId(487),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(487),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(17)],
+                            },
+                        );
                     }
                 }
             }
@@ -9019,6 +9790,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"(\"", input_index, SlotId(490),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(490),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(16)],
+                            },
                         );
                     }
                 }
@@ -9090,6 +9869,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\")\"", input_index, SlotId(496),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(496),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(17)],
+                            },
+                        );
                     }
                 }
             }
@@ -9144,6 +9931,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "String", input_index, SlotId(499),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(499),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
                     }
                 }
             }
@@ -9197,6 +9992,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"{\"", input_index, SlotId(502),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(502),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(26)],
+                            },
                         );
                     }
                 }
@@ -9268,6 +10071,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"}\"", input_index, SlotId(508),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(508),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(27)],
+                            },
+                        );
                     }
                 }
             }
@@ -9307,6 +10118,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"*\"", input_index, SlotId(510),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(510),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(28)],
+                            },
                         );
                     }
                 }
@@ -9361,6 +10180,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"{\"", input_index, SlotId(513),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(513),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(26)],
+                            },
                         );
                     }
                 }
@@ -9432,6 +10259,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"}\"", input_index, SlotId(519),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(519),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(27)],
+                            },
+                        );
                     }
                 }
             }
@@ -9471,6 +10306,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"+\"", input_index, SlotId(521),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(521),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(29)],
+                            },
                         );
                     }
                 }
@@ -9566,6 +10409,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"*\"", input_index, SlotId(528),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(528),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(28)],
+                            },
+                        );
                     }
                 }
             }
@@ -9660,6 +10511,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "\"+\"", input_index, SlotId(535),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(535),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(29)],
+                            },
+                        );
                     }
                 }
             }
@@ -9753,6 +10612,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"?\"", input_index, SlotId(542),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(542),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(30)],
+                            },
                         );
                     }
                 }
@@ -9960,6 +10827,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(559),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(559),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -9999,6 +10874,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\"!<<\"", input_index, SlotId(561),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(561),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(20)],
+                            },
                         );
                     }
                 }
@@ -10073,6 +10956,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                             self, MatchFailed, "Identifier", input_index, SlotId(566),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(566),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -10112,6 +11003,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         record!(
                             self, MatchFailed, "\":\"", input_index, SlotId(568),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(568),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(32)],
+                            },
                         );
                     }
                 }
@@ -10759,18 +11658,41 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Rule
             NonterminalId(2) => {
+                let mut matched = false;
                 //Rule : . SyntaxRule
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(1),
+                            TerminalId(14),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
                 //Rule : . RegexRule
-                if self.scanner.match_token(TerminalId(18), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(18)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(12),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(1), TerminalId(18), TerminalId(14),
+                                TerminalId(15), TerminalId(9), TerminalId(7)
+                            ],
+                        },
+                    );
                 }
             }
             //SyntaxRule : . SyntaxRule_Opt_2 Layout head:Identifier Layout "=" Layout SyntaxRule_Star_1
@@ -10779,13 +11701,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation
             NonterminalId(4) => {
+                let mut matched = false;
                 //Annotation : . "@NoLayout"
-                if self.scanner.match_token(TerminalId(14), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(14)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
                 }
                 //Annotation : . "@Layout" Layout "(" Layout Identifier Layout ")"
-                if self.scanner.match_token(TerminalId(15), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(15)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(24),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(15), TerminalId(14)],
+                        },
+                    );
                 }
             }
             //RegexRule : . "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_2 Layout RegexRule_Star_2
@@ -10798,13 +11733,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PostCondition
             NonterminalId(7) => {
+                let mut matched = false;
                 //PostCondition : . "\" Layout Identifier
-                if self.scanner.match_token(TerminalId(21), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(21)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
                 }
                 //PostCondition : . "!>>" Layout Identifier
-                if self.scanner.match_token(TerminalId(22), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(22)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(54), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(50),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(21), TerminalId(22)],
+                        },
+                    );
                 }
             }
             //PriorityLevel : . PriorityLevel_Opt_6 Layout PriorityLevel_Star_3
@@ -10813,17 +11761,33 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Associativity
             NonterminalId(9) => {
+                let mut matched = false;
                 //Associativity : . "left"
-                if self.scanner.match_token(TerminalId(23), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(23)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(62), input_index, gss_node_id, env);
                 }
                 //Associativity : . "right"
-                if self.scanner.match_token(TerminalId(24), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(24)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
                 }
                 //Associativity : . "none"
-                if self.scanner.match_token(TerminalId(25), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(25)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(62),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(23), TerminalId(25), TerminalId(24)
+                            ],
+                        },
+                    );
                 }
             }
             //Alternative : . Alternative_Star_4 Layout Alternative_Opt_9
@@ -10832,28 +11796,35 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol
             NonterminalId(71) => {
+                let mut matched = false;
                 //Symbol(p: i32) : . Identifier return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
                 }
                 //Symbol(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(75), input_index, gss_node_id, env);
                 }
                 //Symbol(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
                 }
                 //Symbol(p: i32) : . String return 0
-                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(91), input_index, gss_node_id, env);
                 }
                 //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(94), input_index, gss_node_id, env);
                 }
                 //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(105),
                         input_index,
@@ -10862,11 +11833,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(116),
                         input_index,
@@ -10875,11 +11849,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(123),
                         input_index,
@@ -10888,11 +11865,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(130),
                         input_index,
@@ -10901,11 +11881,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_8 return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(137),
                         input_index,
@@ -10914,11 +11897,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_9 return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(144),
                         input_index,
@@ -10927,11 +11913,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(151),
                         input_index,
@@ -10940,7 +11929,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(158),
                         input_index,
@@ -10949,7 +11939,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(165),
                         input_index,
@@ -10957,19 +11948,40 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(72),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)
+                            ],
+                        },
+                    );
+                }
             }
             //Regex
             NonterminalId(11) => {
+                let mut matched = false;
                 //Regex : . Regex Layout "+"
-                if self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(33),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(172),
                         input_index,
@@ -10978,15 +11990,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . Regex Layout "*"
-                if self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(33),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(176),
                         input_index,
@@ -10995,15 +12015,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . Regex Layout "?"
-                if self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(33),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(180),
                         input_index,
@@ -11012,7 +12040,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . "(" Layout first:Regex Layout rest:Regex_Plus_11 Layout ")"
-                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(184),
                         input_index,
@@ -11021,7 +12050,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . "(" Layout RegexRule_Plus_3 Layout ")"
-                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(192),
                         input_index,
@@ -11030,11 +12060,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . CharClass
-                if self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(33), TerminalId(31), TerminalId(9), TerminalId(7)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(198),
                         input_index,
@@ -11043,7 +12076,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . Char
-                if self.scanner.match_token(TerminalId(3), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(3)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(200),
                         input_index,
@@ -11052,7 +12086,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . String
-                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(202),
                         input_index,
@@ -11061,12 +12096,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . Identifier
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(204),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(172),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(33), TerminalId(3), TerminalId(2), TerminalId(1),
+                                TerminalId(16), TerminalId(31), TerminalId(9), TerminalId(7)
+                            ],
+                        },
                     );
                 }
             }
@@ -11076,8 +12125,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RangeElement
             NonterminalId(13) => {
+                let mut matched = false;
                 //RangeElement : . Range
-                if self.scanner.match_token(TerminalId(5), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(5)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(214),
                         input_index,
@@ -11086,12 +12137,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //RangeElement : . RangeChar
-                if self.scanner.match_token(TerminalId(5), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(5)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(216),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(214),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(5)],
+                        },
                     );
                 }
             }
@@ -11105,8 +12167,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar_Opt_0
             NonterminalId(16) => {
+                let mut matched = false;
                 //Grammar_Opt_0 : . LayoutDef
-                if self.scanner.match_token(TerminalId(11), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(11)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(226),
                         input_index,
@@ -11115,14 +12179,22 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Grammar_Opt_0 : .
-                if self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || input_index == self.input().len()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(18),
+                            TerminalId(1),
+                            TerminalId(14),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(37),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(228),
                         input_index,
@@ -11130,17 +12202,40 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(226),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(11), TerminalId(18), TerminalId(14),
+                                TerminalId(37), TerminalId(1), TerminalId(15),
+                                TerminalId(9), TerminalId(7)
+                            ],
+                        },
+                    );
+                }
             }
             //Grammar_Plus_0
             NonterminalId(17) => {
+                let mut matched = false;
                 //Grammar_Plus_0 : . Grammar_Plus_0 Layout Rule
-                if self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(1),
+                            TerminalId(14),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(229),
                         input_index,
@@ -11149,13 +12244,21 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Grammar_Plus_0 : . Rule
-                if self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(1),
+                            TerminalId(14),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(233),
                         input_index,
@@ -11163,17 +12266,39 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(229),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(18), TerminalId(1), TerminalId(14),
+                                TerminalId(15), TerminalId(9), TerminalId(7)
+                            ],
+                        },
+                    );
+                }
             }
             //Grammar_Opt_1
             NonterminalId(18) => {
+                let mut matched = false;
                 //Grammar_Opt_1 : . Grammar_Plus_0
-                if self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(1),
+                            TerminalId(14),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(235),
                         input_index,
@@ -11182,15 +12307,32 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Grammar_Opt_1 : .
-                if self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || input_index == self.input().len()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(7), TerminalId(9), TerminalId(37)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(237),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(235),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(37), TerminalId(18), TerminalId(1),
+                                TerminalId(14), TerminalId(15), TerminalId(9), TerminalId(7)
+                            ],
+                        },
                     );
                 }
             }
@@ -11200,10 +12342,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Opt_2
             NonterminalId(20) => {
+                let mut matched = false;
                 //SyntaxRule_Opt_2 : . Annotation
-                if self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
+                if self.scanner.match_any(&[TerminalId(15), TerminalId(14)], input_index)
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(240),
                         input_index,
@@ -11212,11 +12355,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //SyntaxRule_Opt_2 : .
-                if self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || input_index == self.input().len()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(7), TerminalId(1), TerminalId(9), TerminalId(37)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(242),
                         input_index,
@@ -11224,23 +12370,45 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(240),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(37), TerminalId(1), TerminalId(14),
+                                TerminalId(15), TerminalId(9), TerminalId(7)
+                            ],
+                        },
+                    );
+                }
             }
             //SyntaxRule_Plus_1
             NonterminalId(21) => {
+                let mut matched = false;
                 //SyntaxRule_Plus_1 : . SyntaxRule_Plus_1 Layout ">" Layout PriorityLevel
-                if self.scanner.match_token(TerminalId(23), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(23),
+                            TerminalId(24),
+                            TerminalId(2),
+                            TerminalId(25),
+                            TerminalId(7),
+                            TerminalId(6),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(9),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(243),
                         input_index,
@@ -11249,23 +12417,31 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //SyntaxRule_Plus_1 : . PriorityLevel
-                if self.scanner.match_token(TerminalId(23), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(23),
+                            TerminalId(25),
+                            TerminalId(13),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(24),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(249),
                         input_index,
@@ -11273,27 +12449,52 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(243),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(23), TerminalId(13), TerminalId(25),
+                                TerminalId(6), TerminalId(37), TerminalId(1),
+                                TerminalId(16), TerminalId(15), TerminalId(24),
+                                TerminalId(18), TerminalId(2), TerminalId(14),
+                                TerminalId(19), TerminalId(26), TerminalId(9), TerminalId(7)
+                            ],
+                        },
+                    );
+                }
             }
             //SyntaxRule_Opt_3
             NonterminalId(22) => {
+                let mut matched = false;
                 //SyntaxRule_Opt_3 : . SyntaxRule_Plus_1
-                if self.scanner.match_token(TerminalId(23), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(23),
+                            TerminalId(7),
+                            TerminalId(13),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(24),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(9),
+                            TerminalId(25),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(251),
                         input_index,
@@ -11302,19 +12503,44 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //SyntaxRule_Opt_3 : .
-                if self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || input_index == self.input().len()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(18),
+                            TerminalId(1),
+                            TerminalId(14),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(37),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(253),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(251),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(23), TerminalId(7), TerminalId(25),
+                                TerminalId(6), TerminalId(37), TerminalId(1),
+                                TerminalId(16), TerminalId(15), TerminalId(24),
+                                TerminalId(18), TerminalId(2), TerminalId(14),
+                                TerminalId(19), TerminalId(26), TerminalId(9),
+                                TerminalId(13)
+                            ],
+                        },
                     );
                 }
             }
@@ -11324,8 +12550,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Opt_4
             NonterminalId(24) => {
+                let mut matched = false;
                 //RegexRule_Opt_4 : . PreCondition
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(256),
                         input_index,
@@ -11334,16 +12562,24 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //RegexRule_Opt_4 : .
-                if self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(33),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(258),
                         input_index,
@@ -11351,19 +12587,42 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(256),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(33), TerminalId(3), TerminalId(2),
+                                TerminalId(37), TerminalId(1), TerminalId(16),
+                                TerminalId(31), TerminalId(9), TerminalId(7)
+                            ],
+                        },
+                    );
+                }
             }
             //RegexRule_Plus_3
             NonterminalId(25) => {
+                let mut matched = false;
                 //RegexRule_Plus_3 : . RegexRule_Plus_3 Layout Regex
-                if self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(33),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(259),
                         input_index,
@@ -11372,15 +12631,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //RegexRule_Plus_3 : . Regex
-                if self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(33),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(263),
                         input_index,
@@ -11388,19 +12655,41 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(259),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(33), TerminalId(3), TerminalId(2), TerminalId(1),
+                                TerminalId(16), TerminalId(31), TerminalId(9), TerminalId(7)
+                            ],
+                        },
+                    );
+                }
             }
             //RegexRule_Plus_2
             NonterminalId(26) => {
+                let mut matched = false;
                 //RegexRule_Plus_2 : . RegexRule_Plus_2 Layout "|" Layout RegexRule_Plus_3
-                if self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(33),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(265),
                         input_index,
@@ -11409,15 +12698,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //RegexRule_Plus_2 : . RegexRule_Plus_3
-                if self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(33),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(271),
                         input_index,
@@ -11425,13 +12722,27 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(265),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(33), TerminalId(3), TerminalId(2), TerminalId(1),
+                                TerminalId(16), TerminalId(31), TerminalId(9), TerminalId(7)
+                            ],
+                        },
+                    );
+                }
             }
             //RegexRule_Plus_4
             NonterminalId(27) => {
+                let mut matched = false;
                 //RegexRule_Plus_4 : . RegexRule_Plus_4 Layout PostCondition
-                if self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                if self.scanner.match_any(&[TerminalId(21), TerminalId(22)], input_index)
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(273),
                         input_index,
@@ -11440,9 +12751,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //RegexRule_Plus_4 : . PostCondition
-                if self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                if self.scanner.match_any(&[TerminalId(21), TerminalId(22)], input_index)
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(277),
                         input_index,
@@ -11450,13 +12761,24 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(273),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(21), TerminalId(22)],
+                        },
+                    );
+                }
             }
             //RegexRule_Opt_5
             NonterminalId(28) => {
+                let mut matched = false;
                 //RegexRule_Opt_5 : . RegexRule_Plus_4
-                if self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
+                if self.scanner.match_any(&[TerminalId(21), TerminalId(22)], input_index)
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(279),
                         input_index,
@@ -11465,19 +12787,41 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //RegexRule_Opt_5 : .
-                if self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || input_index == self.input().len()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(18),
+                            TerminalId(1),
+                            TerminalId(14),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(37),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(281),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(279),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(18), TerminalId(14), TerminalId(37),
+                                TerminalId(21), TerminalId(1), TerminalId(15),
+                                TerminalId(22), TerminalId(9), TerminalId(7)
+                            ],
+                        },
                     );
                 }
             }
@@ -11487,11 +12831,16 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Opt_6
             NonterminalId(30) => {
+                let mut matched = false;
                 //PriorityLevel_Opt_6 : . Associativity
-                if self.scanner.match_token(TerminalId(23), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(23), TerminalId(24), TerminalId(25)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(284),
                         input_index,
@@ -11500,20 +12849,28 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //PriorityLevel_Opt_6 : .
-                if self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(6),
+                            TerminalId(19),
+                            TerminalId(37),
+                            TerminalId(26),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(286),
                         input_index,
@@ -11521,19 +12878,44 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(284),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(23), TerminalId(25), TerminalId(13),
+                                TerminalId(6), TerminalId(37), TerminalId(1),
+                                TerminalId(16), TerminalId(15), TerminalId(24),
+                                TerminalId(18), TerminalId(2), TerminalId(14),
+                                TerminalId(19), TerminalId(26), TerminalId(9), TerminalId(7)
+                            ],
+                        },
+                    );
+                }
             }
             //PriorityLevel_Plus_5
             NonterminalId(31) => {
+                let mut matched = false;
                 //PriorityLevel_Plus_5 : . PriorityLevel_Plus_5 Layout "|" Layout Alternative
-                if self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(2),
+                            TerminalId(6),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(287),
                         input_index,
@@ -11542,20 +12924,28 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //PriorityLevel_Plus_5 : . Alternative
-                if self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(13),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(6),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(293),
                         input_index,
@@ -11563,24 +12953,48 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(287),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(13), TerminalId(18), TerminalId(2),
+                                TerminalId(14), TerminalId(6), TerminalId(19),
+                                TerminalId(26), TerminalId(37), TerminalId(1),
+                                TerminalId(16), TerminalId(15), TerminalId(9), TerminalId(7)
+                            ],
+                        },
+                    );
+                }
             }
             //PriorityLevel_Opt_7
             NonterminalId(32) => {
+                let mut matched = false;
                 //PriorityLevel_Opt_7 : . PriorityLevel_Plus_5
-                if self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(13),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(6),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(295),
                         input_index,
@@ -11589,20 +13003,44 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //PriorityLevel_Opt_7 : .
-                if self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(297),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(295),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(7), TerminalId(18), TerminalId(2),
+                                TerminalId(14), TerminalId(6), TerminalId(19),
+                                TerminalId(26), TerminalId(37), TerminalId(1),
+                                TerminalId(16), TerminalId(15), TerminalId(9),
+                                TerminalId(13)
+                            ],
+                        },
                     );
                 }
             }
@@ -11612,12 +13050,16 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative_Plus_6
             NonterminalId(34) => {
+                let mut matched = false;
                 //Alternative_Plus_6 : . Alternative_Plus_6 Layout Symbol(0)
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(300),
                         input_index,
@@ -11626,11 +13068,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Alternative_Plus_6 : . Symbol(0)
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(304),
                         input_index,
@@ -11638,15 +13083,31 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(300),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)
+                            ],
+                        },
+                    );
+                }
             }
             //Alternative_Opt_8
             NonterminalId(35) => {
+                let mut matched = false;
                 //Alternative_Opt_8 : . Alternative_Plus_6
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(306),
                         input_index,
@@ -11655,22 +13116,45 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Alternative_Opt_8 : .
-                if self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(308),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(306),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(13), TerminalId(18), TerminalId(2),
+                                TerminalId(14), TerminalId(19), TerminalId(6),
+                                TerminalId(26), TerminalId(37), TerminalId(1),
+                                TerminalId(16), TerminalId(15), TerminalId(9), TerminalId(7)
+                            ],
+                        },
                     );
                 }
             }
@@ -11680,8 +13164,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative_Opt_9
             NonterminalId(37) => {
+                let mut matched = false;
                 //Alternative_Opt_9 : . Label
-                if self.scanner.match_token(TerminalId(6), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(6)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(311),
                         input_index,
@@ -11690,21 +13176,43 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Alternative_Opt_9 : .
-                if self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(13),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(313),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(311),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(7), TerminalId(18), TerminalId(14),
+                                TerminalId(6), TerminalId(19), TerminalId(37),
+                                TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(13)
+                            ],
+                        },
                     );
                 }
             }
@@ -11714,8 +13222,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_7
             NonterminalId(39) => {
+                let mut matched = false;
                 //Symbol_Plus_7 : . Symbol_Plus_7 Layout Symbol_Group_0
-                if self.scanner.match_token(TerminalId(19), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(19)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(318),
                         input_index,
@@ -11724,12 +13234,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_Plus_7 : . Symbol_Group_0
-                if self.scanner.match_token(TerminalId(19), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(19)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(322),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(318),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(19)],
+                        },
                     );
                 }
             }
@@ -11739,8 +13260,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_8
             NonterminalId(41) => {
+                let mut matched = false;
                 //Symbol_Plus_8 : . Symbol_Plus_8 Layout Symbol_Group_1
-                if self.scanner.match_token(TerminalId(21), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(21)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(328),
                         input_index,
@@ -11749,12 +13272,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_Plus_8 : . Symbol_Group_1
-                if self.scanner.match_token(TerminalId(21), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(21)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(332),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(328),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(21)],
+                        },
                     );
                 }
             }
@@ -11764,8 +13298,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_9
             NonterminalId(43) => {
+                let mut matched = false;
                 //Symbol_Plus_9 : . Symbol_Plus_9 Layout Symbol_Group_2
-                if self.scanner.match_token(TerminalId(22), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(22)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(338),
                         input_index,
@@ -11774,12 +13310,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_Plus_9 : . Symbol_Group_2
-                if self.scanner.match_token(TerminalId(22), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(22)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(342),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(338),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(22)],
+                        },
                     );
                 }
             }
@@ -11789,8 +13336,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Plus_10
             NonterminalId(45) => {
+                let mut matched = false;
                 //Symbol_Plus_10 : . Symbol_Plus_10 Layout Symbol_Group_3
-                if self.scanner.match_token(TerminalId(31), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(31)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(348),
                         input_index,
@@ -11799,12 +13348,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_Plus_10 : . Symbol_Group_3
-                if self.scanner.match_token(TerminalId(31), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(31)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(352),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(348),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(31)],
+                        },
                     );
                 }
             }
@@ -11814,8 +13374,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex_Plus_11
             NonterminalId(47) => {
+                let mut matched = false;
                 //Regex_Plus_11 : . Regex_Plus_11 Layout Regex_Group_4
-                if self.scanner.match_token(TerminalId(19), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(19)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(358),
                         input_index,
@@ -11824,7 +13386,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex_Plus_11 : . Regex_Group_4
-                if self.scanner.match_token(TerminalId(19), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(19)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(362),
                         input_index,
@@ -11832,11 +13395,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(358),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(19)],
+                        },
+                    );
+                }
             }
             //CharClass_Opt_10
             NonterminalId(48) => {
+                let mut matched = false;
                 //CharClass_Opt_10 : . "!"
-                if self.scanner.match_token(TerminalId(31), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(31)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(364),
                         input_index,
@@ -11845,11 +13420,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //CharClass_Opt_10 : .
-                if self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || input_index == self.input().len()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(33), TerminalId(7), TerminalId(9), TerminalId(37)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(366),
                         input_index,
@@ -11857,11 +13435,26 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(364),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(33), TerminalId(31), TerminalId(37),
+                                TerminalId(9), TerminalId(7)
+                            ],
+                        },
+                    );
+                }
             }
             //CharClass_Plus_12
             NonterminalId(49) => {
+                let mut matched = false;
                 //CharClass_Plus_12 : . CharClass_Plus_12 Layout RangeElement
-                if self.scanner.match_token(TerminalId(5), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(5)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(367),
                         input_index,
@@ -11870,7 +13463,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //CharClass_Plus_12 : . RangeElement
-                if self.scanner.match_token(TerminalId(5), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(5)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(371),
                         input_index,
@@ -11878,11 +13472,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(367),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(5)],
+                        },
+                    );
+                }
             }
             //Layout_Alt_0
             NonterminalId(50) => {
+                let mut matched = false;
                 //Layout_Alt_0 : . WS
-                if self.scanner.match_token(TerminalId(7), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(7)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(373),
                         input_index,
@@ -11891,7 +13497,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Layout_Alt_0 : . LineComment
-                if self.scanner.match_token(TerminalId(9), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(9)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(375),
                         input_index,
@@ -11899,13 +13506,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(373),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(9), TerminalId(7)],
+                        },
+                    );
+                }
             }
             //Layout_Plus_13
             NonterminalId(51) => {
+                let mut matched = false;
                 //Layout_Plus_13 : . Layout_Plus_13 Layout_Alt_0
-                if self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
-                {
+                if self.scanner.match_any(&[TerminalId(9), TerminalId(7)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(377),
                         input_index,
@@ -11914,9 +13531,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Layout_Plus_13 : . Layout_Alt_0
-                if self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
-                {
+                if self.scanner.match_any(&[TerminalId(9), TerminalId(7)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(380),
                         input_index,
@@ -11924,13 +13540,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(377),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(9), TerminalId(7)],
+                        },
+                    );
+                }
             }
             //Layout_Opt_11
             NonterminalId(52) => {
+                let mut matched = false;
                 //Layout_Opt_11 : . Layout_Plus_13
-                if self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
-                {
+                if self.scanner.match_any(&[TerminalId(9), TerminalId(7)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(382),
                         input_index,
@@ -11939,44 +13565,75 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Layout_Opt_11 : .
-                if self.scanner.match_token(TerminalId(23), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[
+                            TerminalId(23),
+                            TerminalId(33),
+                            TerminalId(30),
+                            TerminalId(32),
+                            TerminalId(6),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(31),
+                            TerminalId(20),
+                            TerminalId(22),
+                            TerminalId(24),
+                            TerminalId(18),
+                            TerminalId(3),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(35),
+                            TerminalId(27),
+                            TerminalId(25),
+                            TerminalId(34),
+                            TerminalId(12),
+                            TerminalId(28),
+                            TerminalId(5),
+                            TerminalId(37),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(17),
+                            TerminalId(11),
+                            TerminalId(2),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(10),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(384),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(382),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(23), TerminalId(33), TerminalId(30),
+                                TerminalId(32), TerminalId(6), TerminalId(21),
+                                TerminalId(1), TerminalId(31), TerminalId(20),
+                                TerminalId(22), TerminalId(24), TerminalId(18),
+                                TerminalId(3), TerminalId(14), TerminalId(19),
+                                TerminalId(35), TerminalId(27), TerminalId(9),
+                                TerminalId(25), TerminalId(34), TerminalId(7),
+                                TerminalId(12), TerminalId(28), TerminalId(5),
+                                TerminalId(37), TerminalId(16), TerminalId(15),
+                                TerminalId(17), TerminalId(11), TerminalId(2),
+                                TerminalId(26), TerminalId(29), TerminalId(10),
+                                TerminalId(13)
+                            ],
+                        },
                     );
                 }
             }
@@ -11986,8 +13643,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except
             NonterminalId(72) => {
+                let mut matched = false;
                 //Symbol_except_Except(p: i32) : . Identifier return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(387),
                         input_index,
@@ -11996,7 +13655,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(390),
                         input_index,
@@ -12005,7 +13665,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(397),
                         input_index,
@@ -12014,7 +13675,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . String return 0
-                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(406),
                         input_index,
@@ -12023,7 +13685,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(409),
                         input_index,
@@ -12032,7 +13695,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(420),
                         input_index,
@@ -12041,11 +13705,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(431),
                         input_index,
@@ -12054,11 +13721,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(438),
                         input_index,
@@ -12067,11 +13737,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(445),
                         input_index,
@@ -12080,11 +13753,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_9 return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(452),
                         input_index,
@@ -12093,11 +13769,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(459),
                         input_index,
@@ -12106,7 +13785,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(466),
                         input_index,
@@ -12115,7 +13795,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(473),
                         input_index,
@@ -12123,11 +13804,25 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         env,
                     );
                 }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(387),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)
+                            ],
+                        },
+                    );
+                }
             }
             //Symbol_except_FollowRestriction
             NonterminalId(73) => {
+                let mut matched = false;
                 //Symbol_except_FollowRestriction(p: i32) : . Identifier return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(480),
                         input_index,
@@ -12136,7 +13831,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(483),
                         input_index,
@@ -12145,7 +13841,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                if self.scanner.match_token(TerminalId(16), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(490),
                         input_index,
@@ -12154,7 +13851,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . String return 0
-                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(499),
                         input_index,
@@ -12163,7 +13861,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(502),
                         input_index,
@@ -12172,7 +13871,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                if self.scanner.match_token(TerminalId(26), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(513),
                         input_index,
@@ -12181,11 +13881,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(524),
                         input_index,
@@ -12194,11 +13897,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(531),
                         input_index,
@@ -12207,11 +13913,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(538),
                         input_index,
@@ -12220,11 +13929,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_8 return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(545),
                         input_index,
@@ -12233,11 +13945,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
+                if self
+                    .scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        input_index,
+                    )
                 {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(552),
                         input_index,
@@ -12246,7 +13961,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(559),
                         input_index,
@@ -12255,12 +13971,25 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(
                         SlotId(566),
                         input_index,
                         gss_node_id,
                         env,
+                    );
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(480),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)
+                            ],
+                        },
                     );
                 }
             }
@@ -12595,816 +14324,1567 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         slot: SlotId,
         left_extent: u32,
         right_extent: u32,
-    ) -> bool {
+    ) -> Option<ParseErrorKind> {
         match slot {
             SlotId(225) => {
-                self.scanner.match_token(TerminalId(7), right_extent).is_none()
-                    && self.scanner.match_token(TerminalId(9), right_extent).is_none()
+                if self.scanner.match_token(TerminalId(7), right_extent).is_some()
+                    || self.scanner.match_token(TerminalId(9), right_extent).is_some()
+                {
+                    Some(ParseErrorKind::ForbiddenFollow {
+                        forbidden: vec![TerminalId(7), TerminalId(9)],
+                    })
+                } else {
+                    None
+                }
             }
-            _ => true,
+            _ => None,
         }
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(37), TerminalId(9), TerminalId(7)],
+                        input_index,
+                    )
             }
             NonterminalId(1) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(2) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(3) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(4) => {
-                self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(7), TerminalId(1), TerminalId(9), TerminalId(37)],
+                        input_index,
+                    )
             }
             NonterminalId(5) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(6) => {
-                self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(33),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(7) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(22),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(8) => {
-                self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(13),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(9) => {
-                self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(13),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(6),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(10) => {
-                self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(13),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(71) => {
-                self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(30),
+                            TerminalId(13),
+                            TerminalId(28),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(17),
+                            TerminalId(22),
+                            TerminalId(15),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(27),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(11) => {
-                self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(30),
+                            TerminalId(33),
+                            TerminalId(28),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(17),
+                            TerminalId(22),
+                            TerminalId(15),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(29),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(12) => {
-                self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(30),
+                            TerminalId(33),
+                            TerminalId(28),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(17),
+                            TerminalId(22),
+                            TerminalId(15),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(29),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(13) => {
-                self.scanner.match_token(TerminalId(34), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(34),
+                            TerminalId(7),
+                            TerminalId(5),
+                            TerminalId(9),
+                            TerminalId(37),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(14) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(37),
+                            TerminalId(34),
+                            TerminalId(5),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(15) => {
-                self.scanner.match_token(TerminalId(23), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(23),
+                            TerminalId(33),
+                            TerminalId(30),
+                            TerminalId(32),
+                            TerminalId(6),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(31),
+                            TerminalId(20),
+                            TerminalId(22),
+                            TerminalId(24),
+                            TerminalId(18),
+                            TerminalId(3),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(35),
+                            TerminalId(27),
+                            TerminalId(9),
+                            TerminalId(7),
+                            TerminalId(25),
+                            TerminalId(34),
+                            TerminalId(12),
+                            TerminalId(28),
+                            TerminalId(5),
+                            TerminalId(37),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(17),
+                            TerminalId(11),
+                            TerminalId(2),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(10),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(16) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(17) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(18) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(37), TerminalId(9), TerminalId(7)],
+                        input_index,
+                    )
             }
             NonterminalId(19) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(37), TerminalId(9), TerminalId(7)],
+                        input_index,
+                    )
             }
             NonterminalId(20) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(37), TerminalId(1), TerminalId(9), TerminalId(7)],
+                        input_index,
+                    )
             }
             NonterminalId(21) => {
-                self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(22) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(23) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(24) => {
-                self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(33),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(25) => {
-                self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(33),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(17),
+                            TerminalId(22),
+                            TerminalId(15),
+                            TerminalId(3),
+                            TerminalId(2),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(26) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(22),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(27) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(22),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(28) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(29) => {
-                self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(30) => {
-                self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(13),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(6),
+                            TerminalId(19),
+                            TerminalId(37),
+                            TerminalId(26),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(31) => {
-                self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(32) => {
-                self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(13),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(33) => {
-                self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(34) => {
-                self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(17),
+                            TerminalId(15),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(9),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(35) => {
-                self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(13),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(36) => {
-                self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(37) => {
-                self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(18),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(37),
+                            TerminalId(1),
+                            TerminalId(15),
+                            TerminalId(9),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(38) => {
-                self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(17),
+                            TerminalId(9),
+                            TerminalId(19),
+                            TerminalId(37),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(39) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(37),
+                            TerminalId(17),
+                            TerminalId(9),
+                            TerminalId(19),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(40) => {
-                self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(30),
+                            TerminalId(13),
+                            TerminalId(28),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(31),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(17),
+                            TerminalId(22),
+                            TerminalId(15),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(27),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(41) => {
-                self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(30),
+                            TerminalId(13),
+                            TerminalId(28),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(17),
+                            TerminalId(22),
+                            TerminalId(15),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(27),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(42) => {
-                self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(30),
+                            TerminalId(13),
+                            TerminalId(28),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(17),
+                            TerminalId(22),
+                            TerminalId(15),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(27),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(43) => {
-                self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(30),
+                            TerminalId(13),
+                            TerminalId(28),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(17),
+                            TerminalId(22),
+                            TerminalId(15),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(27),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(44) => {
-                self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(30),
+                            TerminalId(13),
+                            TerminalId(28),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(17),
+                            TerminalId(22),
+                            TerminalId(15),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(27),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(45) => {
-                self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(30),
+                            TerminalId(13),
+                            TerminalId(28),
+                            TerminalId(6),
+                            TerminalId(37),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(16),
+                            TerminalId(31),
+                            TerminalId(17),
+                            TerminalId(22),
+                            TerminalId(15),
+                            TerminalId(18),
+                            TerminalId(2),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(27),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(46) => {
-                self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(7),
+                            TerminalId(17),
+                            TerminalId(9),
+                            TerminalId(19),
+                            TerminalId(37),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(47) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(37),
+                            TerminalId(17),
+                            TerminalId(9),
+                            TerminalId(19),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(48) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(37), TerminalId(33), TerminalId(9), TerminalId(7)],
+                        input_index,
+                    )
             }
             NonterminalId(49) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(37),
+                            TerminalId(34),
+                            TerminalId(5),
+                            TerminalId(9),
+                            TerminalId(7),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(50) => {
-                self.scanner.match_token(TerminalId(23), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(23),
+                            TerminalId(33),
+                            TerminalId(30),
+                            TerminalId(32),
+                            TerminalId(6),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(31),
+                            TerminalId(20),
+                            TerminalId(22),
+                            TerminalId(24),
+                            TerminalId(18),
+                            TerminalId(3),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(35),
+                            TerminalId(27),
+                            TerminalId(9),
+                            TerminalId(25),
+                            TerminalId(34),
+                            TerminalId(7),
+                            TerminalId(12),
+                            TerminalId(28),
+                            TerminalId(5),
+                            TerminalId(37),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(17),
+                            TerminalId(11),
+                            TerminalId(2),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(10),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(51) => {
-                self.scanner.match_token(TerminalId(23), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(23),
+                            TerminalId(33),
+                            TerminalId(30),
+                            TerminalId(32),
+                            TerminalId(6),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(31),
+                            TerminalId(20),
+                            TerminalId(22),
+                            TerminalId(24),
+                            TerminalId(18),
+                            TerminalId(3),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(35),
+                            TerminalId(27),
+                            TerminalId(9),
+                            TerminalId(25),
+                            TerminalId(34),
+                            TerminalId(7),
+                            TerminalId(12),
+                            TerminalId(28),
+                            TerminalId(5),
+                            TerminalId(37),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(17),
+                            TerminalId(11),
+                            TerminalId(2),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(10),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(52) => {
-                self.scanner.match_token(TerminalId(23), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(23),
+                            TerminalId(33),
+                            TerminalId(30),
+                            TerminalId(32),
+                            TerminalId(6),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(31),
+                            TerminalId(20),
+                            TerminalId(22),
+                            TerminalId(24),
+                            TerminalId(18),
+                            TerminalId(3),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(35),
+                            TerminalId(27),
+                            TerminalId(25),
+                            TerminalId(34),
+                            TerminalId(12),
+                            TerminalId(28),
+                            TerminalId(5),
+                            TerminalId(37),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(17),
+                            TerminalId(11),
+                            TerminalId(2),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(10),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(53) => {
-                self.scanner.match_token(TerminalId(23), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(33), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(30), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(32), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(6), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(31), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(20), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(24), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(18), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(14), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(19), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(35), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(27), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(25), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(34), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(12), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(28), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(16), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(15), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(17), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(11), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(26), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(29), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(10), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(13), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(23),
+                            TerminalId(33),
+                            TerminalId(30),
+                            TerminalId(32),
+                            TerminalId(6),
+                            TerminalId(21),
+                            TerminalId(1),
+                            TerminalId(31),
+                            TerminalId(20),
+                            TerminalId(22),
+                            TerminalId(24),
+                            TerminalId(18),
+                            TerminalId(3),
+                            TerminalId(14),
+                            TerminalId(19),
+                            TerminalId(35),
+                            TerminalId(27),
+                            TerminalId(25),
+                            TerminalId(34),
+                            TerminalId(12),
+                            TerminalId(28),
+                            TerminalId(5),
+                            TerminalId(37),
+                            TerminalId(16),
+                            TerminalId(15),
+                            TerminalId(17),
+                            TerminalId(11),
+                            TerminalId(2),
+                            TerminalId(26),
+                            TerminalId(29),
+                            TerminalId(10),
+                            TerminalId(13),
+                        ],
+                        input_index,
+                    )
             }
             NonterminalId(72) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(21), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(37), TerminalId(21), TerminalId(9), TerminalId(7)],
+                        input_index,
+                    )
             }
             NonterminalId(73) => {
-                input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(9), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(22), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(7), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(37), TerminalId(9), TerminalId(22), TerminalId(7)],
+                        input_index,
+                    )
             }
-            NonterminalId(54) => input_index == self.input().len(),
-            NonterminalId(55) => input_index == self.input().len(),
-            NonterminalId(56) => input_index == self.input().len(),
-            NonterminalId(57) => input_index == self.input().len(),
-            NonterminalId(58) => input_index == self.input().len(),
-            NonterminalId(59) => input_index == self.input().len(),
-            NonterminalId(60) => input_index == self.input().len(),
-            NonterminalId(61) => input_index == self.input().len(),
-            NonterminalId(62) => input_index == self.input().len(),
-            NonterminalId(63) => input_index == self.input().len(),
-            NonterminalId(64) => input_index == self.input().len(),
-            NonterminalId(65) => input_index == self.input().len(),
-            NonterminalId(66) => input_index == self.input().len(),
-            NonterminalId(67) => input_index == self.input().len(),
-            NonterminalId(68) => input_index == self.input().len(),
-            NonterminalId(69) => input_index == self.input().len(),
-            NonterminalId(70) => input_index == self.input().len(),
+            NonterminalId(54) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(55) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(56) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(57) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(58) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(59) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(60) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(61) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(62) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(63) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(64) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(65) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(66) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(67) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(68) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(69) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(70) => self.scanner.match_any(&[TerminalId(37)], input_index),
             _ => true,
         }
+    }
+    fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
+        match nonterminal_id {
+            NonterminalId(0) => vec![TerminalId(37), TerminalId(9), TerminalId(7)],
+            NonterminalId(1) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
+                    TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(2) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
+                    TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(3) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
+                    TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(4) => {
+                vec![TerminalId(7), TerminalId(1), TerminalId(9), TerminalId(37)]
+            }
+            NonterminalId(5) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
+                    TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(6) => {
+                vec![
+                    TerminalId(33), TerminalId(3), TerminalId(2), TerminalId(37),
+                    TerminalId(1), TerminalId(16), TerminalId(31), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(7) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(21),
+                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(22),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(8) => {
+                vec![
+                    TerminalId(13), TerminalId(18), TerminalId(14), TerminalId(37),
+                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(9) => {
+                vec![
+                    TerminalId(13), TerminalId(18), TerminalId(2), TerminalId(14),
+                    TerminalId(6), TerminalId(19), TerminalId(26), TerminalId(37),
+                    TerminalId(1), TerminalId(16), TerminalId(15), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(10) => {
+                vec![
+                    TerminalId(13), TerminalId(18), TerminalId(14), TerminalId(19),
+                    TerminalId(37), TerminalId(1), TerminalId(15), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(71) => {
+                vec![
+                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
+                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
+                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
+                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
+                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(11) => {
+                vec![
+                    TerminalId(30), TerminalId(33), TerminalId(28), TerminalId(37),
+                    TerminalId(21), TerminalId(1), TerminalId(16), TerminalId(31),
+                    TerminalId(17), TerminalId(22), TerminalId(15), TerminalId(3),
+                    TerminalId(2), TerminalId(18), TerminalId(14), TerminalId(19),
+                    TerminalId(29), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(12) => {
+                vec![
+                    TerminalId(30), TerminalId(33), TerminalId(28), TerminalId(37),
+                    TerminalId(21), TerminalId(1), TerminalId(16), TerminalId(31),
+                    TerminalId(17), TerminalId(22), TerminalId(15), TerminalId(3),
+                    TerminalId(2), TerminalId(18), TerminalId(14), TerminalId(19),
+                    TerminalId(29), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(13) => {
+                vec![
+                    TerminalId(34), TerminalId(7), TerminalId(5), TerminalId(9),
+                    TerminalId(37)
+                ]
+            }
+            NonterminalId(14) => {
+                vec![
+                    TerminalId(37), TerminalId(34), TerminalId(5), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(15) => {
+                vec![
+                    TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
+                    TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
+                    TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
+                    TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
+                    TerminalId(27), TerminalId(9), TerminalId(7), TerminalId(25),
+                    TerminalId(34), TerminalId(12), TerminalId(28), TerminalId(5),
+                    TerminalId(37), TerminalId(16), TerminalId(15), TerminalId(17),
+                    TerminalId(11), TerminalId(2), TerminalId(26), TerminalId(29),
+                    TerminalId(10), TerminalId(13)
+                ]
+            }
+            NonterminalId(16) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
+                    TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(17) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
+                    TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(18) => vec![TerminalId(37), TerminalId(9), TerminalId(7)],
+            NonterminalId(19) => vec![TerminalId(37), TerminalId(9), TerminalId(7)],
+            NonterminalId(20) => {
+                vec![TerminalId(37), TerminalId(1), TerminalId(9), TerminalId(7)]
+            }
+            NonterminalId(21) => {
+                vec![
+                    TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(37),
+                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(13)
+                ]
+            }
+            NonterminalId(22) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
+                    TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(23) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
+                    TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(24) => {
+                vec![
+                    TerminalId(33), TerminalId(3), TerminalId(2), TerminalId(37),
+                    TerminalId(1), TerminalId(16), TerminalId(31), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(25) => {
+                vec![
+                    TerminalId(33), TerminalId(37), TerminalId(21), TerminalId(1),
+                    TerminalId(16), TerminalId(31), TerminalId(17), TerminalId(22),
+                    TerminalId(15), TerminalId(3), TerminalId(2), TerminalId(18),
+                    TerminalId(14), TerminalId(19), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(26) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(19), TerminalId(37),
+                    TerminalId(21), TerminalId(1), TerminalId(15), TerminalId(9),
+                    TerminalId(22), TerminalId(7)
+                ]
+            }
+            NonterminalId(27) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(21),
+                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(22),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(28) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
+                    TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(29) => {
+                vec![
+                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
+                    TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(30) => {
+                vec![
+                    TerminalId(13), TerminalId(18), TerminalId(2), TerminalId(14),
+                    TerminalId(6), TerminalId(19), TerminalId(37), TerminalId(26),
+                    TerminalId(1), TerminalId(16), TerminalId(15), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(31) => {
+                vec![
+                    TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(19),
+                    TerminalId(37), TerminalId(1), TerminalId(15), TerminalId(9),
+                    TerminalId(13)
+                ]
+            }
+            NonterminalId(32) => {
+                vec![
+                    TerminalId(13), TerminalId(18), TerminalId(14), TerminalId(37),
+                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(33) => {
+                vec![
+                    TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(37),
+                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(13)
+                ]
+            }
+            NonterminalId(34) => {
+                vec![
+                    TerminalId(7), TerminalId(6), TerminalId(37), TerminalId(1),
+                    TerminalId(16), TerminalId(17), TerminalId(15), TerminalId(18),
+                    TerminalId(2), TerminalId(14), TerminalId(19), TerminalId(26),
+                    TerminalId(9), TerminalId(13)
+                ]
+            }
+            NonterminalId(35) => {
+                vec![
+                    TerminalId(13), TerminalId(18), TerminalId(14), TerminalId(19),
+                    TerminalId(6), TerminalId(37), TerminalId(1), TerminalId(15),
+                    TerminalId(9), TerminalId(7)
+                ]
+            }
+            NonterminalId(36) => {
+                vec![
+                    TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(19),
+                    TerminalId(6), TerminalId(37), TerminalId(1), TerminalId(15),
+                    TerminalId(9), TerminalId(13)
+                ]
+            }
+            NonterminalId(37) => {
+                vec![
+                    TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(19),
+                    TerminalId(37), TerminalId(1), TerminalId(15), TerminalId(9),
+                    TerminalId(13)
+                ]
+            }
+            NonterminalId(38) => {
+                vec![
+                    TerminalId(7), TerminalId(17), TerminalId(9), TerminalId(19),
+                    TerminalId(37)
+                ]
+            }
+            NonterminalId(39) => {
+                vec![
+                    TerminalId(37), TerminalId(17), TerminalId(9), TerminalId(19),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(40) => {
+                vec![
+                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
+                    TerminalId(37), TerminalId(21), TerminalId(31), TerminalId(1),
+                    TerminalId(16), TerminalId(17), TerminalId(22), TerminalId(15),
+                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
+                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(41) => {
+                vec![
+                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
+                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
+                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
+                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
+                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(42) => {
+                vec![
+                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
+                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
+                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
+                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
+                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(43) => {
+                vec![
+                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
+                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
+                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
+                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
+                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(44) => {
+                vec![
+                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
+                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
+                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
+                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
+                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(45) => {
+                vec![
+                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
+                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
+                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
+                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
+                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(46) => {
+                vec![
+                    TerminalId(7), TerminalId(17), TerminalId(9), TerminalId(19),
+                    TerminalId(37)
+                ]
+            }
+            NonterminalId(47) => {
+                vec![
+                    TerminalId(37), TerminalId(17), TerminalId(9), TerminalId(19),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(48) => {
+                vec![TerminalId(37), TerminalId(33), TerminalId(9), TerminalId(7)]
+            }
+            NonterminalId(49) => {
+                vec![
+                    TerminalId(37), TerminalId(34), TerminalId(5), TerminalId(9),
+                    TerminalId(7)
+                ]
+            }
+            NonterminalId(50) => {
+                vec![
+                    TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
+                    TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
+                    TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
+                    TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
+                    TerminalId(27), TerminalId(9), TerminalId(25), TerminalId(34),
+                    TerminalId(7), TerminalId(12), TerminalId(28), TerminalId(5),
+                    TerminalId(37), TerminalId(16), TerminalId(15), TerminalId(17),
+                    TerminalId(11), TerminalId(2), TerminalId(26), TerminalId(29),
+                    TerminalId(10), TerminalId(13)
+                ]
+            }
+            NonterminalId(51) => {
+                vec![
+                    TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
+                    TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
+                    TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
+                    TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
+                    TerminalId(27), TerminalId(9), TerminalId(25), TerminalId(34),
+                    TerminalId(7), TerminalId(12), TerminalId(28), TerminalId(5),
+                    TerminalId(37), TerminalId(16), TerminalId(15), TerminalId(17),
+                    TerminalId(11), TerminalId(2), TerminalId(26), TerminalId(29),
+                    TerminalId(10), TerminalId(13)
+                ]
+            }
+            NonterminalId(52) => {
+                vec![
+                    TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
+                    TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
+                    TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
+                    TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
+                    TerminalId(27), TerminalId(25), TerminalId(34), TerminalId(12),
+                    TerminalId(28), TerminalId(5), TerminalId(37), TerminalId(16),
+                    TerminalId(15), TerminalId(17), TerminalId(11), TerminalId(2),
+                    TerminalId(26), TerminalId(29), TerminalId(10), TerminalId(13)
+                ]
+            }
+            NonterminalId(53) => {
+                vec![
+                    TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
+                    TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
+                    TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
+                    TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
+                    TerminalId(27), TerminalId(25), TerminalId(34), TerminalId(12),
+                    TerminalId(28), TerminalId(5), TerminalId(37), TerminalId(16),
+                    TerminalId(15), TerminalId(17), TerminalId(11), TerminalId(2),
+                    TerminalId(26), TerminalId(29), TerminalId(10), TerminalId(13)
+                ]
+            }
+            NonterminalId(72) => {
+                vec![TerminalId(37), TerminalId(21), TerminalId(9), TerminalId(7)]
+            }
+            NonterminalId(73) => {
+                vec![TerminalId(37), TerminalId(9), TerminalId(22), TerminalId(7)]
+            }
+            NonterminalId(54) => vec![TerminalId(37)],
+            NonterminalId(55) => vec![TerminalId(37)],
+            NonterminalId(56) => vec![TerminalId(37)],
+            NonterminalId(57) => vec![TerminalId(37)],
+            NonterminalId(58) => vec![TerminalId(37)],
+            NonterminalId(59) => vec![TerminalId(37)],
+            NonterminalId(60) => vec![TerminalId(37)],
+            NonterminalId(61) => vec![TerminalId(37)],
+            NonterminalId(62) => vec![TerminalId(37)],
+            NonterminalId(63) => vec![TerminalId(37)],
+            NonterminalId(64) => vec![TerminalId(37)],
+            NonterminalId(65) => vec![TerminalId(37)],
+            NonterminalId(66) => vec![TerminalId(37)],
+            NonterminalId(67) => vec![TerminalId(37)],
+            NonterminalId(68) => vec![TerminalId(37)],
+            NonterminalId(69) => vec![TerminalId(37)],
+            NonterminalId(70) => vec![TerminalId(37)],
+            _ => vec![],
+        }
+    }
+    fn parse_error(&self) -> Option<&ParseError> {
+        self.parse_errors.values().next_back()?.first()
+    }
+    fn add_parse_error(
+        &mut self,
+        input_index: u32,
+        slot_id: SlotId,
+        gss_node_id: Option<GssNodeId>,
+        kind: ParseErrorKind,
+    ) {
+        self.parse_errors
+            .entry(input_index)
+            .or_default()
+            .push(ParseError {
+                input_index,
+                slot_id,
+                gss_node_id,
+                kind,
+            });
     }
 }
 pub struct IggyParser<'i> {
@@ -13425,7 +15905,7 @@ pub struct IggyParser<'i> {
     descriptors_count: usize,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 74],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 641],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 37],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 38],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -13442,6 +15922,7 @@ pub struct IggyParser<'i> {
         InlineVec<(i32, SPPFNodeId)>,
     >,
     envs: Vec<Env>,
+    parse_errors: BTreeMap<u32, Vec<ParseError>>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -13460,7 +15941,7 @@ impl<'i> IggyParser<'i> {
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 74],
             intermediate_nodes_index: [const { InlineMap::Empty }; 641],
-            terminal_nodes_index: [const { InlineMap::Empty }; 37],
+            terminal_nodes_index: [const { InlineMap::Empty }; 38],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             intermediate_nodes_children: vec![],
@@ -13471,6 +15952,7 @@ impl<'i> IggyParser<'i> {
             nonterminal_nodes_index_symbol_except_except: FxHashMap::default(),
             nonterminal_nodes_index_symbol_except_follow_restriction: FxHashMap::default(),
             envs: vec![],
+            parse_errors: BTreeMap::new(),
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
@@ -13638,11 +16120,24 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_layout_def_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(11), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(11)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(11), start)?;
+                let end = match self.scanner.match_token(TerminalId(11), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(9),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(11)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(11), start, end);
                 j = end;
                 node
@@ -13668,7 +16163,20 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(11),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -13695,15 +16203,37 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(8),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(11)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_annotation_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(14), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(14)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(14), start)?;
+                let end = match self.scanner.match_token(TerminalId(14), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(25),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(14)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(14), start, end);
                 j = end;
                 node
@@ -13722,141 +16252,220 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
-        }
-        if self.scanner.match_token(TerminalId(15), i).is_some() {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let end = self.scanner.match_token(TerminalId(15), start)?;
-                let node = self.get_or_create_terminal_node(TerminalId(15), start, end);
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(28),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let end = self.scanner.match_token(TerminalId(16), start)?;
-                let node = self.get_or_create_terminal_node(TerminalId(16), start, end);
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(29),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(30),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
-                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(31),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(32),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let end = self.scanner.match_token(TerminalId(17), start)?;
-                let node = self.get_or_create_terminal_node(TerminalId(17), start, end);
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(33),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(4),
+        } else {
+            if self.scanner.match_any(&[TerminalId(15)], i) {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let end = match self.scanner.match_token(TerminalId(15), start) {
+                        Some(end) => end,
+                        None => {
+                            self.add_parse_error(
+                                start,
+                                SlotId(27),
+                                None,
+                                ParseErrorKind::UnexpectedToken {
+                                    expected: vec![TerminalId(15)],
+                                },
+                            );
+                            return None;
+                        }
+                    };
+                    let node = self
+                        .get_or_create_terminal_node(TerminalId(15), start, end);
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(28),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let end = match self.scanner.match_token(TerminalId(16), start) {
+                        Some(end) => end,
+                        None => {
+                            self.add_parse_error(
+                                start,
+                                SlotId(29),
+                                None,
+                                ParseErrorKind::UnexpectedToken {
+                                    expected: vec![TerminalId(16)],
+                                },
+                            );
+                            return None;
+                        }
+                    };
+                    let node = self
+                        .get_or_create_terminal_node(TerminalId(16), start, end);
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(29),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(30),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let end = match self.scanner.match_token(TerminalId(1), start) {
+                        Some(end) => end,
+                        None => {
+                            self.add_parse_error(
+                                start,
+                                SlotId(31),
+                                None,
+                                ParseErrorKind::UnexpectedToken {
+                                    expected: vec![TerminalId(1)],
+                                },
+                            );
+                            return None;
+                        }
+                    };
+                    let node = self
+                        .get_or_create_terminal_node(TerminalId(1), start, end);
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(31),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(32),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let end = match self.scanner.match_token(TerminalId(17), start) {
+                        Some(end) => end,
+                        None => {
+                            self.add_parse_error(
+                                start,
+                                SlotId(33),
+                                None,
+                                ParseErrorKind::UnexpectedToken {
+                                    expected: vec![TerminalId(17)],
+                                },
+                            );
+                            return None;
+                        }
+                    };
+                    let node = self
+                        .get_or_create_terminal_node(TerminalId(17), start, end);
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
                         SlotId(33),
                         left_extent,
                         j,
                         current,
+                        right_child,
                         false,
                     )
-                    .unwrap(),
-            );
+                    .unwrap();
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(4),
+                            SlotId(33),
+                            left_extent,
+                            j,
+                            current,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(24),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![TerminalId(15), TerminalId(14)],
+                    },
+                );
+                None
+            }
         }
-        None
     }
     fn parse_pre_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(1), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(1)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(47),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -13882,7 +16491,20 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(20), start)?;
+                let end = match self.scanner.match_token(TerminalId(20), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(49),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(20)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(20), start, end);
                 j = end;
                 node
@@ -13909,15 +16531,37 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(46),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(1)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_post_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(21), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(21)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(21), start)?;
+                let end = match self.scanner.match_token(TerminalId(21), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(51),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(21)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(21), start, end);
                 j = end;
                 node
@@ -13943,7 +16587,20 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(53),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -13970,73 +16627,124 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
-        }
-        if self.scanner.match_token(TerminalId(22), i).is_some() {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let end = self.scanner.match_token(TerminalId(22), start)?;
-                let node = self.get_or_create_terminal_node(TerminalId(22), start, end);
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(56),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
-                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(57),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(7),
+        } else {
+            if self.scanner.match_any(&[TerminalId(22)], i) {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let end = match self.scanner.match_token(TerminalId(22), start) {
+                        Some(end) => end,
+                        None => {
+                            self.add_parse_error(
+                                start,
+                                SlotId(55),
+                                None,
+                                ParseErrorKind::UnexpectedToken {
+                                    expected: vec![TerminalId(22)],
+                                },
+                            );
+                            return None;
+                        }
+                    };
+                    let node = self
+                        .get_or_create_terminal_node(TerminalId(22), start, end);
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(56),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let end = match self.scanner.match_token(TerminalId(1), start) {
+                        Some(end) => end,
+                        None => {
+                            self.add_parse_error(
+                                start,
+                                SlotId(57),
+                                None,
+                                ParseErrorKind::UnexpectedToken {
+                                    expected: vec![TerminalId(1)],
+                                },
+                            );
+                            return None;
+                        }
+                    };
+                    let node = self
+                        .get_or_create_terminal_node(TerminalId(1), start, end);
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
                         SlotId(57),
                         left_extent,
                         j,
                         current,
+                        right_child,
                         false,
                     )
-                    .unwrap(),
-            );
+                    .unwrap();
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(7),
+                            SlotId(57),
+                            left_extent,
+                            j,
+                            current,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(50),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![TerminalId(21), TerminalId(22)],
+                    },
+                );
+                None
+            }
         }
-        None
     }
     fn parse_associativity_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(23), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(23)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(23), start)?;
+                let end = match self.scanner.match_token(TerminalId(23), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(63),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(23)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(23), start, end);
                 j = end;
                 node
@@ -14055,63 +16763,117 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self.scanner.match_any(&[TerminalId(24)], i) {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let end = match self.scanner.match_token(TerminalId(24), start) {
+                        Some(end) => end,
+                        None => {
+                            self.add_parse_error(
+                                start,
+                                SlotId(65),
+                                None,
+                                ParseErrorKind::UnexpectedToken {
+                                    expected: vec![TerminalId(24)],
+                                },
+                            );
+                            return None;
+                        }
+                    };
+                    let node = self
+                        .get_or_create_terminal_node(TerminalId(24), start, end);
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(9),
+                            SlotId(65),
+                            left_extent,
+                            j,
+                            current,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                if self.scanner.match_any(&[TerminalId(25)], i) {
+                    let mut j = i;
+                    let right_child = {
+                        let start = j;
+                        let end = match self.scanner.match_token(TerminalId(25), start) {
+                            Some(end) => end,
+                            None => {
+                                self.add_parse_error(
+                                    start,
+                                    SlotId(67),
+                                    None,
+                                    ParseErrorKind::UnexpectedToken {
+                                        expected: vec![TerminalId(25)],
+                                    },
+                                );
+                                return None;
+                            }
+                        };
+                        let node = self
+                            .get_or_create_terminal_node(TerminalId(25), start, end);
+                        j = end;
+                        node
+                    };
+                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let mut current = right_child;
+                    return Some(
+                        self
+                            .get_or_create_nonterminal_node(
+                                NonterminalId(9),
+                                SlotId(67),
+                                left_extent,
+                                j,
+                                current,
+                                false,
+                            )
+                            .unwrap(),
+                    );
+                } else {
+                    self.add_parse_error(
+                        i,
+                        SlotId(62),
+                        None,
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![
+                                TerminalId(23), TerminalId(25), TerminalId(24)
+                            ],
+                        },
+                    );
+                    None
+                }
+            }
         }
-        if self.scanner.match_token(TerminalId(24), i).is_some() {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let end = self.scanner.match_token(TerminalId(24), start)?;
-                let node = self.get_or_create_terminal_node(TerminalId(24), start, end);
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(9),
-                        SlotId(65),
-                        left_extent,
-                        j,
-                        current,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        if self.scanner.match_token(TerminalId(25), i).is_some() {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let end = self.scanner.match_token(TerminalId(25), start)?;
-                let node = self.get_or_create_terminal_node(TerminalId(25), start, end);
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(9),
-                        SlotId(67),
-                        left_extent,
-                        j,
-                        current,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
     fn parse_range_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(5), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(5)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(5), start)?;
+                let end = match self.scanner.match_token(TerminalId(5), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(219),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(5)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(5), start, end);
                 j = end;
                 node
@@ -14137,7 +16899,20 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(35), start)?;
+                let end = match self.scanner.match_token(TerminalId(35), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(221),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(35)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(35), start, end);
                 j = end;
                 node
@@ -14171,7 +16946,20 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(5), start)?;
+                let end = match self.scanner.match_token(TerminalId(5), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(223),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(5)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(5), start, end);
                 j = end;
                 node
@@ -14198,44 +16986,60 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(218),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(5)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_layout_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(23), i).is_some()
-            || self.scanner.match_token(TerminalId(33), i).is_some()
-            || self.scanner.match_token(TerminalId(30), i).is_some()
-            || self.scanner.match_token(TerminalId(32), i).is_some()
-            || self.scanner.match_token(TerminalId(6), i).is_some()
-            || self.scanner.match_token(TerminalId(21), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(31), i).is_some()
-            || self.scanner.match_token(TerminalId(20), i).is_some()
-            || self.scanner.match_token(TerminalId(22), i).is_some()
-            || self.scanner.match_token(TerminalId(24), i).is_some()
-            || self.scanner.match_token(TerminalId(18), i).is_some()
-            || self.scanner.match_token(TerminalId(3), i).is_some()
-            || self.scanner.match_token(TerminalId(14), i).is_some()
-            || self.scanner.match_token(TerminalId(19), i).is_some()
-            || self.scanner.match_token(TerminalId(35), i).is_some()
-            || self.scanner.match_token(TerminalId(27), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(25), i).is_some()
-            || self.scanner.match_token(TerminalId(34), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
-            || self.scanner.match_token(TerminalId(12), i).is_some()
-            || self.scanner.match_token(TerminalId(28), i).is_some()
-            || self.scanner.match_token(TerminalId(5), i).is_some()
-            || i == self.input().len()
-            || self.scanner.match_token(TerminalId(16), i).is_some()
-            || self.scanner.match_token(TerminalId(15), i).is_some()
-            || self.scanner.match_token(TerminalId(17), i).is_some()
-            || self.scanner.match_token(TerminalId(11), i).is_some()
-            || self.scanner.match_token(TerminalId(2), i).is_some()
-            || self.scanner.match_token(TerminalId(26), i).is_some()
-            || self.scanner.match_token(TerminalId(29), i).is_some()
-            || self.scanner.match_token(TerminalId(10), i).is_some()
-            || self.scanner.match_token(TerminalId(13), i).is_some()
+        if self
+            .scanner
+            .match_any(
+                &[
+                    TerminalId(23),
+                    TerminalId(33),
+                    TerminalId(30),
+                    TerminalId(32),
+                    TerminalId(6),
+                    TerminalId(21),
+                    TerminalId(1),
+                    TerminalId(31),
+                    TerminalId(20),
+                    TerminalId(22),
+                    TerminalId(24),
+                    TerminalId(18),
+                    TerminalId(3),
+                    TerminalId(14),
+                    TerminalId(19),
+                    TerminalId(35),
+                    TerminalId(27),
+                    TerminalId(9),
+                    TerminalId(25),
+                    TerminalId(34),
+                    TerminalId(7),
+                    TerminalId(12),
+                    TerminalId(28),
+                    TerminalId(5),
+                    TerminalId(37),
+                    TerminalId(16),
+                    TerminalId(15),
+                    TerminalId(17),
+                    TerminalId(11),
+                    TerminalId(2),
+                    TerminalId(26),
+                    TerminalId(29),
+                    TerminalId(10),
+                    TerminalId(13),
+                ],
+                i,
+            )
         {
             let mut j = i;
             let right_child = {
@@ -14243,9 +17047,8 @@ impl<'i> IggyParser<'i> {
                 let node = self.parse_layout_star_5_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
-                if !(self.scanner.match_token(TerminalId(7), end).is_none()
-                    && self.scanner.match_token(TerminalId(9), end).is_none())
-                {
+                if let Some(error_kind) = self.post_conditions(SlotId(225), start, end) {
+                    self.add_parse_error(end, SlotId(225), None, error_kind);
                     return None;
                 }
                 node
@@ -14264,11 +17067,30 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(224),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![
+                        TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
+                        TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
+                        TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
+                        TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
+                        TerminalId(27), TerminalId(9), TerminalId(7), TerminalId(34),
+                        TerminalId(25), TerminalId(12), TerminalId(28), TerminalId(5),
+                        TerminalId(37), TerminalId(16), TerminalId(15), TerminalId(17),
+                        TerminalId(11), TerminalId(2), TerminalId(26), TerminalId(29),
+                        TerminalId(10), TerminalId(13)
+                    ],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_grammar_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(11), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(11)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -14291,35 +17113,55 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self
+                .scanner
+                .match_any(
+                    &[
+                        TerminalId(7),
+                        TerminalId(18),
+                        TerminalId(1),
+                        TerminalId(14),
+                        TerminalId(15),
+                        TerminalId(9),
+                        TerminalId(37),
+                    ],
+                    i,
+                )
+            {
+                let epsilon_node_id = self
+                    .get_or_create_terminal_node(TerminalId(36), i, i);
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(16),
+                            SlotId(228),
+                            i,
+                            i,
+                            epsilon_node_id,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(226),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![
+                            TerminalId(11), TerminalId(18), TerminalId(14),
+                            TerminalId(37), TerminalId(1), TerminalId(15), TerminalId(9),
+                            TerminalId(7)
+                        ],
+                    },
+                );
+                None
+            }
         }
-        if self.scanner.match_token(TerminalId(7), i).is_some()
-            || self.scanner.match_token(TerminalId(18), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(14), i).is_some()
-            || self.scanner.match_token(TerminalId(15), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || i == self.input().len()
-        {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(16),
-                        SlotId(228),
-                        i,
-                        i,
-                        epsilon_node_id,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
     fn parse_syntax_rule_opt_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(15), i).is_some()
-            || self.scanner.match_token(TerminalId(14), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(15), TerminalId(14)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -14342,27 +17184,43 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self
+                .scanner
+                .match_any(
+                    &[TerminalId(7), TerminalId(1), TerminalId(9), TerminalId(37)],
+                    i,
+                )
+            {
+                let epsilon_node_id = self
+                    .get_or_create_terminal_node(TerminalId(36), i, i);
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(20),
+                            SlotId(242),
+                            i,
+                            i,
+                            epsilon_node_id,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(240),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![
+                            TerminalId(37), TerminalId(1), TerminalId(14),
+                            TerminalId(15), TerminalId(9), TerminalId(7)
+                        ],
+                    },
+                );
+                None
+            }
         }
-        if self.scanner.match_token(TerminalId(7), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || i == self.input().len()
-        {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(20),
-                        SlotId(242),
-                        i,
-                        i,
-                        epsilon_node_id,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
     fn parse_regex_rule_plus_4_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
@@ -14436,9 +17294,7 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_regex_rule_opt_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(21), i).is_some()
-            || self.scanner.match_token(TerminalId(22), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(21), TerminalId(22)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -14461,41 +17317,70 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self
+                .scanner
+                .match_any(
+                    &[
+                        TerminalId(7),
+                        TerminalId(18),
+                        TerminalId(1),
+                        TerminalId(14),
+                        TerminalId(15),
+                        TerminalId(9),
+                        TerminalId(37),
+                    ],
+                    i,
+                )
+            {
+                let epsilon_node_id = self
+                    .get_or_create_terminal_node(TerminalId(36), i, i);
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(28),
+                            SlotId(281),
+                            i,
+                            i,
+                            epsilon_node_id,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(279),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![
+                            TerminalId(18), TerminalId(14), TerminalId(37),
+                            TerminalId(21), TerminalId(1), TerminalId(15),
+                            TerminalId(22), TerminalId(9), TerminalId(7)
+                        ],
+                    },
+                );
+                None
+            }
         }
-        if self.scanner.match_token(TerminalId(7), i).is_some()
-            || self.scanner.match_token(TerminalId(18), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(14), i).is_some()
-            || self.scanner.match_token(TerminalId(15), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || i == self.input().len()
-        {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(28),
-                        SlotId(281),
-                        i,
-                        i,
-                        epsilon_node_id,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
     fn parse_regex_rule_star_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(18), i).is_some()
-            || self.scanner.match_token(TerminalId(14), i).is_some()
-            || i == self.input().len()
-            || self.scanner.match_token(TerminalId(21), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(15), i).is_some()
-            || self.scanner.match_token(TerminalId(22), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
+        if self
+            .scanner
+            .match_any(
+                &[
+                    TerminalId(18),
+                    TerminalId(14),
+                    TerminalId(37),
+                    TerminalId(21),
+                    TerminalId(1),
+                    TerminalId(15),
+                    TerminalId(22),
+                    TerminalId(9),
+                    TerminalId(7),
+                ],
+                i,
+            )
         {
             let mut j = i;
             let right_child = {
@@ -14519,14 +17404,24 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(282),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![
+                        TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(21),
+                        TerminalId(1), TerminalId(15), TerminalId(22), TerminalId(9),
+                        TerminalId(7)
+                    ],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_priority_level_opt_6_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(23), i).is_some()
-            || self.scanner.match_token(TerminalId(24), i).is_some()
-            || self.scanner.match_token(TerminalId(25), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(23), TerminalId(24), TerminalId(25)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -14549,43 +17444,80 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self
+                .scanner
+                .match_any(
+                    &[
+                        TerminalId(7),
+                        TerminalId(18),
+                        TerminalId(2),
+                        TerminalId(14),
+                        TerminalId(6),
+                        TerminalId(19),
+                        TerminalId(37),
+                        TerminalId(26),
+                        TerminalId(1),
+                        TerminalId(16),
+                        TerminalId(15),
+                        TerminalId(9),
+                        TerminalId(13),
+                    ],
+                    i,
+                )
+            {
+                let epsilon_node_id = self
+                    .get_or_create_terminal_node(TerminalId(36), i, i);
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(30),
+                            SlotId(286),
+                            i,
+                            i,
+                            epsilon_node_id,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(284),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![
+                            TerminalId(23), TerminalId(25), TerminalId(13),
+                            TerminalId(6), TerminalId(37), TerminalId(1), TerminalId(16),
+                            TerminalId(15), TerminalId(24), TerminalId(18),
+                            TerminalId(2), TerminalId(14), TerminalId(19),
+                            TerminalId(26), TerminalId(9), TerminalId(7)
+                        ],
+                    },
+                );
+                None
+            }
         }
-        if self.scanner.match_token(TerminalId(7), i).is_some()
-            || self.scanner.match_token(TerminalId(18), i).is_some()
-            || self.scanner.match_token(TerminalId(2), i).is_some()
-            || self.scanner.match_token(TerminalId(14), i).is_some()
-            || self.scanner.match_token(TerminalId(6), i).is_some()
-            || self.scanner.match_token(TerminalId(19), i).is_some()
-            || i == self.input().len()
-            || self.scanner.match_token(TerminalId(26), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(16), i).is_some()
-            || self.scanner.match_token(TerminalId(15), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(13), i).is_some()
-        {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(30),
-                        SlotId(286),
-                        i,
-                        i,
-                        epsilon_node_id,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
     fn parse_alternative_opt_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(6), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(6)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(6), start)?;
+                let end = match self.scanner.match_token(TerminalId(6), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(312),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(6)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(6), start, end);
                 j = end;
                 node
@@ -14604,39 +17536,74 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self
+                .scanner
+                .match_any(
+                    &[
+                        TerminalId(13),
+                        TerminalId(18),
+                        TerminalId(14),
+                        TerminalId(19),
+                        TerminalId(37),
+                        TerminalId(1),
+                        TerminalId(15),
+                        TerminalId(9),
+                        TerminalId(7),
+                    ],
+                    i,
+                )
+            {
+                let epsilon_node_id = self
+                    .get_or_create_terminal_node(TerminalId(36), i, i);
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(37),
+                            SlotId(313),
+                            i,
+                            i,
+                            epsilon_node_id,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(311),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![
+                            TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(6),
+                            TerminalId(19), TerminalId(37), TerminalId(1),
+                            TerminalId(15), TerminalId(9), TerminalId(13)
+                        ],
+                    },
+                );
+                None
+            }
         }
-        if self.scanner.match_token(TerminalId(13), i).is_some()
-            || self.scanner.match_token(TerminalId(18), i).is_some()
-            || self.scanner.match_token(TerminalId(14), i).is_some()
-            || self.scanner.match_token(TerminalId(19), i).is_some()
-            || i == self.input().len()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(15), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
-        {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(37),
-                        SlotId(313),
-                        i,
-                        i,
-                        epsilon_node_id,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
     fn parse_symbol_group_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(21), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(21)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(21), start)?;
+                let end = match self.scanner.match_token(TerminalId(21), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(325),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(21)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(21), start, end);
                 j = end;
                 node
@@ -14662,7 +17629,20 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(327),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -14689,8 +17669,17 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(324),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(21)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_symbol_plus_8_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
@@ -14764,11 +17753,24 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_symbol_group_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(22), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(22)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(22), start)?;
+                let end = match self.scanner.match_token(TerminalId(22), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(335),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(22)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(22), start, end);
                 j = end;
                 node
@@ -14794,7 +17796,20 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(337),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -14821,8 +17836,17 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(334),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(22)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_symbol_plus_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
@@ -14896,11 +17920,24 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_symbol_group_3_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(31), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(31)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(31), start)?;
+                let end = match self.scanner.match_token(TerminalId(31), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(345),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(31)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(31), start, end);
                 j = end;
                 node
@@ -14926,7 +17963,20 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(347),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -14953,8 +18003,17 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(344),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(31)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_symbol_plus_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
@@ -15028,11 +18087,24 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_char_class_opt_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(31), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(31)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(31), start)?;
+                let end = match self.scanner.match_token(TerminalId(31), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(365),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(31)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(31), start, end);
                 j = end;
                 node
@@ -15051,34 +18123,63 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self
+                .scanner
+                .match_any(
+                    &[TerminalId(33), TerminalId(7), TerminalId(9), TerminalId(37)],
+                    i,
+                )
+            {
+                let epsilon_node_id = self
+                    .get_or_create_terminal_node(TerminalId(36), i, i);
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(48),
+                            SlotId(366),
+                            i,
+                            i,
+                            epsilon_node_id,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(364),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![
+                            TerminalId(33), TerminalId(31), TerminalId(37),
+                            TerminalId(9), TerminalId(7)
+                        ],
+                    },
+                );
+                None
+            }
         }
-        if self.scanner.match_token(TerminalId(33), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || i == self.input().len()
-        {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(48),
-                        SlotId(366),
-                        i,
-                        i,
-                        epsilon_node_id,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
     fn parse_layout_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(7), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(7)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(7), start)?;
+                let end = match self.scanner.match_token(TerminalId(7), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(374),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(7)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(7), start, end);
                 j = end;
                 node
@@ -15097,32 +18198,56 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self.scanner.match_any(&[TerminalId(9)], i) {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let end = match self.scanner.match_token(TerminalId(9), start) {
+                        Some(end) => end,
+                        None => {
+                            self.add_parse_error(
+                                start,
+                                SlotId(376),
+                                None,
+                                ParseErrorKind::UnexpectedToken {
+                                    expected: vec![TerminalId(9)],
+                                },
+                            );
+                            return None;
+                        }
+                    };
+                    let node = self
+                        .get_or_create_terminal_node(TerminalId(9), start, end);
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(50),
+                            SlotId(376),
+                            left_extent,
+                            j,
+                            current,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(373),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![TerminalId(9), TerminalId(7)],
+                    },
+                );
+                None
+            }
         }
-        if self.scanner.match_token(TerminalId(9), i).is_some() {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let end = self.scanner.match_token(TerminalId(9), start)?;
-                let node = self.get_or_create_terminal_node(TerminalId(9), start, end);
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(50),
-                        SlotId(376),
-                        left_extent,
-                        j,
-                        current,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
     fn parse_layout_plus_13_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
@@ -15178,9 +18303,7 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_layout_opt_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(9), TerminalId(7)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -15203,91 +18326,128 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self
+                .scanner
+                .match_any(
+                    &[
+                        TerminalId(23),
+                        TerminalId(33),
+                        TerminalId(30),
+                        TerminalId(32),
+                        TerminalId(6),
+                        TerminalId(21),
+                        TerminalId(1),
+                        TerminalId(31),
+                        TerminalId(20),
+                        TerminalId(22),
+                        TerminalId(24),
+                        TerminalId(18),
+                        TerminalId(3),
+                        TerminalId(14),
+                        TerminalId(19),
+                        TerminalId(35),
+                        TerminalId(27),
+                        TerminalId(25),
+                        TerminalId(34),
+                        TerminalId(12),
+                        TerminalId(28),
+                        TerminalId(5),
+                        TerminalId(37),
+                        TerminalId(16),
+                        TerminalId(15),
+                        TerminalId(17),
+                        TerminalId(11),
+                        TerminalId(2),
+                        TerminalId(26),
+                        TerminalId(29),
+                        TerminalId(10),
+                        TerminalId(13),
+                    ],
+                    i,
+                )
+            {
+                let epsilon_node_id = self
+                    .get_or_create_terminal_node(TerminalId(36), i, i);
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(52),
+                            SlotId(384),
+                            i,
+                            i,
+                            epsilon_node_id,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(382),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![
+                            TerminalId(23), TerminalId(33), TerminalId(30),
+                            TerminalId(32), TerminalId(6), TerminalId(21), TerminalId(1),
+                            TerminalId(31), TerminalId(20), TerminalId(22),
+                            TerminalId(24), TerminalId(18), TerminalId(3),
+                            TerminalId(14), TerminalId(19), TerminalId(35),
+                            TerminalId(27), TerminalId(9), TerminalId(25),
+                            TerminalId(34), TerminalId(7), TerminalId(12),
+                            TerminalId(28), TerminalId(5), TerminalId(37),
+                            TerminalId(16), TerminalId(15), TerminalId(17),
+                            TerminalId(11), TerminalId(2), TerminalId(26),
+                            TerminalId(29), TerminalId(10), TerminalId(13)
+                        ],
+                    },
+                );
+                None
+            }
         }
-        if self.scanner.match_token(TerminalId(23), i).is_some()
-            || self.scanner.match_token(TerminalId(33), i).is_some()
-            || self.scanner.match_token(TerminalId(30), i).is_some()
-            || self.scanner.match_token(TerminalId(32), i).is_some()
-            || self.scanner.match_token(TerminalId(6), i).is_some()
-            || self.scanner.match_token(TerminalId(21), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(31), i).is_some()
-            || self.scanner.match_token(TerminalId(20), i).is_some()
-            || self.scanner.match_token(TerminalId(22), i).is_some()
-            || self.scanner.match_token(TerminalId(24), i).is_some()
-            || self.scanner.match_token(TerminalId(18), i).is_some()
-            || self.scanner.match_token(TerminalId(3), i).is_some()
-            || self.scanner.match_token(TerminalId(14), i).is_some()
-            || self.scanner.match_token(TerminalId(19), i).is_some()
-            || self.scanner.match_token(TerminalId(35), i).is_some()
-            || self.scanner.match_token(TerminalId(27), i).is_some()
-            || self.scanner.match_token(TerminalId(25), i).is_some()
-            || self.scanner.match_token(TerminalId(34), i).is_some()
-            || self.scanner.match_token(TerminalId(12), i).is_some()
-            || self.scanner.match_token(TerminalId(28), i).is_some()
-            || self.scanner.match_token(TerminalId(5), i).is_some()
-            || i == self.input().len()
-            || self.scanner.match_token(TerminalId(16), i).is_some()
-            || self.scanner.match_token(TerminalId(15), i).is_some()
-            || self.scanner.match_token(TerminalId(17), i).is_some()
-            || self.scanner.match_token(TerminalId(11), i).is_some()
-            || self.scanner.match_token(TerminalId(2), i).is_some()
-            || self.scanner.match_token(TerminalId(26), i).is_some()
-            || self.scanner.match_token(TerminalId(29), i).is_some()
-            || self.scanner.match_token(TerminalId(10), i).is_some()
-            || self.scanner.match_token(TerminalId(13), i).is_some()
-        {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(36), i, i);
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(52),
-                        SlotId(384),
-                        i,
-                        i,
-                        epsilon_node_id,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
     fn parse_layout_star_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(23), i).is_some()
-            || self.scanner.match_token(TerminalId(33), i).is_some()
-            || self.scanner.match_token(TerminalId(30), i).is_some()
-            || self.scanner.match_token(TerminalId(32), i).is_some()
-            || self.scanner.match_token(TerminalId(6), i).is_some()
-            || self.scanner.match_token(TerminalId(21), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(31), i).is_some()
-            || self.scanner.match_token(TerminalId(20), i).is_some()
-            || self.scanner.match_token(TerminalId(22), i).is_some()
-            || self.scanner.match_token(TerminalId(24), i).is_some()
-            || self.scanner.match_token(TerminalId(18), i).is_some()
-            || self.scanner.match_token(TerminalId(3), i).is_some()
-            || self.scanner.match_token(TerminalId(14), i).is_some()
-            || self.scanner.match_token(TerminalId(19), i).is_some()
-            || self.scanner.match_token(TerminalId(35), i).is_some()
-            || self.scanner.match_token(TerminalId(27), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(25), i).is_some()
-            || self.scanner.match_token(TerminalId(34), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
-            || self.scanner.match_token(TerminalId(12), i).is_some()
-            || self.scanner.match_token(TerminalId(28), i).is_some()
-            || self.scanner.match_token(TerminalId(5), i).is_some()
-            || i == self.input().len()
-            || self.scanner.match_token(TerminalId(16), i).is_some()
-            || self.scanner.match_token(TerminalId(15), i).is_some()
-            || self.scanner.match_token(TerminalId(17), i).is_some()
-            || self.scanner.match_token(TerminalId(11), i).is_some()
-            || self.scanner.match_token(TerminalId(2), i).is_some()
-            || self.scanner.match_token(TerminalId(26), i).is_some()
-            || self.scanner.match_token(TerminalId(29), i).is_some()
-            || self.scanner.match_token(TerminalId(10), i).is_some()
-            || self.scanner.match_token(TerminalId(13), i).is_some()
+        if self
+            .scanner
+            .match_any(
+                &[
+                    TerminalId(23),
+                    TerminalId(33),
+                    TerminalId(30),
+                    TerminalId(32),
+                    TerminalId(6),
+                    TerminalId(21),
+                    TerminalId(1),
+                    TerminalId(31),
+                    TerminalId(20),
+                    TerminalId(22),
+                    TerminalId(24),
+                    TerminalId(18),
+                    TerminalId(3),
+                    TerminalId(14),
+                    TerminalId(19),
+                    TerminalId(35),
+                    TerminalId(27),
+                    TerminalId(9),
+                    TerminalId(25),
+                    TerminalId(34),
+                    TerminalId(7),
+                    TerminalId(12),
+                    TerminalId(28),
+                    TerminalId(5),
+                    TerminalId(37),
+                    TerminalId(16),
+                    TerminalId(15),
+                    TerminalId(17),
+                    TerminalId(11),
+                    TerminalId(2),
+                    TerminalId(26),
+                    TerminalId(29),
+                    TerminalId(10),
+                    TerminalId(13),
+                ],
+                i,
+            )
         {
             let mut j = i;
             let right_child = {
@@ -15311,14 +18471,30 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(385),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![
+                        TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
+                        TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
+                        TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
+                        TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
+                        TerminalId(27), TerminalId(9), TerminalId(7), TerminalId(34),
+                        TerminalId(25), TerminalId(12), TerminalId(28), TerminalId(5),
+                        TerminalId(37), TerminalId(16), TerminalId(15), TerminalId(17),
+                        TerminalId(11), TerminalId(2), TerminalId(26), TerminalId(29),
+                        TerminalId(10), TerminalId(13)
+                    ],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_start_layout_def_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(11), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(11), TerminalId(9), TerminalId(7)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -15375,14 +18551,25 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(577),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(11), TerminalId(9), TerminalId(7)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_start_annotation_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(14), i).is_some()
-            || self.scanner.match_token(TerminalId(15), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
+        if self
+            .scanner
+            .match_any(
+                &[TerminalId(14), TerminalId(15), TerminalId(9), TerminalId(7)],
+                i,
+            )
         {
             let mut j = i;
             let right_child = {
@@ -15440,14 +18627,22 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(589),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![
+                        TerminalId(14), TerminalId(15), TerminalId(9), TerminalId(7)
+                    ],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_start_pre_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(1), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(9), TerminalId(1), TerminalId(7)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -15504,14 +18699,25 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(597),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(9), TerminalId(1), TerminalId(7)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_start_post_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(21), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(22), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
+        if self
+            .scanner
+            .match_any(
+                &[TerminalId(21), TerminalId(9), TerminalId(22), TerminalId(7)],
+                i,
+            )
         {
             let mut j = i;
             let right_child = {
@@ -15569,15 +18775,33 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(601),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![
+                        TerminalId(21), TerminalId(9), TerminalId(22), TerminalId(7)
+                    ],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_start_associativity_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(23), i).is_some()
-            || self.scanner.match_token(TerminalId(25), i).is_some()
-            || self.scanner.match_token(TerminalId(24), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
+        if self
+            .scanner
+            .match_any(
+                &[
+                    TerminalId(23),
+                    TerminalId(25),
+                    TerminalId(24),
+                    TerminalId(9),
+                    TerminalId(7),
+                ],
+                i,
+            )
         {
             let mut j = i;
             let right_child = {
@@ -15635,14 +18859,23 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(609),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![
+                        TerminalId(23), TerminalId(25), TerminalId(7), TerminalId(9),
+                        TerminalId(24)
+                    ],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_start_range_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(5), i).is_some()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(5), TerminalId(9), TerminalId(7)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -15699,14 +18932,20 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(633),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(5), TerminalId(9), TerminalId(7)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_start_layout_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if i == self.input().len()
-            || self.scanner.match_token(TerminalId(9), i).is_some()
-            || self.scanner.match_token(TerminalId(7), i).is_some()
-        {
+        if self.scanner.match_any(&[TerminalId(37), TerminalId(9), TerminalId(7)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -15763,8 +19002,17 @@ impl<'i> IggyParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(637),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(7), TerminalId(9), TerminalId(37)],
+                },
+            );
+            None
         }
-        None
     }
     fn get_gss_node_symbol(&self, input_index: u32, p: i32) -> Option<GssNodeId> {
         self.gss_nodes_index_symbol

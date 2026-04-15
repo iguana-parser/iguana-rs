@@ -22,13 +22,14 @@
 // "then" = then
 // "else" = else
 use std::cell::OnceCell;
+use std::collections::BTreeMap;
 use crate::{
     scanner::DeepPriorityScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
-    input::Input, parser::{Parser, init_logger},
+    input::Input, parser::{Parser, ParseError, ParseErrorKind, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
@@ -63,7 +64,7 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "S" => NonterminalId(0), "StartS" => NonterminalId(1), "StartE" => NonterminalId(2),
     "E" => NonterminalId(3)
 };
-pub const TERMINALS: [Terminal; 7] = [
+pub const TERMINALS: [Terminal; 8] = [
     Terminal { name: "WS" },
     Terminal { name: "\"a\"" },
     Terminal { name: "\"+\"" },
@@ -71,6 +72,7 @@ pub const TERMINALS: [Terminal; 7] = [
     Terminal { name: "\"then\"" },
     Terminal { name: "\"else\"" },
     Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
 ];
 pub const SLOTS: [Slot; 35] = [
     Slot { display_name: "S : . E(0)" },
@@ -189,6 +191,9 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
         SLOTS[slot_id.index()].display_name
     }
     fn epsilon() -> TerminalId {
+        TerminalId((TERMINALS.len() - 2) as u16)
+    }
+    fn eof() -> TerminalId {
         TerminalId((TERMINALS.len() - 1) as u16)
     }
     fn execute(
@@ -228,6 +233,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(
                             self, MatchFailed, "\"a\"", input_index, SlotId(2),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(2),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
                         );
                     }
                 }
@@ -306,6 +319,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(8), gss_node_id,
                             result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(8),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
                     }
                 }
             }
@@ -335,6 +356,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                             self, MatchFailed, "\"+\"", input_index, SlotId(9),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(9),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
                     }
                 }
             }
@@ -363,6 +392,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(
                             self, MatchFailed, "WS", input_index, SlotId(10),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(10),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
                         );
                     }
                 }
@@ -420,6 +457,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                             self, MatchFailed, "\"if\"", input_index, SlotId(14),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(14),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(3)],
+                            },
+                        );
                     }
                 }
             }
@@ -448,6 +493,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(
                             self, MatchFailed, "WS", input_index, SlotId(15),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(15),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
                         );
                     }
                 }
@@ -482,6 +535,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(17),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(17),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
                     }
                 }
             }
@@ -511,6 +572,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                             self, MatchFailed, "\"then\"", input_index, SlotId(18),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(18),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(4)],
+                            },
+                        );
                     }
                 }
             }
@@ -539,6 +608,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(
                             self, MatchFailed, "WS", input_index, SlotId(19),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(19),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
                         );
                     }
                 }
@@ -573,6 +650,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(21),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(21),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
                     }
                 }
             }
@@ -602,6 +687,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                             self, MatchFailed, "\"else\"", input_index, SlotId(22),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(22),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(5)],
+                            },
+                        );
                     }
                 }
             }
@@ -630,6 +723,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(
                             self, MatchFailed, "WS", input_index, SlotId(23),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(23),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
                         );
                     }
                 }
@@ -683,6 +784,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(27),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(27),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
                     }
                 }
             }
@@ -716,6 +825,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(29),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(29),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
                     }
                 }
             }
@@ -742,6 +859,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         record!(
                             self, MatchFailed, "WS", input_index, SlotId(31),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(31),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
                         );
                     }
                 }
@@ -776,6 +901,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                             self, MatchFailed, "WS", input_index, SlotId(33),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(33),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
                     }
                 }
             }
@@ -806,19 +939,31 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             //E
             NonterminalId(3) => {
+                let mut matched = false;
                 //E(p: i32) : . "a" return 0
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
                 //E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" WS r=E(2) return r == 0 ? 2 : min(r, 2)
-                if self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(3), input_index).is_some()
-                {
+                if self.scanner.match_any(&[TerminalId(1), TerminalId(3)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
                 }
                 //E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
-                if self.scanner.match_token(TerminalId(3), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(3)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(2),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(1), TerminalId(3)],
+                        },
+                    );
                 }
             }
             //StartS : . WS start:S WS
@@ -1092,28 +1237,67 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
         slot: SlotId,
         left_extent: u32,
         right_extent: u32,
-    ) -> bool {
+    ) -> Option<ParseErrorKind> {
         match slot {
-            _ => true,
+            _ => None,
         }
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => {
-                self.scanner.match_token(TerminalId(0), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner.match_any(&[TerminalId(0), TerminalId(7)], input_index)
             }
             NonterminalId(3) => {
-                self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || input_index == self.input().len()
-                    || self.scanner.match_token(TerminalId(5), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(4), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(0), input_index).is_some()
+                self.scanner
+                    .match_any(
+                        &[
+                            TerminalId(2),
+                            TerminalId(7),
+                            TerminalId(5),
+                            TerminalId(4),
+                            TerminalId(0),
+                        ],
+                        input_index,
+                    )
             }
-            NonterminalId(1) => input_index == self.input().len(),
-            NonterminalId(2) => input_index == self.input().len(),
+            NonterminalId(1) => self.scanner.match_any(&[TerminalId(7)], input_index),
+            NonterminalId(2) => self.scanner.match_any(&[TerminalId(7)], input_index),
             _ => true,
         }
+    }
+    fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
+        match nonterminal_id {
+            NonterminalId(0) => vec![TerminalId(0), TerminalId(7)],
+            NonterminalId(3) => {
+                vec![
+                    TerminalId(2), TerminalId(7), TerminalId(5), TerminalId(4),
+                    TerminalId(0)
+                ]
+            }
+            NonterminalId(1) => vec![TerminalId(7)],
+            NonterminalId(2) => vec![TerminalId(7)],
+            _ => vec![],
+        }
+    }
+    fn parse_error(&self) -> Option<&ParseError> {
+        self.parse_errors.values().next_back()?.first()
+    }
+    fn add_parse_error(
+        &mut self,
+        input_index: u32,
+        slot_id: SlotId,
+        gss_node_id: Option<GssNodeId>,
+        kind: ParseErrorKind,
+    ) {
+        self.parse_errors
+            .entry(input_index)
+            .or_default()
+            .push(ParseError {
+                input_index,
+                slot_id,
+                gss_node_id,
+                kind,
+            });
     }
 }
 pub struct DeepPriorityParser<'i> {
@@ -1130,7 +1314,7 @@ pub struct DeepPriorityParser<'i> {
     descriptors_count: usize,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 35],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 7],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 8],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -1139,6 +1323,7 @@ pub struct DeepPriorityParser<'i> {
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
     nonterminal_nodes_index_e: FxHashMap<Span, InlineVec<(i32, SPPFNodeId)>>,
     envs: Vec<Env>,
+    parse_errors: BTreeMap<u32, Vec<ParseError>>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -1155,7 +1340,7 @@ impl<'i> DeepPriorityParser<'i> {
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 4],
             intermediate_nodes_index: [const { InlineMap::Empty }; 35],
-            terminal_nodes_index: [const { InlineMap::Empty }; 7],
+            terminal_nodes_index: [const { InlineMap::Empty }; 8],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             intermediate_nodes_children: vec![],
@@ -1164,6 +1349,7 @@ impl<'i> DeepPriorityParser<'i> {
             nonterminal_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_index_e: FxHashMap::default(),
             envs: vec![],
+            parse_errors: BTreeMap::new(),
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }

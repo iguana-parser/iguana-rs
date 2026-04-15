@@ -21,11 +21,12 @@
 // "c" = c
 // "d" = d
 use std::cell::OnceCell;
+use std::collections::BTreeMap;
 use crate::{scanner::SimpleAltScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
-    input::Input, parser::{Parser, init_logger},
+    input::Input, parser::{Parser, ParseError, ParseErrorKind, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
@@ -65,11 +66,12 @@ static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "A" => NonterminalId(0), "B" => NonterminalId(1), "C" => NonterminalId(2), "D" =>
     NonterminalId(3), "A_Alt_0" => NonterminalId(4)
 };
-pub const TERMINALS: [Terminal; 4] = [
+pub const TERMINALS: [Terminal; 5] = [
     Terminal { name: "\"b\"" },
     Terminal { name: "\"c\"" },
     Terminal { name: "\"d\"" },
     Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
 ];
 pub const SLOTS: [Slot; 13] = [
     Slot {
@@ -120,6 +122,9 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
         SLOTS[slot_id.index()].display_name
     }
     fn epsilon() -> TerminalId {
+        TerminalId((TERMINALS.len() - 2) as u16)
+    }
+    fn eof() -> TerminalId {
         TerminalId((TERMINALS.len() - 1) as u16)
     }
     fn execute(
@@ -175,6 +180,14 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                             self, MatchFailed, "\"b\"", input_index, SlotId(3),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(3),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
                     }
                 }
             }
@@ -202,6 +215,14 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                             self, MatchFailed, "\"c\"", input_index, SlotId(5),
                             gss_node_id, result
                         );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(5),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
                     }
                 }
             }
@@ -228,6 +249,14 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                         record!(
                             self, MatchFailed, "\"d\"", input_index, SlotId(7),
                             gss_node_id, result
+                        );
+                        self.add_parse_error(
+                            input_index,
+                            SlotId(7),
+                            Some(gss_node_id),
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
                         );
                     }
                 }
@@ -303,13 +332,26 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             //A_Alt_0
             NonterminalId(4) => {
+                let mut matched = false;
                 //A_Alt_0 : . C
-                if self.scanner.match_token(TerminalId(1), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
                 }
                 //A_Alt_0 : . D
-                if self.scanner.match_token(TerminalId(2), input_index).is_some() {
+                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                    matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(
+                        input_index,
+                        SlotId(9),
+                        Some(gss_node_id),
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(1), TerminalId(2)],
+                        },
+                    );
                 }
             }
             _ => {
@@ -575,24 +617,56 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
         slot: SlotId,
         left_extent: u32,
         right_extent: u32,
-    ) -> bool {
+    ) -> Option<ParseErrorKind> {
         match slot {
-            _ => true,
+            _ => None,
         }
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => input_index == self.input().len(),
+            NonterminalId(0) => self.scanner.match_any(&[TerminalId(4)], input_index),
             NonterminalId(1) => {
-                self.scanner.match_token(TerminalId(1), input_index).is_some()
-                    || self.scanner.match_token(TerminalId(2), input_index).is_some()
-                    || input_index == self.input().len()
+                self.scanner
+                    .match_any(
+                        &[TerminalId(1), TerminalId(2), TerminalId(4)],
+                        input_index,
+                    )
             }
-            NonterminalId(2) => input_index == self.input().len(),
-            NonterminalId(3) => input_index == self.input().len(),
-            NonterminalId(4) => input_index == self.input().len(),
+            NonterminalId(2) => self.scanner.match_any(&[TerminalId(4)], input_index),
+            NonterminalId(3) => self.scanner.match_any(&[TerminalId(4)], input_index),
+            NonterminalId(4) => self.scanner.match_any(&[TerminalId(4)], input_index),
             _ => true,
         }
+    }
+    fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
+        match nonterminal_id {
+            NonterminalId(0) => vec![TerminalId(4)],
+            NonterminalId(1) => vec![TerminalId(1), TerminalId(2), TerminalId(4)],
+            NonterminalId(2) => vec![TerminalId(4)],
+            NonterminalId(3) => vec![TerminalId(4)],
+            NonterminalId(4) => vec![TerminalId(4)],
+            _ => vec![],
+        }
+    }
+    fn parse_error(&self) -> Option<&ParseError> {
+        self.parse_errors.values().next_back()?.first()
+    }
+    fn add_parse_error(
+        &mut self,
+        input_index: u32,
+        slot_id: SlotId,
+        gss_node_id: Option<GssNodeId>,
+        kind: ParseErrorKind,
+    ) {
+        self.parse_errors
+            .entry(input_index)
+            .or_default()
+            .push(ParseError {
+                input_index,
+                slot_id,
+                gss_node_id,
+                kind,
+            });
     }
 }
 pub struct SimpleAltParser<'i> {
@@ -607,7 +681,7 @@ pub struct SimpleAltParser<'i> {
     descriptors_count: usize,
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 13],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
+    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
         FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>,
@@ -615,6 +689,7 @@ pub struct SimpleAltParser<'i> {
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
     envs: Vec<Env>,
+    parse_errors: BTreeMap<u32, Vec<ParseError>>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -630,7 +705,7 @@ impl<'i> SimpleAltParser<'i> {
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 5],
             intermediate_nodes_index: [const { InlineMap::Empty }; 13],
-            terminal_nodes_index: [const { InlineMap::Empty }; 4],
+            terminal_nodes_index: [const { InlineMap::Empty }; 5],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             intermediate_nodes_children: vec![],
@@ -638,12 +713,13 @@ impl<'i> SimpleAltParser<'i> {
             nonterminal_nodes_children: vec![],
             nonterminal_nodes_children_map: OnceCell::new(),
             envs: vec![],
+            parse_errors: BTreeMap::new(),
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
     }
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(0), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(0)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -683,15 +759,37 @@ impl<'i> SimpleAltParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(0),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(0)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_b_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(0), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(0)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(0), start)?;
+                let end = match self.scanner.match_token(TerminalId(0), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(4),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(0)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
                 j = end;
                 node
@@ -710,15 +808,37 @@ impl<'i> SimpleAltParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(3),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(0)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_c_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(1), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(1)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(1), start)?;
+                let end = match self.scanner.match_token(TerminalId(1), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(6),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(1)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
@@ -737,15 +857,37 @@ impl<'i> SimpleAltParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(5),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(1)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_d_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(2), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(2)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = self.scanner.match_token(TerminalId(2), start)?;
+                let end = match self.scanner.match_token(TerminalId(2), start) {
+                    Some(end) => end,
+                    None => {
+                        self.add_parse_error(
+                            start,
+                            SlotId(8),
+                            None,
+                            ParseErrorKind::UnexpectedToken {
+                                expected: vec![TerminalId(2)],
+                            },
+                        );
+                        return None;
+                    }
+                };
                 let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
                 j = end;
                 node
@@ -764,11 +906,20 @@ impl<'i> SimpleAltParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            self.add_parse_error(
+                i,
+                SlotId(7),
+                None,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![TerminalId(2)],
+                },
+            );
+            None
         }
-        None
     }
     fn parse_a_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_token(TerminalId(1), i).is_some() {
+        if self.scanner.match_any(&[TerminalId(1)], i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -791,32 +942,42 @@ impl<'i> SimpleAltParser<'i> {
                     )
                     .unwrap(),
             );
+        } else {
+            if self.scanner.match_any(&[TerminalId(2)], i) {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_d_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(
+                    self
+                        .get_or_create_nonterminal_node(
+                            NonterminalId(4),
+                            SlotId(12),
+                            left_extent,
+                            j,
+                            current,
+                            false,
+                        )
+                        .unwrap(),
+                );
+            } else {
+                self.add_parse_error(
+                    i,
+                    SlotId(9),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![TerminalId(1), TerminalId(2)],
+                    },
+                );
+                None
+            }
         }
-        if self.scanner.match_token(TerminalId(2), i).is_some() {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let node = self.parse_d_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(4),
-                        SlotId(12),
-                        left_extent,
-                        j,
-                        current,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        }
-        None
     }
 }
 

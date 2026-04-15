@@ -48,6 +48,9 @@ impl Scanner for ExceptNonterminalScanner<'_> {
         match terminal_id {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(1) => self.match_terminal_1(input_index),
+            TerminalId(3) => {
+                if input_index == self.input.len() { Some(input_index) } else { None }
+            }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

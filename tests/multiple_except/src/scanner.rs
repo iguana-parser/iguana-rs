@@ -118,6 +118,9 @@ impl Scanner for MultipleExceptScanner<'_> {
             TerminalId(2) => self.match_terminal_2(input_index),
             TerminalId(3) => self.match_terminal_3(input_index),
             TerminalId(4) => self.match_terminal_4(input_index),
+            TerminalId(6) => {
+                if input_index == self.input.len() { Some(input_index) } else { None }
+            }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }

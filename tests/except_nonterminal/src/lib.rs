@@ -32,7 +32,7 @@ pub fn parse(input: &Input, start_nonterminal: &str) -> Option<ParseSuccess> {
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure() => None,
+        ParseResult::Failure(_) => None,
     }
 }
 

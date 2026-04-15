@@ -124,6 +124,9 @@ impl Scanner for CommentsScanner<'_> {
             TerminalId(4) => self.match_terminal_4(input_index),
             TerminalId(5) => self.match_terminal_5(input_index),
             TerminalId(6) => self.match_terminal_6(input_index),
+            TerminalId(8) => {
+                if input_index == self.input.len() { Some(input_index) } else { None }
+            }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
             }
