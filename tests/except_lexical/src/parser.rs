@@ -9,7 +9,8 @@
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
 use crate::{
-    scanner::ExceptLexicalScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
+    grammar_data::*, scanner::ExceptLexicalScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
@@ -398,13 +399,13 @@ impl<'i> Parser<'i> for ExceptLexicalParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&[TerminalId(3)], input_index),
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(3)],
+            NonterminalId(0) => FOLLOW_SET_S.to_vec(),
             _ => vec![],
         }
     }
@@ -479,7 +480,7 @@ impl<'i> ExceptLexicalParser<'i> {
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(1)], i) {
+        if self.scanner.match_any(PREDICTION_SET_S_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -521,7 +522,7 @@ impl<'i> ExceptLexicalParser<'i> {
                 SlotId(0),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(1)],
+                    expected: FIRST_SET_S.to_vec(),
                 },
             );
             None

@@ -32,7 +32,8 @@
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
 use crate::{
-    scanner::FollowRestrictionScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
+    grammar_data::*, scanner::FollowRestrictionScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
@@ -744,12 +745,12 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             NonterminalId(3) => {
                 let mut matched = false;
                 //S_Plus_0 : . S_Plus_0 WS Id
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_S_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 //S_Plus_0 : . Id
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_S_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
@@ -759,7 +760,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         SlotId(6),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(0)],
+                            expected: FIRST_SET_S_PLUS_0.to_vec(),
                         },
                     );
                 }
@@ -768,12 +769,12 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             NonterminalId(4) => {
                 let mut matched = false;
                 //Id_Plus_1 : . Id_Plus_1 Char
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_ID_PLUS_1_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
                 //Id_Plus_1 : . Char
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_ID_PLUS_1_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
                 }
@@ -783,7 +784,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         SlotId(12),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(0)],
+                            expected: FIRST_SET_ID_PLUS_1.to_vec(),
                         },
                     );
                 }
@@ -1088,45 +1089,27 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => {
-                self.scanner.match_any(&[TerminalId(1), TerminalId(3)], input_index)
-            }
-            NonterminalId(1) => {
-                self.scanner.match_any(&[TerminalId(1), TerminalId(3)], input_index)
-            }
-            NonterminalId(2) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(3), TerminalId(0), TerminalId(1)],
-                        input_index,
-                    )
-            }
-            NonterminalId(3) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(3), TerminalId(0), TerminalId(1)],
-                        input_index,
-                    )
-            }
-            NonterminalId(4) => {
-                self.scanner.match_any(&[TerminalId(1), TerminalId(3)], input_index)
-            }
-            NonterminalId(5) => self.scanner.match_any(&[TerminalId(3)], input_index),
-            NonterminalId(6) => self.scanner.match_any(&[TerminalId(3)], input_index),
-            NonterminalId(7) => self.scanner.match_any(&[TerminalId(3)], input_index),
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
+            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_T, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_ID, input_index),
+            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_S_PLUS_0, input_index),
+            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_ID_PLUS_1, input_index),
+            NonterminalId(5) => self.scanner.match_any(FOLLOW_SET_START_S, input_index),
+            NonterminalId(6) => self.scanner.match_any(FOLLOW_SET_START_T, input_index),
+            NonterminalId(7) => self.scanner.match_any(FOLLOW_SET_START_ID, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(1), TerminalId(3)],
-            NonterminalId(1) => vec![TerminalId(1), TerminalId(3)],
-            NonterminalId(2) => vec![TerminalId(3), TerminalId(0), TerminalId(1)],
-            NonterminalId(3) => vec![TerminalId(3), TerminalId(0), TerminalId(1)],
-            NonterminalId(4) => vec![TerminalId(1), TerminalId(3)],
-            NonterminalId(5) => vec![TerminalId(3)],
-            NonterminalId(6) => vec![TerminalId(3)],
-            NonterminalId(7) => vec![TerminalId(3)],
+            NonterminalId(0) => FOLLOW_SET_S.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_T.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_ID.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_S_PLUS_0.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_ID_PLUS_1.to_vec(),
+            NonterminalId(5) => FOLLOW_SET_START_S.to_vec(),
+            NonterminalId(6) => FOLLOW_SET_START_T.to_vec(),
+            NonterminalId(7) => FOLLOW_SET_START_ID.to_vec(),
             _ => vec![],
         }
     }
@@ -1201,7 +1184,7 @@ impl<'i> FollowRestrictionParser<'i> {
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_S_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -1230,14 +1213,14 @@ impl<'i> FollowRestrictionParser<'i> {
                 SlotId(0),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_S.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_t_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_T_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -1283,14 +1266,14 @@ impl<'i> FollowRestrictionParser<'i> {
                 SlotId(2),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_T.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_ID_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -1323,7 +1306,7 @@ impl<'i> FollowRestrictionParser<'i> {
                 SlotId(4),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_ID.to_vec(),
                 },
             );
             None
@@ -1454,7 +1437,7 @@ impl<'i> FollowRestrictionParser<'i> {
         Some(current)
     }
     fn parse_start_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0), TerminalId(1)], i) {
+        if self.scanner.match_any(PREDICTION_SET_START_S_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -1543,14 +1526,14 @@ impl<'i> FollowRestrictionParser<'i> {
                 SlotId(17),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0), TerminalId(1)],
+                    expected: FIRST_SET_START_S.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_start_t_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0), TerminalId(1)], i) {
+        if self.scanner.match_any(PREDICTION_SET_START_T_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -1639,14 +1622,14 @@ impl<'i> FollowRestrictionParser<'i> {
                 SlotId(21),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0), TerminalId(1)],
+                    expected: FIRST_SET_START_T.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_start_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0), TerminalId(1)], i) {
+        if self.scanner.match_any(PREDICTION_SET_START_ID_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -1735,7 +1718,7 @@ impl<'i> FollowRestrictionParser<'i> {
                 SlotId(25),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0), TerminalId(1)],
+                    expected: FIRST_SET_START_ID.to_vec(),
                 },
             );
             None

@@ -18,7 +18,10 @@
 // "x" = x
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{scanner::CommentsScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
+use crate::{
+    grammar_data::*, scanner::CommentsScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
+};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -494,17 +497,17 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             NonterminalId(0) => {
                 let mut matched = false;
                 //Expr : . Expr Layout "+" Layout Expr
-                if self.scanner.match_any(&[TerminalId(6)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 //Expr : . Expr Layout "*" Layout Expr
-                if self.scanner.match_any(&[TerminalId(6)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 //Expr : . "x"
-                if self.scanner.match_any(&[TerminalId(6)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
@@ -514,7 +517,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         SlotId(0),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(6)],
+                            expected: FIRST_SET_EXPR.to_vec(),
                         },
                     );
                 }
@@ -793,23 +796,17 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(4), TerminalId(5), TerminalId(0), TerminalId(8)],
-                        input_index,
-                    )
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_EXPR, input_index),
+            NonterminalId(1) => {
+                self.scanner.match_any(FOLLOW_SET_START_EXPR, input_index)
             }
-            NonterminalId(1) => self.scanner.match_any(&[TerminalId(8)], input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => {
-                vec![TerminalId(4), TerminalId(5), TerminalId(0), TerminalId(8)]
-            }
-            NonterminalId(1) => vec![TerminalId(8)],
+            NonterminalId(0) => FOLLOW_SET_EXPR.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_START_EXPR.to_vec(),
             _ => vec![],
         }
     }

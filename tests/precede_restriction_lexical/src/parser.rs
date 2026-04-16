@@ -16,7 +16,7 @@
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
 use crate::{
-    scanner::PrecedeRestrictionLexicalScanner,
+    grammar_data::*, scanner::PrecedeRestrictionLexicalScanner,
     types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 use iguana_runtime::{
@@ -342,12 +342,12 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             NonterminalId(0) => {
                 let mut matched = false;
                 //S : . "for" WS Id
-                if self.scanner.match_any(&[TerminalId(3)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_S_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 //S : . "forall"
-                if self.scanner.match_any(&[TerminalId(4)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_S_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
@@ -357,7 +357,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                         SlotId(0),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(4), TerminalId(3)],
+                            expected: FIRST_SET_S.to_vec(),
                         },
                     );
                 }
@@ -636,17 +636,15 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => {
-                self.scanner.match_any(&[TerminalId(2), TerminalId(6)], input_index)
-            }
-            NonterminalId(1) => self.scanner.match_any(&[TerminalId(6)], input_index),
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
+            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_START_S, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(2), TerminalId(6)],
-            NonterminalId(1) => vec![TerminalId(6)],
+            NonterminalId(0) => FOLLOW_SET_S.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_START_S.to_vec(),
             _ => vec![],
         }
     }
@@ -721,7 +719,7 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(3)], i) {
+        if self.scanner.match_any(PREDICTION_SET_S_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -818,7 +816,7 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self.scanner.match_any(&[TerminalId(4)], i) {
+            if self.scanner.match_any(PREDICTION_SET_S_ALT1, i) {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -861,7 +859,7 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                     SlotId(0),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![TerminalId(4), TerminalId(3)],
+                        expected: FIRST_SET_S.to_vec(),
                     },
                 );
                 None
@@ -869,7 +867,7 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
         }
     }
     fn parse_start_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(3), TerminalId(4), TerminalId(2)], i) {
+        if self.scanner.match_any(PREDICTION_SET_START_S_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -958,7 +956,7 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 SlotId(6),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(2), TerminalId(4), TerminalId(3)],
+                    expected: FIRST_SET_START_S.to_vec(),
                 },
             );
             None

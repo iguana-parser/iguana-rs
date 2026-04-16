@@ -22,7 +22,8 @@
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
 use crate::{
-    scanner::IndirectPrecedenceScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
+    grammar_data::*, scanner::IndirectPrecedenceScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
@@ -468,17 +469,17 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
             NonterminalId(3) => {
                 let mut matched = false;
                 //E(p: i32) : . "-" E(2) return 2
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_E_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
                 //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "*" F return 0
-                if self.scanner.match_any(&[TerminalId(2), TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_E_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 //E(p: i32) : . "a" return 0
-                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_E_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
                 }
@@ -488,7 +489,7 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                         SlotId(2),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(2), TerminalId(0)],
+                            expected: FIRST_SET_E.to_vec(),
                         },
                     );
                 }
@@ -771,37 +772,19 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&[TerminalId(5)], input_index),
-            NonterminalId(3) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(3), TerminalId(5)],
-                        input_index,
-                    )
-            }
-            NonterminalId(1) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(3), TerminalId(5)],
-                        input_index,
-                    )
-            }
-            NonterminalId(2) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(3), TerminalId(5)],
-                        input_index,
-                    )
-            }
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
+            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_E, input_index),
+            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_F, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_K, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(5)],
-            NonterminalId(3) => vec![TerminalId(1), TerminalId(3), TerminalId(5)],
-            NonterminalId(1) => vec![TerminalId(1), TerminalId(3), TerminalId(5)],
-            NonterminalId(2) => vec![TerminalId(1), TerminalId(3), TerminalId(5)],
+            NonterminalId(0) => FOLLOW_SET_S.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_E.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_F.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_K.to_vec(),
             _ => vec![],
         }
     }

@@ -15,7 +15,8 @@
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
 use crate::{
-    scanner::MultipleExceptScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
+    grammar_data::*, scanner::MultipleExceptScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
@@ -491,15 +492,19 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&[TerminalId(6)], input_index),
-            NonterminalId(1) => self.scanner.match_any(&[TerminalId(6)], input_index),
+            NonterminalId(0) => {
+                self.scanner.match_any(FOLLOW_SET_SYNTAX_IDENTIFIER, input_index)
+            }
+            NonterminalId(1) => {
+                self.scanner.match_any(FOLLOW_SET_LEXICAL_IDENTIFIER, input_index)
+            }
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(6)],
-            NonterminalId(1) => vec![TerminalId(6)],
+            NonterminalId(0) => FOLLOW_SET_SYNTAX_IDENTIFIER.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_LEXICAL_IDENTIFIER.to_vec(),
             _ => vec![],
         }
     }
@@ -574,7 +579,7 @@ impl<'i> MultipleExceptParser<'i> {
         }
     }
     fn parse_syntax_identifier_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(1)], i) {
+        if self.scanner.match_any(PREDICTION_SET_SYNTAX_IDENTIFIER_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -620,14 +625,14 @@ impl<'i> MultipleExceptParser<'i> {
                 SlotId(0),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(1)],
+                    expected: FIRST_SET_SYNTAX_IDENTIFIER.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_lexical_identifier_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_LEXICAL_IDENTIFIER_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -669,7 +674,7 @@ impl<'i> MultipleExceptParser<'i> {
                 SlotId(2),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_LEXICAL_IDENTIFIER.to_vec(),
                 },
             );
             None

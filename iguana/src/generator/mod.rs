@@ -27,6 +27,7 @@ pub struct GenerateResult {
 }
 
 mod cargo_toml_gen;
+mod grammar_data_gen;
 mod id;
 mod lib_gen;
 mod main_gen;
@@ -110,6 +111,9 @@ pub fn generate(
 
     let types_code = types_gen::generate();
     write_rust_file(to_string(types_code), &src_dir.join("types.rs"))?;
+
+    let grammar_data_code = grammar_data_gen::generate(grammar, &terminal_ids);
+    write_rust_file(to_string(grammar_data_code), &src_dir.join("grammar_data.rs"))?;
 
     let main_code = main_gen::generate(grammar);
     write_rust_file(to_string(main_code), &src_dir.join("main.rs"))?;

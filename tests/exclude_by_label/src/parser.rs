@@ -28,7 +28,8 @@
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
 use crate::{
-    scanner::ExcludeByLabelScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
+    grammar_data::*, scanner::ExcludeByLabelScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
@@ -610,17 +611,17 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             NonterminalId(0) => {
                 let mut matched = false;
                 //Expr : . Id
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 //Expr : . Expr "(" Expr_Star_0 ")"
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
                 //Expr : . Expr "," Expr
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
                 }
@@ -630,7 +631,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         SlotId(0),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(0)],
+                            expected: FIRST_SET_EXPR.to_vec(),
                         },
                     );
                 }
@@ -639,12 +640,12 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             NonterminalId(1) => {
                 let mut matched = false;
                 //Expr_Plus_0 : . Expr_Plus_0 "," Expr_except_comma
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_EXPR_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
                 //Expr_Plus_0 : . Expr_except_comma
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_EXPR_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
                 }
@@ -654,7 +655,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         SlotId(11),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(0)],
+                            expected: FIRST_SET_EXPR_PLUS_0.to_vec(),
                         },
                     );
                 }
@@ -663,12 +664,12 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             NonterminalId(2) => {
                 let mut matched = false;
                 //Expr_Opt_0 : . Expr_Plus_0
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_EXPR_OPT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(17), input_index, gss_node_id, env);
                 }
                 //Expr_Opt_0 : .
-                if self.scanner.match_any(&[TerminalId(3), TerminalId(5)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_EXPR_OPT_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
                 }
@@ -678,7 +679,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         SlotId(17),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(3), TerminalId(5), TerminalId(0)],
+                            expected: FIRST_SET_EXPR_OPT_0.to_vec(),
                         },
                     );
                 }
@@ -691,12 +692,18 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             NonterminalId(4) => {
                 let mut matched = false;
                 //Expr_except_comma : . Id
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_EXPR_EXCEPT_COMMA_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(SlotId(22), input_index, gss_node_id, env);
                 }
                 //Expr_except_comma : . Expr "(" Expr_Star_0 ")"
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_EXPR_EXCEPT_COMMA_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
                 }
@@ -706,7 +713,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         SlotId(22),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(0)],
+                            expected: FIRST_SET_EXPR_EXCEPT_COMMA.to_vec(),
                         },
                     );
                 }
@@ -981,43 +988,29 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(2), TerminalId(1), TerminalId(5)],
-                        input_index,
-                    )
-            }
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_EXPR, input_index),
             NonterminalId(1) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(2), TerminalId(3), TerminalId(5)],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_EXPR_PLUS_0, input_index)
             }
             NonterminalId(2) => {
-                self.scanner.match_any(&[TerminalId(3), TerminalId(5)], input_index)
+                self.scanner.match_any(FOLLOW_SET_EXPR_OPT_0, input_index)
             }
             NonterminalId(3) => {
-                self.scanner.match_any(&[TerminalId(3), TerminalId(5)], input_index)
+                self.scanner.match_any(FOLLOW_SET_EXPR_STAR_0, input_index)
             }
             NonterminalId(4) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(2), TerminalId(3), TerminalId(5)],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_EXPR_EXCEPT_COMMA, input_index)
             }
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(2), TerminalId(1), TerminalId(5)],
-            NonterminalId(1) => vec![TerminalId(2), TerminalId(3), TerminalId(5)],
-            NonterminalId(2) => vec![TerminalId(3), TerminalId(5)],
-            NonterminalId(3) => vec![TerminalId(3), TerminalId(5)],
-            NonterminalId(4) => vec![TerminalId(2), TerminalId(3), TerminalId(5)],
+            NonterminalId(0) => FOLLOW_SET_EXPR.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_EXPR_PLUS_0.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_EXPR_OPT_0.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_EXPR_STAR_0.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_EXPR_EXCEPT_COMMA.to_vec(),
             _ => vec![],
         }
     }

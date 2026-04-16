@@ -23,7 +23,6 @@ use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
 use crate::ids::NonterminalId;
 use crate::ids::SlotId;
-use rustc_hash::FxHashSet;
 
 pub struct ParserGen<'a> {
     grammar: &'a Grammar,
@@ -177,7 +176,7 @@ impl<'a> ParserGen<'a> {
         quote! {
             use std::cell::OnceCell;
             use std::collections::BTreeMap;
-            use crate::{scanner::#scanner_name, types::{EbnfKind, Nonterminal, Slot, Terminal}};
+            use crate::{grammar_data::*, scanner::#scanner_name, types::{EbnfKind, Nonterminal, Slot, Terminal}};
             use iguana_runtime::{
                 descriptor::Descriptor,
                 env::{Env, EnvId},
@@ -319,14 +318,16 @@ impl<'a> ParserGen<'a> {
                 });
             } else {
                 let nt_name = &nonterminal.name;
+                let nt_upper = self.prediction_set_name(nonterminal);
                 let mut alternative_quotes = vec![];
-                for alternative in alternatives {
+                for (alt_index, alternative) in alternatives.iter().enumerate() {
                     let first_slot = Slot::new(nonterminal, alternative, 0);
                     let first_slot_name = first_slot.name();
                     let first_slot_id = self.slot_ids.get_id(&first_slot);
-                    let prediction_set = self.ff.prediction_set(nonterminal, alternative);
-                    let condition =
-                        self.gen_terminal_set_match_check(&prediction_set, quote! { input_index });
+                    let condition = self.gen_match_any(
+                        &format!("PREDICTION_SET_{}_ALT{}", nt_upper, alt_index),
+                        quote! { input_index },
+                    );
                     alternative_quotes.push(quote! {
                         #[comment = #first_slot_name]
                         if #condition {
@@ -335,21 +336,7 @@ impl<'a> ParserGen<'a> {
                         }
                     });
                 }
-                let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
-                let all_expected: Vec<_> = alternatives
-                    .iter()
-                    .flat_map(|alt| self.ff.prediction_set(nonterminal, alt))
-                    .collect::<FxHashSet<_>>()
-                    .into_iter()
-                    .map(|t| {
-                        if t.name == "EOF" {
-                            quote! { TerminalId(#eof_id) }
-                        } else {
-                            let id = self.terminal_ids.get_id(&t);
-                            quote! { #id }
-                        }
-                    })
-                    .collect();
+                let first_set_name = format_ident!("FIRST_SET_{}", nt_upper);
                 let first_slot = Slot::new(nonterminal, &alternatives[0], 0);
                 let first_slot_id = self.slot_ids.get_id(&first_slot);
                 nonterminal_quotes.push(quote! {
@@ -358,7 +345,7 @@ impl<'a> ParserGen<'a> {
                         let mut matched = false;
                         #( #alternative_quotes)*
                         if !matched {
-                            self.add_parse_error(input_index, #first_slot_id, Some(gss_node_id), ParseErrorKind::UnexpectedToken { expected: vec![#(#all_expected),*] });
+                            self.add_parse_error(input_index, #first_slot_id, Some(gss_node_id), ParseErrorKind::UnexpectedToken { expected: #first_set_name.to_vec() });
                         }
                     }
                 });
@@ -878,7 +865,11 @@ impl<'a> ParserGen<'a> {
         let mut arms = vec![];
         for nonterminal in self.grammar.nonterminals() {
             let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
-            let condition = self.gen_terminal_set_match_check(self.ff.follow_set(nonterminal), quote! { input_index });
+            let nt_upper = self.prediction_set_name(nonterminal);
+            let condition = self.gen_match_any(
+                &format!("FOLLOW_SET_{}", nt_upper),
+                quote! { input_index },
+            );
             arms.push(quote! {
                 #nonterminal_id => { #condition }
             });
@@ -894,21 +885,13 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_follow_set_terminals_method(&self) -> TokenStream {
-        let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
         let mut arms = vec![];
         for nonterminal in self.grammar.nonterminals() {
             let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
-            let terminal_ids: Vec<_> = self.ff.follow_set(nonterminal)
-                .map(|t| {
-                    if t.name == "EOF" {
-                        quote! { TerminalId(#eof_id) }
-                    } else {
-                        let id = self.terminal_ids.get_id(t);
-                        quote! { #id }
-                    }
-                }).collect();
+            let nt_upper = self.prediction_set_name(nonterminal);
+            let follow_name = format_ident!("FOLLOW_SET_{}", nt_upper);
             arms.push(quote! {
-                #nonterminal_id => { vec![#(#terminal_ids),*] }
+                #nonterminal_id => { #follow_name.to_vec() }
             });
         }
         quote! {
@@ -1221,28 +1204,13 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_terminal_set_match_check<'t>(
-        &self,
-        prediction_set: impl IntoIterator<Item = &'t Terminal>,
-        input_index: TokenStream,
-    ) -> TokenStream {
-        let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
-        let terminal_ids: Vec<TokenStream> = prediction_set
-            .into_iter()
-            .map(|t| {
-                if t.name == "EOF" {
-                    quote! { TerminalId(#eof_id) }
-                } else {
-                    let id = self.terminal_ids.get_id(t);
-                    quote! { #id }
-                }
-            })
-            .collect();
-        if terminal_ids.is_empty() {
-            quote! { false }
-        } else {
-            quote! { self.scanner.match_any(&[#(#terminal_ids),*], #input_index) }
-        }
+    fn prediction_set_name(&self, nonterminal: &Nonterminal) -> String {
+        to_snake_case(&nonterminal.name).to_uppercase()
+    }
+
+    fn gen_match_any(&self, static_name: &str, input_index: TokenStream) -> TokenStream {
+        let name = format_ident!("{}", static_name);
+        quote! { self.scanner.match_any(#name, #input_index) }
     }
 
     fn gen_parse_method_ll1(&self, nonterminal: &'a Nonterminal) -> TokenStream {
@@ -1256,33 +1224,22 @@ impl<'a> ParserGen<'a> {
         let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
         let alternatives = self.grammar.alternatives(nonterminal);
-        let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
-        let all_expected: Vec<_> = alternatives
-            .iter()
-            .flat_map(|alt| self.ff.prediction_set(nonterminal, alt))
-            .collect::<FxHashSet<_>>()
-            .into_iter()
-            .map(|t| {
-                if t.name == "EOF" {
-                    quote! { TerminalId(#eof_id) }
-                } else {
-                    let id = self.terminal_ids.get_id(&t);
-                    quote! { #id }
-                }
-            })
-            .collect();
+        let nt_upper = self.prediction_set_name(nonterminal);
+        let first_set_name = format_ident!("FIRST_SET_{}", nt_upper);
         let first_slot = Slot::new(nonterminal, &alternatives[0], 0);
         let first_slot_id = self.slot_ids.get_id(&first_slot);
 
         // Build if-else if-else chain
         let mut chain = quote! {
-            self.add_parse_error(i, #first_slot_id, None, ParseErrorKind::UnexpectedToken { expected: vec![#(#all_expected),*] });
+            self.add_parse_error(i, #first_slot_id, None, ParseErrorKind::UnexpectedToken { expected: #first_set_name.to_vec() });
             None
         };
 
-        for alternative in alternatives.iter().rev() {
-            let prediction_set = self.ff.prediction_set(nonterminal, alternative);
-            let condition = self.gen_terminal_set_match_check(&prediction_set, quote! { i });
+        for (alt_index, alternative) in alternatives.iter().enumerate().rev() {
+            let condition = self.gen_match_any(
+                &format!("PREDICTION_SET_{}_ALT{}", nt_upper, alt_index),
+                quote! { i },
+            );
             let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
             let end_slot_id = self.slot_ids.get_id(&end_slot);
 

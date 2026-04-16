@@ -15,7 +15,8 @@
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
 use crate::{
-    scanner::ExceptNonterminalScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
+    grammar_data::*, scanner::ExceptNonterminalScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
@@ -484,17 +485,17 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&[TerminalId(3)], input_index),
-            NonterminalId(1) => self.scanner.match_any(&[TerminalId(3)], input_index),
-            NonterminalId(2) => self.scanner.match_any(&[TerminalId(3)], input_index),
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
+            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_ID, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_NAME, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(3)],
-            NonterminalId(1) => vec![TerminalId(3)],
-            NonterminalId(2) => vec![TerminalId(3)],
+            NonterminalId(0) => FOLLOW_SET_S.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_ID.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_NAME.to_vec(),
             _ => vec![],
         }
     }
@@ -569,7 +570,7 @@ impl<'i> ExceptNonterminalParser<'i> {
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_S_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -598,14 +599,14 @@ impl<'i> ExceptNonterminalParser<'i> {
                 SlotId(0),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_S.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_ID_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -638,14 +639,14 @@ impl<'i> ExceptNonterminalParser<'i> {
                 SlotId(2),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_ID.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_name_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_NAME_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -687,7 +688,7 @@ impl<'i> ExceptNonterminalParser<'i> {
                 SlotId(4),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_NAME.to_vec(),
                 },
             );
             None

@@ -9,6 +9,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
     let parser = format_ident!("{}Parser", to_first_uppercase(grammar_name));
 
     quote! {
+        pub mod grammar_data;
         pub mod parser;
         pub mod parse_tree;
         pub mod scanner;

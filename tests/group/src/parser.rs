@@ -21,7 +21,10 @@
 // "d" = d
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{scanner::GroupScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
+use crate::{
+    grammar_data::*, scanner::GroupScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
+};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -595,25 +598,21 @@ impl<'i> Parser<'i> for GroupParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&[TerminalId(4)], input_index),
-            NonterminalId(1) => {
-                self.scanner.match_any(&[TerminalId(1), TerminalId(4)], input_index)
-            }
-            NonterminalId(2) => {
-                self.scanner.match_any(&[TerminalId(2), TerminalId(4)], input_index)
-            }
-            NonterminalId(3) => self.scanner.match_any(&[TerminalId(4)], input_index),
-            NonterminalId(4) => self.scanner.match_any(&[TerminalId(4)], input_index),
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_A, input_index),
+            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_B, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_C, input_index),
+            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_D, input_index),
+            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_A_GROUP_0, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(4)],
-            NonterminalId(1) => vec![TerminalId(1), TerminalId(4)],
-            NonterminalId(2) => vec![TerminalId(2), TerminalId(4)],
-            NonterminalId(3) => vec![TerminalId(4)],
-            NonterminalId(4) => vec![TerminalId(4)],
+            NonterminalId(0) => FOLLOW_SET_A.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_B.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_C.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_D.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_A_GROUP_0.to_vec(),
             _ => vec![],
         }
     }
@@ -688,7 +687,7 @@ impl<'i> GroupParser<'i> {
         }
     }
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_A_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -717,14 +716,14 @@ impl<'i> GroupParser<'i> {
                 SlotId(0),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_A.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_b_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_B_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -766,14 +765,14 @@ impl<'i> GroupParser<'i> {
                 SlotId(2),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_B.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_c_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(1)], i) {
+        if self.scanner.match_any(PREDICTION_SET_C_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -815,14 +814,14 @@ impl<'i> GroupParser<'i> {
                 SlotId(4),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(1)],
+                    expected: FIRST_SET_C.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_d_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(2)], i) {
+        if self.scanner.match_any(PREDICTION_SET_D_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -864,14 +863,14 @@ impl<'i> GroupParser<'i> {
                 SlotId(6),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(2)],
+                    expected: FIRST_SET_D.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_a_group_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_A_GROUP_0_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -934,7 +933,7 @@ impl<'i> GroupParser<'i> {
                 SlotId(8),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_A_GROUP_0.to_vec(),
                 },
             );
             None

@@ -14,7 +14,9 @@
 // "a" = a
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{scanner::PlusScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
+use crate::{
+    grammar_data::*, scanner::PlusScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
+};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -217,12 +219,12 @@ impl<'i> Parser<'i> for PlusParser<'i> {
             NonterminalId(2) => {
                 let mut matched = false;
                 //S_Plus_0 : . S_Plus_0 A
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_S_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
                 //S_Plus_0 : . A
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_S_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
                 }
@@ -232,7 +234,7 @@ impl<'i> Parser<'i> for PlusParser<'i> {
                         SlotId(4),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(0)],
+                            expected: FIRST_SET_S_PLUS_0.to_vec(),
                         },
                     );
                 }
@@ -507,21 +509,17 @@ impl<'i> Parser<'i> for PlusParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&[TerminalId(2)], input_index),
-            NonterminalId(1) => {
-                self.scanner.match_any(&[TerminalId(0), TerminalId(2)], input_index)
-            }
-            NonterminalId(2) => {
-                self.scanner.match_any(&[TerminalId(0), TerminalId(2)], input_index)
-            }
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
+            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_A, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_S_PLUS_0, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(2)],
-            NonterminalId(1) => vec![TerminalId(0), TerminalId(2)],
-            NonterminalId(2) => vec![TerminalId(0), TerminalId(2)],
+            NonterminalId(0) => FOLLOW_SET_S.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_A.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_S_PLUS_0.to_vec(),
             _ => vec![],
         }
     }
@@ -596,7 +594,7 @@ impl<'i> PlusParser<'i> {
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_S_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -625,14 +623,14 @@ impl<'i> PlusParser<'i> {
                 SlotId(0),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_S.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_A_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -674,7 +672,7 @@ impl<'i> PlusParser<'i> {
                 SlotId(2),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_A.to_vec(),
                 },
             );
             None

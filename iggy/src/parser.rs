@@ -339,7 +339,9 @@
 // "-" = -
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{scanner::IggyScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
+use crate::{
+    grammar_data::*, scanner::IggyScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
+};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -11660,24 +11662,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(2) => {
                 let mut matched = false;
                 //Rule : . SyntaxRule
-                if self
-                    .scanner
-                    .match_any(
-                        &[
-                            TerminalId(1),
-                            TerminalId(14),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
-                {
+                if self.scanner.match_any(PREDICTION_SET_RULE_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
                 //Rule : . RegexRule
-                if self.scanner.match_any(&[TerminalId(18)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_RULE_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
                 }
@@ -11687,10 +11677,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(12),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(1), TerminalId(18), TerminalId(14),
-                                TerminalId(15), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_RULE.to_vec(),
                         },
                     );
                 }
@@ -11703,12 +11690,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(4) => {
                 let mut matched = false;
                 //Annotation : . "@NoLayout"
-                if self.scanner.match_any(&[TerminalId(14)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_ANNOTATION_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
                 }
                 //Annotation : . "@Layout" Layout "(" Layout Identifier Layout ")"
-                if self.scanner.match_any(&[TerminalId(15)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_ANNOTATION_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
                 }
@@ -11718,7 +11705,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(24),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(15), TerminalId(14)],
+                            expected: FIRST_SET_ANNOTATION.to_vec(),
                         },
                     );
                 }
@@ -11735,12 +11722,18 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(7) => {
                 let mut matched = false;
                 //PostCondition : . "\" Layout Identifier
-                if self.scanner.match_any(&[TerminalId(21)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_POST_CONDITION_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
                 }
                 //PostCondition : . "!>>" Layout Identifier
-                if self.scanner.match_any(&[TerminalId(22)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_POST_CONDITION_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(SlotId(54), input_index, gss_node_id, env);
                 }
@@ -11750,7 +11743,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(50),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(21), TerminalId(22)],
+                            expected: FIRST_SET_POST_CONDITION.to_vec(),
                         },
                     );
                 }
@@ -11763,17 +11756,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(9) => {
                 let mut matched = false;
                 //Associativity : . "left"
-                if self.scanner.match_any(&[TerminalId(23)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_ASSOCIATIVITY_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(SlotId(62), input_index, gss_node_id, env);
                 }
                 //Associativity : . "right"
-                if self.scanner.match_any(&[TerminalId(24)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_ASSOCIATIVITY_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
                 }
                 //Associativity : . "none"
-                if self.scanner.match_any(&[TerminalId(25)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_ASSOCIATIVITY_ALT2, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
                 }
@@ -11783,9 +11779,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(62),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(23), TerminalId(25), TerminalId(24)
-                            ],
+                            expected: FIRST_SET_ASSOCIATIVITY.to_vec(),
                         },
                     );
                 }
@@ -11798,32 +11792,32 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(71) => {
                 let mut matched = false;
                 //Symbol(p: i32) : . Identifier return 0
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
                 }
                 //Symbol(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(75), input_index, gss_node_id, env);
                 }
                 //Symbol(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
                 }
                 //Symbol(p: i32) : . String return 0
-                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT3, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(91), input_index, gss_node_id, env);
                 }
                 //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT4, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(94), input_index, gss_node_id, env);
                 }
                 //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT5, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(105),
@@ -11833,13 +11827,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
-                if self
-                    .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
-                {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT6, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(116),
@@ -11849,13 +11837,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
-                if self
-                    .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
-                {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT7, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(123),
@@ -11865,13 +11847,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
-                if self
-                    .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
-                {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT8, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(130),
@@ -11881,13 +11857,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_8 return 0
-                if self
-                    .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
-                {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT9, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(137),
@@ -11897,13 +11867,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_9 return 0
-                if self
-                    .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
-                {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT10, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(144),
@@ -11913,13 +11877,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
-                if self
-                    .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
-                {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT11, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(151),
@@ -11929,7 +11887,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT12, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(158),
@@ -11939,7 +11897,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_ALT13, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(165),
@@ -11954,9 +11912,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(72),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)
-                            ],
+                            expected: FIRST_SET_SYMBOL.to_vec(),
                         },
                     );
                 }
@@ -11965,22 +11921,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(11) => {
                 let mut matched = false;
                 //Regex : . Regex Layout "+"
-                if self
-                    .scanner
-                    .match_any(
-                        &[
-                            TerminalId(33),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
-                {
+                if self.scanner.match_any(PREDICTION_SET_REGEX_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(172),
@@ -11990,22 +11931,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . Regex Layout "*"
-                if self
-                    .scanner
-                    .match_any(
-                        &[
-                            TerminalId(33),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
-                {
+                if self.scanner.match_any(PREDICTION_SET_REGEX_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(176),
@@ -12015,22 +11941,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . Regex Layout "?"
-                if self
-                    .scanner
-                    .match_any(
-                        &[
-                            TerminalId(33),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
-                {
+                if self.scanner.match_any(PREDICTION_SET_REGEX_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(180),
@@ -12040,7 +11951,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . "(" Layout first:Regex Layout rest:Regex_Plus_11 Layout ")"
-                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_REGEX_ALT3, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(184),
@@ -12050,7 +11961,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . "(" Layout RegexRule_Plus_3 Layout ")"
-                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_REGEX_ALT4, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(192),
@@ -12060,13 +11971,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . CharClass
-                if self
-                    .scanner
-                    .match_any(
-                        &[TerminalId(33), TerminalId(31), TerminalId(9), TerminalId(7)],
-                        input_index,
-                    )
-                {
+                if self.scanner.match_any(PREDICTION_SET_REGEX_ALT5, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(198),
@@ -12076,7 +11981,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . Char
-                if self.scanner.match_any(&[TerminalId(3)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_REGEX_ALT6, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(200),
@@ -12086,7 +11991,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . String
-                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_REGEX_ALT7, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(202),
@@ -12096,7 +12001,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex : . Identifier
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_REGEX_ALT8, input_index) {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(204),
@@ -12111,10 +12016,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(172),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(33), TerminalId(3), TerminalId(2), TerminalId(1),
-                                TerminalId(16), TerminalId(31), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_REGEX.to_vec(),
                         },
                     );
                 }
@@ -12127,7 +12029,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(13) => {
                 let mut matched = false;
                 //RangeElement : . Range
-                if self.scanner.match_any(&[TerminalId(5)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_RANGE_ELEMENT_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(214),
@@ -12137,7 +12040,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //RangeElement : . RangeChar
-                if self.scanner.match_any(&[TerminalId(5)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_RANGE_ELEMENT_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(216),
@@ -12152,7 +12056,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(214),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(5)],
+                            expected: FIRST_SET_RANGE_ELEMENT.to_vec(),
                         },
                     );
                 }
@@ -12169,7 +12073,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(16) => {
                 let mut matched = false;
                 //Grammar_Opt_0 : . LayoutDef
-                if self.scanner.match_any(&[TerminalId(11)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_GRAMMAR_OPT_0_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(226),
@@ -12179,20 +12084,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Grammar_Opt_0 : .
-                if self
-                    .scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(18),
-                            TerminalId(1),
-                            TerminalId(14),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(37),
-                        ],
-                        input_index,
-                    )
+                if self.scanner.match_any(PREDICTION_SET_GRAMMAR_OPT_0_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12208,11 +12100,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(226),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(11), TerminalId(18), TerminalId(14),
-                                TerminalId(37), TerminalId(1), TerminalId(15),
-                                TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_GRAMMAR_OPT_0.to_vec(),
                         },
                     );
                 }
@@ -12223,17 +12111,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Grammar_Plus_0 : . Grammar_Plus_0 Layout Rule
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(1),
-                            TerminalId(14),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_GRAMMAR_PLUS_0_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12246,17 +12124,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Grammar_Plus_0 : . Rule
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(1),
-                            TerminalId(14),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_GRAMMAR_PLUS_0_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12272,10 +12140,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(229),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(18), TerminalId(1), TerminalId(14),
-                                TerminalId(15), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_GRAMMAR_PLUS_0.to_vec(),
                         },
                     );
                 }
@@ -12284,19 +12149,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(18) => {
                 let mut matched = false;
                 //Grammar_Opt_1 : . Grammar_Plus_0
-                if self
-                    .scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(1),
-                            TerminalId(14),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                if self.scanner.match_any(PREDICTION_SET_GRAMMAR_OPT_1_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12307,12 +12160,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Grammar_Opt_1 : .
-                if self
-                    .scanner
-                    .match_any(
-                        &[TerminalId(7), TerminalId(9), TerminalId(37)],
-                        input_index,
-                    )
+                if self.scanner.match_any(PREDICTION_SET_GRAMMAR_OPT_1_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12328,10 +12176,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(235),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(37), TerminalId(18), TerminalId(1),
-                                TerminalId(14), TerminalId(15), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_GRAMMAR_OPT_1.to_vec(),
                         },
                     );
                 }
@@ -12344,7 +12189,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(20) => {
                 let mut matched = false;
                 //SyntaxRule_Opt_2 : . Annotation
-                if self.scanner.match_any(&[TerminalId(15), TerminalId(14)], input_index)
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_SYNTAX_RULE_OPT_2_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12357,10 +12204,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //SyntaxRule_Opt_2 : .
                 if self
                     .scanner
-                    .match_any(
-                        &[TerminalId(7), TerminalId(1), TerminalId(9), TerminalId(37)],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_SYNTAX_RULE_OPT_2_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12376,10 +12220,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(240),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(37), TerminalId(1), TerminalId(14),
-                                TerminalId(15), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_SYNTAX_RULE_OPT_2.to_vec(),
                         },
                     );
                 }
@@ -12390,23 +12231,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //SyntaxRule_Plus_1 : . SyntaxRule_Plus_1 Layout ">" Layout PriorityLevel
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(23),
-                            TerminalId(24),
-                            TerminalId(2),
-                            TerminalId(25),
-                            TerminalId(7),
-                            TerminalId(6),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(9),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_SYNTAX_RULE_PLUS_1_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12419,27 +12244,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //SyntaxRule_Plus_1 : . PriorityLevel
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(23),
-                            TerminalId(25),
-                            TerminalId(13),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(24),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_SYNTAX_RULE_PLUS_1_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12455,13 +12260,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(243),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(23), TerminalId(13), TerminalId(25),
-                                TerminalId(6), TerminalId(37), TerminalId(1),
-                                TerminalId(16), TerminalId(15), TerminalId(24),
-                                TerminalId(18), TerminalId(2), TerminalId(14),
-                                TerminalId(19), TerminalId(26), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_SYNTAX_RULE_PLUS_1.to_vec(),
                         },
                     );
                 }
@@ -12472,27 +12271,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //SyntaxRule_Opt_3 : . SyntaxRule_Plus_1
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(23),
-                            TerminalId(7),
-                            TerminalId(13),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(24),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(9),
-                            TerminalId(25),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_SYNTAX_RULE_OPT_3_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12505,18 +12284,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //SyntaxRule_Opt_3 : .
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(18),
-                            TerminalId(1),
-                            TerminalId(14),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(37),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_SYNTAX_RULE_OPT_3_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12532,14 +12300,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(251),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(23), TerminalId(7), TerminalId(25),
-                                TerminalId(6), TerminalId(37), TerminalId(1),
-                                TerminalId(16), TerminalId(15), TerminalId(24),
-                                TerminalId(18), TerminalId(2), TerminalId(14),
-                                TerminalId(19), TerminalId(26), TerminalId(9),
-                                TerminalId(13)
-                            ],
+                            expected: FIRST_SET_SYNTAX_RULE_OPT_3.to_vec(),
                         },
                     );
                 }
@@ -12552,7 +12313,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(24) => {
                 let mut matched = false;
                 //RegexRule_Opt_4 : . PreCondition
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_REGEX_RULE_OPT_4_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(256),
@@ -12564,20 +12328,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //RegexRule_Opt_4 : .
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(33),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_REGEX_RULE_OPT_4_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12593,11 +12344,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(256),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(33), TerminalId(3), TerminalId(2),
-                                TerminalId(37), TerminalId(1), TerminalId(16),
-                                TerminalId(31), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_REGEX_RULE_OPT_4.to_vec(),
                         },
                     );
                 }
@@ -12608,19 +12355,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //RegexRule_Plus_3 : . RegexRule_Plus_3 Layout Regex
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(33),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_REGEX_RULE_PLUS_3_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12633,19 +12368,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //RegexRule_Plus_3 : . Regex
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(33),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_REGEX_RULE_PLUS_3_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12661,10 +12384,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(259),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(33), TerminalId(3), TerminalId(2), TerminalId(1),
-                                TerminalId(16), TerminalId(31), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_REGEX_RULE_PLUS_3.to_vec(),
                         },
                     );
                 }
@@ -12675,19 +12395,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //RegexRule_Plus_2 : . RegexRule_Plus_2 Layout "|" Layout RegexRule_Plus_3
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(33),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_REGEX_RULE_PLUS_2_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12700,19 +12408,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //RegexRule_Plus_2 : . RegexRule_Plus_3
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(33),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_REGEX_RULE_PLUS_2_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12728,10 +12424,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(265),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(33), TerminalId(3), TerminalId(2), TerminalId(1),
-                                TerminalId(16), TerminalId(31), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_REGEX_RULE_PLUS_2.to_vec(),
                         },
                     );
                 }
@@ -12740,7 +12433,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(27) => {
                 let mut matched = false;
                 //RegexRule_Plus_4 : . RegexRule_Plus_4 Layout PostCondition
-                if self.scanner.match_any(&[TerminalId(21), TerminalId(22)], input_index)
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_REGEX_RULE_PLUS_4_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12751,7 +12446,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //RegexRule_Plus_4 : . PostCondition
-                if self.scanner.match_any(&[TerminalId(21), TerminalId(22)], input_index)
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_REGEX_RULE_PLUS_4_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12767,7 +12464,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(273),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(21), TerminalId(22)],
+                            expected: FIRST_SET_REGEX_RULE_PLUS_4.to_vec(),
                         },
                     );
                 }
@@ -12776,7 +12473,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(28) => {
                 let mut matched = false;
                 //RegexRule_Opt_5 : . RegexRule_Plus_4
-                if self.scanner.match_any(&[TerminalId(21), TerminalId(22)], input_index)
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_REGEX_RULE_OPT_5_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12789,18 +12488,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //RegexRule_Opt_5 : .
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(18),
-                            TerminalId(1),
-                            TerminalId(14),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(37),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_REGEX_RULE_OPT_5_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12816,11 +12504,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(279),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(18), TerminalId(14), TerminalId(37),
-                                TerminalId(21), TerminalId(1), TerminalId(15),
-                                TerminalId(22), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_REGEX_RULE_OPT_5.to_vec(),
                         },
                     );
                 }
@@ -12835,10 +12519,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //PriorityLevel_Opt_6 : . Associativity
                 if self
                     .scanner
-                    .match_any(
-                        &[TerminalId(23), TerminalId(24), TerminalId(25)],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_PRIORITY_LEVEL_OPT_6_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12851,24 +12532,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //PriorityLevel_Opt_6 : .
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(6),
-                            TerminalId(19),
-                            TerminalId(37),
-                            TerminalId(26),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_PRIORITY_LEVEL_OPT_6_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12884,13 +12548,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(284),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(23), TerminalId(25), TerminalId(13),
-                                TerminalId(6), TerminalId(37), TerminalId(1),
-                                TerminalId(16), TerminalId(15), TerminalId(24),
-                                TerminalId(18), TerminalId(2), TerminalId(14),
-                                TerminalId(19), TerminalId(26), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_PRIORITY_LEVEL_OPT_6.to_vec(),
                         },
                     );
                 }
@@ -12901,19 +12559,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //PriorityLevel_Plus_5 : . PriorityLevel_Plus_5 Layout "|" Layout Alternative
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(2),
-                            TerminalId(6),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_PRIORITY_LEVEL_PLUS_5_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12926,24 +12572,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //PriorityLevel_Plus_5 : . Alternative
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(13),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(6),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_PRIORITY_LEVEL_PLUS_5_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -12959,12 +12588,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(287),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(13), TerminalId(18), TerminalId(2),
-                                TerminalId(14), TerminalId(6), TerminalId(19),
-                                TerminalId(26), TerminalId(37), TerminalId(1),
-                                TerminalId(16), TerminalId(15), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_PRIORITY_LEVEL_PLUS_5.to_vec(),
                         },
                     );
                 }
@@ -12975,24 +12599,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //PriorityLevel_Opt_7 : . PriorityLevel_Plus_5
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(13),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(6),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_PRIORITY_LEVEL_OPT_7_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13005,19 +12612,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //PriorityLevel_Opt_7 : .
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_PRIORITY_LEVEL_OPT_7_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13033,13 +12628,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(295),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(7), TerminalId(18), TerminalId(2),
-                                TerminalId(14), TerminalId(6), TerminalId(19),
-                                TerminalId(26), TerminalId(37), TerminalId(1),
-                                TerminalId(16), TerminalId(15), TerminalId(9),
-                                TerminalId(13)
-                            ],
+                            expected: FIRST_SET_PRIORITY_LEVEL_OPT_7.to_vec(),
                         },
                     );
                 }
@@ -13054,10 +12643,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Alternative_Plus_6 : . Alternative_Plus_6 Layout Symbol(0)
                 if self
                     .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_ALTERNATIVE_PLUS_6_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13070,10 +12656,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Alternative_Plus_6 : . Symbol(0)
                 if self
                     .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_ALTERNATIVE_PLUS_6_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13089,9 +12672,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(300),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)
-                            ],
+                            expected: FIRST_SET_ALTERNATIVE_PLUS_6.to_vec(),
                         },
                     );
                 }
@@ -13102,10 +12683,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Alternative_Opt_8 : . Alternative_Plus_6
                 if self
                     .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_ALTERNATIVE_OPT_8_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13118,21 +12696,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Alternative_Opt_8 : .
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_ALTERNATIVE_OPT_8_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13148,12 +12712,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(306),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(13), TerminalId(18), TerminalId(2),
-                                TerminalId(14), TerminalId(19), TerminalId(6),
-                                TerminalId(26), TerminalId(37), TerminalId(1),
-                                TerminalId(16), TerminalId(15), TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_ALTERNATIVE_OPT_8.to_vec(),
                         },
                     );
                 }
@@ -13166,7 +12725,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(37) => {
                 let mut matched = false;
                 //Alternative_Opt_9 : . Label
-                if self.scanner.match_any(&[TerminalId(6)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_ALTERNATIVE_OPT_9_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(311),
@@ -13178,20 +12740,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Alternative_Opt_9 : .
                 if self
                     .scanner
-                    .match_any(
-                        &[
-                            TerminalId(13),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_ALTERNATIVE_OPT_9_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13207,11 +12756,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(311),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(7), TerminalId(18), TerminalId(14),
-                                TerminalId(6), TerminalId(19), TerminalId(37),
-                                TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(13)
-                            ],
+                            expected: FIRST_SET_ALTERNATIVE_OPT_9.to_vec(),
                         },
                     );
                 }
@@ -13224,7 +12769,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(39) => {
                 let mut matched = false;
                 //Symbol_Plus_7 : . Symbol_Plus_7 Layout Symbol_Group_0
-                if self.scanner.match_any(&[TerminalId(19)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_PLUS_7_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(318),
@@ -13234,7 +12780,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_Plus_7 : . Symbol_Group_0
-                if self.scanner.match_any(&[TerminalId(19)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_PLUS_7_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(322),
@@ -13249,7 +12796,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(318),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(19)],
+                            expected: FIRST_SET_SYMBOL_PLUS_7.to_vec(),
                         },
                     );
                 }
@@ -13262,7 +12809,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(41) => {
                 let mut matched = false;
                 //Symbol_Plus_8 : . Symbol_Plus_8 Layout Symbol_Group_1
-                if self.scanner.match_any(&[TerminalId(21)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_PLUS_8_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(328),
@@ -13272,7 +12820,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_Plus_8 : . Symbol_Group_1
-                if self.scanner.match_any(&[TerminalId(21)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_PLUS_8_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(332),
@@ -13287,7 +12836,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(328),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(21)],
+                            expected: FIRST_SET_SYMBOL_PLUS_8.to_vec(),
                         },
                     );
                 }
@@ -13300,7 +12849,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(43) => {
                 let mut matched = false;
                 //Symbol_Plus_9 : . Symbol_Plus_9 Layout Symbol_Group_2
-                if self.scanner.match_any(&[TerminalId(22)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_PLUS_9_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(338),
@@ -13310,7 +12860,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_Plus_9 : . Symbol_Group_2
-                if self.scanner.match_any(&[TerminalId(22)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_SYMBOL_PLUS_9_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(342),
@@ -13325,7 +12876,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(338),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(22)],
+                            expected: FIRST_SET_SYMBOL_PLUS_9.to_vec(),
                         },
                     );
                 }
@@ -13338,7 +12889,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(45) => {
                 let mut matched = false;
                 //Symbol_Plus_10 : . Symbol_Plus_10 Layout Symbol_Group_3
-                if self.scanner.match_any(&[TerminalId(31)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_SYMBOL_PLUS_10_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(348),
@@ -13348,7 +12902,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_Plus_10 : . Symbol_Group_3
-                if self.scanner.match_any(&[TerminalId(31)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_SYMBOL_PLUS_10_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(352),
@@ -13363,7 +12920,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(348),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(31)],
+                            expected: FIRST_SET_SYMBOL_PLUS_10.to_vec(),
                         },
                     );
                 }
@@ -13376,7 +12933,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(47) => {
                 let mut matched = false;
                 //Regex_Plus_11 : . Regex_Plus_11 Layout Regex_Group_4
-                if self.scanner.match_any(&[TerminalId(19)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_REGEX_PLUS_11_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(358),
@@ -13386,7 +12944,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Regex_Plus_11 : . Regex_Group_4
-                if self.scanner.match_any(&[TerminalId(19)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_REGEX_PLUS_11_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(362),
@@ -13401,7 +12960,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(358),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(19)],
+                            expected: FIRST_SET_REGEX_PLUS_11.to_vec(),
                         },
                     );
                 }
@@ -13410,7 +12969,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(48) => {
                 let mut matched = false;
                 //CharClass_Opt_10 : . "!"
-                if self.scanner.match_any(&[TerminalId(31)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_CHAR_CLASS_OPT_10_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(364),
@@ -13422,10 +12984,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //CharClass_Opt_10 : .
                 if self
                     .scanner
-                    .match_any(
-                        &[TerminalId(33), TerminalId(7), TerminalId(9), TerminalId(37)],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_CHAR_CLASS_OPT_10_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13441,10 +13000,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(364),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(33), TerminalId(31), TerminalId(37),
-                                TerminalId(9), TerminalId(7)
-                            ],
+                            expected: FIRST_SET_CHAR_CLASS_OPT_10.to_vec(),
                         },
                     );
                 }
@@ -13453,7 +13009,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(49) => {
                 let mut matched = false;
                 //CharClass_Plus_12 : . CharClass_Plus_12 Layout RangeElement
-                if self.scanner.match_any(&[TerminalId(5)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_CHAR_CLASS_PLUS_12_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(367),
@@ -13463,7 +13022,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //CharClass_Plus_12 : . RangeElement
-                if self.scanner.match_any(&[TerminalId(5)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_CHAR_CLASS_PLUS_12_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(371),
@@ -13478,7 +13040,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(367),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(5)],
+                            expected: FIRST_SET_CHAR_CLASS_PLUS_12.to_vec(),
                         },
                     );
                 }
@@ -13487,7 +13049,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(50) => {
                 let mut matched = false;
                 //Layout_Alt_0 : . WS
-                if self.scanner.match_any(&[TerminalId(7)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_LAYOUT_ALT_0_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(373),
@@ -13497,7 +13060,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Layout_Alt_0 : . LineComment
-                if self.scanner.match_any(&[TerminalId(9)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_LAYOUT_ALT_0_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(375),
@@ -13512,7 +13076,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(373),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(9), TerminalId(7)],
+                            expected: FIRST_SET_LAYOUT_ALT_0.to_vec(),
                         },
                     );
                 }
@@ -13521,7 +13085,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(51) => {
                 let mut matched = false;
                 //Layout_Plus_13 : . Layout_Plus_13 Layout_Alt_0
-                if self.scanner.match_any(&[TerminalId(9), TerminalId(7)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_LAYOUT_PLUS_13_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(377),
@@ -13531,7 +13098,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Layout_Plus_13 : . Layout_Alt_0
-                if self.scanner.match_any(&[TerminalId(9), TerminalId(7)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_LAYOUT_PLUS_13_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(380),
@@ -13546,7 +13116,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(377),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(9), TerminalId(7)],
+                            expected: FIRST_SET_LAYOUT_PLUS_13.to_vec(),
                         },
                     );
                 }
@@ -13555,7 +13125,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(52) => {
                 let mut matched = false;
                 //Layout_Opt_11 : . Layout_Plus_13
-                if self.scanner.match_any(&[TerminalId(9), TerminalId(7)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_LAYOUT_OPT_11_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(382),
@@ -13565,45 +13136,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Layout_Opt_11 : .
-                if self
-                    .scanner
-                    .match_any(
-                        &[
-                            TerminalId(23),
-                            TerminalId(33),
-                            TerminalId(30),
-                            TerminalId(32),
-                            TerminalId(6),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(31),
-                            TerminalId(20),
-                            TerminalId(22),
-                            TerminalId(24),
-                            TerminalId(18),
-                            TerminalId(3),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(35),
-                            TerminalId(27),
-                            TerminalId(25),
-                            TerminalId(34),
-                            TerminalId(12),
-                            TerminalId(28),
-                            TerminalId(5),
-                            TerminalId(37),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(17),
-                            TerminalId(11),
-                            TerminalId(2),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(10),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                if self.scanner.match_any(PREDICTION_SET_LAYOUT_OPT_11_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13619,20 +13152,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(382),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(23), TerminalId(33), TerminalId(30),
-                                TerminalId(32), TerminalId(6), TerminalId(21),
-                                TerminalId(1), TerminalId(31), TerminalId(20),
-                                TerminalId(22), TerminalId(24), TerminalId(18),
-                                TerminalId(3), TerminalId(14), TerminalId(19),
-                                TerminalId(35), TerminalId(27), TerminalId(9),
-                                TerminalId(25), TerminalId(34), TerminalId(7),
-                                TerminalId(12), TerminalId(28), TerminalId(5),
-                                TerminalId(37), TerminalId(16), TerminalId(15),
-                                TerminalId(17), TerminalId(11), TerminalId(2),
-                                TerminalId(26), TerminalId(29), TerminalId(10),
-                                TerminalId(13)
-                            ],
+                            expected: FIRST_SET_LAYOUT_OPT_11.to_vec(),
                         },
                     );
                 }
@@ -13645,7 +13165,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(72) => {
                 let mut matched = false;
                 //Symbol_except_Except(p: i32) : . Identifier return 0
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT0, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(387),
@@ -13655,7 +13178,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT1, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(390),
@@ -13665,7 +13191,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT2, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(397),
@@ -13675,7 +13204,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . String return 0
-                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT3, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(406),
@@ -13685,7 +13217,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT4, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(409),
@@ -13695,7 +13230,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT5, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(420),
@@ -13707,10 +13245,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
                 if self
                     .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT6, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13723,10 +13258,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
                 if self
                     .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT7, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13739,10 +13271,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
                 if self
                     .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT8, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13755,10 +13284,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_9 return 0
                 if self
                     .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT9, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13771,10 +13297,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 //Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_10 return 0
                 if self
                     .scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
-                        input_index,
-                    )
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT10, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(
@@ -13785,7 +13308,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT11, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(466),
@@ -13795,7 +13321,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_Except(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self
+                    .scanner
+                    .match_any(PREDICTION_SET_SYMBOL_EXCEPT_EXCEPT_ALT12, input_index)
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(473),
@@ -13810,9 +13339,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(387),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)
-                            ],
+                            expected: FIRST_SET_SYMBOL_EXCEPT_EXCEPT.to_vec(),
                         },
                     );
                 }
@@ -13821,7 +13348,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(73) => {
                 let mut matched = false;
                 //Symbol_except_FollowRestriction(p: i32) : . Identifier return 0
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self
+                    .scanner
+                    .match_any(
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT0,
+                        input_index,
+                    )
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(480),
@@ -13831,7 +13364,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . "(" Layout Alternative_Plus_6 Layout ")" return 0
-                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                if self
+                    .scanner
+                    .match_any(
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT1,
+                        input_index,
+                    )
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(483),
@@ -13841,7 +13380,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_7 Layout ")" return 0
-                if self.scanner.match_any(&[TerminalId(16)], input_index) {
+                if self
+                    .scanner
+                    .match_any(
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT2,
+                        input_index,
+                    )
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(490),
@@ -13851,7 +13396,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . String return 0
-                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                if self
+                    .scanner
+                    .match_any(
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT3,
+                        input_index,
+                    )
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(499),
@@ -13861,7 +13412,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                if self
+                    .scanner
+                    .match_any(
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT4,
+                        input_index,
+                    )
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(502),
@@ -13871,7 +13428,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                if self.scanner.match_any(&[TerminalId(26)], input_index) {
+                if self
+                    .scanner
+                    .match_any(
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT5,
+                        input_index,
+                    )
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(513),
@@ -13884,7 +13447,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if self
                     .scanner
                     .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT6,
                         input_index,
                     )
                 {
@@ -13900,7 +13463,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if self
                     .scanner
                     .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT7,
                         input_index,
                     )
                 {
@@ -13916,7 +13479,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if self
                     .scanner
                     .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT8,
                         input_index,
                     )
                 {
@@ -13932,7 +13495,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if self
                     .scanner
                     .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT9,
                         input_index,
                     )
                 {
@@ -13948,7 +13511,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if self
                     .scanner
                     .match_any(
-                        &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)],
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT10,
                         input_index,
                     )
                 {
@@ -13961,7 +13524,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self
+                    .scanner
+                    .match_any(
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT11,
+                        input_index,
+                    )
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(559),
@@ -13971,7 +13540,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     );
                 }
                 //Symbol_except_FollowRestriction(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self
+                    .scanner
+                    .match_any(
+                        PREDICTION_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT12,
+                        input_index,
+                    )
+                {
                     matched = true;
                     self.add_first_descriptor(
                         SlotId(566),
@@ -13986,9 +13561,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         SlotId(480),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(26)
-                            ],
+                            expected: FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION.to_vec(),
                         },
                     );
                 }
@@ -14342,1527 +13915,296 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(37), TerminalId(9), TerminalId(7)],
-                        input_index,
-                    )
-            }
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_GRAMMAR, input_index),
             NonterminalId(1) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_LAYOUT_DEF, input_index)
             }
-            NonterminalId(2) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
-            }
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_RULE, input_index),
             NonterminalId(3) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYNTAX_RULE, input_index)
             }
             NonterminalId(4) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(7), TerminalId(1), TerminalId(9), TerminalId(37)],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_ANNOTATION, input_index)
             }
             NonterminalId(5) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_REGEX_RULE, input_index)
             }
             NonterminalId(6) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(33),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_PRE_CONDITION, input_index)
             }
             NonterminalId(7) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(22),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_POST_CONDITION, input_index)
             }
             NonterminalId(8) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(13),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_PRIORITY_LEVEL, input_index)
             }
             NonterminalId(9) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(13),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(6),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_ASSOCIATIVITY, input_index)
             }
             NonterminalId(10) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(13),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_ALTERNATIVE, input_index)
             }
-            NonterminalId(71) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(30),
-                            TerminalId(13),
-                            TerminalId(28),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(17),
-                            TerminalId(22),
-                            TerminalId(15),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(27),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
-            }
-            NonterminalId(11) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(30),
-                            TerminalId(33),
-                            TerminalId(28),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(17),
-                            TerminalId(22),
-                            TerminalId(15),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(29),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
-            }
+            NonterminalId(71) => self.scanner.match_any(FOLLOW_SET_SYMBOL, input_index),
+            NonterminalId(11) => self.scanner.match_any(FOLLOW_SET_REGEX, input_index),
             NonterminalId(12) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(30),
-                            TerminalId(33),
-                            TerminalId(28),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(17),
-                            TerminalId(22),
-                            TerminalId(15),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(29),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_CHAR_CLASS, input_index)
             }
             NonterminalId(13) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(34),
-                            TerminalId(7),
-                            TerminalId(5),
-                            TerminalId(9),
-                            TerminalId(37),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_RANGE_ELEMENT, input_index)
             }
-            NonterminalId(14) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(37),
-                            TerminalId(34),
-                            TerminalId(5),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
-            }
-            NonterminalId(15) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(23),
-                            TerminalId(33),
-                            TerminalId(30),
-                            TerminalId(32),
-                            TerminalId(6),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(31),
-                            TerminalId(20),
-                            TerminalId(22),
-                            TerminalId(24),
-                            TerminalId(18),
-                            TerminalId(3),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(35),
-                            TerminalId(27),
-                            TerminalId(9),
-                            TerminalId(7),
-                            TerminalId(25),
-                            TerminalId(34),
-                            TerminalId(12),
-                            TerminalId(28),
-                            TerminalId(5),
-                            TerminalId(37),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(17),
-                            TerminalId(11),
-                            TerminalId(2),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(10),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
-            }
+            NonterminalId(14) => self.scanner.match_any(FOLLOW_SET_RANGE, input_index),
+            NonterminalId(15) => self.scanner.match_any(FOLLOW_SET_LAYOUT, input_index),
             NonterminalId(16) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_GRAMMAR_OPT_0, input_index)
             }
             NonterminalId(17) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_GRAMMAR_PLUS_0, input_index)
             }
             NonterminalId(18) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(37), TerminalId(9), TerminalId(7)],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_GRAMMAR_OPT_1, input_index)
             }
             NonterminalId(19) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(37), TerminalId(9), TerminalId(7)],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_GRAMMAR_STAR_0, input_index)
             }
             NonterminalId(20) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(37), TerminalId(1), TerminalId(9), TerminalId(7)],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYNTAX_RULE_OPT_2, input_index)
             }
             NonterminalId(21) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYNTAX_RULE_PLUS_1, input_index)
             }
             NonterminalId(22) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYNTAX_RULE_OPT_3, input_index)
             }
             NonterminalId(23) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYNTAX_RULE_STAR_1, input_index)
             }
             NonterminalId(24) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(33),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_REGEX_RULE_OPT_4, input_index)
             }
             NonterminalId(25) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(33),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(17),
-                            TerminalId(22),
-                            TerminalId(15),
-                            TerminalId(3),
-                            TerminalId(2),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_REGEX_RULE_PLUS_3, input_index)
             }
             NonterminalId(26) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(22),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_REGEX_RULE_PLUS_2, input_index)
             }
             NonterminalId(27) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(22),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_REGEX_RULE_PLUS_4, input_index)
             }
             NonterminalId(28) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_REGEX_RULE_OPT_5, input_index)
             }
             NonterminalId(29) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_REGEX_RULE_STAR_2, input_index)
             }
             NonterminalId(30) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(13),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(6),
-                            TerminalId(19),
-                            TerminalId(37),
-                            TerminalId(26),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_PRIORITY_LEVEL_OPT_6, input_index)
             }
             NonterminalId(31) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_PRIORITY_LEVEL_PLUS_5, input_index)
             }
             NonterminalId(32) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(13),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_PRIORITY_LEVEL_OPT_7, input_index)
             }
             NonterminalId(33) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_PRIORITY_LEVEL_STAR_3, input_index)
             }
             NonterminalId(34) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(17),
-                            TerminalId(15),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(9),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_ALTERNATIVE_PLUS_6, input_index)
             }
             NonterminalId(35) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(13),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_ALTERNATIVE_OPT_8, input_index)
             }
             NonterminalId(36) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_ALTERNATIVE_STAR_4, input_index)
             }
             NonterminalId(37) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(18),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(37),
-                            TerminalId(1),
-                            TerminalId(15),
-                            TerminalId(9),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_ALTERNATIVE_OPT_9, input_index)
             }
             NonterminalId(38) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(17),
-                            TerminalId(9),
-                            TerminalId(19),
-                            TerminalId(37),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYMBOL_GROUP_0, input_index)
             }
             NonterminalId(39) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(37),
-                            TerminalId(17),
-                            TerminalId(9),
-                            TerminalId(19),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYMBOL_PLUS_7, input_index)
             }
             NonterminalId(40) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(30),
-                            TerminalId(13),
-                            TerminalId(28),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(31),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(17),
-                            TerminalId(22),
-                            TerminalId(15),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(27),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYMBOL_GROUP_1, input_index)
             }
             NonterminalId(41) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(30),
-                            TerminalId(13),
-                            TerminalId(28),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(17),
-                            TerminalId(22),
-                            TerminalId(15),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(27),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYMBOL_PLUS_8, input_index)
             }
             NonterminalId(42) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(30),
-                            TerminalId(13),
-                            TerminalId(28),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(17),
-                            TerminalId(22),
-                            TerminalId(15),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(27),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYMBOL_GROUP_2, input_index)
             }
             NonterminalId(43) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(30),
-                            TerminalId(13),
-                            TerminalId(28),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(17),
-                            TerminalId(22),
-                            TerminalId(15),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(27),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYMBOL_PLUS_9, input_index)
             }
             NonterminalId(44) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(30),
-                            TerminalId(13),
-                            TerminalId(28),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(17),
-                            TerminalId(22),
-                            TerminalId(15),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(27),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYMBOL_GROUP_3, input_index)
             }
             NonterminalId(45) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(30),
-                            TerminalId(13),
-                            TerminalId(28),
-                            TerminalId(6),
-                            TerminalId(37),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(16),
-                            TerminalId(31),
-                            TerminalId(17),
-                            TerminalId(22),
-                            TerminalId(15),
-                            TerminalId(18),
-                            TerminalId(2),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(27),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYMBOL_PLUS_10, input_index)
             }
             NonterminalId(46) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(7),
-                            TerminalId(17),
-                            TerminalId(9),
-                            TerminalId(19),
-                            TerminalId(37),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_REGEX_GROUP_4, input_index)
             }
             NonterminalId(47) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(37),
-                            TerminalId(17),
-                            TerminalId(9),
-                            TerminalId(19),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_REGEX_PLUS_11, input_index)
             }
             NonterminalId(48) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(37), TerminalId(33), TerminalId(9), TerminalId(7)],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_CHAR_CLASS_OPT_10, input_index)
             }
             NonterminalId(49) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(37),
-                            TerminalId(34),
-                            TerminalId(5),
-                            TerminalId(9),
-                            TerminalId(7),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_CHAR_CLASS_PLUS_12, input_index)
             }
             NonterminalId(50) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(23),
-                            TerminalId(33),
-                            TerminalId(30),
-                            TerminalId(32),
-                            TerminalId(6),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(31),
-                            TerminalId(20),
-                            TerminalId(22),
-                            TerminalId(24),
-                            TerminalId(18),
-                            TerminalId(3),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(35),
-                            TerminalId(27),
-                            TerminalId(9),
-                            TerminalId(25),
-                            TerminalId(34),
-                            TerminalId(7),
-                            TerminalId(12),
-                            TerminalId(28),
-                            TerminalId(5),
-                            TerminalId(37),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(17),
-                            TerminalId(11),
-                            TerminalId(2),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(10),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_LAYOUT_ALT_0, input_index)
             }
             NonterminalId(51) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(23),
-                            TerminalId(33),
-                            TerminalId(30),
-                            TerminalId(32),
-                            TerminalId(6),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(31),
-                            TerminalId(20),
-                            TerminalId(22),
-                            TerminalId(24),
-                            TerminalId(18),
-                            TerminalId(3),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(35),
-                            TerminalId(27),
-                            TerminalId(9),
-                            TerminalId(25),
-                            TerminalId(34),
-                            TerminalId(7),
-                            TerminalId(12),
-                            TerminalId(28),
-                            TerminalId(5),
-                            TerminalId(37),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(17),
-                            TerminalId(11),
-                            TerminalId(2),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(10),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_LAYOUT_PLUS_13, input_index)
             }
             NonterminalId(52) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(23),
-                            TerminalId(33),
-                            TerminalId(30),
-                            TerminalId(32),
-                            TerminalId(6),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(31),
-                            TerminalId(20),
-                            TerminalId(22),
-                            TerminalId(24),
-                            TerminalId(18),
-                            TerminalId(3),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(35),
-                            TerminalId(27),
-                            TerminalId(25),
-                            TerminalId(34),
-                            TerminalId(12),
-                            TerminalId(28),
-                            TerminalId(5),
-                            TerminalId(37),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(17),
-                            TerminalId(11),
-                            TerminalId(2),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(10),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_LAYOUT_OPT_11, input_index)
             }
             NonterminalId(53) => {
-                self.scanner
-                    .match_any(
-                        &[
-                            TerminalId(23),
-                            TerminalId(33),
-                            TerminalId(30),
-                            TerminalId(32),
-                            TerminalId(6),
-                            TerminalId(21),
-                            TerminalId(1),
-                            TerminalId(31),
-                            TerminalId(20),
-                            TerminalId(22),
-                            TerminalId(24),
-                            TerminalId(18),
-                            TerminalId(3),
-                            TerminalId(14),
-                            TerminalId(19),
-                            TerminalId(35),
-                            TerminalId(27),
-                            TerminalId(25),
-                            TerminalId(34),
-                            TerminalId(12),
-                            TerminalId(28),
-                            TerminalId(5),
-                            TerminalId(37),
-                            TerminalId(16),
-                            TerminalId(15),
-                            TerminalId(17),
-                            TerminalId(11),
-                            TerminalId(2),
-                            TerminalId(26),
-                            TerminalId(29),
-                            TerminalId(10),
-                            TerminalId(13),
-                        ],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_LAYOUT_STAR_5, input_index)
             }
             NonterminalId(72) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(37), TerminalId(21), TerminalId(9), TerminalId(7)],
-                        input_index,
-                    )
+                self.scanner.match_any(FOLLOW_SET_SYMBOL_EXCEPT_EXCEPT, input_index)
             }
             NonterminalId(73) => {
                 self.scanner
-                    .match_any(
-                        &[TerminalId(37), TerminalId(9), TerminalId(22), TerminalId(7)],
-                        input_index,
-                    )
+                    .match_any(FOLLOW_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION, input_index)
             }
-            NonterminalId(54) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(55) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(56) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(57) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(58) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(59) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(60) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(61) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(62) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(63) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(64) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(65) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(66) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(67) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(68) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(69) => self.scanner.match_any(&[TerminalId(37)], input_index),
-            NonterminalId(70) => self.scanner.match_any(&[TerminalId(37)], input_index),
+            NonterminalId(54) => {
+                self.scanner.match_any(FOLLOW_SET_START_GRAMMAR, input_index)
+            }
+            NonterminalId(55) => {
+                self.scanner.match_any(FOLLOW_SET_START_LAYOUT_DEF, input_index)
+            }
+            NonterminalId(56) => {
+                self.scanner.match_any(FOLLOW_SET_START_RULE, input_index)
+            }
+            NonterminalId(57) => {
+                self.scanner.match_any(FOLLOW_SET_START_SYNTAX_RULE, input_index)
+            }
+            NonterminalId(58) => {
+                self.scanner.match_any(FOLLOW_SET_START_ANNOTATION, input_index)
+            }
+            NonterminalId(59) => {
+                self.scanner.match_any(FOLLOW_SET_START_REGEX_RULE, input_index)
+            }
+            NonterminalId(60) => {
+                self.scanner.match_any(FOLLOW_SET_START_PRE_CONDITION, input_index)
+            }
+            NonterminalId(61) => {
+                self.scanner.match_any(FOLLOW_SET_START_POST_CONDITION, input_index)
+            }
+            NonterminalId(62) => {
+                self.scanner.match_any(FOLLOW_SET_START_PRIORITY_LEVEL, input_index)
+            }
+            NonterminalId(63) => {
+                self.scanner.match_any(FOLLOW_SET_START_ASSOCIATIVITY, input_index)
+            }
+            NonterminalId(64) => {
+                self.scanner.match_any(FOLLOW_SET_START_ALTERNATIVE, input_index)
+            }
+            NonterminalId(65) => {
+                self.scanner.match_any(FOLLOW_SET_START_SYMBOL, input_index)
+            }
+            NonterminalId(66) => {
+                self.scanner.match_any(FOLLOW_SET_START_REGEX, input_index)
+            }
+            NonterminalId(67) => {
+                self.scanner.match_any(FOLLOW_SET_START_CHAR_CLASS, input_index)
+            }
+            NonterminalId(68) => {
+                self.scanner.match_any(FOLLOW_SET_START_RANGE_ELEMENT, input_index)
+            }
+            NonterminalId(69) => {
+                self.scanner.match_any(FOLLOW_SET_START_RANGE, input_index)
+            }
+            NonterminalId(70) => {
+                self.scanner.match_any(FOLLOW_SET_START_LAYOUT, input_index)
+            }
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(37), TerminalId(9), TerminalId(7)],
-            NonterminalId(1) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
-                    TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(2) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
-                    TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(3) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
-                    TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(4) => {
-                vec![TerminalId(7), TerminalId(1), TerminalId(9), TerminalId(37)]
-            }
-            NonterminalId(5) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
-                    TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(6) => {
-                vec![
-                    TerminalId(33), TerminalId(3), TerminalId(2), TerminalId(37),
-                    TerminalId(1), TerminalId(16), TerminalId(31), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(7) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(21),
-                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(22),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(8) => {
-                vec![
-                    TerminalId(13), TerminalId(18), TerminalId(14), TerminalId(37),
-                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(9) => {
-                vec![
-                    TerminalId(13), TerminalId(18), TerminalId(2), TerminalId(14),
-                    TerminalId(6), TerminalId(19), TerminalId(26), TerminalId(37),
-                    TerminalId(1), TerminalId(16), TerminalId(15), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(10) => {
-                vec![
-                    TerminalId(13), TerminalId(18), TerminalId(14), TerminalId(19),
-                    TerminalId(37), TerminalId(1), TerminalId(15), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(71) => {
-                vec![
-                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
-                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
-                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
-                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
-                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(11) => {
-                vec![
-                    TerminalId(30), TerminalId(33), TerminalId(28), TerminalId(37),
-                    TerminalId(21), TerminalId(1), TerminalId(16), TerminalId(31),
-                    TerminalId(17), TerminalId(22), TerminalId(15), TerminalId(3),
-                    TerminalId(2), TerminalId(18), TerminalId(14), TerminalId(19),
-                    TerminalId(29), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(12) => {
-                vec![
-                    TerminalId(30), TerminalId(33), TerminalId(28), TerminalId(37),
-                    TerminalId(21), TerminalId(1), TerminalId(16), TerminalId(31),
-                    TerminalId(17), TerminalId(22), TerminalId(15), TerminalId(3),
-                    TerminalId(2), TerminalId(18), TerminalId(14), TerminalId(19),
-                    TerminalId(29), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(13) => {
-                vec![
-                    TerminalId(34), TerminalId(7), TerminalId(5), TerminalId(9),
-                    TerminalId(37)
-                ]
-            }
-            NonterminalId(14) => {
-                vec![
-                    TerminalId(37), TerminalId(34), TerminalId(5), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(15) => {
-                vec![
-                    TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
-                    TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
-                    TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
-                    TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
-                    TerminalId(27), TerminalId(9), TerminalId(7), TerminalId(25),
-                    TerminalId(34), TerminalId(12), TerminalId(28), TerminalId(5),
-                    TerminalId(37), TerminalId(16), TerminalId(15), TerminalId(17),
-                    TerminalId(11), TerminalId(2), TerminalId(26), TerminalId(29),
-                    TerminalId(10), TerminalId(13)
-                ]
-            }
-            NonterminalId(16) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
-                    TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(17) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
-                    TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(18) => vec![TerminalId(37), TerminalId(9), TerminalId(7)],
-            NonterminalId(19) => vec![TerminalId(37), TerminalId(9), TerminalId(7)],
-            NonterminalId(20) => {
-                vec![TerminalId(37), TerminalId(1), TerminalId(9), TerminalId(7)]
-            }
-            NonterminalId(21) => {
-                vec![
-                    TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(37),
-                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(13)
-                ]
-            }
-            NonterminalId(22) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
-                    TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(23) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
-                    TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(24) => {
-                vec![
-                    TerminalId(33), TerminalId(3), TerminalId(2), TerminalId(37),
-                    TerminalId(1), TerminalId(16), TerminalId(31), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(25) => {
-                vec![
-                    TerminalId(33), TerminalId(37), TerminalId(21), TerminalId(1),
-                    TerminalId(16), TerminalId(31), TerminalId(17), TerminalId(22),
-                    TerminalId(15), TerminalId(3), TerminalId(2), TerminalId(18),
-                    TerminalId(14), TerminalId(19), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(26) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(19), TerminalId(37),
-                    TerminalId(21), TerminalId(1), TerminalId(15), TerminalId(9),
-                    TerminalId(22), TerminalId(7)
-                ]
-            }
-            NonterminalId(27) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(21),
-                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(22),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(28) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
-                    TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(29) => {
-                vec![
-                    TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(1),
-                    TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(30) => {
-                vec![
-                    TerminalId(13), TerminalId(18), TerminalId(2), TerminalId(14),
-                    TerminalId(6), TerminalId(19), TerminalId(37), TerminalId(26),
-                    TerminalId(1), TerminalId(16), TerminalId(15), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(31) => {
-                vec![
-                    TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(19),
-                    TerminalId(37), TerminalId(1), TerminalId(15), TerminalId(9),
-                    TerminalId(13)
-                ]
-            }
-            NonterminalId(32) => {
-                vec![
-                    TerminalId(13), TerminalId(18), TerminalId(14), TerminalId(37),
-                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(33) => {
-                vec![
-                    TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(37),
-                    TerminalId(1), TerminalId(15), TerminalId(9), TerminalId(13)
-                ]
-            }
-            NonterminalId(34) => {
-                vec![
-                    TerminalId(7), TerminalId(6), TerminalId(37), TerminalId(1),
-                    TerminalId(16), TerminalId(17), TerminalId(15), TerminalId(18),
-                    TerminalId(2), TerminalId(14), TerminalId(19), TerminalId(26),
-                    TerminalId(9), TerminalId(13)
-                ]
-            }
-            NonterminalId(35) => {
-                vec![
-                    TerminalId(13), TerminalId(18), TerminalId(14), TerminalId(19),
-                    TerminalId(6), TerminalId(37), TerminalId(1), TerminalId(15),
-                    TerminalId(9), TerminalId(7)
-                ]
-            }
-            NonterminalId(36) => {
-                vec![
-                    TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(19),
-                    TerminalId(6), TerminalId(37), TerminalId(1), TerminalId(15),
-                    TerminalId(9), TerminalId(13)
-                ]
-            }
-            NonterminalId(37) => {
-                vec![
-                    TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(19),
-                    TerminalId(37), TerminalId(1), TerminalId(15), TerminalId(9),
-                    TerminalId(13)
-                ]
-            }
-            NonterminalId(38) => {
-                vec![
-                    TerminalId(7), TerminalId(17), TerminalId(9), TerminalId(19),
-                    TerminalId(37)
-                ]
-            }
-            NonterminalId(39) => {
-                vec![
-                    TerminalId(37), TerminalId(17), TerminalId(9), TerminalId(19),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(40) => {
-                vec![
-                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
-                    TerminalId(37), TerminalId(21), TerminalId(31), TerminalId(1),
-                    TerminalId(16), TerminalId(17), TerminalId(22), TerminalId(15),
-                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
-                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(41) => {
-                vec![
-                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
-                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
-                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
-                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
-                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(42) => {
-                vec![
-                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
-                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
-                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
-                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
-                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(43) => {
-                vec![
-                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
-                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
-                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
-                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
-                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(44) => {
-                vec![
-                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
-                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
-                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
-                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
-                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(45) => {
-                vec![
-                    TerminalId(30), TerminalId(13), TerminalId(28), TerminalId(6),
-                    TerminalId(37), TerminalId(21), TerminalId(1), TerminalId(16),
-                    TerminalId(31), TerminalId(17), TerminalId(22), TerminalId(15),
-                    TerminalId(18), TerminalId(2), TerminalId(14), TerminalId(19),
-                    TerminalId(26), TerminalId(29), TerminalId(27), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(46) => {
-                vec![
-                    TerminalId(7), TerminalId(17), TerminalId(9), TerminalId(19),
-                    TerminalId(37)
-                ]
-            }
-            NonterminalId(47) => {
-                vec![
-                    TerminalId(37), TerminalId(17), TerminalId(9), TerminalId(19),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(48) => {
-                vec![TerminalId(37), TerminalId(33), TerminalId(9), TerminalId(7)]
-            }
-            NonterminalId(49) => {
-                vec![
-                    TerminalId(37), TerminalId(34), TerminalId(5), TerminalId(9),
-                    TerminalId(7)
-                ]
-            }
-            NonterminalId(50) => {
-                vec![
-                    TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
-                    TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
-                    TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
-                    TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
-                    TerminalId(27), TerminalId(9), TerminalId(25), TerminalId(34),
-                    TerminalId(7), TerminalId(12), TerminalId(28), TerminalId(5),
-                    TerminalId(37), TerminalId(16), TerminalId(15), TerminalId(17),
-                    TerminalId(11), TerminalId(2), TerminalId(26), TerminalId(29),
-                    TerminalId(10), TerminalId(13)
-                ]
-            }
-            NonterminalId(51) => {
-                vec![
-                    TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
-                    TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
-                    TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
-                    TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
-                    TerminalId(27), TerminalId(9), TerminalId(25), TerminalId(34),
-                    TerminalId(7), TerminalId(12), TerminalId(28), TerminalId(5),
-                    TerminalId(37), TerminalId(16), TerminalId(15), TerminalId(17),
-                    TerminalId(11), TerminalId(2), TerminalId(26), TerminalId(29),
-                    TerminalId(10), TerminalId(13)
-                ]
-            }
-            NonterminalId(52) => {
-                vec![
-                    TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
-                    TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
-                    TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
-                    TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
-                    TerminalId(27), TerminalId(25), TerminalId(34), TerminalId(12),
-                    TerminalId(28), TerminalId(5), TerminalId(37), TerminalId(16),
-                    TerminalId(15), TerminalId(17), TerminalId(11), TerminalId(2),
-                    TerminalId(26), TerminalId(29), TerminalId(10), TerminalId(13)
-                ]
-            }
-            NonterminalId(53) => {
-                vec![
-                    TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
-                    TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
-                    TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
-                    TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
-                    TerminalId(27), TerminalId(25), TerminalId(34), TerminalId(12),
-                    TerminalId(28), TerminalId(5), TerminalId(37), TerminalId(16),
-                    TerminalId(15), TerminalId(17), TerminalId(11), TerminalId(2),
-                    TerminalId(26), TerminalId(29), TerminalId(10), TerminalId(13)
-                ]
-            }
-            NonterminalId(72) => {
-                vec![TerminalId(37), TerminalId(21), TerminalId(9), TerminalId(7)]
-            }
-            NonterminalId(73) => {
-                vec![TerminalId(37), TerminalId(9), TerminalId(22), TerminalId(7)]
-            }
-            NonterminalId(54) => vec![TerminalId(37)],
-            NonterminalId(55) => vec![TerminalId(37)],
-            NonterminalId(56) => vec![TerminalId(37)],
-            NonterminalId(57) => vec![TerminalId(37)],
-            NonterminalId(58) => vec![TerminalId(37)],
-            NonterminalId(59) => vec![TerminalId(37)],
-            NonterminalId(60) => vec![TerminalId(37)],
-            NonterminalId(61) => vec![TerminalId(37)],
-            NonterminalId(62) => vec![TerminalId(37)],
-            NonterminalId(63) => vec![TerminalId(37)],
-            NonterminalId(64) => vec![TerminalId(37)],
-            NonterminalId(65) => vec![TerminalId(37)],
-            NonterminalId(66) => vec![TerminalId(37)],
-            NonterminalId(67) => vec![TerminalId(37)],
-            NonterminalId(68) => vec![TerminalId(37)],
-            NonterminalId(69) => vec![TerminalId(37)],
-            NonterminalId(70) => vec![TerminalId(37)],
+            NonterminalId(0) => FOLLOW_SET_GRAMMAR.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_LAYOUT_DEF.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_RULE.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_SYNTAX_RULE.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_ANNOTATION.to_vec(),
+            NonterminalId(5) => FOLLOW_SET_REGEX_RULE.to_vec(),
+            NonterminalId(6) => FOLLOW_SET_PRE_CONDITION.to_vec(),
+            NonterminalId(7) => FOLLOW_SET_POST_CONDITION.to_vec(),
+            NonterminalId(8) => FOLLOW_SET_PRIORITY_LEVEL.to_vec(),
+            NonterminalId(9) => FOLLOW_SET_ASSOCIATIVITY.to_vec(),
+            NonterminalId(10) => FOLLOW_SET_ALTERNATIVE.to_vec(),
+            NonterminalId(71) => FOLLOW_SET_SYMBOL.to_vec(),
+            NonterminalId(11) => FOLLOW_SET_REGEX.to_vec(),
+            NonterminalId(12) => FOLLOW_SET_CHAR_CLASS.to_vec(),
+            NonterminalId(13) => FOLLOW_SET_RANGE_ELEMENT.to_vec(),
+            NonterminalId(14) => FOLLOW_SET_RANGE.to_vec(),
+            NonterminalId(15) => FOLLOW_SET_LAYOUT.to_vec(),
+            NonterminalId(16) => FOLLOW_SET_GRAMMAR_OPT_0.to_vec(),
+            NonterminalId(17) => FOLLOW_SET_GRAMMAR_PLUS_0.to_vec(),
+            NonterminalId(18) => FOLLOW_SET_GRAMMAR_OPT_1.to_vec(),
+            NonterminalId(19) => FOLLOW_SET_GRAMMAR_STAR_0.to_vec(),
+            NonterminalId(20) => FOLLOW_SET_SYNTAX_RULE_OPT_2.to_vec(),
+            NonterminalId(21) => FOLLOW_SET_SYNTAX_RULE_PLUS_1.to_vec(),
+            NonterminalId(22) => FOLLOW_SET_SYNTAX_RULE_OPT_3.to_vec(),
+            NonterminalId(23) => FOLLOW_SET_SYNTAX_RULE_STAR_1.to_vec(),
+            NonterminalId(24) => FOLLOW_SET_REGEX_RULE_OPT_4.to_vec(),
+            NonterminalId(25) => FOLLOW_SET_REGEX_RULE_PLUS_3.to_vec(),
+            NonterminalId(26) => FOLLOW_SET_REGEX_RULE_PLUS_2.to_vec(),
+            NonterminalId(27) => FOLLOW_SET_REGEX_RULE_PLUS_4.to_vec(),
+            NonterminalId(28) => FOLLOW_SET_REGEX_RULE_OPT_5.to_vec(),
+            NonterminalId(29) => FOLLOW_SET_REGEX_RULE_STAR_2.to_vec(),
+            NonterminalId(30) => FOLLOW_SET_PRIORITY_LEVEL_OPT_6.to_vec(),
+            NonterminalId(31) => FOLLOW_SET_PRIORITY_LEVEL_PLUS_5.to_vec(),
+            NonterminalId(32) => FOLLOW_SET_PRIORITY_LEVEL_OPT_7.to_vec(),
+            NonterminalId(33) => FOLLOW_SET_PRIORITY_LEVEL_STAR_3.to_vec(),
+            NonterminalId(34) => FOLLOW_SET_ALTERNATIVE_PLUS_6.to_vec(),
+            NonterminalId(35) => FOLLOW_SET_ALTERNATIVE_OPT_8.to_vec(),
+            NonterminalId(36) => FOLLOW_SET_ALTERNATIVE_STAR_4.to_vec(),
+            NonterminalId(37) => FOLLOW_SET_ALTERNATIVE_OPT_9.to_vec(),
+            NonterminalId(38) => FOLLOW_SET_SYMBOL_GROUP_0.to_vec(),
+            NonterminalId(39) => FOLLOW_SET_SYMBOL_PLUS_7.to_vec(),
+            NonterminalId(40) => FOLLOW_SET_SYMBOL_GROUP_1.to_vec(),
+            NonterminalId(41) => FOLLOW_SET_SYMBOL_PLUS_8.to_vec(),
+            NonterminalId(42) => FOLLOW_SET_SYMBOL_GROUP_2.to_vec(),
+            NonterminalId(43) => FOLLOW_SET_SYMBOL_PLUS_9.to_vec(),
+            NonterminalId(44) => FOLLOW_SET_SYMBOL_GROUP_3.to_vec(),
+            NonterminalId(45) => FOLLOW_SET_SYMBOL_PLUS_10.to_vec(),
+            NonterminalId(46) => FOLLOW_SET_REGEX_GROUP_4.to_vec(),
+            NonterminalId(47) => FOLLOW_SET_REGEX_PLUS_11.to_vec(),
+            NonterminalId(48) => FOLLOW_SET_CHAR_CLASS_OPT_10.to_vec(),
+            NonterminalId(49) => FOLLOW_SET_CHAR_CLASS_PLUS_12.to_vec(),
+            NonterminalId(50) => FOLLOW_SET_LAYOUT_ALT_0.to_vec(),
+            NonterminalId(51) => FOLLOW_SET_LAYOUT_PLUS_13.to_vec(),
+            NonterminalId(52) => FOLLOW_SET_LAYOUT_OPT_11.to_vec(),
+            NonterminalId(53) => FOLLOW_SET_LAYOUT_STAR_5.to_vec(),
+            NonterminalId(72) => FOLLOW_SET_SYMBOL_EXCEPT_EXCEPT.to_vec(),
+            NonterminalId(73) => FOLLOW_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION.to_vec(),
+            NonterminalId(54) => FOLLOW_SET_START_GRAMMAR.to_vec(),
+            NonterminalId(55) => FOLLOW_SET_START_LAYOUT_DEF.to_vec(),
+            NonterminalId(56) => FOLLOW_SET_START_RULE.to_vec(),
+            NonterminalId(57) => FOLLOW_SET_START_SYNTAX_RULE.to_vec(),
+            NonterminalId(58) => FOLLOW_SET_START_ANNOTATION.to_vec(),
+            NonterminalId(59) => FOLLOW_SET_START_REGEX_RULE.to_vec(),
+            NonterminalId(60) => FOLLOW_SET_START_PRE_CONDITION.to_vec(),
+            NonterminalId(61) => FOLLOW_SET_START_POST_CONDITION.to_vec(),
+            NonterminalId(62) => FOLLOW_SET_START_PRIORITY_LEVEL.to_vec(),
+            NonterminalId(63) => FOLLOW_SET_START_ASSOCIATIVITY.to_vec(),
+            NonterminalId(64) => FOLLOW_SET_START_ALTERNATIVE.to_vec(),
+            NonterminalId(65) => FOLLOW_SET_START_SYMBOL.to_vec(),
+            NonterminalId(66) => FOLLOW_SET_START_REGEX.to_vec(),
+            NonterminalId(67) => FOLLOW_SET_START_CHAR_CLASS.to_vec(),
+            NonterminalId(68) => FOLLOW_SET_START_RANGE_ELEMENT.to_vec(),
+            NonterminalId(69) => FOLLOW_SET_START_RANGE.to_vec(),
+            NonterminalId(70) => FOLLOW_SET_START_LAYOUT.to_vec(),
             _ => vec![],
         }
     }
@@ -16120,7 +14462,7 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_layout_def_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(11)], i) {
+        if self.scanner.match_any(PREDICTION_SET_LAYOUT_DEF_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -16209,14 +14551,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(8),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(11)],
+                    expected: FIRST_SET_LAYOUT_DEF.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_annotation_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(14)], i) {
+        if self.scanner.match_any(PREDICTION_SET_ANNOTATION_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -16253,7 +14595,7 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self.scanner.match_any(&[TerminalId(15)], i) {
+            if self.scanner.match_any(PREDICTION_SET_ANNOTATION_ALT1, i) {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -16440,7 +14782,7 @@ impl<'i> IggyParser<'i> {
                     SlotId(24),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![TerminalId(15), TerminalId(14)],
+                        expected: FIRST_SET_ANNOTATION.to_vec(),
                     },
                 );
                 None
@@ -16448,7 +14790,7 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_pre_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(1)], i) {
+        if self.scanner.match_any(PREDICTION_SET_PRE_CONDITION_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -16537,14 +14879,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(46),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(1)],
+                    expected: FIRST_SET_PRE_CONDITION.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_post_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(21)], i) {
+        if self.scanner.match_any(PREDICTION_SET_POST_CONDITION_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -16628,7 +14970,7 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self.scanner.match_any(&[TerminalId(22)], i) {
+            if self.scanner.match_any(PREDICTION_SET_POST_CONDITION_ALT1, i) {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -16719,7 +15061,7 @@ impl<'i> IggyParser<'i> {
                     SlotId(50),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![TerminalId(21), TerminalId(22)],
+                        expected: FIRST_SET_POST_CONDITION.to_vec(),
                     },
                 );
                 None
@@ -16727,7 +15069,7 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_associativity_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(23)], i) {
+        if self.scanner.match_any(PREDICTION_SET_ASSOCIATIVITY_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -16764,7 +15106,7 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self.scanner.match_any(&[TerminalId(24)], i) {
+            if self.scanner.match_any(PREDICTION_SET_ASSOCIATIVITY_ALT1, i) {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -16802,7 +15144,7 @@ impl<'i> IggyParser<'i> {
                         .unwrap(),
                 );
             } else {
-                if self.scanner.match_any(&[TerminalId(25)], i) {
+                if self.scanner.match_any(PREDICTION_SET_ASSOCIATIVITY_ALT2, i) {
                     let mut j = i;
                     let right_child = {
                         let start = j;
@@ -16845,9 +15187,7 @@ impl<'i> IggyParser<'i> {
                         SlotId(62),
                         None,
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![
-                                TerminalId(23), TerminalId(25), TerminalId(24)
-                            ],
+                            expected: FIRST_SET_ASSOCIATIVITY.to_vec(),
                         },
                     );
                     None
@@ -16856,7 +15196,7 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_range_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(5)], i) {
+        if self.scanner.match_any(PREDICTION_SET_RANGE_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -16992,55 +15332,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(218),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(5)],
+                    expected: FIRST_SET_RANGE.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_layout_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(
-                &[
-                    TerminalId(23),
-                    TerminalId(33),
-                    TerminalId(30),
-                    TerminalId(32),
-                    TerminalId(6),
-                    TerminalId(21),
-                    TerminalId(1),
-                    TerminalId(31),
-                    TerminalId(20),
-                    TerminalId(22),
-                    TerminalId(24),
-                    TerminalId(18),
-                    TerminalId(3),
-                    TerminalId(14),
-                    TerminalId(19),
-                    TerminalId(35),
-                    TerminalId(27),
-                    TerminalId(9),
-                    TerminalId(25),
-                    TerminalId(34),
-                    TerminalId(7),
-                    TerminalId(12),
-                    TerminalId(28),
-                    TerminalId(5),
-                    TerminalId(37),
-                    TerminalId(16),
-                    TerminalId(15),
-                    TerminalId(17),
-                    TerminalId(11),
-                    TerminalId(2),
-                    TerminalId(26),
-                    TerminalId(29),
-                    TerminalId(10),
-                    TerminalId(13),
-                ],
-                i,
-            )
-        {
+        if self.scanner.match_any(PREDICTION_SET_LAYOUT_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -17073,24 +15372,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(224),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![
-                        TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
-                        TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
-                        TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
-                        TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
-                        TerminalId(27), TerminalId(9), TerminalId(7), TerminalId(34),
-                        TerminalId(25), TerminalId(12), TerminalId(28), TerminalId(5),
-                        TerminalId(37), TerminalId(16), TerminalId(15), TerminalId(17),
-                        TerminalId(11), TerminalId(2), TerminalId(26), TerminalId(29),
-                        TerminalId(10), TerminalId(13)
-                    ],
+                    expected: FIRST_SET_LAYOUT.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_grammar_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(11)], i) {
+        if self.scanner.match_any(PREDICTION_SET_GRAMMAR_OPT_0_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -17114,21 +15403,7 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self
-                .scanner
-                .match_any(
-                    &[
-                        TerminalId(7),
-                        TerminalId(18),
-                        TerminalId(1),
-                        TerminalId(14),
-                        TerminalId(15),
-                        TerminalId(9),
-                        TerminalId(37),
-                    ],
-                    i,
-                )
-            {
+            if self.scanner.match_any(PREDICTION_SET_GRAMMAR_OPT_0_ALT1, i) {
                 let epsilon_node_id = self
                     .get_or_create_terminal_node(TerminalId(36), i, i);
                 return Some(
@@ -17149,11 +15424,7 @@ impl<'i> IggyParser<'i> {
                     SlotId(226),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![
-                            TerminalId(11), TerminalId(18), TerminalId(14),
-                            TerminalId(37), TerminalId(1), TerminalId(15), TerminalId(9),
-                            TerminalId(7)
-                        ],
+                        expected: FIRST_SET_GRAMMAR_OPT_0.to_vec(),
                     },
                 );
                 None
@@ -17161,7 +15432,7 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_syntax_rule_opt_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(15), TerminalId(14)], i) {
+        if self.scanner.match_any(PREDICTION_SET_SYNTAX_RULE_OPT_2_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -17185,13 +15456,7 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self
-                .scanner
-                .match_any(
-                    &[TerminalId(7), TerminalId(1), TerminalId(9), TerminalId(37)],
-                    i,
-                )
-            {
+            if self.scanner.match_any(PREDICTION_SET_SYNTAX_RULE_OPT_2_ALT1, i) {
                 let epsilon_node_id = self
                     .get_or_create_terminal_node(TerminalId(36), i, i);
                 return Some(
@@ -17212,10 +15477,7 @@ impl<'i> IggyParser<'i> {
                     SlotId(240),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![
-                            TerminalId(37), TerminalId(1), TerminalId(14),
-                            TerminalId(15), TerminalId(9), TerminalId(7)
-                        ],
+                        expected: FIRST_SET_SYNTAX_RULE_OPT_2.to_vec(),
                     },
                 );
                 None
@@ -17294,7 +15556,7 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_regex_rule_opt_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(21), TerminalId(22)], i) {
+        if self.scanner.match_any(PREDICTION_SET_REGEX_RULE_OPT_5_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -17318,21 +15580,7 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self
-                .scanner
-                .match_any(
-                    &[
-                        TerminalId(7),
-                        TerminalId(18),
-                        TerminalId(1),
-                        TerminalId(14),
-                        TerminalId(15),
-                        TerminalId(9),
-                        TerminalId(37),
-                    ],
-                    i,
-                )
-            {
+            if self.scanner.match_any(PREDICTION_SET_REGEX_RULE_OPT_5_ALT1, i) {
                 let epsilon_node_id = self
                     .get_or_create_terminal_node(TerminalId(36), i, i);
                 return Some(
@@ -17353,11 +15601,7 @@ impl<'i> IggyParser<'i> {
                     SlotId(279),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![
-                            TerminalId(18), TerminalId(14), TerminalId(37),
-                            TerminalId(21), TerminalId(1), TerminalId(15),
-                            TerminalId(22), TerminalId(9), TerminalId(7)
-                        ],
+                        expected: FIRST_SET_REGEX_RULE_OPT_5.to_vec(),
                     },
                 );
                 None
@@ -17365,23 +15609,7 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_regex_rule_star_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(
-                &[
-                    TerminalId(18),
-                    TerminalId(14),
-                    TerminalId(37),
-                    TerminalId(21),
-                    TerminalId(1),
-                    TerminalId(15),
-                    TerminalId(22),
-                    TerminalId(9),
-                    TerminalId(7),
-                ],
-                i,
-            )
-        {
+        if self.scanner.match_any(PREDICTION_SET_REGEX_RULE_STAR_2_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -17410,18 +15638,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(282),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![
-                        TerminalId(18), TerminalId(14), TerminalId(37), TerminalId(21),
-                        TerminalId(1), TerminalId(15), TerminalId(22), TerminalId(9),
-                        TerminalId(7)
-                    ],
+                    expected: FIRST_SET_REGEX_RULE_STAR_2.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_priority_level_opt_6_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(23), TerminalId(24), TerminalId(25)], i) {
+        if self.scanner.match_any(PREDICTION_SET_PRIORITY_LEVEL_OPT_6_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -17445,27 +15669,7 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self
-                .scanner
-                .match_any(
-                    &[
-                        TerminalId(7),
-                        TerminalId(18),
-                        TerminalId(2),
-                        TerminalId(14),
-                        TerminalId(6),
-                        TerminalId(19),
-                        TerminalId(37),
-                        TerminalId(26),
-                        TerminalId(1),
-                        TerminalId(16),
-                        TerminalId(15),
-                        TerminalId(9),
-                        TerminalId(13),
-                    ],
-                    i,
-                )
-            {
+            if self.scanner.match_any(PREDICTION_SET_PRIORITY_LEVEL_OPT_6_ALT1, i) {
                 let epsilon_node_id = self
                     .get_or_create_terminal_node(TerminalId(36), i, i);
                 return Some(
@@ -17486,13 +15690,7 @@ impl<'i> IggyParser<'i> {
                     SlotId(284),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![
-                            TerminalId(23), TerminalId(25), TerminalId(13),
-                            TerminalId(6), TerminalId(37), TerminalId(1), TerminalId(16),
-                            TerminalId(15), TerminalId(24), TerminalId(18),
-                            TerminalId(2), TerminalId(14), TerminalId(19),
-                            TerminalId(26), TerminalId(9), TerminalId(7)
-                        ],
+                        expected: FIRST_SET_PRIORITY_LEVEL_OPT_6.to_vec(),
                     },
                 );
                 None
@@ -17500,7 +15698,7 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_alternative_opt_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(6)], i) {
+        if self.scanner.match_any(PREDICTION_SET_ALTERNATIVE_OPT_9_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -17537,23 +15735,7 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self
-                .scanner
-                .match_any(
-                    &[
-                        TerminalId(13),
-                        TerminalId(18),
-                        TerminalId(14),
-                        TerminalId(19),
-                        TerminalId(37),
-                        TerminalId(1),
-                        TerminalId(15),
-                        TerminalId(9),
-                        TerminalId(7),
-                    ],
-                    i,
-                )
-            {
+            if self.scanner.match_any(PREDICTION_SET_ALTERNATIVE_OPT_9_ALT1, i) {
                 let epsilon_node_id = self
                     .get_or_create_terminal_node(TerminalId(36), i, i);
                 return Some(
@@ -17574,11 +15756,7 @@ impl<'i> IggyParser<'i> {
                     SlotId(311),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![
-                            TerminalId(7), TerminalId(18), TerminalId(14), TerminalId(6),
-                            TerminalId(19), TerminalId(37), TerminalId(1),
-                            TerminalId(15), TerminalId(9), TerminalId(13)
-                        ],
+                        expected: FIRST_SET_ALTERNATIVE_OPT_9.to_vec(),
                     },
                 );
                 None
@@ -17586,7 +15764,7 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_symbol_group_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(21)], i) {
+        if self.scanner.match_any(PREDICTION_SET_SYMBOL_GROUP_1_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -17675,7 +15853,7 @@ impl<'i> IggyParser<'i> {
                 SlotId(324),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(21)],
+                    expected: FIRST_SET_SYMBOL_GROUP_1.to_vec(),
                 },
             );
             None
@@ -17753,7 +15931,7 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_symbol_group_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(22)], i) {
+        if self.scanner.match_any(PREDICTION_SET_SYMBOL_GROUP_2_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -17842,7 +16020,7 @@ impl<'i> IggyParser<'i> {
                 SlotId(334),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(22)],
+                    expected: FIRST_SET_SYMBOL_GROUP_2.to_vec(),
                 },
             );
             None
@@ -17920,7 +16098,7 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_symbol_group_3_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(31)], i) {
+        if self.scanner.match_any(PREDICTION_SET_SYMBOL_GROUP_3_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -18009,7 +16187,7 @@ impl<'i> IggyParser<'i> {
                 SlotId(344),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(31)],
+                    expected: FIRST_SET_SYMBOL_GROUP_3.to_vec(),
                 },
             );
             None
@@ -18087,7 +16265,7 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_char_class_opt_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(31)], i) {
+        if self.scanner.match_any(PREDICTION_SET_CHAR_CLASS_OPT_10_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -18124,13 +16302,7 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self
-                .scanner
-                .match_any(
-                    &[TerminalId(33), TerminalId(7), TerminalId(9), TerminalId(37)],
-                    i,
-                )
-            {
+            if self.scanner.match_any(PREDICTION_SET_CHAR_CLASS_OPT_10_ALT1, i) {
                 let epsilon_node_id = self
                     .get_or_create_terminal_node(TerminalId(36), i, i);
                 return Some(
@@ -18151,10 +16323,7 @@ impl<'i> IggyParser<'i> {
                     SlotId(364),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![
-                            TerminalId(33), TerminalId(31), TerminalId(37),
-                            TerminalId(9), TerminalId(7)
-                        ],
+                        expected: FIRST_SET_CHAR_CLASS_OPT_10.to_vec(),
                     },
                 );
                 None
@@ -18162,7 +16331,7 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_layout_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(7)], i) {
+        if self.scanner.match_any(PREDICTION_SET_LAYOUT_ALT_0_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -18199,7 +16368,7 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self.scanner.match_any(&[TerminalId(9)], i) {
+            if self.scanner.match_any(PREDICTION_SET_LAYOUT_ALT_0_ALT1, i) {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -18242,7 +16411,7 @@ impl<'i> IggyParser<'i> {
                     SlotId(373),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![TerminalId(9), TerminalId(7)],
+                        expected: FIRST_SET_LAYOUT_ALT_0.to_vec(),
                     },
                 );
                 None
@@ -18303,7 +16472,7 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_layout_opt_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(9), TerminalId(7)], i) {
+        if self.scanner.match_any(PREDICTION_SET_LAYOUT_OPT_11_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -18327,46 +16496,7 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self
-                .scanner
-                .match_any(
-                    &[
-                        TerminalId(23),
-                        TerminalId(33),
-                        TerminalId(30),
-                        TerminalId(32),
-                        TerminalId(6),
-                        TerminalId(21),
-                        TerminalId(1),
-                        TerminalId(31),
-                        TerminalId(20),
-                        TerminalId(22),
-                        TerminalId(24),
-                        TerminalId(18),
-                        TerminalId(3),
-                        TerminalId(14),
-                        TerminalId(19),
-                        TerminalId(35),
-                        TerminalId(27),
-                        TerminalId(25),
-                        TerminalId(34),
-                        TerminalId(12),
-                        TerminalId(28),
-                        TerminalId(5),
-                        TerminalId(37),
-                        TerminalId(16),
-                        TerminalId(15),
-                        TerminalId(17),
-                        TerminalId(11),
-                        TerminalId(2),
-                        TerminalId(26),
-                        TerminalId(29),
-                        TerminalId(10),
-                        TerminalId(13),
-                    ],
-                    i,
-                )
-            {
+            if self.scanner.match_any(PREDICTION_SET_LAYOUT_OPT_11_ALT1, i) {
                 let epsilon_node_id = self
                     .get_or_create_terminal_node(TerminalId(36), i, i);
                 return Some(
@@ -18387,19 +16517,7 @@ impl<'i> IggyParser<'i> {
                     SlotId(382),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![
-                            TerminalId(23), TerminalId(33), TerminalId(30),
-                            TerminalId(32), TerminalId(6), TerminalId(21), TerminalId(1),
-                            TerminalId(31), TerminalId(20), TerminalId(22),
-                            TerminalId(24), TerminalId(18), TerminalId(3),
-                            TerminalId(14), TerminalId(19), TerminalId(35),
-                            TerminalId(27), TerminalId(9), TerminalId(25),
-                            TerminalId(34), TerminalId(7), TerminalId(12),
-                            TerminalId(28), TerminalId(5), TerminalId(37),
-                            TerminalId(16), TerminalId(15), TerminalId(17),
-                            TerminalId(11), TerminalId(2), TerminalId(26),
-                            TerminalId(29), TerminalId(10), TerminalId(13)
-                        ],
+                        expected: FIRST_SET_LAYOUT_OPT_11.to_vec(),
                     },
                 );
                 None
@@ -18407,48 +16525,7 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_layout_star_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(
-                &[
-                    TerminalId(23),
-                    TerminalId(33),
-                    TerminalId(30),
-                    TerminalId(32),
-                    TerminalId(6),
-                    TerminalId(21),
-                    TerminalId(1),
-                    TerminalId(31),
-                    TerminalId(20),
-                    TerminalId(22),
-                    TerminalId(24),
-                    TerminalId(18),
-                    TerminalId(3),
-                    TerminalId(14),
-                    TerminalId(19),
-                    TerminalId(35),
-                    TerminalId(27),
-                    TerminalId(9),
-                    TerminalId(25),
-                    TerminalId(34),
-                    TerminalId(7),
-                    TerminalId(12),
-                    TerminalId(28),
-                    TerminalId(5),
-                    TerminalId(37),
-                    TerminalId(16),
-                    TerminalId(15),
-                    TerminalId(17),
-                    TerminalId(11),
-                    TerminalId(2),
-                    TerminalId(26),
-                    TerminalId(29),
-                    TerminalId(10),
-                    TerminalId(13),
-                ],
-                i,
-            )
-        {
+        if self.scanner.match_any(PREDICTION_SET_LAYOUT_STAR_5_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -18477,24 +16554,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(385),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![
-                        TerminalId(23), TerminalId(33), TerminalId(30), TerminalId(32),
-                        TerminalId(6), TerminalId(21), TerminalId(1), TerminalId(31),
-                        TerminalId(20), TerminalId(22), TerminalId(24), TerminalId(18),
-                        TerminalId(3), TerminalId(14), TerminalId(19), TerminalId(35),
-                        TerminalId(27), TerminalId(9), TerminalId(7), TerminalId(34),
-                        TerminalId(25), TerminalId(12), TerminalId(28), TerminalId(5),
-                        TerminalId(37), TerminalId(16), TerminalId(15), TerminalId(17),
-                        TerminalId(11), TerminalId(2), TerminalId(26), TerminalId(29),
-                        TerminalId(10), TerminalId(13)
-                    ],
+                    expected: FIRST_SET_LAYOUT_STAR_5.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_start_layout_def_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(11), TerminalId(9), TerminalId(7)], i) {
+        if self.scanner.match_any(PREDICTION_SET_START_LAYOUT_DEF_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -18557,20 +16624,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(577),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(11), TerminalId(9), TerminalId(7)],
+                    expected: FIRST_SET_START_LAYOUT_DEF.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_start_annotation_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(
-                &[TerminalId(14), TerminalId(15), TerminalId(9), TerminalId(7)],
-                i,
-            )
-        {
+        if self.scanner.match_any(PREDICTION_SET_START_ANNOTATION_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -18633,16 +16694,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(589),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![
-                        TerminalId(14), TerminalId(15), TerminalId(9), TerminalId(7)
-                    ],
+                    expected: FIRST_SET_START_ANNOTATION.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_start_pre_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(9), TerminalId(1), TerminalId(7)], i) {
+        if self.scanner.match_any(PREDICTION_SET_START_PRE_CONDITION_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -18705,20 +16764,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(597),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(9), TerminalId(1), TerminalId(7)],
+                    expected: FIRST_SET_START_PRE_CONDITION.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_start_post_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(
-                &[TerminalId(21), TerminalId(9), TerminalId(22), TerminalId(7)],
-                i,
-            )
-        {
+        if self.scanner.match_any(PREDICTION_SET_START_POST_CONDITION_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -18781,28 +16834,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(601),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![
-                        TerminalId(21), TerminalId(9), TerminalId(22), TerminalId(7)
-                    ],
+                    expected: FIRST_SET_START_POST_CONDITION.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_start_associativity_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(
-                &[
-                    TerminalId(23),
-                    TerminalId(25),
-                    TerminalId(24),
-                    TerminalId(9),
-                    TerminalId(7),
-                ],
-                i,
-            )
-        {
+        if self.scanner.match_any(PREDICTION_SET_START_ASSOCIATIVITY_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -18865,17 +16904,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(609),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![
-                        TerminalId(23), TerminalId(25), TerminalId(7), TerminalId(9),
-                        TerminalId(24)
-                    ],
+                    expected: FIRST_SET_START_ASSOCIATIVITY.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_start_range_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(5), TerminalId(9), TerminalId(7)], i) {
+        if self.scanner.match_any(PREDICTION_SET_START_RANGE_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -18938,14 +16974,14 @@ impl<'i> IggyParser<'i> {
                 SlotId(633),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(5), TerminalId(9), TerminalId(7)],
+                    expected: FIRST_SET_START_RANGE.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_start_layout_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(37), TerminalId(9), TerminalId(7)], i) {
+        if self.scanner.match_any(PREDICTION_SET_START_LAYOUT_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -19008,7 +17044,7 @@ impl<'i> IggyParser<'i> {
                 SlotId(637),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(7), TerminalId(9), TerminalId(37)],
+                    expected: FIRST_SET_START_LAYOUT.to_vec(),
                 },
             );
             None

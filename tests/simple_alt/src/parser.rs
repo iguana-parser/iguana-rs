@@ -22,7 +22,10 @@
 // "d" = d
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{scanner::SimpleAltScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
+use crate::{
+    grammar_data::*, scanner::SimpleAltScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
+};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -334,12 +337,12 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             NonterminalId(4) => {
                 let mut matched = false;
                 //A_Alt_0 : . C
-                if self.scanner.match_any(&[TerminalId(1)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_A_ALT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
                 }
                 //A_Alt_0 : . D
-                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_A_ALT_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
@@ -349,7 +352,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                         SlotId(9),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(1), TerminalId(2)],
+                            expected: FIRST_SET_A_ALT_0.to_vec(),
                         },
                     );
                 }
@@ -624,27 +627,21 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&[TerminalId(4)], input_index),
-            NonterminalId(1) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(2), TerminalId(4)],
-                        input_index,
-                    )
-            }
-            NonterminalId(2) => self.scanner.match_any(&[TerminalId(4)], input_index),
-            NonterminalId(3) => self.scanner.match_any(&[TerminalId(4)], input_index),
-            NonterminalId(4) => self.scanner.match_any(&[TerminalId(4)], input_index),
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_A, input_index),
+            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_B, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_C, input_index),
+            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_D, input_index),
+            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_A_ALT_0, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(4)],
-            NonterminalId(1) => vec![TerminalId(1), TerminalId(2), TerminalId(4)],
-            NonterminalId(2) => vec![TerminalId(4)],
-            NonterminalId(3) => vec![TerminalId(4)],
-            NonterminalId(4) => vec![TerminalId(4)],
+            NonterminalId(0) => FOLLOW_SET_A.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_B.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_C.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_D.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_A_ALT_0.to_vec(),
             _ => vec![],
         }
     }
@@ -719,7 +716,7 @@ impl<'i> SimpleAltParser<'i> {
         }
     }
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_A_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -765,14 +762,14 @@ impl<'i> SimpleAltParser<'i> {
                 SlotId(0),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_A.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_b_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(0)], i) {
+        if self.scanner.match_any(PREDICTION_SET_B_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -814,14 +811,14 @@ impl<'i> SimpleAltParser<'i> {
                 SlotId(3),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(0)],
+                    expected: FIRST_SET_B.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_c_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(1)], i) {
+        if self.scanner.match_any(PREDICTION_SET_C_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -863,14 +860,14 @@ impl<'i> SimpleAltParser<'i> {
                 SlotId(5),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(1)],
+                    expected: FIRST_SET_C.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_d_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(2)], i) {
+        if self.scanner.match_any(PREDICTION_SET_D_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -912,14 +909,14 @@ impl<'i> SimpleAltParser<'i> {
                 SlotId(7),
                 None,
                 ParseErrorKind::UnexpectedToken {
-                    expected: vec![TerminalId(2)],
+                    expected: FIRST_SET_D.to_vec(),
                 },
             );
             None
         }
     }
     fn parse_a_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(&[TerminalId(1)], i) {
+        if self.scanner.match_any(PREDICTION_SET_A_ALT_0_ALT0, i) {
             let mut j = i;
             let right_child = {
                 let start = j;
@@ -943,7 +940,7 @@ impl<'i> SimpleAltParser<'i> {
                     .unwrap(),
             );
         } else {
-            if self.scanner.match_any(&[TerminalId(2)], i) {
+            if self.scanner.match_any(PREDICTION_SET_A_ALT_0_ALT1, i) {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -972,7 +969,7 @@ impl<'i> SimpleAltParser<'i> {
                     SlotId(9),
                     None,
                     ParseErrorKind::UnexpectedToken {
-                        expected: vec![TerminalId(1), TerminalId(2)],
+                        expected: FIRST_SET_A_ALT_0.to_vec(),
                     },
                 );
                 None

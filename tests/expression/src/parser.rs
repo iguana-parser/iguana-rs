@@ -11,7 +11,10 @@
 // "a" = a
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{scanner::ExpressionScanner, types::{EbnfKind, Nonterminal, Slot, Terminal}};
+use crate::{
+    grammar_data::*, scanner::ExpressionScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
+};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -246,17 +249,17 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             NonterminalId(0) => {
                 let mut matched = false;
                 //E : . E "*" E
-                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_E_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 //E : . E "+" E
-                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_E_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
                 //E : . "a"
-                if self.scanner.match_any(&[TerminalId(2)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_E_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
@@ -266,7 +269,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                         SlotId(0),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(2)],
+                            expected: FIRST_SET_E.to_vec(),
                         },
                     );
                 }
@@ -541,19 +544,13 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => {
-                self.scanner
-                    .match_any(
-                        &[TerminalId(1), TerminalId(0), TerminalId(4)],
-                        input_index,
-                    )
-            }
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_E, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(1), TerminalId(0), TerminalId(4)],
+            NonterminalId(0) => FOLLOW_SET_E.to_vec(),
             _ => vec![],
         }
     }

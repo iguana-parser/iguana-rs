@@ -9,7 +9,8 @@
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
 use crate::{
-    scanner::LeftRecursiveListScanner, types::{EbnfKind, Nonterminal, Slot, Terminal},
+    grammar_data::*, scanner::LeftRecursiveListScanner,
+    types::{EbnfKind, Nonterminal, Slot, Terminal},
 };
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
@@ -177,12 +178,12 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             NonterminalId(0) => {
                 let mut matched = false;
                 //A : . A "a"
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_A_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 //A : . "a"
-                if self.scanner.match_any(&[TerminalId(0)], input_index) {
+                if self.scanner.match_any(PREDICTION_SET_A_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(3), input_index, gss_node_id, env);
                 }
@@ -192,7 +193,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                         SlotId(0),
                         Some(gss_node_id),
                         ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(0)],
+                            expected: FIRST_SET_A.to_vec(),
                         },
                     );
                 }
@@ -467,15 +468,13 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
     }
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => {
-                self.scanner.match_any(&[TerminalId(0), TerminalId(2)], input_index)
-            }
+            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_A, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => vec![TerminalId(0), TerminalId(2)],
+            NonterminalId(0) => FOLLOW_SET_A.to_vec(),
             _ => vec![],
         }
     }
