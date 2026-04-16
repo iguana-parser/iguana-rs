@@ -27,10 +27,7 @@
 // ")" = )
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::ExcludeByLabelScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::ExcludeByLabelScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -42,134 +39,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 5] = [
-    Nonterminal {
-        name: "Expr",
-        display: "Expr",
-        kind: None,
-    },
-    Nonterminal {
-        name: "Expr_Plus_0",
-        display: "{Expr !comma \",\"}+",
-        kind: Some(EbnfKind::Plus),
-    },
-    Nonterminal {
-        name: "Expr_Opt_0",
-        display: "{Expr !comma \",\"}+?",
-        kind: Some(EbnfKind::Opt),
-    },
-    Nonterminal {
-        name: "Expr_Star_0",
-        display: "{Expr !comma \",\"}*",
-        kind: Some(EbnfKind::Star),
-    },
-    Nonterminal {
-        name: "Expr_except_comma",
-        display: "Expr !comma",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "Expr" => NonterminalId(0), "Expr_Plus_0" => NonterminalId(1), "Expr_Opt_0" =>
-    NonterminalId(2), "Expr_Star_0" => NonterminalId(3), "Expr_except_comma" =>
-    NonterminalId(4)
-};
-pub const TERMINALS: [Terminal; 6] = [
-    Terminal { name: "Id" },
-    Terminal { name: "\"(\"" },
-    Terminal { name: "\",\"" },
-    Terminal { name: "\")\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 29] = [
-    Slot {
-        display_name: "Expr : . Id",
-    },
-    Slot { display_name: "Expr : Id." },
-    Slot {
-        display_name: "Expr : . Expr \"(\" {Expr !comma \",\"}* \")\"",
-    },
-    Slot {
-        display_name: "Expr : Expr . \"(\" {Expr !comma \",\"}* \")\"",
-    },
-    Slot {
-        display_name: "Expr : Expr \"(\" . {Expr !comma \",\"}* \")\"",
-    },
-    Slot {
-        display_name: "Expr : Expr \"(\" {Expr !comma \",\"}* . \")\"",
-    },
-    Slot {
-        display_name: "Expr : Expr \"(\" {Expr !comma \",\"}* \")\".",
-    },
-    Slot {
-        display_name: "Expr : . Expr \",\" Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr . \",\" Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr \",\" . Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr \",\" Expr.",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ \",\" Expr !comma",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ . \",\" Expr !comma",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" . Expr !comma",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" Expr !comma.",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : . Expr !comma",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : Expr !comma.",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+? : . {Expr !comma \",\"}+",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+? : {Expr !comma \",\"}+.",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+? : .",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}* : . {Expr !comma \",\"}+?",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}* : {Expr !comma \",\"}+?.",
-    },
-    Slot {
-        display_name: "Expr !comma : . Id",
-    },
-    Slot {
-        display_name: "Expr !comma : Id.",
-    },
-    Slot {
-        display_name: "Expr !comma : . Expr \"(\" {Expr !comma \",\"}* \")\"",
-    },
-    Slot {
-        display_name: "Expr !comma : Expr . \"(\" {Expr !comma \",\"}* \")\"",
-    },
-    Slot {
-        display_name: "Expr !comma : Expr \"(\" . {Expr !comma \",\"}* \")\"",
-    },
-    Slot {
-        display_name: "Expr !comma : Expr \"(\" {Expr !comma \",\"}* . \")\"",
-    },
-    Slot {
-        display_name: "Expr !comma : Expr \"(\" {Expr !comma \",\"}* \")\".",
-    },
-];
 impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

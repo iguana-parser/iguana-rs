@@ -112,7 +112,7 @@ pub fn generate(
     let types_code = types_gen::generate();
     write_rust_file(to_string(types_code), &src_dir.join("types.rs"))?;
 
-    let grammar_data_code = grammar_data_gen::generate(grammar, &terminal_ids);
+    let grammar_data_code = grammar_data_gen::generate(grammar, &nonterminal_ids, &terminal_ids, &slot_ids);
     write_rust_file(to_string(grammar_data_code), &src_dir.join("grammar_data.rs"))?;
 
     let main_code = main_gen::generate(grammar);

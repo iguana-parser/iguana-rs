@@ -18,10 +18,7 @@
 // "a" = a
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::AssocTestScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::AssocTestScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -33,128 +30,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 2] = [
-    Nonterminal {
-        name: "S",
-        display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "E",
-        display: "E",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "E" => NonterminalId(1)
-};
-pub const TERMINALS: [Terminal; 7] = [
-    Terminal { name: "\"+\"" },
-    Terminal { name: "\"-\"" },
-    Terminal { name: "\";\"" },
-    Terminal { name: "\"<\"" },
-    Terminal { name: "\"a\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 33] = [
-    Slot { display_name: "S : . E(0)" },
-    Slot { display_name: "S : E(0)." },
-    Slot {
-        display_name: "E : . [3 >= p] l=E(p) [l == 0 || l >= 3] \"+\" E(4) return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] . l=E(p) [l == 0 || l >= 3] \"+\" E(4) return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] l=E(p) . [l == 0 || l >= 3] \"+\" E(4) return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] l=E(p) [l == 0 || l >= 3] . \"+\" E(4) return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] l=E(p) [l == 0 || l >= 3] \"+\" . E(4) return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] l=E(p) [l == 0 || l >= 3] \"+\" E(4) . return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] l=E(p) [l == 0 || l >= 3] \"+\" E(4) return 3.",
-    },
-    Slot {
-        display_name: "E : . [3 >= p] l=E(p) [l == 0 || l >= 3] \"-\" E(4) return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] . l=E(p) [l == 0 || l >= 3] \"-\" E(4) return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] l=E(p) . [l == 0 || l >= 3] \"-\" E(4) return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] l=E(p) [l == 0 || l >= 3] . \"-\" E(4) return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] l=E(p) [l == 0 || l >= 3] \"-\" . E(4) return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] l=E(p) [l == 0 || l >= 3] \"-\" E(4) . return 3",
-    },
-    Slot {
-        display_name: "E : [3 >= p] l=E(p) [l == 0 || l >= 3] \"-\" E(4) return 3.",
-    },
-    Slot {
-        display_name: "E : . [2 >= p] l=E(p) [l == 0 || l >= 3] \";\" E(2) return 2",
-    },
-    Slot {
-        display_name: "E : [2 >= p] . l=E(p) [l == 0 || l >= 3] \";\" E(2) return 2",
-    },
-    Slot {
-        display_name: "E : [2 >= p] l=E(p) . [l == 0 || l >= 3] \";\" E(2) return 2",
-    },
-    Slot {
-        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 3] . \";\" E(2) return 2",
-    },
-    Slot {
-        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 3] \";\" . E(2) return 2",
-    },
-    Slot {
-        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 3] \";\" E(2) . return 2",
-    },
-    Slot {
-        display_name: "E : [2 >= p] l=E(p) [l == 0 || l >= 3] \";\" E(2) return 2.",
-    },
-    Slot {
-        display_name: "E : . [1 >= p] l=E(p) [l == 0 || l >= 2] \"<\" E(2) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] . l=E(p) [l == 0 || l >= 2] \"<\" E(2) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) . [l == 0 || l >= 2] \"<\" E(2) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] . \"<\" E(2) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] \"<\" . E(2) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] \"<\" E(2) . return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] \"<\" E(2) return 1.",
-    },
-    Slot {
-        display_name: "E : . \"a\" return 0",
-    },
-    Slot {
-        display_name: "E : \"a\" . return 0",
-    },
-    Slot {
-        display_name: "E : \"a\" return 0.",
-    },
-];
 impl<'i> Parser<'i> for AssocTestParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

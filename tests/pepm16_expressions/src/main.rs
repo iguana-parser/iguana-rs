@@ -17,7 +17,8 @@ use pepm16_expressions::{
     parse_tree::{
         Pepm16ExpressionsParseTreeBuilder, create_parse_tree, to_json, to_sexpr,
     },
-    parser::{Pepm16ExpressionsParser, NONTERMINALS, SLOTS, TERMINALS},
+    grammar_data::{NONTERMINALS, SLOTS, TERMINALS},
+    parser::Pepm16ExpressionsParser, types::{Nonterminal, Slot, Terminal},
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

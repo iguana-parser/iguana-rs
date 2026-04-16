@@ -15,7 +15,8 @@ use iguana_runtime::{
 use pprof::ProfilerGuardBuilder;
 use group::{
     parse_tree::{GroupParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
-    parser::{GroupParser, NONTERMINALS, SLOTS, TERMINALS},
+    grammar_data::{NONTERMINALS, SLOTS, TERMINALS},
+    parser::GroupParser, types::{Nonterminal, Slot, Terminal},
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

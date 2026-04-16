@@ -21,10 +21,7 @@
 // "+" = +
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::PrefixAboveBinaryScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::PrefixAboveBinaryScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -36,120 +33,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 4] = [
-    Nonterminal {
-        name: "S",
-        display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartS",
-        display: "StartS",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartE",
-        display: "StartE",
-        kind: None,
-    },
-    Nonterminal {
-        name: "E",
-        display: "E",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "StartS" => NonterminalId(1), "StartE" => NonterminalId(2),
-    "E" => NonterminalId(3)
-};
-pub const TERMINALS: [Terminal; 6] = [
-    Terminal { name: "WS" },
-    Terminal { name: "\"a\"" },
-    Terminal { name: "\"-\"" },
-    Terminal { name: "\"+\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 27] = [
-    Slot { display_name: "S : . E(0)" },
-    Slot { display_name: "S : E(0)." },
-    Slot {
-        display_name: "E : . \"a\" return 0",
-    },
-    Slot {
-        display_name: "E : \"a\" . return 0",
-    },
-    Slot {
-        display_name: "E : \"a\" return 0.",
-    },
-    Slot {
-        display_name: "E : . \"-\" WS E(2) return 2",
-    },
-    Slot {
-        display_name: "E : \"-\" . WS E(2) return 2",
-    },
-    Slot {
-        display_name: "E : \"-\" WS . E(2) return 2",
-    },
-    Slot {
-        display_name: "E : \"-\" WS E(2) . return 2",
-    },
-    Slot {
-        display_name: "E : \"-\" WS E(2) return 2.",
-    },
-    Slot {
-        display_name: "E : . [1 >= p] l=E(p) [l == 0 || l >= 1] WS \"+\" WS E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] . l=E(p) [l == 0 || l >= 1] WS \"+\" WS E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) . [l == 0 || l >= 1] WS \"+\" WS E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] . WS \"+\" WS E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS . \"+\" WS E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS \"+\" . WS E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS \"+\" WS . E(1) return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS \"+\" WS E(1) . return 1",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS \"+\" WS E(1) return 1.",
-    },
-    Slot {
-        display_name: "StartS : . WS start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS . start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S . WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S WS.",
-    },
-    Slot {
-        display_name: "StartE : . WS start:E(0) WS",
-    },
-    Slot {
-        display_name: "StartE : WS . start:E(0) WS",
-    },
-    Slot {
-        display_name: "StartE : WS start:E(0) . WS",
-    },
-    Slot {
-        display_name: "StartE : WS start:E(0) WS.",
-    },
-];
 impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

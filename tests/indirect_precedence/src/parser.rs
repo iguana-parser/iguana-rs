@@ -21,10 +21,7 @@
 // "/" = /
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::IndirectPrecedenceScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::IndirectPrecedenceScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -36,101 +33,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 4] = [
-    Nonterminal {
-        name: "S",
-        display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "F",
-        display: "F",
-        kind: None,
-    },
-    Nonterminal {
-        name: "K",
-        display: "K",
-        kind: None,
-    },
-    Nonterminal {
-        name: "E",
-        display: "E",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "F" => NonterminalId(1), "K" => NonterminalId(2), "E" =>
-    NonterminalId(3)
-};
-pub const TERMINALS: [Terminal; 6] = [
-    Terminal { name: "\"-\"" },
-    Terminal { name: "\"*\"" },
-    Terminal { name: "\"a\"" },
-    Terminal { name: "\"/\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 22] = [
-    Slot { display_name: "S : . E(0)" },
-    Slot { display_name: "S : E(0)." },
-    Slot {
-        display_name: "E : . \"-\" E(2) return 2",
-    },
-    Slot {
-        display_name: "E : \"-\" . E(2) return 2",
-    },
-    Slot {
-        display_name: "E : \"-\" E(2) . return 2",
-    },
-    Slot {
-        display_name: "E : \"-\" E(2) return 2.",
-    },
-    Slot {
-        display_name: "E : . [1 >= p] l=E(p) [l == 0 || l >= 1] \"*\" F return 0",
-    },
-    Slot {
-        display_name: "E : [1 >= p] . l=E(p) [l == 0 || l >= 1] \"*\" F return 0",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) . [l == 0 || l >= 1] \"*\" F return 0",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] . \"*\" F return 0",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] \"*\" . F return 0",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] \"*\" F . return 0",
-    },
-    Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] \"*\" F return 0.",
-    },
-    Slot {
-        display_name: "E : . \"a\" return 0",
-    },
-    Slot {
-        display_name: "E : \"a\" . return 0",
-    },
-    Slot {
-        display_name: "E : \"a\" return 0.",
-    },
-    Slot {
-        display_name: "F : . E(0) \"/\" K",
-    },
-    Slot {
-        display_name: "F : E(0) . \"/\" K",
-    },
-    Slot {
-        display_name: "F : E(0) \"/\" . K",
-    },
-    Slot {
-        display_name: "F : E(0) \"/\" K.",
-    },
-    Slot { display_name: "K : . E(0)" },
-    Slot { display_name: "K : E(0)." },
-];
 impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

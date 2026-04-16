@@ -14,10 +14,7 @@
 // NullLiteral = (null)
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::MultipleExceptScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::MultipleExceptScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -29,47 +26,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 2] = [
-    Nonterminal {
-        name: "SyntaxIdentifier",
-        display: "SyntaxIdentifier",
-        kind: None,
-    },
-    Nonterminal {
-        name: "LexicalIdentifier",
-        display: "LexicalIdentifier",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "SyntaxIdentifier" => NonterminalId(0), "LexicalIdentifier" => NonterminalId(1)
-};
-pub const TERMINALS: [Terminal; 7] = [
-    Terminal { name: "Identifier" },
-    Terminal {
-        name: "IdentifierChars",
-    },
-    Terminal { name: "Keyword" },
-    Terminal { name: "BooleanLiteral" },
-    Terminal { name: "NullLiteral" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 4] = [
-    Slot {
-        display_name: "SyntaxIdentifier : . IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral",
-    },
-    Slot {
-        display_name: "SyntaxIdentifier : IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral.",
-    },
-    Slot {
-        display_name: "LexicalIdentifier : . Identifier",
-    },
-    Slot {
-        display_name: "LexicalIdentifier : Identifier.",
-    },
-];
 impl<'i> Parser<'i> for MultipleExceptParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

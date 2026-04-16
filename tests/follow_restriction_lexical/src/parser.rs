@@ -24,10 +24,7 @@
 // WS = ([ ]*)
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::FollowRestrictionLexicalScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::FollowRestrictionLexicalScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -39,108 +36,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 5] = [
-    Nonterminal {
-        name: "S",
-        display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "Element",
-        display: "Element",
-        kind: None,
-    },
-    Nonterminal {
-        name: "S_Plus_0",
-        display: "Element+",
-        kind: Some(EbnfKind::Plus),
-    },
-    Nonterminal {
-        name: "StartS",
-        display: "StartS",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartElement",
-        display: "StartElement",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "Element" => NonterminalId(1), "S_Plus_0" =>
-    NonterminalId(2), "StartS" => NonterminalId(3), "StartElement" => NonterminalId(4)
-};
-pub const TERMINALS: [Terminal; 6] = [
-    Terminal { name: "Num" },
-    Terminal { name: "Alpha" },
-    Terminal { name: "Id" },
-    Terminal { name: "WS" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 20] = [
-    Slot {
-        display_name: "S : . Element+",
-    },
-    Slot {
-        display_name: "S : Element+.",
-    },
-    Slot {
-        display_name: "Element : . Num",
-    },
-    Slot {
-        display_name: "Element : Num.",
-    },
-    Slot {
-        display_name: "Element : . Id",
-    },
-    Slot {
-        display_name: "Element : Id.",
-    },
-    Slot {
-        display_name: "Element+ : . Element+ WS Element",
-    },
-    Slot {
-        display_name: "Element+ : Element+ . WS Element",
-    },
-    Slot {
-        display_name: "Element+ : Element+ WS . Element",
-    },
-    Slot {
-        display_name: "Element+ : Element+ WS Element.",
-    },
-    Slot {
-        display_name: "Element+ : . Element",
-    },
-    Slot {
-        display_name: "Element+ : Element.",
-    },
-    Slot {
-        display_name: "StartS : . WS start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS . start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S . WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S WS.",
-    },
-    Slot {
-        display_name: "StartElement : . WS start:Element WS",
-    },
-    Slot {
-        display_name: "StartElement : WS . start:Element WS",
-    },
-    Slot {
-        display_name: "StartElement : WS start:Element . WS",
-    },
-    Slot {
-        display_name: "StartElement : WS start:Element WS.",
-    },
-];
 impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

@@ -11,10 +11,7 @@
 // Keyword = (if|else|while)
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::ExceptTerminalScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::ExceptTerminalScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -26,38 +23,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 2] = [
-    Nonterminal {
-        name: "S",
-        display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "Id",
-        display: "Id",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "Id" => NonterminalId(1)
-};
-pub const TERMINALS: [Terminal; 4] = [
-    Terminal { name: "Identifier" },
-    Terminal { name: "Keyword" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 4] = [
-    Slot { display_name: "S : . Id" },
-    Slot { display_name: "S : Id." },
-    Slot {
-        display_name: "Id : . Identifier \\ Keyword",
-    },
-    Slot {
-        display_name: "Id : Identifier \\ Keyword.",
-    },
-];
 impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

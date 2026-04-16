@@ -31,10 +31,7 @@
 // WS = ([ ]*)
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::FollowRestrictionScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::FollowRestrictionScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -46,141 +43,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 8] = [
-    Nonterminal {
-        name: "S",
-        display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "T",
-        display: "T",
-        kind: None,
-    },
-    Nonterminal {
-        name: "Id",
-        display: "Id",
-        kind: None,
-    },
-    Nonterminal {
-        name: "S_Plus_0",
-        display: "Id+",
-        kind: Some(EbnfKind::Plus),
-    },
-    Nonterminal {
-        name: "Id_Plus_1",
-        display: "Char+",
-        kind: Some(EbnfKind::Plus),
-    },
-    Nonterminal {
-        name: "StartS",
-        display: "StartS",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartT",
-        display: "StartT",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartId",
-        display: "StartId",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "T" => NonterminalId(1), "Id" => NonterminalId(2),
-    "S_Plus_0" => NonterminalId(3), "Id_Plus_1" => NonterminalId(4), "StartS" =>
-    NonterminalId(5), "StartT" => NonterminalId(6), "StartId" => NonterminalId(7)
-};
-pub const TERMINALS: [Terminal; 4] = [
-    Terminal { name: "Char" },
-    Terminal { name: "WS" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 29] = [
-    Slot { display_name: "S : . Id+" },
-    Slot { display_name: "S : Id+." },
-    Slot {
-        display_name: "T : . Char !>> Char",
-    },
-    Slot {
-        display_name: "T : Char !>> Char.",
-    },
-    Slot {
-        display_name: "Id : . Char+ !>> Char",
-    },
-    Slot {
-        display_name: "Id : Char+ !>> Char.",
-    },
-    Slot {
-        display_name: "Id+ : . Id+ WS Id",
-    },
-    Slot {
-        display_name: "Id+ : Id+ . WS Id",
-    },
-    Slot {
-        display_name: "Id+ : Id+ WS . Id",
-    },
-    Slot {
-        display_name: "Id+ : Id+ WS Id.",
-    },
-    Slot { display_name: "Id+ : . Id" },
-    Slot { display_name: "Id+ : Id." },
-    Slot {
-        display_name: "Char+ : . Char+ Char",
-    },
-    Slot {
-        display_name: "Char+ : Char+ . Char",
-    },
-    Slot {
-        display_name: "Char+ : Char+ Char.",
-    },
-    Slot {
-        display_name: "Char+ : . Char",
-    },
-    Slot {
-        display_name: "Char+ : Char.",
-    },
-    Slot {
-        display_name: "StartS : . WS start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS . start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S . WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S WS.",
-    },
-    Slot {
-        display_name: "StartT : . WS start:T WS",
-    },
-    Slot {
-        display_name: "StartT : WS . start:T WS",
-    },
-    Slot {
-        display_name: "StartT : WS start:T . WS",
-    },
-    Slot {
-        display_name: "StartT : WS start:T WS.",
-    },
-    Slot {
-        display_name: "StartId : . WS start:Id WS",
-    },
-    Slot {
-        display_name: "StartId : WS . start:Id WS",
-    },
-    Slot {
-        display_name: "StartId : WS start:Id . WS",
-    },
-    Slot {
-        display_name: "StartId : WS start:Id WS.",
-    },
-];
 impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -1067,18 +929,19 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
     ) -> Option<ParseErrorKind> {
         match slot {
             SlotId(3) => {
-                if self.scanner.match_token(TerminalId(0), right_extent).is_some() {
+                if self.scanner.match_any(FOLLOW_RESTRICTION_T_ALT0_POS0, right_extent) {
                     Some(ParseErrorKind::ForbiddenFollow {
-                        forbidden: vec![TerminalId(0)],
+                        forbidden: FOLLOW_RESTRICTION_T_ALT0_POS0.to_vec(),
                     })
                 } else {
                     None
                 }
             }
             SlotId(5) => {
-                if self.scanner.match_token(TerminalId(0), right_extent).is_some() {
+                if self.scanner.match_any(FOLLOW_RESTRICTION_ID_ALT0_POS0, right_extent)
+                {
                     Some(ParseErrorKind::ForbiddenFollow {
-                        forbidden: vec![TerminalId(0)],
+                        forbidden: FOLLOW_RESTRICTION_ID_ALT0_POS0.to_vec(),
                     })
                 } else {
                     None

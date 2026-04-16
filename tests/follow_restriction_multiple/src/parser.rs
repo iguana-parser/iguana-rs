@@ -23,10 +23,7 @@
 // Digit = ([0-9])
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::FollowRestrictionMultipleScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::FollowRestrictionMultipleScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -38,92 +35,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 5] = [
-    Nonterminal {
-        name: "S",
-        display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "Id",
-        display: "Id",
-        kind: None,
-    },
-    Nonterminal {
-        name: "S_Plus_0",
-        display: "Id+",
-        kind: Some(EbnfKind::Plus),
-    },
-    Nonterminal {
-        name: "Id_Alt_0",
-        display: "(Alpha | Digit)",
-        kind: Some(EbnfKind::Alt),
-    },
-    Nonterminal {
-        name: "Id_Plus_1",
-        display: "(Alpha | Digit)+",
-        kind: Some(EbnfKind::Plus),
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "Id" => NonterminalId(1), "S_Plus_0" => NonterminalId(2),
-    "Id_Alt_0" => NonterminalId(3), "Id_Plus_1" => NonterminalId(4)
-};
-pub const TERMINALS: [Terminal; 4] = [
-    Terminal { name: "Alpha" },
-    Terminal { name: "Digit" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 18] = [
-    Slot { display_name: "S : . Id+" },
-    Slot { display_name: "S : Id+." },
-    Slot {
-        display_name: "Id : . (Alpha | Digit)+ !>> Alpha !>> Digit",
-    },
-    Slot {
-        display_name: "Id : (Alpha | Digit)+ !>> Alpha !>> Digit.",
-    },
-    Slot {
-        display_name: "Id+ : . Id+ Id",
-    },
-    Slot {
-        display_name: "Id+ : Id+ . Id",
-    },
-    Slot {
-        display_name: "Id+ : Id+ Id.",
-    },
-    Slot { display_name: "Id+ : . Id" },
-    Slot { display_name: "Id+ : Id." },
-    Slot {
-        display_name: "(Alpha | Digit) : . Alpha",
-    },
-    Slot {
-        display_name: "(Alpha | Digit) : Alpha.",
-    },
-    Slot {
-        display_name: "(Alpha | Digit) : . Digit",
-    },
-    Slot {
-        display_name: "(Alpha | Digit) : Digit.",
-    },
-    Slot {
-        display_name: "(Alpha | Digit)+ : . (Alpha | Digit)+ (Alpha | Digit)",
-    },
-    Slot {
-        display_name: "(Alpha | Digit)+ : (Alpha | Digit)+ . (Alpha | Digit)",
-    },
-    Slot {
-        display_name: "(Alpha | Digit)+ : (Alpha | Digit)+ (Alpha | Digit).",
-    },
-    Slot {
-        display_name: "(Alpha | Digit)+ : . (Alpha | Digit)",
-    },
-    Slot {
-        display_name: "(Alpha | Digit)+ : (Alpha | Digit).",
-    },
-];
 impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -711,11 +622,10 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
     ) -> Option<ParseErrorKind> {
         match slot {
             SlotId(3) => {
-                if self.scanner.match_token(TerminalId(0), right_extent).is_some()
-                    || self.scanner.match_token(TerminalId(1), right_extent).is_some()
+                if self.scanner.match_any(FOLLOW_RESTRICTION_ID_ALT0_POS0, right_extent)
                 {
                     Some(ParseErrorKind::ForbiddenFollow {
-                        forbidden: vec![TerminalId(0), TerminalId(1)],
+                        forbidden: FOLLOW_RESTRICTION_ID_ALT0_POS0.to_vec(),
                     })
                 } else {
                     None

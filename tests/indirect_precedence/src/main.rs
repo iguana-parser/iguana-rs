@@ -17,7 +17,8 @@ use indirect_precedence::{
     parse_tree::{
         IndirectPrecedenceParseTreeBuilder, create_parse_tree, to_json, to_sexpr,
     },
-    parser::{IndirectPrecedenceParser, NONTERMINALS, SLOTS, TERMINALS},
+    grammar_data::{NONTERMINALS, SLOTS, TERMINALS},
+    parser::IndirectPrecedenceParser, types::{Nonterminal, Slot, Terminal},
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

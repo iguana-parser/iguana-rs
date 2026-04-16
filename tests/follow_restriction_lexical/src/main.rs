@@ -17,7 +17,8 @@ use follow_restriction_lexical::{
     parse_tree::{
         FollowRestrictionLexicalParseTreeBuilder, create_parse_tree, to_json, to_sexpr,
     },
-    parser::{FollowRestrictionLexicalParser, NONTERMINALS, SLOTS, TERMINALS},
+    grammar_data::{NONTERMINALS, SLOTS, TERMINALS},
+    parser::FollowRestrictionLexicalParser, types::{Nonterminal, Slot, Terminal},
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

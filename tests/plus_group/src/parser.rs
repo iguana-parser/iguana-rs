@@ -25,10 +25,7 @@
 // "c" = c
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::PlusGroupScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::PlusGroupScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -40,97 +37,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 6] = [
-    Nonterminal {
-        name: "S",
-        display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "A",
-        display: "A",
-        kind: None,
-    },
-    Nonterminal {
-        name: "B",
-        display: "B",
-        kind: None,
-    },
-    Nonterminal {
-        name: "C",
-        display: "C",
-        kind: None,
-    },
-    Nonterminal {
-        name: "S_Group_0",
-        display: "(A B C)",
-        kind: Some(EbnfKind::Group),
-    },
-    Nonterminal {
-        name: "S_Plus_0",
-        display: "(A B C)+",
-        kind: Some(EbnfKind::Plus),
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "A" => NonterminalId(1), "B" => NonterminalId(2), "C" =>
-    NonterminalId(3), "S_Group_0" => NonterminalId(4), "S_Plus_0" => NonterminalId(5)
-};
-pub const TERMINALS: [Terminal; 5] = [
-    Terminal { name: "\"a\"" },
-    Terminal { name: "\"b\"" },
-    Terminal { name: "\"c\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 17] = [
-    Slot {
-        display_name: "S : . (A B C)+",
-    },
-    Slot {
-        display_name: "S : (A B C)+.",
-    },
-    Slot {
-        display_name: "A : . \"a\"",
-    },
-    Slot { display_name: "A : \"a\"." },
-    Slot {
-        display_name: "B : . \"b\"",
-    },
-    Slot { display_name: "B : \"b\"." },
-    Slot {
-        display_name: "C : . \"c\"",
-    },
-    Slot { display_name: "C : \"c\"." },
-    Slot {
-        display_name: "(A B C) : . A B C",
-    },
-    Slot {
-        display_name: "(A B C) : A . B C",
-    },
-    Slot {
-        display_name: "(A B C) : A B . C",
-    },
-    Slot {
-        display_name: "(A B C) : A B C.",
-    },
-    Slot {
-        display_name: "(A B C)+ : . (A B C)+ (A B C)",
-    },
-    Slot {
-        display_name: "(A B C)+ : (A B C)+ . (A B C)",
-    },
-    Slot {
-        display_name: "(A B C)+ : (A B C)+ (A B C).",
-    },
-    Slot {
-        display_name: "(A B C)+ : . (A B C)",
-    },
-    Slot {
-        display_name: "(A B C)+ : (A B C).",
-    },
-];
 impl<'i> Parser<'i> for PlusGroupParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

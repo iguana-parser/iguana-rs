@@ -2,16 +2,18 @@ use proc_macro2::{Literal, TokenStream};
 use quote::{format_ident, quote};
 use rustc_hash::FxHashSet;
 
-use crate::generator::id::TerminalIds;
+use crate::generator::id::{NonterminalIds, SlotIds, TerminalIds};
 use crate::generator::utils::to_snake_case;
 use crate::grammar::def::Grammar;
 use crate::grammar::first_follow::FirstFollowSets;
 use crate::grammar::slot::Slot;
-use crate::grammar::symbols::Terminal;
+use crate::grammar::symbols::{Definition, Symbol, Terminal};
 
-pub fn generate(
-    grammar: &Grammar,
+pub fn generate<'a>(
+    grammar: &'a Grammar,
+    nonterminal_ids: &NonterminalIds,
     terminal_ids: &TerminalIds,
+    slot_ids: &SlotIds<'a>,
 ) -> TokenStream {
     let ff = FirstFollowSets::new(grammar);
     let eof_id = Literal::u16_unsuffixed(terminal_ids.len() as u16 + 1);
@@ -84,11 +86,124 @@ pub fn generate(
                 #[comment = #pred_comment]
                 pub static #pred_name: &[TerminalId] = &[#(#pred_ids),*];
             });
+
+            // Follow restriction sets for symbols in this alternative
+            for (pos, symbol) in alternative.symbols.iter().enumerate() {
+                if let Symbol::FollowRestriction { restrictions, .. } = symbol {
+                    let restriction_terminals: Vec<_> = restrictions
+                        .iter()
+                        .map(|r| {
+                            let Definition::Terminal(t) = grammar.definition(r.resolve()) else {
+                                panic!("follow restriction must resolve to a terminal");
+                            };
+                            t.clone()
+                        })
+                        .collect();
+                    let restriction_ids: Vec<_> =
+                        restriction_terminals.iter().map(&terminal_id_tokens).collect();
+                    let name = format_ident!(
+                        "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
+                        nt_upper,
+                        alt_index,
+                        pos
+                    );
+                    let comment = format!(
+                        "{} !>> {}",
+                        Slot::new(nonterminal, alternative, pos).name(),
+                        terminal_names(&restriction_terminals),
+                    );
+                    items.push(quote! {
+                        #[comment = #comment]
+                        pub static #name: &[TerminalId] = &[#(#restriction_ids),*];
+                    });
+                }
+            }
         }
     }
 
+    // NONTERMINALS array
+    let nonterminals_len = Literal::usize_unsuffixed(nonterminal_ids.len());
+    let nonterminals = nonterminal_ids.nonterminals().map(|n| {
+        let nonterminal_name = &n.name;
+        let display_name = n.display_name();
+        let nonterminal_kind = match &n.origin {
+            Some(s) => match s {
+                Symbol::Group(_) => quote! { Some(EbnfKind::Group) },
+                Symbol::Opt(_) => quote! { Some(EbnfKind::Opt) },
+                Symbol::Alt(_) => quote! { Some(EbnfKind::Alt) },
+                Symbol::Star(_, _) => quote! { Some(EbnfKind::Star) },
+                Symbol::Plus(_, _) => quote! { Some(EbnfKind::Plus) },
+                Symbol::Labeled { .. }
+                | Symbol::Identifier(_)
+                | Symbol::Literal(_)
+                | Symbol::Except { .. }
+                | Symbol::FollowRestriction { .. }
+                | Symbol::PrecedeRestriction { .. }
+                | Symbol::Call { .. }
+                | Symbol::Condition(_)
+                | Symbol::Return(_)
+                | Symbol::Binding { .. }
+                | Symbol::Exclude { .. } => quote! { None },
+            },
+            None => quote! { None },
+        };
+        quote! {
+            Nonterminal {
+                name: #nonterminal_name,
+                display: #display_name,
+                kind: #nonterminal_kind,
+            }
+        }
+    });
+
+    // NONTERMINAL_IDS phf map
+    let nonterminal_name_to_ids: Vec<_> = nonterminal_ids
+        .nonterminals()
+        .enumerate()
+        .map(|(i, n)| {
+            let name = &n.name;
+            let index = Literal::usize_unsuffixed(i);
+            quote! { #name => NonterminalId(#index) }
+        })
+        .collect();
+
+    // TERMINALS array
+    let terminals_len = Literal::usize_unsuffixed(terminal_ids.len() + 2);
+    let terminals: Vec<_> = terminal_ids
+        .terminals()
+        .map(|t| {
+            let terminal_name = &t.name;
+            quote! { Terminal { name: #terminal_name } }
+        })
+        .collect();
+
+    // SLOTS array
+    let slots_len = Literal::usize_unsuffixed(slot_ids.len());
+    let slot_names = slot_ids.slots().map(|s| {
+        let display_name = s.display_name(grammar);
+        quote! {
+            Slot { display_name: #display_name }
+        }
+    });
+
     quote! {
-        use iguana_runtime::ids::TerminalId;
+        use iguana_runtime::ids::{NonterminalId, TerminalId};
+        use crate::types::{EbnfKind, Nonterminal, Slot, Terminal};
+        use phf::phf_map;
+
+        pub const NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminals),*];
+
+        pub static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
+            #(#nonterminal_name_to_ids),*
+        };
+
+        pub const TERMINALS: [Terminal; #terminals_len] = [
+            #(#terminals,)*
+            Terminal { name: "Epsilon" },
+            Terminal { name: "EOF" },
+        ];
+
+        pub const SLOTS: [Slot; #slots_len] = [#(#slot_names),*];
 
         #(#items)*
     }

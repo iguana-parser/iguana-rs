@@ -11,10 +11,7 @@
 // "a" = a
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::ExpressionScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::ExpressionScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -26,54 +23,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 1] = [
-    Nonterminal {
-        name: "E",
-        display: "E",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "E" => NonterminalId(0)
-};
-pub const TERMINALS: [Terminal; 5] = [
-    Terminal { name: "\"*\"" },
-    Terminal { name: "\"+\"" },
-    Terminal { name: "\"a\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 10] = [
-    Slot {
-        display_name: "E : . E \"*\" E",
-    },
-    Slot {
-        display_name: "E : E . \"*\" E",
-    },
-    Slot {
-        display_name: "E : E \"*\" . E",
-    },
-    Slot {
-        display_name: "E : E \"*\" E.",
-    },
-    Slot {
-        display_name: "E : . E \"+\" E",
-    },
-    Slot {
-        display_name: "E : E . \"+\" E",
-    },
-    Slot {
-        display_name: "E : E \"+\" . E",
-    },
-    Slot {
-        display_name: "E : E \"+\" E.",
-    },
-    Slot {
-        display_name: "E : . \"a\"",
-    },
-    Slot { display_name: "E : \"a\"." },
-];
 impl<'i> Parser<'i> for ExpressionParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

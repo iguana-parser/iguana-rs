@@ -22,10 +22,7 @@
 // "d" = d
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::SimpleAltScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::SimpleAltScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -37,80 +34,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 5] = [
-    Nonterminal {
-        name: "A",
-        display: "A",
-        kind: None,
-    },
-    Nonterminal {
-        name: "B",
-        display: "B",
-        kind: None,
-    },
-    Nonterminal {
-        name: "C",
-        display: "C",
-        kind: None,
-    },
-    Nonterminal {
-        name: "D",
-        display: "D",
-        kind: None,
-    },
-    Nonterminal {
-        name: "A_Alt_0",
-        display: "(C | D)",
-        kind: Some(EbnfKind::Alt),
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "A" => NonterminalId(0), "B" => NonterminalId(1), "C" => NonterminalId(2), "D" =>
-    NonterminalId(3), "A_Alt_0" => NonterminalId(4)
-};
-pub const TERMINALS: [Terminal; 5] = [
-    Terminal { name: "\"b\"" },
-    Terminal { name: "\"c\"" },
-    Terminal { name: "\"d\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 13] = [
-    Slot {
-        display_name: "A : . B (C | D)",
-    },
-    Slot {
-        display_name: "A : B . (C | D)",
-    },
-    Slot {
-        display_name: "A : B (C | D).",
-    },
-    Slot {
-        display_name: "B : . \"b\"",
-    },
-    Slot { display_name: "B : \"b\"." },
-    Slot {
-        display_name: "C : . \"c\"",
-    },
-    Slot { display_name: "C : \"c\"." },
-    Slot {
-        display_name: "D : . \"d\"",
-    },
-    Slot { display_name: "D : \"d\"." },
-    Slot {
-        display_name: "(C | D) : . C",
-    },
-    Slot {
-        display_name: "(C | D) : C.",
-    },
-    Slot {
-        display_name: "(C | D) : . D",
-    },
-    Slot {
-        display_name: "(C | D) : D.",
-    },
-];
 impl<'i> Parser<'i> for SimpleAltParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

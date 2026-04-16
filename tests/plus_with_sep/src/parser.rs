@@ -15,10 +15,7 @@
 // "a" = a
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::PlusWithSepScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::PlusWithSepScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -30,63 +27,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 3] = [
-    Nonterminal {
-        name: "S",
-        display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "A",
-        display: "A",
-        kind: None,
-    },
-    Nonterminal {
-        name: "S_Plus_0",
-        display: "{A \",\"}+",
-        kind: Some(EbnfKind::Plus),
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "A" => NonterminalId(1), "S_Plus_0" => NonterminalId(2)
-};
-pub const TERMINALS: [Terminal; 4] = [
-    Terminal { name: "\",\"" },
-    Terminal { name: "\"a\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 10] = [
-    Slot {
-        display_name: "S : . {A \",\"}+",
-    },
-    Slot {
-        display_name: "S : {A \",\"}+.",
-    },
-    Slot {
-        display_name: "A : . \"a\"",
-    },
-    Slot { display_name: "A : \"a\"." },
-    Slot {
-        display_name: "{A \",\"}+ : . {A \",\"}+ \",\" A",
-    },
-    Slot {
-        display_name: "{A \",\"}+ : {A \",\"}+ . \",\" A",
-    },
-    Slot {
-        display_name: "{A \",\"}+ : {A \",\"}+ \",\" . A",
-    },
-    Slot {
-        display_name: "{A \",\"}+ : {A \",\"}+ \",\" A.",
-    },
-    Slot {
-        display_name: "{A \",\"}+ : . A",
-    },
-    Slot {
-        display_name: "{A \",\"}+ : A.",
-    },
-];
 impl<'i> Parser<'i> for PlusWithSepParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

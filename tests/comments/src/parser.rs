@@ -18,10 +18,7 @@
 // "x" = x
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::CommentsScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::CommentsScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -33,89 +30,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 2] = [
-    Nonterminal {
-        name: "Expr",
-        display: "Expr",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartExpr",
-        display: "StartExpr",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "Expr" => NonterminalId(0), "StartExpr" => NonterminalId(1)
-};
-pub const TERMINALS: [Terminal; 9] = [
-    Terminal { name: "Layout" },
-    Terminal { name: "Identifier" },
-    Terminal { name: "Comment" },
-    Terminal { name: "WS" },
-    Terminal { name: "\"+\"" },
-    Terminal { name: "\"*\"" },
-    Terminal { name: "\"x\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 18] = [
-    Slot {
-        display_name: "Expr : . Expr Layout \"+\" Layout Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr . Layout \"+\" Layout Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr Layout . \"+\" Layout Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr Layout \"+\" . Layout Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr Layout \"+\" Layout . Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr Layout \"+\" Layout Expr.",
-    },
-    Slot {
-        display_name: "Expr : . Expr Layout \"*\" Layout Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr . Layout \"*\" Layout Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr Layout . \"*\" Layout Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr Layout \"*\" . Layout Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr Layout \"*\" Layout . Expr",
-    },
-    Slot {
-        display_name: "Expr : Expr Layout \"*\" Layout Expr.",
-    },
-    Slot {
-        display_name: "Expr : . \"x\"",
-    },
-    Slot {
-        display_name: "Expr : \"x\".",
-    },
-    Slot {
-        display_name: "StartExpr : . Layout start:Expr Layout",
-    },
-    Slot {
-        display_name: "StartExpr : Layout . start:Expr Layout",
-    },
-    Slot {
-        display_name: "StartExpr : Layout start:Expr . Layout",
-    },
-    Slot {
-        display_name: "StartExpr : Layout start:Expr Layout.",
-    },
-];
 impl<'i> Parser<'i> for CommentsParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

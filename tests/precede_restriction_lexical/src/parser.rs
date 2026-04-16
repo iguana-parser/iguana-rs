@@ -15,10 +15,7 @@
 // "forall" = forall
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::PrecedeRestrictionLexicalScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::PrecedeRestrictionLexicalScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -30,63 +27,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 2] = [
-    Nonterminal {
-        name: "S",
-        display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartS",
-        display: "StartS",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "StartS" => NonterminalId(1)
-};
-pub const TERMINALS: [Terminal; 7] = [
-    Terminal { name: "Id" },
-    Terminal { name: "Char" },
-    Terminal { name: "WS" },
-    Terminal { name: "\"for\"" },
-    Terminal { name: "\"forall\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 10] = [
-    Slot {
-        display_name: "S : . \"for\" WS Id",
-    },
-    Slot {
-        display_name: "S : \"for\" . WS Id",
-    },
-    Slot {
-        display_name: "S : \"for\" WS . Id",
-    },
-    Slot {
-        display_name: "S : \"for\" WS Id.",
-    },
-    Slot {
-        display_name: "S : . \"forall\"",
-    },
-    Slot {
-        display_name: "S : \"forall\".",
-    },
-    Slot {
-        display_name: "StartS : . WS start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS . start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S . WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S WS.",
-    },
-];
 impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

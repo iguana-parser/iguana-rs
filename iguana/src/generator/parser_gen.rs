@@ -54,12 +54,8 @@ impl<'a> ParserGen<'a> {
     pub fn generate(&mut self) -> TokenStream {
         let grammar_name = &self.grammar.name;
         let imports = self.gen_imports();
-        let nonterminals = self.gen_nonterminals();
-        let nonterminal_ids_static_var = self.gen_nonterminal_ids();
         let execute_method = self.gen_execute_method();
         let first_descriptors = self.gen_add_first_descriptors_method();
-        let terminals = self.gen_terminals();
-        let slots = self.gen_slots();
         let nonterminal_display_name_method = Self::gen_nonterminal_display_name_method();
         let nonterminal_id_method = Self::gen_nonterminal_id_method();
         let terminal_name_method = Self::gen_terminal_name_method();
@@ -105,10 +101,6 @@ impl<'a> ParserGen<'a> {
         let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
         quote! {
             #imports
-            #nonterminals
-            #nonterminal_ids_static_var
-            #terminals
-            #slots
             impl<'i> Parser<'i> for #grammar_name_ident<'i> {
                 #nonterminal_display_name_method
                 #nonterminal_id_method
@@ -176,7 +168,7 @@ impl<'a> ParserGen<'a> {
         quote! {
             use std::cell::OnceCell;
             use std::collections::BTreeMap;
-            use crate::{grammar_data::*, scanner::#scanner_name, types::{EbnfKind, Nonterminal, Slot, Terminal}};
+            use crate::{grammar_data::*, scanner::#scanner_name};
             use iguana_runtime::{
                 descriptor::Descriptor,
                 env::{Env, EnvId},
@@ -192,7 +184,6 @@ impl<'a> ParserGen<'a> {
             #[cfg(feature = "debug-trace")]
             use iguana_runtime::trace::TraceEvent;
             use rustc_hash::FxHashMap;
-            use phf::phf_map;
         }
     }
 
@@ -369,109 +360,6 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_nonterminals(&self) -> TokenStream {
-        let nonterminals_len = Literal::usize_unsuffixed(self.nonterminal_ids.len());
-        let nonterminals = self.nonterminal_ids.nonterminals().map(|n| {
-            let nonterminal_name = &n.name;
-            let display_name = n.display_name();
-            let origin = &n.origin;
-            let nonterminal_kind = match origin {
-                Some(s) => match s {
-                    Symbol::Group(_) => quote! { Some(EbnfKind::Group) },
-                    Symbol::Opt(_) => quote! { Some(EbnfKind::Opt) },
-                    Symbol::Alt(_) => quote! { Some(EbnfKind::Alt) },
-                    Symbol::Star(_, _) => quote! { Some(EbnfKind::Star) },
-                    Symbol::Plus(_, _) => quote! { Some(EbnfKind::Plus) },
-                    Symbol::Labeled { .. }
-                    | Symbol::Identifier(_)
-                    | Symbol::Literal(_)
-                    | Symbol::Except { .. }
-                    | Symbol::FollowRestriction { .. }
-                    | Symbol::PrecedeRestriction { .. }
-                    | Symbol::Call { .. }
-                    | Symbol::Condition(_)
-                    | Symbol::Return(_)
-                    | Symbol::Binding { .. }
-                    // Exclude-derived nonterminals have Exclude as their origin
-                    | Symbol::Exclude { .. } => quote! { None },
-                },
-                None => quote! { None },
-            };
-            quote! {
-                Nonterminal {
-                    name: #nonterminal_name,
-                    display: #display_name,
-                    kind: #nonterminal_kind,
-                }
-            }
-        });
-        quote! {
-            pub const NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminals),*];
-        }
-    }
-
-    fn gen_nonterminal_ids(&self) -> TokenStream {
-        let nonterminal_name_to_ids: Vec<_> = self
-            .nonterminal_ids
-            .nonterminals()
-            .enumerate()
-            .map(|(i, n)| {
-                let name = &n.name;
-                let index = Literal::usize_unsuffixed(i);
-                quote! { #name => NonterminalId(#index) }
-            })
-            .collect();
-        quote! {
-            static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-                #(#nonterminal_name_to_ids),*
-            };
-        }
-    }
-
-    fn gen_terminals(&self) -> TokenStream {
-        let terminals_len = Literal::usize_unsuffixed(self.terminal_ids.len() + 2);
-        let terminals: Vec<_> = self
-            .terminal_ids
-            .terminals()
-            .map(|t| {
-                let terminal_name = &t.name;
-                quote! {
-                    Terminal {
-                        name: #terminal_name
-                    }
-                }
-            })
-            .collect();
-        let epsilon = quote! {
-            Terminal {
-                name: "Epsilon"
-            }
-        };
-        let eof = quote! {
-            Terminal {
-                name: "EOF"
-            }
-        };
-        quote! {
-            pub const TERMINALS: [Terminal; #terminals_len] = [#(#terminals,)* #epsilon, #eof];
-        }
-    }
-
-    fn gen_slots(&self) -> TokenStream {
-        let slots_len = Literal::usize_unsuffixed(self.slot_ids.len());
-        let slot_names = self.slot_ids.slots().map(|s| {
-            let display_name = s.display_name(self.grammar);
-            quote! {
-                Slot {
-                    display_name: #display_name
-                }
-            }
-        });
-        quote! {
-            pub const SLOTS: [Slot; #slots_len] = [#(#slot_names),*];
-        }
-    }
-
     fn gen_slot_code(&self, slot: Slot<'a>) -> TokenStream {
         match slot.symbol() {
             Some(Symbol::Condition(expr)) => {
@@ -483,11 +371,8 @@ impl<'a> ParserGen<'a> {
             Some(Symbol::Except { symbol, except }) => {
                 return self.gen_except_code(symbol, except.as_slice(), &slot);
             }
-            Some(Symbol::FollowRestriction {
-                symbol,
-                restrictions,
-            }) => {
-                return self.gen_follow_restriction_code(symbol, restrictions, &slot);
+            Some(Symbol::FollowRestriction { symbol, .. }) => {
+                return self.gen_follow_restriction_code(symbol, &slot);
             }
             Some(Symbol::PrecedeRestriction {
                 symbol,
@@ -679,7 +564,6 @@ impl<'a> ParserGen<'a> {
     fn gen_follow_restriction_code(
         &self,
         symbol: &Symbol,
-        restrictions: &[Identifier],
         slot: &Slot<'a>,
     ) -> TokenStream {
         let Some(identifier) = symbol.as_identifier() else {
@@ -687,19 +571,13 @@ impl<'a> ParserGen<'a> {
         };
         let def_id = identifier.resolve();
         let def = &self.grammar.definition(def_id);
-        let post_conditions: Vec<_> = restrictions
-            .iter()
-            .map(|r| {
-                let Definition::Terminal(t) = self.grammar.definition(r.resolve()) else {
-                    panic!("follow restriction must resolve to a terminal");
-                };
-                let id = self.terminal_ids.get_id(t);
-                quote! { self.scanner.match_token(#id, j).is_none() }
-            })
-            .collect();
+        // The actual restriction check is in `post_conditions`. Here we just
+        // signal that post-conditions exist so the slot codegen wraps the
+        // continuation with a `post_conditions` call.
+        let has_post_conditions = &[quote! {}];
         match def {
             Definition::Terminal(terminal) => {
-                self.gen_terminal_slot(terminal, slot.clone(), &[], &post_conditions)
+                self.gen_terminal_slot(terminal, slot.clone(), &[], has_post_conditions)
             }
             Definition::Nonterminal(nonterminal) => {
                 let arguments = match symbol.unwrap() {
@@ -711,7 +589,7 @@ impl<'a> ParserGen<'a> {
                     &arguments,
                     slot.clone(),
                     &[],
-                    &post_conditions,
+                    has_post_conditions,
                 )
             }
         }
@@ -764,7 +642,8 @@ impl<'a> ParserGen<'a> {
     fn gen_post_conditions_method(&mut self) -> TokenStream {
         let mut arms = vec![];
         for nonterminal in self.grammar.nonterminals() {
-            for alternative in self.grammar.alternatives(nonterminal) {
+            let nt_upper = self.prediction_set_name(nonterminal);
+            for (alt_index, alternative) in self.grammar.alternatives(nonterminal).iter().enumerate() {
                 for pos in 0..alternative.symbols.len() {
                     let symbol = &alternative.symbols[pos];
                     if let Symbol::Except { symbol, except } = symbol {
@@ -806,41 +685,24 @@ impl<'a> ParserGen<'a> {
                             }
                         });
                     }
-                    if let Symbol::FollowRestriction {
-                        symbol,
-                        restrictions,
-                    } = symbol
-                    {
-                        let Some(identifier) = symbol.as_identifier() else {
+                    if let Symbol::FollowRestriction { symbol, .. } = symbol {
+                        let Some(_) = symbol.as_identifier() else {
                             continue;
                         };
-                        let restriction_ids: Vec<_> = restrictions
-                            .iter()
-                            .map(|r| {
-                                let Definition::Terminal(t) =
-                                    self.grammar.definition(r.resolve())
-                                else {
-                                    panic!("follow restriction must resolve to a terminal");
-                                };
-                                self.terminal_ids.get_id(t)
-                            })
-                            .collect();
-                        let checks: Vec<_> = restriction_ids
-                            .iter()
-                            .map(|id| {
-                                quote! {
-                                    self.scanner.match_token(#id, right_extent).is_some()
-                                }
-                            })
-                            .collect();
+                        let static_name = format_ident!(
+                            "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
+                            nt_upper,
+                            alt_index,
+                            pos
+                        );
                         let slot = Slot::new(nonterminal, alternative, pos);
                         let next_slot = slot.next();
                         let slot_id = self.slot_ids.get_id(&next_slot);
                         arms.push(quote! {
                             #slot_id => {
-                                if #(#checks)||* {
+                                if self.scanner.match_any(#static_name, right_extent) {
                                     Some(ParseErrorKind::ForbiddenFollow {
-                                        forbidden: vec![#(#restriction_ids),*],
+                                        forbidden: #static_name.to_vec(),
                                     })
                                 } else {
                                     None

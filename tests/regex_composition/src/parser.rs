@@ -30,10 +30,7 @@
 // WS = ([  \n]*)
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use crate::{
-    grammar_data::*, scanner::RegexCompositionScanner,
-    types::{EbnfKind, Nonterminal, Slot, Terminal},
-};
+use crate::{grammar_data::*, scanner::RegexCompositionScanner};
 use iguana_runtime::{
     descriptor::Descriptor, env::{Env, EnvId},
     gss::GSSNode, ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
@@ -45,124 +42,6 @@ use iguana_runtime::{
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use rustc_hash::FxHashMap;
-use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 7] = [
-    Nonterminal {
-        name: "S",
-        display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "Id",
-        display: "Id",
-        kind: None,
-    },
-    Nonterminal {
-        name: "Id_Plus_0",
-        display: "LetterOrDigit+",
-        kind: Some(EbnfKind::Plus),
-    },
-    Nonterminal {
-        name: "Id_Opt_0",
-        display: "LetterOrDigit+?",
-        kind: Some(EbnfKind::Opt),
-    },
-    Nonterminal {
-        name: "Id_Star_0",
-        display: "LetterOrDigit*",
-        kind: Some(EbnfKind::Star),
-    },
-    Nonterminal {
-        name: "StartS",
-        display: "StartS",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartId",
-        display: "StartId",
-        kind: None,
-    },
-];
-static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "Id" => NonterminalId(1), "Id_Plus_0" => NonterminalId(2),
-    "Id_Opt_0" => NonterminalId(3), "Id_Star_0" => NonterminalId(4), "StartS" =>
-    NonterminalId(5), "StartId" => NonterminalId(6)
-};
-pub const TERMINALS: [Terminal; 6] = [
-    Terminal { name: "Digit" },
-    Terminal { name: "Letter" },
-    Terminal { name: "LetterOrDigit" },
-    Terminal { name: "WS" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-pub const SLOTS: [Slot; 23] = [
-    Slot { display_name: "S : . Id" },
-    Slot { display_name: "S : Id." },
-    Slot {
-        display_name: "Id : . Letter LetterOrDigit*",
-    },
-    Slot {
-        display_name: "Id : Letter . LetterOrDigit*",
-    },
-    Slot {
-        display_name: "Id : Letter LetterOrDigit*.",
-    },
-    Slot {
-        display_name: "LetterOrDigit+ : . LetterOrDigit+ LetterOrDigit",
-    },
-    Slot {
-        display_name: "LetterOrDigit+ : LetterOrDigit+ . LetterOrDigit",
-    },
-    Slot {
-        display_name: "LetterOrDigit+ : LetterOrDigit+ LetterOrDigit.",
-    },
-    Slot {
-        display_name: "LetterOrDigit+ : . LetterOrDigit",
-    },
-    Slot {
-        display_name: "LetterOrDigit+ : LetterOrDigit.",
-    },
-    Slot {
-        display_name: "LetterOrDigit+? : . LetterOrDigit+",
-    },
-    Slot {
-        display_name: "LetterOrDigit+? : LetterOrDigit+.",
-    },
-    Slot {
-        display_name: "LetterOrDigit+? : .",
-    },
-    Slot {
-        display_name: "LetterOrDigit* : . LetterOrDigit+?",
-    },
-    Slot {
-        display_name: "LetterOrDigit* : LetterOrDigit+?.",
-    },
-    Slot {
-        display_name: "StartS : . WS start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS . start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S . WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S WS.",
-    },
-    Slot {
-        display_name: "StartId : . WS start:Id WS",
-    },
-    Slot {
-        display_name: "StartId : WS . start:Id WS",
-    },
-    Slot {
-        display_name: "StartId : WS start:Id . WS",
-    },
-    Slot {
-        display_name: "StartId : WS start:Id WS.",
-    },
-];
 impl<'i> Parser<'i> for RegexCompositionParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display

@@ -17,7 +17,8 @@ use precede_restriction::{
     parse_tree::{
         PrecedeRestrictionParseTreeBuilder, create_parse_tree, to_json, to_sexpr,
     },
-    parser::{PrecedeRestrictionParser, NONTERMINALS, SLOTS, TERMINALS},
+    grammar_data::{NONTERMINALS, SLOTS, TERMINALS},
+    parser::PrecedeRestrictionParser, types::{Nonterminal, Slot, Terminal},
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
