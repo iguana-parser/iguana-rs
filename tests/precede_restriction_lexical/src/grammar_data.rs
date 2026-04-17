@@ -2,20 +2,15 @@
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use crate::types::{EbnfKind, Nonterminal, Slot, Terminal};
 use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 2] = [
+pub const NONTERMINALS: [Nonterminal; 1] = [
     Nonterminal {
         name: "S",
         display: "S",
         kind: None,
     },
-    Nonterminal {
-        name: "StartS",
-        display: "StartS",
-        kind: None,
-    },
 ];
 pub static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "StartS" => NonterminalId(1)
+    "S" => NonterminalId(0)
 };
 pub const TERMINALS: [Terminal; 7] = [
     Terminal { name: "Id" },
@@ -26,7 +21,7 @@ pub const TERMINALS: [Terminal; 7] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 10] = [
+pub const SLOTS: [Slot; 6] = [
     Slot {
         display_name: "S : . \"for\" WS Id",
     },
@@ -45,39 +40,13 @@ pub const SLOTS: [Slot; 10] = [
     Slot {
         display_name: "S : \"forall\".",
     },
-    Slot {
-        display_name: "StartS : . WS start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS . start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S . WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S WS.",
-    },
 ];
-//S { WS, EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(2), TerminalId(6)];
+//S { EOF }
+pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(6)];
 //S { "forall", "for" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(4), TerminalId(3)];
 //S : . "for" WS Id { "for" }
 pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(3)];
 //S : . "forall" { "forall" }
 pub static PREDICTION_SET_S_ALT1: &[TerminalId] = &[TerminalId(4)];
-//StartS { EOF }
-pub static FOLLOW_SET_START_S: &[TerminalId] = &[TerminalId(6)];
-//StartS { WS, "forall", "for" }
-pub static FIRST_SET_START_S: &[TerminalId] = &[
-    TerminalId(2),
-    TerminalId(4),
-    TerminalId(3),
-];
-//StartS : . WS start:S WS { "for", "forall", WS }
-pub static PREDICTION_SET_START_S_ALT0: &[TerminalId] = &[
-    TerminalId(3),
-    TerminalId(4),
-    TerminalId(2),
-];
 

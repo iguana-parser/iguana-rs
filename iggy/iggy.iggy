@@ -2,6 +2,7 @@ grammar Iggy
 
 layout Layout
 
+@Start
 Grammar
   = "grammar" name:Identifier LayoutDef? Rule*
 
@@ -13,11 +14,12 @@ Rule
   | RegexRule  #RegexRule
 
 SyntaxRule
-  = Annotation? head:Identifier "=" { PriorityLevel ">" }*
+  = Annotation* head:Identifier "=" { PriorityLevel ">" }*
 
 Annotation
   = "@NoLayout"                  #NoLayout
   | "@Layout" "(" Identifier ")" #Layout
+  | "@Start"                     #Start
 
 RegexRule
   = "@regex" Identifier "=" PreCondition? body:{ Regex+ "|" }+ PostCondition*

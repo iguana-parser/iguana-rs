@@ -4,6 +4,7 @@ grammar Comments
 layout Layout
 
 // Expressions
+@Start
 Expr
   = Expr "+" Expr // addition
   | Expr "*" Expr // multiplication

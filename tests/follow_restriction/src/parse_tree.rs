@@ -32,9 +32,6 @@ pub enum ParseTree {
     SPlus0(SPlus0),
     //Char+
     IdPlus1(IdPlus1),
-    StartS(StartS),
-    StartT(StartT),
-    StartId(StartId),
     Token(Token),
 }
 impl ParseTree {
@@ -45,9 +42,6 @@ impl ParseTree {
             ParseTree::Id(id) => id.as_parse_tree_ref(),
             ParseTree::SPlus0(s_plus_0) => s_plus_0.as_parse_tree_ref(),
             ParseTree::IdPlus1(id_plus_1) => id_plus_1.as_parse_tree_ref(),
-            ParseTree::StartS(start_s) => start_s.as_parse_tree_ref(),
-            ParseTree::StartT(start_t) => start_t.as_parse_tree_ref(),
-            ParseTree::StartId(start_id) => start_id.as_parse_tree_ref(),
             ParseTree::Token(token) => token.as_parse_tree_ref(),
         }
     }
@@ -81,24 +75,6 @@ impl ParseTree {
             _ => panic!(),
         }
     }
-    fn unwrap_start_s(self) -> StartS {
-        match self {
-            ParseTree::StartS(start_s) => start_s,
-            _ => panic!(),
-        }
-    }
-    fn unwrap_start_t(self) -> StartT {
-        match self {
-            ParseTree::StartT(start_t) => start_t,
-            _ => panic!(),
-        }
-    }
-    fn unwrap_start_id(self) -> StartId {
-        match self {
-            ParseTree::StartId(start_id) => start_id,
-            _ => panic!(),
-        }
-    }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
@@ -113,9 +89,6 @@ pub enum ParseTreeRef<'a> {
     Id(&'a Id),
     SPlus0(&'a SPlus0),
     IdPlus1(&'a IdPlus1),
-    StartS(&'a StartS),
-    StartT(&'a StartT),
-    StartId(&'a StartId),
     Token(&'a Token),
 }
 impl<'a> ParseTreeRef<'a> {
@@ -132,15 +105,6 @@ impl<'a> ParseTreeRef<'a> {
             }
             ParseTreeRef::SPlus0(s_plus_0) => s_plus_0.iter().collect(),
             ParseTreeRef::IdPlus1(id_plus_1) => id_plus_1.iter().collect(),
-            ParseTreeRef::StartS(start_s) => {
-                (0..start_s.child_count()).filter_map(|i| start_s.child(i)).collect()
-            }
-            ParseTreeRef::StartT(start_t) => {
-                (0..start_t.child_count()).filter_map(|i| start_t.child(i)).collect()
-            }
-            ParseTreeRef::StartId(start_id) => {
-                (0..start_id.child_count()).filter_map(|i| start_id.child(i)).collect()
-            }
             ParseTreeRef::Token(_) => vec![],
         }
     }
@@ -151,9 +115,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::Id(_) => "Id",
             ParseTreeRef::SPlus0(_) => "Id+",
             ParseTreeRef::IdPlus1(_) => "Char+",
-            ParseTreeRef::StartS(_) => "StartS",
-            ParseTreeRef::StartT(_) => "StartT",
-            ParseTreeRef::StartId(_) => "StartId",
             ParseTreeRef::Token(token) => token.kind.name(),
         }
     }
@@ -164,9 +125,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::Id(id) => id.child_count(),
             ParseTreeRef::SPlus0(s_plus_0) => s_plus_0.child_count(),
             ParseTreeRef::IdPlus1(id_plus_1) => id_plus_1.child_count(),
-            ParseTreeRef::StartS(start_s) => start_s.child_count(),
-            ParseTreeRef::StartT(start_t) => start_t.child_count(),
-            ParseTreeRef::StartId(start_id) => start_id.child_count(),
             ParseTreeRef::Token(_) => 0,
         }
     }
@@ -177,9 +135,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::Id(id) => id.span(),
             ParseTreeRef::SPlus0(s_plus_0) => s_plus_0.span(),
             ParseTreeRef::IdPlus1(id_plus_1) => id_plus_1.span(),
-            ParseTreeRef::StartS(start_s) => start_s.span(),
-            ParseTreeRef::StartT(start_t) => start_t.span(),
-            ParseTreeRef::StartId(start_id) => start_id.span(),
             ParseTreeRef::Token(token) => token.span(),
         }
     }
@@ -207,21 +162,6 @@ impl From<SPlus0> for ParseTree {
 impl From<IdPlus1> for ParseTree {
     fn from(id_plus_1: IdPlus1) -> Self {
         ParseTree::IdPlus1(id_plus_1)
-    }
-}
-impl From<StartS> for ParseTree {
-    fn from(start_s: StartS) -> Self {
-        ParseTree::StartS(start_s)
-    }
-}
-impl From<StartT> for ParseTree {
-    fn from(start_t: StartT) -> Self {
-        ParseTree::StartT(start_t)
-    }
-}
-impl From<StartId> for ParseTree {
-    fn from(start_id: StartId) -> Self {
-        ParseTree::StartId(start_id)
     }
 }
 pub trait ListNode<'a> {
@@ -264,30 +204,6 @@ pub enum IdPlus1 {
     Alt0 { chars: Box<IdPlus1>, char_1: Token, span: Span },
     //Char
     Alt1 { char: Token, span: Span },
-}
-//StartS = WS start:S WS
-#[derive(Debug)]
-pub struct StartS {
-    pub ws_0: Token,
-    pub start: S,
-    pub ws_2: Token,
-    pub span: Span,
-}
-//StartT = WS start:T WS
-#[derive(Debug)]
-pub struct StartT {
-    pub ws_0: Token,
-    pub start: T,
-    pub ws_2: Token,
-    pub span: Span,
-}
-//StartId = WS start:Id WS
-#[derive(Debug)]
-pub struct StartId {
-    pub ws_0: Token,
-    pub start: Id,
-    pub ws_2: Token,
-    pub span: Span,
 }
 impl S {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -427,63 +343,6 @@ impl IdPlus1 {
                 ParseTreeRef::Token(r) => Some(r),
                 _ => None,
             })
-    }
-}
-impl StartS {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
-        match index {
-            0 => Some(self.ws_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.ws_2.as_parse_tree_ref()),
-            _ => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::StartS(self)
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-}
-impl StartT {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
-        match index {
-            0 => Some(self.ws_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.ws_2.as_parse_tree_ref()),
-            _ => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::StartT(self)
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-}
-impl StartId {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
-        match index {
-            0 => Some(self.ws_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.ws_2.as_parse_tree_ref()),
-            _ => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::StartId(self)
-    }
-    pub fn span(&self) -> Span {
-        self.span
     }
 }
 impl<'a> ListNode<'a> for SPlus0 {
@@ -653,57 +512,6 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionParseTreeBuilder {
                     _ => unreachable!(),
                 }
             }
-            //StartS
-            NonterminalId(5) => {
-                match nonterminal_node.return_slot {
-                    //StartS : WS start:S WS.
-                    SlotId(20) => {
-                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
-                        StartS {
-                            ws_0: ws_0.unwrap_token(),
-                            start: start.unwrap_s(),
-                            ws_2: ws_2.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            //StartT
-            NonterminalId(6) => {
-                match nonterminal_node.return_slot {
-                    //StartT : WS start:T WS.
-                    SlotId(24) => {
-                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
-                        StartT {
-                            ws_0: ws_0.unwrap_token(),
-                            start: start.unwrap_t(),
-                            ws_2: ws_2.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            //StartId
-            NonterminalId(7) => {
-                match nonterminal_node.return_slot {
-                    //StartId : WS start:Id WS.
-                    SlotId(28) => {
-                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
-                        StartId {
-                            ws_0: ws_0.unwrap_token(),
-                            start: start.unwrap_id(),
-                            ws_2: ws_2.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
-                    }
-                    _ => unreachable!(),
-                }
-            }
             _ => unreachable!(),
         }
     }
@@ -729,15 +537,6 @@ pub fn create_parse_tree(
         }
         "Id_Plus_1" => {
             ParseTree::IdPlus1(create_parse_tree_id_plus_1(root_id, parser, builder))
-        }
-        "StartS" => {
-            ParseTree::StartS(create_parse_tree_start_s(root_id, parser, builder))
-        }
-        "StartT" => {
-            ParseTree::StartT(create_parse_tree_start_t(root_id, parser, builder))
-        }
-        "StartId" => {
-            ParseTree::StartId(create_parse_tree_start_id(root_id, parser, builder))
         }
         _ => panic!(),
     }
@@ -781,30 +580,6 @@ pub fn create_parse_tree_id_plus_1(
 ) -> IdPlus1 {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_id_plus_1()
-}
-pub fn create_parse_tree_start_s(
-    root_id: SPPFNodeId,
-    parser: &FollowRestrictionParser,
-    builder: &FollowRestrictionParseTreeBuilder,
-) -> StartS {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_start_s()
-}
-pub fn create_parse_tree_start_t(
-    root_id: SPPFNodeId,
-    parser: &FollowRestrictionParser,
-    builder: &FollowRestrictionParseTreeBuilder,
-) -> StartT {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_start_t()
-}
-pub fn create_parse_tree_start_id(
-    root_id: SPPFNodeId,
-    parser: &FollowRestrictionParser,
-    builder: &FollowRestrictionParseTreeBuilder,
-) -> StartId {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_start_id()
 }
 pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
     let mut s = String::new();

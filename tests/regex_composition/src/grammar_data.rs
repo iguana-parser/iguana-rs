@@ -2,7 +2,7 @@
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use crate::types::{EbnfKind, Nonterminal, Slot, Terminal};
 use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 7] = [
+pub const NONTERMINALS: [Nonterminal; 5] = [
     Nonterminal {
         name: "S",
         display: "S",
@@ -28,21 +28,10 @@ pub const NONTERMINALS: [Nonterminal; 7] = [
         display: "LetterOrDigit*",
         kind: Some(EbnfKind::Star),
     },
-    Nonterminal {
-        name: "StartS",
-        display: "StartS",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartId",
-        display: "StartId",
-        kind: None,
-    },
 ];
 pub static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "S" => NonterminalId(0), "Id" => NonterminalId(1), "Id_Plus_0" => NonterminalId(2),
-    "Id_Opt_0" => NonterminalId(3), "Id_Star_0" => NonterminalId(4), "StartS" =>
-    NonterminalId(5), "StartId" => NonterminalId(6)
+    "Id_Opt_0" => NonterminalId(3), "Id_Star_0" => NonterminalId(4)
 };
 pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Digit" },
@@ -52,7 +41,7 @@ pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 23] = [
+pub const SLOTS: [Slot; 15] = [
     Slot { display_name: "S : . Id" },
     Slot { display_name: "S : Id." },
     Slot {
@@ -94,91 +83,42 @@ pub const SLOTS: [Slot; 23] = [
     Slot {
         display_name: "LetterOrDigit* : LetterOrDigit+?.",
     },
-    Slot {
-        display_name: "StartS : . WS start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS . start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S . WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S WS.",
-    },
-    Slot {
-        display_name: "StartId : . WS start:Id WS",
-    },
-    Slot {
-        display_name: "StartId : WS . start:Id WS",
-    },
-    Slot {
-        display_name: "StartId : WS start:Id . WS",
-    },
-    Slot {
-        display_name: "StartId : WS start:Id WS.",
-    },
 ];
-//S { WS, EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
+//S { EOF }
+pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(5)];
 //S { Letter }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(1)];
 //S : . Id { Letter }
 pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(1)];
-//Id { WS, EOF }
-pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
+//Id { EOF }
+pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(5)];
 //Id { Letter }
 pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(1)];
 //Id : . Letter Id_Star_0 { Letter }
 pub static PREDICTION_SET_ID_ALT0: &[TerminalId] = &[TerminalId(1)];
-//Id_Plus_0 { EOF, LetterOrDigit, WS }
-pub static FOLLOW_SET_ID_PLUS_0: &[TerminalId] = &[
-    TerminalId(5),
-    TerminalId(2),
-    TerminalId(3),
-];
+//Id_Plus_0 { LetterOrDigit, EOF }
+pub static FOLLOW_SET_ID_PLUS_0: &[TerminalId] = &[TerminalId(2), TerminalId(5)];
 //Id_Plus_0 { LetterOrDigit }
 pub static FIRST_SET_ID_PLUS_0: &[TerminalId] = &[TerminalId(2)];
 //Id_Plus_0 : . Id_Plus_0 LetterOrDigit { LetterOrDigit }
 pub static PREDICTION_SET_ID_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(2)];
 //Id_Plus_0 : . LetterOrDigit { LetterOrDigit }
 pub static PREDICTION_SET_ID_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(2)];
-//Id_Opt_0 { WS, EOF }
-pub static FOLLOW_SET_ID_OPT_0: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
-//Id_Opt_0 { WS, LetterOrDigit, EOF }
-pub static FIRST_SET_ID_OPT_0: &[TerminalId] = &[
-    TerminalId(3),
-    TerminalId(2),
-    TerminalId(5),
-];
+//Id_Opt_0 { EOF }
+pub static FOLLOW_SET_ID_OPT_0: &[TerminalId] = &[TerminalId(5)];
+//Id_Opt_0 { LetterOrDigit, EOF }
+pub static FIRST_SET_ID_OPT_0: &[TerminalId] = &[TerminalId(2), TerminalId(5)];
 //Id_Opt_0 : . Id_Plus_0 { LetterOrDigit }
 pub static PREDICTION_SET_ID_OPT_0_ALT0: &[TerminalId] = &[TerminalId(2)];
-//Id_Opt_0 : . { EOF, WS }
-pub static PREDICTION_SET_ID_OPT_0_ALT1: &[TerminalId] = &[TerminalId(5), TerminalId(3)];
-//Id_Star_0 { WS, EOF }
-pub static FOLLOW_SET_ID_STAR_0: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
-//Id_Star_0 { WS, LetterOrDigit, EOF }
-pub static FIRST_SET_ID_STAR_0: &[TerminalId] = &[
-    TerminalId(3),
-    TerminalId(2),
-    TerminalId(5),
-];
-//Id_Star_0 : . Id_Opt_0 { EOF, LetterOrDigit, WS }
+//Id_Opt_0 : . { EOF }
+pub static PREDICTION_SET_ID_OPT_0_ALT1: &[TerminalId] = &[TerminalId(5)];
+//Id_Star_0 { EOF }
+pub static FOLLOW_SET_ID_STAR_0: &[TerminalId] = &[TerminalId(5)];
+//Id_Star_0 { LetterOrDigit, EOF }
+pub static FIRST_SET_ID_STAR_0: &[TerminalId] = &[TerminalId(2), TerminalId(5)];
+//Id_Star_0 : . Id_Opt_0 { LetterOrDigit, EOF }
 pub static PREDICTION_SET_ID_STAR_0_ALT0: &[TerminalId] = &[
-    TerminalId(5),
     TerminalId(2),
-    TerminalId(3),
+    TerminalId(5),
 ];
-//StartS { EOF }
-pub static FOLLOW_SET_START_S: &[TerminalId] = &[TerminalId(5)];
-//StartS { Letter, WS }
-pub static FIRST_SET_START_S: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
-//StartS : . WS start:S WS { Letter, WS }
-pub static PREDICTION_SET_START_S_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
-//StartId { EOF }
-pub static FOLLOW_SET_START_ID: &[TerminalId] = &[TerminalId(5)];
-//StartId { Letter, WS }
-pub static FIRST_SET_START_ID: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
-//StartId : . WS start:Id WS { Letter, WS }
-pub static PREDICTION_SET_START_ID_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
 

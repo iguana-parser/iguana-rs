@@ -9,12 +9,6 @@
 //   | [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" WS r=E(2) return r == 0 ? 2 : min(r, 2)
 //   | "if" WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
 // 
-// StartS
-//   = WS start:S WS
-// 
-// StartE
-//   = WS start:E(0) WS
-// 
 // WS = ([ ]*)
 // "a" = a
 // "+" = +
@@ -116,7 +110,7 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(4),
                         node.left_extent(),
                         node.right_extent(),
@@ -283,7 +277,7 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                 };
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(13),
                         node.left_extent(),
                         node.right_extent(),
@@ -610,7 +604,7 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                 let return_value = 1;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(26),
                         node.left_extent(),
                         node.right_extent(),
@@ -624,158 +618,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         nonterminal_node_id,
                         Some(return_value),
                     );
-                }
-            }
-            //StartS : . WS start:S WS
-            SlotId(27) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //StartS : WS . start:S WS
-                        self.execute(j, SlotId(28), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(27),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(27),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartS : WS . start:S WS
-            SlotId(28) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(29), env);
-            }
-            //StartS : WS start:S . WS
-            SlotId(29) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(30))
-                        {
-                            //StartS : WS start:S WS.
-                            self.execute(
-                                j,
-                                SlotId(30),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(29),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(29),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartS : WS start:S WS.
-            SlotId(30) => {
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, NonterminalId(1), SlotId(30))
-                {
-                    self.pop(gss_node_id, SlotId(30), nonterminal_node_id, None);
-                }
-            }
-            //StartE : . WS start:E(0) WS
-            SlotId(31) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //StartE : WS . start:E(0) WS
-                        self.execute(j, SlotId(32), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(31),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(31),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartE : WS . start:E(0) WS
-            SlotId(32) => {
-                self.create_e(result, gss_node_id, SlotId(33), env, None, 0);
-            }
-            //StartE : WS start:E(0) . WS
-            SlotId(33) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(34))
-                        {
-                            //StartE : WS start:E(0) WS.
-                            self.execute(
-                                j,
-                                SlotId(34),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(33),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(33),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartE : WS start:E(0) WS.
-            SlotId(34) => {
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, NonterminalId(2), SlotId(34))
-                {
-                    self.pop(gss_node_id, SlotId(34), nonterminal_node_id, None);
                 }
             }
             _ => {
@@ -796,7 +638,7 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                 self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
             //E
-            NonterminalId(3) => {
+            NonterminalId(1) => {
                 let mut matched = false;
                 //E(p: i32) : . "a" return 0
                 if self.scanner.match_any(PREDICTION_SET_E_ALT0, input_index) {
@@ -823,14 +665,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         },
                     );
                 }
-            }
-            //StartS : . WS start:S WS
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(27), input_index, gss_node_id, env);
-            }
-            //StartE : . WS start:E(0) WS
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(31), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -1103,18 +937,14 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
-            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_E, input_index),
-            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_START_S, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_START_E, input_index),
+            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_E, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_S.to_vec(),
-            NonterminalId(3) => FOLLOW_SET_E.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_START_S.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_START_E.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_E.to_vec(),
             _ => vec![],
         }
     }
@@ -1145,14 +975,14 @@ pub struct DeepPriorityParser<'i> {
     descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
     //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
-    gss_nodes_index: [Vec<(u32, GssNodeId)>; 4],
+    gss_nodes_index: [Vec<(u32, GssNodeId)>; 2],
     //GSS index for nonterminal E
     gss_nodes_index_e: Vec<(u32, i32, GssNodeId)>,
     sppf_nodes: Vec<SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 35],
+    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 27],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 8],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
@@ -1172,13 +1002,13 @@ impl<'i> DeepPriorityParser<'i> {
         Self {
             start_nonterminal,
             scanner: DeepPriorityScanner::new(input),
-            gss_nodes_index: [const { vec![] }; 4],
+            gss_nodes_index: [const { vec![] }; 2],
             gss_nodes_index_e: vec![],
             descriptors: vec![],
             gss_nodes: vec![],
             sppf_nodes: vec![],
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 4],
-            intermediate_nodes_index: [const { InlineMap::Empty }; 35],
+            nonterminal_nodes_index: [const { InlineMap::Empty }; 2],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 27],
             terminal_nodes_index: [const { InlineMap::Empty }; 8],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
@@ -1215,7 +1045,7 @@ impl<'i> DeepPriorityParser<'i> {
         };
         //If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_e(i, p) {
-            record!(self, GSSNodeFound, NonterminalId(3), i);
+            record!(self, GSSNodeFound, NonterminalId(1), i);
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
@@ -1225,8 +1055,8 @@ impl<'i> DeepPriorityParser<'i> {
                 binding,
             );
         } else {
-            record!(self, GSSNodeNotFound, NonterminalId(3), i);
-            let new_gss_node_id = self.new_gss_node(NonterminalId(3), i);
+            record!(self, GSSNodeNotFound, NonterminalId(1), i);
+            let new_gss_node_id = self.new_gss_node(NonterminalId(1), i);
             self.add_gss_edge(
                 new_gss_node_id,
                 gss_node_id,
@@ -1238,7 +1068,7 @@ impl<'i> DeepPriorityParser<'i> {
             let (env_id, env) = self.new_env();
             env.bind("p", p);
             self.add_first_descriptors(
-                NonterminalId(3),
+                NonterminalId(1),
                 i,
                 new_gss_node_id,
                 Some(env_id),

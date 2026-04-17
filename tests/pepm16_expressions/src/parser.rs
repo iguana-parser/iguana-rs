@@ -16,12 +16,6 @@
 //   | "(" WS E(0) WS ")" return 0
 //   | "a" return 0
 // 
-// StartS
-//   = WS start:S WS
-// 
-// StartE
-//   = WS start:E(0) WS
-// 
 // WS = ([ ]*)
 // "." = .
 // "f" = f
@@ -252,7 +246,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(10),
                         node.left_extent(),
                         node.right_extent(),
@@ -351,7 +345,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 };
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(17),
                         node.left_extent(),
                         node.right_extent(),
@@ -524,7 +518,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 };
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(26),
                         node.left_extent(),
                         node.right_extent(),
@@ -697,7 +691,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 };
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(35),
                         node.left_extent(),
                         node.right_extent(),
@@ -870,7 +864,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 };
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(44),
                         node.left_extent(),
                         node.right_extent(),
@@ -971,7 +965,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 };
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(49),
                         node.left_extent(),
                         node.right_extent(),
@@ -1298,7 +1292,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 let return_value = 2;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(62),
                         node.left_extent(),
                         node.right_extent(),
@@ -1467,7 +1461,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 let return_value = 1;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(71),
                         node.left_extent(),
                         node.right_extent(),
@@ -1638,7 +1632,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(78),
                         node.left_extent(),
                         node.right_extent(),
@@ -1694,7 +1688,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 let return_value = 0;
                 if let Some(nonterminal_node_id) = self
                     .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(3),
+                        NonterminalId(1),
                         SlotId(81),
                         node.left_extent(),
                         node.right_extent(),
@@ -1708,158 +1702,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         nonterminal_node_id,
                         Some(return_value),
                     );
-                }
-            }
-            //StartS : . WS start:S WS
-            SlotId(82) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //StartS : WS . start:S WS
-                        self.execute(j, SlotId(83), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(82),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(82),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartS : WS . start:S WS
-            SlotId(83) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(84), env);
-            }
-            //StartS : WS start:S . WS
-            SlotId(84) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(85))
-                        {
-                            //StartS : WS start:S WS.
-                            self.execute(
-                                j,
-                                SlotId(85),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(84),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(84),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartS : WS start:S WS.
-            SlotId(85) => {
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, NonterminalId(1), SlotId(85))
-                {
-                    self.pop(gss_node_id, SlotId(85), nonterminal_node_id, None);
-                }
-            }
-            //StartE : . WS start:E(0) WS
-            SlotId(86) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //StartE : WS . start:E(0) WS
-                        self.execute(j, SlotId(87), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(86),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(86),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartE : WS . start:E(0) WS
-            SlotId(87) => {
-                self.create_e(result, gss_node_id, SlotId(88), env, None, 0);
-            }
-            //StartE : WS start:E(0) . WS
-            SlotId(88) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(89))
-                        {
-                            //StartE : WS start:E(0) WS.
-                            self.execute(
-                                j,
-                                SlotId(89),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(88),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(88),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartE : WS start:E(0) WS.
-            SlotId(89) => {
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, NonterminalId(2), SlotId(89))
-                {
-                    self.pop(gss_node_id, SlotId(89), nonterminal_node_id, None);
                 }
             }
             _ => {
@@ -1880,7 +1722,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
             //E
-            NonterminalId(3) => {
+            NonterminalId(1) => {
                 let mut matched = false;
                 //E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
                 if self.scanner.match_any(PREDICTION_SET_E_ALT0, input_index) {
@@ -1942,14 +1784,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         },
                     );
                 }
-            }
-            //StartS : . WS start:S WS
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
-            }
-            //StartE : . WS start:E(0) WS
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(86), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -2222,18 +2056,14 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
-            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_E, input_index),
-            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_START_S, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_START_E, input_index),
+            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_E, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_S.to_vec(),
-            NonterminalId(3) => FOLLOW_SET_E.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_START_S.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_START_E.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_E.to_vec(),
             _ => vec![],
         }
     }
@@ -2264,14 +2094,14 @@ pub struct Pepm16ExpressionsParser<'i> {
     descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
     //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
-    gss_nodes_index: [Vec<(u32, GssNodeId)>; 4],
+    gss_nodes_index: [Vec<(u32, GssNodeId)>; 2],
     //GSS index for nonterminal E
     gss_nodes_index_e: Vec<(u32, i32, GssNodeId)>,
     sppf_nodes: Vec<SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 90],
+    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 82],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 15],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
@@ -2291,13 +2121,13 @@ impl<'i> Pepm16ExpressionsParser<'i> {
         Self {
             start_nonterminal,
             scanner: Pepm16ExpressionsScanner::new(input),
-            gss_nodes_index: [const { vec![] }; 4],
+            gss_nodes_index: [const { vec![] }; 2],
             gss_nodes_index_e: vec![],
             descriptors: vec![],
             gss_nodes: vec![],
             sppf_nodes: vec![],
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 4],
-            intermediate_nodes_index: [const { InlineMap::Empty }; 90],
+            nonterminal_nodes_index: [const { InlineMap::Empty }; 2],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 82],
             terminal_nodes_index: [const { InlineMap::Empty }; 15],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
@@ -2334,7 +2164,7 @@ impl<'i> Pepm16ExpressionsParser<'i> {
         };
         //If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_e(i, p) {
-            record!(self, GSSNodeFound, NonterminalId(3), i);
+            record!(self, GSSNodeFound, NonterminalId(1), i);
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
@@ -2344,8 +2174,8 @@ impl<'i> Pepm16ExpressionsParser<'i> {
                 binding,
             );
         } else {
-            record!(self, GSSNodeNotFound, NonterminalId(3), i);
-            let new_gss_node_id = self.new_gss_node(NonterminalId(3), i);
+            record!(self, GSSNodeNotFound, NonterminalId(1), i);
+            let new_gss_node_id = self.new_gss_node(NonterminalId(1), i);
             self.add_gss_edge(
                 new_gss_node_id,
                 gss_node_id,
@@ -2357,7 +2187,7 @@ impl<'i> Pepm16ExpressionsParser<'i> {
             let (env_id, env) = self.new_env();
             env.bind("p", p);
             self.add_first_descriptors(
-                NonterminalId(3),
+                NonterminalId(1),
                 i,
                 new_gss_node_id,
                 Some(env_id),

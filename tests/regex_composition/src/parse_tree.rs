@@ -39,8 +39,6 @@ pub enum ParseTree {
     IdOpt0(IdOpt0),
     //LetterOrDigit*
     IdStar0(IdStar0),
-    StartS(StartS),
-    StartId(StartId),
     Token(Token),
 }
 impl ParseTree {
@@ -51,8 +49,6 @@ impl ParseTree {
             ParseTree::IdPlus0(id_plus_0) => id_plus_0.as_parse_tree_ref(),
             ParseTree::IdOpt0(id_opt_0) => id_opt_0.as_parse_tree_ref(),
             ParseTree::IdStar0(id_star_0) => id_star_0.as_parse_tree_ref(),
-            ParseTree::StartS(start_s) => start_s.as_parse_tree_ref(),
-            ParseTree::StartId(start_id) => start_id.as_parse_tree_ref(),
             ParseTree::Token(token) => token.as_parse_tree_ref(),
         }
     }
@@ -86,18 +82,6 @@ impl ParseTree {
             _ => panic!(),
         }
     }
-    fn unwrap_start_s(self) -> StartS {
-        match self {
-            ParseTree::StartS(start_s) => start_s,
-            _ => panic!(),
-        }
-    }
-    fn unwrap_start_id(self) -> StartId {
-        match self {
-            ParseTree::StartId(start_id) => start_id,
-            _ => panic!(),
-        }
-    }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
@@ -112,8 +96,6 @@ pub enum ParseTreeRef<'a> {
     IdPlus0(&'a IdPlus0),
     IdOpt0(&'a IdOpt0),
     IdStar0(&'a IdStar0),
-    StartS(&'a StartS),
-    StartId(&'a StartId),
     Token(&'a Token),
 }
 impl<'a> ParseTreeRef<'a> {
@@ -130,12 +112,6 @@ impl<'a> ParseTreeRef<'a> {
                 (0..id_opt_0.child_count()).filter_map(|i| id_opt_0.child(i)).collect()
             }
             ParseTreeRef::IdStar0(id_star_0) => id_star_0.iter().collect(),
-            ParseTreeRef::StartS(start_s) => {
-                (0..start_s.child_count()).filter_map(|i| start_s.child(i)).collect()
-            }
-            ParseTreeRef::StartId(start_id) => {
-                (0..start_id.child_count()).filter_map(|i| start_id.child(i)).collect()
-            }
             ParseTreeRef::Token(_) => vec![],
         }
     }
@@ -146,8 +122,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::IdPlus0(_) => "LetterOrDigit+",
             ParseTreeRef::IdOpt0(_) => "LetterOrDigit+?",
             ParseTreeRef::IdStar0(_) => "LetterOrDigit*",
-            ParseTreeRef::StartS(_) => "StartS",
-            ParseTreeRef::StartId(_) => "StartId",
             ParseTreeRef::Token(token) => token.kind.name(),
         }
     }
@@ -158,8 +132,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::IdPlus0(id_plus_0) => id_plus_0.child_count(),
             ParseTreeRef::IdOpt0(id_opt_0) => id_opt_0.child_count(),
             ParseTreeRef::IdStar0(id_star_0) => id_star_0.child_count(),
-            ParseTreeRef::StartS(start_s) => start_s.child_count(),
-            ParseTreeRef::StartId(start_id) => start_id.child_count(),
             ParseTreeRef::Token(_) => 0,
         }
     }
@@ -170,8 +142,6 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::IdPlus0(id_plus_0) => id_plus_0.span(),
             ParseTreeRef::IdOpt0(id_opt_0) => id_opt_0.span(),
             ParseTreeRef::IdStar0(id_star_0) => id_star_0.span(),
-            ParseTreeRef::StartS(start_s) => start_s.span(),
-            ParseTreeRef::StartId(start_id) => start_id.span(),
             ParseTreeRef::Token(token) => token.span(),
         }
     }
@@ -199,16 +169,6 @@ impl From<IdOpt0> for ParseTree {
 impl From<IdStar0> for ParseTree {
     fn from(id_star_0: IdStar0) -> Self {
         ParseTree::IdStar0(id_star_0)
-    }
-}
-impl From<StartS> for ParseTree {
-    fn from(start_s: StartS) -> Self {
-        ParseTree::StartS(start_s)
-    }
-}
-impl From<StartId> for ParseTree {
-    fn from(start_id: StartId) -> Self {
-        ParseTree::StartId(start_id)
     }
 }
 pub trait ListNode<'a> {
@@ -251,22 +211,6 @@ pub enum IdOpt0 {
 #[derive(Debug)]
 pub struct IdStar0 {
     pub id_opt_0: IdOpt0,
-    pub span: Span,
-}
-//StartS = WS start:S WS
-#[derive(Debug)]
-pub struct StartS {
-    pub ws_0: Token,
-    pub start: S,
-    pub ws_2: Token,
-    pub span: Span,
-}
-//StartId = WS start:Id WS
-#[derive(Debug)]
-pub struct StartId {
-    pub ws_0: Token,
-    pub start: Id,
-    pub ws_2: Token,
     pub span: Span,
 }
 impl S {
@@ -398,44 +342,6 @@ impl IdStar0 {
     }
     pub fn letter_or_digits(&self) -> impl Iterator<Item = &Token> {
         self.id_opt_0.letter_or_digits()
-    }
-}
-impl StartS {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
-        match index {
-            0 => Some(self.ws_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.ws_2.as_parse_tree_ref()),
-            _ => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::StartS(self)
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-}
-impl StartId {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
-        match index {
-            0 => Some(self.ws_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.ws_2.as_parse_tree_ref()),
-            _ => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::StartId(self)
-    }
-    pub fn span(&self) -> Span {
-        self.span
     }
 }
 impl<'a> ListNode<'a> for IdPlus0 {
@@ -610,40 +516,6 @@ impl ParseTreeBuilder<ParseTree> for RegexCompositionParseTreeBuilder {
                     _ => unreachable!(),
                 }
             }
-            //StartS
-            NonterminalId(5) => {
-                match nonterminal_node.return_slot {
-                    //StartS : WS start:S WS.
-                    SlotId(18) => {
-                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
-                        StartS {
-                            ws_0: ws_0.unwrap_token(),
-                            start: start.unwrap_s(),
-                            ws_2: ws_2.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            //StartId
-            NonterminalId(6) => {
-                match nonterminal_node.return_slot {
-                    //StartId : WS start:Id WS.
-                    SlotId(22) => {
-                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
-                        StartId {
-                            ws_0: ws_0.unwrap_token(),
-                            start: start.unwrap_id(),
-                            ws_2: ws_2.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
-                    }
-                    _ => unreachable!(),
-                }
-            }
             _ => unreachable!(),
         }
     }
@@ -671,12 +543,6 @@ pub fn create_parse_tree(
         }
         "Id_Star_0" => {
             ParseTree::IdStar0(create_parse_tree_id_star_0(root_id, parser, builder))
-        }
-        "StartS" => {
-            ParseTree::StartS(create_parse_tree_start_s(root_id, parser, builder))
-        }
-        "StartId" => {
-            ParseTree::StartId(create_parse_tree_start_id(root_id, parser, builder))
         }
         _ => panic!(),
     }
@@ -720,22 +586,6 @@ pub fn create_parse_tree_id_star_0(
 ) -> IdStar0 {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_id_star_0()
-}
-pub fn create_parse_tree_start_s(
-    root_id: SPPFNodeId,
-    parser: &RegexCompositionParser,
-    builder: &RegexCompositionParseTreeBuilder,
-) -> StartS {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_start_s()
-}
-pub fn create_parse_tree_start_id(
-    root_id: SPPFNodeId,
-    parser: &RegexCompositionParser,
-    builder: &RegexCompositionParseTreeBuilder,
-) -> StartId {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_start_id()
 }
 pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
     let mut s = String::new();

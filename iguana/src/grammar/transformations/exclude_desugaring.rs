@@ -89,6 +89,7 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
             head: Nonterminal::with_origin(new_name, origin_symbol),
             priority_levels: filtered_priority_levels,
             layout: original_rule.layout.clone(),
+            start: false,
         });
     }
 

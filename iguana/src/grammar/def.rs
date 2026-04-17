@@ -89,6 +89,7 @@ pub struct SyntaxRule {
     pub head: Nonterminal,
     pub priority_levels: Vec<PriorityLevel>,
     pub layout: LayoutStrategy,
+    pub start: bool,
 }
 
 impl SyntaxRule {
@@ -97,6 +98,7 @@ impl SyntaxRule {
             head,
             priority_levels,
             layout: LayoutStrategy::Default,
+            start: false,
         }
     }
 }
@@ -760,7 +762,7 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         let mut syntax_rules = layout_insertion::transform(syntax_rules, &resolved);
         let start_rules: Vec<_> = syntax_rules
             .iter()
-            .filter(|r| !r.head.is_derived())
+            .filter(|r| r.start)
             .map(|r| add_start_rule(&r.head, &resolved, &symbol_table))
             .collect();
         syntax_rules.extend(start_rules);
@@ -835,6 +837,7 @@ fn add_start_rule(
             layout_identifier.clone()
         ))],
         layout: LayoutStrategy::Default,
+        start: false,
     }
 }
 
@@ -971,6 +974,7 @@ macro_rules! syntax_rule {
             ),
             priority_levels: vec![$($level.into()),*],
             layout: $crate::grammar::def::LayoutStrategy::Default,
+            start: false,
         }
     };
     ($head:literal => $($level:expr),* $(,)?) => {
@@ -978,6 +982,7 @@ macro_rules! syntax_rule {
             head: $crate::grammar::symbols::Nonterminal::new($head),
             priority_levels: vec![$($level.into()),*],
             layout: $crate::grammar::def::LayoutStrategy::Default,
+            start: false,
         }
     };
 }

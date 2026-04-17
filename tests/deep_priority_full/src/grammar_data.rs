@@ -2,20 +2,10 @@
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use crate::types::{EbnfKind, Nonterminal, Slot, Terminal};
 use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 4] = [
+pub const NONTERMINALS: [Nonterminal; 2] = [
     Nonterminal {
         name: "S",
         display: "S",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartS",
-        display: "StartS",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartE",
-        display: "StartE",
         kind: None,
     },
     Nonterminal {
@@ -25,8 +15,7 @@ pub const NONTERMINALS: [Nonterminal; 4] = [
     },
 ];
 pub static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "StartS" => NonterminalId(1), "StartE" => NonterminalId(2),
-    "E" => NonterminalId(3)
+    "S" => NonterminalId(0), "E" => NonterminalId(1)
 };
 pub const TERMINALS: [Terminal; 11] = [
     Terminal { name: "WS" },
@@ -41,7 +30,7 @@ pub const TERMINALS: [Terminal; 11] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 58] = [
+pub const SLOTS: [Slot; 50] = [
     Slot { display_name: "S : . E(0)" },
     Slot { display_name: "S : E(0)." },
     Slot {
@@ -188,33 +177,9 @@ pub const SLOTS: [Slot; 58] = [
     Slot {
         display_name: "E : \"a\" return 0.",
     },
-    Slot {
-        display_name: "StartS : . WS start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS . start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S . WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S WS.",
-    },
-    Slot {
-        display_name: "StartE : . WS start:E(0) WS",
-    },
-    Slot {
-        display_name: "StartE : WS . start:E(0) WS",
-    },
-    Slot {
-        display_name: "StartE : WS start:E(0) . WS",
-    },
-    Slot {
-        display_name: "StartE : WS start:E(0) WS.",
-    },
 ];
-//S { WS, EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(0), TerminalId(10)];
+//S { EOF }
+pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(10)];
 //S { "a", "-", "if" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(8), TerminalId(3), TerminalId(4)];
 //S : . E(0) { "a", "if", "-" }
@@ -259,36 +224,4 @@ pub static PREDICTION_SET_E_ALT4: &[TerminalId] = &[
 ];
 //E(p: i32) : . "a" return 0 { "a" }
 pub static PREDICTION_SET_E_ALT5: &[TerminalId] = &[TerminalId(8)];
-//StartS { EOF }
-pub static FOLLOW_SET_START_S: &[TerminalId] = &[TerminalId(10)];
-//StartS { "-", "if", "a", WS }
-pub static FIRST_SET_START_S: &[TerminalId] = &[
-    TerminalId(3),
-    TerminalId(4),
-    TerminalId(8),
-    TerminalId(0),
-];
-//StartS : . WS start:S WS { WS, "if", "a", "-" }
-pub static PREDICTION_SET_START_S_ALT0: &[TerminalId] = &[
-    TerminalId(0),
-    TerminalId(4),
-    TerminalId(8),
-    TerminalId(3),
-];
-//StartE { EOF }
-pub static FOLLOW_SET_START_E: &[TerminalId] = &[TerminalId(10)];
-//StartE { "-", "if", "a", WS }
-pub static FIRST_SET_START_E: &[TerminalId] = &[
-    TerminalId(3),
-    TerminalId(4),
-    TerminalId(8),
-    TerminalId(0),
-];
-//StartE : . WS start:E(0) WS { WS, "if", "a", "-" }
-pub static PREDICTION_SET_START_E_ALT0: &[TerminalId] = &[
-    TerminalId(0),
-    TerminalId(4),
-    TerminalId(8),
-    TerminalId(3),
-];
 

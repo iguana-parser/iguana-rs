@@ -123,6 +123,7 @@ fn rewrite_ebnf_symbol(
                     label: None,
                 })],
                 layout: layout.clone(),
+                start: false,
             };
             new_rules.push(new_rule);
             Symbol::Identifier(Identifier {
@@ -142,6 +143,7 @@ fn rewrite_ebnf_symbol(
                     Alternative::empty()
                 )],
                 layout: layout.clone(),
+                start: false,
             };
             new_rules.push(new_rule);
             Symbol::Identifier(Identifier {
@@ -164,6 +166,7 @@ fn rewrite_ebnf_symbol(
                 head: Nonterminal::with_origin(&name, origin.clone()),
                 priority_levels: vec![PriorityLevel::new(alternatives)],
                 layout: layout.clone(),
+                start: false,
             };
             new_rules.push(new_rule);
             Symbol::Identifier(Identifier {
@@ -191,6 +194,7 @@ fn rewrite_ebnf_symbol(
                 head: Nonterminal::with_origin(&name, origin.clone()),
                 priority_levels: vec![priority_level!(alternative!(transformed_symbol),)],
                 layout: layout.clone(),
+                start: false,
             };
             new_rules.push(new_rule);
             Symbol::Identifier(Identifier {
@@ -222,6 +226,7 @@ fn rewrite_ebnf_symbol(
                             alternative!(transformed_symbol)
                         )],
                         layout: layout.clone(),
+                start: false,
                     }
                 }
                 None => SyntaxRule {
@@ -231,6 +236,7 @@ fn rewrite_ebnf_symbol(
                         alternative!(transformed_symbol)
                     )],
                     layout: layout.clone(),
+                start: false,
                 },
             };
             new_rules.push(new_rule);

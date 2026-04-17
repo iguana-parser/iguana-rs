@@ -2,7 +2,7 @@
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use crate::types::{EbnfKind, Nonterminal, Slot, Terminal};
 use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 5] = [
+pub const NONTERMINALS: [Nonterminal; 3] = [
     Nonterminal {
         name: "S",
         display: "S",
@@ -18,20 +18,9 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
         display: "Char+",
         kind: Some(EbnfKind::Plus),
     },
-    Nonterminal {
-        name: "StartS",
-        display: "StartS",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartId",
-        display: "StartId",
-        kind: None,
-    },
 ];
 pub static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-    "S" => NonterminalId(0), "Id" => NonterminalId(1), "Id_Plus_0" => NonterminalId(2),
-    "StartS" => NonterminalId(3), "StartId" => NonterminalId(4)
+    "S" => NonterminalId(0), "Id" => NonterminalId(1), "Id_Plus_0" => NonterminalId(2)
 };
 pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Char" },
@@ -41,7 +30,7 @@ pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 21] = [
+pub const SLOTS: [Slot; 13] = [
     Slot {
         display_name: "S : . \"for\" WS Id",
     },
@@ -81,75 +70,27 @@ pub const SLOTS: [Slot; 21] = [
     Slot {
         display_name: "Char+ : Char.",
     },
-    Slot {
-        display_name: "StartS : . WS start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS . start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S . WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S WS.",
-    },
-    Slot {
-        display_name: "StartId : . WS start:Id WS",
-    },
-    Slot {
-        display_name: "StartId : WS . start:Id WS",
-    },
-    Slot {
-        display_name: "StartId : WS start:Id . WS",
-    },
-    Slot {
-        display_name: "StartId : WS start:Id WS.",
-    },
 ];
-//S { WS, EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(1), TerminalId(5)];
+//S { EOF }
+pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(5)];
 //S { "forall", "for" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(3), TerminalId(2)];
 //S : . "for" WS Id { "for" }
 pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(2)];
 //S : . "forall" { "forall" }
 pub static PREDICTION_SET_S_ALT1: &[TerminalId] = &[TerminalId(3)];
-//Id { WS, EOF }
-pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(1), TerminalId(5)];
+//Id { EOF }
+pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(5)];
 //Id { Char }
 pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(0)];
 //Id : . Char !<< Id_Plus_0 { Char }
 pub static PREDICTION_SET_ID_ALT0: &[TerminalId] = &[TerminalId(0)];
-//Id_Plus_0 { EOF, Char, WS }
-pub static FOLLOW_SET_ID_PLUS_0: &[TerminalId] = &[
-    TerminalId(5),
-    TerminalId(0),
-    TerminalId(1),
-];
+//Id_Plus_0 { Char, EOF }
+pub static FOLLOW_SET_ID_PLUS_0: &[TerminalId] = &[TerminalId(0), TerminalId(5)];
 //Id_Plus_0 { Char }
 pub static FIRST_SET_ID_PLUS_0: &[TerminalId] = &[TerminalId(0)];
 //Id_Plus_0 : . Id_Plus_0 Char { Char }
 pub static PREDICTION_SET_ID_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 //Id_Plus_0 : . Char { Char }
 pub static PREDICTION_SET_ID_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
-//StartS { EOF }
-pub static FOLLOW_SET_START_S: &[TerminalId] = &[TerminalId(5)];
-//StartS { WS, "forall", "for" }
-pub static FIRST_SET_START_S: &[TerminalId] = &[
-    TerminalId(1),
-    TerminalId(3),
-    TerminalId(2),
-];
-//StartS : . WS start:S WS { "for", "forall", WS }
-pub static PREDICTION_SET_START_S_ALT0: &[TerminalId] = &[
-    TerminalId(2),
-    TerminalId(3),
-    TerminalId(1),
-];
-//StartId { EOF }
-pub static FOLLOW_SET_START_ID: &[TerminalId] = &[TerminalId(5)];
-//StartId { Char, WS }
-pub static FIRST_SET_START_ID: &[TerminalId] = &[TerminalId(0), TerminalId(1)];
-//StartId : . WS start:Id WS { Char, WS }
-pub static PREDICTION_SET_START_ID_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(1)];
 

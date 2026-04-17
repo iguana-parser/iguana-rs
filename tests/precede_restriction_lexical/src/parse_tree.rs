@@ -35,26 +35,18 @@ impl TokenKind {
 #[derive(Debug)]
 pub enum ParseTree {
     S(S),
-    StartS(StartS),
     Token(Token),
 }
 impl ParseTree {
     pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
         match self {
             ParseTree::S(s) => s.as_parse_tree_ref(),
-            ParseTree::StartS(start_s) => start_s.as_parse_tree_ref(),
             ParseTree::Token(token) => token.as_parse_tree_ref(),
         }
     }
     fn unwrap_s(self) -> S {
         match self {
             ParseTree::S(s) => s,
-            _ => panic!(),
-        }
-    }
-    fn unwrap_start_s(self) -> StartS {
-        match self {
-            ParseTree::StartS(start_s) => start_s,
             _ => panic!(),
         }
     }
@@ -68,7 +60,6 @@ impl ParseTree {
 #[derive(Clone, Copy)]
 pub enum ParseTreeRef<'a> {
     S(&'a S),
-    StartS(&'a StartS),
     Token(&'a Token),
 }
 impl<'a> ParseTreeRef<'a> {
@@ -77,30 +68,24 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::S(s) => {
                 (0..s.child_count()).filter_map(|i| s.child(i)).collect()
             }
-            ParseTreeRef::StartS(start_s) => {
-                (0..start_s.child_count()).filter_map(|i| start_s.child(i)).collect()
-            }
             ParseTreeRef::Token(_) => vec![],
         }
     }
     pub fn display_name(&self) -> &'static str {
         match self {
             ParseTreeRef::S(_) => "S",
-            ParseTreeRef::StartS(_) => "StartS",
             ParseTreeRef::Token(token) => token.kind.name(),
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
             ParseTreeRef::S(s) => s.child_count(),
-            ParseTreeRef::StartS(start_s) => start_s.child_count(),
             ParseTreeRef::Token(_) => 0,
         }
     }
     pub fn span(&self) -> Span {
         match self {
             ParseTreeRef::S(s) => s.span(),
-            ParseTreeRef::StartS(start_s) => start_s.span(),
             ParseTreeRef::Token(token) => token.span(),
         }
     }
@@ -108,11 +93,6 @@ impl<'a> ParseTreeRef<'a> {
 impl From<S> for ParseTree {
     fn from(s: S) -> Self {
         ParseTree::S(s)
-    }
-}
-impl From<StartS> for ParseTree {
-    fn from(start_s: StartS) -> Self {
-        ParseTree::StartS(start_s)
     }
 }
 pub trait ListNode<'a> {
@@ -128,14 +108,6 @@ pub enum S {
     Alt0 { lit_0: Token, ws: Token, id: Token, span: Span },
     //"forall"
     Alt1 { lit_0: Token, span: Span },
-}
-//StartS = WS start:S WS
-#[derive(Debug)]
-pub struct StartS {
-    pub ws_0: Token,
-    pub start: S,
-    pub ws_2: Token,
-    pub span: Span,
 }
 impl S {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -170,25 +142,6 @@ impl S {
             S::Alt0 { span, .. } => *span,
             S::Alt1 { span, .. } => *span,
         }
-    }
-}
-impl StartS {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
-        match index {
-            0 => Some(self.ws_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.ws_2.as_parse_tree_ref()),
-            _ => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::StartS(self)
-    }
-    pub fn span(&self) -> Span {
-        self.span
     }
 }
 #[derive(Debug)]
@@ -253,23 +206,6 @@ impl ParseTreeBuilder<ParseTree> for PrecedeRestrictionLexicalParseTreeBuilder {
                     _ => unreachable!(),
                 }
             }
-            //StartS
-            NonterminalId(1) => {
-                match nonterminal_node.return_slot {
-                    //StartS : WS start:S WS.
-                    SlotId(9) => {
-                        let [ws_0, start, ws_2] = children.into_array::<3usize>();
-                        StartS {
-                            ws_0: ws_0.unwrap_token(),
-                            start: start.unwrap_s(),
-                            ws_2: ws_2.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
-                    }
-                    _ => unreachable!(),
-                }
-            }
             _ => unreachable!(),
         }
     }
@@ -288,9 +224,6 @@ pub fn create_parse_tree(
 ) -> ParseTree {
     match name {
         "S" => ParseTree::S(create_parse_tree_s(root_id, parser, builder)),
-        "StartS" => {
-            ParseTree::StartS(create_parse_tree_start_s(root_id, parser, builder))
-        }
         _ => panic!(),
     }
 }
@@ -301,14 +234,6 @@ pub fn create_parse_tree_s(
 ) -> S {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
-}
-pub fn create_parse_tree_start_s(
-    root_id: SPPFNodeId,
-    parser: &PrecedeRestrictionLexicalParser,
-    builder: &PrecedeRestrictionLexicalParseTreeBuilder,
-) -> StartS {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_start_s()
 }
 pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
     let mut s = String::new();

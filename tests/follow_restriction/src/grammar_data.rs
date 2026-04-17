@@ -2,7 +2,7 @@
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use crate::types::{EbnfKind, Nonterminal, Slot, Terminal};
 use phf::phf_map;
-pub const NONTERMINALS: [Nonterminal; 8] = [
+pub const NONTERMINALS: [Nonterminal; 5] = [
     Nonterminal {
         name: "S",
         display: "S",
@@ -28,26 +28,10 @@ pub const NONTERMINALS: [Nonterminal; 8] = [
         display: "Char+",
         kind: Some(EbnfKind::Plus),
     },
-    Nonterminal {
-        name: "StartS",
-        display: "StartS",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartT",
-        display: "StartT",
-        kind: None,
-    },
-    Nonterminal {
-        name: "StartId",
-        display: "StartId",
-        kind: None,
-    },
 ];
 pub static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
     "S" => NonterminalId(0), "T" => NonterminalId(1), "Id" => NonterminalId(2),
-    "S_Plus_0" => NonterminalId(3), "Id_Plus_1" => NonterminalId(4), "StartS" =>
-    NonterminalId(5), "StartT" => NonterminalId(6), "StartId" => NonterminalId(7)
+    "S_Plus_0" => NonterminalId(3), "Id_Plus_1" => NonterminalId(4)
 };
 pub const TERMINALS: [Terminal; 4] = [
     Terminal { name: "Char" },
@@ -55,7 +39,7 @@ pub const TERMINALS: [Terminal; 4] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 29] = [
+pub const SLOTS: [Slot; 17] = [
     Slot { display_name: "S : . Id+" },
     Slot { display_name: "S : Id+." },
     Slot {
@@ -99,51 +83,15 @@ pub const SLOTS: [Slot; 29] = [
     Slot {
         display_name: "Char+ : Char.",
     },
-    Slot {
-        display_name: "StartS : . WS start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS . start:S WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S . WS",
-    },
-    Slot {
-        display_name: "StartS : WS start:S WS.",
-    },
-    Slot {
-        display_name: "StartT : . WS start:T WS",
-    },
-    Slot {
-        display_name: "StartT : WS . start:T WS",
-    },
-    Slot {
-        display_name: "StartT : WS start:T . WS",
-    },
-    Slot {
-        display_name: "StartT : WS start:T WS.",
-    },
-    Slot {
-        display_name: "StartId : . WS start:Id WS",
-    },
-    Slot {
-        display_name: "StartId : WS . start:Id WS",
-    },
-    Slot {
-        display_name: "StartId : WS start:Id . WS",
-    },
-    Slot {
-        display_name: "StartId : WS start:Id WS.",
-    },
 ];
-//S { WS, EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
+//S { EOF }
+pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3)];
 //S { Char }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
 //S : . S_Plus_0 { Char }
 pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
-//T { WS, EOF }
-pub static FOLLOW_SET_T: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
+//T { EOF }
+pub static FOLLOW_SET_T: &[TerminalId] = &[TerminalId(3)];
 //T { Char }
 pub static FIRST_SET_T: &[TerminalId] = &[TerminalId(0)];
 //T : . Char !>> Char { Char }
@@ -178,22 +126,4 @@ pub static FIRST_SET_ID_PLUS_1: &[TerminalId] = &[TerminalId(0)];
 pub static PREDICTION_SET_ID_PLUS_1_ALT0: &[TerminalId] = &[TerminalId(0)];
 //Id_Plus_1 : . Char { Char }
 pub static PREDICTION_SET_ID_PLUS_1_ALT1: &[TerminalId] = &[TerminalId(0)];
-//StartS { EOF }
-pub static FOLLOW_SET_START_S: &[TerminalId] = &[TerminalId(3)];
-//StartS { Char, WS }
-pub static FIRST_SET_START_S: &[TerminalId] = &[TerminalId(0), TerminalId(1)];
-//StartS : . WS start:S WS { Char, WS }
-pub static PREDICTION_SET_START_S_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(1)];
-//StartT { EOF }
-pub static FOLLOW_SET_START_T: &[TerminalId] = &[TerminalId(3)];
-//StartT { Char, WS }
-pub static FIRST_SET_START_T: &[TerminalId] = &[TerminalId(0), TerminalId(1)];
-//StartT : . WS start:T WS { Char, WS }
-pub static PREDICTION_SET_START_T_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(1)];
-//StartId { EOF }
-pub static FOLLOW_SET_START_ID: &[TerminalId] = &[TerminalId(3)];
-//StartId { Char, WS }
-pub static FIRST_SET_START_ID: &[TerminalId] = &[TerminalId(0), TerminalId(1)];
-//StartId : . WS start:Id WS { Char, WS }
-pub static PREDICTION_SET_START_ID_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(1)];
 

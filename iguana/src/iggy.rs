@@ -116,22 +116,28 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
         .map(|level| convert_priority_level(level, input))
         .collect();
 
-    let layout = match rule.annotation.value() {
-        Some(parse_tree::Annotation::NoLayout { .. }) => LayoutStrategy::None,
-        Some(parse_tree::Annotation::Layout { identifier, .. }) => {
-            let name = text(input, identifier.span());
-            LayoutStrategy::Custom(Identifier {
-                name,
-                definition: None,
-            })
+    let mut layout = LayoutStrategy::Default;
+    let mut start = false;
+
+    for annotation in rule.annotations.annotations() {
+        match annotation {
+            parse_tree::Annotation::NoLayout { .. } => layout = LayoutStrategy::None,
+            parse_tree::Annotation::Layout { identifier, .. } => {
+                let name = text(input, identifier.span());
+                layout = LayoutStrategy::Custom(Identifier {
+                    name,
+                    definition: None,
+                });
+            }
+            parse_tree::Annotation::Start { .. } => start = true,
         }
-        None => LayoutStrategy::Default,
-    };
+    }
 
     SyntaxRule {
         head,
         priority_levels,
         layout,
+        start,
     }
 }
 

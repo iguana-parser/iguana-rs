@@ -18,12 +18,6 @@
 // Id_Star_0
 //   = Id_Opt_0
 // 
-// StartS
-//   = WS start:S WS
-// 
-// StartId
-//   = WS start:Id WS
-// 
 // Digit = ([0-9])
 // Letter = ([a-z A-Z _])
 // LetterOrDigit = (([a-z A-Z _])|([0-9]))
@@ -268,172 +262,6 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     self.pop(gss_node_id, SlotId(14), nonterminal_node_id, None);
                 }
             }
-            //StartS : . WS start:S WS
-            SlotId(15) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(3), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        //StartS : WS . start:S WS
-                        self.execute(j, SlotId(16), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(15),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(15),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartS : WS . start:S WS
-            SlotId(16) => {
-                if let Some(right_child) = self.parse_s_ll1(input_index) {
-                    if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child, SlotId(17))
-                    {
-                        //StartS : WS start:S . WS
-                        self.execute(j, SlotId(17), Some(new_node), gss_node_id, env);
-                    }
-                }
-            }
-            //StartS : WS start:S . WS
-            SlotId(17) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(3), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(18))
-                        {
-                            //StartS : WS start:S WS.
-                            self.execute(
-                                j,
-                                SlotId(18),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(17),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(17),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartS : WS start:S WS.
-            SlotId(18) => {
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, NonterminalId(5), SlotId(18))
-                {
-                    self.pop(gss_node_id, SlotId(18), nonterminal_node_id, None);
-                }
-            }
-            //StartId : . WS start:Id WS
-            SlotId(19) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(3), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        //StartId : WS . start:Id WS
-                        self.execute(j, SlotId(20), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(19),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(19),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartId : WS . start:Id WS
-            SlotId(20) => {
-                if let Some(right_child) = self.parse_id_ll1(input_index) {
-                    if let Some((j, new_node)) = self
-                        .create_intermediate_node(result, right_child, SlotId(21))
-                    {
-                        //StartId : WS start:Id . WS
-                        self.execute(j, SlotId(21), Some(new_node), gss_node_id, env);
-                    }
-                }
-            }
-            //StartId : WS start:Id . WS
-            SlotId(21) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(3), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(22))
-                        {
-                            //StartId : WS start:Id WS.
-                            self.execute(
-                                j,
-                                SlotId(22),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(21),
-                            gss_node_id, result
-                        );
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(21),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
-                    }
-                }
-            }
-            //StartId : WS start:Id WS.
-            SlotId(22) => {
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node(result, NonterminalId(6), SlotId(22))
-                {
-                    self.pop(gss_node_id, SlotId(22), nonterminal_node_id, None);
-                }
-            }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
             }
@@ -506,14 +334,6 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             //Id_Star_0 : . Id_Opt_0
             NonterminalId(4) => {
                 self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
-            }
-            //StartS : . WS start:S WS
-            NonterminalId(5) => {
-                self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
-            }
-            //StartId : . WS start:Id WS
-            NonterminalId(6) => {
-                self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -790,8 +610,6 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_ID_PLUS_0, input_index),
             NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_ID_OPT_0, input_index),
             NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_ID_STAR_0, input_index),
-            NonterminalId(5) => self.scanner.match_any(FOLLOW_SET_START_S, input_index),
-            NonterminalId(6) => self.scanner.match_any(FOLLOW_SET_START_ID, input_index),
             _ => true,
         }
     }
@@ -802,8 +620,6 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             NonterminalId(2) => FOLLOW_SET_ID_PLUS_0.to_vec(),
             NonterminalId(3) => FOLLOW_SET_ID_OPT_0.to_vec(),
             NonterminalId(4) => FOLLOW_SET_ID_STAR_0.to_vec(),
-            NonterminalId(5) => FOLLOW_SET_START_S.to_vec(),
-            NonterminalId(6) => FOLLOW_SET_START_ID.to_vec(),
             _ => vec![],
         }
     }
@@ -834,12 +650,12 @@ pub struct RegexCompositionParser<'i> {
     descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
     //A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
-    gss_nodes_index: [Vec<(u32, GssNodeId)>; 7],
+    gss_nodes_index: [Vec<(u32, GssNodeId)>; 5],
     sppf_nodes: Vec<SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 7],
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 23],
+    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 15],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<
@@ -858,12 +674,12 @@ impl<'i> RegexCompositionParser<'i> {
         Self {
             start_nonterminal,
             scanner: RegexCompositionScanner::new(input),
-            gss_nodes_index: [const { vec![] }; 7],
+            gss_nodes_index: [const { vec![] }; 5],
             descriptors: vec![],
             gss_nodes: vec![],
             sppf_nodes: vec![],
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 7],
-            intermediate_nodes_index: [const { InlineMap::Empty }; 23],
+            nonterminal_nodes_index: [const { InlineMap::Empty }; 5],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 15],
             terminal_nodes_index: [const { InlineMap::Empty }; 6],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
@@ -1116,198 +932,6 @@ impl<'i> RegexCompositionParser<'i> {
                 None,
                 ParseErrorKind::UnexpectedToken {
                     expected: FIRST_SET_ID_STAR_0.to_vec(),
-                },
-            );
-            None
-        }
-    }
-    fn parse_start_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_START_S_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let end = match self.scanner.match_token(TerminalId(3), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(16),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let node = self.parse_s_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(17),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let end = match self.scanner.match_token(TerminalId(3), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(18),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(18),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(5),
-                        SlotId(18),
-                        left_extent,
-                        j,
-                        current,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        } else {
-            self.add_parse_error(
-                i,
-                SlotId(15),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_START_S.to_vec(),
-                },
-            );
-            None
-        }
-    }
-    fn parse_start_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_START_ID_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let end = match self.scanner.match_token(TerminalId(3), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(20),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let node = self.parse_id_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(21),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let end = match self.scanner.match_token(TerminalId(3), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(22),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(22),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            return Some(
-                self
-                    .get_or_create_nonterminal_node(
-                        NonterminalId(6),
-                        SlotId(22),
-                        left_extent,
-                        j,
-                        current,
-                        false,
-                    )
-                    .unwrap(),
-            );
-        } else {
-            self.add_parse_error(
-                i,
-                SlotId(19),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_START_ID.to_vec(),
                 },
             );
             None

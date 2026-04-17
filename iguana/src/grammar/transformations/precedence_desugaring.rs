@@ -267,6 +267,7 @@ fn desugar_rule(
         head,
         priority_levels: vec![PriorityLevel::new(all_alternatives)],
         layout: rule.layout,
+        start: rule.start,
     }
 }
 
