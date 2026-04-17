@@ -44,7 +44,14 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         NONTERMINALS[nonterminal_id.index()].display
     }
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-        NONTERMINAL_IDS.get(name).copied()
+        match name {
+            "Expr" => Some(EXPR),
+            "Expr_Plus_0" => Some(EXPR_PLUS_0),
+            "Expr_Opt_0" => Some(EXPR_OPT_0),
+            "Expr_Star_0" => Some(EXPR_STAR_0),
+            "Expr_except_comma" => Some(EXPR_EXCEPT_COMMA),
+            _ => None,
+        }
     }
     fn terminal_name(terminal_id: TerminalId) -> &'static str {
         TERMINALS[terminal_id.index()].name

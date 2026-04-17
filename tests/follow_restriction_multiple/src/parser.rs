@@ -40,7 +40,14 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
         NONTERMINALS[nonterminal_id.index()].display
     }
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-        NONTERMINAL_IDS.get(name).copied()
+        match name {
+            "S" => Some(S),
+            "Id" => Some(ID),
+            "S_Plus_0" => Some(S_PLUS_0),
+            "Id_Alt_0" => Some(ID_ALT_0),
+            "Id_Plus_1" => Some(ID_PLUS_1),
+            _ => None,
+        }
     }
     fn terminal_name(terminal_id: TerminalId) -> &'static str {
         TERMINALS[terminal_id.index()].name

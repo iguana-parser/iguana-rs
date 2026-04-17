@@ -42,7 +42,15 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
         NONTERMINALS[nonterminal_id.index()].display
     }
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-        NONTERMINAL_IDS.get(name).copied()
+        match name {
+            "S" => Some(S),
+            "A" => Some(A),
+            "B" => Some(B),
+            "C" => Some(C),
+            "S_Group_0" => Some(S_GROUP_0),
+            "S_Plus_0" => Some(S_PLUS_0),
+            _ => None,
+        }
     }
     fn terminal_name(terminal_id: TerminalId) -> &'static str {
         TERMINALS[terminal_id.index()].name

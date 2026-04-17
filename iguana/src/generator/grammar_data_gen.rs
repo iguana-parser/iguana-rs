@@ -156,14 +156,14 @@ pub fn generate<'a>(
         }
     });
 
-    // NONTERMINAL_IDS phf map
-    let nonterminal_name_to_ids: Vec<_> = nonterminal_ids
+    // Individual nonterminal ID constants
+    let nonterminal_id_consts: Vec<_> = nonterminal_ids
         .nonterminals()
         .enumerate()
         .map(|(i, n)| {
-            let name = &n.name;
+            let const_name = format_ident!("{}", to_snake_case(&n.name).to_uppercase());
             let index = Literal::usize_unsuffixed(i);
-            quote! { #name => NonterminalId(#index) }
+            quote! { pub const #const_name: NonterminalId = NonterminalId(#index); }
         })
         .collect();
 
@@ -189,13 +189,10 @@ pub fn generate<'a>(
     quote! {
         use iguana_runtime::ids::{NonterminalId, TerminalId};
         use crate::types::{EbnfKind, Nonterminal, Slot, Terminal};
-        use phf::phf_map;
 
         pub const NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminals),*];
 
-        pub static NONTERMINAL_IDS: phf::Map<&'static str, NonterminalId> = phf_map! {
-            #(#nonterminal_name_to_ids),*
-        };
+        #(#nonterminal_id_consts)*
 
         pub const TERMINALS: [Terminal; #terminals_len] = [
             #(#terminals,)*

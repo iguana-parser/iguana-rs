@@ -38,7 +38,14 @@ impl<'i> Parser<'i> for GroupParser<'i> {
         NONTERMINALS[nonterminal_id.index()].display
     }
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-        NONTERMINAL_IDS.get(name).copied()
+        match name {
+            "A" => Some(A),
+            "B" => Some(B),
+            "C" => Some(C),
+            "D" => Some(D),
+            "A_Group_0" => Some(A_GROUP_0),
+            _ => None,
+        }
     }
     fn terminal_name(terminal_id: TerminalId) -> &'static str {
         TERMINALS[terminal_id.index()].name

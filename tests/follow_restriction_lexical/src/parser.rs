@@ -35,7 +35,12 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
         NONTERMINALS[nonterminal_id.index()].display
     }
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-        NONTERMINAL_IDS.get(name).copied()
+        match name {
+            "S" => Some(S),
+            "Element" => Some(ELEMENT),
+            "S_Plus_0" => Some(S_PLUS_0),
+            _ => None,
+        }
     }
     fn terminal_name(terminal_id: TerminalId) -> &'static str {
         TERMINALS[terminal_id.index()].name

@@ -39,7 +39,14 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
         NONTERMINALS[nonterminal_id.index()].display
     }
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-        NONTERMINAL_IDS.get(name).copied()
+        match name {
+            "A" => Some(A),
+            "B" => Some(B),
+            "C" => Some(C),
+            "D" => Some(D),
+            "A_Alt_0" => Some(A_ALT_0),
+            _ => None,
+        }
     }
     fn terminal_name(terminal_id: TerminalId) -> &'static str {
         TERMINALS[terminal_id.index()].name

@@ -57,7 +57,7 @@ impl<'a> ParserGen<'a> {
         let execute_method = self.gen_execute_method();
         let first_descriptors = self.gen_add_first_descriptors_method();
         let nonterminal_display_name_method = Self::gen_nonterminal_display_name_method();
-        let nonterminal_id_method = Self::gen_nonterminal_id_method();
+        let nonterminal_id_method = self.gen_nonterminal_id_method();
         let terminal_name_method = Self::gen_terminal_name_method();
         let slot_name_method = Self::gen_slot_name_method();
         let epsilon_method = Self::gen_epsilon_method();
@@ -1403,10 +1403,21 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_nonterminal_id_method() -> TokenStream {
+    fn gen_nonterminal_id_method(&self) -> TokenStream {
+        let arms: Vec<_> = self.nonterminal_ids
+            .nonterminals()
+            .map(|n| {
+                let name = &n.name;
+                let const_name = format_ident!("{}", to_snake_case(name).to_uppercase());
+                quote! { #name => Some(#const_name), }
+            })
+            .collect();
         quote! {
             fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-                NONTERMINAL_IDS.get(name).copied()
+                match name {
+                    #(#arms)*
+                    _ => None,
+                }
             }
         }
     }
