@@ -1,14 +1,14 @@
 // To regenerate parser:  cargo run -p iguana -- generate --grammar tests/exclude_by_label/exclude_by_label.iggy --output tests/exclude_by_label
 // To update golden files: REGENERATE=1 cargo test -p exclude_by_label
 
-use exclude_by_label::{grammar_data, parse, parse_tree::to_sexpr};
+use exclude_by_label::{parse_expr, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
 use iguana_runtime::testing::{check_golden_file, golden_path};
 
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);
-    let result = parse(&input, grammar_data::EXPR).expect("Parse failed");
-    let actual = to_sexpr(result.tree.as_parse_tree_ref());
+    let result = parse_expr(&input).expect("Parse failed");
+    let actual = to_sexpr(result.as_parse_tree_ref());
     check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
 }
 

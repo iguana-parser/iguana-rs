@@ -553,6 +553,20 @@ impl Nonterminal {
         }
     }
 
+    /// Returns true if the nonterminal was generated from an EBNF operator (Plus, Star, Opt, Group, Alt).
+    pub fn is_ebnf(&self) -> bool {
+        matches!(
+            &self.origin,
+            Some(
+                Symbol::Plus(_, _)
+                    | Symbol::Star(_, _)
+                    | Symbol::Opt(_)
+                    | Symbol::Group(_)
+                    | Symbol::Alt(_)
+            )
+        )
+    }
+
     /// Returns true if the nonterminal is derived, e.g., from the EBNF to BNF conversion.
     pub fn is_derived(&self) -> bool {
         self.origin.is_some()

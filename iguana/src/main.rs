@@ -5,7 +5,6 @@ use iguana::{
     alternative, bind, c, call, cond, cond_expr,
     generator::{GenConfig, generate},
     grammar::def::{Grammar, GrammarDef},
-    grammar::symbols::Terminal,
     grammar_def, id,
     iggy::parse_grammar,
     lexical_rule, lit, min, opt, priority_level, r_star, ret, syntax_rule, ternary,

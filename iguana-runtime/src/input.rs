@@ -66,9 +66,6 @@ impl Input {
 
     /// Returns the line and column corresponding to the given input index.
     pub fn line_column(&self, input_index: u32) -> (u32, u32) {
-        // If the input index is greater than the length of the input,
-        // return (last_line, last_column), where last_column is the column number
-        // after the last character on the last line.
         assert!(
             input_index < self.len(),
             "input_index {} out of bounds (input length {})",

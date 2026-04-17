@@ -4,37 +4,88 @@ pub mod parser;
 pub mod parse_tree;
 pub mod scanner;
 pub mod types;
-use std::time::Duration;
-use iguana_runtime::{ids::NonterminalId, input::Input, parser::{ParseResult, Parser}};
-use grammar_data::NONTERMINALS;
+use std::error::Error;
+use std::fmt::{self, Display, Formatter};
+use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
 use parse_tree::{ParseTree, IndirectPrecedenceParseTreeBuilder, create_parse_tree};
 use parser::IndirectPrecedenceParser;
-pub struct ParseSuccess {
-    pub tree: ParseTree,
-    pub parse_duration: Duration,
-    pub tree_construction_duration: Duration,
+#[derive(Debug)]
+pub struct ParseError {
+    pub line: u32,
+    pub column: u32,
+    pub message: String,
 }
-pub fn parse(input: &Input, start_nonterminal: NonterminalId) -> Option<ParseSuccess> {
-    let mut parser = IndirectPrecedenceParser::new(input, start_nonterminal);
+impl Display for ParseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+impl Error for ParseError {}
+fn to_parse_error(
+    input: &Input,
+    error: &iguana_runtime::parser::ParseError,
+) -> ParseError {
+    if error.input_index >= input.len() {
+        ParseError {
+            line: 0,
+            column: 0,
+            message: "Unexpected end of input".to_string(),
+        }
+    } else {
+        let (line, column) = input.line_column(error.input_index);
+        ParseError {
+            line,
+            column,
+            message: format!("Parse error at line {line}, column {column}"),
+        }
+    }
+}
+pub fn parse_s(input: &Input) -> Result<parse_tree::S, ParseError> {
+    let mut parser = IndirectPrecedenceParser::new(input, grammar_data::S);
     match parser.run() {
         ParseResult::Success(success) => {
-            let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
-            let name = NONTERMINALS[start_nonterminal.index()].name;
             let tree = create_parse_tree(
                 success.sppf_node_id,
-                name,
+                "S",
                 &parser,
                 &IndirectPrecedenceParseTreeBuilder,
             );
-            let tree_construction_duration = tree_start.elapsed();
-            Some(ParseSuccess {
-                tree,
-                parse_duration,
-                tree_construction_duration,
-            })
+            let ParseTree::S(node) = tree else { unreachable!() };
+            Ok(node)
         }
-        ParseResult::Failure(_) => None,
+        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+    }
+}
+pub fn parse_f(input: &Input) -> Result<parse_tree::F, ParseError> {
+    let mut parser = IndirectPrecedenceParser::new(input, grammar_data::F);
+    match parser.run() {
+        ParseResult::Success(success) => {
+            let tree = create_parse_tree(
+                success.sppf_node_id,
+                "F",
+                &parser,
+                &IndirectPrecedenceParseTreeBuilder,
+            );
+            let ParseTree::F(node) = tree else { unreachable!() };
+            Ok(node)
+        }
+        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+    }
+}
+pub fn parse_k(input: &Input) -> Result<parse_tree::K, ParseError> {
+    let mut parser = IndirectPrecedenceParser::new(input, grammar_data::K);
+    match parser.run() {
+        ParseResult::Success(success) => {
+            let tree = create_parse_tree(
+                success.sppf_node_id,
+                "K",
+                &parser,
+                &IndirectPrecedenceParseTreeBuilder,
+            );
+            let ParseTree::K(node) = tree else { unreachable!() };
+            Ok(node)
+        }
+        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
 }
 

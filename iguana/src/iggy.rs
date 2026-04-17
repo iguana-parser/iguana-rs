@@ -1,17 +1,5 @@
-use iggy::{
-    grammar_data,
-    parse_tree,
-    parse_tree::{
-        Grammar, IggyParseTreeBuilder, Layout, ListNode, OptNode, ParseTree, Start,
-        create_parse_tree,
-    },
-    parser::IggyParser,
-};
-use iguana_runtime::{
-    input::Input,
-    parser::{ParseResult, Parser},
-    sppf::Span,
-};
+use iggy::{ParseError, parse_tree, parse_tree::{ListNode, OptNode, Start}};
+use iguana_runtime::{input::Input, sppf::Span};
 
 use crate::grammar::{
     def::{
@@ -22,48 +10,10 @@ use crate::grammar::{
     symbols::{Identifier, Nonterminal, Symbol, Terminal},
 };
 
-#[derive(Debug)]
-pub struct Error {
-    pub message: String,
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
-
-impl std::error::Error for Error {}
-
-pub fn parse_grammar(source: &str) -> Result<GrammarDef, Error> {
+pub fn parse_grammar(source: &str) -> Result<GrammarDef, ParseError> {
     let input = Input::from(source);
-    let parse_tree = parse(&input)?;
-    build_grammar(&parse_tree, &input)
-}
-
-fn parse(input: &Input) -> Result<Start<Grammar, Layout>, Error> {
-    let mut parser = IggyParser::new(input, grammar_data::START_GRAMMAR);
-    let result = parser.run();
-    match result {
-        ParseResult::Success(success) => {
-            let parse_tree = create_parse_tree(
-                success.sppf_node_id,
-                "StartGrammar",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::StartGrammar(start_grammar) = parse_tree else {
-                unreachable!()
-            };
-            Ok(start_grammar)
-        }
-        ParseResult::Failure(error) => {
-            let (line, column) = input.line_column(error.input_index);
-            Err(Error {
-                message: format!("Parse error at line {line}, column {column}"),
-            })
-        }
-    }
+    let start = iggy::parse_grammar(&input)?;
+    build_grammar(&start, &input)
 }
 
 fn text(input: &Input, span: Span) -> String {
@@ -73,7 +23,7 @@ fn text(input: &Input, span: Span) -> String {
 pub fn build_grammar(
     start_grammar: &Start<parse_tree::Grammar, parse_tree::Layout>,
     input: &Input,
-) -> Result<GrammarDef, Error> {
+) -> Result<GrammarDef, ParseError> {
     let grammar = &start_grammar.node;
     let name = text(input, grammar.name.span());
 

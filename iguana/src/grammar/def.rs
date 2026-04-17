@@ -757,7 +757,7 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         })
         .collect();
 
-    let (syntax_rules, start_nonterminals) = if let Some(layout) = &grammar_def.layout {
+    let (syntax_rules, start_nonterminals, start_wrapper_names) = if let Some(layout) = &grammar_def.layout {
         let resolved = resolve_identifier(layout.clone(), &symbol_table);
         let mut syntax_rules = layout_insertion::transform(syntax_rules, &resolved);
         let start_rules: Vec<_> = syntax_rules
@@ -765,12 +765,17 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
             .filter(|r| r.start)
             .map(|r| add_start_rule(&r.head, &resolved, &symbol_table))
             .collect();
-        let start_names: FxHashSet<String> =
-            start_rules.iter().map(|r| r.head.name.clone()).collect();
+        let start_names: FxHashMap<String, String> = syntax_rules
+            .iter()
+            .filter(|r| r.start)
+            .map(|r| (r.head.name.clone(), format!("Start{}", r.head.name)))
+            .collect();
+        let start_wrapper_names: FxHashSet<String> =
+            start_names.values().cloned().collect();
         syntax_rules.extend(start_rules);
-        (syntax_rules, start_names)
+        (syntax_rules, start_names, start_wrapper_names)
     } else {
-        (syntax_rules, FxHashSet::default())
+        (syntax_rules, FxHashMap::default(), FxHashSet::default())
     };
 
     let lexical_rules_map: IndexMap<Terminal, LexicalRule> = lexical_rules
@@ -798,6 +803,7 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         layout: grammar_def.layout,
         symbol_table,
         start_nonterminals,
+        start_wrapper_names,
     }
 }
 
@@ -853,7 +859,8 @@ pub struct Grammar {
     ebnf_symbols: FxHashMap<Symbol, Symbol>,
     pub symbol_table: SymbolTable,
     pub layout: Option<Symbol>,
-    start_nonterminals: FxHashSet<String>,
+    start_nonterminals: FxHashMap<String, String>,
+    start_wrapper_names: FxHashSet<String>,
 }
 
 impl PartialEq for Grammar {
@@ -873,7 +880,12 @@ impl Grammar {
         self.productions.keys().find(|n| n.name == name)
     }
     pub fn is_start(&self, nonterminal: &Nonterminal) -> bool {
-        self.start_nonterminals.contains(&nonterminal.name)
+        self.start_wrapper_names.contains(&nonterminal.name)
+    }
+    /// Returns the associated start nonterminal for the given nonterminal, if it exists.
+    pub fn start_nonterminal(&self, nonterminal: &Nonterminal) -> Option<&Nonterminal> {
+        let wrapper_name = self.start_nonterminals.get(&nonterminal.name)?;
+        self.nonterminal(wrapper_name)
     }
     pub fn alternatives(&self, nonterminal: &Nonterminal) -> &[Alternative] {
         self.productions.get(nonterminal).map_or(&[], |v| v)

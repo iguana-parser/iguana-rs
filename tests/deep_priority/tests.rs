@@ -1,14 +1,14 @@
 // To regenerate parser:  cargo run -p iguana -- generate --grammar tests/deep_priority/deep_priority.iggy --output tests/deep_priority
 // To update golden files: REGENERATE=1 cargo test -p deep_priority
 
-use deep_priority::{grammar_data, parse, parse_tree::to_sexpr};
+use deep_priority::{parse_s, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
 use iguana_runtime::testing::{check_golden_file, golden_path};
 
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);
-    let result = parse(&input, grammar_data::S).expect("Parse failed");
-    let actual = to_sexpr(result.tree.as_parse_tree_ref());
+    let result = parse_s(&input).expect("Parse failed");
+    let actual = to_sexpr(result.as_parse_tree_ref());
     check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
 }
 
