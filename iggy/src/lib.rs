@@ -7,7 +7,7 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
-use parse_tree::{ParseTree, IggyParseTreeBuilder, create_parse_tree};
+use parse_tree::IggyParseTreeBuilder;
 use parser::IggyParser;
 #[derive(Debug)]
 pub struct ParseError {
@@ -46,14 +46,13 @@ pub fn parse_grammar(
     let mut parser = IggyParser::new(input, grammar_data::START_GRAMMAR);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "StartGrammar",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::StartGrammar(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_start_grammar(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -62,14 +61,13 @@ pub fn parse_layout_def(input: &Input) -> Result<parse_tree::LayoutDef, ParseErr
     let mut parser = IggyParser::new(input, grammar_data::LAYOUT_DEF);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "LayoutDef",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::LayoutDef(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_layout_def(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -78,14 +76,13 @@ pub fn parse_rule(input: &Input) -> Result<parse_tree::Rule, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::RULE);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "Rule",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::Rule(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_rule(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -94,14 +91,13 @@ pub fn parse_syntax_rule(input: &Input) -> Result<parse_tree::SyntaxRule, ParseE
     let mut parser = IggyParser::new(input, grammar_data::SYNTAX_RULE);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "SyntaxRule",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::SyntaxRule(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_syntax_rule(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -110,14 +106,13 @@ pub fn parse_annotation(input: &Input) -> Result<parse_tree::Annotation, ParseEr
     let mut parser = IggyParser::new(input, grammar_data::ANNOTATION);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "Annotation",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::Annotation(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_annotation(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -126,14 +121,13 @@ pub fn parse_regex_rule(input: &Input) -> Result<parse_tree::RegexRule, ParseErr
     let mut parser = IggyParser::new(input, grammar_data::REGEX_RULE);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "RegexRule",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::RegexRule(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_regex_rule(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -144,14 +138,13 @@ pub fn parse_pre_condition(
     let mut parser = IggyParser::new(input, grammar_data::PRE_CONDITION);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "PreCondition",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::PreCondition(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_pre_condition(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -162,14 +155,13 @@ pub fn parse_post_condition(
     let mut parser = IggyParser::new(input, grammar_data::POST_CONDITION);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "PostCondition",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::PostCondition(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_post_condition(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -180,14 +172,13 @@ pub fn parse_priority_level(
     let mut parser = IggyParser::new(input, grammar_data::PRIORITY_LEVEL);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "PriorityLevel",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::PriorityLevel(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_priority_level(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -198,14 +189,13 @@ pub fn parse_associativity(
     let mut parser = IggyParser::new(input, grammar_data::ASSOCIATIVITY);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "Associativity",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::Associativity(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_associativity(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -214,14 +204,13 @@ pub fn parse_alternative(input: &Input) -> Result<parse_tree::Alternative, Parse
     let mut parser = IggyParser::new(input, grammar_data::ALTERNATIVE);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "Alternative",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::Alternative(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_alternative(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -230,14 +219,13 @@ pub fn parse_regex(input: &Input) -> Result<parse_tree::Regex, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::REGEX);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "Regex",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::Regex(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_regex(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -246,14 +234,13 @@ pub fn parse_char_class(input: &Input) -> Result<parse_tree::CharClass, ParseErr
     let mut parser = IggyParser::new(input, grammar_data::CHAR_CLASS);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "CharClass",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::CharClass(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_char_class(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -264,14 +251,13 @@ pub fn parse_range_element(
     let mut parser = IggyParser::new(input, grammar_data::RANGE_ELEMENT);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "RangeElement",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::RangeElement(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_range_element(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -280,14 +266,13 @@ pub fn parse_range(input: &Input) -> Result<parse_tree::Range, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::RANGE);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "Range",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::Range(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_range(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -296,14 +281,13 @@ pub fn parse_layout(input: &Input) -> Result<parse_tree::Layout, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::LAYOUT);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "Layout",
-                &parser,
-                &IggyParseTreeBuilder,
-            );
-            let ParseTree::Layout(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_layout(
+                    success.sppf_node_id,
+                    &parser,
+                    &IggyParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }

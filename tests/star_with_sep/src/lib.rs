@@ -7,7 +7,7 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
-use parse_tree::{ParseTree, StarWithSepParseTreeBuilder, create_parse_tree};
+use parse_tree::StarWithSepParseTreeBuilder;
 use parser::StarWithSepParser;
 #[derive(Debug)]
 pub struct ParseError {
@@ -44,14 +44,13 @@ pub fn parse_s(input: &Input) -> Result<parse_tree::S, ParseError> {
     let mut parser = StarWithSepParser::new(input, grammar_data::S);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "S",
-                &parser,
-                &StarWithSepParseTreeBuilder,
-            );
-            let ParseTree::S(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_s(
+                    success.sppf_node_id,
+                    &parser,
+                    &StarWithSepParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -60,14 +59,13 @@ pub fn parse_a(input: &Input) -> Result<parse_tree::A, ParseError> {
     let mut parser = StarWithSepParser::new(input, grammar_data::A);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "A",
-                &parser,
-                &StarWithSepParseTreeBuilder,
-            );
-            let ParseTree::A(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_a(
+                    success.sppf_node_id,
+                    &parser,
+                    &StarWithSepParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }

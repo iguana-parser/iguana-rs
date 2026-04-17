@@ -189,7 +189,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     if let ParseResult::Success(success) = result {
                         let _ = create_parse_tree(
                             success.sppf_node_id,
-                            &start_nonterminal_name,
+                            start_nonterminal_id,
                             &parser,
                             &parse_tree_builder,
                         );
@@ -259,7 +259,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         || cli.write_timings.is_some()
                         || (cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() && cli.trace.is_none())
                     {
-                        Some(create_parse_tree(node_id, &start_nonterminal_name, &parser, &parse_tree_builder))
+                        Some(create_parse_tree(node_id, start_nonterminal_id, &parser, &parse_tree_builder))
                     } else {
                         None
                     };

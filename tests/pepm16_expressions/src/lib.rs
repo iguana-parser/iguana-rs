@@ -7,7 +7,7 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
-use parse_tree::{ParseTree, Pepm16ExpressionsParseTreeBuilder, create_parse_tree};
+use parse_tree::Pepm16ExpressionsParseTreeBuilder;
 use parser::Pepm16ExpressionsParser;
 #[derive(Debug)]
 pub struct ParseError {
@@ -44,14 +44,13 @@ pub fn parse_s(input: &Input) -> Result<parse_tree::S, ParseError> {
     let mut parser = Pepm16ExpressionsParser::new(input, grammar_data::S);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "S",
-                &parser,
-                &Pepm16ExpressionsParseTreeBuilder,
-            );
-            let ParseTree::S(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_s(
+                    success.sppf_node_id,
+                    &parser,
+                    &Pepm16ExpressionsParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }

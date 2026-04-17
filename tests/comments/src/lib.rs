@@ -7,7 +7,7 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
-use parse_tree::{ParseTree, CommentsParseTreeBuilder, create_parse_tree};
+use parse_tree::CommentsParseTreeBuilder;
 use parser::CommentsParser;
 #[derive(Debug)]
 pub struct ParseError {
@@ -42,18 +42,17 @@ fn to_parse_error(
 }
 pub fn parse_expr(
     input: &Input,
-) -> Result<parse_tree::Start<parse_tree::Expr, parse_tree::Layout>, ParseError> {
+) -> Result<parse_tree::Start<parse_tree::Expr, parse_tree::Token>, ParseError> {
     let mut parser = CommentsParser::new(input, grammar_data::START_EXPR);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "StartExpr",
-                &parser,
-                &CommentsParseTreeBuilder,
-            );
-            let ParseTree::StartExpr(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_start_expr(
+                    success.sppf_node_id,
+                    &parser,
+                    &CommentsParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }

@@ -542,19 +542,21 @@ impl ParseTreeBuilder<ParseTree> for ExcludeByLabelParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &ExcludeByLabelParser,
     builder: &ExcludeByLabelParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "Expr" => ParseTree::Expr(create_parse_tree_expr(root_id, parser, builder)),
-        "Expr_Plus_0" => {
+    match nonterminal_id {
+        crate::grammar_data::EXPR => {
+            ParseTree::Expr(create_parse_tree_expr(root_id, parser, builder))
+        }
+        crate::grammar_data::EXPR_PLUS_0 => {
             ParseTree::ExprPlus0(create_parse_tree_expr_plus_0(root_id, parser, builder))
         }
-        "Expr_Opt_0" => {
+        crate::grammar_data::EXPR_OPT_0 => {
             ParseTree::ExprOpt0(create_parse_tree_expr_opt_0(root_id, parser, builder))
         }
-        "Expr_Star_0" => {
+        crate::grammar_data::EXPR_STAR_0 => {
             ParseTree::ExprStar0(create_parse_tree_expr_star_0(root_id, parser, builder))
         }
         _ => panic!(),

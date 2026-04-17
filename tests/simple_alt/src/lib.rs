@@ -7,7 +7,7 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
-use parse_tree::{ParseTree, SimpleAltParseTreeBuilder, create_parse_tree};
+use parse_tree::SimpleAltParseTreeBuilder;
 use parser::SimpleAltParser;
 #[derive(Debug)]
 pub struct ParseError {
@@ -44,14 +44,13 @@ pub fn parse_a(input: &Input) -> Result<parse_tree::A, ParseError> {
     let mut parser = SimpleAltParser::new(input, grammar_data::A);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "A",
-                &parser,
-                &SimpleAltParseTreeBuilder,
-            );
-            let ParseTree::A(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_a(
+                    success.sppf_node_id,
+                    &parser,
+                    &SimpleAltParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -60,14 +59,13 @@ pub fn parse_b(input: &Input) -> Result<parse_tree::B, ParseError> {
     let mut parser = SimpleAltParser::new(input, grammar_data::B);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "B",
-                &parser,
-                &SimpleAltParseTreeBuilder,
-            );
-            let ParseTree::B(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_b(
+                    success.sppf_node_id,
+                    &parser,
+                    &SimpleAltParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -76,14 +74,13 @@ pub fn parse_c(input: &Input) -> Result<parse_tree::C, ParseError> {
     let mut parser = SimpleAltParser::new(input, grammar_data::C);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "C",
-                &parser,
-                &SimpleAltParseTreeBuilder,
-            );
-            let ParseTree::C(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_c(
+                    success.sppf_node_id,
+                    &parser,
+                    &SimpleAltParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -92,14 +89,13 @@ pub fn parse_d(input: &Input) -> Result<parse_tree::D, ParseError> {
     let mut parser = SimpleAltParser::new(input, grammar_data::D);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "D",
-                &parser,
-                &SimpleAltParseTreeBuilder,
-            );
-            let ParseTree::D(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_d(
+                    success.sppf_node_id,
+                    &parser,
+                    &SimpleAltParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }

@@ -2046,19 +2046,20 @@ fn gen_create_parse_tree_function(grammar: &Grammar) -> TokenStream {
         .filter(|n| !n.is_exclude())
         .map(|n| {
             let name = &n.name;
+            let const_name = format_ident!("{}", to_snake_case(name).to_uppercase());
             let function_name = format_ident!("create_parse_tree_{}", to_snake_case(name));
             let variant_name = nt_ident(name);
-            quote! { #name => ParseTree::#variant_name(#function_name(root_id, parser, builder)) }
+            quote! { crate::grammar_data::#const_name => ParseTree::#variant_name(#function_name(root_id, parser, builder)) }
         })
         .collect();
     quote! {
         pub fn create_parse_tree(
             root_id: SPPFNodeId,
-            name: &str,
+            nonterminal_id: NonterminalId,
             parser: &#parser_name_ident,
             builder: &#builder_name_ident,
         ) -> ParseTree {
-            match name {
+            match nonterminal_id {
                 #(#arms,)*
                 _ => panic!()
             }

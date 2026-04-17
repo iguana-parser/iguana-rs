@@ -342,14 +342,18 @@ impl ParseTreeBuilder<ParseTree> for PlusParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &PlusParser,
     builder: &PlusParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "S" => ParseTree::S(create_parse_tree_s(root_id, parser, builder)),
-        "A" => ParseTree::A(create_parse_tree_a(root_id, parser, builder)),
-        "S_Plus_0" => {
+    match nonterminal_id {
+        crate::grammar_data::S => {
+            ParseTree::S(create_parse_tree_s(root_id, parser, builder))
+        }
+        crate::grammar_data::A => {
+            ParseTree::A(create_parse_tree_a(root_id, parser, builder))
+        }
+        crate::grammar_data::S_PLUS_0 => {
             ParseTree::SPlus0(create_parse_tree_s_plus_0(root_id, parser, builder))
         }
         _ => panic!(),

@@ -196,12 +196,14 @@ impl ParseTreeBuilder<ParseTree> for LeftRecursiveListParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &LeftRecursiveListParser,
     builder: &LeftRecursiveListParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "A" => ParseTree::A(create_parse_tree_a(root_id, parser, builder)),
+    match nonterminal_id {
+        crate::grammar_data::A => {
+            ParseTree::A(create_parse_tree_a(root_id, parser, builder))
+        }
         _ => panic!(),
     }
 }

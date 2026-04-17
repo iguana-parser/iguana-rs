@@ -347,14 +347,18 @@ impl ParseTreeBuilder<ParseTree> for NoLayoutParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &NoLayoutParser,
     builder: &NoLayoutParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "S" => ParseTree::S(create_parse_tree_s(root_id, parser, builder)),
-        "Id" => ParseTree::Id(create_parse_tree_id(root_id, parser, builder)),
-        "Id_Plus_0" => {
+    match nonterminal_id {
+        crate::grammar_data::S => {
+            ParseTree::S(create_parse_tree_s(root_id, parser, builder))
+        }
+        crate::grammar_data::ID => {
+            ParseTree::Id(create_parse_tree_id(root_id, parser, builder))
+        }
+        crate::grammar_data::ID_PLUS_0 => {
             ParseTree::IdPlus0(create_parse_tree_id_plus_0(root_id, parser, builder))
         }
         _ => panic!(),

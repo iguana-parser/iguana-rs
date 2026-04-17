@@ -306,13 +306,17 @@ impl ParseTreeBuilder<ParseTree> for PrefixAboveBinaryParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &PrefixAboveBinaryParser,
     builder: &PrefixAboveBinaryParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "S" => ParseTree::S(create_parse_tree_s(root_id, parser, builder)),
-        "E" => ParseTree::E(create_parse_tree_e(root_id, parser, builder)),
+    match nonterminal_id {
+        crate::grammar_data::S => {
+            ParseTree::S(create_parse_tree_s(root_id, parser, builder))
+        }
+        crate::grammar_data::E => {
+            ParseTree::E(create_parse_tree_e(root_id, parser, builder))
+        }
         _ => panic!(),
     }
 }

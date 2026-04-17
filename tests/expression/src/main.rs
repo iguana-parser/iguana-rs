@@ -152,7 +152,7 @@ fn main() -> Result<(), io::Error> {
             if let ParseResult::Success(success) = result {
                 let _ = create_parse_tree(
                     success.sppf_node_id,
-                    &start_nonterminal_name,
+                    start_nonterminal_id,
                     &parser,
                     &parse_tree_builder,
                 );
@@ -211,7 +211,7 @@ fn main() -> Result<(), io::Error> {
                 Some(
                     create_parse_tree(
                         node_id,
-                        &start_nonterminal_name,
+                        start_nonterminal_id,
                         &parser,
                         &parse_tree_builder,
                     ),

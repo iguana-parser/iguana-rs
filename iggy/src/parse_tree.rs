@@ -7054,267 +7054,277 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &IggyParser,
     builder: &IggyParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "Grammar" => {
+    match nonterminal_id {
+        crate::grammar_data::GRAMMAR => {
             ParseTree::Grammar(create_parse_tree_grammar(root_id, parser, builder))
         }
-        "LayoutDef" => {
+        crate::grammar_data::LAYOUT_DEF => {
             ParseTree::LayoutDef(create_parse_tree_layout_def(root_id, parser, builder))
         }
-        "Rule" => ParseTree::Rule(create_parse_tree_rule(root_id, parser, builder)),
-        "SyntaxRule" => {
+        crate::grammar_data::RULE => {
+            ParseTree::Rule(create_parse_tree_rule(root_id, parser, builder))
+        }
+        crate::grammar_data::SYNTAX_RULE => {
             ParseTree::SyntaxRule(
                 create_parse_tree_syntax_rule(root_id, parser, builder),
             )
         }
-        "Annotation" => {
+        crate::grammar_data::ANNOTATION => {
             ParseTree::Annotation(create_parse_tree_annotation(root_id, parser, builder))
         }
-        "RegexRule" => {
+        crate::grammar_data::REGEX_RULE => {
             ParseTree::RegexRule(create_parse_tree_regex_rule(root_id, parser, builder))
         }
-        "PreCondition" => {
+        crate::grammar_data::PRE_CONDITION => {
             ParseTree::PreCondition(
                 create_parse_tree_pre_condition(root_id, parser, builder),
             )
         }
-        "PostCondition" => {
+        crate::grammar_data::POST_CONDITION => {
             ParseTree::PostCondition(
                 create_parse_tree_post_condition(root_id, parser, builder),
             )
         }
-        "PriorityLevel" => {
+        crate::grammar_data::PRIORITY_LEVEL => {
             ParseTree::PriorityLevel(
                 create_parse_tree_priority_level(root_id, parser, builder),
             )
         }
-        "Associativity" => {
+        crate::grammar_data::ASSOCIATIVITY => {
             ParseTree::Associativity(
                 create_parse_tree_associativity(root_id, parser, builder),
             )
         }
-        "Alternative" => {
+        crate::grammar_data::ALTERNATIVE => {
             ParseTree::Alternative(
                 create_parse_tree_alternative(root_id, parser, builder),
             )
         }
-        "Symbol" => ParseTree::Symbol(create_parse_tree_symbol(root_id, parser, builder)),
-        "Regex" => ParseTree::Regex(create_parse_tree_regex(root_id, parser, builder)),
-        "CharClass" => {
+        crate::grammar_data::SYMBOL => {
+            ParseTree::Symbol(create_parse_tree_symbol(root_id, parser, builder))
+        }
+        crate::grammar_data::REGEX => {
+            ParseTree::Regex(create_parse_tree_regex(root_id, parser, builder))
+        }
+        crate::grammar_data::CHAR_CLASS => {
             ParseTree::CharClass(create_parse_tree_char_class(root_id, parser, builder))
         }
-        "RangeElement" => {
+        crate::grammar_data::RANGE_ELEMENT => {
             ParseTree::RangeElement(
                 create_parse_tree_range_element(root_id, parser, builder),
             )
         }
-        "Range" => ParseTree::Range(create_parse_tree_range(root_id, parser, builder)),
-        "Layout" => ParseTree::Layout(create_parse_tree_layout(root_id, parser, builder)),
-        "Grammar_Opt_0" => {
+        crate::grammar_data::RANGE => {
+            ParseTree::Range(create_parse_tree_range(root_id, parser, builder))
+        }
+        crate::grammar_data::LAYOUT => {
+            ParseTree::Layout(create_parse_tree_layout(root_id, parser, builder))
+        }
+        crate::grammar_data::GRAMMAR_OPT_0 => {
             ParseTree::GrammarOpt0(
                 create_parse_tree_grammar_opt_0(root_id, parser, builder),
             )
         }
-        "Grammar_Plus_0" => {
+        crate::grammar_data::GRAMMAR_PLUS_0 => {
             ParseTree::GrammarPlus0(
                 create_parse_tree_grammar_plus_0(root_id, parser, builder),
             )
         }
-        "Grammar_Opt_1" => {
+        crate::grammar_data::GRAMMAR_OPT_1 => {
             ParseTree::GrammarOpt1(
                 create_parse_tree_grammar_opt_1(root_id, parser, builder),
             )
         }
-        "Grammar_Star_0" => {
+        crate::grammar_data::GRAMMAR_STAR_0 => {
             ParseTree::GrammarStar0(
                 create_parse_tree_grammar_star_0(root_id, parser, builder),
             )
         }
-        "SyntaxRule_Plus_1" => {
+        crate::grammar_data::SYNTAX_RULE_PLUS_1 => {
             ParseTree::SyntaxRulePlus1(
                 create_parse_tree_syntax_rule_plus_1(root_id, parser, builder),
             )
         }
-        "SyntaxRule_Opt_2" => {
+        crate::grammar_data::SYNTAX_RULE_OPT_2 => {
             ParseTree::SyntaxRuleOpt2(
                 create_parse_tree_syntax_rule_opt_2(root_id, parser, builder),
             )
         }
-        "SyntaxRule_Star_1" => {
+        crate::grammar_data::SYNTAX_RULE_STAR_1 => {
             ParseTree::SyntaxRuleStar1(
                 create_parse_tree_syntax_rule_star_1(root_id, parser, builder),
             )
         }
-        "SyntaxRule_Plus_2" => {
+        crate::grammar_data::SYNTAX_RULE_PLUS_2 => {
             ParseTree::SyntaxRulePlus2(
                 create_parse_tree_syntax_rule_plus_2(root_id, parser, builder),
             )
         }
-        "SyntaxRule_Opt_3" => {
+        crate::grammar_data::SYNTAX_RULE_OPT_3 => {
             ParseTree::SyntaxRuleOpt3(
                 create_parse_tree_syntax_rule_opt_3(root_id, parser, builder),
             )
         }
-        "SyntaxRule_Star_2" => {
+        crate::grammar_data::SYNTAX_RULE_STAR_2 => {
             ParseTree::SyntaxRuleStar2(
                 create_parse_tree_syntax_rule_star_2(root_id, parser, builder),
             )
         }
-        "RegexRule_Opt_4" => {
+        crate::grammar_data::REGEX_RULE_OPT_4 => {
             ParseTree::RegexRuleOpt4(
                 create_parse_tree_regex_rule_opt_4(root_id, parser, builder),
             )
         }
-        "RegexRule_Plus_4" => {
+        crate::grammar_data::REGEX_RULE_PLUS_4 => {
             ParseTree::RegexRulePlus4(
                 create_parse_tree_regex_rule_plus_4(root_id, parser, builder),
             )
         }
-        "RegexRule_Plus_3" => {
+        crate::grammar_data::REGEX_RULE_PLUS_3 => {
             ParseTree::RegexRulePlus3(
                 create_parse_tree_regex_rule_plus_3(root_id, parser, builder),
             )
         }
-        "RegexRule_Plus_5" => {
+        crate::grammar_data::REGEX_RULE_PLUS_5 => {
             ParseTree::RegexRulePlus5(
                 create_parse_tree_regex_rule_plus_5(root_id, parser, builder),
             )
         }
-        "RegexRule_Opt_5" => {
+        crate::grammar_data::REGEX_RULE_OPT_5 => {
             ParseTree::RegexRuleOpt5(
                 create_parse_tree_regex_rule_opt_5(root_id, parser, builder),
             )
         }
-        "RegexRule_Star_3" => {
+        crate::grammar_data::REGEX_RULE_STAR_3 => {
             ParseTree::RegexRuleStar3(
                 create_parse_tree_regex_rule_star_3(root_id, parser, builder),
             )
         }
-        "PriorityLevel_Opt_6" => {
+        crate::grammar_data::PRIORITY_LEVEL_OPT_6 => {
             ParseTree::PriorityLevelOpt6(
                 create_parse_tree_priority_level_opt_6(root_id, parser, builder),
             )
         }
-        "PriorityLevel_Plus_6" => {
+        crate::grammar_data::PRIORITY_LEVEL_PLUS_6 => {
             ParseTree::PriorityLevelPlus6(
                 create_parse_tree_priority_level_plus_6(root_id, parser, builder),
             )
         }
-        "PriorityLevel_Opt_7" => {
+        crate::grammar_data::PRIORITY_LEVEL_OPT_7 => {
             ParseTree::PriorityLevelOpt7(
                 create_parse_tree_priority_level_opt_7(root_id, parser, builder),
             )
         }
-        "PriorityLevel_Star_4" => {
+        crate::grammar_data::PRIORITY_LEVEL_STAR_4 => {
             ParseTree::PriorityLevelStar4(
                 create_parse_tree_priority_level_star_4(root_id, parser, builder),
             )
         }
-        "Alternative_Plus_7" => {
+        crate::grammar_data::ALTERNATIVE_PLUS_7 => {
             ParseTree::AlternativePlus7(
                 create_parse_tree_alternative_plus_7(root_id, parser, builder),
             )
         }
-        "Alternative_Opt_8" => {
+        crate::grammar_data::ALTERNATIVE_OPT_8 => {
             ParseTree::AlternativeOpt8(
                 create_parse_tree_alternative_opt_8(root_id, parser, builder),
             )
         }
-        "Alternative_Star_5" => {
+        crate::grammar_data::ALTERNATIVE_STAR_5 => {
             ParseTree::AlternativeStar5(
                 create_parse_tree_alternative_star_5(root_id, parser, builder),
             )
         }
-        "Alternative_Opt_9" => {
+        crate::grammar_data::ALTERNATIVE_OPT_9 => {
             ParseTree::AlternativeOpt9(
                 create_parse_tree_alternative_opt_9(root_id, parser, builder),
             )
         }
-        "Symbol_Group_0" => {
+        crate::grammar_data::SYMBOL_GROUP_0 => {
             ParseTree::SymbolGroup0(
                 create_parse_tree_symbol_group_0(root_id, parser, builder),
             )
         }
-        "Symbol_Plus_8" => {
+        crate::grammar_data::SYMBOL_PLUS_8 => {
             ParseTree::SymbolPlus8(
                 create_parse_tree_symbol_plus_8(root_id, parser, builder),
             )
         }
-        "Symbol_Group_1" => {
+        crate::grammar_data::SYMBOL_GROUP_1 => {
             ParseTree::SymbolGroup1(
                 create_parse_tree_symbol_group_1(root_id, parser, builder),
             )
         }
-        "Symbol_Plus_9" => {
+        crate::grammar_data::SYMBOL_PLUS_9 => {
             ParseTree::SymbolPlus9(
                 create_parse_tree_symbol_plus_9(root_id, parser, builder),
             )
         }
-        "Symbol_Group_2" => {
+        crate::grammar_data::SYMBOL_GROUP_2 => {
             ParseTree::SymbolGroup2(
                 create_parse_tree_symbol_group_2(root_id, parser, builder),
             )
         }
-        "Symbol_Plus_10" => {
+        crate::grammar_data::SYMBOL_PLUS_10 => {
             ParseTree::SymbolPlus10(
                 create_parse_tree_symbol_plus_10(root_id, parser, builder),
             )
         }
-        "Symbol_Group_3" => {
+        crate::grammar_data::SYMBOL_GROUP_3 => {
             ParseTree::SymbolGroup3(
                 create_parse_tree_symbol_group_3(root_id, parser, builder),
             )
         }
-        "Symbol_Plus_11" => {
+        crate::grammar_data::SYMBOL_PLUS_11 => {
             ParseTree::SymbolPlus11(
                 create_parse_tree_symbol_plus_11(root_id, parser, builder),
             )
         }
-        "Regex_Group_4" => {
+        crate::grammar_data::REGEX_GROUP_4 => {
             ParseTree::RegexGroup4(
                 create_parse_tree_regex_group_4(root_id, parser, builder),
             )
         }
-        "Regex_Plus_12" => {
+        crate::grammar_data::REGEX_PLUS_12 => {
             ParseTree::RegexPlus12(
                 create_parse_tree_regex_plus_12(root_id, parser, builder),
             )
         }
-        "CharClass_Opt_10" => {
+        crate::grammar_data::CHAR_CLASS_OPT_10 => {
             ParseTree::CharClassOpt10(
                 create_parse_tree_char_class_opt_10(root_id, parser, builder),
             )
         }
-        "CharClass_Plus_13" => {
+        crate::grammar_data::CHAR_CLASS_PLUS_13 => {
             ParseTree::CharClassPlus13(
                 create_parse_tree_char_class_plus_13(root_id, parser, builder),
             )
         }
-        "Layout_Alt_0" => {
+        crate::grammar_data::LAYOUT_ALT_0 => {
             ParseTree::LayoutAlt0(
                 create_parse_tree_layout_alt_0(root_id, parser, builder),
             )
         }
-        "Layout_Plus_14" => {
+        crate::grammar_data::LAYOUT_PLUS_14 => {
             ParseTree::LayoutPlus14(
                 create_parse_tree_layout_plus_14(root_id, parser, builder),
             )
         }
-        "Layout_Opt_11" => {
+        crate::grammar_data::LAYOUT_OPT_11 => {
             ParseTree::LayoutOpt11(
                 create_parse_tree_layout_opt_11(root_id, parser, builder),
             )
         }
-        "Layout_Star_6" => {
+        crate::grammar_data::LAYOUT_STAR_6 => {
             ParseTree::LayoutStar6(
                 create_parse_tree_layout_star_6(root_id, parser, builder),
             )
         }
-        "StartGrammar" => {
+        crate::grammar_data::START_GRAMMAR => {
             ParseTree::StartGrammar(
                 create_parse_tree_start_grammar(root_id, parser, builder),
             )

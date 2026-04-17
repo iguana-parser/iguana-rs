@@ -7,7 +7,7 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
-use parse_tree::{ParseTree, MultipleExceptParseTreeBuilder, create_parse_tree};
+use parse_tree::MultipleExceptParseTreeBuilder;
 use parser::MultipleExceptParser;
 #[derive(Debug)]
 pub struct ParseError {
@@ -46,14 +46,13 @@ pub fn parse_syntax_identifier(
     let mut parser = MultipleExceptParser::new(input, grammar_data::SYNTAX_IDENTIFIER);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "SyntaxIdentifier",
-                &parser,
-                &MultipleExceptParseTreeBuilder,
-            );
-            let ParseTree::SyntaxIdentifier(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_syntax_identifier(
+                    success.sppf_node_id,
+                    &parser,
+                    &MultipleExceptParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -64,14 +63,13 @@ pub fn parse_lexical_identifier(
     let mut parser = MultipleExceptParser::new(input, grammar_data::LEXICAL_IDENTIFIER);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "LexicalIdentifier",
-                &parser,
-                &MultipleExceptParseTreeBuilder,
-            );
-            let ParseTree::LexicalIdentifier(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_lexical_identifier(
+                    success.sppf_node_id,
+                    &parser,
+                    &MultipleExceptParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }

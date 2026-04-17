@@ -7,7 +7,7 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
-use parse_tree::{ParseTree, PlusGroupParseTreeBuilder, create_parse_tree};
+use parse_tree::PlusGroupParseTreeBuilder;
 use parser::PlusGroupParser;
 #[derive(Debug)]
 pub struct ParseError {
@@ -44,14 +44,13 @@ pub fn parse_s(input: &Input) -> Result<parse_tree::S, ParseError> {
     let mut parser = PlusGroupParser::new(input, grammar_data::S);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "S",
-                &parser,
-                &PlusGroupParseTreeBuilder,
-            );
-            let ParseTree::S(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_s(
+                    success.sppf_node_id,
+                    &parser,
+                    &PlusGroupParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -60,14 +59,13 @@ pub fn parse_a(input: &Input) -> Result<parse_tree::A, ParseError> {
     let mut parser = PlusGroupParser::new(input, grammar_data::A);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "A",
-                &parser,
-                &PlusGroupParseTreeBuilder,
-            );
-            let ParseTree::A(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_a(
+                    success.sppf_node_id,
+                    &parser,
+                    &PlusGroupParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -76,14 +74,13 @@ pub fn parse_b(input: &Input) -> Result<parse_tree::B, ParseError> {
     let mut parser = PlusGroupParser::new(input, grammar_data::B);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "B",
-                &parser,
-                &PlusGroupParseTreeBuilder,
-            );
-            let ParseTree::B(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_b(
+                    success.sppf_node_id,
+                    &parser,
+                    &PlusGroupParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -92,14 +89,13 @@ pub fn parse_c(input: &Input) -> Result<parse_tree::C, ParseError> {
     let mut parser = PlusGroupParser::new(input, grammar_data::C);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "C",
-                &parser,
-                &PlusGroupParseTreeBuilder,
-            );
-            let ParseTree::C(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_c(
+                    success.sppf_node_id,
+                    &parser,
+                    &PlusGroupParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }

@@ -757,7 +757,7 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         })
         .collect();
 
-    let (syntax_rules, start_nonterminals, start_wrapper_names) = if let Some(layout) = &grammar_def.layout {
+    let (syntax_rules, layout, start_nonterminals, start_wrapper_names) = if let Some(layout) = &grammar_def.layout {
         let resolved = resolve_identifier(layout.clone(), &symbol_table);
         let mut syntax_rules = layout_insertion::transform(syntax_rules, &resolved);
         let start_rules: Vec<_> = syntax_rules
@@ -773,9 +773,9 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         let start_wrapper_names: FxHashSet<String> =
             start_names.values().cloned().collect();
         syntax_rules.extend(start_rules);
-        (syntax_rules, start_names, start_wrapper_names)
+        (syntax_rules, Some(resolved), start_names, start_wrapper_names)
     } else {
-        (syntax_rules, FxHashMap::default(), FxHashSet::default())
+        (syntax_rules, None, FxHashMap::default(), FxHashSet::default())
     };
 
     let lexical_rules_map: IndexMap<Terminal, LexicalRule> = lexical_rules
@@ -800,7 +800,7 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         lexical_rules: lexical_rules_map,
         definitions,
         ebnf_symbols,
-        layout: grammar_def.layout,
+        layout,
         symbol_table,
         start_nonterminals,
         start_wrapper_names,

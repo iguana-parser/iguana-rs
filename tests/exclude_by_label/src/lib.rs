@@ -7,7 +7,7 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
-use parse_tree::{ParseTree, ExcludeByLabelParseTreeBuilder, create_parse_tree};
+use parse_tree::ExcludeByLabelParseTreeBuilder;
 use parser::ExcludeByLabelParser;
 #[derive(Debug)]
 pub struct ParseError {
@@ -44,14 +44,13 @@ pub fn parse_expr(input: &Input) -> Result<parse_tree::Expr, ParseError> {
     let mut parser = ExcludeByLabelParser::new(input, grammar_data::EXPR);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "Expr",
-                &parser,
-                &ExcludeByLabelParseTreeBuilder,
-            );
-            let ParseTree::Expr(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_expr(
+                    success.sppf_node_id,
+                    &parser,
+                    &ExcludeByLabelParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }

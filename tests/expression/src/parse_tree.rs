@@ -231,12 +231,14 @@ impl ParseTreeBuilder<ParseTree> for ExpressionParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &ExpressionParser,
     builder: &ExpressionParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "E" => ParseTree::E(create_parse_tree_e(root_id, parser, builder)),
+    match nonterminal_id {
+        crate::grammar_data::E => {
+            ParseTree::E(create_parse_tree_e(root_id, parser, builder))
+        }
         _ => panic!(),
     }
 }

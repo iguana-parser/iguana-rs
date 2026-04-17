@@ -400,16 +400,18 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionLexicalParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &FollowRestrictionLexicalParser,
     builder: &FollowRestrictionLexicalParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "S" => ParseTree::S(create_parse_tree_s(root_id, parser, builder)),
-        "Element" => {
+    match nonterminal_id {
+        crate::grammar_data::S => {
+            ParseTree::S(create_parse_tree_s(root_id, parser, builder))
+        }
+        crate::grammar_data::ELEMENT => {
             ParseTree::Element(create_parse_tree_element(root_id, parser, builder))
         }
-        "S_Plus_0" => {
+        crate::grammar_data::S_PLUS_0 => {
             ParseTree::SPlus0(create_parse_tree_s_plus_0(root_id, parser, builder))
         }
         _ => panic!(),

@@ -36,7 +36,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             input::Input,
             parser::{ParseResult, Parser},
         };
-        use parse_tree::{ParseTree, #parse_tree_builder, create_parse_tree};
+        use parse_tree::#parse_tree_builder;
         use parser::#parser;
 
         #[derive(Debug)]
@@ -84,7 +84,7 @@ fn gen_parse_method(
 ) -> TokenStream {
     let fn_name = format_ident!("parse_{}", to_snake_case(&nt.name));
 
-    let (return_type, nt_const, nt_name, variant) = if let Some(start_nt) = start_nt {
+    let (return_type, nt_const, create_fn) = if let Some(start_nt) = start_nt {
         let inner_type = format_ident!("{}", to_pascal_case(&nt.name));
         // Safe: start wrappers are only created when layout is defined
         let layout_ident = grammar.layout.as_ref().unwrap().as_identifier().unwrap();
@@ -97,8 +97,7 @@ fn gen_parse_method(
         (
             quote! { parse_tree::Start<parse_tree::#inner_type, parse_tree::#layout> },
             format_ident!("{}", to_snake_case(name).to_uppercase()),
-            name.clone(),
-            format_ident!("{}", to_pascal_case(name)),
+            format_ident!("create_parse_tree_{}", to_snake_case(name)),
         )
     } else {
         let name = &nt.name;
@@ -106,8 +105,7 @@ fn gen_parse_method(
         (
             quote! { parse_tree::#nt_type },
             format_ident!("{}", to_snake_case(name).to_uppercase()),
-            name.clone(),
-            nt_type,
+            format_ident!("create_parse_tree_{}", to_snake_case(name)),
         )
     };
 
@@ -116,14 +114,7 @@ fn gen_parse_method(
             let mut parser = #parser::new(input, grammar_data::#nt_const);
             match parser.run() {
                 ParseResult::Success(success) => {
-                    let tree = create_parse_tree(
-                        success.sppf_node_id,
-                        #nt_name,
-                        &parser,
-                        &#parse_tree_builder,
-                    );
-                    let ParseTree::#variant(node) = tree else { unreachable!() };
-                    Ok(node)
+                    Ok(parse_tree::#create_fn(success.sppf_node_id, &parser, &#parse_tree_builder))
                 }
                 ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
             }

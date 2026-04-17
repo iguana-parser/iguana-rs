@@ -260,17 +260,17 @@ impl ParseTreeBuilder<ParseTree> for MultipleExceptParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &MultipleExceptParser,
     builder: &MultipleExceptParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "SyntaxIdentifier" => {
+    match nonterminal_id {
+        crate::grammar_data::SYNTAX_IDENTIFIER => {
             ParseTree::SyntaxIdentifier(
                 create_parse_tree_syntax_identifier(root_id, parser, builder),
             )
         }
-        "LexicalIdentifier" => {
+        crate::grammar_data::LEXICAL_IDENTIFIER => {
             ParseTree::LexicalIdentifier(
                 create_parse_tree_lexical_identifier(root_id, parser, builder),
             )

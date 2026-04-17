@@ -426,16 +426,24 @@ impl ParseTreeBuilder<ParseTree> for GroupParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &GroupParser,
     builder: &GroupParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "A" => ParseTree::A(create_parse_tree_a(root_id, parser, builder)),
-        "B" => ParseTree::B(create_parse_tree_b(root_id, parser, builder)),
-        "C" => ParseTree::C(create_parse_tree_c(root_id, parser, builder)),
-        "D" => ParseTree::D(create_parse_tree_d(root_id, parser, builder)),
-        "A_Group_0" => {
+    match nonterminal_id {
+        crate::grammar_data::A => {
+            ParseTree::A(create_parse_tree_a(root_id, parser, builder))
+        }
+        crate::grammar_data::B => {
+            ParseTree::B(create_parse_tree_b(root_id, parser, builder))
+        }
+        crate::grammar_data::C => {
+            ParseTree::C(create_parse_tree_c(root_id, parser, builder))
+        }
+        crate::grammar_data::D => {
+            ParseTree::D(create_parse_tree_d(root_id, parser, builder))
+        }
+        crate::grammar_data::A_GROUP_0 => {
             ParseTree::AGroup0(create_parse_tree_a_group_0(root_id, parser, builder))
         }
         _ => panic!(),

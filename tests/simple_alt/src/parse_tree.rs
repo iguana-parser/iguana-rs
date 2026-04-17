@@ -455,16 +455,24 @@ impl ParseTreeBuilder<ParseTree> for SimpleAltParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &SimpleAltParser,
     builder: &SimpleAltParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "A" => ParseTree::A(create_parse_tree_a(root_id, parser, builder)),
-        "B" => ParseTree::B(create_parse_tree_b(root_id, parser, builder)),
-        "C" => ParseTree::C(create_parse_tree_c(root_id, parser, builder)),
-        "D" => ParseTree::D(create_parse_tree_d(root_id, parser, builder)),
-        "A_Alt_0" => {
+    match nonterminal_id {
+        crate::grammar_data::A => {
+            ParseTree::A(create_parse_tree_a(root_id, parser, builder))
+        }
+        crate::grammar_data::B => {
+            ParseTree::B(create_parse_tree_b(root_id, parser, builder))
+        }
+        crate::grammar_data::C => {
+            ParseTree::C(create_parse_tree_c(root_id, parser, builder))
+        }
+        crate::grammar_data::D => {
+            ParseTree::D(create_parse_tree_d(root_id, parser, builder))
+        }
+        crate::grammar_data::A_ALT_0 => {
             ParseTree::AAlt0(create_parse_tree_a_alt_0(root_id, parser, builder))
         }
         _ => panic!(),

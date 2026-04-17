@@ -7,7 +7,7 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
-use parse_tree::{ParseTree, IndirectPrecedenceParseTreeBuilder, create_parse_tree};
+use parse_tree::IndirectPrecedenceParseTreeBuilder;
 use parser::IndirectPrecedenceParser;
 #[derive(Debug)]
 pub struct ParseError {
@@ -44,14 +44,13 @@ pub fn parse_s(input: &Input) -> Result<parse_tree::S, ParseError> {
     let mut parser = IndirectPrecedenceParser::new(input, grammar_data::S);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "S",
-                &parser,
-                &IndirectPrecedenceParseTreeBuilder,
-            );
-            let ParseTree::S(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_s(
+                    success.sppf_node_id,
+                    &parser,
+                    &IndirectPrecedenceParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -60,14 +59,13 @@ pub fn parse_f(input: &Input) -> Result<parse_tree::F, ParseError> {
     let mut parser = IndirectPrecedenceParser::new(input, grammar_data::F);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "F",
-                &parser,
-                &IndirectPrecedenceParseTreeBuilder,
-            );
-            let ParseTree::F(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_f(
+                    success.sppf_node_id,
+                    &parser,
+                    &IndirectPrecedenceParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
@@ -76,14 +74,13 @@ pub fn parse_k(input: &Input) -> Result<parse_tree::K, ParseError> {
     let mut parser = IndirectPrecedenceParser::new(input, grammar_data::K);
     match parser.run() {
         ParseResult::Success(success) => {
-            let tree = create_parse_tree(
-                success.sppf_node_id,
-                "K",
-                &parser,
-                &IndirectPrecedenceParseTreeBuilder,
-            );
-            let ParseTree::K(node) = tree else { unreachable!() };
-            Ok(node)
+            Ok(
+                parse_tree::create_parse_tree_k(
+                    success.sppf_node_id,
+                    &parser,
+                    &IndirectPrecedenceParseTreeBuilder,
+                ),
+            )
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }

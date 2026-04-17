@@ -49,7 +49,7 @@ pub struct Start<T, L> {
 pub enum ParseTree {
     Expr(Expr),
     //Expr
-    StartExpr(Start<Expr, Layout>),
+    StartExpr(Start<Expr, Token>),
     Token(Token),
 }
 impl ParseTree {
@@ -66,7 +66,7 @@ impl ParseTree {
             _ => panic!(),
         }
     }
-    fn unwrap_start_expr(self) -> Start<Expr, Layout> {
+    fn unwrap_start_expr(self) -> Start<Expr, Token> {
         match self {
             ParseTree::StartExpr(start_expr) => start_expr,
             _ => panic!(),
@@ -82,7 +82,7 @@ impl ParseTree {
 #[derive(Clone, Copy)]
 pub enum ParseTreeRef<'a> {
     Expr(&'a Expr),
-    StartExpr(&'a Start<Expr, Layout>),
+    StartExpr(&'a Start<Expr, Token>),
     Token(&'a Token),
 }
 impl<'a> ParseTreeRef<'a> {
@@ -126,8 +126,8 @@ impl From<Expr> for ParseTree {
         ParseTree::Expr(expr)
     }
 }
-impl From<Start<Expr, Layout>> for ParseTree {
-    fn from(start_expr: Start<Expr, Layout>) -> Self {
+impl From<Start<Expr, Token>> for ParseTree {
+    fn from(start_expr: Start<Expr, Token>) -> Self {
         ParseTree::StartExpr(start_expr)
     }
 }
@@ -210,7 +210,7 @@ impl Expr {
         }
     }
 }
-impl Start<Expr, Layout> {
+impl Start<Expr, Token> {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
             0 => Some(self.before.as_parse_tree_ref()),
@@ -342,13 +342,15 @@ impl ParseTreeBuilder<ParseTree> for CommentsParseTreeBuilder {
 }
 pub fn create_parse_tree(
     root_id: SPPFNodeId,
-    name: &str,
+    nonterminal_id: NonterminalId,
     parser: &CommentsParser,
     builder: &CommentsParseTreeBuilder,
 ) -> ParseTree {
-    match name {
-        "Expr" => ParseTree::Expr(create_parse_tree_expr(root_id, parser, builder)),
-        "StartExpr" => {
+    match nonterminal_id {
+        crate::grammar_data::EXPR => {
+            ParseTree::Expr(create_parse_tree_expr(root_id, parser, builder))
+        }
+        crate::grammar_data::START_EXPR => {
             ParseTree::StartExpr(create_parse_tree_start_expr(root_id, parser, builder))
         }
         _ => panic!(),
@@ -366,7 +368,7 @@ pub fn create_parse_tree_start_expr(
     root_id: SPPFNodeId,
     parser: &CommentsParser,
     builder: &CommentsParseTreeBuilder,
-) -> Start<Expr, Layout> {
+) -> Start<Expr, Token> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_start_expr()
 }
