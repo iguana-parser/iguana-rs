@@ -129,6 +129,13 @@ impl TokenKind {
     }
 }
 #[derive(Debug)]
+pub struct Start<T, L> {
+    pub before: L,
+    pub node: T,
+    pub after: L,
+    pub span: Span,
+}
+#[derive(Debug)]
 pub enum ParseTree {
     Grammar(Grammar),
     LayoutDef(LayoutDef),
@@ -227,7 +234,8 @@ pub enum ParseTree {
     LayoutOpt11(LayoutOpt11),
     //(WS | LineComment)*
     LayoutStar6(LayoutStar6),
-    StartGrammar(StartGrammar),
+    //Grammar
+    StartGrammar(Start<Grammar, Layout>),
     Token(Token),
 }
 impl ParseTree {
@@ -684,7 +692,7 @@ impl ParseTree {
             _ => panic!(),
         }
     }
-    fn unwrap_start_grammar(self) -> StartGrammar {
+    fn unwrap_start_grammar(self) -> Start<Grammar, Layout> {
         match self {
             ParseTree::StartGrammar(start_grammar) => start_grammar,
             _ => panic!(),
@@ -756,7 +764,7 @@ pub enum ParseTreeRef<'a> {
     LayoutPlus14(&'a LayoutPlus14),
     LayoutOpt11(&'a LayoutOpt11),
     LayoutStar6(&'a LayoutStar6),
-    StartGrammar(&'a StartGrammar),
+    StartGrammar(&'a Start<Grammar, Layout>),
     Token(&'a Token),
 }
 impl<'a> ParseTreeRef<'a> {
@@ -1040,7 +1048,7 @@ impl<'a> ParseTreeRef<'a> {
             ParseTreeRef::LayoutPlus14(_) => "(WS | LineComment)+",
             ParseTreeRef::LayoutOpt11(_) => "(WS | LineComment)+?",
             ParseTreeRef::LayoutStar6(_) => "(WS | LineComment)*",
-            ParseTreeRef::StartGrammar(_) => "StartGrammar",
+            ParseTreeRef::StartGrammar(_) => "Grammar",
             ParseTreeRef::Token(token) => token.kind.name(),
         }
     }
@@ -1522,8 +1530,8 @@ impl From<LayoutStar6> for ParseTree {
         ParseTree::LayoutStar6(layout_star_6)
     }
 }
-impl From<StartGrammar> for ParseTree {
-    fn from(start_grammar: StartGrammar) -> Self {
+impl From<Start<Grammar, Layout>> for ParseTree {
+    fn from(start_grammar: Start<Grammar, Layout>) -> Self {
         ParseTree::StartGrammar(start_grammar)
     }
 }
@@ -2182,14 +2190,6 @@ pub enum LayoutOpt11 {
 #[derive(Debug)]
 pub struct LayoutStar6 {
     pub layout_opt_11: LayoutOpt11,
-    pub span: Span,
-}
-//StartGrammar = Layout start:Grammar Layout
-#[derive(Debug)]
-pub struct StartGrammar {
-    pub layout_0: Layout,
-    pub start: Grammar,
-    pub layout_2: Layout,
     pub span: Span,
 }
 impl Grammar {
@@ -4319,12 +4319,12 @@ impl LayoutStar6 {
         self.layout_opt_11.line_comments()
     }
 }
-impl StartGrammar {
+impl Start<Grammar, Layout> {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            0 => Some(self.before.as_parse_tree_ref()),
+            1 => Some(self.node.as_parse_tree_ref()),
+            2 => Some(self.after.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -6495,14 +6495,14 @@ impl ParseTreeBuilder<ParseTree> for IggyParseTreeBuilder {
             //StartGrammar
             NonterminalId(56) => {
                 match nonterminal_node.return_slot {
-                    //StartGrammar : Layout start:Grammar Layout.
+                    //Grammar : Layout start:Grammar Layout.
                     SlotId(586) => {
                         let [layout_0, start, layout_2] = children
                             .into_array::<3usize>();
-                        StartGrammar {
-                            layout_0: layout_0.unwrap_layout(),
-                            start: start.unwrap_grammar(),
-                            layout_2: layout_2.unwrap_layout(),
+                        Start {
+                            before: layout_0.unwrap_layout(),
+                            node: start.unwrap_grammar(),
+                            after: layout_2.unwrap_layout(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -7782,7 +7782,7 @@ pub fn create_parse_tree_start_grammar(
     root_id: SPPFNodeId,
     parser: &IggyParser,
     builder: &IggyParseTreeBuilder,
-) -> StartGrammar {
+) -> Start<Grammar, Layout> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_start_grammar()
 }

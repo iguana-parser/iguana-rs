@@ -1,7 +1,8 @@
 use iggy::{
     parse_tree,
     parse_tree::{
-        IggyParseTreeBuilder, ListNode, OptNode, ParseTree, StartGrammar, create_parse_tree,
+        Grammar, IggyParseTreeBuilder, Layout, ListNode, OptNode, ParseTree, Start,
+        create_parse_tree,
     },
     parser::IggyParser,
 };
@@ -39,7 +40,7 @@ pub fn parse_grammar(source: &str) -> Result<GrammarDef, Error> {
     build_grammar(&parse_tree, &input)
 }
 
-fn parse(input: &Input) -> Result<StartGrammar, Error> {
+fn parse(input: &Input) -> Result<Start<Grammar, Layout>, Error> {
     let start_nonterminal_name = "StartGrammar";
     let start_nonterminal_id = IggyParser::nonterminal_id(start_nonterminal_name).unwrap();
     let mut parser = IggyParser::new(input, start_nonterminal_id);
@@ -71,10 +72,10 @@ fn text(input: &Input, span: Span) -> String {
 }
 
 pub fn build_grammar(
-    start_grammar: &parse_tree::StartGrammar,
+    start_grammar: &Start<parse_tree::Grammar, parse_tree::Layout>,
     input: &Input,
 ) -> Result<GrammarDef, Error> {
-    let grammar = &start_grammar.start;
+    let grammar = &start_grammar.node;
     let name = text(input, grammar.name.span());
 
     let mut syntax_rules: Vec<SyntaxRule> = Vec::new();

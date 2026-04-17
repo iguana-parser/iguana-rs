@@ -10,7 +10,7 @@ pub const NONTERMINALS: [Nonterminal; 2] = [
     },
     Nonterminal {
         name: "StartExpr",
-        display: "StartExpr",
+        display: "Expr",
         kind: None,
     },
 ];
@@ -72,16 +72,16 @@ pub const SLOTS: [Slot; 18] = [
         display_name: "Expr : \"x\".",
     },
     Slot {
-        display_name: "StartExpr : . Layout start:Expr Layout",
+        display_name: "Expr : . Layout start:Expr Layout",
     },
     Slot {
-        display_name: "StartExpr : Layout . start:Expr Layout",
+        display_name: "Expr : Layout . start:Expr Layout",
     },
     Slot {
-        display_name: "StartExpr : Layout start:Expr . Layout",
+        display_name: "Expr : Layout start:Expr . Layout",
     },
     Slot {
-        display_name: "StartExpr : Layout start:Expr Layout.",
+        display_name: "Expr : Layout start:Expr Layout.",
     },
 ];
 //Expr { "+", "*", Layout, EOF }

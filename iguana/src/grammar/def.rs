@@ -757,7 +757,7 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         })
         .collect();
 
-    let syntax_rules = if let Some(layout) = &grammar_def.layout {
+    let (syntax_rules, start_nonterminals) = if let Some(layout) = &grammar_def.layout {
         let resolved = resolve_identifier(layout.clone(), &symbol_table);
         let mut syntax_rules = layout_insertion::transform(syntax_rules, &resolved);
         let start_rules: Vec<_> = syntax_rules
@@ -765,10 +765,12 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
             .filter(|r| r.start)
             .map(|r| add_start_rule(&r.head, &resolved, &symbol_table))
             .collect();
+        let start_names: FxHashSet<String> =
+            start_rules.iter().map(|r| r.head.name.clone()).collect();
         syntax_rules.extend(start_rules);
-        syntax_rules
+        (syntax_rules, start_names)
     } else {
-        syntax_rules
+        (syntax_rules, FxHashSet::default())
     };
 
     let lexical_rules_map: IndexMap<Terminal, LexicalRule> = lexical_rules
@@ -795,6 +797,7 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         ebnf_symbols,
         layout: grammar_def.layout,
         symbol_table,
+        start_nonterminals,
     }
 }
 
@@ -825,7 +828,7 @@ fn add_start_rule(
     SyntaxRule {
         head: Nonterminal {
             name,
-            origin: None,
+            origin: Some(symbol.clone()),
             parameters: vec![],
         },
         priority_levels: vec![priority_level!(alternative!(
@@ -850,6 +853,7 @@ pub struct Grammar {
     ebnf_symbols: FxHashMap<Symbol, Symbol>,
     pub symbol_table: SymbolTable,
     pub layout: Option<Symbol>,
+    start_nonterminals: FxHashSet<String>,
 }
 
 impl PartialEq for Grammar {
@@ -867,6 +871,9 @@ impl Grammar {
     }
     pub fn nonterminal(&self, name: &str) -> Option<&Nonterminal> {
         self.productions.keys().find(|n| n.name == name)
+    }
+    pub fn is_start(&self, nonterminal: &Nonterminal) -> bool {
+        self.start_nonterminals.contains(&nonterminal.name)
     }
     pub fn alternatives(&self, nonterminal: &Nonterminal) -> &[Alternative] {
         self.productions.get(nonterminal).map_or(&[], |v| v)

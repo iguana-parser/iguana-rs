@@ -39,9 +39,17 @@ impl TokenKind {
     }
 }
 #[derive(Debug)]
+pub struct Start<T, L> {
+    pub before: L,
+    pub node: T,
+    pub after: L,
+    pub span: Span,
+}
+#[derive(Debug)]
 pub enum ParseTree {
     Expr(Expr),
-    StartExpr(StartExpr),
+    //Expr
+    StartExpr(Start<Expr, Layout>),
     Token(Token),
 }
 impl ParseTree {
@@ -58,7 +66,7 @@ impl ParseTree {
             _ => panic!(),
         }
     }
-    fn unwrap_start_expr(self) -> StartExpr {
+    fn unwrap_start_expr(self) -> Start<Expr, Layout> {
         match self {
             ParseTree::StartExpr(start_expr) => start_expr,
             _ => panic!(),
@@ -74,7 +82,7 @@ impl ParseTree {
 #[derive(Clone, Copy)]
 pub enum ParseTreeRef<'a> {
     Expr(&'a Expr),
-    StartExpr(&'a StartExpr),
+    StartExpr(&'a Start<Expr, Layout>),
     Token(&'a Token),
 }
 impl<'a> ParseTreeRef<'a> {
@@ -94,7 +102,7 @@ impl<'a> ParseTreeRef<'a> {
     pub fn display_name(&self) -> &'static str {
         match self {
             ParseTreeRef::Expr(_) => "Expr",
-            ParseTreeRef::StartExpr(_) => "StartExpr",
+            ParseTreeRef::StartExpr(_) => "Expr",
             ParseTreeRef::Token(token) => token.kind.name(),
         }
     }
@@ -118,8 +126,8 @@ impl From<Expr> for ParseTree {
         ParseTree::Expr(expr)
     }
 }
-impl From<StartExpr> for ParseTree {
-    fn from(start_expr: StartExpr) -> Self {
+impl From<Start<Expr, Layout>> for ParseTree {
+    fn from(start_expr: Start<Expr, Layout>) -> Self {
         ParseTree::StartExpr(start_expr)
     }
 }
@@ -152,14 +160,6 @@ pub enum Expr {
     },
     //"x"
     Alt2 { lit_0: Token, span: Span },
-}
-//StartExpr = Layout start:Expr Layout
-#[derive(Debug)]
-pub struct StartExpr {
-    pub layout_0: Token,
-    pub start: Expr,
-    pub layout_2: Token,
-    pub span: Span,
 }
 impl Expr {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
@@ -210,12 +210,12 @@ impl Expr {
         }
     }
 }
-impl StartExpr {
+impl Start<Expr, Layout> {
     pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
         match index {
-            0 => Some(self.layout_0.as_parse_tree_ref()),
-            1 => Some(self.start.as_parse_tree_ref()),
-            2 => Some(self.layout_2.as_parse_tree_ref()),
+            0 => Some(self.before.as_parse_tree_ref()),
+            1 => Some(self.node.as_parse_tree_ref()),
+            2 => Some(self.after.as_parse_tree_ref()),
             _ => None,
         }
     }
@@ -315,14 +315,14 @@ impl ParseTreeBuilder<ParseTree> for CommentsParseTreeBuilder {
             //StartExpr
             NonterminalId(1) => {
                 match nonterminal_node.return_slot {
-                    //StartExpr : Layout start:Expr Layout.
+                    //Expr : Layout start:Expr Layout.
                     SlotId(17) => {
                         let [layout_0, start, layout_2] = children
                             .into_array::<3usize>();
-                        StartExpr {
-                            layout_0: layout_0.unwrap_token(),
-                            start: start.unwrap_expr(),
-                            layout_2: layout_2.unwrap_token(),
+                        Start {
+                            before: layout_0.unwrap_token(),
+                            node: start.unwrap_expr(),
+                            after: layout_2.unwrap_token(),
                             span: nonterminal_node.span,
                         }
                             .into()
@@ -366,7 +366,7 @@ pub fn create_parse_tree_start_expr(
     root_id: SPPFNodeId,
     parser: &CommentsParser,
     builder: &CommentsParseTreeBuilder,
-) -> StartExpr {
+) -> Start<Expr, Layout> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_start_expr()
 }

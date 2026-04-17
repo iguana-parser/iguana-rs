@@ -285,7 +285,7 @@ pub const NONTERMINALS: [Nonterminal; 60] = [
     },
     Nonterminal {
         name: "StartGrammar",
-        display: "StartGrammar",
+        display: "Grammar",
         kind: None,
     },
     Nonterminal {
@@ -2122,16 +2122,16 @@ pub const SLOTS: [Slot; 587] = [
         display_name: "Symbol !FollowRestriction : label:Identifier Layout \":\" Layout Symbol(1) return 1.",
     },
     Slot {
-        display_name: "StartGrammar : . Layout start:Grammar Layout",
+        display_name: "Grammar : . Layout start:Grammar Layout",
     },
     Slot {
-        display_name: "StartGrammar : Layout . start:Grammar Layout",
+        display_name: "Grammar : Layout . start:Grammar Layout",
     },
     Slot {
-        display_name: "StartGrammar : Layout start:Grammar . Layout",
+        display_name: "Grammar : Layout start:Grammar . Layout",
     },
     Slot {
-        display_name: "StartGrammar : Layout start:Grammar Layout.",
+        display_name: "Grammar : Layout start:Grammar Layout.",
     },
 ];
 //Grammar { EOF, LineComment, WS }
