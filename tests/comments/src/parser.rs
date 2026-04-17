@@ -34,13 +34,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
     }
-    fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-        match name {
-            "Expr" => Some(EXPR),
-            "StartExpr" => Some(START_EXPR),
-            _ => None,
-        }
-    }
     fn terminal_name(terminal_id: TerminalId) -> &'static str {
         TERMINALS[terminal_id.index()].name
     }

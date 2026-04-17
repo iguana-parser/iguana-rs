@@ -31,14 +31,6 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
     }
-    fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-        match name {
-            "S" => Some(S),
-            "Id" => Some(ID),
-            "Id_Plus_0" => Some(ID_PLUS_0),
-            _ => None,
-        }
-    }
     fn terminal_name(terminal_id: TerminalId) -> &'static str {
         TERMINALS[terminal_id.index()].name
     }

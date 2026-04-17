@@ -1,13 +1,13 @@
 // To regenerate parser:  cargo run -p iguana -- generate --grammar tests/regex_composition/regex_composition.iggy --output tests/regex_composition
 // To update golden files: REGENERATE=1 cargo test -p regex_composition
 
-use regex_composition::{parse, parse_tree::to_sexpr};
+use regex_composition::{grammar_data, parse, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
 use iguana_runtime::testing::{check_golden_file, golden_path};
 
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);
-    let result = parse(&input, "S").expect("Parse failed");
+    let result = parse(&input, grammar_data::S).expect("Parse failed");
     let actual = to_sexpr(result.tree.as_parse_tree_ref());
     check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
 }
@@ -40,6 +40,6 @@ fn test_mixed() {
 #[test]
 fn test_digit_only_fails() {
     let input = Input::from("123");
-    let result = parse(&input, "S");
+    let result = parse(&input, grammar_data::S);
     assert!(result.is_none(), "Should not parse: identifiers cannot start with a digit");
 }

@@ -46,7 +46,6 @@ pub enum ParseErrorKind {
 
 pub trait Parser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str;
-    fn nonterminal_id(name: &str) -> Option<NonterminalId>;
     fn terminal_name(terminal_id: TerminalId) -> &'static str;
     fn slot_name(slot_id: SlotId) -> &'static str;
     fn epsilon() -> TerminalId;

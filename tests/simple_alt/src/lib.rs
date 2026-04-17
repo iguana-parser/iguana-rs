@@ -5,7 +5,8 @@ pub mod parse_tree;
 pub mod scanner;
 pub mod types;
 use std::time::Duration;
-use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
+use iguana_runtime::{ids::NonterminalId, input::Input, parser::{ParseResult, Parser}};
+use grammar_data::NONTERMINALS;
 use parse_tree::{ParseTree, SimpleAltParseTreeBuilder, create_parse_tree};
 use parser::SimpleAltParser;
 pub struct ParseSuccess {
@@ -13,16 +14,16 @@ pub struct ParseSuccess {
     pub parse_duration: Duration,
     pub tree_construction_duration: Duration,
 }
-pub fn parse(input: &Input, start_nonterminal: &str) -> Option<ParseSuccess> {
-    let start_id = SimpleAltParser::nonterminal_id(start_nonterminal)?;
-    let mut parser = SimpleAltParser::new(input, start_id);
+pub fn parse(input: &Input, start_nonterminal: NonterminalId) -> Option<ParseSuccess> {
+    let mut parser = SimpleAltParser::new(input, start_nonterminal);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let name = NONTERMINALS[start_nonterminal.index()].name;
             let tree = create_parse_tree(
                 success.sppf_node_id,
-                start_nonterminal,
+                name,
                 &parser,
                 &SimpleAltParseTreeBuilder,
             );

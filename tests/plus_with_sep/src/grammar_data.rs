@@ -21,6 +21,14 @@ pub const NONTERMINALS: [Nonterminal; 3] = [
 pub const S: NonterminalId = NonterminalId(0);
 pub const A: NonterminalId = NonterminalId(1);
 pub const S_PLUS_0: NonterminalId = NonterminalId(2);
+pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
+    match name {
+        "S" => Some(S),
+        "A" => Some(A),
+        "S_Plus_0" => Some(S_PLUS_0),
+        _ => None,
+    }
+}
 pub const TERMINALS: [Terminal; 4] = [
     Terminal { name: "\",\"" },
     Terminal { name: "\"a\"" },

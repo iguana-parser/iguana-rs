@@ -33,6 +33,16 @@ pub const EXPR_PLUS_0: NonterminalId = NonterminalId(1);
 pub const EXPR_OPT_0: NonterminalId = NonterminalId(2);
 pub const EXPR_STAR_0: NonterminalId = NonterminalId(3);
 pub const EXPR_EXCEPT_COMMA: NonterminalId = NonterminalId(4);
+pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
+    match name {
+        "Expr" => Some(EXPR),
+        "Expr_Plus_0" => Some(EXPR_PLUS_0),
+        "Expr_Opt_0" => Some(EXPR_OPT_0),
+        "Expr_Star_0" => Some(EXPR_STAR_0),
+        "Expr_except_comma" => Some(EXPR_EXCEPT_COMMA),
+        _ => None,
+    }
+}
 pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Id" },
     Terminal { name: "\"(\"" },

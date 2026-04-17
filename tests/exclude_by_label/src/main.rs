@@ -15,7 +15,7 @@ use iguana_runtime::{
 use pprof::ProfilerGuardBuilder;
 use exclude_by_label::{
     parse_tree::{ExcludeByLabelParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
-    grammar_data::{NONTERMINALS, SLOTS, TERMINALS},
+    grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
     parser::ExcludeByLabelParser, types::{Nonterminal, Slot, Terminal},
 };
 #[cfg(feature = "debug-trace")]
@@ -137,9 +137,7 @@ fn main() -> Result<(), io::Error> {
         );
     }
     let input = Input::try_from(file.as_path())?;
-    let start_nonterminal_id = ExcludeByLabelParser::nonterminal_id(
-            &start_nonterminal_name,
-        )
+    let start_nonterminal_id = nonterminal_id(&start_nonterminal_name)
         .ok_or_else(|| io::Error::new(
             io::ErrorKind::InvalidInput,
             format!("Unknown nonterminal: '{}'", start_nonterminal_name),

@@ -17,9 +17,11 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
         use std::time::Duration;
         use iguana_runtime::{
+            ids::NonterminalId,
             input::Input,
             parser::{ParseResult, Parser},
         };
+        use grammar_data::NONTERMINALS;
         use parse_tree::{ParseTree, #parse_tree_builder, create_parse_tree};
         use parser::#parser;
 
@@ -29,16 +31,16 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             pub tree_construction_duration: Duration,
         }
 
-        pub fn parse(input: &Input, start_nonterminal: &str) -> Option<ParseSuccess> {
-            let start_id = #parser::nonterminal_id(start_nonterminal)?;
-            let mut parser = #parser::new(input, start_id);
+        pub fn parse(input: &Input, start_nonterminal: NonterminalId) -> Option<ParseSuccess> {
+            let mut parser = #parser::new(input, start_nonterminal);
             match parser.run() {
                 ParseResult::Success(success) => {
                     let parse_duration = success.duration;
                     let tree_start = std::time::Instant::now();
+                    let name = NONTERMINALS[start_nonterminal.index()].name;
                     let tree = create_parse_tree(
                         success.sppf_node_id,
-                        start_nonterminal,
+                        name,
                         &parser,
                         &#parse_tree_builder,
                     );

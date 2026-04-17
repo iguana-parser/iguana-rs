@@ -34,13 +34,6 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
     }
-    fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-        match name {
-            "S" => Some(S),
-            "E" => Some(E),
-            _ => None,
-        }
-    }
     fn terminal_name(terminal_id: TerminalId) -> &'static str {
         TERMINALS[terminal_id.index()].name
     }

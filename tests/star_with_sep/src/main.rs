@@ -15,7 +15,7 @@ use iguana_runtime::{
 use pprof::ProfilerGuardBuilder;
 use star_with_sep::{
     parse_tree::{StarWithSepParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
-    grammar_data::{NONTERMINALS, SLOTS, TERMINALS},
+    grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
     parser::StarWithSepParser, types::{Nonterminal, Slot, Terminal},
 };
 #[cfg(feature = "debug-trace")]
@@ -137,7 +137,7 @@ fn main() -> Result<(), io::Error> {
         );
     }
     let input = Input::try_from(file.as_path())?;
-    let start_nonterminal_id = StarWithSepParser::nonterminal_id(&start_nonterminal_name)
+    let start_nonterminal_id = nonterminal_id(&start_nonterminal_name)
         .ok_or_else(|| io::Error::new(
             io::ErrorKind::InvalidInput,
             format!("Unknown nonterminal: '{}'", start_nonterminal_name),

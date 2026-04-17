@@ -167,6 +167,16 @@ pub fn generate<'a>(
         })
         .collect();
 
+    // nonterminal_id() lookup function for CLI
+    let nonterminal_id_arms: Vec<_> = nonterminal_ids
+        .nonterminals()
+        .map(|n| {
+            let name = &n.name;
+            let const_name = format_ident!("{}", to_snake_case(name).to_uppercase());
+            quote! { #name => Some(#const_name), }
+        })
+        .collect();
+
     // TERMINALS array
     let terminals_len = Literal::usize_unsuffixed(terminal_ids.len() + 2);
     let terminals: Vec<_> = terminal_ids
@@ -193,6 +203,13 @@ pub fn generate<'a>(
         pub const NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminals),*];
 
         #(#nonterminal_id_consts)*
+
+        pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
+            match name {
+                #(#nonterminal_id_arms)*
+                _ => None,
+            }
+        }
 
         pub const TERMINALS: [Terminal; #terminals_len] = [
             #(#terminals,)*

@@ -15,6 +15,13 @@ pub const NONTERMINALS: [Nonterminal; 2] = [
 ];
 pub const EXPR: NonterminalId = NonterminalId(0);
 pub const START_EXPR: NonterminalId = NonterminalId(1);
+pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
+    match name {
+        "Expr" => Some(EXPR),
+        "StartExpr" => Some(START_EXPR),
+        _ => None,
+    }
+}
 pub const TERMINALS: [Terminal; 9] = [
     Terminal { name: "Layout" },
     Terminal { name: "Identifier" },

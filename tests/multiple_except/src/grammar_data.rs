@@ -15,6 +15,13 @@ pub const NONTERMINALS: [Nonterminal; 2] = [
 ];
 pub const SYNTAX_IDENTIFIER: NonterminalId = NonterminalId(0);
 pub const LEXICAL_IDENTIFIER: NonterminalId = NonterminalId(1);
+pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
+    match name {
+        "SyntaxIdentifier" => Some(SYNTAX_IDENTIFIER),
+        "LexicalIdentifier" => Some(LEXICAL_IDENTIFIER),
+        _ => None,
+    }
+}
 pub const TERMINALS: [Terminal; 7] = [
     Terminal { name: "Identifier" },
     Terminal {

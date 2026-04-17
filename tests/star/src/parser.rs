@@ -37,16 +37,6 @@ impl<'i> Parser<'i> for StarParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
     }
-    fn nonterminal_id(name: &str) -> Option<NonterminalId> {
-        match name {
-            "S" => Some(S),
-            "A" => Some(A),
-            "S_Plus_0" => Some(S_PLUS_0),
-            "S_Opt_0" => Some(S_OPT_0),
-            "S_Star_0" => Some(S_STAR_0),
-            _ => None,
-        }
-    }
     fn terminal_name(terminal_id: TerminalId) -> &'static str {
         TERMINALS[terminal_id.index()].name
     }

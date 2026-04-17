@@ -1,4 +1,5 @@
 use iggy::{
+    grammar_data,
     parse_tree,
     parse_tree::{
         Grammar, IggyParseTreeBuilder, Layout, ListNode, OptNode, ParseTree, Start,
@@ -41,15 +42,13 @@ pub fn parse_grammar(source: &str) -> Result<GrammarDef, Error> {
 }
 
 fn parse(input: &Input) -> Result<Start<Grammar, Layout>, Error> {
-    let start_nonterminal_name = "StartGrammar";
-    let start_nonterminal_id = IggyParser::nonterminal_id(start_nonterminal_name).unwrap();
-    let mut parser = IggyParser::new(input, start_nonterminal_id);
+    let mut parser = IggyParser::new(input, grammar_data::START_GRAMMAR);
     let result = parser.run();
     match result {
         ParseResult::Success(success) => {
             let parse_tree = create_parse_tree(
                 success.sppf_node_id,
-                start_nonterminal_name,
+                "StartGrammar",
                 &parser,
                 &IggyParseTreeBuilder,
             );
