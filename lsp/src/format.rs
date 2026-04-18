@@ -33,12 +33,9 @@ const CONT_INDENT: &str = "      "; // 6 spaces for continuation lines
 /// Format an iggy grammar from its parse result.
 /// Returns `None` if the parse result has no tree (parse failure).
 pub fn format(result: &ParseResult) -> Option<String> {
-    let tree = result.tree.as_ref()?;
-    let ParseTree::StartGrammar(start_grammar) = tree else {
-        return None;
-    };
+    let start_grammar = result.tree.as_ref()?;
     let f = Formatter::new(&result.input);
-    Some(f.format_grammar(&start_grammar.start))
+    Some(f.format_grammar(&start_grammar.node))
 }
 
 struct Formatter<'a> {
@@ -109,7 +106,7 @@ impl<'a> Formatter<'a> {
     }
 
     fn format_syntax_rule(&self, out: &mut String, rule: &SyntaxRule) {
-        if let Some(annotation) = rule.annotation.value() {
+        for annotation in rule.annotations.annotations() {
             self.format_annotation(out, annotation);
             out.push('\n');
         }
@@ -202,6 +199,7 @@ impl<'a> Formatter<'a> {
                 out.push_str(&self.text(identifier.span()));
                 out.push(')');
             }
+            Annotation::Start { .. } => out.push_str("@Start"),
         }
     }
 

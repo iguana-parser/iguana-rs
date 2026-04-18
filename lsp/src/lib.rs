@@ -8,14 +8,14 @@ pub mod semantic_tokens;
 pub mod spans;
 pub mod symbols;
 
-use iggy::parse_tree::ParseTree;
+use iggy::parse_tree::{Grammar, Layout, Start};
 use iguana::grammar::def::GrammarDef;
 use iguana_runtime::input::Input;
 use spans::GrammarSpans;
 use std::time::Duration;
 
 pub struct ParseResult {
-    pub tree: Option<ParseTree>,
+    pub tree: Option<Start<Grammar, Layout>>,
     pub input: Input,
     /// Time spent in the GLL parsing algorithm.
     pub parse_duration: Duration,
@@ -25,10 +25,7 @@ pub struct ParseResult {
 
 /// Build a GrammarDef from a successful parse result.
 pub fn build_grammar_def(result: &ParseResult) -> Option<GrammarDef> {
-    let tree = result.tree.as_ref()?;
-    let ParseTree::StartGrammar(start) = tree else {
-        return None;
-    };
+    let start = result.tree.as_ref()?;
     iguana::iggy::build_grammar(start, &result.input)
         .ok()
         .map(|def| def.resolve())
@@ -39,10 +36,7 @@ pub fn build_spans<'a>(
     grammar_def: &'a GrammarDef,
     result: &ParseResult,
 ) -> Option<GrammarSpans<'a>> {
-    let tree = result.tree.as_ref()?;
-    let ParseTree::StartGrammar(start) = tree else {
-        return None;
-    };
+    let start = result.tree.as_ref()?;
     Some(spans::build_spans(grammar_def, start, &result.input))
 }
 
@@ -50,10 +44,10 @@ pub fn build_spans<'a>(
 pub fn parse(source: &str) -> ParseResult {
     let input = Input::from(source);
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        iggy::parse(&input, "StartGrammar")
+        iggy::parse_grammar(&input)
     }))
     .ok()
-    .flatten();
+    .and_then(|r| r.ok());
     match result {
         Some(success) => ParseResult {
             parse_duration: success.parse_duration,

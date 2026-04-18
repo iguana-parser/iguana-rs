@@ -177,10 +177,10 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
 
 pub fn build_spans<'a>(
     grammar_def: &'a GrammarDef,
-    parse_tree: &parse_tree::StartGrammar,
+    parse_tree: &parse_tree::Start<parse_tree::Grammar, parse_tree::Layout>,
     input: &Input,
 ) -> GrammarSpans<'a> {
-    let grammar = &parse_tree.start;
+    let grammar = &parse_tree.node;
     let mut builder = SpanBuilder {
         grammar_def,
         input,
@@ -199,7 +199,7 @@ pub fn build_spans<'a>(
         match rule {
             parse_tree::Rule::SyntaxRule { syntax_rule, .. } => {
                 let gr_rule = &grammar_def.syntax_rules[syntax_idx];
-                collect_syntax_rule_spans(gr_rule, syntax_rule, &mut builder.spans);
+                collect_syntax_rule_spans(gr_rule, &syntax_rule, &mut builder.spans);
                 syntax_idx += 1;
             }
             parse_tree::Rule::RegexRule { .. } => {

@@ -83,7 +83,7 @@ fn classify_token(token: &Token) -> Option<u32> {
             Some(TOKEN_KEYWORD)
         }
         // Decorators
-        "\"@NoLayout\"" | "\"@Layout\"" | "\"@regex\"" => Some(TOKEN_DECORATOR),
+        "\"@NoLayout\"" | "\"@Layout\"" | "\"@Start\"" | "\"@regex\"" => Some(TOKEN_DECORATOR),
         // Identifier
         "Identifier" => Some(TOKEN_TYPE),
         // String and Char literals (now include quotes)
