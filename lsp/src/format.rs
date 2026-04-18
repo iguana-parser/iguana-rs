@@ -19,7 +19,6 @@
 // - Final newline at end of file
 
 use crate::layout::is_same_line;
-use crate::ParseResult;
 use iggy::parse_tree::*;
 use iguana_runtime::input::Input;
 use iguana_runtime::sppf::Span;
@@ -30,12 +29,10 @@ const ALT_PREFIX: &str = "  | ";
 const PRIO_PREFIX: &str = "  > ";
 const CONT_INDENT: &str = "      "; // 6 spaces for continuation lines
 
-/// Format an iggy grammar from its parse result.
-/// Returns `None` if the parse result has no tree (parse failure).
-pub fn format(result: &ParseResult) -> Option<String> {
-    let start_grammar = result.tree.as_ref()?;
-    let f = Formatter::new(&result.input);
-    Some(f.format_grammar(&start_grammar.node))
+/// Format an iggy grammar from its parse tree.
+pub fn format(tree: &Start<Grammar, Layout>, input: &Input) -> String {
+    let f = Formatter::new(input);
+    f.format_grammar(&tree.node)
 }
 
 struct Formatter<'a> {
@@ -442,8 +439,11 @@ mod tests {
     use super::*;
 
     fn format_source(source: &str) -> Option<String> {
-        let result = crate::parse(source);
-        format(&result)
+        let input = Input::from(source);
+        match crate::build(&input) {
+            crate::BuildResult::Success { ref tree, .. } => Some(format(tree, &input)),
+            crate::BuildResult::Error { .. } => None,
+        }
     }
 
     #[test]
@@ -510,8 +510,7 @@ mod tests {
 
     #[test]
     fn test_parse_failure_returns_none() {
-        let result = crate::parse("not a valid {{{ grammar");
-        assert!(format(&result).is_none());
+        assert!(format_source("not a valid {{{ grammar").is_none());
     }
 
     #[test]

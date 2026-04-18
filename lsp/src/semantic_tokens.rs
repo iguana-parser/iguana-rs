@@ -1,5 +1,4 @@
-use crate::ParseResult;
-use iggy::parse_tree::{ParseTreeRef, Token};
+use iggy::parse_tree::{Grammar, Layout, ParseTreeRef, Start, Token};
 use iguana_runtime::input::Input;
 use iguana_runtime::sppf::Span;
 use lsp_types::{Position, Range, SemanticToken, SemanticTokenType, SemanticTokensLegend};
@@ -29,18 +28,14 @@ const TOKEN_OPERATOR: u32 = 4;
 const TOKEN_DECORATOR: u32 = 5;
 const TOKEN_LABEL: u32 = 6;
 
-/// Extract semantic tokens from a cached ParseResult.
-pub fn semantic_tokens(result: &ParseResult) -> Vec<SemanticToken> {
-    let Some(ref tree) = result.tree else {
-        return vec![];
-    };
-
+/// Extract semantic tokens from a parse tree.
+pub fn semantic_tokens(tree: &Start<Grammar, Layout>, input: &Input) -> Vec<SemanticToken> {
     let mut builder = SemanticTokensBuilder::new();
 
     visit(tree.as_parse_tree_ref(), &mut |node| match node {
         ParseTreeRef::Token(token) => {
             if let Some(token_type) = classify_token(token) {
-                builder.push(to_range(token.span(), &result.input), token_type, 0);
+                builder.push(to_range(token.span(), input), token_type, 0);
             }
             false
         }
@@ -52,8 +47,11 @@ pub fn semantic_tokens(result: &ParseResult) -> Vec<SemanticToken> {
 
 /// Convenience: parse and tokenize in one call (for tests and simple consumers).
 pub fn tokenize(source: &str) -> Vec<SemanticToken> {
-    let result = crate::parse(source);
-    semantic_tokens(&result)
+    let input = Input::from(source);
+    match crate::build(&input) {
+        crate::BuildResult::Success { ref tree, .. } => semantic_tokens(tree, &input),
+        crate::BuildResult::Error { .. } => vec![],
+    }
 }
 
 fn to_range(span: Span, input: &Input) -> Range {

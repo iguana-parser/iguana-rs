@@ -7,9 +7,17 @@ use lsp_types::request::{
     Request as LspRequest, SemanticTokensFullRequest,
 };
 use lsp_types::{
-    DocumentSymbolResponse, Position, PublishDiagnosticsParams, Range, SemanticTokens,
+    Diagnostic, DocumentSymbolResponse, Position, PublishDiagnosticsParams, Range, SemanticTokens,
     SemanticTokensResult, TextEdit, Uri,
 };
+use iguana_runtime::input::Input;
+use lsp::diagnostics::diagnostics;
+use lsp::document_symbols::document_symbols;
+use lsp::folding::folding_ranges;
+use lsp::format::format;
+use lsp::references::{definition, references};
+use lsp::semantic_tokens::semantic_tokens;
+use lsp::{build, build_grammar_def, build_spans, BuildResult};
 
 pub fn main_loop(
     connection: Connection,
@@ -35,11 +43,13 @@ pub fn main_loop(
                                 continue;
                             }
                         };
-                        let parse_result = lsp::parse(&source);
-                        if parse_result.tree.is_none() {
-                            eprintln!("parse error: grammar has syntax errors");
-                        }
-                        let tokens = lsp::semantic_tokens::semantic_tokens(&parse_result);
+                        let input = Input::from(source.as_str());
+                        let tokens = match build(&input) {
+                            BuildResult::Success { ref tree, .. } => {
+                                semantic_tokens(tree, &input)
+                            }
+                            BuildResult::Error { .. } => vec![],
+                        };
                         let result = SemanticTokensResult::Tokens(SemanticTokens {
                             result_id: None,
                             data: tokens,
@@ -63,22 +73,23 @@ pub fn main_loop(
                                 continue;
                             }
                         };
-                        let parse_result = lsp::parse(&source);
-                        if parse_result.tree.is_none() {
-                            eprintln!("parse error: grammar has syntax errors, cannot format");
-                        }
-                        let edits = lsp::format::format(&parse_result).map(|formatted| {
-                            let line_count = source.lines().count() as u32;
-                            let last_line_len =
-                                source.lines().last().map_or(0, |l| l.len()) as u32;
-                            vec![TextEdit {
-                                range: Range {
-                                    start: Position::new(0, 0),
-                                    end: Position::new(line_count, last_line_len),
-                                },
-                                new_text: formatted,
-                            }]
-                        });
+                        let input = Input::from(source.as_str());
+                        let edits = match build(&input) {
+                            BuildResult::Success { ref tree, .. } => {
+                                let formatted = format(tree, &input);
+                                let line_count = source.lines().count() as u32;
+                                let last_line_len =
+                                    source.lines().last().map_or(0, |l| l.len()) as u32;
+                                Some(vec![TextEdit {
+                                    range: Range {
+                                        start: Position::new(0, 0),
+                                        end: Position::new(line_count, last_line_len),
+                                    },
+                                    new_text: formatted,
+                                }])
+                            }
+                            BuildResult::Error { .. } => None,
+                        };
                         let result = serde_json::to_value(&edits).unwrap();
                         let resp = Response {
                             id,
@@ -98,16 +109,19 @@ pub fn main_loop(
                                 continue;
                             }
                         };
-                        let parse_result = lsp::parse(&source);
+                        let input = Input::from(source.as_str());
                         let locations = (|| {
-                            let grammar_def = lsp::build_grammar_def(&parse_result)?;
-                            let spans = lsp::build_spans(&grammar_def, &parse_result)?;
+                            let BuildResult::Success { ref tree, .. } = build(&input) else {
+                                return None;
+                            };
+                            let grammar_def = build_grammar_def(tree, &input)?;
+                            let spans = build_spans(&grammar_def, tree, &input);
                             let pos = params.text_document_position.position;
-                            let offset = parse_result.input.offset(pos.line, pos.character);
+                            let offset = input.offset(pos.line, pos.character);
                             let include_declaration = params.context.include_declaration;
-                            Some(lsp::references::references(
+                            Some(references(
                                 &spans,
-                                &parse_result.input,
+                                &input,
                                 uri,
                                 offset,
                                 include_declaration,
@@ -133,18 +147,16 @@ pub fn main_loop(
                                 continue;
                             }
                         };
-                        let parse_result = lsp::parse(&source);
+                        let input = Input::from(source.as_str());
                         let loc = (|| {
-                            let grammar_def = lsp::build_grammar_def(&parse_result)?;
-                            let spans = lsp::build_spans(&grammar_def, &parse_result)?;
+                            let BuildResult::Success { ref tree, .. } = build(&input) else {
+                                return None;
+                            };
+                            let grammar_def = build_grammar_def(tree, &input)?;
+                            let spans = build_spans(&grammar_def, tree, &input);
                             let pos = params.text_document_position_params.position;
-                            let offset = parse_result.input.offset(pos.line, pos.character);
-                            lsp::references::definition(
-                                &spans,
-                                &parse_result.input,
-                                uri,
-                                offset,
-                            )
+                            let offset = input.offset(pos.line, pos.character);
+                            definition(&spans, &input, uri, offset)
                         })();
                         let result = serde_json::to_value(
                             &loc.map(lsp_types::GotoDefinitionResponse::Scalar),
@@ -168,15 +180,14 @@ pub fn main_loop(
                                 continue;
                             }
                         };
-                        let parse_result = lsp::parse(&source);
+                        let input = Input::from(source.as_str());
                         let symbols = (|| {
-                            let grammar_def = lsp::build_grammar_def(&parse_result)?;
-                            let spans = lsp::build_spans(&grammar_def, &parse_result)?;
-                            Some(lsp::document_symbols::document_symbols(
-                                &grammar_def,
-                                &spans,
-                                &parse_result.input,
-                            ))
+                            let BuildResult::Success { ref tree, .. } = build(&input) else {
+                                return None;
+                            };
+                            let grammar_def = build_grammar_def(tree, &input)?;
+                            let spans = build_spans(&grammar_def, tree, &input);
+                            Some(document_symbols(&grammar_def, &spans, &input))
                         })()
                         .unwrap_or_default();
                         let result = serde_json::to_value(
@@ -201,15 +212,14 @@ pub fn main_loop(
                                 continue;
                             }
                         };
-                        let parse_result = lsp::parse(&source);
+                        let input = Input::from(source.as_str());
                         let ranges = (|| {
-                            let grammar_def = lsp::build_grammar_def(&parse_result)?;
-                            let spans = lsp::build_spans(&grammar_def, &parse_result)?;
-                            Some(lsp::folding::folding_ranges(
-                                &grammar_def,
-                                &spans,
-                                &parse_result.input,
-                            ))
+                            let BuildResult::Success { ref tree, .. } = build(&input) else {
+                                return None;
+                            };
+                            let grammar_def = build_grammar_def(tree, &input)?;
+                            let spans = build_spans(&grammar_def, tree, &input);
+                            Some(folding_ranges(&grammar_def, &spans, &input))
                         })()
                         .unwrap_or_default();
                         let result = serde_json::to_value(&ranges).unwrap();
@@ -261,17 +271,28 @@ fn publish_diagnostics(
     uri: Uri,
     source: &str,
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
-    let parse_result = lsp::parse(source);
-    let diagnostics = (|| {
-        let grammar_def = lsp::build_grammar_def(&parse_result)?;
-        let spans = lsp::build_spans(&grammar_def, &parse_result)?;
-        Some(lsp::diagnostics::diagnostics(
-            &grammar_def,
-            &spans,
-            &parse_result.input,
-        ))
-    })()
-    .unwrap_or_default();
+    let input = Input::from(source);
+    let diagnostics = match build(&input) {
+        BuildResult::Success { ref tree, .. } => {
+            build_grammar_def(tree, &input)
+                .map(|grammar_def| {
+                    let spans = build_spans(&grammar_def, tree, &input);
+                    diagnostics(&grammar_def, &spans, &input)
+                })
+                .unwrap_or_default()
+        }
+        BuildResult::Error { line, column, message } => {
+            vec![Diagnostic {
+                range: Range {
+                    start: Position::new(line, column),
+                    end: Position::new(line, column),
+                },
+                severity: Some(lsp_types::DiagnosticSeverity::ERROR),
+                message,
+                ..Default::default()
+            }]
+        }
+    };
     let params = PublishDiagnosticsParams {
         uri,
         diagnostics,

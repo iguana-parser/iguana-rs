@@ -2,6 +2,7 @@ mod trace_replay;
 
 use std::{fs, io::Write, path::Path, path::PathBuf, process::Command, sync::Mutex, thread};
 
+use iguana::input::Input;
 use iguana::visualization::{gss::GSS, sppf::SPPF};
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -122,35 +123,57 @@ struct AnalyzeResult {
     tree_construction_duration_ms: u32,
 }
 
-/// Version-keyed parse cache. Every feature command calls `ensure_parsed()`
+/// Version-keyed parse cache. Every feature command calls `ensure_built()`
 /// which re-parses only if the source text has changed since the last parse.
-/// `grammar_def` is rebuilt from the parse result after each successful parse
+/// `grammar_def` is rebuilt from the build result after each successful parse
 /// and reused by all feature commands.
 struct GrammarState {
-    /// The source text that produced the current `parse_result`.
+    /// The source text that produced the current build result.
     source: Option<String>,
-    parse_result: Option<lsp::ParseResult>,
+    input: Option<Input>,
+    build_result: Option<lsp::BuildResult>,
     grammar_def: Option<iguana::grammar::def::GrammarDef>,
 }
 
 impl GrammarState {
-    /// Ensure `parse_result` and `grammar_def` are up-to-date for `source`.
+    /// Ensure `build_result` and `grammar_def` are up-to-date for `source`.
     /// Re-parses only when the source text has changed. Returns the parse timings.
-    fn ensure_parsed(&mut self, source: &str) -> (u32, u32) {
+    fn ensure_built(&mut self, source: &str) -> (u32, u32) {
         if self.source.as_deref() == Some(source) {
-            if let Some(ref r) = self.parse_result {
+            if let Some(lsp::BuildResult::Success {
+                parse_duration,
+                tree_construction_duration,
+                ..
+            }) = &self.build_result
+            {
                 return (
-                    r.parse_duration.as_millis() as u32,
-                    r.tree_construction_duration.as_millis() as u32,
+                    parse_duration.as_millis() as u32,
+                    tree_construction_duration.as_millis() as u32,
                 );
             }
         }
-        let result = lsp::parse(source);
-        let parse_ms = result.parse_duration.as_millis() as u32;
-        let tree_ms = result.tree_construction_duration.as_millis() as u32;
-        self.grammar_def = lsp::build_grammar_def(&result);
+        let input = Input::from(source);
+        let result = lsp::build(&input);
+        let (parse_ms, tree_ms) = match &result {
+            lsp::BuildResult::Success {
+                ref tree,
+                parse_duration,
+                tree_construction_duration,
+            } => {
+                self.grammar_def = lsp::build_grammar_def(tree, &input);
+                (
+                    parse_duration.as_millis() as u32,
+                    tree_construction_duration.as_millis() as u32,
+                )
+            }
+            lsp::BuildResult::Error { .. } => {
+                self.grammar_def = None;
+                (0, 0)
+            }
+        };
         self.source = Some(source.to_string());
-        self.parse_result = Some(result);
+        self.input = Some(input);
+        self.build_result = Some(result);
         (parse_ms, tree_ms)
     }
 }
@@ -889,8 +912,8 @@ fn find_iggy_file(directory: &Path) -> Result<PathBuf, std::io::Error> {
 #[specta::specta]
 fn analyze_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> AnalyzeResult {
     let mut st = state.lock().unwrap();
-    let (parse_duration_ms, tree_construction_duration_ms) = st.ensure_parsed(&source);
-    let success = st.parse_result.as_ref().map_or(false, |r| r.tree.is_some());
+    let (parse_duration_ms, tree_construction_duration_ms) = st.ensure_built(&source);
+    let success = matches!(&st.build_result, Some(lsp::BuildResult::Success { .. }));
 
     AnalyzeResult {
         success,
@@ -906,8 +929,12 @@ fn analyze_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> 
 #[specta::specta]
 fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> Option<String> {
     let mut st = state.lock().unwrap();
-    st.ensure_parsed(&source);
-    st.parse_result.as_ref().and_then(lsp::format::format)
+    st.ensure_built(&source);
+    let lsp::BuildResult::Success { ref tree, .. } = st.build_result.as_ref()? else {
+        return None;
+    };
+    let input = st.input.as_ref()?;
+    Some(lsp::format::format(tree, input))
 }
 
 /// Return semantic tokens from the cached parse result.
@@ -915,21 +942,22 @@ fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> O
 #[specta::specta]
 fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<SemanticTokenData> {
     let st = state.lock().unwrap();
-    st.parse_result
-        .as_ref()
-        .map(|r| {
-            lsp::semantic_tokens::semantic_tokens(r)
-                .into_iter()
-                .map(|t| SemanticTokenData {
-                    delta_line: t.delta_line,
-                    delta_start: t.delta_start,
-                    length: t.length,
-                    token_type: t.token_type,
-                    token_modifiers_bitset: t.token_modifiers_bitset,
-                })
-                .collect()
+    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.build_result else {
+        return vec![];
+    };
+    let Some(ref input) = st.input else {
+        return vec![];
+    };
+    lsp::semantic_tokens::semantic_tokens(tree, input)
+        .into_iter()
+        .map(|t| SemanticTokenData {
+            delta_line: t.delta_line,
+            delta_start: t.delta_start,
+            length: t.length,
+            token_type: t.token_type,
+            token_modifiers_bitset: t.token_modifiers_bitset,
         })
-        .unwrap_or_default()
+        .collect()
 }
 
 /// Return document symbols (rule heads + alternative labels).
@@ -941,17 +969,18 @@ fn get_document_symbols(
     state: tauri::State<Mutex<GrammarState>>,
 ) -> Vec<DocumentSymbolData> {
     let mut st = state.lock().unwrap();
-    st.ensure_parsed(&source);
-    let Some(ref result) = st.parse_result else {
+    st.ensure_built(&source);
+    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.build_result else {
+        return vec![];
+    };
+    let Some(ref input) = st.input else {
         return vec![];
     };
     let Some(ref grammar_def) = st.grammar_def else {
         return vec![];
     };
-    let Some(spans) = lsp::build_spans(grammar_def, result) else {
-        return vec![];
-    };
-    lsp::document_symbols::document_symbols(grammar_def, &spans, &result.input)
+    let spans = lsp::build_spans(grammar_def, tree, input);
+    lsp::document_symbols::document_symbols(grammar_def, &spans, input)
         .into_iter()
         .map(convert_symbol)
         .collect()
@@ -967,13 +996,16 @@ fn get_definition(
     state: tauri::State<Mutex<GrammarState>>,
 ) -> Option<LocationData> {
     let mut st = state.lock().unwrap();
-    st.ensure_parsed(&source);
-    let result = st.parse_result.as_ref()?;
+    st.ensure_built(&source);
+    let lsp::BuildResult::Success { ref tree, .. } = st.build_result.as_ref()? else {
+        return None;
+    };
+    let input = st.input.as_ref()?;
     let grammar_def = st.grammar_def.as_ref()?;
-    let spans = lsp::build_spans(grammar_def, result)?;
+    let spans = lsp::build_spans(grammar_def, tree, input);
     let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
-    let offset = result.input.offset(line, column);
-    let loc = lsp::references::definition(&spans, &result.input, &uri, offset)?;
+    let offset = input.offset(line, column);
+    let loc = lsp::references::definition(&spans, input, &uri, offset)?;
     Some(LocationData {
         range: RangeData {
             start_line: loc.range.start.line,
@@ -995,19 +1027,20 @@ fn get_references(
     state: tauri::State<Mutex<GrammarState>>,
 ) -> Vec<LocationData> {
     let mut st = state.lock().unwrap();
-    st.ensure_parsed(&source);
-    let Some(ref result) = st.parse_result else {
+    st.ensure_built(&source);
+    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.build_result else {
+        return vec![];
+    };
+    let Some(ref input) = st.input else {
         return vec![];
     };
     let Some(ref grammar_def) = st.grammar_def else {
         return vec![];
     };
-    let Some(spans) = lsp::build_spans(grammar_def, result) else {
-        return vec![];
-    };
+    let spans = lsp::build_spans(grammar_def, tree, input);
     let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
-    let offset = result.input.offset(line, column);
-    lsp::references::references(&spans, &result.input, &uri, offset, include_declaration)
+    let offset = input.offset(line, column);
+    lsp::references::references(&spans, input, &uri, offset, include_declaration)
         .into_iter()
         .map(|loc| LocationData {
             range: RangeData {
@@ -1028,17 +1061,18 @@ fn get_folding_ranges(
     state: tauri::State<Mutex<GrammarState>>,
 ) -> Vec<FoldingRangeData> {
     let mut st = state.lock().unwrap();
-    st.ensure_parsed(&source);
-    let Some(ref result) = st.parse_result else {
+    st.ensure_built(&source);
+    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.build_result else {
+        return vec![];
+    };
+    let Some(ref input) = st.input else {
         return vec![];
     };
     let Some(ref grammar_def) = st.grammar_def else {
         return vec![];
     };
-    let Some(spans) = lsp::build_spans(grammar_def, result) else {
-        return vec![];
-    };
-    lsp::folding::folding_ranges(grammar_def, &spans, &result.input)
+    let spans = lsp::build_spans(grammar_def, tree, input);
+    lsp::folding::folding_ranges(grammar_def, &spans, input)
         .into_iter()
         .map(|r| FoldingRangeData {
             start_line: r.start_line,
@@ -1055,38 +1089,53 @@ fn get_diagnostics(
     state: tauri::State<Mutex<GrammarState>>,
 ) -> Vec<DiagnosticData> {
     let mut st = state.lock().unwrap();
-    st.ensure_parsed(&source);
-    let Some(ref result) = st.parse_result else {
-        return vec![];
-    };
-    let Some(ref grammar_def) = st.grammar_def else {
-        return vec![];
-    };
-    let Some(spans) = lsp::build_spans(grammar_def, result) else {
-        return vec![];
-    };
-    lsp::diagnostics::diagnostics(grammar_def, &spans, &result.input)
-        .into_iter()
-        .map(|d| {
-            let severity = match d.severity {
-                Some(lsp_types::DiagnosticSeverity::ERROR) => 8, // Monaco MarkerSeverity.Error
-                Some(lsp_types::DiagnosticSeverity::WARNING) => 4,
-                Some(lsp_types::DiagnosticSeverity::INFORMATION) => 2,
-                Some(lsp_types::DiagnosticSeverity::HINT) => 1,
-                _ => 8,
+    st.ensure_built(&source);
+    match &st.build_result {
+        Some(lsp::BuildResult::Success { ref tree, .. }) => {
+            let Some(ref input) = st.input else {
+                return vec![];
             };
-            DiagnosticData {
+            let Some(ref grammar_def) = st.grammar_def else {
+                return vec![];
+            };
+            let spans = lsp::build_spans(grammar_def, tree, input);
+            lsp::diagnostics::diagnostics(grammar_def, &spans, input)
+                .into_iter()
+                .map(|d| {
+                    let severity = match d.severity {
+                        Some(lsp_types::DiagnosticSeverity::ERROR) => 8,
+                        Some(lsp_types::DiagnosticSeverity::WARNING) => 4,
+                        Some(lsp_types::DiagnosticSeverity::INFORMATION) => 2,
+                        Some(lsp_types::DiagnosticSeverity::HINT) => 1,
+                        _ => 8,
+                    };
+                    DiagnosticData {
+                        range: RangeData {
+                            start_line: d.range.start.line,
+                            start_char: d.range.start.character,
+                            end_line: d.range.end.line,
+                            end_char: d.range.end.character,
+                        },
+                        severity,
+                        message: d.message,
+                    }
+                })
+                .collect()
+        }
+        Some(lsp::BuildResult::Error { line, column, message }) => {
+            vec![DiagnosticData {
                 range: RangeData {
-                    start_line: d.range.start.line,
-                    start_char: d.range.start.character,
-                    end_line: d.range.end.line,
-                    end_char: d.range.end.character,
+                    start_line: *line,
+                    start_char: *column,
+                    end_line: *line,
+                    end_char: *column,
                 },
-                severity,
-                message: d.message,
-            }
-        })
-        .collect()
+                severity: 8,
+                message: message.clone(),
+            }]
+        }
+        None => vec![],
+    }
 }
 
 /// Map the LSP SymbolKind constants we actually use to their numeric codes.
@@ -1494,7 +1543,8 @@ pub fn run() {
         .manage(Mutex::new(DebugState::default()))
         .manage(Mutex::new(GrammarState {
             source: None,
-            parse_result: None,
+            input: None,
+            build_result: None,
             grammar_def: None,
         }))
         .plugin(tauri_plugin_opener::init())

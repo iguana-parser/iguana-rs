@@ -93,15 +93,17 @@ mod tests {
     use super::*;
 
     fn ranges(source: &str) -> Vec<FoldingRange> {
+        use iguana_runtime::input::Input;
         let source = source.strip_prefix('\n').unwrap_or(source);
-        let result = crate::parse(source);
-        let Some(grammar_def) = crate::build_grammar_def(&result) else {
+        let input = Input::from(source);
+        let crate::BuildResult::Success { ref tree, .. } = crate::build(&input) else {
             return vec![];
         };
-        let Some(spans) = crate::build_spans(&grammar_def, &result) else {
+        let Some(grammar_def) = crate::build_grammar_def(tree, &input) else {
             return vec![];
         };
-        folding_ranges(&grammar_def, &spans, &result.input)
+        let spans = crate::build_spans(&grammar_def, tree, &input);
+        folding_ranges(&grammar_def, &spans, &input)
     }
 
     #[test]

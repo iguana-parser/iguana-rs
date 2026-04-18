@@ -63,17 +63,19 @@ mod tests {
     use super::*;
 
     fn find_refs(source: &str, line: u32, column: u32, include_declaration: bool) -> Vec<Location> {
+        use iguana_runtime::input::Input;
         let source = source.strip_prefix('\n').unwrap_or(source);
-        let result = crate::parse(source);
-        let Some(grammar_def) = crate::build_grammar_def(&result) else {
+        let input = Input::from(source);
+        let crate::BuildResult::Success { ref tree, .. } = crate::build(&input) else {
             return vec![];
         };
-        let Some(spans) = crate::build_spans(&grammar_def, &result) else {
+        let Some(grammar_def) = crate::build_grammar_def(tree, &input) else {
             return vec![];
         };
+        let spans = crate::build_spans(&grammar_def, tree, &input);
         let uri: Uri = "file:///test.iggy".parse().unwrap();
-        let offset = result.input.offset(line, column);
-        references(&spans, &result.input, &uri, offset, include_declaration)
+        let offset = input.offset(line, column);
+        references(&spans, &input, &uri, offset, include_declaration)
     }
 
     #[test]
@@ -193,13 +195,17 @@ A
     }
 
     fn find_def(source: &str, line: u32, column: u32) -> Option<Location> {
+        use iguana_runtime::input::Input;
         let source = source.strip_prefix('\n').unwrap_or(source);
-        let result = crate::parse(source);
-        let grammar_def = crate::build_grammar_def(&result)?;
-        let spans = crate::build_spans(&grammar_def, &result)?;
+        let input = Input::from(source);
+        let crate::BuildResult::Success { ref tree, .. } = crate::build(&input) else {
+            return None;
+        };
+        let grammar_def = crate::build_grammar_def(tree, &input)?;
+        let spans = crate::build_spans(&grammar_def, tree, &input);
         let uri: Uri = "file:///test.iggy".parse().unwrap();
-        let offset = result.input.offset(line, column);
-        definition(&spans, &result.input, &uri, offset)
+        let offset = input.offset(line, column);
+        definition(&spans, &input, &uri, offset)
     }
 
     #[test]

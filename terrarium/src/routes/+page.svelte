@@ -333,7 +333,7 @@
     function handleTerrariumParse() {
       if (activeMode === "design") {
         // In Design mode, re-run the same grammar analysis that fires on every
-        // keystroke (uses linked iggy via lsp::parse, no generated parser needed).
+        // keystroke (uses linked iggy via lsp::build, no generated parser needed).
         commands.analyzeGrammar(grammarText).then(onGrammarAnalyze);
         return;
       }
