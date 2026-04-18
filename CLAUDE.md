@@ -41,6 +41,7 @@ Tests use s-expression golden file comparison via `check_golden_file`.
 
 # Code Style
 
+- Prefer `use` imports over fully-qualified paths. Only qualify when there is ambiguity, and use the shortest qualifier that disambiguates.
 - Optimize for readability rather than clever tricks
 - State what, then why. Not the reverse.
 - Use project terminology: "parse tree" not "CST"

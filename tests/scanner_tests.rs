@@ -1,10 +1,10 @@
 use iggy::scanner::IggyScanner;
-use iguana::input::Input;
+use iguana_runtime::input::Input;
 
 fn match_identifier(input: &str) -> Option<u32> {
     let input = Input::from(input);
     let scanner = IggyScanner::new(&input);
-    scanner.match_terminal_0(0)
+    scanner.match_terminal_1(0)
 }
 
 #[test]

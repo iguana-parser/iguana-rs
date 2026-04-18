@@ -19,7 +19,10 @@ pub struct ParseError {
 }
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.message)
+        write!(
+            f, "Parse error at line {}, column {}: {}", self.line, self.column, self
+            .message
+        )
     }
 }
 impl Error for ParseError {}
@@ -33,23 +36,54 @@ impl<T: parse_tree::AsParseTreeRef> ParseSuccess<T> {
         self.tree.as_parse_tree_ref()
     }
 }
-fn to_parse_error(
+fn to_parse_error<'i, P: Parser<'i>>(
     input: &Input,
     error: &iguana_runtime::parser::ParseError,
 ) -> ParseError {
-    if error.input_index >= input.len() {
-        ParseError {
-            line: 0,
-            column: 0,
-            message: "Unexpected end of input".to_string(),
-        }
+    use iguana_runtime::parser::ParseErrorKind;
+    let (line, column) = if error.input_index >= input.len() {
+        let last = input.len().saturating_sub(1);
+        input.line_column(last)
     } else {
-        let (line, column) = input.line_column(error.input_index);
-        ParseError {
-            line,
-            column,
-            message: format!("Parse error at line {line}, column {column}"),
+        input.line_column(error.input_index)
+    };
+    let found = if error.input_index >= input.len() {
+        "EOF".to_string()
+    } else {
+        let ch = input.char_at(error.input_index).unwrap();
+        format!("'{ch}'")
+    };
+    let message = match &error.kind {
+        ParseErrorKind::UnexpectedToken { expected } => {
+            let names: Vec<&str> = expected
+                .iter()
+                .map(|id| P::terminal_name(*id))
+                .collect();
+            match names.len() {
+                0 => format!("Unexpected {found}"),
+                1 => format!("Expected {} but found {found}", names[0]),
+                _ => format!("Expected one of {} but found {found}", names.join(", ")),
+            }
         }
+        ParseErrorKind::ExcludedMatch { excluded_by } => {
+            let names: Vec<&str> = excluded_by
+                .iter()
+                .map(|id| P::terminal_name(*id))
+                .collect();
+            format!("Match excluded by {}", names.join(", "))
+        }
+        ParseErrorKind::ForbiddenFollow { forbidden } => {
+            let names: Vec<&str> = forbidden
+                .iter()
+                .map(|id| P::terminal_name(*id))
+                .collect();
+            format!("Forbidden follow: {}", names.join(", "))
+        }
+    };
+    ParseError {
+        line,
+        column,
+        message,
     }
 }
 pub fn parse_s(input: &Input) -> Result<ParseSuccess<parse_tree::S>, ParseError> {
@@ -70,7 +104,9 @@ pub fn parse_s(input: &Input) -> Result<ParseSuccess<parse_tree::S>, ParseError>
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => {
+            Err(to_parse_error::<ExceptNonterminalParser>(input, &error))
+        }
     }
 }
 pub fn parse_id(input: &Input) -> Result<ParseSuccess<parse_tree::Id>, ParseError> {
@@ -91,7 +127,9 @@ pub fn parse_id(input: &Input) -> Result<ParseSuccess<parse_tree::Id>, ParseErro
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => {
+            Err(to_parse_error::<ExceptNonterminalParser>(input, &error))
+        }
     }
 }
 pub fn parse_name(input: &Input) -> Result<ParseSuccess<parse_tree::Name>, ParseError> {
@@ -112,7 +150,9 @@ pub fn parse_name(input: &Input) -> Result<ParseSuccess<parse_tree::Name>, Parse
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => {
+            Err(to_parse_error::<ExceptNonterminalParser>(input, &error))
+        }
     }
 }
 

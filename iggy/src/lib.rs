@@ -19,7 +19,10 @@ pub struct ParseError {
 }
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.message)
+        write!(
+            f, "Parse error at line {}, column {}: {}", self.line, self.column, self
+            .message
+        )
     }
 }
 impl Error for ParseError {}
@@ -33,23 +36,54 @@ impl<T: parse_tree::AsParseTreeRef> ParseSuccess<T> {
         self.tree.as_parse_tree_ref()
     }
 }
-fn to_parse_error(
+fn to_parse_error<'i, P: Parser<'i>>(
     input: &Input,
     error: &iguana_runtime::parser::ParseError,
 ) -> ParseError {
-    if error.input_index >= input.len() {
-        ParseError {
-            line: 0,
-            column: 0,
-            message: "Unexpected end of input".to_string(),
-        }
+    use iguana_runtime::parser::ParseErrorKind;
+    let (line, column) = if error.input_index >= input.len() {
+        let last = input.len().saturating_sub(1);
+        input.line_column(last)
     } else {
-        let (line, column) = input.line_column(error.input_index);
-        ParseError {
-            line,
-            column,
-            message: format!("Parse error at line {line}, column {column}"),
+        input.line_column(error.input_index)
+    };
+    let found = if error.input_index >= input.len() {
+        "EOF".to_string()
+    } else {
+        let ch = input.char_at(error.input_index).unwrap();
+        format!("'{ch}'")
+    };
+    let message = match &error.kind {
+        ParseErrorKind::UnexpectedToken { expected } => {
+            let names: Vec<&str> = expected
+                .iter()
+                .map(|id| P::terminal_name(*id))
+                .collect();
+            match names.len() {
+                0 => format!("Unexpected {found}"),
+                1 => format!("Expected {} but found {found}", names[0]),
+                _ => format!("Expected one of {} but found {found}", names.join(", ")),
+            }
         }
+        ParseErrorKind::ExcludedMatch { excluded_by } => {
+            let names: Vec<&str> = excluded_by
+                .iter()
+                .map(|id| P::terminal_name(*id))
+                .collect();
+            format!("Match excluded by {}", names.join(", "))
+        }
+        ParseErrorKind::ForbiddenFollow { forbidden } => {
+            let names: Vec<&str> = forbidden
+                .iter()
+                .map(|id| P::terminal_name(*id))
+                .collect();
+            format!("Forbidden follow: {}", names.join(", "))
+        }
+    };
+    ParseError {
+        line,
+        column,
+        message,
     }
 }
 pub fn parse_grammar(
@@ -75,7 +109,7 @@ pub fn parse_grammar(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_layout_def(
@@ -98,7 +132,7 @@ pub fn parse_layout_def(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_rule(input: &Input) -> Result<ParseSuccess<parse_tree::Rule>, ParseError> {
@@ -119,7 +153,7 @@ pub fn parse_rule(input: &Input) -> Result<ParseSuccess<parse_tree::Rule>, Parse
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_syntax_rule(
@@ -142,7 +176,7 @@ pub fn parse_syntax_rule(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_annotation(
@@ -165,7 +199,7 @@ pub fn parse_annotation(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_regex_rule(
@@ -188,7 +222,7 @@ pub fn parse_regex_rule(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_pre_condition(
@@ -211,7 +245,7 @@ pub fn parse_pre_condition(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_post_condition(
@@ -234,7 +268,7 @@ pub fn parse_post_condition(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_priority_level(
@@ -257,7 +291,7 @@ pub fn parse_priority_level(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_associativity(
@@ -280,7 +314,7 @@ pub fn parse_associativity(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_alternative(
@@ -303,7 +337,7 @@ pub fn parse_alternative(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_regex(
@@ -326,7 +360,7 @@ pub fn parse_regex(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_char_class(
@@ -349,7 +383,7 @@ pub fn parse_char_class(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_range_element(
@@ -372,7 +406,7 @@ pub fn parse_range_element(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_range(
@@ -395,7 +429,7 @@ pub fn parse_range(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 pub fn parse_layout(
@@ -418,7 +452,7 @@ pub fn parse_layout(
                 tree_construction_duration,
             })
         }
-        ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
+        ParseResult::Failure(error) => Err(to_parse_error::<IggyParser>(input, &error)),
     }
 }
 
