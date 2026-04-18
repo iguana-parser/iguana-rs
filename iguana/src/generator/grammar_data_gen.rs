@@ -126,32 +126,12 @@ pub fn generate<'a>(
     let nonterminals = nonterminal_ids.nonterminals().map(|n| {
         let nonterminal_name = &n.name;
         let display_name = n.display_name();
-        let nonterminal_kind = match &n.origin {
-            Some(s) => match s {
-                Symbol::Group(_) => quote! { Some(EbnfKind::Group) },
-                Symbol::Opt(_) => quote! { Some(EbnfKind::Opt) },
-                Symbol::Alt(_) => quote! { Some(EbnfKind::Alt) },
-                Symbol::Star(_, _) => quote! { Some(EbnfKind::Star) },
-                Symbol::Plus(_, _) => quote! { Some(EbnfKind::Plus) },
-                Symbol::Labeled { .. }
-                | Symbol::Identifier(_)
-                | Symbol::Literal(_)
-                | Symbol::Except { .. }
-                | Symbol::FollowRestriction { .. }
-                | Symbol::PrecedeRestriction { .. }
-                | Symbol::Call { .. }
-                | Symbol::Condition(_)
-                | Symbol::Return(_)
-                | Symbol::Binding { .. }
-                | Symbol::Exclude { .. } => quote! { None },
-            },
-            None => quote! { None },
-        };
+        let derived = n.is_derived();
         quote! {
             Nonterminal {
                 name: #nonterminal_name,
                 display: #display_name,
-                kind: #nonterminal_kind,
+                derived: #derived,
             }
         }
     });
@@ -198,7 +178,7 @@ pub fn generate<'a>(
 
     quote! {
         use iguana_runtime::ids::{NonterminalId, TerminalId};
-        use crate::types::{EbnfKind, Nonterminal, Slot, Terminal};
+        use crate::types::{Nonterminal, Slot, Terminal};
 
         pub const NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminals),*];
 

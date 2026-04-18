@@ -130,7 +130,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             // Handle --list-nonterminals: output grammar nonterminals (not EBNF or Start) and exit
             if cli.list_nonterminals {
                 for nt in NONTERMINALS.iter() {
-                    if !nt.is_ebnf() && !nt.is_start() {
+                    if !nt.derived {
                         println!("{}", nt.name);
                     }
                 }

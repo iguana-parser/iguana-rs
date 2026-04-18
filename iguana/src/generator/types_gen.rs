@@ -2,29 +2,15 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 pub fn generate() -> TokenStream {
-    let ebnf_kind_enum = gen_ebnf_kind_enum();
     let nonterminal_struct = gen_nonterminal_struct();
-    let nonterminal_impl = gen_nonterminal_impl();
     let terminal_struct = gen_terminal_struct();
     let slot_struct = gen_slot_struct();
     quote! {
-        #ebnf_kind_enum
+        #[comment = "Lightweight grammar metadata types for the CLI and parser runtime."]
+
         #nonterminal_struct
-        #nonterminal_impl
         #terminal_struct
         #slot_struct
-    }
-}
-
-fn gen_ebnf_kind_enum() -> TokenStream {
-    quote! {
-        pub enum EbnfKind {
-            Star,
-            Plus,
-            Opt,
-            Group,
-            Alt,
-        }
     }
 }
 
@@ -33,20 +19,10 @@ fn gen_nonterminal_struct() -> TokenStream {
         pub struct Nonterminal {
             pub name: &'static str,
             pub display: &'static str,
-            pub kind: Option<EbnfKind>,
-        }
-    }
-}
-
-fn gen_nonterminal_impl() -> TokenStream {
-    quote! {
-        impl Nonterminal {
-            pub fn is_ebnf(&self) -> bool {
-                self.kind.is_some()
-            }
-            pub fn is_start(&self) -> bool {
-                self.name.starts_with("Start")
-            }
+            #[comment = "Whether this nonterminal was introduced by a grammar transformation"]
+            #[comment = "(e.g., EBNF desugaring, start symbol wrapping, or exclude desugaring)"]
+            #[comment = "rather than being explicitly defined by the user."]
+            pub derived: bool,
         }
     }
 }
