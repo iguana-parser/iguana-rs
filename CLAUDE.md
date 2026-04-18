@@ -25,28 +25,42 @@ When doing bootstrapping, we need to always run it twice to ensure stability.
 - Generators live in `iguana/src/generator/`: `lib_gen.rs`, `parse_tree_gen.rs`, `parser_gen.rs`, `scanner_gen.rs`, `grammar_data_gen.rs`, `types_gen.rs`, `main_gen.rs`
 - Comments in generated code: `#[comment = "..."]` → `//`, `#[doc = "..."]` → `///` (rendered by prettyplease)
 
-# Code Comments
+# Tests
 
+Tests live in `tests/<name>/`, each with a `.iggy` grammar, generated `src/`, `tests.rs`, and golden files in `parse_trees/`.
+
+- `cargo run -p iguana -- test init <name>` — scaffold a new test
+- `cargo run -p iguana -- test generate <name>` — regenerate one test parser
+- `REGENERATE=1 cargo test -p <name>` — update golden files
+
+Tests use s-expression golden file comparison via `check_golden_file`.
+
+# Downstream Dependency
+
+`iguana-tools` (LSP, terrarium) depends on this repo. Changes to public API in `iggy` or `iguana-runtime` can break it. After any public API change, check that `iguana-tools` still compiles.
+
+# Code Style
+
+- Optimize for readability rather than clever tricks
 - State what, then why. Not the reverse.
-- Use project terminology: "parse tree" not "CST".
+- Use project terminology: "parse tree" not "CST"
 - Adverbs before verbs: "directly returns" not "returns directly"
 - Don't explain the same thing in two places
 - No filler words ("simply," "just," "basically," "naturally," "seamlessly")
 - No filler phrases ("it should be noted that," "it is worth mentioning")
-
-# Code Guidelines
-
-- Don't over-engineer
-- Optimize for readability rather than clever tricks
 - Almost all the code in `iguana-runtime` is performance critical. Be aware of adding anything expensive there.
-- Don't be lazy. The obvious solution may not be the best one. Strive for excellence.
 
-# Context Window
+# Approach
 
-Start a new conversation before hitting 20% context usage.
+Don't rush to the first solution. When a change touches shared infrastructure (generator, runtime, parse tree types), explore alternatives before committing to one. However, don't over-engineer: for localized fixes, the straightforward approach is usually right.
 
-# Behavior
-- Don't enter plan mode, etc. Keep it conversational. Always discuss what you plan to do if it's complex and don't jump to implementation.
+# Process
+
+- Keep it conversational. Always discuss what you plan to do if it's complex and don't jump to implementation.
 - Follow the instructions very carefully
 - Each step should be reviewed before proceeding to the next one
+
+# Tool Use
+
 - Don't write scripts with sed/awk for code refactoring or fixing a failed bootstrap. Only use those tools when you're sure they won't mess things up. Otherwise, fix things manually.
+- Start a new conversation before hitting 20% context usage.
