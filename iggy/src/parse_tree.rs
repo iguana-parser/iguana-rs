@@ -1535,6 +1535,309 @@ impl From<Start<Grammar, Layout>> for ParseTree {
         ParseTree::StartGrammar(start_grammar)
     }
 }
+pub trait AsParseTreeRef {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_>;
+}
+impl AsParseTreeRef for Grammar {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for LayoutDef {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Rule {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SyntaxRule {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Annotation {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for RegexRule {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for PreCondition {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for PostCondition {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for PriorityLevel {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Associativity {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Alternative {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Symbol {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Regex {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for CharClass {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for RangeElement {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Range {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Layout {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for GrammarOpt0 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for GrammarPlus0 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for GrammarOpt1 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for GrammarStar0 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SyntaxRulePlus1 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SyntaxRuleOpt2 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SyntaxRuleStar1 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SyntaxRulePlus2 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SyntaxRuleOpt3 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SyntaxRuleStar2 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for RegexRuleOpt4 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for RegexRulePlus4 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for RegexRulePlus3 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for RegexRulePlus5 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for RegexRuleOpt5 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for RegexRuleStar3 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for PriorityLevelOpt6 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for PriorityLevelPlus6 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for PriorityLevelOpt7 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for PriorityLevelStar4 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for AlternativePlus7 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for AlternativeOpt8 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for AlternativeStar5 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for AlternativeOpt9 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SymbolGroup0 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SymbolPlus8 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SymbolGroup1 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SymbolPlus9 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SymbolGroup2 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SymbolPlus10 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SymbolGroup3 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SymbolPlus11 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for RegexGroup4 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for RegexPlus12 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for CharClassOpt10 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for CharClassPlus13 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for LayoutAlt0 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for LayoutPlus14 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for LayoutOpt11 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for LayoutStar6 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Start<Grammar, Layout> {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Token {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for ParseTree {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
 pub trait ListNode<'a> {
     fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
 }

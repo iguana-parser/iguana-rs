@@ -124,6 +124,34 @@ impl From<SOpt0> for ParseTree {
         ParseTree::SOpt0(s_opt_0)
     }
 }
+pub trait AsParseTreeRef {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_>;
+}
+impl AsParseTreeRef for S {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for A {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for SOpt0 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Token {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for ParseTree {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
 pub trait ListNode<'a> {
     fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
 }

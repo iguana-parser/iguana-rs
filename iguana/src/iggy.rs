@@ -12,8 +12,8 @@ use crate::grammar::{
 
 pub fn parse_grammar(source: &str) -> Result<GrammarDef, ParseError> {
     let input = Input::from(source);
-    let start = iggy::parse_grammar(&input)?;
-    build_grammar(&start, &input)
+    let success = iggy::parse_grammar(&input)?;
+    build_grammar(&success.tree, &input)
 }
 
 fn text(input: &Input, span: Span) -> String {

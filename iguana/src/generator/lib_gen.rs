@@ -32,6 +32,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
         use std::error::Error;
         use std::fmt::{self, Display, Formatter};
+        use std::time::Duration;
         use iguana_runtime::{
             input::Input,
             parser::{ParseResult, Parser},
@@ -53,6 +54,18 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         }
 
         impl Error for ParseError {}
+
+        pub struct ParseSuccess<T> {
+            pub tree: T,
+            pub parse_duration: Duration,
+            pub tree_construction_duration: Duration,
+        }
+
+        impl<T: parse_tree::AsParseTreeRef> ParseSuccess<T> {
+            pub fn as_parse_tree_ref(&self) -> parse_tree::ParseTreeRef<'_> {
+                self.tree.as_parse_tree_ref()
+            }
+        }
 
         fn to_parse_error(input: &Input, error: &iguana_runtime::parser::ParseError) -> ParseError {
             if error.input_index >= input.len() {
@@ -110,11 +123,15 @@ fn gen_parse_method(
     };
 
     quote! {
-        pub fn #fn_name(input: &Input) -> Result<#return_type, ParseError> {
+        pub fn #fn_name(input: &Input) -> Result<ParseSuccess<#return_type>, ParseError> {
             let mut parser = #parser::new(input, grammar_data::#nt_const);
             match parser.run() {
                 ParseResult::Success(success) => {
-                    Ok(parse_tree::#create_fn(success.sppf_node_id, &parser, &#parse_tree_builder))
+                    let parse_duration = success.duration;
+                    let tree_start = std::time::Instant::now();
+                    let tree = parse_tree::#create_fn(success.sppf_node_id, &parser, &#parse_tree_builder);
+                    let tree_construction_duration = tree_start.elapsed();
+                    Ok(ParseSuccess { tree, parse_duration, tree_construction_duration })
                 }
                 ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
             }

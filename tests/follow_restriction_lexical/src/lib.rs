@@ -6,6 +6,7 @@ pub mod scanner;
 pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
+use std::time::Duration;
 use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
 use parse_tree::FollowRestrictionLexicalParseTreeBuilder;
 use parser::FollowRestrictionLexicalParser;
@@ -21,6 +22,16 @@ impl Display for ParseError {
     }
 }
 impl Error for ParseError {}
+pub struct ParseSuccess<T> {
+    pub tree: T,
+    pub parse_duration: Duration,
+    pub tree_construction_duration: Duration,
+}
+impl<T: parse_tree::AsParseTreeRef> ParseSuccess<T> {
+    pub fn as_parse_tree_ref(&self) -> parse_tree::ParseTreeRef<'_> {
+        self.tree.as_parse_tree_ref()
+    }
+}
 fn to_parse_error(
     input: &Input,
     error: &iguana_runtime::parser::ParseError,
@@ -40,32 +51,46 @@ fn to_parse_error(
         }
     }
 }
-pub fn parse_s(input: &Input) -> Result<parse_tree::S, ParseError> {
+pub fn parse_s(input: &Input) -> Result<ParseSuccess<parse_tree::S>, ParseError> {
     let mut parser = FollowRestrictionLexicalParser::new(input, grammar_data::S);
     match parser.run() {
         ParseResult::Success(success) => {
-            Ok(
-                parse_tree::create_parse_tree_s(
-                    success.sppf_node_id,
-                    &parser,
-                    &FollowRestrictionLexicalParseTreeBuilder,
-                ),
-            )
+            let parse_duration = success.duration;
+            let tree_start = std::time::Instant::now();
+            let tree = parse_tree::create_parse_tree_s(
+                success.sppf_node_id,
+                &parser,
+                &FollowRestrictionLexicalParseTreeBuilder,
+            );
+            let tree_construction_duration = tree_start.elapsed();
+            Ok(ParseSuccess {
+                tree,
+                parse_duration,
+                tree_construction_duration,
+            })
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
 }
-pub fn parse_element(input: &Input) -> Result<parse_tree::Element, ParseError> {
+pub fn parse_element(
+    input: &Input,
+) -> Result<ParseSuccess<parse_tree::Element>, ParseError> {
     let mut parser = FollowRestrictionLexicalParser::new(input, grammar_data::ELEMENT);
     match parser.run() {
         ParseResult::Success(success) => {
-            Ok(
-                parse_tree::create_parse_tree_element(
-                    success.sppf_node_id,
-                    &parser,
-                    &FollowRestrictionLexicalParseTreeBuilder,
-                ),
-            )
+            let parse_duration = success.duration;
+            let tree_start = std::time::Instant::now();
+            let tree = parse_tree::create_parse_tree_element(
+                success.sppf_node_id,
+                &parser,
+                &FollowRestrictionLexicalParseTreeBuilder,
+            );
+            let tree_construction_duration = tree_start.elapsed();
+            Ok(ParseSuccess {
+                tree,
+                parse_duration,
+                tree_construction_duration,
+            })
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }

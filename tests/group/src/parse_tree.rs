@@ -170,6 +170,44 @@ impl From<AGroup0> for ParseTree {
         ParseTree::AGroup0(a_group_0)
     }
 }
+pub trait AsParseTreeRef {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_>;
+}
+impl AsParseTreeRef for A {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for B {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for C {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for D {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for AGroup0 {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for Token {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
+impl AsParseTreeRef for ParseTree {
+    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+        self.as_parse_tree_ref()
+    }
+}
 pub trait ListNode<'a> {
     fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
 }

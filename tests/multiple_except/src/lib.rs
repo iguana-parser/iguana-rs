@@ -6,6 +6,7 @@ pub mod scanner;
 pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
+use std::time::Duration;
 use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
 use parse_tree::MultipleExceptParseTreeBuilder;
 use parser::MultipleExceptParser;
@@ -21,6 +22,16 @@ impl Display for ParseError {
     }
 }
 impl Error for ParseError {}
+pub struct ParseSuccess<T> {
+    pub tree: T,
+    pub parse_duration: Duration,
+    pub tree_construction_duration: Duration,
+}
+impl<T: parse_tree::AsParseTreeRef> ParseSuccess<T> {
+    pub fn as_parse_tree_ref(&self) -> parse_tree::ParseTreeRef<'_> {
+        self.tree.as_parse_tree_ref()
+    }
+}
 fn to_parse_error(
     input: &Input,
     error: &iguana_runtime::parser::ParseError,
@@ -42,34 +53,46 @@ fn to_parse_error(
 }
 pub fn parse_syntax_identifier(
     input: &Input,
-) -> Result<parse_tree::SyntaxIdentifier, ParseError> {
+) -> Result<ParseSuccess<parse_tree::SyntaxIdentifier>, ParseError> {
     let mut parser = MultipleExceptParser::new(input, grammar_data::SYNTAX_IDENTIFIER);
     match parser.run() {
         ParseResult::Success(success) => {
-            Ok(
-                parse_tree::create_parse_tree_syntax_identifier(
-                    success.sppf_node_id,
-                    &parser,
-                    &MultipleExceptParseTreeBuilder,
-                ),
-            )
+            let parse_duration = success.duration;
+            let tree_start = std::time::Instant::now();
+            let tree = parse_tree::create_parse_tree_syntax_identifier(
+                success.sppf_node_id,
+                &parser,
+                &MultipleExceptParseTreeBuilder,
+            );
+            let tree_construction_duration = tree_start.elapsed();
+            Ok(ParseSuccess {
+                tree,
+                parse_duration,
+                tree_construction_duration,
+            })
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }
 }
 pub fn parse_lexical_identifier(
     input: &Input,
-) -> Result<parse_tree::LexicalIdentifier, ParseError> {
+) -> Result<ParseSuccess<parse_tree::LexicalIdentifier>, ParseError> {
     let mut parser = MultipleExceptParser::new(input, grammar_data::LEXICAL_IDENTIFIER);
     match parser.run() {
         ParseResult::Success(success) => {
-            Ok(
-                parse_tree::create_parse_tree_lexical_identifier(
-                    success.sppf_node_id,
-                    &parser,
-                    &MultipleExceptParseTreeBuilder,
-                ),
-            )
+            let parse_duration = success.duration;
+            let tree_start = std::time::Instant::now();
+            let tree = parse_tree::create_parse_tree_lexical_identifier(
+                success.sppf_node_id,
+                &parser,
+                &MultipleExceptParseTreeBuilder,
+            );
+            let tree_construction_duration = tree_start.elapsed();
+            Ok(ParseSuccess {
+                tree,
+                parse_duration,
+                tree_construction_duration,
+            })
         }
         ParseResult::Failure(error) => Err(to_parse_error(input, &error)),
     }

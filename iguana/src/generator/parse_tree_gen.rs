@@ -125,6 +125,14 @@ pub fn generate(
         quote! {}
     };
 
+    let as_parse_tree_ref_trait = quote! {
+        pub trait AsParseTreeRef {
+            fn as_parse_tree_ref(&self) -> ParseTreeRef<'_>;
+        }
+    };
+
+    let as_parse_tree_ref_impls = gen_as_parse_tree_ref_trait_impls(grammar);
+
     let to_sexpr_function = gen_to_sexpr_function();
     let node_to_sexpr_function = gen_node_to_sexpr_function();
     let to_json_function = gen_to_json_function();
@@ -139,6 +147,8 @@ pub fn generate(
         #parse_tree_ref_enum
         #parse_tree_ref_impl
         #from_for_tree_impls
+        #as_parse_tree_ref_trait
+        #as_parse_tree_ref_impls
         #list_node_trait
         #opt_node_trait
         #(#nonterminal_types)*
@@ -710,6 +720,45 @@ fn gen_as_parse_tree_ref_method(nonterminal_name: &str) -> TokenStream {
         pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
             ParseTreeRef::#name_ident(self)
         }
+    }
+}
+
+fn gen_as_parse_tree_ref_trait_impls(grammar: &Grammar) -> TokenStream {
+    let nonterminal_impls: Vec<_> = grammar
+        .nonterminals()
+        .filter(|n| !n.is_exclude())
+        .map(|n| {
+            let ty = nonterminal_type(grammar, n);
+            quote! {
+                impl AsParseTreeRef for #ty {
+                    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+                        self.as_parse_tree_ref()
+                    }
+                }
+            }
+        })
+        .collect();
+
+    let token_impl = quote! {
+        impl AsParseTreeRef for Token {
+            fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+                self.as_parse_tree_ref()
+            }
+        }
+    };
+
+    let parse_tree_impl = quote! {
+        impl AsParseTreeRef for ParseTree {
+            fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+                self.as_parse_tree_ref()
+            }
+        }
+    };
+
+    quote! {
+        #(#nonterminal_impls)*
+        #token_impl
+        #parse_tree_impl
     }
 }
 
