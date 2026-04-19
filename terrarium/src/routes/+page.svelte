@@ -1324,7 +1324,7 @@
     const selected = await open({
       directory: true,
       multiple: false,
-      title: "Select Parser Directory",
+      title: "Select Grammar Directory",
     });
     if (selected) {
       parserDirectory = selected as string;
@@ -2527,7 +2527,7 @@
             <span class="palette-path">{parserDirectory}</span>
           {:else}
             <FolderOpen size={14} />
-            <span class="palette-placeholder">Open Parser...</span>
+            <span class="palette-placeholder">Open Grammar...</span>
           {/if}
         </div>
         <div class="palette-status-area">
@@ -2658,7 +2658,10 @@
   <!-- Design Mode -->
   <div class="design-mode">
     <div class="design-editor">
-      <MonacoEditor bind:value={grammarText} language="iggy" onchange={onGrammarEdit} onanalyze={onGrammarAnalyze} onready={onEditorReady} />
+      <MonacoEditor bind:value={grammarText} language="iggy" disabled={!grammarFileName} onchange={onGrammarEdit} onanalyze={onGrammarAnalyze} onready={onEditorReady} />
+      {#if !grammarFileName}
+        <div class="editor-placeholder">Open a grammar to get started</div>
+      {/if}
     </div>
     {#if outlineOpen}
     <div class="resize-handle-vertical" onmousedown={startOutlineDrag}></div>
@@ -3354,7 +3357,7 @@
         {:else if parserDirectory && buildStatus === "success"}
           Parser Generated
         {:else}
-          No parser selected
+          No grammar selected
         {/if}
         {#if statusTooltip}
           <span class="status-tooltip">{statusTooltip}</span>
@@ -3393,7 +3396,7 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
         </div>
         <div class="modal-body">
           <p>{errorModalMessage}</p>
-          <p class="modal-hint">Please select a directory containing a generated Iguana parser.</p>
+          <p class="modal-hint">Please select a directory containing an Iguana grammar.</p>
         </div>
         <div class="modal-footer">
           <button class="modal-btn" onclick={closeErrorModal}>OK</button>
@@ -3610,6 +3613,17 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     flex: 1;
     min-height: 0;
     min-width: 0;
+    position: relative;
+  }
+
+  .editor-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #808080;
+    font-size: 16px;
+    pointer-events: none;
   }
 
   .outline-panel {

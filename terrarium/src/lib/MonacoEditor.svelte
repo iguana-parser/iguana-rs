@@ -14,6 +14,7 @@
   // Register iggy language and semantic tokens provider (once)
   let iggyRegistered = false;
   let onAnalyzeCallback: ((result: { success: boolean; parse_duration_ms: number; tree_construction_duration_ms: number }) => void) | undefined;
+  let editorDisabled = false;
 
   function registerIggyLanguage() {
     if (iggyRegistered) return;
@@ -82,6 +83,8 @@
             };
           },
           async provideDocumentSemanticTokens(model) {
+            if (editorDisabled) return { data: new Uint32Array(0) };
+
             // First: parse and cache the grammar
             const analyzeResult = await invoke<{
               success: boolean;
@@ -221,16 +224,29 @@
   interface Props {
     value?: string;
     language?: string;
+    disabled?: boolean;
     onchange?: (value: string) => void;
     onanalyze?: (result: { success: boolean; parse_duration_ms: number; tree_construction_duration_ms: number }) => void;
     onready?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
   }
 
-  let { value = $bindable(""), language = "plaintext", onchange, onanalyze, onready }: Props = $props();
+  let { value = $bindable(""), language = "plaintext", disabled = false, onchange, onanalyze, onready }: Props = $props();
 
   // Keep the module-level callback in sync with the prop
   $effect(() => {
     onAnalyzeCallback = onanalyze;
+  });
+
+  // Keep the module-level disabled flag in sync and block all interaction via CSS
+  $effect(() => {
+    editorDisabled = disabled;
+    if (container) {
+      container.style.pointerEvents = disabled ? "none" : "";
+      container.style.opacity = disabled ? "0.4" : "";
+    }
+    editor?.updateOptions({
+      lineNumbers: disabled ? "off" : "on",
+    });
   });
 
   let container: HTMLDivElement;
@@ -242,9 +258,15 @@
       registerIggyLanguage();
     }
 
+    editorDisabled = disabled;
+    if (disabled) {
+      container.style.pointerEvents = "none";
+      container.style.opacity = "0.4";
+    }
     editor = monaco.editor.create(container, {
       value,
       language,
+      lineNumbers: disabled ? "off" : "on",
       theme: language === "iggy" ? "iggy-dark" : "vs-dark",
       automaticLayout: true,
       minimap: { enabled: false },
