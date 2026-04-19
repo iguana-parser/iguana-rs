@@ -82,10 +82,6 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "IdentifierChars", input_index, SlotId(0),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(0),
@@ -117,10 +113,6 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
                         self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(2),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(2),
@@ -472,6 +464,7 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
         gss_node_id: Option<GssNodeId>,
         kind: ParseErrorKind,
     ) {
+        record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
         self.parse_errors
             .entry(input_index)
             .or_default()

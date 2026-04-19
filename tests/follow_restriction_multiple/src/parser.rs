@@ -160,10 +160,6 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
                         self.execute(j, SlotId(10), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Alpha", input_index, SlotId(9),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(9),
@@ -195,10 +191,6 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
                         self.execute(j, SlotId(12), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Digit", input_index, SlotId(11),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(11),
@@ -662,6 +654,7 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
         gss_node_id: Option<GssNodeId>,
         kind: ParseErrorKind,
     ) {
+        record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
         self.parse_errors
             .entry(input_index)
             .or_default()

@@ -351,10 +351,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"grammar\"", input_index, SlotId(0),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(0),
@@ -393,10 +389,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(2),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(2),
@@ -465,10 +457,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"layout\"", input_index, SlotId(8),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(8),
@@ -513,10 +501,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(10),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(10),
@@ -602,10 +586,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(18),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(18),
@@ -650,10 +630,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"=\"", input_index, SlotId(20),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(20),
@@ -700,10 +676,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(25), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"@NoLayout\"", input_index, SlotId(24),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(24),
@@ -735,10 +707,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(27), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"@Layout\"", input_index, SlotId(26),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(26),
@@ -783,10 +751,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(28),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(28),
@@ -831,10 +795,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(30),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(30),
@@ -879,10 +839,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(32),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(32),
@@ -914,10 +870,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(35), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"@Start\"", input_index, SlotId(34),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(34),
@@ -949,10 +901,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(37), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"@regex\"", input_index, SlotId(36),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(36),
@@ -997,10 +945,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(38),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(38),
@@ -1045,10 +989,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"=\"", input_index, SlotId(40),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(40),
@@ -1133,10 +1073,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(49), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(48),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(48),
@@ -1181,10 +1117,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"!<<\"", input_index, SlotId(50),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(50),
@@ -1216,10 +1148,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(53), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"\\\"", input_index, SlotId(52),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(52),
@@ -1264,10 +1192,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(54),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(54),
@@ -1299,10 +1223,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(57), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"!>>\"", input_index, SlotId(56),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(56),
@@ -1347,10 +1267,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(58),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(58),
@@ -1415,10 +1331,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(65), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"left\"", input_index, SlotId(64),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(64),
@@ -1450,10 +1362,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(67), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"right\"", input_index, SlotId(66),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(66),
@@ -1485,10 +1393,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(69), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"none\"", input_index, SlotId(68),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(68),
@@ -1555,10 +1459,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(75), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(74),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(74),
@@ -1611,10 +1511,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(78), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(77),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(77),
@@ -1674,10 +1570,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(81),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(81),
@@ -1730,10 +1622,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(85), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(84),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(84),
@@ -1808,10 +1696,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(90),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(90),
@@ -1864,10 +1748,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(94), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "String", input_index, SlotId(93),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(93),
@@ -1920,10 +1800,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         self.execute(j, SlotId(97), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"{\"", input_index, SlotId(96),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(96),
@@ -1998,10 +1874,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"}\"", input_index, SlotId(102),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(102),
@@ -2046,10 +1918,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"*\"", input_index, SlotId(104),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(104),
@@ -2108,10 +1976,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"{\"", input_index, SlotId(107),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(107),
@@ -2186,10 +2050,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"}\"", input_index, SlotId(113),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(113),
@@ -2234,10 +2094,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(115),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(115),
@@ -2336,10 +2192,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"*\"", input_index, SlotId(122),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(122),
@@ -2438,10 +2290,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(129),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(129),
@@ -2540,10 +2388,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"?\"", input_index, SlotId(136),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(136),
@@ -2830,10 +2674,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(160),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(160),
@@ -2878,10 +2718,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"!<<\"", input_index, SlotId(162),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(162),
@@ -2959,10 +2795,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(167),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(167),
@@ -3007,10 +2839,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\":\"", input_index, SlotId(169),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(169),
@@ -3103,10 +2931,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(176),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(176),
@@ -3163,10 +2987,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"*\"", input_index, SlotId(180),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(180),
@@ -3223,10 +3043,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"?\"", input_index, SlotId(184),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(184),
@@ -3264,10 +3080,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(186),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(186),
@@ -3342,10 +3154,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(192),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(192),
@@ -3383,10 +3191,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(194),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(194),
@@ -3446,10 +3250,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(198),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(198),
@@ -3499,10 +3299,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Char", input_index, SlotId(202),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(202),
@@ -3540,10 +3336,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "String", input_index, SlotId(204),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(204),
@@ -3581,10 +3373,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(206),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(206),
@@ -3646,10 +3434,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"[\"", input_index, SlotId(210),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(210),
@@ -3709,10 +3493,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"]\"", input_index, SlotId(214),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(214),
@@ -3766,10 +3546,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "RangeChar", input_index, SlotId(218),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(218),
@@ -3807,10 +3583,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "RangeChar", input_index, SlotId(220),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(220),
@@ -3855,10 +3627,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"-\"", input_index, SlotId(222),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(222),
@@ -3903,10 +3671,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "RangeChar", input_index, SlotId(224),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(224),
@@ -4221,10 +3985,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\">\"", input_index, SlotId(255),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(255),
@@ -4429,10 +4189,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"|\"", input_index, SlotId(277),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(277),
@@ -4662,10 +4418,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"|\"", input_index, SlotId(299),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(299),
@@ -4859,10 +4611,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Label", input_index, SlotId(321),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(321),
@@ -4921,10 +4669,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"|\"", input_index, SlotId(324),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(324),
@@ -5016,10 +4760,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"\\\"", input_index, SlotId(334),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(334),
@@ -5064,10 +4804,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(336),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(336),
@@ -5159,10 +4895,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"!>>\"", input_index, SlotId(344),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(344),
@@ -5207,10 +4939,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(346),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(346),
@@ -5302,10 +5030,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"!\"", input_index, SlotId(354),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(354),
@@ -5350,10 +5074,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(356),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(356),
@@ -5445,10 +5165,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"|\"", input_index, SlotId(364),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(364),
@@ -5540,10 +5256,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"!\"", input_index, SlotId(374),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(374),
@@ -5641,10 +5353,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(383),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(383),
@@ -5682,10 +5390,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "LineComment", input_index, SlotId(385),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(385),
@@ -5819,10 +5523,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(397),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(397),
@@ -5881,10 +5581,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(400),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(400),
@@ -5944,10 +5640,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(404),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(404),
@@ -6006,10 +5698,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(407),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(407),
@@ -6084,10 +5772,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(413),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(413),
@@ -6146,10 +5830,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "String", input_index, SlotId(416),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(416),
@@ -6208,10 +5888,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"{\"", input_index, SlotId(419),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(419),
@@ -6286,10 +5962,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"}\"", input_index, SlotId(425),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(425),
@@ -6334,10 +6006,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"*\"", input_index, SlotId(427),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(427),
@@ -6396,10 +6064,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"{\"", input_index, SlotId(430),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(430),
@@ -6474,10 +6138,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"}\"", input_index, SlotId(436),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(436),
@@ -6522,10 +6182,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(438),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(438),
@@ -6624,10 +6280,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"*\"", input_index, SlotId(445),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(445),
@@ -6726,10 +6378,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(452),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(452),
@@ -6828,10 +6476,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"?\"", input_index, SlotId(459),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(459),
@@ -7042,10 +6686,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(476),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(476),
@@ -7090,10 +6730,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"!<<\"", input_index, SlotId(478),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(478),
@@ -7171,10 +6807,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(483),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(483),
@@ -7219,10 +6851,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\":\"", input_index, SlotId(485),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(485),
@@ -7296,10 +6924,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(490),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(490),
@@ -7358,10 +6982,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(493),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(493),
@@ -7421,10 +7041,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(497),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(497),
@@ -7483,10 +7099,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(500),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(500),
@@ -7561,10 +7173,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(506),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(506),
@@ -7623,10 +7231,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "String", input_index, SlotId(509),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(509),
@@ -7685,10 +7289,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"{\"", input_index, SlotId(512),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(512),
@@ -7763,10 +7363,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"}\"", input_index, SlotId(518),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(518),
@@ -7811,10 +7407,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"*\"", input_index, SlotId(520),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(520),
@@ -7873,10 +7465,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"{\"", input_index, SlotId(523),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(523),
@@ -7951,10 +7539,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"}\"", input_index, SlotId(529),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(529),
@@ -7999,10 +7583,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(531),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(531),
@@ -8101,10 +7681,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"*\"", input_index, SlotId(538),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(538),
@@ -8203,10 +7779,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(545),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(545),
@@ -8305,10 +7877,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"?\"", input_index, SlotId(552),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(552),
@@ -8519,10 +8087,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(569),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(569),
@@ -8567,10 +8131,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"!<<\"", input_index, SlotId(571),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(571),
@@ -8648,10 +8208,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         );
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Identifier", input_index, SlotId(576),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(576),
@@ -8696,10 +8252,6 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\":\"", input_index, SlotId(578),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(578),
@@ -11301,6 +10853,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         gss_node_id: Option<GssNodeId>,
         kind: ParseErrorKind,
     ) {
+        record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
         self.parse_errors
             .entry(input_index)
             .or_default()

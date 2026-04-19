@@ -77,10 +77,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Layout", input_index, SlotId(1),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(1),
@@ -108,10 +104,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(2),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(2),
@@ -139,10 +131,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Layout", input_index, SlotId(3),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(3),
@@ -186,10 +174,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Layout", input_index, SlotId(7),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(7),
@@ -217,10 +201,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"*\"", input_index, SlotId(8),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(8),
@@ -254,10 +234,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Layout", input_index, SlotId(9),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(9),
@@ -293,10 +269,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         self.execute(j, SlotId(13), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"x\"", input_index, SlotId(12),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(12),
@@ -328,10 +300,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         self.execute(j, SlotId(15), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Layout", input_index, SlotId(14),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(14),
@@ -369,10 +337,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Layout", input_index, SlotId(16),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(16),
@@ -732,6 +696,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
         gss_node_id: Option<GssNodeId>,
         kind: ParseErrorKind,
     ) {
+        record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
         self.parse_errors
             .entry(input_index)
             .or_default()

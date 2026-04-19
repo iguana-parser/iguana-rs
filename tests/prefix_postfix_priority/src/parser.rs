@@ -81,10 +81,6 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                         self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"a\"", input_index, SlotId(2),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(2),
@@ -166,10 +162,6 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"!\"", input_index, SlotId(8),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(8),
@@ -222,10 +214,6 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                         self.execute(j, SlotId(12), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"-\"", input_index, SlotId(11),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(11),
@@ -317,10 +305,6 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"*\"", input_index, SlotId(18),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(18),
@@ -412,10 +396,6 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(25),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(25),
@@ -808,6 +788,7 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
         gss_node_id: Option<GssNodeId>,
         kind: ParseErrorKind,
     ) {
+        record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
         self.parse_errors
             .entry(input_index)
             .or_default()

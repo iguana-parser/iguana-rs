@@ -70,10 +70,6 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"*\"", input_index, SlotId(1),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(1),
@@ -117,10 +113,6 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(5),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(5),
@@ -156,10 +148,6 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                         self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"a\"", input_index, SlotId(8),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(8),
@@ -511,6 +499,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
         gss_node_id: Option<GssNodeId>,
         kind: ParseErrorKind,
     ) {
+        record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
         self.parse_errors
             .entry(input_index)
             .or_default()

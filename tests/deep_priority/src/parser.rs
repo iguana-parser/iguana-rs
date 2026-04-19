@@ -80,10 +80,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"a\"", input_index, SlotId(2),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(2),
@@ -165,10 +161,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(8), gss_node_id,
-                            result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(8),
@@ -202,10 +194,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(9),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(9),
@@ -239,10 +227,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(10),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(10),
@@ -303,10 +287,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         self.execute(j, SlotId(15), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"if\"", input_index, SlotId(14),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(14),
@@ -340,10 +320,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(15),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(15),
@@ -381,10 +357,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(17),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(17),
@@ -418,10 +390,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"then\"", input_index, SlotId(18),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(18),
@@ -455,10 +423,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(19),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(19),
@@ -496,10 +460,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(21),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(21),
@@ -533,10 +493,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"else\"", input_index, SlotId(22),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(22),
@@ -570,10 +526,6 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(23),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(23),
@@ -956,6 +908,7 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
         gss_node_id: Option<GssNodeId>,
         kind: ParseErrorKind,
     ) {
+        record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
         self.parse_errors
             .entry(input_index)
             .or_default()

@@ -41,12 +41,7 @@ fn to_parse_error<'i, P: Parser<'i>>(
     error: &iguana_runtime::parser::ParseError,
 ) -> ParseError {
     use iguana_runtime::parser::ParseErrorKind;
-    let (line, column) = if error.input_index >= input.len() {
-        let last = input.len().saturating_sub(1);
-        input.line_column(last)
-    } else {
-        input.line_column(error.input_index)
-    };
+    let (line, column) = input.line_column(error.input_index);
     let found = if error.input_index >= input.len() {
         "EOF".to_string()
     } else {

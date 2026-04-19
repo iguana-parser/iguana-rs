@@ -66,6 +66,16 @@ impl Input {
 
     /// Returns the line and column corresponding to the given input index.
     pub fn line_column(&self, input_index: u32) -> (u32, u32) {
+        // Empty input has no line offsets, return origin.
+        if self.line_start_end_offsets.is_empty() {
+            return (0, 0);
+        }
+        // EOF position: column just past the last character on the last line.
+        if input_index == self.len() {
+            let last_line = self.line_start_end_offsets.len() as u32 - 1;
+            let (start, _) = self.line_start_end_offsets[last_line as usize];
+            return (last_line, input_index - start);
+        }
         assert!(
             input_index < self.len(),
             "input_index {} out of bounds (input length {})",

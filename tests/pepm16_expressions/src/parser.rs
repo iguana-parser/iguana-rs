@@ -123,10 +123,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(5), gss_node_id,
-                            result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(5),
@@ -154,10 +150,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\".\"", input_index, SlotId(6),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(6),
@@ -185,10 +177,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(7), gss_node_id,
-                            result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(7),
@@ -216,10 +204,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"f\"", input_index, SlotId(8),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(8),
@@ -307,10 +291,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(14),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(14),
@@ -406,10 +386,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(21),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(21),
@@ -443,10 +419,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"*\"", input_index, SlotId(22),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(22),
@@ -480,10 +452,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(23),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(23),
@@ -579,10 +547,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(30),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(30),
@@ -616,10 +580,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"+\"", input_index, SlotId(31),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(31),
@@ -653,10 +613,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(32),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(32),
@@ -752,10 +708,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(39),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(39),
@@ -789,10 +741,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"-\"", input_index, SlotId(40),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(40),
@@ -826,10 +774,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(41),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(41),
@@ -890,10 +834,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         self.execute(j, SlotId(46), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"-\"", input_index, SlotId(45),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(45),
@@ -927,10 +867,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(46),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(46),
@@ -991,10 +927,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         self.execute(j, SlotId(51), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"if\"", input_index, SlotId(50),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(50),
@@ -1028,10 +960,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(51),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(51),
@@ -1069,10 +997,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(53),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(53),
@@ -1106,10 +1030,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"then\"", input_index, SlotId(54),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(54),
@@ -1143,10 +1063,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(55),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(55),
@@ -1184,10 +1100,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(57),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(57),
@@ -1221,10 +1133,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"else\"", input_index, SlotId(58),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(58),
@@ -1258,10 +1166,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(59),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(59),
@@ -1353,10 +1257,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(66),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(66),
@@ -1390,10 +1290,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\";\"", input_index, SlotId(67),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(67),
@@ -1427,10 +1323,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(68),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(68),
@@ -1487,10 +1379,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         self.execute(j, SlotId(73), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(72),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(72),
@@ -1524,10 +1412,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(73),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(73),
@@ -1565,10 +1449,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(75),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(75),
@@ -1602,10 +1482,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(76),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(76),
@@ -1658,10 +1534,6 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                         self.execute(j, SlotId(80), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"a\"", input_index, SlotId(79),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(79),
@@ -2075,6 +1947,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
         gss_node_id: Option<GssNodeId>,
         kind: ParseErrorKind,
     ) {
+        record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
         self.parse_errors
             .entry(input_index)
             .or_default()

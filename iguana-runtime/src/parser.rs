@@ -1,6 +1,7 @@
 use std::time::{Duration, Instant};
 
 use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     descriptor::Descriptor,
@@ -33,7 +34,7 @@ pub struct ParseError {
     pub kind: ParseErrorKind,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ParseErrorKind {
     /// Terminal match failed: expected one of these terminals at this position.
     UnexpectedToken { expected: Vec<TerminalId> },

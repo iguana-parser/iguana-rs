@@ -148,6 +148,7 @@ impl<'a> ParserGen<'a> {
                 }
 
                 fn add_parse_error(&mut self, input_index: u32, slot_id: SlotId, gss_node_id: Option<GssNodeId>, kind: ParseErrorKind) {
+                    record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
                     self.parse_errors.entry(input_index).or_default().push(ParseError {
                         input_index,
                         slot_id,
@@ -493,7 +494,6 @@ impl<'a> ParserGen<'a> {
                         #new_node
                     }
                     None => {
-                        record!(self, MatchFailed, #terminal_name, input_index, #slot_id, gss_node_id, result);
                         self.add_parse_error(input_index, #slot_id, Some(gss_node_id), ParseErrorKind::UnexpectedToken { expected: vec![#terminal_id] });
                     }
                 }

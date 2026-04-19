@@ -106,10 +106,6 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Char", input_index, SlotId(2),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(2),
@@ -180,10 +176,6 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "WS", input_index, SlotId(7), gss_node_id,
-                            result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(7),
@@ -260,10 +252,6 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Char", input_index, SlotId(13),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(13),
@@ -295,10 +283,6 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                         self.execute(j, SlotId(16), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Char", input_index, SlotId(15),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(15),
@@ -708,6 +692,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
         gss_node_id: Option<GssNodeId>,
         kind: ParseErrorKind,
     ) {
+        record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
         self.parse_errors
             .entry(input_index)
             .or_default()

@@ -92,10 +92,6 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                         self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"a\"", input_index, SlotId(2),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(2),
@@ -127,10 +123,6 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                         self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"b\"", input_index, SlotId(4),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(4),
@@ -162,10 +154,6 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                         self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"c\"", input_index, SlotId(6),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(6),
@@ -623,6 +611,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
         gss_node_id: Option<GssNodeId>,
         kind: ParseErrorKind,
     ) {
+        record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
         self.parse_errors
             .entry(input_index)
             .or_default()

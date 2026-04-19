@@ -78,10 +78,6 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Id", input_index, SlotId(0), gss_node_id,
-                            result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(0),
@@ -121,10 +117,6 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(3),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(3),
@@ -156,10 +148,6 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(5),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(5),
@@ -199,10 +187,6 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\",\"", input_index, SlotId(8),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(8),
@@ -252,10 +236,6 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\",\"", input_index, SlotId(12),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(12),
@@ -348,10 +328,6 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         self.execute(j, SlotId(23), Some(right_child), gss_node_id, env);
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "Id", input_index, SlotId(22),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(22),
@@ -397,10 +373,6 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\"(\"", input_index, SlotId(25),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(25),
@@ -438,10 +410,6 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         }
                     }
                     None => {
-                        record!(
-                            self, MatchFailed, "\")\"", input_index, SlotId(27),
-                            gss_node_id, result
-                        );
                         self.add_parse_error(
                             input_index,
                             SlotId(27),
@@ -891,6 +859,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         gss_node_id: Option<GssNodeId>,
         kind: ParseErrorKind,
     ) {
+        record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
         self.parse_errors
             .entry(input_index)
             .or_default()
