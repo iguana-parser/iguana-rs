@@ -429,9 +429,13 @@ export type GssNodeId = number
 export type LocationData = { range: RangeData }
 export type NodeKind = { Nonterminal: { ambiguous: boolean } } | { Intermediate: { ambiguous: boolean } } | "Terminal" | "Packed"
 /**
+ * Parse error location and message, from the parser's --write-result JSON.
+ */
+export type ParseErrorInfo = { line: number; column: number; message: string }
+/**
  * Result of a parse operation, indicating which outputs are available.
  */
-export type ParseOutput = { success: boolean; error: string | null; duration_ms: number | null; tree_construction_ms: number | null; has_sppf: boolean; has_gss: boolean; has_parse_tree: boolean }
+export type ParseOutput = { success: boolean; error: string | null; error_info: ParseErrorInfo | null; duration_ms: number | null; tree_construction_ms: number | null; has_sppf: boolean; has_gss: boolean; has_parse_tree: boolean }
 export type RangeData = { start_line: number; start_char: number; end_line: number; end_char: number }
 export type SPPF = { nodes: SPPFDotNode[]; edges: SPPFDotEdge[] }
 export type SPPFDotEdge = { src: SPPFNodeId; dest: SPPFNodeId }

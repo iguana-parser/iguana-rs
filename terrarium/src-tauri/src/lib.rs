@@ -193,11 +193,20 @@ struct ParseState {
     parse_tree_path: Option<PathBuf>,
 }
 
+/// Parse error location and message, from the parser's --write-result JSON.
+#[derive(Clone, Serialize, Type)]
+struct ParseErrorInfo {
+    line: u32,
+    column: u32,
+    message: String,
+}
+
 /// Result of a parse operation, indicating which outputs are available.
 #[derive(Clone, Serialize, Type)]
 struct ParseOutput {
     success: bool,
     error: Option<String>,
+    error_info: Option<ParseErrorInfo>,
     duration_ms: Option<u32>,
     tree_construction_ms: Option<u32>,
     has_sppf: bool,
@@ -431,7 +440,7 @@ fn parse(
     let sppf_path = temp_dir.path().join("sppf.json");
     let gss_path = temp_dir.path().join("gss.json");
     let parse_tree_path = temp_dir.path().join("parse_tree.json");
-    let timings_path = temp_dir.path().join("timings.json");
+    let result_path = temp_dir.path().join("result.json");
 
     let output = Command::new(&parser_path)
         .env("RUST_BACKTRACE", "1")  // Always show backtraces for debugging
@@ -444,12 +453,11 @@ fn parse(
         .arg(&gss_path)
         .arg("--write-parse-tree")
         .arg(&parse_tree_path)
-        .arg("--write-timings")
-        .arg(&timings_path)
+        .arg("--write-result")
+        .arg(&result_path)
         .output()
         .map_err(|e| format!("Failed to run parser: {}", e))?;
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
     // Check which output files were created (regardless of parser exit status)
@@ -464,39 +472,22 @@ fn parse(
     parse_state.gss_path = if has_gss { Some(gss_path) } else { None };
     parse_state.parse_tree_path = if has_parse_tree { Some(parse_tree_path) } else { None };
 
-    // Read timings from JSON file written by --write-timings
-    let (duration_ms, tree_construction_ms) = if timings_path.exists() {
-        match fs::read_to_string(&timings_path)
-            .ok()
-            .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
-        {
-            Some(v) => (
-                v.get("parse_ms").and_then(|n| n.as_u64()).map(|n| n as u32),
-                v.get("tree_construction_ms").and_then(|n| n.as_u64()).map(|n| n as u32),
-            ),
-            None => (None, None),
-        }
-    } else {
-        (None, None)
-    };
+    // Read parse result from JSON file written by --write-result
+    let result_json = result_path
+        .exists()
+        .then(|| {
+            fs::read_to_string(&result_path)
+                .ok()
+                .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
+        })
+        .flatten();
 
-    // Determine success/error status
-    if stdout.lines().any(|line| line.trim() == "Parse failed") {
-        return Ok(ParseOutput {
-            success: false,
-            error: Some("Parse error".to_string()),
-            duration_ms: None,
-            tree_construction_ms: None,
-            has_sppf,
-            has_gss,
-            has_parse_tree,
-        });
-    }
-
-    if !output.status.success() {
+    // Parser process failed to run (crash, not a parse error)
+    if !output.status.success() && result_json.is_none() {
         return Ok(ParseOutput {
             success: false,
             error: Some(format!("Parser error: {}", stderr.trim())),
+            error_info: None,
             duration_ms: None,
             tree_construction_ms: None,
             has_sppf,
@@ -505,11 +496,48 @@ fn parse(
         });
     }
 
+    if let Some(ref v) = result_json {
+        let success = v.get("success").and_then(|b| b.as_bool()).unwrap_or(false);
+        if success {
+            return Ok(ParseOutput {
+                success: true,
+                error: None,
+                error_info: None,
+                duration_ms: v.get("parse_ms").and_then(|n| n.as_u64()).map(|n| n as u32),
+                tree_construction_ms: v.get("tree_construction_ms").and_then(|n| n.as_u64()).map(|n| n as u32),
+                has_sppf,
+                has_gss,
+                has_parse_tree,
+            });
+        } else {
+            let error_info = Some(ParseErrorInfo {
+                line: v.get("line").and_then(|n| n.as_u64()).unwrap_or(0) as u32,
+                column: v.get("column").and_then(|n| n.as_u64()).unwrap_or(0) as u32,
+                message: v.get("message").and_then(|s| s.as_str()).unwrap_or("").to_string(),
+            });
+            let message = v.get("message").and_then(|s| s.as_str()).unwrap_or("Parse error");
+            let line = v.get("line").and_then(|n| n.as_u64()).unwrap_or(0);
+            let column = v.get("column").and_then(|n| n.as_u64()).unwrap_or(0);
+            return Ok(ParseOutput {
+                success: false,
+                error: Some(format!("Parse failed at line {line}, column {column}: {message}")),
+                error_info,
+                duration_ms: None,
+                tree_construction_ms: None,
+                has_sppf,
+                has_gss,
+                has_parse_tree,
+            });
+        }
+    }
+
+    // Fallback: no result file (shouldn't happen with current generator)
     Ok(ParseOutput {
-        success: true,
-        error: None,
-        duration_ms,
-        tree_construction_ms,
+        success: false,
+        error: Some("No parse result available".to_string()),
+        error_info: None,
+        duration_ms: None,
+        tree_construction_ms: None,
         has_sppf,
         has_gss,
         has_parse_tree,
@@ -1131,7 +1159,7 @@ fn get_diagnostics(
                     end_char: *column,
                 },
                 severity: 8,
-                message: message.clone(),
+                message: format!("Parse error: {message}"),
             }]
         }
         None => vec![],

@@ -27,6 +27,7 @@
   } from "$lib/graph-styles";
   import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng, parseNodeKind } from "$lib/graph-utils";
   import MonacoEditor from "$lib/MonacoEditor.svelte";
+  import InputEditor from "$lib/InputEditor.svelte";
 
   // Parse Tree types (manually defined, not via specta)
   interface ParseTreeNode {
@@ -657,6 +658,9 @@
 
   // Track if parse result is available
   let parseResultAvailable = $state(false);
+
+  // Parse error info for input editor markers
+  let parseErrorInfo = $state<{ line: number; column: number; message: string } | null>(null);
 
   // Graph window management (separate OS windows)
   type GraphType = 'sppf' | 'gss' | 'debugSppf' | 'debugGss';
@@ -1434,6 +1438,7 @@
     parseResultAvailable = false;
     parseTreeSelectedSpan = null;
     sppfSelectedSpan = null;
+    parseErrorInfo = null;
 
     const startSymbol = `Start${startNonterminal}`;
     logCommand(`${parserName} <input> --start ${startSymbol}`);
@@ -1454,6 +1459,7 @@
     parseResultAvailable = output.has_sppf || output.has_gss || output.has_parse_tree;
 
     if (output.success) {
+      parseErrorInfo = null;
       const totalMs = (output.duration_ms ?? 0) + (output.tree_construction_ms ?? 0);
       const durationStr = output.duration_ms != null ? ` (${totalMs}ms)` : "";
       logOutput(`Parse successful${durationStr}`);
@@ -1462,6 +1468,7 @@
         : undefined;
       setStatus(`Parse successful${durationStr}`, "success", tooltip);
     } else {
+      parseErrorInfo = output.error_info ?? null;
       // Partial success - show error but still display available data
       if (output.error) {
         logError(output.error);
@@ -2750,21 +2757,16 @@
 
     <!-- Input Area -->
     <div class="input-section">
-      {#if parseTreeSelectedSpan !== null}
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="input-viewer" onclick={() => parseTreeSelectedSpan = null}>{#each inputText.split('') as char, i}<span class="input-char" class:selected={i >= parseTreeSelectedSpan.start && i < parseTreeSelectedSpan.end}>{char}</span>{/each}</div>
-      {:else if sppfSelectedSpan !== null}
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="input-viewer" onclick={() => sppfSelectedSpan = null}>{#each inputText.split('') as char, i}<span class="input-char" class:selected={i >= sppfSelectedSpan.left && i < sppfSelectedSpan.right}>{char}</span>{/each}</div>
-      {:else}
-        <textarea
-          bind:value={inputText}
-          placeholder="Enter code to parse..."
-          spellcheck="false"
-        ></textarea>
-      {/if}
+      <InputEditor
+        bind:value={inputText}
+        error={parseErrorInfo}
+        highlightSpan={parseTreeSelectedSpan !== null
+          ? parseTreeSelectedSpan
+          : sppfSelectedSpan !== null
+            ? { start: sppfSelectedSpan.left, end: sppfSelectedSpan.right }
+            : null}
+        placeholder="Enter code to parse..."
+      />
     </div>
   </div>
 
@@ -3077,15 +3079,14 @@
 
       <!-- Input Area -->
       <div class="input-section">
-        {#if debugLoaded}
-          <div class="input-viewer">{#each inputText.split('') as char, i}<span class="input-char" class:consumed={inputIndex !== null && i < inputIndex} class:current={inputIndex !== null && i === inputIndex} class:selected={selectedSpan !== null && i >= selectedSpan.left && i < selectedSpan.right} class:whitespace={char === ' ' || char === '\t' || char === '\n'}>{#if char === ' '}<span class="ws-marker">·</span>{:else if char === '\t'}<span class="ws-marker">→</span>{:else if char === '\n'}<span class="ws-marker">↵</span>{'\n'}{:else}{char}{/if}</span>{/each}</div>
-        {:else}
-          <textarea
-            bind:value={inputText}
-            placeholder="Enter code to parse..."
-            spellcheck="false"
-          ></textarea>
-        {/if}
+        <InputEditor
+          bind:value={inputText}
+          readOnly={debugLoaded}
+          consumedUntil={debugLoaded ? inputIndex : null}
+          currentIndex={debugLoaded ? inputIndex : null}
+          highlightSpan={selectedSpan !== null ? { start: selectedSpan.left, end: selectedSpan.right } : null}
+          placeholder="Enter code to parse..."
+        />
       </div>
     </div>
 
