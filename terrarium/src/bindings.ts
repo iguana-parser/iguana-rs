@@ -338,7 +338,7 @@ descriptor_set: string[];
  */
 input_index: number | null; 
 /**
- * Total number of error steps (MatchFailed events)
+ * Total number of error steps (ParseError events)
  */
 total_errors: number; 
 /**
@@ -387,9 +387,13 @@ step_index: number;
  */
 input_index: number; 
 /**
- * Name of the terminal that failed to match
+ * Description of the error (e.g. "expected Identifier" or "excluded by Keyword")
  */
-terminal_name: string }
+description: string; 
+/**
+ * The slot where the error occurred
+ */
+slot: string }
 /**
  * Entry in the event log.
  */

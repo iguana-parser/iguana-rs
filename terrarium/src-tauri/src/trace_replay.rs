@@ -5,6 +5,7 @@ use std::path::Path;
 use iguana::descriptor::Descriptor;
 use iguana::gss::{GSSEdge, GSSNode};
 use iguana::ids::{GssNodeId, NonterminalId, SlotId};
+use iguana::parser::ParseErrorKind;
 use iguana::sppf::SPPFNodeId;
 use iguana::trace::TraceEvent;
 use serde::{Deserialize, Serialize};
@@ -21,13 +22,12 @@ pub enum DebugAction {
         gss_node_id: GssNodeId,
         sppf_node_id: SPPFNodeId,
     },
-    /// Match failed: terminal didn't match at input position
-    MatchFailed {
-        terminal_name: String,
+    /// Parse error: terminal match failed, excluded match, or forbidden follow
+    ParseError {
         input_index: u32,
         slot_id: SlotId,
-        gss_node_id: GssNodeId,
-        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: Option<GssNodeId>,
+        kind: ParseErrorKind,
     },
     /// Matching leading layout (whitespace before token)
     MatchingLeadingLayout { input_index: u32 },
@@ -98,8 +98,10 @@ pub struct ErrorInfo {
     pub step_index: u32,
     /// Position in the input where the error occurred
     pub input_index: u32,
-    /// Name of the terminal that failed to match
-    pub terminal_name: String,
+    /// Description of the error (e.g. "expected Identifier" or "excluded by Keyword")
+    pub description: String,
+    /// The slot where the error occurred
+    pub slot: String,
 }
 
 /// Entry in the event log.
@@ -155,7 +157,7 @@ pub struct TraceReplay {
     events: Vec<TraceEvent>,
     /// Indices into `events` that are steps (ProcessingDescriptor or Pop)
     step_indices: Vec<usize>,
-    /// Indices into `step_indices` that are error steps (MatchFailed)
+    /// Indices into `step_indices` that are error steps (ParseError)
     error_step_indices: Vec<usize>,
     /// Current step (0-indexed into step_indices)
     current_step: usize,
@@ -185,14 +187,14 @@ impl TraceReplay {
 
         let symbols = SymbolTable::load(symbols_path)?;
 
-        // Build index of step events (ProcessingDescriptor, Pop, MatchFailed, layout events, and terminal matching)
+        // Build index of step events (ProcessingDescriptor, Pop, ParseError, layout events, and terminal matching)
         let step_indices: Vec<usize> = events
             .iter()
             .enumerate()
             .filter_map(|(i, event)| match event {
                 TraceEvent::ProcessingDescriptor(..)
                 | TraceEvent::Pop(..)
-                | TraceEvent::MatchFailed(..)
+                | TraceEvent::ParseError(..)
                 | TraceEvent::MatchingLeadingLayout(..)
                 | TraceEvent::MatchingTrailingLayout(..)
                 | TraceEvent::MatchedLayout(..)
@@ -202,12 +204,12 @@ impl TraceReplay {
             })
             .collect();
 
-        // Build index of error steps (indices into step_indices where event is MatchFailed)
+        // Build index of error steps (indices into step_indices where event is ParseError)
         let error_step_indices: Vec<usize> = step_indices
             .iter()
             .enumerate()
             .filter_map(|(step_idx, &event_idx)| {
-                if matches!(events[event_idx], TraceEvent::MatchFailed(..)) {
+                if matches!(events[event_idx], TraceEvent::ParseError(..)) {
                     Some(step_idx)
                 } else {
                     None
@@ -293,7 +295,7 @@ impl TraceReplay {
             .iter()
             .max_by_key(|&&step_idx| {
                 let event_idx = self.step_indices[step_idx];
-                if let TraceEvent::MatchFailed(_, input_index, ..) = &self.events[event_idx] {
+                if let TraceEvent::ParseError(input_index, ..) = &self.events[event_idx] {
                     *input_index
                 } else {
                     0
@@ -309,13 +311,14 @@ impl TraceReplay {
             .iter()
             .filter_map(|&step_idx| {
                 let event_idx = self.step_indices[step_idx];
-                if let TraceEvent::MatchFailed(terminal_name, input_index, ..) =
-                    &self.events[event_idx]
+                if let TraceEvent::ParseError(input_index, slot_id, _, ref kind) =
+                    self.events[event_idx]
                 {
                     Some(ErrorInfo {
                         step_index: step_idx as u32,
-                        input_index: *input_index,
-                        terminal_name: terminal_name.clone(),
+                        input_index,
+                        description: self.format_error_kind(kind),
+                        slot: self.symbols.slot(slot_id).to_string(),
                     })
                 } else {
                     None
@@ -326,6 +329,28 @@ impl TraceReplay {
         // Sort by input_index descending (furthest first)
         errors.sort_by(|a, b| b.input_index.cmp(&a.input_index));
         errors
+    }
+
+    /// Format a ParseErrorKind as a human-readable description.
+    fn format_error_kind(&self, kind: &ParseErrorKind) -> String {
+        match kind {
+            ParseErrorKind::UnexpectedToken { expected } => {
+                let names: Vec<String> = expected.iter().map(|id| self.symbols.terminal(id)).collect();
+                match names.len() {
+                    0 => "unexpected token".to_string(),
+                    1 => format!("expected {}", names[0]),
+                    _ => format!("expected {}", names.join(", ")),
+                }
+            }
+            ParseErrorKind::ExcludedMatch { excluded_by } => {
+                let names: Vec<String> = excluded_by.iter().map(|id| self.symbols.terminal(id)).collect();
+                format!("excluded by {}", names.join(", "))
+            }
+            ParseErrorKind::ForbiddenFollow { forbidden } => {
+                let names: Vec<String> = forbidden.iter().map(|id| self.symbols.terminal(id)).collect();
+                format!("forbidden follow {}", names.join(", "))
+            }
+        }
     }
 
     /// Format a GSS node as "(Nonterminal, InputIndex)".
@@ -394,24 +419,22 @@ impl TraceReplay {
         )
     }
 
-    /// Format a MatchFailed action for multi-line display.
-    fn format_match_failed(
+    /// Format a ParseError action for multi-line display.
+    fn format_parse_error(
         &self,
-        terminal_name: &str,
         input_index: u32,
         slot_id: SlotId,
-        gss_node_id: GssNodeId,
-        sppf_node_id: Option<SPPFNodeId>,
+        gss_node_id: Option<GssNodeId>,
+        kind: &ParseErrorKind,
     ) -> String {
         let slot_name = self.symbols.slot(slot_id);
-        let gss_node = self.format_gss_node(gss_node_id);
-        let sppf_node = match sppf_node_id {
-            Some(id) => self.format_sppf_node(id.0),
-            None => "$".to_string(),
-        };
+        let gss = gss_node_id
+            .map(|id| self.format_gss_node(id))
+            .unwrap_or_else(|| "?".to_string());
+        let description = self.format_error_kind(kind);
         format!(
-            "Match Failed\n  terminal '{}'\n  {}\n  input index {}\n  GSS node {}\n  SPPF node {}",
-            terminal_name, slot_name, input_index, gss_node, sppf_node
+            "Parse Error\n  {}\n  {}\n  input index {}\n  GSS node {}",
+            description, slot_name, input_index, gss
         )
     }
 
@@ -424,18 +447,16 @@ impl TraceReplay {
                 gss_node_id,
                 sppf_node_id,
             }) => Some(self.format_pop(*slot_id, *gss_node_id, *sppf_node_id)),
-            Some(DebugAction::MatchFailed {
-                terminal_name,
+            Some(DebugAction::ParseError {
                 input_index,
                 slot_id,
                 gss_node_id,
-                sppf_node_id,
-            }) => Some(self.format_match_failed(
-                terminal_name,
+                kind,
+            }) => Some(self.format_parse_error(
                 *input_index,
                 *slot_id,
                 *gss_node_id,
-                *sppf_node_id,
+                kind,
             )),
             Some(DebugAction::MatchingLeadingLayout { input_index }) => {
                 Some(format!("Matching Leading Layout\n  input index {}", input_index))
@@ -473,7 +494,7 @@ impl TraceReplay {
                     .get(gss_node_id.index())
                     .map(|node| node.index as usize)
             }
-            Some(DebugAction::MatchFailed { input_index, .. }) => Some(*input_index as usize),
+            Some(DebugAction::ParseError { input_index, .. }) => Some(*input_index as usize),
             Some(DebugAction::MatchingLeadingLayout { input_index }) => Some(*input_index as usize),
             Some(DebugAction::MatchingTrailingLayout { input_index }) => Some(*input_index as usize),
             Some(DebugAction::MatchedLayout { next_index }) => next_index.map(|i| i as usize),
@@ -644,22 +665,13 @@ impl TraceReplay {
                     children: vec![child.0],
                 });
             }
-            TraceEvent::MatchFailed(
-                terminal_name,
-                input_index,
-                slot_id,
-                gss_node_id,
-                sppf_node_id,
-            ) => {
-                self.current_action = Some(DebugAction::MatchFailed {
-                    terminal_name: terminal_name.clone(),
+            TraceEvent::ParseError(input_index, slot_id, gss_node_id, ref kind) => {
+                self.current_action = Some(DebugAction::ParseError {
                     input_index: *input_index,
                     slot_id: *slot_id,
                     gss_node_id: *gss_node_id,
-                    sppf_node_id: *sppf_node_id,
+                    kind: kind.clone(),
                 });
-                // Update current SPPF node from the context
-                self.current_sppf_node_id = sppf_node_id.map(|id| id.0);
             }
             TraceEvent::MatchingLeadingLayout(input_index) => {
                 self.current_action = Some(DebugAction::MatchingLeadingLayout {
@@ -719,7 +731,7 @@ impl TraceReplay {
         let current_gss_node_id = match &self.current_action {
             Some(DebugAction::ProcessingDescriptor(desc)) => Some(desc.gss_node_id.0),
             Some(DebugAction::Pop { gss_node_id, .. }) => Some(gss_node_id.0),
-            Some(DebugAction::MatchFailed { gss_node_id, .. }) => Some(gss_node_id.0),
+            Some(DebugAction::ParseError { gss_node_id, .. }) => gss_node_id.map(|id| id.0),
             // Layout and terminal matching actions don't have an associated GSS node
             Some(DebugAction::MatchingLeadingLayout { .. })
             | Some(DebugAction::MatchingTrailingLayout { .. })
@@ -757,14 +769,16 @@ impl TraceReplay {
                 frames.push(self.symbols.slot(*slot_id).to_string());
                 start_gss_node_id = *gss_node_id;
             }
-            Some(DebugAction::MatchFailed {
+            Some(DebugAction::ParseError {
                 slot_id,
                 gss_node_id,
                 ..
             }) => {
-                // For MatchFailed, show the slot where the match was attempted
                 frames.push(self.symbols.slot(*slot_id).to_string());
-                start_gss_node_id = *gss_node_id;
+                let Some(gss_id) = gss_node_id else {
+                    return Some(frames);
+                };
+                start_gss_node_id = *gss_id;
             }
             // Layout and terminal matching actions don't have a meaningful stack trace
             Some(DebugAction::MatchingLeadingLayout { .. })
@@ -860,10 +874,14 @@ impl TraceReplay {
                 format!("Matched '{}' at {} (len {})", terminal_name, input_index, next_index - input_index),
                 "match_success".to_string(),
             ),
-            TraceEvent::MatchFailed(terminal_name, input_index, ..) => (
-                format!("Match failed '{}' at {}", terminal_name, input_index),
-                "match_failed".to_string(),
-            ),
+            TraceEvent::ParseError(input_index, slot_id, _, ref kind) => {
+                let description = self.format_error_kind(kind);
+                let slot_name = self.symbols.slot(*slot_id);
+                (
+                    format!("Parse error at {}: {} [{}]", input_index, description, slot_name),
+                    "match_failed".to_string(),
+                )
+            }
             TraceEvent::MatchedLayout(next_index) => {
                 if let Some(next) = next_index {
                     (format!("Matched layout → {}", next), "layout".to_string())

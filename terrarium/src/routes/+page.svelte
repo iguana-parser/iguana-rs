@@ -3133,7 +3133,7 @@
                       onclick={() => goToError(error.step_index)}
                     >
                       <span class="error-index">Index {error.input_index}</span>
-                      <span class="error-terminal">'{error.terminal_name}'</span>
+                      <span class="error-terminal">{error.description}</span>
                     </button>
                   {/each}
                 </div>
