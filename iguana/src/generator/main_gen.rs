@@ -17,7 +17,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         use clap::Parser as ClapParser;
         use iguana_runtime::{
             input::Input,
-            parser::{ParseResult, ParseErrorKind, Parser},
+            parser::{ParseResult, Parser},
             visualization::{dot::write_svg, gss::{build_gss_dot_graph, render_gss}, sppf::{build_sppf_graph, write_sppf_dot}},
         };
 
@@ -112,9 +112,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             #[arg(long, value_name = "FILE")]
             write_stats: Option<PathBuf>,
 
-            /// Write parse + tree construction timings as JSON.
+            /// Write parse result as JSON: on success includes timings,
+            /// on failure includes error location and message.
             #[arg(long, value_name = "FILE")]
-            write_timings: Option<PathBuf>,
+            write_result: Option<PathBuf>,
         }
 
         #[cfg(feature = "dhat-heap")]
@@ -253,10 +254,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     }
 
                     // Time tree construction once (separately from --write-parse-tree)
-                    // so we can report it via --write-timings even if no parse-tree file is requested.
+                    // so we can report it via --write-result even if no parse-tree file is requested.
                     let tc_start = std::time::Instant::now();
                     let parse_tree_opt = if cli.write_parse_tree.is_some()
-                        || cli.write_timings.is_some()
+                        || cli.write_result.is_some()
                         || (cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() && cli.trace.is_none())
                     {
                         Some(create_parse_tree(node_id, start_nonterminal_id, &parser, &parse_tree_builder))
@@ -273,15 +274,16 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         writeln!(writer, "{}", json)?;
                     }
 
-                    // Handle --write-timings (write parse + tree construction timings as JSON)
-                    if let Some(ref path) = cli.write_timings {
-                        let timings = serde_json::json!({
+                    // Handle --write-result (write parse result as JSON)
+                    if let Some(ref path) = cli.write_result {
+                        let result = serde_json::json!({
+                            "success": true,
                             "parse_ms": parse_success.duration.as_millis(),
                             "tree_construction_ms": tree_construction_ms,
                         });
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
-                        writeln!(writer, "{}", serde_json::to_string(&timings).unwrap())?;
+                        writeln!(writer, "{}", serde_json::to_string(&result).unwrap())?;
                     }
 
                     // Handle --vis (visualization as SVG)
@@ -312,26 +314,19 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     }
                 }
                 ParseResult::Failure(error) => {
-                    let (line, column) = input.line_column(error.input_index);
-                    match &error.kind {
-                        ParseErrorKind::UnexpectedToken { expected } => {
-                            let names: Vec<_> = expected.iter()
-                                .map(|t| #parser::terminal_name(*t))
-                                .collect();
-                            println!("Parse failed at line {line}, column {column}: expected {}", names.join(", "));
-                        }
-                        ParseErrorKind::ExcludedMatch { excluded_by } => {
-                            let names: Vec<_> = excluded_by.iter()
-                                .map(|t| #parser::terminal_name(*t))
-                                .collect();
-                            println!("Parse failed at line {line}, column {column}: matched token is excluded by {}", names.join(", "));
-                        }
-                        ParseErrorKind::ForbiddenFollow { forbidden } => {
-                            let names: Vec<_> = forbidden.iter()
-                                .map(|t| #parser::terminal_name(*t))
-                                .collect();
-                            println!("Parse failed at line {line}, column {column}: forbidden follow {}", names.join(", "));
-                        }
+                    let (line, column, message) = parser.format_error(&error);
+                    println!("Parse failed at line {line}, column {column}: {message}");
+
+                    if let Some(ref path) = cli.write_result {
+                        let result = serde_json::json!({
+                            "success": false,
+                            "line": line,
+                            "column": column,
+                            "message": message,
+                        });
+                        let file = File::create(path)?;
+                        let mut writer = BufWriter::new(file);
+                        writeln!(writer, "{}", serde_json::to_string(&result).unwrap())?;
                     }
                 }
             }

@@ -160,6 +160,44 @@ pub trait Parser<'i> {
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool;
     /// Returns the terminal IDs in the follow set of the given nonterminal.
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId>;
+
+    /// Formats a parse error into a human-readable message.
+    fn format_error(&self, error: &ParseError) -> (u32, u32, String) {
+        let input = self.input();
+        let (line, column) = input.line_column(error.input_index);
+        let found = if error.input_index >= input.len() {
+            "EOF".to_string()
+        } else {
+            let ch = input.char_at(error.input_index).unwrap();
+            format!("'{ch}'")
+        };
+        let message = match &error.kind {
+            ParseErrorKind::UnexpectedToken { expected } => {
+                let names: Vec<_> = expected.iter()
+                    .map(|t| Self::terminal_name(*t))
+                    .collect();
+                match names.len() {
+                    0 => format!("Unexpected {found}"),
+                    1 => format!("Expected {} but found {found}", names[0]),
+                    _ => format!("Expected one of {} but found {found}", names.join(", ")),
+                }
+            }
+            ParseErrorKind::ExcludedMatch { excluded_by } => {
+                let names: Vec<_> = excluded_by.iter()
+                    .map(|t| Self::terminal_name(*t))
+                    .collect();
+                format!("Match excluded by {}", names.join(", "))
+            }
+            ParseErrorKind::ForbiddenFollow { forbidden } => {
+                let names: Vec<_> = forbidden.iter()
+                    .map(|t| Self::terminal_name(*t))
+                    .collect();
+                format!("Forbidden follow: {}", names.join(", "))
+            }
+        };
+        (line, column, message)
+    }
+
     /// Returns the parse error at the farthest input position, if any.
     fn parse_error(&self) -> Option<&ParseError>;
     /// Records a parse error at the given input position.

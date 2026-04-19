@@ -67,46 +67,6 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             }
         }
 
-        fn to_parse_error<'i, P: Parser<'i>>(input: &Input, error: &iguana_runtime::parser::ParseError) -> ParseError {
-            use iguana_runtime::parser::ParseErrorKind;
-
-            let (line, column) = input.line_column(error.input_index);
-
-            let found = if error.input_index >= input.len() {
-                "EOF".to_string()
-            } else {
-                let ch = input.char_at(error.input_index).unwrap();
-                format!("'{ch}'")
-            };
-
-            let message = match &error.kind {
-                ParseErrorKind::UnexpectedToken { expected } => {
-                    let names: Vec<&str> = expected.iter()
-                        .map(|id| P::terminal_name(*id))
-                        .collect();
-                    match names.len() {
-                        0 => format!("Unexpected {found}"),
-                        1 => format!("Expected {} but found {found}", names[0]),
-                        _ => format!("Expected one of {} but found {found}", names.join(", ")),
-                    }
-                }
-                ParseErrorKind::ExcludedMatch { excluded_by } => {
-                    let names: Vec<&str> = excluded_by.iter()
-                        .map(|id| P::terminal_name(*id))
-                        .collect();
-                    format!("Match excluded by {}", names.join(", "))
-                }
-                ParseErrorKind::ForbiddenFollow { forbidden } => {
-                    let names: Vec<&str> = forbidden.iter()
-                        .map(|id| P::terminal_name(*id))
-                        .collect();
-                    format!("Forbidden follow: {}", names.join(", "))
-                }
-            };
-
-            ParseError { line, column, message }
-        }
-
         #(#parse_methods)*
     }
 }
@@ -156,7 +116,10 @@ fn gen_parse_method(
                     let tree_construction_duration = tree_start.elapsed();
                     Ok(ParseSuccess { tree, parse_duration, tree_construction_duration })
                 }
-                ParseResult::Failure(error) => Err(to_parse_error::<#parser>(input, &error)),
+                ParseResult::Failure(error) => {
+                    let (line, column, message) = parser.format_error(&error);
+                    Err(ParseError { line, column, message })
+                }
             }
         }
     }

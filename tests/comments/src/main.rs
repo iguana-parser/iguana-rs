@@ -6,7 +6,7 @@ use std::{
 };
 use clap::Parser as ClapParser;
 use iguana_runtime::{
-    input::Input, parser::{ParseResult, ParseErrorKind, Parser},
+    input::Input, parser::{ParseResult, Parser},
     visualization::{
         dot::write_svg, gss::{build_gss_dot_graph, render_gss},
         sppf::{build_sppf_graph, write_sppf_dot},
@@ -84,9 +84,10 @@ struct Cli {
     /// Requires the "instrument" feature.
     #[arg(long, value_name = "FILE")]
     write_stats: Option<PathBuf>,
-    /// Write parse + tree construction timings as JSON.
+    /// Write parse result as JSON: on success includes timings,
+    /// on failure includes error location and message.
     #[arg(long, value_name = "FILE")]
-    write_timings: Option<PathBuf>,
+    write_result: Option<PathBuf>,
 }
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
@@ -205,7 +206,7 @@ fn main() -> Result<(), io::Error> {
             }
             let tc_start = std::time::Instant::now();
             let parse_tree_opt = if cli.write_parse_tree.is_some()
-                || cli.write_timings.is_some()
+                || cli.write_result.is_some()
                 || (cli.write_sppf.is_none() && cli.write_gss.is_none()
                     && cli.vis.is_none() && cli.trace.is_none())
             {
@@ -232,14 +233,14 @@ fn main() -> Result<(), io::Error> {
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", json)?;
             }
-            if let Some(ref path) = cli.write_timings {
-                let timings = serde_json::json!(
-                    { "parse_ms" : parse_success.duration.as_millis(),
+            if let Some(ref path) = cli.write_result {
+                let result = serde_json::json!(
+                    { "success" : true, "parse_ms" : parse_success.duration.as_millis(),
                     "tree_construction_ms" : tree_construction_ms, }
                 );
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
-                writeln!(writer, "{}", serde_json::to_string(& timings).unwrap())?;
+                writeln!(writer, "{}", serde_json::to_string(& result).unwrap())?;
             }
             match cli.vis {
                 Some(VisTarget::Gss) => {
@@ -266,38 +267,16 @@ fn main() -> Result<(), io::Error> {
             }
         }
         ParseResult::Failure(error) => {
-            let (line, column) = input.line_column(error.input_index);
-            match &error.kind {
-                ParseErrorKind::UnexpectedToken { expected } => {
-                    let names: Vec<_> = expected
-                        .iter()
-                        .map(|t| CommentsParser::terminal_name(*t))
-                        .collect();
-                    println!(
-                        "Parse failed at line {line}, column {column}: expected {}",
-                        names.join(", ")
-                    );
-                }
-                ParseErrorKind::ExcludedMatch { excluded_by } => {
-                    let names: Vec<_> = excluded_by
-                        .iter()
-                        .map(|t| CommentsParser::terminal_name(*t))
-                        .collect();
-                    println!(
-                        "Parse failed at line {line}, column {column}: matched token is excluded by {}",
-                        names.join(", ")
-                    );
-                }
-                ParseErrorKind::ForbiddenFollow { forbidden } => {
-                    let names: Vec<_> = forbidden
-                        .iter()
-                        .map(|t| CommentsParser::terminal_name(*t))
-                        .collect();
-                    println!(
-                        "Parse failed at line {line}, column {column}: forbidden follow {}",
-                        names.join(", ")
-                    );
-                }
+            let (line, column, message) = parser.format_error(&error);
+            println!("Parse failed at line {line}, column {column}: {message}");
+            if let Some(ref path) = cli.write_result {
+                let result = serde_json::json!(
+                    { "success" : false, "line" : line, "column" : column, "message" :
+                    message, }
+                );
+                let file = File::create(path)?;
+                let mut writer = BufWriter::new(file);
+                writeln!(writer, "{}", serde_json::to_string(& result).unwrap())?;
             }
         }
     }
