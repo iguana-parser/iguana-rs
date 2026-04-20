@@ -153,10 +153,10 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "input_index 6 out of bounds")]
+    #[should_panic(expected = "input_index 7 out of bounds")]
     fn test_line_column_out_of_bounds() {
         let input = Input::from("abc\nde");
-        input.line_column(6);
+        input.line_column(7);
     }
 
     #[test]
