@@ -135,9 +135,6 @@
             if (nonterminals.length > 0 && !startNonterminal) {
               startNonterminal = nonterminals[0];
             }
-            // Show nonterminals in output panel
-            logCommand(`${parserName} --list-nonterminals`);
-            logOutput(nonterminals.join('\n'));
           }
         }
         showReadyStatus = true;
@@ -150,7 +147,6 @@
         buildStatus = "error";
         buildError = event.payload.message;
         logError(`Build failed\n${event.payload.message}`);
-        outputPanelOpen = true;
       }
     });
 
@@ -169,7 +165,6 @@
       } else {
         generateStatus = "error";
         logError(event.payload.message);
-        outputPanelOpen = true;
         setTimeout(() => { generateStatus = "none"; }, 3000);
       }
     });
@@ -186,7 +181,6 @@
       } else {
         setStatus("Profiling failed", "error");
         logError(`Profiling failed\n${event.payload.message}`);
-        outputPanelOpen = true;
       }
     });
 
@@ -1345,14 +1339,10 @@
       grammarFileName = null;
 
 
-      // Log the working directory
-      logOutput(`Working directory: ${parserDirectory}`);
-
       // Try to get parser name (might not exist yet if empty directory)
       const nameResult = await commands.getParserName(parserDirectory);
       if (nameResult.status === "ok") {
         parserName = nameResult.data;
-        logOutput(`Parser: ${parserName}`);
       } else {
         parserName = null;
       }
@@ -1364,8 +1354,6 @@
         grammarFileName = filename;
         grammarText = content;
         editorInstance?.focus();
-
-        logOutput(`Grammar: ${filename}`);
       }
 
       // No auto-build: user must press Generate explicitly.
@@ -1421,8 +1409,6 @@
       statsData = result.data;
     } else {
       statsData = null;
-      logError(result.error);
-      outputPanelOpen = true;
     }
   }
 
@@ -1447,7 +1433,6 @@
     if (result.status === "error") {
       // Command itself failed (couldn't run parser)
       logError(result.error);
-      outputPanelOpen = true;
       setStatus("Parse failed", "error");
       return;
     }
@@ -1484,7 +1469,6 @@
       } else {
         setStatus("Parse failed", "error");
       }
-      outputPanelOpen = true;
     }
 
     // Fetch the data for the active tab if available
@@ -1523,12 +1507,9 @@
     const startSymbol = `Start${startNonterminal}`;
     const result = await commands.setupVscodeDebug(parserDirectory, inputText, startSymbol);
     if (result.status === "ok") {
-      logOutput(`Debug config: .vscode/launch.json`);
-      logOutput(`Debug input: .vscode/debug-input.txt`);
-      logOutput(`→ Open ${parserDirectory} in VS Code, press F5`);
-      outputPanelOpen = true;
+      setStatus("Debug config created — open in VS Code, press F5", "success");
     } else {
-      logError(`Failed to setup debug config: ${result.error}`);
+      setStatus("Failed to setup debug config", "error");
     }
   }
 
@@ -1537,9 +1518,7 @@
     const result = await commands.getSppf();
     if (result.status === "ok") {
       sppf = result.data;
-      logOutput(`SPPF: ${result.data.nodes.length} nodes, ${result.data.edges.length} edges`);
     } else {
-      logError(`Failed to load SPPF: ${result.error}`);
     }
   }
 
@@ -1548,9 +1527,7 @@
     const result = await commands.getGss();
     if (result.status === "ok") {
       gss = result.data;
-      logOutput(`GSS: ${result.data.nodes.length} nodes, ${result.data.edges.length} edges`);
     } else {
-      logError(`Failed to load GSS: ${result.error}`);
     }
   }
 
@@ -1566,12 +1543,10 @@
         if (treeRoot) {
           expandedNodes = new Set([treeRoot.id]);
         }
-        logOutput(`Parse Tree: ${parseTree.nodes.length} nodes, ${parseTree.edges.length} edges`);
       } catch (e) {
-        logError(`Failed to parse parse tree JSON: ${e}`);
+        // JSON parse error — ignore
       }
     } else {
-      logError(`Failed to load parse tree: ${result.error}`);
     }
   }
 
@@ -2021,7 +1996,6 @@
       logCommand(`${parserName} <input> --start ${startSymbol} --trace <trace.json> --format json`);
       setStatus("Debug failed", "error");
       logError(result.error);
-      outputPanelOpen = true;
     }
   }
 
