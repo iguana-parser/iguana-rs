@@ -524,14 +524,6 @@ impl<'i> ExceptTerminalParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(0),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_S.to_vec(),
-                },
-            );
             None
         }
     }
@@ -577,14 +569,6 @@ impl<'i> ExceptTerminalParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(2),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_ID.to_vec(),
-                },
-            );
             None
         }
     }

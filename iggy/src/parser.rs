@@ -11182,14 +11182,6 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(8),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_LAYOUT_DEF.to_vec(),
-                },
-            );
             None
         }
     }
@@ -11451,14 +11443,6 @@ impl<'i> IggyParser<'i> {
                             .unwrap(),
                     );
                 } else {
-                    self.add_parse_error(
-                        i,
-                        SlotId(24),
-                        None,
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ANNOTATION.to_vec(),
-                        },
-                    );
                     None
                 }
             }
@@ -11549,14 +11533,6 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(48),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_PRE_CONDITION.to_vec(),
-                },
-            );
             None
         }
     }
@@ -11731,14 +11707,6 @@ impl<'i> IggyParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(52),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_POST_CONDITION.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -11857,14 +11825,6 @@ impl<'i> IggyParser<'i> {
                             .unwrap(),
                     );
                 } else {
-                    self.add_parse_error(
-                        i,
-                        SlotId(64),
-                        None,
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ASSOCIATIVITY.to_vec(),
-                        },
-                    );
                     None
                 }
             }
@@ -12002,14 +11962,6 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(220),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_RANGE.to_vec(),
-                },
-            );
             None
         }
     }
@@ -12042,14 +11994,6 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(226),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_LAYOUT.to_vec(),
-                },
-            );
             None
         }
     }
@@ -12094,14 +12038,6 @@ impl<'i> IggyParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(228),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_GRAMMAR_OPT_0.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -12218,14 +12154,6 @@ impl<'i> IggyParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(248),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_SYNTAX_RULE_OPT_2.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -12255,14 +12183,6 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(251),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_SYNTAX_RULE_STAR_1.to_vec(),
-                },
-            );
             None
         }
     }
@@ -12378,14 +12298,6 @@ impl<'i> IggyParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(289),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_REGEX_RULE_OPT_5.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -12415,14 +12327,6 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(292),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_REGEX_RULE_STAR_3.to_vec(),
-                },
-            );
             None
         }
     }
@@ -12467,14 +12371,6 @@ impl<'i> IggyParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(294),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_PRIORITY_LEVEL_OPT_6.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -12533,14 +12429,6 @@ impl<'i> IggyParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(321),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_ALTERNATIVE_OPT_9.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -12630,14 +12518,6 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(334),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_SYMBOL_GROUP_1.to_vec(),
-                },
-            );
             None
         }
     }
@@ -12797,14 +12677,6 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(344),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_SYMBOL_GROUP_2.to_vec(),
-                },
-            );
             None
         }
     }
@@ -12964,14 +12836,6 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(354),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_SYMBOL_GROUP_3.to_vec(),
-                },
-            );
             None
         }
     }
@@ -13100,14 +12964,6 @@ impl<'i> IggyParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(374),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_CHAR_CLASS_OPT_10.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -13188,14 +13044,6 @@ impl<'i> IggyParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(383),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_LAYOUT_ALT_0.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -13294,14 +13142,6 @@ impl<'i> IggyParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(392),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_LAYOUT_OPT_11.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -13331,14 +13171,6 @@ impl<'i> IggyParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(395),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_LAYOUT_STAR_6.to_vec(),
-                },
-            );
             None
         }
     }

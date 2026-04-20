@@ -568,14 +568,6 @@ impl<'i> PlusParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(0),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_S.to_vec(),
-                },
-            );
             None
         }
     }
@@ -617,14 +609,6 @@ impl<'i> PlusParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(2),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_A.to_vec(),
-                },
-            );
             None
         }
     }

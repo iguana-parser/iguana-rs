@@ -691,14 +691,6 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(0),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_S.to_vec(),
-                    },
-                );
                 None
             }
         }

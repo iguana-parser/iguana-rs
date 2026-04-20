@@ -567,14 +567,6 @@ impl<'i> MultipleExceptParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(0),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_SYNTAX_IDENTIFIER.to_vec(),
-                },
-            );
             None
         }
     }
@@ -616,14 +608,6 @@ impl<'i> MultipleExceptParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(2),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_LEXICAL_IDENTIFIER.to_vec(),
-                },
-            );
             None
         }
     }

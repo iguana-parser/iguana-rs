@@ -740,14 +740,6 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(0),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_S.to_vec(),
-                },
-            );
             None
         }
     }
@@ -780,14 +772,6 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(2),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_ID.to_vec(),
-                },
-            );
             None
         }
     }
@@ -920,14 +904,6 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(9),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_ID_ALT_0.to_vec(),
-                    },
-                );
                 None
             }
         }

@@ -1085,13 +1085,9 @@ impl<'a> ParserGen<'a> {
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
         let alternatives = self.grammar.alternatives(nonterminal);
         let nt_upper = self.prediction_set_name(nonterminal);
-        let first_set_name = format_ident!("FIRST_SET_{}", nt_upper);
-        let first_slot = Slot::new(nonterminal, &alternatives[0], 0);
-        let first_slot_id = self.slot_ids.get_id(&first_slot);
-
-        // Build if-else if-else chain
+        // Build if-else if-else chain. The final else just returns None
+        // without recording an error as the caller decides whether to record an error.
         let mut chain = quote! {
-            self.add_parse_error(i, #first_slot_id, None, ParseErrorKind::UnexpectedToken { expected: #first_set_name.to_vec() });
             None
         };
 
@@ -1175,20 +1171,24 @@ impl<'a> ParserGen<'a> {
 
         // Base case: parse the single symbol in alt 1
         let base_symbol = base_alt.symbols.last().unwrap();
-        let base_parse = self.gen_match_symbol_ll1(base_symbol, quote! { j });
+        let base_slot = Slot::new(nonterminal, base_alt, 0);
+        let base_slot_id = self.slot_ids.get_id(&base_slot);
+        let base_parse = self.gen_match_symbol_ll1(base_symbol, quote! { j }, base_slot_id);
 
         // Loop: try to parse symbols 1..n of the recursive alt (skip the
         // self-reference). Chain positions forward without updating j.
         // If all succeed, build intermediate nodes and advance j.
         let symbols: Vec<_> = recursive_alt.symbols.iter().skip(1).collect();
 
-        // Phase 1: try each symbol, break if any fails
+        // Phase 1: try each symbol, break if any fails.
         let mut parses = vec![];
         let mut current_pos = quote! { j };
         for (idx, symbol) in symbols.iter().enumerate() {
             let node_var = format_ident!("node_{}", idx);
             let pos_var = format_ident!("pos_{}", idx);
-            let parse = self.gen_match_symbol_ll1(symbol, current_pos.clone());
+            let slot = Slot::new(nonterminal, recursive_alt, idx + 1);
+            let slot_id = self.slot_ids.get_id(&slot);
+            let parse = self.gen_match_symbol_ll1(symbol, current_pos.clone(), slot_id);
             parses.push(quote! {
                 let Some((#node_var, #pos_var)) = #parse else { break; };
             });
@@ -1233,16 +1233,21 @@ impl<'a> ParserGen<'a> {
 
     /// Generates parse code for a symbol at position `pos`. Returns a
     /// `TokenStream` that evaluates to `Option<(SPPFNodeId, u32)>` — the
-    /// node and end position.
-    fn gen_match_symbol_ll1(&self, symbol: &Symbol, pos: TokenStream) -> TokenStream {
+    /// node and end position. Records a parse error on terminal match
+    /// failure, consistent with GLL.
+    fn gen_match_symbol_ll1(&self, symbol: &Symbol, pos: TokenStream, slot_id: SlotId) -> TokenStream {
         let identifier = symbol.as_identifier().unwrap();
         let def = self.grammar.definition(identifier.resolve());
         match def {
             Definition::Terminal(terminal) => {
                 let terminal_id = self.terminal_ids.get_id(terminal);
                 quote! {
-                    self.scanner.match_token(#terminal_id, #pos).map(|end| {
-                        (self.get_or_create_terminal_node(#terminal_id, #pos, end), end)
+                    (match self.scanner.match_token(#terminal_id, #pos) {
+                        Some(end) => Some((self.get_or_create_terminal_node(#terminal_id, #pos, end), end)),
+                        None => {
+                            self.add_parse_error(#pos, #slot_id, None, ParseErrorKind::UnexpectedToken { expected: vec![#terminal_id] });
+                            None
+                        }
                     })
                 }
             }

@@ -624,14 +624,6 @@ impl<'i> GroupParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(0),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_A.to_vec(),
-                },
-            );
             None
         }
     }
@@ -673,14 +665,6 @@ impl<'i> GroupParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(2),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_B.to_vec(),
-                },
-            );
             None
         }
     }
@@ -722,14 +706,6 @@ impl<'i> GroupParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(4),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_C.to_vec(),
-                },
-            );
             None
         }
     }
@@ -771,14 +747,6 @@ impl<'i> GroupParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(6),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_D.to_vec(),
-                },
-            );
             None
         }
     }
@@ -841,14 +809,6 @@ impl<'i> GroupParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(8),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_A_GROUP_0.to_vec(),
-                },
-            );
             None
         }
     }

@@ -20,11 +20,8 @@ fn grammar_without_name() {
 
 #[test]
 fn grammar_with_trailing_space() {
-    // The parser consumed "grammar " and tries to parse more layout at EOF.
-    // Ideally this would say "Expected Identifier" but the GLL error reports
-    // the layout parse failure at the furthest position.
     assert_eq!(
         parse_error("grammar "),
-        "Expected one of LineComment, WS but found EOF"
+        "Expected Identifier but found EOF"
     );
 }

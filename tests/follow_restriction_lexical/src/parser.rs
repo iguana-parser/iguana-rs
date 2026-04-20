@@ -650,14 +650,6 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(0),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_S.to_vec(),
-                },
-            );
             None
         }
     }
@@ -737,14 +729,6 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(2),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_ELEMENT.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -770,12 +754,23 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
             )
             .unwrap();
         loop {
-            let Some((node_0, pos_0)) = self
-                .scanner
-                .match_token(TerminalId(3), j)
-                .map(|end| {
-                    (self.get_or_create_terminal_node(TerminalId(3), j, end), end)
-                }) else {
+            let Some((node_0, pos_0)) = (match self.scanner.match_token(TerminalId(3), j)
+            {
+                Some(end) => {
+                    Some((self.get_or_create_terminal_node(TerminalId(3), j, end), end))
+                }
+                None => {
+                    self.add_parse_error(
+                        j,
+                        SlotId(7),
+                        None,
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(3)],
+                        },
+                    );
+                    None
+                }
+            }) else {
                 break;
             };
             let Some((node_1, pos_1)) = self

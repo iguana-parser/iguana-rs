@@ -667,14 +667,6 @@ impl<'i> SimpleAltParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(0),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_A.to_vec(),
-                },
-            );
             None
         }
     }
@@ -716,14 +708,6 @@ impl<'i> SimpleAltParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(3),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_B.to_vec(),
-                },
-            );
             None
         }
     }
@@ -765,14 +749,6 @@ impl<'i> SimpleAltParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(5),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_C.to_vec(),
-                },
-            );
             None
         }
     }
@@ -814,14 +790,6 @@ impl<'i> SimpleAltParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(7),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_D.to_vec(),
-                },
-            );
             None
         }
     }
@@ -874,14 +842,6 @@ impl<'i> SimpleAltParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(9),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_A_ALT_0.to_vec(),
-                    },
-                );
                 None
             }
         }

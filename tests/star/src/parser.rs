@@ -660,14 +660,6 @@ impl<'i> StarParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(0),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_S.to_vec(),
-                },
-            );
             None
         }
     }
@@ -709,14 +701,6 @@ impl<'i> StarParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(2),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_A.to_vec(),
-                },
-            );
             None
         }
     }
@@ -814,14 +798,6 @@ impl<'i> StarParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(9),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_S_OPT_0.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -851,14 +827,6 @@ impl<'i> StarParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(12),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_S_STAR_0.to_vec(),
-                },
-            );
             None
         }
     }

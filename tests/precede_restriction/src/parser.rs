@@ -804,14 +804,6 @@ impl<'i> PrecedeRestrictionParser<'i> {
                         .unwrap(),
                 );
             } else {
-                self.add_parse_error(
-                    i,
-                    SlotId(0),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: FIRST_SET_S.to_vec(),
-                    },
-                );
                 None
             }
         }
@@ -844,25 +836,27 @@ impl<'i> PrecedeRestrictionParser<'i> {
                     .unwrap(),
             );
         } else {
-            self.add_parse_error(
-                i,
-                SlotId(6),
-                None,
-                ParseErrorKind::UnexpectedToken {
-                    expected: FIRST_SET_ID.to_vec(),
-                },
-            );
             None
         }
     }
     fn parse_id_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
-        let (body_node, body_end) = (self
-            .scanner
-            .match_token(TerminalId(0), j)
-            .map(|end| {
-                (self.get_or_create_terminal_node(TerminalId(0), j, end), end)
-            }))?;
+        let (body_node, body_end) = ((match self.scanner.match_token(TerminalId(0), j) {
+            Some(end) => {
+                Some((self.get_or_create_terminal_node(TerminalId(0), j, end), end))
+            }
+            None => {
+                self.add_parse_error(
+                    j,
+                    SlotId(11),
+                    None,
+                    ParseErrorKind::UnexpectedToken {
+                        expected: vec![TerminalId(0)],
+                    },
+                );
+                None
+            }
+        }))?;
         j = body_end;
         let left_extent = i;
         let mut current = self
@@ -876,12 +870,23 @@ impl<'i> PrecedeRestrictionParser<'i> {
             )
             .unwrap();
         loop {
-            let Some((node_0, pos_0)) = self
-                .scanner
-                .match_token(TerminalId(0), j)
-                .map(|end| {
-                    (self.get_or_create_terminal_node(TerminalId(0), j, end), end)
-                }) else {
+            let Some((node_0, pos_0)) = (match self.scanner.match_token(TerminalId(0), j)
+            {
+                Some(end) => {
+                    Some((self.get_or_create_terminal_node(TerminalId(0), j, end), end))
+                }
+                None => {
+                    self.add_parse_error(
+                        j,
+                        SlotId(9),
+                        None,
+                        ParseErrorKind::UnexpectedToken {
+                            expected: vec![TerminalId(0)],
+                        },
+                    );
+                    None
+                }
+            }) else {
                 break;
             };
             j = pos_0;
