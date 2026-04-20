@@ -79,41 +79,27 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             }
             //T : . Char !>> Char
             SlotId(2) => {
-                record!(self, MatchingTerminal, "Char", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Char", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some(error_kind) = self
-                            .post_conditions(SlotId(3), input_index, j)
-                        {
-                            self.add_parse_error(
-                                j,
-                                SlotId(3),
-                                Some(gss_node_id),
-                                error_kind,
-                            );
-                        } else {
-                            //T : Char !>> Char.
-                            self.execute(
-                                j,
-                                SlotId(3),
-                                Some(right_child),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(2),
+                        Some(gss_node_id),
+                        "Char",
+                    )
+                {
+                    if let Some(error_kind) = self
+                        .post_conditions(SlotId(3), input_index, j)
+                    {
                         self.add_parse_error(
-                            input_index,
-                            SlotId(2),
+                            j,
+                            SlotId(3),
                             Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
+                            error_kind,
                         );
+                    } else {
+                        //T : Char !>> Char.
+                        self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                     }
                 }
             }
@@ -162,28 +148,20 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             }
             //S_Plus_0 : S_Plus_0 . WS Id
             SlotId(7) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(8))
-                        {
-                            //S_Plus_0 : S_Plus_0 WS . Id
-                            self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(7),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(7),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(8))
+                    {
+                        //S_Plus_0 : S_Plus_0 WS . Id
+                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -232,34 +210,20 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             }
             //Id_Plus_1 : Id_Plus_1 . Char
             SlotId(13) => {
-                record!(self, MatchingTerminal, "Char", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Char", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(14))
-                        {
-                            //Id_Plus_1 : Id_Plus_1 Char.
-                            self.execute(
-                                j,
-                                SlotId(14),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(13),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(13),
+                        Some(gss_node_id),
+                        "Char",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(14))
+                    {
+                        //Id_Plus_1 : Id_Plus_1 Char.
+                        self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -273,25 +237,17 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             }
             //Id_Plus_1 : . Char
             SlotId(15) => {
-                record!(self, MatchingTerminal, "Char", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Char", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //Id_Plus_1 : Char.
-                        self.execute(j, SlotId(16), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(15),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(15),
+                        Some(gss_node_id),
+                        "Char",
+                    )
+                {
+                    //Id_Plus_1 : Char.
+                    self.execute(j, SlotId(16), Some(right_child), gss_node_id, env);
                 }
             }
             //Id_Plus_1 : Char.
@@ -703,6 +659,9 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 kind,
             });
     }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
+    }
 }
 pub struct FollowRestrictionParser<'i> {
     start_nonterminal: NonterminalId,
@@ -786,25 +745,12 @@ impl<'i> FollowRestrictionParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(0), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(3),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                        return None;
-                    }
-                };
+                let (end, node) = self
+                    .match_terminal(TerminalId(0), start, SlotId(3), None, "Char")?;
                 if let Some(error_kind) = self.post_conditions(SlotId(3), start, end) {
                     self.add_parse_error(end, SlotId(3), None, error_kind);
                     return None;
                 }
-                let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
                 j = end;
                 node
             };
@@ -879,23 +825,9 @@ impl<'i> FollowRestrictionParser<'i> {
             )
             .unwrap();
         loop {
-            let Some((node_0, pos_0)) = (match self.scanner.match_token(TerminalId(1), j)
-            {
-                Some(end) => {
-                    Some((self.get_or_create_terminal_node(TerminalId(1), j, end), end))
-                }
-                None => {
-                    self.add_parse_error(
-                        j,
-                        SlotId(7),
-                        None,
-                        ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(1)],
-                        },
-                    );
-                    None
-                }
-            }) else {
+            let Some((node_0, pos_0)) = self
+                .match_terminal(TerminalId(1), j, SlotId(7), None, "WS")
+                .map(|(end, node)| (node, end)) else {
                 break;
             };
             let Some((node_1, pos_1)) = self
@@ -942,22 +874,9 @@ impl<'i> FollowRestrictionParser<'i> {
     }
     fn parse_id_plus_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
-        let (body_node, body_end) = ((match self.scanner.match_token(TerminalId(0), j) {
-            Some(end) => {
-                Some((self.get_or_create_terminal_node(TerminalId(0), j, end), end))
-            }
-            None => {
-                self.add_parse_error(
-                    j,
-                    SlotId(15),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: vec![TerminalId(0)],
-                    },
-                );
-                None
-            }
-        }))?;
+        let (body_node, body_end) = (self
+            .match_terminal(TerminalId(0), j, SlotId(15), None, "Char")
+            .map(|(end, node)| (node, end)))?;
         j = body_end;
         let left_extent = i;
         let mut current = self
@@ -971,23 +890,9 @@ impl<'i> FollowRestrictionParser<'i> {
             )
             .unwrap();
         loop {
-            let Some((node_0, pos_0)) = (match self.scanner.match_token(TerminalId(0), j)
-            {
-                Some(end) => {
-                    Some((self.get_or_create_terminal_node(TerminalId(0), j, end), end))
-                }
-                None => {
-                    self.add_parse_error(
-                        j,
-                        SlotId(13),
-                        None,
-                        ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(0)],
-                        },
-                    );
-                    None
-                }
-            }) else {
+            let Some((node_0, pos_0)) = self
+                .match_terminal(TerminalId(0), j, SlotId(13), None, "Char")
+                .map(|(end, node)| (node, end)) else {
                 break;
             };
             j = pos_0;

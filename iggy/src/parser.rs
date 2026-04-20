@@ -341,25 +341,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         match slot_id {
             //Grammar : . "grammar" Layout name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0
             SlotId(0) => {
-                record!(self, MatchingTerminal, "\"grammar\"", input_index);
-                match self.scanner.match_token(TerminalId(10), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"grammar\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(10), input_index, j);
-                        //Grammar : "grammar" . Layout name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0
-                        self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(0),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(10)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(10),
+                        input_index,
+                        SlotId(0),
+                        Some(gss_node_id),
+                        "\"grammar\"",
+                    )
+                {
+                    //Grammar : "grammar" . Layout name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0
+                    self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
             //Grammar : "grammar" . Layout name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0
@@ -375,28 +367,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Grammar : "grammar" Layout . name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0
             SlotId(2) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(3))
-                        {
-                            //Grammar : "grammar" Layout name:Identifier . Layout Grammar_Opt_0 Layout Grammar_Star_0
-                            self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(2),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(2),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(3))
+                    {
+                        //Grammar : "grammar" Layout name:Identifier . Layout Grammar_Opt_0 Layout Grammar_Star_0
+                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -447,25 +431,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //LayoutDef : . "layout" Layout Identifier
             SlotId(8) => {
-                record!(self, MatchingTerminal, "\"layout\"", input_index);
-                match self.scanner.match_token(TerminalId(11), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"layout\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(11), input_index, j);
-                        //LayoutDef : "layout" . Layout Identifier
-                        self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(8),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(11)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(11),
+                        input_index,
+                        SlotId(8),
+                        Some(gss_node_id),
+                        "\"layout\"",
+                    )
+                {
+                    //LayoutDef : "layout" . Layout Identifier
+                    self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }
             }
             //LayoutDef : "layout" . Layout Identifier
@@ -481,34 +457,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //LayoutDef : "layout" Layout . Identifier
             SlotId(10) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(11))
-                        {
-                            //LayoutDef : "layout" Layout Identifier.
-                            self.execute(
-                                j,
-                                SlotId(11),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(10),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(10),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(11))
+                    {
+                        //LayoutDef : "layout" Layout Identifier.
+                        self.execute(j, SlotId(11), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -566,34 +528,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule : SyntaxRule_Star_1 Layout . head:Identifier Layout "=" Layout SyntaxRule_Star_2
             SlotId(18) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(19))
-                        {
-                            //SyntaxRule : SyntaxRule_Star_1 Layout head:Identifier . Layout "=" Layout SyntaxRule_Star_2
-                            self.execute(
-                                j,
-                                SlotId(19),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(18),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(18),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(19))
+                    {
+                        //SyntaxRule : SyntaxRule_Star_1 Layout head:Identifier . Layout "=" Layout SyntaxRule_Star_2
+                        self.execute(j, SlotId(19), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -610,34 +558,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule : SyntaxRule_Star_1 Layout head:Identifier Layout . "=" Layout SyntaxRule_Star_2
             SlotId(20) => {
-                record!(self, MatchingTerminal, "\"=\"", input_index);
-                match self.scanner.match_token(TerminalId(12), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"=\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(12), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(21))
-                        {
-                            //SyntaxRule : SyntaxRule_Star_1 Layout head:Identifier Layout "=" . Layout SyntaxRule_Star_2
-                            self.execute(
-                                j,
-                                SlotId(21),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(20),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(12)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(12),
+                        input_index,
+                        SlotId(20),
+                        Some(gss_node_id),
+                        "\"=\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(21))
+                    {
+                        //SyntaxRule : SyntaxRule_Star_1 Layout head:Identifier Layout "=" . Layout SyntaxRule_Star_2
+                        self.execute(j, SlotId(21), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -666,25 +600,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation : . "@NoLayout"
             SlotId(24) => {
-                record!(self, MatchingTerminal, "\"@NoLayout\"", input_index);
-                match self.scanner.match_token(TerminalId(14), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"@NoLayout\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(14), input_index, j);
-                        //Annotation : "@NoLayout".
-                        self.execute(j, SlotId(25), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(24),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(14)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(14),
+                        input_index,
+                        SlotId(24),
+                        Some(gss_node_id),
+                        "\"@NoLayout\"",
+                    )
+                {
+                    //Annotation : "@NoLayout".
+                    self.execute(j, SlotId(25), Some(right_child), gss_node_id, env);
                 }
             }
             //Annotation : "@NoLayout".
@@ -697,25 +623,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation : . "@Layout" Layout "(" Layout Identifier Layout ")"
             SlotId(26) => {
-                record!(self, MatchingTerminal, "\"@Layout\"", input_index);
-                match self.scanner.match_token(TerminalId(15), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"@Layout\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(15), input_index, j);
-                        //Annotation : "@Layout" . Layout "(" Layout Identifier Layout ")"
-                        self.execute(j, SlotId(27), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(26),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(15)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(15),
+                        input_index,
+                        SlotId(26),
+                        Some(gss_node_id),
+                        "\"@Layout\"",
+                    )
+                {
+                    //Annotation : "@Layout" . Layout "(" Layout Identifier Layout ")"
+                    self.execute(j, SlotId(27), Some(right_child), gss_node_id, env);
                 }
             }
             //Annotation : "@Layout" . Layout "(" Layout Identifier Layout ")"
@@ -731,34 +649,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation : "@Layout" Layout . "(" Layout Identifier Layout ")"
             SlotId(28) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(16), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(16), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(29))
-                        {
-                            //Annotation : "@Layout" Layout "(" . Layout Identifier Layout ")"
-                            self.execute(
-                                j,
-                                SlotId(29),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(28),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(16)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(16),
+                        input_index,
+                        SlotId(28),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(29))
+                    {
+                        //Annotation : "@Layout" Layout "(" . Layout Identifier Layout ")"
+                        self.execute(j, SlotId(29), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -775,34 +679,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation : "@Layout" Layout "(" Layout . Identifier Layout ")"
             SlotId(30) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(31))
-                        {
-                            //Annotation : "@Layout" Layout "(" Layout Identifier . Layout ")"
-                            self.execute(
-                                j,
-                                SlotId(31),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(30),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(30),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(31))
+                    {
+                        //Annotation : "@Layout" Layout "(" Layout Identifier . Layout ")"
+                        self.execute(j, SlotId(31), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -819,34 +709,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation : "@Layout" Layout "(" Layout Identifier Layout . ")"
             SlotId(32) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(17), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(17), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(33))
-                        {
-                            //Annotation : "@Layout" Layout "(" Layout Identifier Layout ")".
-                            self.execute(
-                                j,
-                                SlotId(33),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(32),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(17)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(17),
+                        input_index,
+                        SlotId(32),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(33))
+                    {
+                        //Annotation : "@Layout" Layout "(" Layout Identifier Layout ")".
+                        self.execute(j, SlotId(33), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -860,25 +736,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Annotation : . "@Start"
             SlotId(34) => {
-                record!(self, MatchingTerminal, "\"@Start\"", input_index);
-                match self.scanner.match_token(TerminalId(18), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"@Start\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(18), input_index, j);
-                        //Annotation : "@Start".
-                        self.execute(j, SlotId(35), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(34),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(18)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(18),
+                        input_index,
+                        SlotId(34),
+                        Some(gss_node_id),
+                        "\"@Start\"",
+                    )
+                {
+                    //Annotation : "@Start".
+                    self.execute(j, SlotId(35), Some(right_child), gss_node_id, env);
                 }
             }
             //Annotation : "@Start".
@@ -891,25 +759,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule : . "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3
             SlotId(36) => {
-                record!(self, MatchingTerminal, "\"@regex\"", input_index);
-                match self.scanner.match_token(TerminalId(19), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"@regex\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(19), input_index, j);
-                        //RegexRule : "@regex" . Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3
-                        self.execute(j, SlotId(37), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(36),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(19)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(19),
+                        input_index,
+                        SlotId(36),
+                        Some(gss_node_id),
+                        "\"@regex\"",
+                    )
+                {
+                    //RegexRule : "@regex" . Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3
+                    self.execute(j, SlotId(37), Some(right_child), gss_node_id, env);
                 }
             }
             //RegexRule : "@regex" . Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3
@@ -925,34 +785,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule : "@regex" Layout . Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3
             SlotId(38) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(39))
-                        {
-                            //RegexRule : "@regex" Layout Identifier . Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3
-                            self.execute(
-                                j,
-                                SlotId(39),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(38),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(38),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(39))
+                    {
+                        //RegexRule : "@regex" Layout Identifier . Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3
+                        self.execute(j, SlotId(39), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -969,34 +815,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule : "@regex" Layout Identifier Layout . "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3
             SlotId(40) => {
-                record!(self, MatchingTerminal, "\"=\"", input_index);
-                match self.scanner.match_token(TerminalId(12), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"=\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(12), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(41))
-                        {
-                            //RegexRule : "@regex" Layout Identifier Layout "=" . Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3
-                            self.execute(
-                                j,
-                                SlotId(41),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(40),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(12)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(12),
+                        input_index,
+                        SlotId(40),
+                        Some(gss_node_id),
+                        "\"=\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(41))
+                    {
+                        //RegexRule : "@regex" Layout Identifier Layout "=" . Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3
+                        self.execute(j, SlotId(41), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1063,25 +895,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PreCondition : . Identifier Layout "!<<"
             SlotId(48) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //PreCondition : Identifier . Layout "!<<"
-                        self.execute(j, SlotId(49), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(48),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(48),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //PreCondition : Identifier . Layout "!<<"
+                    self.execute(j, SlotId(49), Some(right_child), gss_node_id, env);
                 }
             }
             //PreCondition : Identifier . Layout "!<<"
@@ -1097,34 +921,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PreCondition : Identifier Layout . "!<<"
             SlotId(50) => {
-                record!(self, MatchingTerminal, "\"!<<\"", input_index);
-                match self.scanner.match_token(TerminalId(21), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"!<<\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(21), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(51))
-                        {
-                            //PreCondition : Identifier Layout "!<<".
-                            self.execute(
-                                j,
-                                SlotId(51),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(50),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(21)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(21),
+                        input_index,
+                        SlotId(50),
+                        Some(gss_node_id),
+                        "\"!<<\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(51))
+                    {
+                        //PreCondition : Identifier Layout "!<<".
+                        self.execute(j, SlotId(51), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1138,25 +948,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PostCondition : . "\" Layout Identifier
             SlotId(52) => {
-                record!(self, MatchingTerminal, "\"\\\"", input_index);
-                match self.scanner.match_token(TerminalId(22), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"\\\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(22), input_index, j);
-                        //PostCondition : "\" . Layout Identifier
-                        self.execute(j, SlotId(53), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(52),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(22)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(22),
+                        input_index,
+                        SlotId(52),
+                        Some(gss_node_id),
+                        "\"\\\"",
+                    )
+                {
+                    //PostCondition : "\" . Layout Identifier
+                    self.execute(j, SlotId(53), Some(right_child), gss_node_id, env);
                 }
             }
             //PostCondition : "\" . Layout Identifier
@@ -1172,34 +974,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PostCondition : "\" Layout . Identifier
             SlotId(54) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(55))
-                        {
-                            //PostCondition : "\" Layout Identifier.
-                            self.execute(
-                                j,
-                                SlotId(55),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(54),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(54),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(55))
+                    {
+                        //PostCondition : "\" Layout Identifier.
+                        self.execute(j, SlotId(55), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1213,25 +1001,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PostCondition : . "!>>" Layout Identifier
             SlotId(56) => {
-                record!(self, MatchingTerminal, "\"!>>\"", input_index);
-                match self.scanner.match_token(TerminalId(23), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"!>>\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(23), input_index, j);
-                        //PostCondition : "!>>" . Layout Identifier
-                        self.execute(j, SlotId(57), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(56),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(23)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(23),
+                        input_index,
+                        SlotId(56),
+                        Some(gss_node_id),
+                        "\"!>>\"",
+                    )
+                {
+                    //PostCondition : "!>>" . Layout Identifier
+                    self.execute(j, SlotId(57), Some(right_child), gss_node_id, env);
                 }
             }
             //PostCondition : "!>>" . Layout Identifier
@@ -1247,34 +1027,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PostCondition : "!>>" Layout . Identifier
             SlotId(58) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(59))
-                        {
-                            //PostCondition : "!>>" Layout Identifier.
-                            self.execute(
-                                j,
-                                SlotId(59),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(58),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(58),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(59))
+                    {
+                        //PostCondition : "!>>" Layout Identifier.
+                        self.execute(j, SlotId(59), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1321,25 +1087,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Associativity : . "left"
             SlotId(64) => {
-                record!(self, MatchingTerminal, "\"left\"", input_index);
-                match self.scanner.match_token(TerminalId(24), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"left\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(24), input_index, j);
-                        //Associativity : "left".
-                        self.execute(j, SlotId(65), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(64),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(24)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(24),
+                        input_index,
+                        SlotId(64),
+                        Some(gss_node_id),
+                        "\"left\"",
+                    )
+                {
+                    //Associativity : "left".
+                    self.execute(j, SlotId(65), Some(right_child), gss_node_id, env);
                 }
             }
             //Associativity : "left".
@@ -1352,25 +1110,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Associativity : . "right"
             SlotId(66) => {
-                record!(self, MatchingTerminal, "\"right\"", input_index);
-                match self.scanner.match_token(TerminalId(25), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"right\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(25), input_index, j);
-                        //Associativity : "right".
-                        self.execute(j, SlotId(67), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(66),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(25)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(25),
+                        input_index,
+                        SlotId(66),
+                        Some(gss_node_id),
+                        "\"right\"",
+                    )
+                {
+                    //Associativity : "right".
+                    self.execute(j, SlotId(67), Some(right_child), gss_node_id, env);
                 }
             }
             //Associativity : "right".
@@ -1383,25 +1133,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Associativity : . "none"
             SlotId(68) => {
-                record!(self, MatchingTerminal, "\"none\"", input_index);
-                match self.scanner.match_token(TerminalId(26), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"none\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(26), input_index, j);
-                        //Associativity : "none".
-                        self.execute(j, SlotId(69), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(68),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(26)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(26),
+                        input_index,
+                        SlotId(68),
+                        Some(gss_node_id),
+                        "\"none\"",
+                    )
+                {
+                    //Associativity : "none".
+                    self.execute(j, SlotId(69), Some(right_child), gss_node_id, env);
                 }
             }
             //Associativity : "none".
@@ -1449,25 +1191,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : . Identifier return 0
             SlotId(74) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //Symbol(p: i32) : Identifier . return 0
-                        self.execute(j, SlotId(75), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(74),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(74),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //Symbol(p: i32) : Identifier . return 0
+                    self.execute(j, SlotId(75), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol(p: i32) : Identifier . return 0
@@ -1501,25 +1235,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : . "(" Layout Alternative_Plus_7 Layout ")" return 0
             SlotId(77) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(16), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(16), input_index, j);
-                        //Symbol(p: i32) : "(" . Layout Alternative_Plus_7 Layout ")" return 0
-                        self.execute(j, SlotId(78), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(77),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(16)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(16),
+                        input_index,
+                        SlotId(77),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    //Symbol(p: i32) : "(" . Layout Alternative_Plus_7 Layout ")" return 0
+                    self.execute(j, SlotId(78), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol(p: i32) : "(" . Layout Alternative_Plus_7 Layout ")" return 0
@@ -1550,34 +1276,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "(" Layout Alternative_Plus_7 Layout . ")" return 0
             SlotId(81) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(17), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(17), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(82))
-                        {
-                            //Symbol(p: i32) : "(" Layout Alternative_Plus_7 Layout ")" . return 0
-                            self.execute(
-                                j,
-                                SlotId(82),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(81),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(17)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(17),
+                        input_index,
+                        SlotId(81),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(82))
+                    {
+                        //Symbol(p: i32) : "(" Layout Alternative_Plus_7 Layout ")" . return 0
+                        self.execute(j, SlotId(82), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1612,25 +1324,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
             SlotId(84) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(16), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(16), input_index, j);
-                        //Symbol(p: i32) : "(" . Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
-                        self.execute(j, SlotId(85), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(84),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(16)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(16),
+                        input_index,
+                        SlotId(84),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    //Symbol(p: i32) : "(" . Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
+                    self.execute(j, SlotId(85), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol(p: i32) : "(" . Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
@@ -1676,34 +1380,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout . ")" return 0
             SlotId(90) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(17), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(17), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(91))
-                        {
-                            //Symbol(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" . return 0
-                            self.execute(
-                                j,
-                                SlotId(91),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(90),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(17)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(17),
+                        input_index,
+                        SlotId(90),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(91))
+                    {
+                        //Symbol(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" . return 0
+                        self.execute(j, SlotId(91), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1738,25 +1428,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : . String return 0
             SlotId(93) => {
-                record!(self, MatchingTerminal, "String", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "String", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //Symbol(p: i32) : String . return 0
-                        self.execute(j, SlotId(94), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(93),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(93),
+                        Some(gss_node_id),
+                        "String",
+                    )
+                {
+                    //Symbol(p: i32) : String . return 0
+                    self.execute(j, SlotId(94), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol(p: i32) : String . return 0
@@ -1790,25 +1472,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
             SlotId(96) => {
-                record!(self, MatchingTerminal, "\"{\"", input_index);
-                match self.scanner.match_token(TerminalId(27), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"{\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(27), input_index, j);
-                        //Symbol(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                        self.execute(j, SlotId(97), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(96),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(27)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(27),
+                        input_index,
+                        SlotId(96),
+                        Some(gss_node_id),
+                        "\"{\"",
+                    )
+                {
+                    //Symbol(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
+                    self.execute(j, SlotId(97), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
@@ -1854,34 +1528,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . "}" Layout "*" return 0
             SlotId(102) => {
-                record!(self, MatchingTerminal, "\"}\"", input_index);
-                match self.scanner.match_token(TerminalId(28), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"}\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(28), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(103))
-                        {
-                            //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "*" return 0
-                            self.execute(
-                                j,
-                                SlotId(103),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(102),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(28)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(28),
+                        input_index,
+                        SlotId(102),
+                        Some(gss_node_id),
+                        "\"}\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(103))
+                    {
+                        //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "*" return 0
+                        self.execute(j, SlotId(103), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1898,34 +1558,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "*" return 0
             SlotId(104) => {
-                record!(self, MatchingTerminal, "\"*\"", input_index);
-                match self.scanner.match_token(TerminalId(29), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(29), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(105))
-                        {
-                            //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" . return 0
-                            self.execute(
-                                j,
-                                SlotId(105),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(104),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(29)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(29),
+                        input_index,
+                        SlotId(104),
+                        Some(gss_node_id),
+                        "\"*\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(105))
+                    {
+                        //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" . return 0
+                        self.execute(j, SlotId(105), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1960,31 +1606,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
             SlotId(107) => {
-                record!(self, MatchingTerminal, "\"{\"", input_index);
-                match self.scanner.match_token(TerminalId(27), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"{\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(27), input_index, j);
-                        //Symbol(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                        self.execute(
-                            j,
-                            SlotId(108),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(107),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(27)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(27),
+                        input_index,
+                        SlotId(107),
+                        Some(gss_node_id),
+                        "\"{\"",
+                    )
+                {
+                    //Symbol(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
+                    self.execute(j, SlotId(108), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
@@ -2030,34 +1662,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . "}" Layout "+" return 0
             SlotId(113) => {
-                record!(self, MatchingTerminal, "\"}\"", input_index);
-                match self.scanner.match_token(TerminalId(28), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"}\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(28), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(114))
-                        {
-                            //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "+" return 0
-                            self.execute(
-                                j,
-                                SlotId(114),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(113),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(28)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(28),
+                        input_index,
+                        SlotId(113),
+                        Some(gss_node_id),
+                        "\"}\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(114))
+                    {
+                        //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "+" return 0
+                        self.execute(j, SlotId(114), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -2074,34 +1692,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "+" return 0
             SlotId(115) => {
-                record!(self, MatchingTerminal, "\"+\"", input_index);
-                match self.scanner.match_token(TerminalId(30), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(30), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(116))
-                        {
-                            //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" . return 0
-                            self.execute(
-                                j,
-                                SlotId(116),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(115),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(30)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(30),
+                        input_index,
+                        SlotId(115),
+                        Some(gss_node_id),
+                        "\"+\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(116))
+                    {
+                        //Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" . return 0
+                        self.execute(j, SlotId(116), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -2172,34 +1776,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "*" return 0
             SlotId(122) => {
-                record!(self, MatchingTerminal, "\"*\"", input_index);
-                match self.scanner.match_token(TerminalId(29), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(29), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(123))
-                        {
-                            //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" . return 0
-                            self.execute(
-                                j,
-                                SlotId(123),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(122),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(29)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(29),
+                        input_index,
+                        SlotId(122),
+                        Some(gss_node_id),
+                        "\"*\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(123))
+                    {
+                        //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" . return 0
+                        self.execute(j, SlotId(123), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -2270,34 +1860,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "+" return 0
             SlotId(129) => {
-                record!(self, MatchingTerminal, "\"+\"", input_index);
-                match self.scanner.match_token(TerminalId(30), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(30), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(130))
-                        {
-                            //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" . return 0
-                            self.execute(
-                                j,
-                                SlotId(130),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(129),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(30)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(30),
+                        input_index,
+                        SlotId(129),
+                        Some(gss_node_id),
+                        "\"+\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(130))
+                    {
+                        //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" . return 0
+                        self.execute(j, SlotId(130), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -2368,34 +1944,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "?" return 0
             SlotId(136) => {
-                record!(self, MatchingTerminal, "\"?\"", input_index);
-                match self.scanner.match_token(TerminalId(31), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"?\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(31), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(137))
-                        {
-                            //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" . return 0
-                            self.execute(
-                                j,
-                                SlotId(137),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(136),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(31)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(31),
+                        input_index,
+                        SlotId(136),
+                        Some(gss_node_id),
+                        "\"?\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(137))
+                    {
+                        //Symbol(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" . return 0
+                        self.execute(j, SlotId(137), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -2658,31 +2220,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(160) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //Symbol(p: i32) : Identifier . Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                        self.execute(
-                            j,
-                            SlotId(161),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(160),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(160),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //Symbol(p: i32) : Identifier . Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
+                    self.execute(j, SlotId(161), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol(p: i32) : Identifier . Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
@@ -2698,34 +2246,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : Identifier Layout . "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(162) => {
-                record!(self, MatchingTerminal, "\"!<<\"", input_index);
-                match self.scanner.match_token(TerminalId(21), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"!<<\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(21), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(163))
-                        {
-                            //Symbol(p: i32) : Identifier Layout "!<<" . Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                            self.execute(
-                                j,
-                                SlotId(163),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(162),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(21)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(21),
+                        input_index,
+                        SlotId(162),
+                        Some(gss_node_id),
+                        "\"!<<\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(163))
+                    {
+                        //Symbol(p: i32) : Identifier Layout "!<<" . Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
+                        self.execute(j, SlotId(163), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -2779,31 +2313,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
             SlotId(167) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //Symbol(p: i32) : label:Identifier . Layout ":" Layout Symbol(1) return 1
-                        self.execute(
-                            j,
-                            SlotId(168),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(167),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(167),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //Symbol(p: i32) : label:Identifier . Layout ":" Layout Symbol(1) return 1
+                    self.execute(j, SlotId(168), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol(p: i32) : label:Identifier . Layout ":" Layout Symbol(1) return 1
@@ -2819,34 +2339,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol(p: i32) : label:Identifier Layout . ":" Layout Symbol(1) return 1
             SlotId(169) => {
-                record!(self, MatchingTerminal, "\":\"", input_index);
-                match self.scanner.match_token(TerminalId(33), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\":\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(33), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(170))
-                        {
-                            //Symbol(p: i32) : label:Identifier Layout ":" . Layout Symbol(1) return 1
-                            self.execute(
-                                j,
-                                SlotId(170),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(169),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(33)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(33),
+                        input_index,
+                        SlotId(169),
+                        Some(gss_node_id),
+                        "\":\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(170))
+                    {
+                        //Symbol(p: i32) : label:Identifier Layout ":" . Layout Symbol(1) return 1
+                        self.execute(j, SlotId(170), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -2911,34 +2417,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : Regex Layout . "+"
             SlotId(176) => {
-                record!(self, MatchingTerminal, "\"+\"", input_index);
-                match self.scanner.match_token(TerminalId(30), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(30), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(177))
-                        {
-                            //Regex : Regex Layout "+".
-                            self.execute(
-                                j,
-                                SlotId(177),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(176),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(30)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(30),
+                        input_index,
+                        SlotId(176),
+                        Some(gss_node_id),
+                        "\"+\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(177))
+                    {
+                        //Regex : Regex Layout "+".
+                        self.execute(j, SlotId(177), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -2967,34 +2459,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : Regex Layout . "*"
             SlotId(180) => {
-                record!(self, MatchingTerminal, "\"*\"", input_index);
-                match self.scanner.match_token(TerminalId(29), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(29), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(181))
-                        {
-                            //Regex : Regex Layout "*".
-                            self.execute(
-                                j,
-                                SlotId(181),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(180),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(29)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(29),
+                        input_index,
+                        SlotId(180),
+                        Some(gss_node_id),
+                        "\"*\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(181))
+                    {
+                        //Regex : Regex Layout "*".
+                        self.execute(j, SlotId(181), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -3023,34 +2501,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : Regex Layout . "?"
             SlotId(184) => {
-                record!(self, MatchingTerminal, "\"?\"", input_index);
-                match self.scanner.match_token(TerminalId(31), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"?\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(31), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(185))
-                        {
-                            //Regex : Regex Layout "?".
-                            self.execute(
-                                j,
-                                SlotId(185),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(184),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(31)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(31),
+                        input_index,
+                        SlotId(184),
+                        Some(gss_node_id),
+                        "\"?\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(185))
+                    {
+                        //Regex : Regex Layout "?".
+                        self.execute(j, SlotId(185), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -3064,31 +2528,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : . "(" Layout first:Regex Layout rest:Regex_Plus_12 Layout ")"
             SlotId(186) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(16), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(16), input_index, j);
-                        //Regex : "(" . Layout first:Regex Layout rest:Regex_Plus_12 Layout ")"
-                        self.execute(
-                            j,
-                            SlotId(187),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(186),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(16)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(16),
+                        input_index,
+                        SlotId(186),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    //Regex : "(" . Layout first:Regex Layout rest:Regex_Plus_12 Layout ")"
+                    self.execute(j, SlotId(187), Some(right_child), gss_node_id, env);
                 }
             }
             //Regex : "(" . Layout first:Regex Layout rest:Regex_Plus_12 Layout ")"
@@ -3134,34 +2584,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : "(" Layout first:Regex Layout rest:Regex_Plus_12 Layout . ")"
             SlotId(192) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(17), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(17), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(193))
-                        {
-                            //Regex : "(" Layout first:Regex Layout rest:Regex_Plus_12 Layout ")".
-                            self.execute(
-                                j,
-                                SlotId(193),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(192),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(17)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(17),
+                        input_index,
+                        SlotId(192),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(193))
+                    {
+                        //Regex : "(" Layout first:Regex Layout rest:Regex_Plus_12 Layout ")".
+                        self.execute(j, SlotId(193), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -3175,31 +2611,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : . "(" Layout RegexRule_Plus_4 Layout ")"
             SlotId(194) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(16), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(16), input_index, j);
-                        //Regex : "(" . Layout RegexRule_Plus_4 Layout ")"
-                        self.execute(
-                            j,
-                            SlotId(195),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(194),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(16)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(16),
+                        input_index,
+                        SlotId(194),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    //Regex : "(" . Layout RegexRule_Plus_4 Layout ")"
+                    self.execute(j, SlotId(195), Some(right_child), gss_node_id, env);
                 }
             }
             //Regex : "(" . Layout RegexRule_Plus_4 Layout ")"
@@ -3230,34 +2652,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : "(" Layout RegexRule_Plus_4 Layout . ")"
             SlotId(198) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(17), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(17), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(199))
-                        {
-                            //Regex : "(" Layout RegexRule_Plus_4 Layout ")".
-                            self.execute(
-                                j,
-                                SlotId(199),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(198),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(17)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(17),
+                        input_index,
+                        SlotId(198),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(199))
+                    {
+                        //Regex : "(" Layout RegexRule_Plus_4 Layout ")".
+                        self.execute(j, SlotId(199), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -3283,31 +2691,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : . Char
             SlotId(202) => {
-                record!(self, MatchingTerminal, "Char", input_index);
-                match self.scanner.match_token(TerminalId(3), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Char", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        //Regex : Char.
-                        self.execute(
-                            j,
-                            SlotId(203),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(202),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(3),
+                        input_index,
+                        SlotId(202),
+                        Some(gss_node_id),
+                        "Char",
+                    )
+                {
+                    //Regex : Char.
+                    self.execute(j, SlotId(203), Some(right_child), gss_node_id, env);
                 }
             }
             //Regex : Char.
@@ -3320,31 +2714,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : . String
             SlotId(204) => {
-                record!(self, MatchingTerminal, "String", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "String", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //Regex : String.
-                        self.execute(
-                            j,
-                            SlotId(205),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(204),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(204),
+                        Some(gss_node_id),
+                        "String",
+                    )
+                {
+                    //Regex : String.
+                    self.execute(j, SlotId(205), Some(right_child), gss_node_id, env);
                 }
             }
             //Regex : String.
@@ -3357,31 +2737,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex : . Identifier
             SlotId(206) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //Regex : Identifier.
-                        self.execute(
-                            j,
-                            SlotId(207),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(206),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(206),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //Regex : Identifier.
+                    self.execute(j, SlotId(207), Some(right_child), gss_node_id, env);
                 }
             }
             //Regex : Identifier.
@@ -3414,34 +2780,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass : neg:CharClass_Opt_10 Layout . "[" Layout CharClass_Plus_13 Layout "]"
             SlotId(210) => {
-                record!(self, MatchingTerminal, "\"[\"", input_index);
-                match self.scanner.match_token(TerminalId(34), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"[\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(34), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(211))
-                        {
-                            //CharClass : neg:CharClass_Opt_10 Layout "[" . Layout CharClass_Plus_13 Layout "]"
-                            self.execute(
-                                j,
-                                SlotId(211),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(210),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(34)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(34),
+                        input_index,
+                        SlotId(210),
+                        Some(gss_node_id),
+                        "\"[\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(211))
+                    {
+                        //CharClass : neg:CharClass_Opt_10 Layout "[" . Layout CharClass_Plus_13 Layout "]"
+                        self.execute(j, SlotId(211), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -3473,34 +2825,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass : neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_13 Layout . "]"
             SlotId(214) => {
-                record!(self, MatchingTerminal, "\"]\"", input_index);
-                match self.scanner.match_token(TerminalId(35), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"]\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(35), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(215))
-                        {
-                            //CharClass : neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_13 Layout "]".
-                            self.execute(
-                                j,
-                                SlotId(215),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(214),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(35)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(35),
+                        input_index,
+                        SlotId(214),
+                        Some(gss_node_id),
+                        "\"]\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(215))
+                    {
+                        //CharClass : neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_13 Layout "]".
+                        self.execute(j, SlotId(215), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -3530,31 +2868,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RangeElement : . RangeChar
             SlotId(218) => {
-                record!(self, MatchingTerminal, "RangeChar", input_index);
-                match self.scanner.match_token(TerminalId(5), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "RangeChar", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(5), input_index, j);
-                        //RangeElement : RangeChar.
-                        self.execute(
-                            j,
-                            SlotId(219),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(218),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(5)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(5),
+                        input_index,
+                        SlotId(218),
+                        Some(gss_node_id),
+                        "RangeChar",
+                    )
+                {
+                    //RangeElement : RangeChar.
+                    self.execute(j, SlotId(219), Some(right_child), gss_node_id, env);
                 }
             }
             //RangeElement : RangeChar.
@@ -3567,31 +2891,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Range : . start:RangeChar Layout "-" Layout end:RangeChar
             SlotId(220) => {
-                record!(self, MatchingTerminal, "RangeChar", input_index);
-                match self.scanner.match_token(TerminalId(5), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "RangeChar", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(5), input_index, j);
-                        //Range : start:RangeChar . Layout "-" Layout end:RangeChar
-                        self.execute(
-                            j,
-                            SlotId(221),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(220),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(5)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(5),
+                        input_index,
+                        SlotId(220),
+                        Some(gss_node_id),
+                        "RangeChar",
+                    )
+                {
+                    //Range : start:RangeChar . Layout "-" Layout end:RangeChar
+                    self.execute(j, SlotId(221), Some(right_child), gss_node_id, env);
                 }
             }
             //Range : start:RangeChar . Layout "-" Layout end:RangeChar
@@ -3607,34 +2917,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Range : start:RangeChar Layout . "-" Layout end:RangeChar
             SlotId(222) => {
-                record!(self, MatchingTerminal, "\"-\"", input_index);
-                match self.scanner.match_token(TerminalId(36), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"-\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(36), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(223))
-                        {
-                            //Range : start:RangeChar Layout "-" . Layout end:RangeChar
-                            self.execute(
-                                j,
-                                SlotId(223),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(222),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(36)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(36),
+                        input_index,
+                        SlotId(222),
+                        Some(gss_node_id),
+                        "\"-\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(223))
+                    {
+                        //Range : start:RangeChar Layout "-" . Layout end:RangeChar
+                        self.execute(j, SlotId(223), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -3651,34 +2947,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Range : start:RangeChar Layout "-" Layout . end:RangeChar
             SlotId(224) => {
-                record!(self, MatchingTerminal, "RangeChar", input_index);
-                match self.scanner.match_token(TerminalId(5), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "RangeChar", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(5), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(225))
-                        {
-                            //Range : start:RangeChar Layout "-" Layout end:RangeChar.
-                            self.execute(
-                                j,
-                                SlotId(225),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(224),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(5)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(5),
+                        input_index,
+                        SlotId(224),
+                        Some(gss_node_id),
+                        "RangeChar",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(225))
+                    {
+                        //Range : start:RangeChar Layout "-" Layout end:RangeChar.
+                        self.execute(j, SlotId(225), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -3965,34 +3247,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //SyntaxRule_Plus_2 : SyntaxRule_Plus_2 Layout . ">" Layout PriorityLevel
             SlotId(255) => {
-                record!(self, MatchingTerminal, "\">\"", input_index);
-                match self.scanner.match_token(TerminalId(13), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\">\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(13), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(256))
-                        {
-                            //SyntaxRule_Plus_2 : SyntaxRule_Plus_2 Layout ">" . Layout PriorityLevel
-                            self.execute(
-                                j,
-                                SlotId(256),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(255),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(13)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(13),
+                        input_index,
+                        SlotId(255),
+                        Some(gss_node_id),
+                        "\">\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(256))
+                    {
+                        //SyntaxRule_Plus_2 : SyntaxRule_Plus_2 Layout ">" . Layout PriorityLevel
+                        self.execute(j, SlotId(256), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -4169,34 +3437,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //RegexRule_Plus_3 : RegexRule_Plus_3 Layout . "|" Layout RegexRule_Plus_4
             SlotId(277) => {
-                record!(self, MatchingTerminal, "\"|\"", input_index);
-                match self.scanner.match_token(TerminalId(20), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"|\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(20), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(278))
-                        {
-                            //RegexRule_Plus_3 : RegexRule_Plus_3 Layout "|" . Layout RegexRule_Plus_4
-                            self.execute(
-                                j,
-                                SlotId(278),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(277),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(20)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(20),
+                        input_index,
+                        SlotId(277),
+                        Some(gss_node_id),
+                        "\"|\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(278))
+                    {
+                        //RegexRule_Plus_3 : RegexRule_Plus_3 Layout "|" . Layout RegexRule_Plus_4
+                        self.execute(j, SlotId(278), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -4398,34 +3652,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //PriorityLevel_Plus_6 : PriorityLevel_Plus_6 Layout . "|" Layout Alternative
             SlotId(299) => {
-                record!(self, MatchingTerminal, "\"|\"", input_index);
-                match self.scanner.match_token(TerminalId(20), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"|\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(20), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(300))
-                        {
-                            //PriorityLevel_Plus_6 : PriorityLevel_Plus_6 Layout "|" . Layout Alternative
-                            self.execute(
-                                j,
-                                SlotId(300),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(299),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(20)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(20),
+                        input_index,
+                        SlotId(299),
+                        Some(gss_node_id),
+                        "\"|\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(300))
+                    {
+                        //PriorityLevel_Plus_6 : PriorityLevel_Plus_6 Layout "|" . Layout Alternative
+                        self.execute(j, SlotId(300), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -4595,31 +3835,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Alternative_Opt_9 : . Label
             SlotId(321) => {
-                record!(self, MatchingTerminal, "Label", input_index);
-                match self.scanner.match_token(TerminalId(6), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Label", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(6), input_index, j);
-                        //Alternative_Opt_9 : Label.
-                        self.execute(
-                            j,
-                            SlotId(322),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(321),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(6)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(6),
+                        input_index,
+                        SlotId(321),
+                        Some(gss_node_id),
+                        "Label",
+                    )
+                {
+                    //Alternative_Opt_9 : Label.
+                    self.execute(j, SlotId(322), Some(right_child), gss_node_id, env);
                 }
             }
             //Alternative_Opt_9 : Label.
@@ -4653,31 +3879,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_0 : . "|" Layout Symbol(0)
             SlotId(324) => {
-                record!(self, MatchingTerminal, "\"|\"", input_index);
-                match self.scanner.match_token(TerminalId(20), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"|\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(20), input_index, j);
-                        //Symbol_Group_0 : "|" . Layout Symbol(0)
-                        self.execute(
-                            j,
-                            SlotId(325),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(324),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(20)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(20),
+                        input_index,
+                        SlotId(324),
+                        Some(gss_node_id),
+                        "\"|\"",
+                    )
+                {
+                    //Symbol_Group_0 : "|" . Layout Symbol(0)
+                    self.execute(j, SlotId(325), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_Group_0 : "|" . Layout Symbol(0)
@@ -4744,31 +3956,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_1 : . "\" Layout Identifier
             SlotId(334) => {
-                record!(self, MatchingTerminal, "\"\\\"", input_index);
-                match self.scanner.match_token(TerminalId(22), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"\\\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(22), input_index, j);
-                        //Symbol_Group_1 : "\" . Layout Identifier
-                        self.execute(
-                            j,
-                            SlotId(335),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(334),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(22)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(22),
+                        input_index,
+                        SlotId(334),
+                        Some(gss_node_id),
+                        "\"\\\"",
+                    )
+                {
+                    //Symbol_Group_1 : "\" . Layout Identifier
+                    self.execute(j, SlotId(335), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_Group_1 : "\" . Layout Identifier
@@ -4784,34 +3982,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_1 : "\" Layout . Identifier
             SlotId(336) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(337))
-                        {
-                            //Symbol_Group_1 : "\" Layout Identifier.
-                            self.execute(
-                                j,
-                                SlotId(337),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(336),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(336),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(337))
+                    {
+                        //Symbol_Group_1 : "\" Layout Identifier.
+                        self.execute(j, SlotId(337), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -4879,31 +4063,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_2 : . "!>>" Layout Identifier
             SlotId(344) => {
-                record!(self, MatchingTerminal, "\"!>>\"", input_index);
-                match self.scanner.match_token(TerminalId(23), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"!>>\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(23), input_index, j);
-                        //Symbol_Group_2 : "!>>" . Layout Identifier
-                        self.execute(
-                            j,
-                            SlotId(345),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(344),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(23)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(23),
+                        input_index,
+                        SlotId(344),
+                        Some(gss_node_id),
+                        "\"!>>\"",
+                    )
+                {
+                    //Symbol_Group_2 : "!>>" . Layout Identifier
+                    self.execute(j, SlotId(345), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_Group_2 : "!>>" . Layout Identifier
@@ -4919,34 +4089,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_2 : "!>>" Layout . Identifier
             SlotId(346) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(347))
-                        {
-                            //Symbol_Group_2 : "!>>" Layout Identifier.
-                            self.execute(
-                                j,
-                                SlotId(347),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(346),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(346),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(347))
+                    {
+                        //Symbol_Group_2 : "!>>" Layout Identifier.
+                        self.execute(j, SlotId(347), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -5014,31 +4170,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_3 : . "!" Layout Identifier
             SlotId(354) => {
-                record!(self, MatchingTerminal, "\"!\"", input_index);
-                match self.scanner.match_token(TerminalId(32), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"!\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(32), input_index, j);
-                        //Symbol_Group_3 : "!" . Layout Identifier
-                        self.execute(
-                            j,
-                            SlotId(355),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(354),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(32)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(32),
+                        input_index,
+                        SlotId(354),
+                        Some(gss_node_id),
+                        "\"!\"",
+                    )
+                {
+                    //Symbol_Group_3 : "!" . Layout Identifier
+                    self.execute(j, SlotId(355), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_Group_3 : "!" . Layout Identifier
@@ -5054,34 +4196,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_Group_3 : "!" Layout . Identifier
             SlotId(356) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(357))
-                        {
-                            //Symbol_Group_3 : "!" Layout Identifier.
-                            self.execute(
-                                j,
-                                SlotId(357),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(356),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(356),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(357))
+                    {
+                        //Symbol_Group_3 : "!" Layout Identifier.
+                        self.execute(j, SlotId(357), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -5149,31 +4277,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Regex_Group_4 : . "|" Layout Regex
             SlotId(364) => {
-                record!(self, MatchingTerminal, "\"|\"", input_index);
-                match self.scanner.match_token(TerminalId(20), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"|\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(20), input_index, j);
-                        //Regex_Group_4 : "|" . Layout Regex
-                        self.execute(
-                            j,
-                            SlotId(365),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(364),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(20)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(20),
+                        input_index,
+                        SlotId(364),
+                        Some(gss_node_id),
+                        "\"|\"",
+                    )
+                {
+                    //Regex_Group_4 : "|" . Layout Regex
+                    self.execute(j, SlotId(365), Some(right_child), gss_node_id, env);
                 }
             }
             //Regex_Group_4 : "|" . Layout Regex
@@ -5240,31 +4354,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //CharClass_Opt_10 : . "!"
             SlotId(374) => {
-                record!(self, MatchingTerminal, "\"!\"", input_index);
-                match self.scanner.match_token(TerminalId(32), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"!\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(32), input_index, j);
-                        //CharClass_Opt_10 : "!".
-                        self.execute(
-                            j,
-                            SlotId(375),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(374),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(32)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(32),
+                        input_index,
+                        SlotId(374),
+                        Some(gss_node_id),
+                        "\"!\"",
+                    )
+                {
+                    //CharClass_Opt_10 : "!".
+                    self.execute(j, SlotId(375), Some(right_child), gss_node_id, env);
                 }
             }
             //CharClass_Opt_10 : "!".
@@ -5337,31 +4437,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Alt_0 : . WS
             SlotId(383) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(7), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(7), input_index, j);
-                        //Layout_Alt_0 : WS.
-                        self.execute(
-                            j,
-                            SlotId(384),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(383),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(7)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(7),
+                        input_index,
+                        SlotId(383),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    //Layout_Alt_0 : WS.
+                    self.execute(j, SlotId(384), Some(right_child), gss_node_id, env);
                 }
             }
             //Layout_Alt_0 : WS.
@@ -5374,31 +4460,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Layout_Alt_0 : . LineComment
             SlotId(385) => {
-                record!(self, MatchingTerminal, "LineComment", input_index);
-                match self.scanner.match_token(TerminalId(9), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "LineComment", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(9), input_index, j);
-                        //Layout_Alt_0 : LineComment.
-                        self.execute(
-                            j,
-                            SlotId(386),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(385),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(9)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(9),
+                        input_index,
+                        SlotId(385),
+                        Some(gss_node_id),
+                        "LineComment",
+                    )
+                {
+                    //Layout_Alt_0 : LineComment.
+                    self.execute(j, SlotId(386), Some(right_child), gss_node_id, env);
                 }
             }
             //Layout_Alt_0 : LineComment.
@@ -5507,31 +4579,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : . Identifier return 0
             SlotId(397) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //Symbol_except_Except(p: i32) : Identifier . return 0
-                        self.execute(
-                            j,
-                            SlotId(398),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(397),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(397),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //Symbol_except_Except(p: i32) : Identifier . return 0
+                    self.execute(j, SlotId(398), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_Except(p: i32) : Identifier . return 0
@@ -5565,31 +4623,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : . "(" Layout Alternative_Plus_7 Layout ")" return 0
             SlotId(400) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(16), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(16), input_index, j);
-                        //Symbol_except_Except(p: i32) : "(" . Layout Alternative_Plus_7 Layout ")" return 0
-                        self.execute(
-                            j,
-                            SlotId(401),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(400),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(16)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(16),
+                        input_index,
+                        SlotId(400),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    //Symbol_except_Except(p: i32) : "(" . Layout Alternative_Plus_7 Layout ")" return 0
+                    self.execute(j, SlotId(401), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_Except(p: i32) : "(" . Layout Alternative_Plus_7 Layout ")" return 0
@@ -5620,34 +4664,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "(" Layout Alternative_Plus_7 Layout . ")" return 0
             SlotId(404) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(17), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(17), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(405))
-                        {
-                            //Symbol_except_Except(p: i32) : "(" Layout Alternative_Plus_7 Layout ")" . return 0
-                            self.execute(
-                                j,
-                                SlotId(405),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(404),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(17)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(17),
+                        input_index,
+                        SlotId(404),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(405))
+                    {
+                        //Symbol_except_Except(p: i32) : "(" Layout Alternative_Plus_7 Layout ")" . return 0
+                        self.execute(j, SlotId(405), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -5682,31 +4712,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
             SlotId(407) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(16), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(16), input_index, j);
-                        //Symbol_except_Except(p: i32) : "(" . Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
-                        self.execute(
-                            j,
-                            SlotId(408),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(407),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(16)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(16),
+                        input_index,
+                        SlotId(407),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    //Symbol_except_Except(p: i32) : "(" . Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
+                    self.execute(j, SlotId(408), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_Except(p: i32) : "(" . Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
@@ -5752,34 +4768,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout . ")" return 0
             SlotId(413) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(17), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(17), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(414))
-                        {
-                            //Symbol_except_Except(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" . return 0
-                            self.execute(
-                                j,
-                                SlotId(414),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(413),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(17)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(17),
+                        input_index,
+                        SlotId(413),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(414))
+                    {
+                        //Symbol_except_Except(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" . return 0
+                        self.execute(j, SlotId(414), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -5814,31 +4816,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : . String return 0
             SlotId(416) => {
-                record!(self, MatchingTerminal, "String", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "String", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //Symbol_except_Except(p: i32) : String . return 0
-                        self.execute(
-                            j,
-                            SlotId(417),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(416),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(416),
+                        Some(gss_node_id),
+                        "String",
+                    )
+                {
+                    //Symbol_except_Except(p: i32) : String . return 0
+                    self.execute(j, SlotId(417), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_Except(p: i32) : String . return 0
@@ -5872,31 +4860,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
             SlotId(419) => {
-                record!(self, MatchingTerminal, "\"{\"", input_index);
-                match self.scanner.match_token(TerminalId(27), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"{\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(27), input_index, j);
-                        //Symbol_except_Except(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                        self.execute(
-                            j,
-                            SlotId(420),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(419),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(27)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(27),
+                        input_index,
+                        SlotId(419),
+                        Some(gss_node_id),
+                        "\"{\"",
+                    )
+                {
+                    //Symbol_except_Except(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
+                    self.execute(j, SlotId(420), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_Except(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
@@ -5942,34 +4916,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . "}" Layout "*" return 0
             SlotId(425) => {
-                record!(self, MatchingTerminal, "\"}\"", input_index);
-                match self.scanner.match_token(TerminalId(28), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"}\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(28), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(426))
-                        {
-                            //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "*" return 0
-                            self.execute(
-                                j,
-                                SlotId(426),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(425),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(28)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(28),
+                        input_index,
+                        SlotId(425),
+                        Some(gss_node_id),
+                        "\"}\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(426))
+                    {
+                        //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "*" return 0
+                        self.execute(j, SlotId(426), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -5986,34 +4946,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "*" return 0
             SlotId(427) => {
-                record!(self, MatchingTerminal, "\"*\"", input_index);
-                match self.scanner.match_token(TerminalId(29), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(29), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(428))
-                        {
-                            //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" . return 0
-                            self.execute(
-                                j,
-                                SlotId(428),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(427),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(29)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(29),
+                        input_index,
+                        SlotId(427),
+                        Some(gss_node_id),
+                        "\"*\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(428))
+                    {
+                        //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" . return 0
+                        self.execute(j, SlotId(428), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -6048,31 +4994,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
             SlotId(430) => {
-                record!(self, MatchingTerminal, "\"{\"", input_index);
-                match self.scanner.match_token(TerminalId(27), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"{\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(27), input_index, j);
-                        //Symbol_except_Except(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                        self.execute(
-                            j,
-                            SlotId(431),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(430),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(27)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(27),
+                        input_index,
+                        SlotId(430),
+                        Some(gss_node_id),
+                        "\"{\"",
+                    )
+                {
+                    //Symbol_except_Except(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
+                    self.execute(j, SlotId(431), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_Except(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
@@ -6118,34 +5050,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . "}" Layout "+" return 0
             SlotId(436) => {
-                record!(self, MatchingTerminal, "\"}\"", input_index);
-                match self.scanner.match_token(TerminalId(28), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"}\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(28), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(437))
-                        {
-                            //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "+" return 0
-                            self.execute(
-                                j,
-                                SlotId(437),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(436),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(28)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(28),
+                        input_index,
+                        SlotId(436),
+                        Some(gss_node_id),
+                        "\"}\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(437))
+                    {
+                        //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "+" return 0
+                        self.execute(j, SlotId(437), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -6162,34 +5080,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "+" return 0
             SlotId(438) => {
-                record!(self, MatchingTerminal, "\"+\"", input_index);
-                match self.scanner.match_token(TerminalId(30), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(30), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(439))
-                        {
-                            //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" . return 0
-                            self.execute(
-                                j,
-                                SlotId(439),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(438),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(30)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(30),
+                        input_index,
+                        SlotId(438),
+                        Some(gss_node_id),
+                        "\"+\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(439))
+                    {
+                        //Symbol_except_Except(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" . return 0
+                        self.execute(j, SlotId(439), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -6260,34 +5164,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "*" return 0
             SlotId(445) => {
-                record!(self, MatchingTerminal, "\"*\"", input_index);
-                match self.scanner.match_token(TerminalId(29), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(29), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(446))
-                        {
-                            //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" . return 0
-                            self.execute(
-                                j,
-                                SlotId(446),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(445),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(29)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(29),
+                        input_index,
+                        SlotId(445),
+                        Some(gss_node_id),
+                        "\"*\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(446))
+                    {
+                        //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" . return 0
+                        self.execute(j, SlotId(446), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -6358,34 +5248,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "+" return 0
             SlotId(452) => {
-                record!(self, MatchingTerminal, "\"+\"", input_index);
-                match self.scanner.match_token(TerminalId(30), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(30), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(453))
-                        {
-                            //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" . return 0
-                            self.execute(
-                                j,
-                                SlotId(453),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(452),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(30)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(30),
+                        input_index,
+                        SlotId(452),
+                        Some(gss_node_id),
+                        "\"+\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(453))
+                    {
+                        //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" . return 0
+                        self.execute(j, SlotId(453), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -6456,34 +5332,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "?" return 0
             SlotId(459) => {
-                record!(self, MatchingTerminal, "\"?\"", input_index);
-                match self.scanner.match_token(TerminalId(31), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"?\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(31), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(460))
-                        {
-                            //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" . return 0
-                            self.execute(
-                                j,
-                                SlotId(460),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(459),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(31)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(31),
+                        input_index,
+                        SlotId(459),
+                        Some(gss_node_id),
+                        "\"?\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(460))
+                    {
+                        //Symbol_except_Except(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" . return 0
+                        self.execute(j, SlotId(460), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -6670,31 +5532,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(476) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //Symbol_except_Except(p: i32) : Identifier . Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                        self.execute(
-                            j,
-                            SlotId(477),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(476),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(476),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //Symbol_except_Except(p: i32) : Identifier . Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
+                    self.execute(j, SlotId(477), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_Except(p: i32) : Identifier . Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
@@ -6710,34 +5558,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : Identifier Layout . "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(478) => {
-                record!(self, MatchingTerminal, "\"!<<\"", input_index);
-                match self.scanner.match_token(TerminalId(21), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"!<<\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(21), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(479))
-                        {
-                            //Symbol_except_Except(p: i32) : Identifier Layout "!<<" . Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                            self.execute(
-                                j,
-                                SlotId(479),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(478),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(21)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(21),
+                        input_index,
+                        SlotId(478),
+                        Some(gss_node_id),
+                        "\"!<<\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(479))
+                    {
+                        //Symbol_except_Except(p: i32) : Identifier Layout "!<<" . Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
+                        self.execute(j, SlotId(479), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -6791,31 +5625,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
             SlotId(483) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //Symbol_except_Except(p: i32) : label:Identifier . Layout ":" Layout Symbol(1) return 1
-                        self.execute(
-                            j,
-                            SlotId(484),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(483),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(483),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //Symbol_except_Except(p: i32) : label:Identifier . Layout ":" Layout Symbol(1) return 1
+                    self.execute(j, SlotId(484), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_Except(p: i32) : label:Identifier . Layout ":" Layout Symbol(1) return 1
@@ -6831,34 +5651,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_Except(p: i32) : label:Identifier Layout . ":" Layout Symbol(1) return 1
             SlotId(485) => {
-                record!(self, MatchingTerminal, "\":\"", input_index);
-                match self.scanner.match_token(TerminalId(33), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\":\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(33), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(486))
-                        {
-                            //Symbol_except_Except(p: i32) : label:Identifier Layout ":" . Layout Symbol(1) return 1
-                            self.execute(
-                                j,
-                                SlotId(486),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(485),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(33)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(33),
+                        input_index,
+                        SlotId(485),
+                        Some(gss_node_id),
+                        "\":\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(486))
+                    {
+                        //Symbol_except_Except(p: i32) : label:Identifier Layout ":" . Layout Symbol(1) return 1
+                        self.execute(j, SlotId(486), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -6908,31 +5714,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : . Identifier return 0
             SlotId(490) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //Symbol_except_FollowRestriction(p: i32) : Identifier . return 0
-                        self.execute(
-                            j,
-                            SlotId(491),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(490),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(490),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //Symbol_except_FollowRestriction(p: i32) : Identifier . return 0
+                    self.execute(j, SlotId(491), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : Identifier . return 0
@@ -6966,31 +5758,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : . "(" Layout Alternative_Plus_7 Layout ")" return 0
             SlotId(493) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(16), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(16), input_index, j);
-                        //Symbol_except_FollowRestriction(p: i32) : "(" . Layout Alternative_Plus_7 Layout ")" return 0
-                        self.execute(
-                            j,
-                            SlotId(494),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(493),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(16)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(16),
+                        input_index,
+                        SlotId(493),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    //Symbol_except_FollowRestriction(p: i32) : "(" . Layout Alternative_Plus_7 Layout ")" return 0
+                    self.execute(j, SlotId(494), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : "(" . Layout Alternative_Plus_7 Layout ")" return 0
@@ -7021,34 +5799,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : "(" Layout Alternative_Plus_7 Layout . ")" return 0
             SlotId(497) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(17), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(17), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(498))
-                        {
-                            //Symbol_except_FollowRestriction(p: i32) : "(" Layout Alternative_Plus_7 Layout ")" . return 0
-                            self.execute(
-                                j,
-                                SlotId(498),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(497),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(17)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(17),
+                        input_index,
+                        SlotId(497),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(498))
+                    {
+                        //Symbol_except_FollowRestriction(p: i32) : "(" Layout Alternative_Plus_7 Layout ")" . return 0
+                        self.execute(j, SlotId(498), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -7083,31 +5847,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
             SlotId(500) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(16), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(16), input_index, j);
-                        //Symbol_except_FollowRestriction(p: i32) : "(" . Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
-                        self.execute(
-                            j,
-                            SlotId(501),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(500),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(16)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(16),
+                        input_index,
+                        SlotId(500),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    //Symbol_except_FollowRestriction(p: i32) : "(" . Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
+                    self.execute(j, SlotId(501), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : "(" . Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
@@ -7153,34 +5903,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout . ")" return 0
             SlotId(506) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(17), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(17), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(507))
-                        {
-                            //Symbol_except_FollowRestriction(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" . return 0
-                            self.execute(
-                                j,
-                                SlotId(507),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(506),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(17)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(17),
+                        input_index,
+                        SlotId(506),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(507))
+                    {
+                        //Symbol_except_FollowRestriction(p: i32) : "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" . return 0
+                        self.execute(j, SlotId(507), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -7215,31 +5951,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : . String return 0
             SlotId(509) => {
-                record!(self, MatchingTerminal, "String", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "String", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //Symbol_except_FollowRestriction(p: i32) : String . return 0
-                        self.execute(
-                            j,
-                            SlotId(510),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(509),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(509),
+                        Some(gss_node_id),
+                        "String",
+                    )
+                {
+                    //Symbol_except_FollowRestriction(p: i32) : String . return 0
+                    self.execute(j, SlotId(510), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : String . return 0
@@ -7273,31 +5995,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
             SlotId(512) => {
-                record!(self, MatchingTerminal, "\"{\"", input_index);
-                match self.scanner.match_token(TerminalId(27), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"{\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(27), input_index, j);
-                        //Symbol_except_FollowRestriction(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
-                        self.execute(
-                            j,
-                            SlotId(513),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(512),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(27)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(27),
+                        input_index,
+                        SlotId(512),
+                        Some(gss_node_id),
+                        "\"{\"",
+                    )
+                {
+                    //Symbol_except_FollowRestriction(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
+                    self.execute(j, SlotId(513), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
@@ -7343,34 +6051,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . "}" Layout "*" return 0
             SlotId(518) => {
-                record!(self, MatchingTerminal, "\"}\"", input_index);
-                match self.scanner.match_token(TerminalId(28), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"}\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(28), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(519))
-                        {
-                            //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "*" return 0
-                            self.execute(
-                                j,
-                                SlotId(519),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(518),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(28)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(28),
+                        input_index,
+                        SlotId(518),
+                        Some(gss_node_id),
+                        "\"}\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(519))
+                    {
+                        //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "*" return 0
+                        self.execute(j, SlotId(519), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -7387,34 +6081,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "*" return 0
             SlotId(520) => {
-                record!(self, MatchingTerminal, "\"*\"", input_index);
-                match self.scanner.match_token(TerminalId(29), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(29), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(521))
-                        {
-                            //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" . return 0
-                            self.execute(
-                                j,
-                                SlotId(521),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(520),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(29)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(29),
+                        input_index,
+                        SlotId(520),
+                        Some(gss_node_id),
+                        "\"*\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(521))
+                    {
+                        //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" . return 0
+                        self.execute(j, SlotId(521), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -7449,31 +6129,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
             SlotId(523) => {
-                record!(self, MatchingTerminal, "\"{\"", input_index);
-                match self.scanner.match_token(TerminalId(27), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"{\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(27), input_index, j);
-                        //Symbol_except_FollowRestriction(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
-                        self.execute(
-                            j,
-                            SlotId(524),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(523),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(27)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(27),
+                        input_index,
+                        SlotId(523),
+                        Some(gss_node_id),
+                        "\"{\"",
+                    )
+                {
+                    //Symbol_except_FollowRestriction(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
+                    self.execute(j, SlotId(524), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : "{" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
@@ -7519,34 +6185,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . "}" Layout "+" return 0
             SlotId(529) => {
-                record!(self, MatchingTerminal, "\"}\"", input_index);
-                match self.scanner.match_token(TerminalId(28), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"}\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(28), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(530))
-                        {
-                            //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "+" return 0
-                            self.execute(
-                                j,
-                                SlotId(530),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(529),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(28)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(28),
+                        input_index,
+                        SlotId(529),
+                        Some(gss_node_id),
+                        "\"}\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(530))
+                    {
+                        //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" . Layout "+" return 0
+                        self.execute(j, SlotId(530), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -7563,34 +6215,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "+" return 0
             SlotId(531) => {
-                record!(self, MatchingTerminal, "\"+\"", input_index);
-                match self.scanner.match_token(TerminalId(30), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(30), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(532))
-                        {
-                            //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" . return 0
-                            self.execute(
-                                j,
-                                SlotId(532),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(531),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(30)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(30),
+                        input_index,
+                        SlotId(531),
+                        Some(gss_node_id),
+                        "\"+\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(532))
+                    {
+                        //Symbol_except_FollowRestriction(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" . return 0
+                        self.execute(j, SlotId(532), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -7661,34 +6299,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "*" return 0
             SlotId(538) => {
-                record!(self, MatchingTerminal, "\"*\"", input_index);
-                match self.scanner.match_token(TerminalId(29), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(29), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(539))
-                        {
-                            //Symbol_except_FollowRestriction(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" . return 0
-                            self.execute(
-                                j,
-                                SlotId(539),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(538),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(29)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(29),
+                        input_index,
+                        SlotId(538),
+                        Some(gss_node_id),
+                        "\"*\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(539))
+                    {
+                        //Symbol_except_FollowRestriction(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" . return 0
+                        self.execute(j, SlotId(539), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -7759,34 +6383,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "+" return 0
             SlotId(545) => {
-                record!(self, MatchingTerminal, "\"+\"", input_index);
-                match self.scanner.match_token(TerminalId(30), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(30), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(546))
-                        {
-                            //Symbol_except_FollowRestriction(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" . return 0
-                            self.execute(
-                                j,
-                                SlotId(546),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(545),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(30)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(30),
+                        input_index,
+                        SlotId(545),
+                        Some(gss_node_id),
+                        "\"+\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(546))
+                    {
+                        //Symbol_except_FollowRestriction(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" . return 0
+                        self.execute(j, SlotId(546), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -7857,34 +6467,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout . "?" return 0
             SlotId(552) => {
-                record!(self, MatchingTerminal, "\"?\"", input_index);
-                match self.scanner.match_token(TerminalId(31), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"?\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(31), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(553))
-                        {
-                            //Symbol_except_FollowRestriction(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" . return 0
-                            self.execute(
-                                j,
-                                SlotId(553),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(552),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(31)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(31),
+                        input_index,
+                        SlotId(552),
+                        Some(gss_node_id),
+                        "\"?\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(553))
+                    {
+                        //Symbol_except_FollowRestriction(p: i32) : [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" . return 0
+                        self.execute(j, SlotId(553), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -8071,31 +6667,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(569) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //Symbol_except_FollowRestriction(p: i32) : Identifier . Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                        self.execute(
-                            j,
-                            SlotId(570),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(569),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(569),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //Symbol_except_FollowRestriction(p: i32) : Identifier . Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
+                    self.execute(j, SlotId(570), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : Identifier . Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
@@ -8111,34 +6693,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : Identifier Layout . "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
             SlotId(571) => {
-                record!(self, MatchingTerminal, "\"!<<\"", input_index);
-                match self.scanner.match_token(TerminalId(21), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"!<<\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(21), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(572))
-                        {
-                            //Symbol_except_FollowRestriction(p: i32) : Identifier Layout "!<<" . Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
-                            self.execute(
-                                j,
-                                SlotId(572),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(571),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(21)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(21),
+                        input_index,
+                        SlotId(571),
+                        Some(gss_node_id),
+                        "\"!<<\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(572))
+                    {
+                        //Symbol_except_FollowRestriction(p: i32) : Identifier Layout "!<<" . Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
+                        self.execute(j, SlotId(572), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -8192,31 +6760,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
             SlotId(576) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //Symbol_except_FollowRestriction(p: i32) : label:Identifier . Layout ":" Layout Symbol(1) return 1
-                        self.execute(
-                            j,
-                            SlotId(577),
-                            Some(right_child),
-                            gss_node_id,
-                            env,
-                        );
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(576),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(576),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //Symbol_except_FollowRestriction(p: i32) : label:Identifier . Layout ":" Layout Symbol(1) return 1
+                    self.execute(j, SlotId(577), Some(right_child), gss_node_id, env);
                 }
             }
             //Symbol_except_FollowRestriction(p: i32) : label:Identifier . Layout ":" Layout Symbol(1) return 1
@@ -8232,34 +6786,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             //Symbol_except_FollowRestriction(p: i32) : label:Identifier Layout . ":" Layout Symbol(1) return 1
             SlotId(578) => {
-                record!(self, MatchingTerminal, "\":\"", input_index);
-                match self.scanner.match_token(TerminalId(33), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\":\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(33), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(579))
-                        {
-                            //Symbol_except_FollowRestriction(p: i32) : label:Identifier Layout ":" . Layout Symbol(1) return 1
-                            self.execute(
-                                j,
-                                SlotId(579),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(578),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(33)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(33),
+                        input_index,
+                        SlotId(578),
+                        Some(gss_node_id),
+                        "\":\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(579))
+                    {
+                        //Symbol_except_FollowRestriction(p: i32) : label:Identifier Layout ":" . Layout Symbol(1) return 1
+                        self.execute(j, SlotId(579), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -10864,6 +9404,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 kind,
             });
     }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
+    }
 }
 pub struct IggyParser<'i> {
     start_nonterminal: NonterminalId,
@@ -11102,21 +9645,14 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(11), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(9),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(11)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(11), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(11),
+                        start,
+                        SlotId(9),
+                        None,
+                        "\"layout\"",
+                    )?;
                 j = end;
                 node
             };
@@ -11141,21 +9677,14 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(1), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(11),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        start,
+                        SlotId(11),
+                        None,
+                        "Identifier",
+                    )?;
                 j = end;
                 node
             };
@@ -11190,21 +9719,14 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(14), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(25),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(14)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(14), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(14),
+                        start,
+                        SlotId(25),
+                        None,
+                        "\"@NoLayout\"",
+                    )?;
                 j = end;
                 node
             };
@@ -11227,22 +9749,14 @@ impl<'i> IggyParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let end = match self.scanner.match_token(TerminalId(15), start) {
-                        Some(end) => end,
-                        None => {
-                            self.add_parse_error(
-                                start,
-                                SlotId(27),
-                                None,
-                                ParseErrorKind::UnexpectedToken {
-                                    expected: vec![TerminalId(15)],
-                                },
-                            );
-                            return None;
-                        }
-                    };
-                    let node = self
-                        .get_or_create_terminal_node(TerminalId(15), start, end);
+                    let (end, node) = self
+                        .match_terminal(
+                            TerminalId(15),
+                            start,
+                            SlotId(27),
+                            None,
+                            "\"@Layout\"",
+                        )?;
                     j = end;
                     node
                 };
@@ -11267,22 +9781,14 @@ impl<'i> IggyParser<'i> {
                     .unwrap();
                 let right_child = {
                     let start = j;
-                    let end = match self.scanner.match_token(TerminalId(16), start) {
-                        Some(end) => end,
-                        None => {
-                            self.add_parse_error(
-                                start,
-                                SlotId(29),
-                                None,
-                                ParseErrorKind::UnexpectedToken {
-                                    expected: vec![TerminalId(16)],
-                                },
-                            );
-                            return None;
-                        }
-                    };
-                    let node = self
-                        .get_or_create_terminal_node(TerminalId(16), start, end);
+                    let (end, node) = self
+                        .match_terminal(
+                            TerminalId(16),
+                            start,
+                            SlotId(29),
+                            None,
+                            "\"(\"",
+                        )?;
                     j = end;
                     node
                 };
@@ -11315,22 +9821,14 @@ impl<'i> IggyParser<'i> {
                     .unwrap();
                 let right_child = {
                     let start = j;
-                    let end = match self.scanner.match_token(TerminalId(1), start) {
-                        Some(end) => end,
-                        None => {
-                            self.add_parse_error(
-                                start,
-                                SlotId(31),
-                                None,
-                                ParseErrorKind::UnexpectedToken {
-                                    expected: vec![TerminalId(1)],
-                                },
-                            );
-                            return None;
-                        }
-                    };
-                    let node = self
-                        .get_or_create_terminal_node(TerminalId(1), start, end);
+                    let (end, node) = self
+                        .match_terminal(
+                            TerminalId(1),
+                            start,
+                            SlotId(31),
+                            None,
+                            "Identifier",
+                        )?;
                     j = end;
                     node
                 };
@@ -11363,22 +9861,14 @@ impl<'i> IggyParser<'i> {
                     .unwrap();
                 let right_child = {
                     let start = j;
-                    let end = match self.scanner.match_token(TerminalId(17), start) {
-                        Some(end) => end,
-                        None => {
-                            self.add_parse_error(
-                                start,
-                                SlotId(33),
-                                None,
-                                ParseErrorKind::UnexpectedToken {
-                                    expected: vec![TerminalId(17)],
-                                },
-                            );
-                            return None;
-                        }
-                    };
-                    let node = self
-                        .get_or_create_terminal_node(TerminalId(17), start, end);
+                    let (end, node) = self
+                        .match_terminal(
+                            TerminalId(17),
+                            start,
+                            SlotId(33),
+                            None,
+                            "\")\"",
+                        )?;
                     j = end;
                     node
                 };
@@ -11409,22 +9899,14 @@ impl<'i> IggyParser<'i> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let end = match self.scanner.match_token(TerminalId(18), start) {
-                            Some(end) => end,
-                            None => {
-                                self.add_parse_error(
-                                    start,
-                                    SlotId(35),
-                                    None,
-                                    ParseErrorKind::UnexpectedToken {
-                                        expected: vec![TerminalId(18)],
-                                    },
-                                );
-                                return None;
-                            }
-                        };
-                        let node = self
-                            .get_or_create_terminal_node(TerminalId(18), start, end);
+                        let (end, node) = self
+                            .match_terminal(
+                                TerminalId(18),
+                                start,
+                                SlotId(35),
+                                None,
+                                "\"@Start\"",
+                            )?;
                         j = end;
                         node
                     };
@@ -11453,21 +9935,14 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(1), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(49),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        start,
+                        SlotId(49),
+                        None,
+                        "Identifier",
+                    )?;
                 j = end;
                 node
             };
@@ -11492,21 +9967,8 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(21), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(51),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(21)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(21), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(21), start, SlotId(51), None, "\"!<<\"")?;
                 j = end;
                 node
             };
@@ -11541,21 +10003,8 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(22), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(53),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(22)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(22), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(22), start, SlotId(53), None, "\"\\\"")?;
                 j = end;
                 node
             };
@@ -11580,21 +10029,14 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(1), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(55),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        start,
+                        SlotId(55),
+                        None,
+                        "Identifier",
+                    )?;
                 j = end;
                 node
             };
@@ -11625,22 +10067,14 @@ impl<'i> IggyParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let end = match self.scanner.match_token(TerminalId(23), start) {
-                        Some(end) => end,
-                        None => {
-                            self.add_parse_error(
-                                start,
-                                SlotId(57),
-                                None,
-                                ParseErrorKind::UnexpectedToken {
-                                    expected: vec![TerminalId(23)],
-                                },
-                            );
-                            return None;
-                        }
-                    };
-                    let node = self
-                        .get_or_create_terminal_node(TerminalId(23), start, end);
+                    let (end, node) = self
+                        .match_terminal(
+                            TerminalId(23),
+                            start,
+                            SlotId(57),
+                            None,
+                            "\"!>>\"",
+                        )?;
                     j = end;
                     node
                 };
@@ -11665,22 +10099,14 @@ impl<'i> IggyParser<'i> {
                     .unwrap();
                 let right_child = {
                     let start = j;
-                    let end = match self.scanner.match_token(TerminalId(1), start) {
-                        Some(end) => end,
-                        None => {
-                            self.add_parse_error(
-                                start,
-                                SlotId(59),
-                                None,
-                                ParseErrorKind::UnexpectedToken {
-                                    expected: vec![TerminalId(1)],
-                                },
-                            );
-                            return None;
-                        }
-                    };
-                    let node = self
-                        .get_or_create_terminal_node(TerminalId(1), start, end);
+                    let (end, node) = self
+                        .match_terminal(
+                            TerminalId(1),
+                            start,
+                            SlotId(59),
+                            None,
+                            "Identifier",
+                        )?;
                     j = end;
                     node
                 };
@@ -11716,21 +10142,14 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(24), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(65),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(24)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(24), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(24),
+                        start,
+                        SlotId(65),
+                        None,
+                        "\"left\"",
+                    )?;
                 j = end;
                 node
             };
@@ -11753,22 +10172,14 @@ impl<'i> IggyParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let end = match self.scanner.match_token(TerminalId(25), start) {
-                        Some(end) => end,
-                        None => {
-                            self.add_parse_error(
-                                start,
-                                SlotId(67),
-                                None,
-                                ParseErrorKind::UnexpectedToken {
-                                    expected: vec![TerminalId(25)],
-                                },
-                            );
-                            return None;
-                        }
-                    };
-                    let node = self
-                        .get_or_create_terminal_node(TerminalId(25), start, end);
+                    let (end, node) = self
+                        .match_terminal(
+                            TerminalId(25),
+                            start,
+                            SlotId(67),
+                            None,
+                            "\"right\"",
+                        )?;
                     j = end;
                     node
                 };
@@ -11791,22 +10202,14 @@ impl<'i> IggyParser<'i> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let end = match self.scanner.match_token(TerminalId(26), start) {
-                            Some(end) => end,
-                            None => {
-                                self.add_parse_error(
-                                    start,
-                                    SlotId(69),
-                                    None,
-                                    ParseErrorKind::UnexpectedToken {
-                                        expected: vec![TerminalId(26)],
-                                    },
-                                );
-                                return None;
-                            }
-                        };
-                        let node = self
-                            .get_or_create_terminal_node(TerminalId(26), start, end);
+                        let (end, node) = self
+                            .match_terminal(
+                                TerminalId(26),
+                                start,
+                                SlotId(69),
+                                None,
+                                "\"none\"",
+                            )?;
                         j = end;
                         node
                     };
@@ -11835,21 +10238,14 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(5), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(221),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(5)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(5), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(5),
+                        start,
+                        SlotId(221),
+                        None,
+                        "RangeChar",
+                    )?;
                 j = end;
                 node
             };
@@ -11874,21 +10270,8 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(36), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(223),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(36)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(36), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(36), start, SlotId(223), None, "\"-\"")?;
                 j = end;
                 node
             };
@@ -11921,21 +10304,14 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(5), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(225),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(5)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(5), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(5),
+                        start,
+                        SlotId(225),
+                        None,
+                        "RangeChar",
+                    )?;
                 j = end;
                 node
             };
@@ -12380,21 +10756,8 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(6), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(322),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(6)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(6), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(6), start, SlotId(322), None, "Label")?;
                 j = end;
                 node
             };
@@ -12438,21 +10801,8 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(22), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(335),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(22)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(22), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(22), start, SlotId(335), None, "\"\\\"")?;
                 j = end;
                 node
             };
@@ -12477,21 +10827,14 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(1), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(337),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        start,
+                        SlotId(337),
+                        None,
+                        "Identifier",
+                    )?;
                 j = end;
                 node
             };
@@ -12597,21 +10940,14 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(23), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(345),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(23)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(23), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(23),
+                        start,
+                        SlotId(345),
+                        None,
+                        "\"!>>\"",
+                    )?;
                 j = end;
                 node
             };
@@ -12636,21 +10972,14 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(1), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(347),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        start,
+                        SlotId(347),
+                        None,
+                        "Identifier",
+                    )?;
                 j = end;
                 node
             };
@@ -12756,21 +11085,8 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(32), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(355),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(32)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(32), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(32), start, SlotId(355), None, "\"!\"")?;
                 j = end;
                 node
             };
@@ -12795,21 +11111,14 @@ impl<'i> IggyParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(1), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(357),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        start,
+                        SlotId(357),
+                        None,
+                        "Identifier",
+                    )?;
                 j = end;
                 node
             };
@@ -12915,21 +11224,8 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(32), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(375),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(32)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(32), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(32), start, SlotId(375), None, "\"!\"")?;
                 j = end;
                 node
             };
@@ -12973,21 +11269,8 @@ impl<'i> IggyParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(7), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(384),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(7)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(7), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(7), start, SlotId(384), None, "WS")?;
                 j = end;
                 node
             };
@@ -13010,22 +11293,14 @@ impl<'i> IggyParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let end = match self.scanner.match_token(TerminalId(9), start) {
-                        Some(end) => end,
-                        None => {
-                            self.add_parse_error(
-                                start,
-                                SlotId(386),
-                                None,
-                                ParseErrorKind::UnexpectedToken {
-                                    expected: vec![TerminalId(9)],
-                                },
-                            );
-                            return None;
-                        }
-                    };
-                    let node = self
-                        .get_or_create_terminal_node(TerminalId(9), start, end);
+                    let (end, node) = self
+                        .match_terminal(
+                            TerminalId(9),
+                            start,
+                            SlotId(386),
+                            None,
+                            "LineComment",
+                        )?;
                     j = end;
                     node
                 };

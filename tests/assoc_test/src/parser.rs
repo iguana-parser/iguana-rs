@@ -96,28 +96,20 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] . "+" E(4) return 3
             SlotId(5) => {
-                record!(self, MatchingTerminal, "\"+\"", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(6))
-                        {
-                            //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] "+" . E(4) return 3
-                            self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(5),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(5),
+                        Some(gss_node_id),
+                        "\"+\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(6))
+                    {
+                        //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] "+" . E(4) return 3
+                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -181,34 +173,20 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] . "-" E(4) return 3
             SlotId(12) => {
-                record!(self, MatchingTerminal, "\"-\"", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"-\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(13))
-                        {
-                            //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] "-" . E(4) return 3
-                            self.execute(
-                                j,
-                                SlotId(13),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(12),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(12),
+                        Some(gss_node_id),
+                        "\"-\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(13))
+                    {
+                        //E(p: i32) : [3 >= p] l=E(p) [l == 0 || l >= 3] "-" . E(4) return 3
+                        self.execute(j, SlotId(13), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -272,34 +250,20 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 3] . ";" E(2) return 2
             SlotId(19) => {
-                record!(self, MatchingTerminal, "\";\"", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\";\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(20))
-                        {
-                            //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 3] ";" . E(2) return 2
-                            self.execute(
-                                j,
-                                SlotId(20),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(19),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(19),
+                        Some(gss_node_id),
+                        "\";\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(20))
+                    {
+                        //E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 3] ";" . E(2) return 2
+                        self.execute(j, SlotId(20), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -363,34 +327,20 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] . "<" E(2) return 1
             SlotId(26) => {
-                record!(self, MatchingTerminal, "\"<\"", input_index);
-                match self.scanner.match_token(TerminalId(3), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"<\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(27))
-                        {
-                            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] "<" . E(2) return 1
-                            self.execute(
-                                j,
-                                SlotId(27),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(26),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(3),
+                        input_index,
+                        SlotId(26),
+                        Some(gss_node_id),
+                        "\"<\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(27))
+                    {
+                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] "<" . E(2) return 1
+                        self.execute(j, SlotId(27), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -429,25 +379,17 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             //E(p: i32) : . "a" return 0
             SlotId(30) => {
-                record!(self, MatchingTerminal, "\"a\"", input_index);
-                match self.scanner.match_token(TerminalId(4), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(4), input_index, j);
-                        //E(p: i32) : "a" . return 0
-                        self.execute(j, SlotId(31), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(30),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(4)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(4),
+                        input_index,
+                        SlotId(30),
+                        Some(gss_node_id),
+                        "\"a\"",
+                    )
+                {
+                    //E(p: i32) : "a" . return 0
+                    self.execute(j, SlotId(31), Some(right_child), gss_node_id, env);
                 }
             }
             //E(p: i32) : "a" . return 0
@@ -837,6 +779,9 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                 gss_node_id,
                 kind,
             });
+    }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
     }
 }
 pub struct AssocTestParser<'i> {

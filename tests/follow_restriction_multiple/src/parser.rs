@@ -150,25 +150,17 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             //Id_Alt_0 : . Alpha
             SlotId(9) => {
-                record!(self, MatchingTerminal, "Alpha", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Alpha", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //Id_Alt_0 : Alpha.
-                        self.execute(j, SlotId(10), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(9),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(9),
+                        Some(gss_node_id),
+                        "Alpha",
+                    )
+                {
+                    //Id_Alt_0 : Alpha.
+                    self.execute(j, SlotId(10), Some(right_child), gss_node_id, env);
                 }
             }
             //Id_Alt_0 : Alpha.
@@ -181,25 +173,17 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             //Id_Alt_0 : . Digit
             SlotId(11) => {
-                record!(self, MatchingTerminal, "Digit", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Digit", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //Id_Alt_0 : Digit.
-                        self.execute(j, SlotId(12), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(11),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(11),
+                        Some(gss_node_id),
+                        "Digit",
+                    )
+                {
+                    //Id_Alt_0 : Digit.
+                    self.execute(j, SlotId(12), Some(right_child), gss_node_id, env);
                 }
             }
             //Id_Alt_0 : Digit.
@@ -665,6 +649,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
                 kind,
             });
     }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
+    }
 }
 pub struct FollowRestrictionMultipleParser<'i> {
     start_nonterminal: NonterminalId,
@@ -833,21 +820,8 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(0), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(10),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(0), start, SlotId(10), None, "Alpha")?;
                 j = end;
                 node
             };
@@ -870,22 +844,14 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let end = match self.scanner.match_token(TerminalId(1), start) {
-                        Some(end) => end,
-                        None => {
-                            self.add_parse_error(
-                                start,
-                                SlotId(12),
-                                None,
-                                ParseErrorKind::UnexpectedToken {
-                                    expected: vec![TerminalId(1)],
-                                },
-                            );
-                            return None;
-                        }
-                    };
-                    let node = self
-                        .get_or_create_terminal_node(TerminalId(1), start, end);
+                    let (end, node) = self
+                        .match_terminal(
+                            TerminalId(1),
+                            start,
+                            SlotId(12),
+                            None,
+                            "Digit",
+                        )?;
                     j = end;
                     node
                 };

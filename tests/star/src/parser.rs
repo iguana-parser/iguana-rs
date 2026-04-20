@@ -78,25 +78,17 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             //A : . "a"
             SlotId(2) => {
-                record!(self, MatchingTerminal, "\"a\"", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //A : "a".
-                        self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(2),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(2),
+                        Some(gss_node_id),
+                        "\"a\"",
+                    )
+                {
+                    //A : "a".
+                    self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
             }
             //A : "a".
@@ -585,6 +577,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
                 kind,
             });
     }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
+    }
 }
 pub struct StarParser<'i> {
     start_nonterminal: NonterminalId,
@@ -668,21 +663,8 @@ impl<'i> StarParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(0), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(3),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(0), start, SlotId(3), None, "\"a\"")?;
                 j = end;
                 node
             };

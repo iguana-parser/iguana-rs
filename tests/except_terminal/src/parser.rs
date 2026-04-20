@@ -68,41 +68,27 @@ impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
             }
             //Id : . Identifier \ Keyword
             SlotId(2) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some(error_kind) = self
-                            .post_conditions(SlotId(3), input_index, j)
-                        {
-                            self.add_parse_error(
-                                j,
-                                SlotId(3),
-                                Some(gss_node_id),
-                                error_kind,
-                            );
-                        } else {
-                            //Id : Identifier \ Keyword.
-                            self.execute(
-                                j,
-                                SlotId(3),
-                                Some(right_child),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(2),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    if let Some(error_kind) = self
+                        .post_conditions(SlotId(3), input_index, j)
+                    {
                         self.add_parse_error(
-                            input_index,
-                            SlotId(2),
+                            j,
+                            SlotId(3),
                             Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
+                            error_kind,
                         );
+                    } else {
+                        //Id : Identifier \ Keyword.
+                        self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                     }
                 }
             }
@@ -449,6 +435,9 @@ impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
                 kind,
             });
     }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
+    }
 }
 pub struct ExceptTerminalParser<'i> {
     start_nonterminal: NonterminalId,
@@ -532,25 +521,18 @@ impl<'i> ExceptTerminalParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(0), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(3),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                        return None;
-                    }
-                };
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        start,
+                        SlotId(3),
+                        None,
+                        "Identifier",
+                    )?;
                 if let Some(error_kind) = self.post_conditions(SlotId(3), start, end) {
                     self.add_parse_error(end, SlotId(3), None, error_kind);
                     return None;
                 }
-                let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
                 j = end;
                 node
             };

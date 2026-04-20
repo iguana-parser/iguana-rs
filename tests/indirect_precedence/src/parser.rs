@@ -74,25 +74,17 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
             }
             //E(p: i32) : . "-" E(2) return 2
             SlotId(2) => {
-                record!(self, MatchingTerminal, "\"-\"", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"-\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //E(p: i32) : "-" . E(2) return 2
-                        self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(2),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(2),
+                        Some(gss_node_id),
+                        "\"-\"",
+                    )
+                {
+                    //E(p: i32) : "-" . E(2) return 2
+                    self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
             }
             //E(p: i32) : "-" . E(2) return 2
@@ -155,34 +147,20 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] . "*" F return 0
             SlotId(9) => {
-                record!(self, MatchingTerminal, "\"*\"", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(10))
-                        {
-                            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "*" . F return 0
-                            self.execute(
-                                j,
-                                SlotId(10),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(9),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(9),
+                        Some(gss_node_id),
+                        "\"*\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(10))
+                    {
+                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "*" . F return 0
+                        self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -221,25 +199,17 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
             }
             //E(p: i32) : . "a" return 0
             SlotId(13) => {
-                record!(self, MatchingTerminal, "\"a\"", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //E(p: i32) : "a" . return 0
-                        self.execute(j, SlotId(14), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(13),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(13),
+                        Some(gss_node_id),
+                        "\"a\"",
+                    )
+                {
+                    //E(p: i32) : "a" . return 0
+                    self.execute(j, SlotId(14), Some(right_child), gss_node_id, env);
                 }
             }
             //E(p: i32) : "a" . return 0
@@ -277,34 +247,20 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
             }
             //F : E(0) . "/" K
             SlotId(17) => {
-                record!(self, MatchingTerminal, "\"/\"", input_index);
-                match self.scanner.match_token(TerminalId(3), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"/\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(18))
-                        {
-                            //F : E(0) "/" . K
-                            self.execute(
-                                j,
-                                SlotId(18),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(17),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(3),
+                        input_index,
+                        SlotId(17),
+                        Some(gss_node_id),
+                        "\"/\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(18))
+                    {
+                        //F : E(0) "/" . K
+                        self.execute(j, SlotId(18), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -692,6 +648,9 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 gss_node_id,
                 kind,
             });
+    }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
     }
 }
 pub struct IndirectPrecedenceParser<'i> {

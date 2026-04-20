@@ -53,78 +53,54 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
         match slot_id {
             //S : . "for" WS Id
             SlotId(0) => {
-                record!(self, MatchingTerminal, "\"for\"", input_index);
-                match self.scanner.match_token(TerminalId(3), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"for\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        //S : "for" . WS Id
-                        self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(0),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(3),
+                        input_index,
+                        SlotId(0),
+                        Some(gss_node_id),
+                        "\"for\"",
+                    )
+                {
+                    //S : "for" . WS Id
+                    self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
             //S : "for" . WS Id
             SlotId(1) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(2))
-                        {
-                            //S : "for" WS . Id
-                            self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(1),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(1),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(2))
+                    {
+                        //S : "for" WS . Id
+                        self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //S : "for" WS . Id
             SlotId(2) => {
-                record!(self, MatchingTerminal, "Id", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Id", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(3))
-                        {
-                            //S : "for" WS Id.
-                            self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(2),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(2),
+                        Some(gss_node_id),
+                        "Id",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(3))
+                    {
+                        //S : "for" WS Id.
+                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -138,25 +114,17 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             //S : . "forall"
             SlotId(4) => {
-                record!(self, MatchingTerminal, "\"forall\"", input_index);
-                match self.scanner.match_token(TerminalId(4), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"forall\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(4), input_index, j);
-                        //S : "forall".
-                        self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(4),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(4)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(4),
+                        input_index,
+                        SlotId(4),
+                        Some(gss_node_id),
+                        "\"forall\"",
+                    )
+                {
+                    //S : "forall".
+                    self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
             }
             //S : "forall".
@@ -505,6 +473,9 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                 kind,
             });
     }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
+    }
 }
 pub struct PrecedeRestrictionLexicalParser<'i> {
     start_nonterminal: NonterminalId,
@@ -560,21 +531,8 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(3), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(1),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(3), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(3), start, SlotId(1), None, "\"for\"")?;
                 j = end;
                 node
             };
@@ -582,21 +540,8 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
             let mut current = right_child;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(2), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(2),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(2), start, SlotId(2), None, "WS")?;
                 j = end;
                 node
             };
@@ -612,21 +557,8 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 .unwrap();
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(0), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(3),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(0), start, SlotId(3), None, "Id")?;
                 j = end;
                 node
             };
@@ -657,22 +589,14 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let end = match self.scanner.match_token(TerminalId(4), start) {
-                        Some(end) => end,
-                        None => {
-                            self.add_parse_error(
-                                start,
-                                SlotId(5),
-                                None,
-                                ParseErrorKind::UnexpectedToken {
-                                    expected: vec![TerminalId(4)],
-                                },
-                            );
-                            return None;
-                        }
-                    };
-                    let node = self
-                        .get_or_create_terminal_node(TerminalId(4), start, end);
+                    let (end, node) = self
+                        .match_terminal(
+                            TerminalId(4),
+                            start,
+                            SlotId(5),
+                            None,
+                            "\"forall\"",
+                        )?;
                     j = end;
                     node
                 };

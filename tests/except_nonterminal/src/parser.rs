@@ -98,25 +98,17 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
             }
             //Name : . Identifier
             SlotId(4) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //Name : Identifier.
-                        self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(4),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(4),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //Name : Identifier.
+                    self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
             }
             //Name : Identifier.
@@ -468,6 +460,9 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
                 kind,
             });
     }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
+    }
 }
 pub struct ExceptNonterminalParser<'i> {
     start_nonterminal: NonterminalId,
@@ -583,21 +578,14 @@ impl<'i> ExceptNonterminalParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(0), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(5),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        start,
+                        SlotId(5),
+                        None,
+                        "Identifier",
+                    )?;
                 j = end;
                 node
             };

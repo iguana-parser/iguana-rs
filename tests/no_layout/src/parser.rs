@@ -96,28 +96,20 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
             }
             //Id_Plus_0 : Id_Plus_0 . Char
             SlotId(5) => {
-                record!(self, MatchingTerminal, "Char", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Char", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(6))
-                        {
-                            //Id_Plus_0 : Id_Plus_0 Char.
-                            self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(5),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(5),
+                        Some(gss_node_id),
+                        "Char",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(6))
+                    {
+                        //Id_Plus_0 : Id_Plus_0 Char.
+                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -131,25 +123,17 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
             }
             //Id_Plus_0 : . Char
             SlotId(7) => {
-                record!(self, MatchingTerminal, "Char", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Char", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //Id_Plus_0 : Char.
-                        self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(7),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(7),
+                        Some(gss_node_id),
+                        "Char",
+                    )
+                {
+                    //Id_Plus_0 : Char.
+                    self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
                 }
             }
             //Id_Plus_0 : Char.
@@ -510,6 +494,9 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
                 kind,
             });
     }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
+    }
 }
 pub struct NoLayoutParser<'i> {
     start_nonterminal: NonterminalId,
@@ -618,22 +605,9 @@ impl<'i> NoLayoutParser<'i> {
     }
     fn parse_id_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
-        let (body_node, body_end) = ((match self.scanner.match_token(TerminalId(0), j) {
-            Some(end) => {
-                Some((self.get_or_create_terminal_node(TerminalId(0), j, end), end))
-            }
-            None => {
-                self.add_parse_error(
-                    j,
-                    SlotId(7),
-                    None,
-                    ParseErrorKind::UnexpectedToken {
-                        expected: vec![TerminalId(0)],
-                    },
-                );
-                None
-            }
-        }))?;
+        let (body_node, body_end) = (self
+            .match_terminal(TerminalId(0), j, SlotId(7), None, "Char")
+            .map(|(end, node)| (node, end)))?;
         j = body_end;
         let left_extent = i;
         let mut current = self
@@ -647,23 +621,9 @@ impl<'i> NoLayoutParser<'i> {
             )
             .unwrap();
         loop {
-            let Some((node_0, pos_0)) = (match self.scanner.match_token(TerminalId(0), j)
-            {
-                Some(end) => {
-                    Some((self.get_or_create_terminal_node(TerminalId(0), j, end), end))
-                }
-                None => {
-                    self.add_parse_error(
-                        j,
-                        SlotId(5),
-                        None,
-                        ParseErrorKind::UnexpectedToken {
-                            expected: vec![TerminalId(0)],
-                        },
-                    );
-                    None
-                }
-            }) else {
+            let Some((node_0, pos_0)) = self
+                .match_terminal(TerminalId(0), j, SlotId(5), None, "Char")
+                .map(|(end, node)| (node, end)) else {
                 break;
             };
             j = pos_0;

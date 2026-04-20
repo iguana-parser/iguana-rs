@@ -55,41 +55,27 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
         match slot_id {
             //SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
             SlotId(0) => {
-                record!(self, MatchingTerminal, "IdentifierChars", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "IdentifierChars", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some(error_kind) = self
-                            .post_conditions(SlotId(1), input_index, j)
-                        {
-                            self.add_parse_error(
-                                j,
-                                SlotId(1),
-                                Some(gss_node_id),
-                                error_kind,
-                            );
-                        } else {
-                            //SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
-                            self.execute(
-                                j,
-                                SlotId(1),
-                                Some(right_child),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(0),
+                        Some(gss_node_id),
+                        "IdentifierChars",
+                    )
+                {
+                    if let Some(error_kind) = self
+                        .post_conditions(SlotId(1), input_index, j)
+                    {
                         self.add_parse_error(
-                            input_index,
-                            SlotId(0),
+                            j,
+                            SlotId(1),
                             Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
+                            error_kind,
                         );
+                    } else {
+                        //SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
+                        self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                     }
                 }
             }
@@ -103,25 +89,17 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
             }
             //LexicalIdentifier : . Identifier
             SlotId(2) => {
-                record!(self, MatchingTerminal, "Identifier", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Identifier", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //LexicalIdentifier : Identifier.
-                        self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(2),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(2),
+                        Some(gss_node_id),
+                        "Identifier",
+                    )
+                {
+                    //LexicalIdentifier : Identifier.
+                    self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
             }
             //LexicalIdentifier : Identifier.
@@ -475,6 +453,9 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
                 kind,
             });
     }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
+    }
 }
 pub struct MultipleExceptParser<'i> {
     start_nonterminal: NonterminalId,
@@ -530,25 +511,18 @@ impl<'i> MultipleExceptParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(1), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(1),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                        return None;
-                    }
-                };
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        start,
+                        SlotId(1),
+                        None,
+                        "IdentifierChars",
+                    )?;
                 if let Some(error_kind) = self.post_conditions(SlotId(1), start, end) {
                     self.add_parse_error(end, SlotId(1), None, error_kind);
                     return None;
                 }
-                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
                 j = end;
                 node
             };
@@ -575,21 +549,14 @@ impl<'i> MultipleExceptParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(0), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(3),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
+                let (end, node) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        start,
+                        SlotId(3),
+                        None,
+                        "Identifier",
+                    )?;
                 j = end;
                 node
             };

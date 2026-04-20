@@ -68,25 +68,17 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         match slot_id {
             //Expr : . Id
             SlotId(0) => {
-                record!(self, MatchingTerminal, "Id", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Id", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //Expr : Id.
-                        self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(0),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(0),
+                        Some(gss_node_id),
+                        "Id",
+                    )
+                {
+                    //Expr : Id.
+                    self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
             //Expr : Id.
@@ -103,28 +95,20 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : Expr . "(" Expr_Star_0 ")"
             SlotId(3) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(4))
-                        {
-                            //Expr : Expr "(" . Expr_Star_0 ")"
-                            self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(3),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(3),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(4))
+                    {
+                        //Expr : Expr "(" . Expr_Star_0 ")"
+                        self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -134,28 +118,20 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : Expr "(" Expr_Star_0 . ")"
             SlotId(5) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(3), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(6))
-                        {
-                            //Expr : Expr "(" Expr_Star_0 ")".
-                            self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(5),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(3),
+                        input_index,
+                        SlotId(5),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(6))
+                    {
+                        //Expr : Expr "(" Expr_Star_0 ")".
+                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -173,28 +149,20 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr : Expr . "," Expr
             SlotId(8) => {
-                record!(self, MatchingTerminal, "\",\"", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\",\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(9))
-                        {
-                            //Expr : Expr "," . Expr
-                            self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(8),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(8),
+                        Some(gss_node_id),
+                        "\",\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(9))
+                    {
+                        //Expr : Expr "," . Expr
+                        self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -216,34 +184,20 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_Plus_0 : Expr_Plus_0 . "," Expr_except_comma
             SlotId(12) => {
-                record!(self, MatchingTerminal, "\",\"", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\",\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(13))
-                        {
-                            //Expr_Plus_0 : Expr_Plus_0 "," . Expr_except_comma
-                            self.execute(
-                                j,
-                                SlotId(13),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(12),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(12),
+                        Some(gss_node_id),
+                        "\",\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(13))
+                    {
+                        //Expr_Plus_0 : Expr_Plus_0 "," . Expr_except_comma
+                        self.execute(j, SlotId(13), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -318,25 +272,17 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_except_comma : . Id
             SlotId(22) => {
-                record!(self, MatchingTerminal, "Id", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Id", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //Expr_except_comma : Id.
-                        self.execute(j, SlotId(23), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(22),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(22),
+                        Some(gss_node_id),
+                        "Id",
+                    )
+                {
+                    //Expr_except_comma : Id.
+                    self.execute(j, SlotId(23), Some(right_child), gss_node_id, env);
                 }
             }
             //Expr_except_comma : Id.
@@ -353,34 +299,20 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_except_comma : Expr . "(" Expr_Star_0 ")"
             SlotId(25) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(26))
-                        {
-                            //Expr_except_comma : Expr "(" . Expr_Star_0 ")"
-                            self.execute(
-                                j,
-                                SlotId(26),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(25),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(25),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(26))
+                    {
+                        //Expr_except_comma : Expr "(" . Expr_Star_0 ")"
+                        self.execute(j, SlotId(26), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -390,34 +322,20 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_except_comma : Expr "(" Expr_Star_0 . ")"
             SlotId(27) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(3), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(28))
-                        {
-                            //Expr_except_comma : Expr "(" Expr_Star_0 ")".
-                            self.execute(
-                                j,
-                                SlotId(28),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(27),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(3),
+                        input_index,
+                        SlotId(27),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(28))
+                    {
+                        //Expr_except_comma : Expr "(" Expr_Star_0 ")".
+                        self.execute(j, SlotId(28), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -869,6 +787,9 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 gss_node_id,
                 kind,
             });
+    }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
     }
 }
 pub struct ExcludeByLabelParser<'i> {

@@ -53,28 +53,20 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             }
             //A : A . "a"
             SlotId(1) => {
-                record!(self, MatchingTerminal, "\"a\"", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(2))
-                        {
-                            //A : A "a".
-                            self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(1),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(1),
+                        Some(gss_node_id),
+                        "\"a\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(2))
+                    {
+                        //A : A "a".
+                        self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -88,25 +80,17 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             }
             //A : . "a"
             SlotId(3) => {
-                record!(self, MatchingTerminal, "\"a\"", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //A : "a".
-                        self.execute(j, SlotId(4), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(3),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(3),
+                        Some(gss_node_id),
+                        "\"a\"",
+                    )
+                {
+                    //A : "a".
+                    self.execute(j, SlotId(4), Some(right_child), gss_node_id, env);
                 }
             }
             //A : "a".
@@ -454,6 +438,9 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                 gss_node_id,
                 kind,
             });
+    }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
     }
 }
 pub struct LeftRecursiveListParser<'i> {

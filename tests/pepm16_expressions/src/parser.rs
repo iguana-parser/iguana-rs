@@ -109,109 +109,77 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS "." WS "f" return 0
             SlotId(5) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(6))
-                        {
-                            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . "." WS "f" return 0
-                            self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(5),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(5),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(6))
+                    {
+                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . "." WS "f" return 0
+                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . "." WS "f" return 0
             SlotId(6) => {
-                record!(self, MatchingTerminal, "\".\"", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\".\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(7))
-                        {
-                            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." . WS "f" return 0
-                            self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(6),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(6),
+                        Some(gss_node_id),
+                        "\".\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(7))
+                    {
+                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." . WS "f" return 0
+                        self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." . WS "f" return 0
             SlotId(7) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(8))
-                        {
-                            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS . "f" return 0
-                            self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(7),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(7),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(8))
+                    {
+                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS . "f" return 0
+                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS . "f" return 0
             SlotId(8) => {
-                record!(self, MatchingTerminal, "\"f\"", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"f\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(9))
-                        {
-                            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" . return 0
-                            self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(8),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(8),
+                        Some(gss_node_id),
+                        "\"f\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(9))
+                    {
+                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" . return 0
+                        self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -271,34 +239,20 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS r=E(6) return r == 0 ? 6 : min(r, 6)
             SlotId(14) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(15))
-                        {
-                            //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . r=E(6) return r == 0 ? 6 : min(r, 6)
-                            self.execute(
-                                j,
-                                SlotId(15),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(14),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(14),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(15))
+                    {
+                        //E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . r=E(6) return r == 0 ? 6 : min(r, 6)
+                        self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -366,100 +320,58 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] . WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(21) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(22))
-                        {
-                            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS . "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
-                            self.execute(
-                                j,
-                                SlotId(22),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(21),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(21),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(22))
+                    {
+                        //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS . "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
+                        self.execute(j, SlotId(22), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS . "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(22) => {
-                record!(self, MatchingTerminal, "\"*\"", input_index);
-                match self.scanner.match_token(TerminalId(3), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(3), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(23))
-                        {
-                            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" . WS r=E(6) return r == 0 ? 5 : min(r, 5)
-                            self.execute(
-                                j,
-                                SlotId(23),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(22),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(3)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(3),
+                        input_index,
+                        SlotId(22),
+                        Some(gss_node_id),
+                        "\"*\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(23))
+                    {
+                        //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" . WS r=E(6) return r == 0 ? 5 : min(r, 5)
+                        self.execute(j, SlotId(23), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" . WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(23) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(24))
-                        {
-                            //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS . r=E(6) return r == 0 ? 5 : min(r, 5)
-                            self.execute(
-                                j,
-                                SlotId(24),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(23),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(23),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(24))
+                    {
+                        //E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS . r=E(6) return r == 0 ? 5 : min(r, 5)
+                        self.execute(j, SlotId(24), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -527,100 +439,58 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(30) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(31))
-                        {
-                            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
-                            self.execute(
-                                j,
-                                SlotId(31),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(30),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(30),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(31))
+                    {
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+                        self.execute(j, SlotId(31), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(31) => {
-                record!(self, MatchingTerminal, "\"+\"", input_index);
-                match self.scanner.match_token(TerminalId(4), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(4), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(32))
-                        {
-                            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
-                            self.execute(
-                                j,
-                                SlotId(32),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(31),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(4)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(4),
+                        input_index,
+                        SlotId(31),
+                        Some(gss_node_id),
+                        "\"+\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(32))
+                    {
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
+                        self.execute(j, SlotId(32), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(32) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(33))
-                        {
-                            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
-                            self.execute(
-                                j,
-                                SlotId(33),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(32),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(32),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(33))
+                    {
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
+                        self.execute(j, SlotId(33), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -688,100 +558,58 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(39) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(40))
-                        {
-                            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
-                            self.execute(
-                                j,
-                                SlotId(40),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(39),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(39),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(40))
+                    {
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+                        self.execute(j, SlotId(40), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(40) => {
-                record!(self, MatchingTerminal, "\"-\"", input_index);
-                match self.scanner.match_token(TerminalId(5), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"-\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(5), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(41))
-                        {
-                            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
-                            self.execute(
-                                j,
-                                SlotId(41),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(40),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(5)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(5),
+                        input_index,
+                        SlotId(40),
+                        Some(gss_node_id),
+                        "\"-\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(41))
+                    {
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
+                        self.execute(j, SlotId(41), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(41) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(42))
-                        {
-                            //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
-                            self.execute(
-                                j,
-                                SlotId(42),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(41),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(41),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(42))
+                    {
+                        //E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
+                        self.execute(j, SlotId(42), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -824,57 +652,35 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : . "-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
             SlotId(45) => {
-                record!(self, MatchingTerminal, "\"-\"", input_index);
-                match self.scanner.match_token(TerminalId(5), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"-\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(5), input_index, j);
-                        //E(p: i32) : "-" . WS r=E(3) return r == 0 ? 3 : min(r, 3)
-                        self.execute(j, SlotId(46), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(45),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(5)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(5),
+                        input_index,
+                        SlotId(45),
+                        Some(gss_node_id),
+                        "\"-\"",
+                    )
+                {
+                    //E(p: i32) : "-" . WS r=E(3) return r == 0 ? 3 : min(r, 3)
+                    self.execute(j, SlotId(46), Some(right_child), gss_node_id, env);
                 }
             }
             //E(p: i32) : "-" . WS r=E(3) return r == 0 ? 3 : min(r, 3)
             SlotId(46) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(47))
-                        {
-                            //E(p: i32) : "-" WS . r=E(3) return r == 0 ? 3 : min(r, 3)
-                            self.execute(
-                                j,
-                                SlotId(47),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(46),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(46),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(47))
+                    {
+                        //E(p: i32) : "-" WS . r=E(3) return r == 0 ? 3 : min(r, 3)
+                        self.execute(j, SlotId(47), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -917,57 +723,35 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(50) => {
-                record!(self, MatchingTerminal, "\"if\"", input_index);
-                match self.scanner.match_token(TerminalId(6), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"if\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(6), input_index, j);
-                        //E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-                        self.execute(j, SlotId(51), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(50),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(6)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(6),
+                        input_index,
+                        SlotId(50),
+                        Some(gss_node_id),
+                        "\"if\"",
+                    )
+                {
+                    //E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
+                    self.execute(j, SlotId(51), Some(right_child), gss_node_id, env);
                 }
             }
             //E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(51) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(52))
-                        {
-                            //E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-                            self.execute(
-                                j,
-                                SlotId(52),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(51),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(51),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(52))
+                    {
+                        //E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
+                        self.execute(j, SlotId(52), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -977,100 +761,58 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : "if" WS E(0) . WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(53) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(54))
-                        {
-                            //E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
-                            self.execute(
-                                j,
-                                SlotId(54),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(53),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(53),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(54))
+                    {
+                        //E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
+                        self.execute(j, SlotId(54), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(54) => {
-                record!(self, MatchingTerminal, "\"then\"", input_index);
-                match self.scanner.match_token(TerminalId(7), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"then\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(7), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(55))
-                        {
-                            //E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
-                            self.execute(
-                                j,
-                                SlotId(55),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(54),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(7)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(7),
+                        input_index,
+                        SlotId(54),
+                        Some(gss_node_id),
+                        "\"then\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(55))
+                    {
+                        //E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
+                        self.execute(j, SlotId(55), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
             SlotId(55) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(56))
-                        {
-                            //E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
-                            self.execute(
-                                j,
-                                SlotId(56),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(55),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(55),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(56))
+                    {
+                        //E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
+                        self.execute(j, SlotId(56), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1080,100 +822,58 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : "if" WS E(0) WS "then" WS E(0) . WS "else" WS E(2) return 2
             SlotId(57) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(58))
-                        {
-                            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
-                            self.execute(
-                                j,
-                                SlotId(58),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(57),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(57),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(58))
+                    {
+                        //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
+                        self.execute(j, SlotId(58), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
             SlotId(58) => {
-                record!(self, MatchingTerminal, "\"else\"", input_index);
-                match self.scanner.match_token(TerminalId(8), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"else\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(8), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(59))
-                        {
-                            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
-                            self.execute(
-                                j,
-                                SlotId(59),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(58),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(8)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(8),
+                        input_index,
+                        SlotId(58),
+                        Some(gss_node_id),
+                        "\"else\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(59))
+                    {
+                        //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
+                        self.execute(j, SlotId(59), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
             SlotId(59) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(60))
-                        {
-                            //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
-                            self.execute(
-                                j,
-                                SlotId(60),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(59),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(59),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(60))
+                    {
+                        //E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
+                        self.execute(j, SlotId(60), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1237,100 +937,58 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] . WS ";" WS E(1) return 1
             SlotId(66) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(67))
-                        {
-                            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS . ";" WS E(1) return 1
-                            self.execute(
-                                j,
-                                SlotId(67),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(66),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(66),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(67))
+                    {
+                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS . ";" WS E(1) return 1
+                        self.execute(j, SlotId(67), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS . ";" WS E(1) return 1
             SlotId(67) => {
-                record!(self, MatchingTerminal, "\";\"", input_index);
-                match self.scanner.match_token(TerminalId(9), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\";\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(9), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(68))
-                        {
-                            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" . WS E(1) return 1
-                            self.execute(
-                                j,
-                                SlotId(68),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(67),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(9)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(9),
+                        input_index,
+                        SlotId(67),
+                        Some(gss_node_id),
+                        "\";\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(68))
+                    {
+                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" . WS E(1) return 1
+                        self.execute(j, SlotId(68), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" . WS E(1) return 1
             SlotId(68) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(69))
-                        {
-                            //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS . E(1) return 1
-                            self.execute(
-                                j,
-                                SlotId(69),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(68),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(68),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(69))
+                    {
+                        //E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS . E(1) return 1
+                        self.execute(j, SlotId(69), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1369,57 +1027,35 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : . "(" WS E(0) WS ")" return 0
             SlotId(72) => {
-                record!(self, MatchingTerminal, "\"(\"", input_index);
-                match self.scanner.match_token(TerminalId(10), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"(\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(10), input_index, j);
-                        //E(p: i32) : "(" . WS E(0) WS ")" return 0
-                        self.execute(j, SlotId(73), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(72),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(10)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(10),
+                        input_index,
+                        SlotId(72),
+                        Some(gss_node_id),
+                        "\"(\"",
+                    )
+                {
+                    //E(p: i32) : "(" . WS E(0) WS ")" return 0
+                    self.execute(j, SlotId(73), Some(right_child), gss_node_id, env);
                 }
             }
             //E(p: i32) : "(" . WS E(0) WS ")" return 0
             SlotId(73) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(74))
-                        {
-                            //E(p: i32) : "(" WS . E(0) WS ")" return 0
-                            self.execute(
-                                j,
-                                SlotId(74),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(73),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(73),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(74))
+                    {
+                        //E(p: i32) : "(" WS . E(0) WS ")" return 0
+                        self.execute(j, SlotId(74), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1429,67 +1065,39 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : "(" WS E(0) . WS ")" return 0
             SlotId(75) => {
-                record!(self, MatchingTerminal, "WS", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "WS", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(76))
-                        {
-                            //E(p: i32) : "(" WS E(0) WS . ")" return 0
-                            self.execute(
-                                j,
-                                SlotId(76),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(75),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(75),
+                        Some(gss_node_id),
+                        "WS",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(76))
+                    {
+                        //E(p: i32) : "(" WS E(0) WS . ")" return 0
+                        self.execute(j, SlotId(76), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //E(p: i32) : "(" WS E(0) WS . ")" return 0
             SlotId(76) => {
-                record!(self, MatchingTerminal, "\")\"", input_index);
-                match self.scanner.match_token(TerminalId(11), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\")\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(11), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(77))
-                        {
-                            //E(p: i32) : "(" WS E(0) WS ")" . return 0
-                            self.execute(
-                                j,
-                                SlotId(77),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(76),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(11)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(11),
+                        input_index,
+                        SlotId(76),
+                        Some(gss_node_id),
+                        "\")\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(77))
+                    {
+                        //E(p: i32) : "(" WS E(0) WS ")" . return 0
+                        self.execute(j, SlotId(77), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -1524,25 +1132,17 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E(p: i32) : . "a" return 0
             SlotId(79) => {
-                record!(self, MatchingTerminal, "\"a\"", input_index);
-                match self.scanner.match_token(TerminalId(12), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(12), input_index, j);
-                        //E(p: i32) : "a" . return 0
-                        self.execute(j, SlotId(80), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(79),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(12)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(12),
+                        input_index,
+                        SlotId(79),
+                        Some(gss_node_id),
+                        "\"a\"",
+                    )
+                {
+                    //E(p: i32) : "a" . return 0
+                    self.execute(j, SlotId(80), Some(right_child), gss_node_id, env);
                 }
             }
             //E(p: i32) : "a" . return 0
@@ -1957,6 +1557,9 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                 gss_node_id,
                 kind,
             });
+    }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
     }
 }
 pub struct Pepm16ExpressionsParser<'i> {

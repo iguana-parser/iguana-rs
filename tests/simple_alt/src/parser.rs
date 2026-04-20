@@ -90,25 +90,17 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             //B : . "b"
             SlotId(3) => {
-                record!(self, MatchingTerminal, "\"b\"", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"b\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //B : "b".
-                        self.execute(j, SlotId(4), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(3),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(3),
+                        Some(gss_node_id),
+                        "\"b\"",
+                    )
+                {
+                    //B : "b".
+                    self.execute(j, SlotId(4), Some(right_child), gss_node_id, env);
                 }
             }
             //B : "b".
@@ -121,25 +113,17 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             //C : . "c"
             SlotId(5) => {
-                record!(self, MatchingTerminal, "\"c\"", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"c\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //C : "c".
-                        self.execute(j, SlotId(6), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(5),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(5),
+                        Some(gss_node_id),
+                        "\"c\"",
+                    )
+                {
+                    //C : "c".
+                    self.execute(j, SlotId(6), Some(right_child), gss_node_id, env);
                 }
             }
             //C : "c".
@@ -152,25 +136,17 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             //D : . "d"
             SlotId(7) => {
-                record!(self, MatchingTerminal, "\"d\"", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"d\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //D : "d".
-                        self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(7),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(7),
+                        Some(gss_node_id),
+                        "\"d\"",
+                    )
+                {
+                    //D : "d".
+                    self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
                 }
             }
             //D : "d".
@@ -575,6 +551,9 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                 kind,
             });
     }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
+    }
 }
 pub struct SimpleAltParser<'i> {
     start_nonterminal: NonterminalId,
@@ -675,21 +654,8 @@ impl<'i> SimpleAltParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(0), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(4),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(0), start, SlotId(4), None, "\"b\"")?;
                 j = end;
                 node
             };
@@ -716,21 +682,8 @@ impl<'i> SimpleAltParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(1), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(6),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(1), start, SlotId(6), None, "\"c\"")?;
                 j = end;
                 node
             };
@@ -757,21 +710,8 @@ impl<'i> SimpleAltParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(2), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(8),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(2), start, SlotId(8), None, "\"d\"")?;
                 j = end;
                 node
             };

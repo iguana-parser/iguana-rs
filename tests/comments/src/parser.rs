@@ -63,82 +63,58 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //Expr : Expr . Layout "+" Layout Expr
             SlotId(1) => {
-                record!(self, MatchingTerminal, "Layout", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(2))
-                        {
-                            //Expr : Expr Layout . "+" Layout Expr
-                            self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(1),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(1),
+                        Some(gss_node_id),
+                        "Layout",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(2))
+                    {
+                        //Expr : Expr Layout . "+" Layout Expr
+                        self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //Expr : Expr Layout . "+" Layout Expr
             SlotId(2) => {
-                record!(self, MatchingTerminal, "\"+\"", input_index);
-                match self.scanner.match_token(TerminalId(4), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"+\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(4), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(3))
-                        {
-                            //Expr : Expr Layout "+" . Layout Expr
-                            self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(2),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(4)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(4),
+                        input_index,
+                        SlotId(2),
+                        Some(gss_node_id),
+                        "\"+\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(3))
+                    {
+                        //Expr : Expr Layout "+" . Layout Expr
+                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //Expr : Expr Layout "+" . Layout Expr
             SlotId(3) => {
-                record!(self, MatchingTerminal, "Layout", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(4))
-                        {
-                            //Expr : Expr Layout "+" Layout . Expr
-                            self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(3),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(3),
+                        Some(gss_node_id),
+                        "Layout",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(4))
+                    {
+                        //Expr : Expr Layout "+" Layout . Expr
+                        self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -160,88 +136,58 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //Expr : Expr . Layout "*" Layout Expr
             SlotId(7) => {
-                record!(self, MatchingTerminal, "Layout", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(8))
-                        {
-                            //Expr : Expr Layout . "*" Layout Expr
-                            self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(7),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(7),
+                        Some(gss_node_id),
+                        "Layout",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(8))
+                    {
+                        //Expr : Expr Layout . "*" Layout Expr
+                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //Expr : Expr Layout . "*" Layout Expr
             SlotId(8) => {
-                record!(self, MatchingTerminal, "\"*\"", input_index);
-                match self.scanner.match_token(TerminalId(5), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"*\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(5), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(9))
-                        {
-                            //Expr : Expr Layout "*" . Layout Expr
-                            self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(8),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(5)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(5),
+                        input_index,
+                        SlotId(8),
+                        Some(gss_node_id),
+                        "\"*\"",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(9))
+                    {
+                        //Expr : Expr Layout "*" . Layout Expr
+                        self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             //Expr : Expr Layout "*" . Layout Expr
             SlotId(9) => {
-                record!(self, MatchingTerminal, "Layout", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(10))
-                        {
-                            //Expr : Expr Layout "*" Layout . Expr
-                            self.execute(
-                                j,
-                                SlotId(10),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(9),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(9),
+                        Some(gss_node_id),
+                        "Layout",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(10))
+                    {
+                        //Expr : Expr Layout "*" Layout . Expr
+                        self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -259,25 +205,17 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //Expr : . "x"
             SlotId(12) => {
-                record!(self, MatchingTerminal, "\"x\"", input_index);
-                match self.scanner.match_token(TerminalId(6), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"x\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(6), input_index, j);
-                        //Expr : "x".
-                        self.execute(j, SlotId(13), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(12),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(6)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(6),
+                        input_index,
+                        SlotId(12),
+                        Some(gss_node_id),
+                        "\"x\"",
+                    )
+                {
+                    //Expr : "x".
+                    self.execute(j, SlotId(13), Some(right_child), gss_node_id, env);
                 }
             }
             //Expr : "x".
@@ -290,25 +228,17 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //StartExpr : . Layout start:Expr Layout
             SlotId(14) => {
-                record!(self, MatchingTerminal, "Layout", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //StartExpr : Layout . start:Expr Layout
-                        self.execute(j, SlotId(15), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(14),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(14),
+                        Some(gss_node_id),
+                        "Layout",
+                    )
+                {
+                    //StartExpr : Layout . start:Expr Layout
+                    self.execute(j, SlotId(15), Some(right_child), gss_node_id, env);
                 }
             }
             //StartExpr : Layout . start:Expr Layout
@@ -317,34 +247,20 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             //StartExpr : Layout start:Expr . Layout
             SlotId(16) => {
-                record!(self, MatchingTerminal, "Layout", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "Layout", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        if let Some((j, new_node)) = self
-                            .create_intermediate_node(result, right_child, SlotId(17))
-                        {
-                            //StartExpr : Layout start:Expr Layout.
-                            self.execute(
-                                j,
-                                SlotId(17),
-                                Some(new_node),
-                                gss_node_id,
-                                env,
-                            );
-                        }
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(16),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
+                if let Some((_, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(16),
+                        Some(gss_node_id),
+                        "Layout",
+                    )
+                {
+                    if let Some((j, new_node)) = self
+                        .create_intermediate_node(result, right_child, SlotId(17))
+                    {
+                        //StartExpr : Layout start:Expr Layout.
+                        self.execute(j, SlotId(17), Some(new_node), gss_node_id, env);
                     }
                 }
             }
@@ -706,6 +622,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                 gss_node_id,
                 kind,
             });
+    }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
     }
 }
 pub struct CommentsParser<'i> {

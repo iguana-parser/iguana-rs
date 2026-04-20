@@ -156,6 +156,10 @@ impl<'a> ParserGen<'a> {
                         kind,
                     });
                 }
+
+                fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+                    self.scanner.match_token(terminal_id, input_index)
+                }
             }
             #parser_struct
             #parser_impl
@@ -478,24 +482,18 @@ impl<'a> ParserGen<'a> {
             }
         };
         let terminal_name = &terminal.name;
+        let uses_j = slot.is_first() || !post_conditions.is_empty();
+        let destructure = if uses_j {
+            quote! { (j, right_child) }
+        } else {
+            quote! { (_, right_child) }
+        };
         quote! {
             #[comment = #current_slot_name]
             #slot_id => {
                 #pre_condition_check
-                record!(self, MatchingTerminal, #terminal_name, input_index);
-                match self.scanner.match_token(#terminal_id, input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, #terminal_name, input_index, j);
-                        let right_child = self.get_or_create_terminal_node(
-                            #terminal_id,
-                            input_index,
-                            j,
-                        );
-                        #new_node
-                    }
-                    None => {
-                        self.add_parse_error(input_index, #slot_id, Some(gss_node_id), ParseErrorKind::UnexpectedToken { expected: vec![#terminal_id] });
-                    }
+                if let Some(#destructure) = self.match_terminal(#terminal_id, input_index, #slot_id, Some(gss_node_id), #terminal_name) {
+                    #new_node
                 }
             }
         }
@@ -1241,14 +1239,9 @@ impl<'a> ParserGen<'a> {
         match def {
             Definition::Terminal(terminal) => {
                 let terminal_id = self.terminal_ids.get_id(terminal);
+                let terminal_name = &terminal.name;
                 quote! {
-                    (match self.scanner.match_token(#terminal_id, #pos) {
-                        Some(end) => Some((self.get_or_create_terminal_node(#terminal_id, #pos, end), end)),
-                        None => {
-                            self.add_parse_error(#pos, #slot_id, None, ParseErrorKind::UnexpectedToken { expected: vec![#terminal_id] });
-                            None
-                        }
-                    })
+                    self.match_terminal(#terminal_id, #pos, #slot_id, None, #terminal_name).map(|(end, node)| (node, end))
                 }
             }
             Definition::Nonterminal(nt) => {
@@ -1341,19 +1334,13 @@ impl<'a> ParserGen<'a> {
             match def {
                 Definition::Terminal(terminal) => {
                     let terminal_id = self.terminal_ids.get_id(terminal);
+                    let terminal_name = &terminal.name;
                     body.push(quote! {
                         #pre_check
                         let right_child = {
                             let start = j;
-                            let end = match self.scanner.match_token(#terminal_id, start) {
-                                Some(end) => end,
-                                None => {
-                                    self.add_parse_error(start, #next_slot_id, None, ParseErrorKind::UnexpectedToken { expected: vec![#terminal_id] });
-                                    return None;
-                                }
-                            };
+                            let (end, node) = self.match_terminal(#terminal_id, start, #next_slot_id, None, #terminal_name)?;
                             #post_check
-                            let node = self.get_or_create_terminal_node(#terminal_id, start, end);
                             j = end;
                             node
                         };

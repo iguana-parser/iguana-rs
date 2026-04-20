@@ -82,25 +82,17 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             }
             //A : . "a"
             SlotId(2) => {
-                record!(self, MatchingTerminal, "\"a\"", input_index);
-                match self.scanner.match_token(TerminalId(0), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"a\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(0), input_index, j);
-                        //A : "a".
-                        self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(2),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(0),
+                        input_index,
+                        SlotId(2),
+                        Some(gss_node_id),
+                        "\"a\"",
+                    )
+                {
+                    //A : "a".
+                    self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
             }
             //A : "a".
@@ -113,25 +105,17 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             }
             //B : . "b"
             SlotId(4) => {
-                record!(self, MatchingTerminal, "\"b\"", input_index);
-                match self.scanner.match_token(TerminalId(1), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"b\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(1), input_index, j);
-                        //B : "b".
-                        self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(4),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(1),
+                        input_index,
+                        SlotId(4),
+                        Some(gss_node_id),
+                        "\"b\"",
+                    )
+                {
+                    //B : "b".
+                    self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
             }
             //B : "b".
@@ -144,25 +128,17 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             }
             //C : . "c"
             SlotId(6) => {
-                record!(self, MatchingTerminal, "\"c\"", input_index);
-                match self.scanner.match_token(TerminalId(2), input_index) {
-                    Some(j) => {
-                        record!(self, MatchSuccess, "\"c\"", input_index, j);
-                        let right_child = self
-                            .get_or_create_terminal_node(TerminalId(2), input_index, j);
-                        //C : "c".
-                        self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
-                    }
-                    None => {
-                        self.add_parse_error(
-                            input_index,
-                            SlotId(6),
-                            Some(gss_node_id),
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
-                    }
+                if let Some((j, right_child)) = self
+                    .match_terminal(
+                        TerminalId(2),
+                        input_index,
+                        SlotId(6),
+                        Some(gss_node_id),
+                        "\"c\"",
+                    )
+                {
+                    //C : "c".
+                    self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
                 }
             }
             //C : "c".
@@ -622,6 +598,9 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                 kind,
             });
     }
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        self.scanner.match_token(terminal_id, input_index)
+    }
 }
 pub struct PlusGroupParser<'i> {
     start_nonterminal: NonterminalId,
@@ -705,21 +684,8 @@ impl<'i> PlusGroupParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(0), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(3),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(0)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(0), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(0), start, SlotId(3), None, "\"a\"")?;
                 j = end;
                 node
             };
@@ -746,21 +712,8 @@ impl<'i> PlusGroupParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(1), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(5),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(1)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(1), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(1), start, SlotId(5), None, "\"b\"")?;
                 j = end;
                 node
             };
@@ -787,21 +740,8 @@ impl<'i> PlusGroupParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let end = match self.scanner.match_token(TerminalId(2), start) {
-                    Some(end) => end,
-                    None => {
-                        self.add_parse_error(
-                            start,
-                            SlotId(7),
-                            None,
-                            ParseErrorKind::UnexpectedToken {
-                                expected: vec![TerminalId(2)],
-                            },
-                        );
-                        return None;
-                    }
-                };
-                let node = self.get_or_create_terminal_node(TerminalId(2), start, end);
+                let (end, node) = self
+                    .match_terminal(TerminalId(2), start, SlotId(7), None, "\"c\"")?;
                 j = end;
                 node
             };

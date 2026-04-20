@@ -202,6 +202,22 @@ pub trait Parser<'i> {
     fn parse_error(&self) -> Option<&ParseError>;
     /// Records a parse error at the given input position.
     fn add_parse_error(&mut self, input_index: u32, slot_id: SlotId, gss_node_id: Option<GssNodeId>, kind: ParseErrorKind);
+    /// Delegates to the scanner's match_token.
+    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
+
+    /// Matches a terminal at the given input position.
+    /// On success, creates a terminal node and returns the end position and node id.
+    /// On failure, records a parse error and returns None.
+    fn match_terminal(&mut self, terminal_id: TerminalId, input_index: u32, slot_id: SlotId, gss_node_id: Option<GssNodeId>, terminal_name: &str) -> Option<(u32, SPPFNodeId)> {
+        record!(self, MatchingTerminal, terminal_name, input_index);
+        let j = self.match_token(terminal_id, input_index).or_else(|| {
+            self.add_parse_error(input_index, slot_id, gss_node_id, ParseErrorKind::UnexpectedToken { expected: vec![terminal_id] });
+            None
+        })?;
+        record!(self, MatchSuccess, terminal_name, input_index, j);
+        let node = self.get_or_create_terminal_node(terminal_id, input_index, j);
+        Some((j, node))
+    }
 
     /// Creates a new GSS node if it does not exist.
     /// If a GSS node with the same nonterminal name and input index exists, just adds an edge.
