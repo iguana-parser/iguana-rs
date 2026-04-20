@@ -137,14 +137,23 @@
       });
     }
 
-    // Selected span highlight (blue background)
+    // Selected span highlight
     if (highlightSpan) {
       const startPos = model.getPositionAt(highlightSpan.start);
-      const endPos = model.getPositionAt(highlightSpan.end);
-      decorations.push({
-        range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
-        options: { className: "input-highlight-span" },
-      });
+      if (highlightSpan.start < highlightSpan.end) {
+        // Non-empty span: blue background
+        const endPos = model.getPositionAt(highlightSpan.end);
+        decorations.push({
+          range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
+          options: { className: "input-highlight-span" },
+        });
+      } else {
+        // Empty span: vertical bar at position
+        decorations.push({
+          range: new monaco.Range(startPos.lineNumber, startPos.column, startPos.lineNumber, startPos.column),
+          options: { className: "input-highlight-caret" },
+        });
+      }
     }
 
     decorationIds = editor.deltaDecorations(decorationIds, decorations);
@@ -169,5 +178,9 @@
 
   :global(.input-highlight-span) {
     background-color: #264f78;
+  }
+
+  :global(.input-highlight-caret) {
+    border-left: 2px solid #569cd6;
   }
 </style>
