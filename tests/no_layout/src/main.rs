@@ -17,7 +17,7 @@ use pprof::ProfilerGuardBuilder;
 use no_layout::{
     parse_tree::{NoLayoutParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::NoLayoutParser, types::{Nonterminal, Slot, Terminal},
+    parser::NoLayoutParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

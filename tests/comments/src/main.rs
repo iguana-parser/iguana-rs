@@ -17,7 +17,7 @@ use pprof::ProfilerGuardBuilder;
 use comments::{
     parse_tree::{CommentsParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::CommentsParser, types::{Nonterminal, Slot, Terminal},
+    parser::CommentsParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

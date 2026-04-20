@@ -17,7 +17,7 @@ use pprof::ProfilerGuardBuilder;
 use regex_composition::{
     parse_tree::{RegexCompositionParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::RegexCompositionParser, types::{Nonterminal, Slot, Terminal},
+    parser::RegexCompositionParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

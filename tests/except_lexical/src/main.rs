@@ -17,7 +17,7 @@ use pprof::ProfilerGuardBuilder;
 use except_lexical::{
     parse_tree::{ExceptLexicalParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::ExceptLexicalParser, types::{Nonterminal, Slot, Terminal},
+    parser::ExceptLexicalParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

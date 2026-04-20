@@ -17,7 +17,7 @@ use pprof::ProfilerGuardBuilder;
 use multiple_except::{
     parse_tree::{MultipleExceptParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::MultipleExceptParser, types::{Nonterminal, Slot, Terminal},
+    parser::MultipleExceptParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

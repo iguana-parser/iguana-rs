@@ -19,7 +19,7 @@ use follow_restriction_multiple::{
         FollowRestrictionMultipleParseTreeBuilder, create_parse_tree, to_json, to_sexpr,
     },
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::FollowRestrictionMultipleParser, types::{Nonterminal, Slot, Terminal},
+    parser::FollowRestrictionMultipleParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

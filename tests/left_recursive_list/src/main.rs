@@ -19,7 +19,7 @@ use left_recursive_list::{
         LeftRecursiveListParseTreeBuilder, create_parse_tree, to_json, to_sexpr,
     },
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::LeftRecursiveListParser, types::{Nonterminal, Slot, Terminal},
+    parser::LeftRecursiveListParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

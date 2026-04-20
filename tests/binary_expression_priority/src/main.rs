@@ -19,7 +19,7 @@ use binary_expression_priority::{
         BinaryExpressionPriorityParseTreeBuilder, create_parse_tree, to_json, to_sexpr,
     },
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::BinaryExpressionPriorityParser, types::{Nonterminal, Slot, Terminal},
+    parser::BinaryExpressionPriorityParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

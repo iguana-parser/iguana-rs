@@ -41,7 +41,6 @@ fn gen_imports() -> TokenStream {
             ids::TerminalId,
             input::Input,
             scanner::Scanner,
-            sppf::{Span, TerminalNode},
         };
     }
 }

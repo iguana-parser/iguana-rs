@@ -19,7 +19,7 @@ use prefix_above_binary::{
         PrefixAboveBinaryParseTreeBuilder, create_parse_tree, to_json, to_sexpr,
     },
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::PrefixAboveBinaryParser, types::{Nonterminal, Slot, Terminal},
+    parser::PrefixAboveBinaryParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

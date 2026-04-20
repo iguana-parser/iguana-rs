@@ -17,7 +17,7 @@ use pprof::ProfilerGuardBuilder;
 use simple_alt::{
     parse_tree::{SimpleAltParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::SimpleAltParser, types::{Nonterminal, Slot, Terminal},
+    parser::SimpleAltParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

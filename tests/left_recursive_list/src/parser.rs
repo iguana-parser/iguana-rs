@@ -16,7 +16,7 @@ use iguana_runtime::{
     input::Input, parser::{Parser, ParseError, ParseErrorKind, init_logger},
     record, scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
-    utils::{inline_map::InlineMap, inline_vec::InlineVec},
+    utils::inline_map::InlineMap,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

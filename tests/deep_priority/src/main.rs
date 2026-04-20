@@ -17,7 +17,7 @@ use pprof::ProfilerGuardBuilder;
 use deep_priority::{
     parse_tree::{DeepPriorityParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::DeepPriorityParser, types::{Nonterminal, Slot, Terminal},
+    parser::DeepPriorityParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

@@ -17,7 +17,7 @@ use pprof::ProfilerGuardBuilder;
 use star_with_sep::{
     parse_tree::{StarWithSepParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::StarWithSepParser, types::{Nonterminal, Slot, Terminal},
+    parser::StarWithSepParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

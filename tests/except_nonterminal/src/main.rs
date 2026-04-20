@@ -19,7 +19,7 @@ use except_nonterminal::{
         ExceptNonterminalParseTreeBuilder, create_parse_tree, to_json, to_sexpr,
     },
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::ExceptNonterminalParser, types::{Nonterminal, Slot, Terminal},
+    parser::ExceptNonterminalParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;

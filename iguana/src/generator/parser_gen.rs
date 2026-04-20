@@ -168,6 +168,11 @@ impl<'a> ParserGen<'a> {
 
     fn gen_imports(&self) -> TokenStream {
         let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&self.grammar.name));
+        let inline_vec_import = if self.nonterminal_ids.has_data_dependent_nt() {
+            quote! { , inline_vec::InlineVec }
+        } else {
+            quote! {}
+        };
         quote! {
             use std::cell::OnceCell;
             use std::collections::BTreeMap;
@@ -182,7 +187,7 @@ impl<'a> ParserGen<'a> {
                 record,
                 scanner::Scanner,
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
-                utils::{inline_map::InlineMap, inline_vec::InlineVec}
+                utils::{inline_map::InlineMap #inline_vec_import}
             };
             #[cfg(feature = "debug-trace")]
             use iguana_runtime::trace::TraceEvent;

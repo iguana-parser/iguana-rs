@@ -19,7 +19,7 @@ use prefix_postfix_priority::{
         PrefixPostfixPriorityParseTreeBuilder, create_parse_tree, to_json, to_sexpr,
     },
     grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::PrefixPostfixPriorityParser, types::{Nonterminal, Slot, Terminal},
+    parser::PrefixPostfixPriorityParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
