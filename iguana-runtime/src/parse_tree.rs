@@ -1,9 +1,25 @@
 use std::fmt;
 
+use bumpalo::Bump;
+
 use crate::{
     parser::Parser,
     sppf::{NonterminalNode, SPPFNode, TerminalNode},
 };
+
+pub struct ParseContext {
+    bump: Bump,
+}
+
+impl ParseContext {
+    pub fn new() -> Self {
+        ParseContext { bump: Bump::new() }
+    }
+
+    pub fn bump(&self) -> &Bump {
+        &self.bump
+    }
+}
 
 #[derive(Debug)]
 pub enum OneOrMany<T: fmt::Debug> {
@@ -85,8 +101,7 @@ pub fn visit_sppf<'i, T: fmt::Debug, P: Parser<'i>>(
         }
         SPPFNode::Nonterminal(n) => {
             if n.ambiguous {
-                println!("Ambiguous nonterminal: id={:?}, span={:?}", n.nonterminal_id, n.span);
-                unimplemented!()
+                todo!("ambiguous nonterminal extraction: id={:?}, span={:?}", n.nonterminal_id, n.span)
             }
             let child = parser.sppf_node(n.child);
             let children = visit_sppf(child, parser, builder);
@@ -94,8 +109,7 @@ pub fn visit_sppf<'i, T: fmt::Debug, P: Parser<'i>>(
         }
         SPPFNode::Intermediate(i) => {
             if i.ambiguous {
-                println!("Ambiguous intermediate node: slot_id={:?}, span={:?}", i.slot_id, i.span);
-                unimplemented!()
+                todo!("ambiguous intermediate extraction: slot_id={:?}, span={:?}", i.slot_id, i.span)
             }
             let (left_child, right_child) = i.child;
             let left_child = parser.sppf_node(left_child);
@@ -109,4 +123,8 @@ pub trait ParseTreeBuilder<T: fmt::Debug> {
     fn new_token(&self, terminal_node: &TerminalNode) -> T;
     fn new_nonterminal_node(&self, nonterminal_node: &NonterminalNode, children: OneOrMany<T>)
     -> T;
+    fn new_ambiguity_node(&self, alternatives: Vec<T>) -> T {
+        let _ = alternatives;
+        unimplemented!("ambiguity handling not yet implemented for this builder")
+    }
 }

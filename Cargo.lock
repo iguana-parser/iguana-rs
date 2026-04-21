@@ -665,6 +665,7 @@ dependencies = [
 name = "iguana-runtime"
 version = "0.1.0"
 dependencies = [
+ "bumpalo",
  "dot",
  "env_logger",
  "log",
