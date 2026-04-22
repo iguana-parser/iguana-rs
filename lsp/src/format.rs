@@ -30,7 +30,7 @@ const PRIO_PREFIX: &str = "  > ";
 const CONT_INDENT: &str = "      "; // 6 spaces for continuation lines
 
 /// Format an iggy grammar from its parse tree.
-pub fn format(tree: &Start<Grammar, Layout>, input: &Input) -> String {
+pub fn format(tree: &Start<&Grammar<'_>, &Layout<'_>>, input: &Input) -> String {
     let f = Formatter::new(input);
     f.format_grammar(&tree.node)
 }
@@ -99,6 +99,7 @@ impl<'a> Formatter<'a> {
         match rule {
             Rule::SyntaxRule { syntax_rule, .. } => self.format_syntax_rule(out, syntax_rule),
             Rule::RegexRule { regex_rule, .. } => self.format_regex_rule(out, regex_rule),
+            Rule::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
 
@@ -122,6 +123,7 @@ impl<'a> Formatter<'a> {
                 Associativity::Alt0 { .. } => "left ",
                 Associativity::Alt1 { .. } => "right ",
                 Associativity::Alt2 { .. } => "none ",
+                Associativity::Amb(_) => panic!("unexpected ambiguity"),
             });
 
             for (ai, alt) in alternatives.iter().enumerate() {
@@ -197,6 +199,7 @@ impl<'a> Formatter<'a> {
                 out.push(')');
             }
             Annotation::Start { .. } => out.push_str("@Start"),
+            Annotation::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
 
@@ -285,6 +288,7 @@ impl<'a> Formatter<'a> {
                 out.push(':');
                 self.format_symbol(out, symbol);
             }
+            Symbol::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
 
@@ -326,6 +330,7 @@ impl<'a> Formatter<'a> {
                     out.push_str(" !>> ");
                     out.push_str(&self.text(identifier.span()));
                 }
+                PostCondition::Amb(_) => panic!("unexpected ambiguity"),
             }
         }
     }
@@ -372,6 +377,7 @@ impl<'a> Formatter<'a> {
             Regex::Identifier { identifier, .. } => {
                 out.push_str(&self.text(identifier.span()));
             }
+            Regex::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
 
@@ -390,6 +396,7 @@ impl<'a> Formatter<'a> {
                 RangeElement::Alt1 { range_char, .. } => {
                     out.push_str(&self.text(range_char.span()));
                 }
+                RangeElement::Amb(_) => panic!("unexpected ambiguity"),
             }
         }
         out.push(']');
@@ -440,7 +447,8 @@ mod tests {
 
     fn format_source(source: &str) -> Option<String> {
         let input = Input::from(source);
-        match crate::build(&input) {
+        let ctx = iguana_runtime::parse_tree::ParseContext::new();
+        match crate::build(&input, &ctx) {
             crate::BuildResult::Success { ref tree, .. } => Some(format(tree, &input)),
             crate::BuildResult::Error { .. } => None,
         }

@@ -10,13 +10,13 @@ pub mod symbols;
 
 use iggy::parse_tree::{Grammar, Layout, Start};
 use iguana::grammar::def::GrammarDef;
-use iguana_runtime::input::Input;
+use iguana_runtime::{input::Input, parse_tree::ParseContext};
 use spans::GrammarSpans;
 use std::time::Duration;
 
-pub enum BuildResult {
+pub enum BuildResult<'a> {
     Success {
-        tree: Start<Grammar, Layout>,
+        tree: &'a Start<&'a Grammar<'a>, &'a Layout<'a>>,
         parse_duration: Duration,
         tree_construction_duration: Duration,
     },
@@ -28,7 +28,10 @@ pub enum BuildResult {
 }
 
 /// Build a GrammarDef from a successful parse tree.
-pub fn build_grammar_def(tree: &Start<Grammar, Layout>, input: &Input) -> Option<GrammarDef> {
+pub fn build_grammar_def(
+    tree: &Start<&Grammar<'_>, &Layout<'_>>,
+    input: &Input,
+) -> Option<GrammarDef> {
     iguana::iggy::build_grammar(tree, input)
         .ok()
         .map(|def| def.resolve())
@@ -37,16 +40,16 @@ pub fn build_grammar_def(tree: &Start<Grammar, Layout>, input: &Input) -> Option
 /// Build the side table from a GrammarDef and its parse tree.
 pub fn build_spans<'a>(
     grammar_def: &'a GrammarDef,
-    tree: &Start<Grammar, Layout>,
+    tree: &Start<&Grammar<'_>, &Layout<'_>>,
     input: &Input,
 ) -> GrammarSpans<'a> {
     spans::build_spans(grammar_def, tree, input)
 }
 
 /// Parse the grammar source and build the result.
-pub fn build(input: &Input) -> BuildResult {
+pub fn build<'a>(input: &Input, ctx: &'a ParseContext) -> BuildResult<'a> {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        iggy::parse_grammar(input)
+        iggy::parse_grammar(input, ctx)
     }));
     match result {
         Ok(Ok(success)) => BuildResult::Success {

@@ -1,5 +1,5 @@
 use by_address::ByAddress;
-use iggy::parse_tree::{self, Layout, ParseTreeRef};
+use iggy::parse_tree::{self, Layout, ParseTree};
 use iguana::grammar::{
     def::{Alternative, GrammarDef, LexicalRule, SyntaxRule},
     symbols::{DefinitionId, Identifier, Symbol},
@@ -13,12 +13,12 @@ use crate::layout::{leading_comments, trailing_comment};
 /// `right_extent` of the rightmost non-layout `Token` leaf. Parse tree nodes
 /// fold trailing layout into their `.span()`, so this walk finds the actual
 /// content end. Cost is O(tree depth) per call.
-fn rightmost_token_end(node: ParseTreeRef<'_>) -> Option<u32> {
-    if let ParseTreeRef::Token(t) = node {
+fn rightmost_token_end(node: ParseTree<'_>) -> Option<u32> {
+    if let ParseTree::Token(t) = node {
         return Some(t.span().right_extent);
     }
     for child in node.children().iter().rev() {
-        if matches!(child, ParseTreeRef::Layout(_)) {
+        if matches!(child, ParseTree::Layout(_)) {
             continue;
         }
         if let Some(end) = rightmost_token_end(*child) {
@@ -73,7 +73,7 @@ struct SpanBuilder<'a, 'b> {
     /// The most recently visited non-empty Layout node. Used to attach
     /// leading comments (before a rule) and trailing comments (after recursing
     /// into a rule's children).
-    last_layout: Option<&'b Layout>,
+    last_layout: Option<&'b Layout<'b>>,
     /// Index into grammar_def.syntax_rules, advanced each time we visit a SyntaxRule.
     syntax_idx: usize,
     /// Index into grammar_def.lexical_rules, advanced each time we visit a RegexRule.
@@ -81,14 +81,14 @@ struct SpanBuilder<'a, 'b> {
 }
 
 impl<'a, 'b> SpanBuilder<'a, 'b> {
-    fn walk(&mut self, node: ParseTreeRef<'b>) {
+    fn walk(&mut self, node: ParseTree<'b>) {
         match node {
-            ParseTreeRef::Layout(l) => {
+            ParseTree::Layout(l) => {
                 if !l.span().is_empty() {
                     self.last_layout = Some(l);
                 }
             }
-            ParseTreeRef::Rule(rule) => match rule {
+            ParseTree::Rule(rule) => match rule {
                 parse_tree::Rule::SyntaxRule { syntax_rule, .. } => {
                     let gr_rule = &self.grammar_def.syntax_rules[self.syntax_idx];
                     let head_start = syntax_rule.head.span().left_extent;
@@ -105,7 +105,7 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                         self.walk(*child);
                     }
 
-                    let content_end = rightmost_token_end(syntax_rule.as_parse_tree_ref())
+                    let content_end = rightmost_token_end(syntax_rule.as_parse_tree())
                         .unwrap_or(syntax_rule.span.right_extent);
                     let trailing = self
                         .last_layout
@@ -144,7 +144,7 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                         self.walk(*child);
                     }
 
-                    let content_end = rightmost_token_end(regex_rule.as_parse_tree_ref())
+                    let content_end = rightmost_token_end(regex_rule.as_parse_tree())
                         .unwrap_or(regex_rule.span.right_extent);
                     let trailing = self
                         .last_layout
@@ -165,6 +165,7 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                     self.spans.definition_spans.insert(def_id, head_span);
                     self.lexical_idx += 1;
                 }
+                parse_tree::Rule::Amb(_) => panic!("unexpected ambiguity"),
             },
             _ => {
                 for child in node.children().iter() {
@@ -177,7 +178,7 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
 
 pub fn build_spans<'a>(
     grammar_def: &'a GrammarDef,
-    parse_tree: &parse_tree::Start<parse_tree::Grammar, parse_tree::Layout>,
+    parse_tree: &parse_tree::Start<&parse_tree::Grammar<'_>, &parse_tree::Layout<'_>>,
     input: &Input,
 ) -> GrammarSpans<'a> {
     let grammar = &parse_tree.node;
@@ -189,7 +190,7 @@ pub fn build_spans<'a>(
         syntax_idx: 0,
         lexical_idx: 0,
     };
-    builder.walk(grammar.as_parse_tree_ref());
+    builder.walk(grammar.as_parse_tree());
 
     // Now collect the finer-grained spans (alternatives, symbols) by walking
     // the GrammarDef and parse tree in parallel.
@@ -205,6 +206,7 @@ pub fn build_spans<'a>(
             parse_tree::Rule::RegexRule { .. } => {
                 lexical_idx += 1;
             }
+            parse_tree::Rule::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
 
@@ -226,7 +228,7 @@ fn collect_syntax_rule_spans<'a>(
             .iter()
             .zip(pt_level.alternatives.alternatives())
         {
-            let alt_end = rightmost_token_end(pt_alt.as_parse_tree_ref())
+            let alt_end = rightmost_token_end(pt_alt.as_parse_tree())
                 .unwrap_or(pt_alt.span.right_extent);
             let alt_span = Span::new(pt_alt.span.left_extent, alt_end);
             spans.alternatives.insert(
@@ -285,7 +287,7 @@ fn collect_symbol_spans<'a>(
         }
         (Symbol::Alt(gr_syms), parse_tree::Symbol::Alt { first, rest, .. }) => {
             let pt_syms: Vec<&parse_tree::Symbol> =
-                std::iter::once(first.as_ref()).chain(rest.symbols()).collect();
+                std::iter::once(*first).chain(rest.symbols()).collect();
             for (ir, pt) in gr_syms.iter().zip(pt_syms) {
                 collect_symbol_spans(ir, pt, spans);
             }

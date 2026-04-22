@@ -10,7 +10,7 @@ use lsp_types::{
     Diagnostic, DocumentSymbolResponse, Position, PublishDiagnosticsParams, Range, SemanticTokens,
     SemanticTokensResult, TextEdit, Uri,
 };
-use iguana_runtime::input::Input;
+use iguana_runtime::{input::Input, parse_tree::ParseContext};
 use lsp::diagnostics::diagnostics;
 use lsp::document_symbols::document_symbols;
 use lsp::folding::folding_ranges;
@@ -44,7 +44,8 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let tokens = match build(&input) {
+                        let ctx = ParseContext::new();
+                        let tokens = match build(&input, &ctx) {
                             BuildResult::Success { ref tree, .. } => {
                                 semantic_tokens(tree, &input)
                             }
@@ -74,7 +75,8 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let edits = match build(&input) {
+                        let ctx = ParseContext::new();
+                        let edits = match build(&input, &ctx) {
                             BuildResult::Success { ref tree, .. } => {
                                 let formatted = format(tree, &input);
                                 let line_count = source.lines().count() as u32;
@@ -110,8 +112,9 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
+                        let ctx = ParseContext::new();
                         let locations = (|| {
-                            let BuildResult::Success { ref tree, .. } = build(&input) else {
+                            let BuildResult::Success { ref tree, .. } = build(&input, &ctx) else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -148,8 +151,9 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
+                        let ctx = ParseContext::new();
                         let loc = (|| {
-                            let BuildResult::Success { ref tree, .. } = build(&input) else {
+                            let BuildResult::Success { ref tree, .. } = build(&input, &ctx) else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -181,8 +185,9 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
+                        let ctx = ParseContext::new();
                         let symbols = (|| {
-                            let BuildResult::Success { ref tree, .. } = build(&input) else {
+                            let BuildResult::Success { ref tree, .. } = build(&input, &ctx) else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -213,8 +218,9 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
+                        let ctx = ParseContext::new();
                         let ranges = (|| {
-                            let BuildResult::Success { ref tree, .. } = build(&input) else {
+                            let BuildResult::Success { ref tree, .. } = build(&input, &ctx) else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -272,7 +278,8 @@ fn publish_diagnostics(
     source: &str,
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
     let input = Input::from(source);
-    let diagnostics = match build(&input) {
+    let ctx = ParseContext::new();
+    let diagnostics = match build(&input, &ctx) {
         BuildResult::Success { ref tree, .. } => {
             build_grammar_def(tree, &input)
                 .map(|grammar_def| {

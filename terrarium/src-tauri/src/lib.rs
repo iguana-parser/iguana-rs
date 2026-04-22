@@ -3,6 +3,7 @@ mod trace_replay;
 use std::{fs, io::Write, path::Path, path::PathBuf, process::Command, sync::Mutex, thread};
 
 use iguana::input::Input;
+use iguana::parse_tree::ParseContext;
 use iguana::visualization::{gss::GSS, sppf::SPPF};
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -123,58 +124,61 @@ struct AnalyzeResult {
     tree_construction_duration_ms: u32,
 }
 
-/// Version-keyed parse cache. Every feature command calls `ensure_built()`
-/// which re-parses only if the source text has changed since the last parse.
-/// `grammar_def` is rebuilt from the build result after each successful parse
-/// and reused by all feature commands.
+/// Cached grammar state. Each command that needs the parse tree re-parses
+/// (iggy grammars parse in a few milliseconds). `grammar_def` is cached
+/// and rebuilt only when the source text changes.
 struct GrammarState {
-    /// The source text that produced the current build result.
     source: Option<String>,
     input: Option<Input>,
-    build_result: Option<lsp::BuildResult>,
     grammar_def: Option<iguana::grammar::def::GrammarDef>,
+    /// Cached timings from the last parse.
+    parse_ms: u32,
+    tree_ms: u32,
+    /// Whether the last parse succeeded.
+    success: bool,
 }
 
 impl GrammarState {
-    /// Ensure `build_result` and `grammar_def` are up-to-date for `source`.
-    /// Re-parses only when the source text has changed. Returns the parse timings.
+    /// Ensure `grammar_def` is up-to-date for `source`. Re-parses only when
+    /// the source text has changed. Returns the parse timings.
     fn ensure_built(&mut self, source: &str) -> (u32, u32) {
         if self.source.as_deref() == Some(source) {
-            if let Some(lsp::BuildResult::Success {
-                parse_duration,
-                tree_construction_duration,
-                ..
-            }) = &self.build_result
-            {
-                return (
-                    parse_duration.as_millis() as u32,
-                    tree_construction_duration.as_millis() as u32,
-                );
-            }
+            return (self.parse_ms, self.tree_ms);
         }
         let input = Input::from(source);
-        let result = lsp::build(&input);
-        let (parse_ms, tree_ms) = match &result {
+        let ctx = ParseContext::new();
+        let result = lsp::build(&input, &ctx);
+        match &result {
             lsp::BuildResult::Success {
                 ref tree,
                 parse_duration,
                 tree_construction_duration,
             } => {
                 self.grammar_def = lsp::build_grammar_def(tree, &input);
-                (
-                    parse_duration.as_millis() as u32,
-                    tree_construction_duration.as_millis() as u32,
-                )
+                self.parse_ms = parse_duration.as_millis() as u32;
+                self.tree_ms = tree_construction_duration.as_millis() as u32;
+                self.success = true;
             }
             lsp::BuildResult::Error { .. } => {
                 self.grammar_def = None;
-                (0, 0)
+                self.parse_ms = 0;
+                self.tree_ms = 0;
+                self.success = false;
             }
         };
         self.source = Some(source.to_string());
         self.input = Some(input);
-        self.build_result = Some(result);
-        (parse_ms, tree_ms)
+        (self.parse_ms, self.tree_ms)
+    }
+
+    /// Parse the current source and return the tree. Returns None if no source
+    /// is set or parsing fails.
+    fn parse<'a>(&self, ctx: &'a ParseContext) -> Option<lsp::BuildResult<'a>> {
+        let input = self.input.as_ref()?;
+        match lsp::build(input, ctx) {
+            result @ lsp::BuildResult::Success { .. } => Some(result),
+            _ => None,
+        }
     }
 }
 
@@ -941,10 +945,9 @@ fn find_iggy_file(directory: &Path) -> Result<PathBuf, std::io::Error> {
 fn analyze_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> AnalyzeResult {
     let mut st = state.lock().unwrap();
     let (parse_duration_ms, tree_construction_duration_ms) = st.ensure_built(&source);
-    let success = matches!(&st.build_result, Some(lsp::BuildResult::Success { .. }));
 
     AnalyzeResult {
-        success,
+        success: st.success,
         parse_duration_ms,
         tree_construction_duration_ms,
     }
@@ -958,7 +961,8 @@ fn analyze_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> 
 fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> Option<String> {
     let mut st = state.lock().unwrap();
     st.ensure_built(&source);
-    let lsp::BuildResult::Success { ref tree, .. } = st.build_result.as_ref()? else {
+    let ctx = ParseContext::new();
+    let lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
         return None;
     };
     let input = st.input.as_ref()?;
@@ -970,7 +974,8 @@ fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> O
 #[specta::specta]
 fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<SemanticTokenData> {
     let st = state.lock().unwrap();
-    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.build_result else {
+    let ctx = ParseContext::new();
+    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
         return vec![];
     };
     let Some(ref input) = st.input else {
@@ -998,7 +1003,8 @@ fn get_document_symbols(
 ) -> Vec<DocumentSymbolData> {
     let mut st = state.lock().unwrap();
     st.ensure_built(&source);
-    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.build_result else {
+    let ctx = ParseContext::new();
+    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
         return vec![];
     };
     let Some(ref input) = st.input else {
@@ -1025,7 +1031,8 @@ fn get_definition(
 ) -> Option<LocationData> {
     let mut st = state.lock().unwrap();
     st.ensure_built(&source);
-    let lsp::BuildResult::Success { ref tree, .. } = st.build_result.as_ref()? else {
+    let ctx = ParseContext::new();
+    let lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
         return None;
     };
     let input = st.input.as_ref()?;
@@ -1056,7 +1063,8 @@ fn get_references(
 ) -> Vec<LocationData> {
     let mut st = state.lock().unwrap();
     st.ensure_built(&source);
-    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.build_result else {
+    let ctx = ParseContext::new();
+    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
         return vec![];
     };
     let Some(ref input) = st.input else {
@@ -1090,7 +1098,8 @@ fn get_folding_ranges(
 ) -> Vec<FoldingRangeData> {
     let mut st = state.lock().unwrap();
     st.ensure_built(&source);
-    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.build_result else {
+    let ctx = ParseContext::new();
+    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
         return vec![];
     };
     let Some(ref input) = st.input else {
@@ -1118,11 +1127,12 @@ fn get_diagnostics(
 ) -> Vec<DiagnosticData> {
     let mut st = state.lock().unwrap();
     st.ensure_built(&source);
-    match &st.build_result {
-        Some(lsp::BuildResult::Success { ref tree, .. }) => {
-            let Some(ref input) = st.input else {
-                return vec![];
-            };
+    let Some(ref input) = st.input else {
+        return vec![];
+    };
+    let ctx = ParseContext::new();
+    match lsp::build(input, &ctx) {
+        lsp::BuildResult::Success { ref tree, .. } => {
             let Some(ref grammar_def) = st.grammar_def else {
                 return vec![];
             };
@@ -1150,19 +1160,18 @@ fn get_diagnostics(
                 })
                 .collect()
         }
-        Some(lsp::BuildResult::Error { line, column, message }) => {
+        lsp::BuildResult::Error { line, column, message } => {
             vec![DiagnosticData {
                 range: RangeData {
-                    start_line: *line,
-                    start_char: *column,
-                    end_line: *line,
-                    end_char: *column,
+                    start_line: line,
+                    start_char: column,
+                    end_line: line,
+                    end_char: column,
                 },
                 severity: 8,
                 message: format!("Parse error: {message}"),
             }]
         }
-        None => vec![],
     }
 }
 
@@ -1572,8 +1581,10 @@ pub fn run() {
         .manage(Mutex::new(GrammarState {
             source: None,
             input: None,
-            build_result: None,
             grammar_def: None,
+            parse_ms: 0,
+            tree_ms: 0,
+            success: false,
         }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())

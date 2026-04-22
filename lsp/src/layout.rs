@@ -13,11 +13,7 @@ pub fn is_same_line(input: &Input, a: u32, b: u32) -> bool {
 
 /// Return the comment in `layout` that sits on the same line as `prev_end`,
 /// if any. Used to attach a trailing `// ...` to the preceding token.
-pub fn trailing_comment<'a>(
-    layout: &'a Layout,
-    input: &Input,
-    prev_end: u32,
-) -> Option<&'a Token> {
+pub fn trailing_comment(layout: &Layout, input: &Input, prev_end: u32) -> Option<Token> {
     layout
         .line_comments()
         .next()
@@ -30,12 +26,8 @@ pub fn trailing_comment<'a>(
 ///
 /// Returns the leading-block as a `Vec` (in source order). Empty if there is
 /// no eligible block.
-pub fn leading_comments<'a>(
-    layout: &'a Layout,
-    input: &Input,
-    next_start: u32,
-) -> Vec<&'a Token> {
-    let comments: Vec<&Token> = layout.line_comments().collect();
+pub fn leading_comments(layout: &Layout, input: &Input, next_start: u32) -> Vec<Token> {
+    let comments: Vec<Token> = layout.line_comments().collect();
     if comments.is_empty() {
         return Vec::new();
     }
@@ -43,12 +35,12 @@ pub fn leading_comments<'a>(
     // Walk backwards from the end, accepting each comment whose line is
     // exactly one less than the next eligible line. Start with `next_start`'s
     // line; each accepted comment shifts the expected line up by one.
-    let mut block: Vec<&Token> = Vec::new();
+    let mut block: Vec<Token> = Vec::new();
     let (mut expected_line, _) = input.line_column(next_start);
     for c in comments.iter().rev() {
         let (cl, _) = input.line_column(c.span().left_extent);
         if cl + 1 == expected_line {
-            block.push(c);
+            block.push(*c);
             expected_line = cl;
         } else {
             break;

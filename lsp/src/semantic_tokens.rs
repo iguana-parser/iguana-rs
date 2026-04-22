@@ -1,4 +1,4 @@
-use iggy::parse_tree::{Grammar, Layout, ParseTreeRef, Start, Token};
+use iggy::parse_tree::{Grammar, Layout, ParseTree, Start, Token};
 use iguana_runtime::input::Input;
 use iguana_runtime::sppf::Span;
 use lsp_types::{Position, Range, SemanticToken, SemanticTokenType, SemanticTokensLegend};
@@ -29,18 +29,22 @@ const TOKEN_DECORATOR: u32 = 5;
 const TOKEN_LABEL: u32 = 6;
 
 /// Extract semantic tokens from a parse tree.
-pub fn semantic_tokens(tree: &Start<Grammar, Layout>, input: &Input) -> Vec<SemanticToken> {
+pub fn semantic_tokens(tree: &Start<&Grammar<'_>, &Layout<'_>>, input: &Input) -> Vec<SemanticToken> {
     let mut builder = SemanticTokensBuilder::new();
 
-    visit(tree.as_parse_tree_ref(), &mut |node| match node {
-        ParseTreeRef::Token(token) => {
-            if let Some(token_type) = classify_token(token) {
-                builder.push(to_range(token.span(), input), token_type, 0);
-            }
-            false
+    for i in 0..tree.child_count() {
+        if let Some(child) = tree.child(i) {
+            visit(child, &mut |node| match node {
+                ParseTree::Token(token) => {
+                    if let Some(token_type) = classify_token(&token) {
+                        builder.push(to_range(token.span(), input), token_type, 0);
+                    }
+                    false
+                }
+                _ => true,
+            });
         }
-        _ => true,
-    });
+    }
 
     builder.build()
 }
@@ -48,7 +52,8 @@ pub fn semantic_tokens(tree: &Start<Grammar, Layout>, input: &Input) -> Vec<Sema
 /// Convenience: parse and tokenize in one call (for tests and simple consumers).
 pub fn tokenize(source: &str) -> Vec<SemanticToken> {
     let input = Input::from(source);
-    match crate::build(&input) {
+    let ctx = iguana_runtime::parse_tree::ParseContext::new();
+    match crate::build(&input, &ctx) {
         crate::BuildResult::Success { ref tree, .. } => semantic_tokens(tree, &input),
         crate::BuildResult::Error { .. } => vec![],
     }
@@ -63,9 +68,9 @@ fn to_range(span: Span, input: &Input) -> Range {
     }
 }
 
-fn visit<'a, F>(node: ParseTreeRef<'a>, f: &mut F)
+fn visit<'a, F>(node: ParseTree<'a>, f: &mut F)
 where
-    F: FnMut(ParseTreeRef<'a>) -> bool,
+    F: FnMut(ParseTree<'a>) -> bool,
 {
     if f(node) {
         for child in node.children() {
