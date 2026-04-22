@@ -2,7 +2,7 @@ use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::Ident;
 
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 
 use crate::{
     generator::{
@@ -19,18 +19,19 @@ use crate::{
     ids::TerminalId,
 };
 
-/// Returns the parse tree type for a nonterminal: `Start<Inner, LayoutType>` for
-/// start nonterminals, or the PascalCase ident for regular ones.
+/// Returns the parse tree type for a nonterminal with lifetime.
+/// Start nonterminals: `Start<&'a Inner<'a>, &'a Layout<'a>>`.
+/// Regular nonterminals: `Ident<'a>`.
 fn nonterminal_type(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     if grammar.is_start(nonterminal) {
         let inner_ident = nonterminal.origin.as_ref().unwrap().as_identifier().unwrap();
-        let inner = symbol_type(grammar, inner_ident);
+        let inner = symbol_ident(grammar, inner_ident);
         let layout_ident = grammar.layout.as_ref().unwrap().as_identifier().unwrap();
-        let layout = symbol_type(grammar, layout_ident);
-        quote! { Start<#inner, #layout> }
+        let layout = symbol_ident(grammar, layout_ident);
+        quote! { Start<&'a #inner<'a>, &'a #layout<'a>> }
     } else {
         let ident = nt_ident(&nonterminal.name);
-        quote! { #ident }
+        quote! { #ident<'a> }
     }
 }
 
@@ -53,8 +54,6 @@ pub fn generate(
     let token_impl = gen_token_impl();
     let parse_tree_enum = gen_parse_tree_enum(grammar);
     let parse_tree_impl = gen_parse_tree_impl(grammar);
-    let parse_tree_ref_enum = gen_parse_tree_ref_enum(grammar);
-    let parse_tree_ref_impl = gen_parse_tree_ref_impl(grammar);
     let list_node_trait = gen_list_node_trait();
     let list_node_impls_for_plus: Vec<_> = grammar
         .nonterminals()
@@ -83,7 +82,6 @@ pub fn generate(
         .filter(|n| is_single_symbol_alternation(grammar, n))
         .map(|n| gen_alt_accessors(grammar, n))
         .collect();
-    let from_for_tree_impls = gen_from_for_tree_impls(grammar);
     let parse_tree_builder_impl = gen_parse_tree_builder_impl(grammar, nonterminal_ids, slot_ids);
     let create_parse_tree_function = gen_create_parse_tree_function(grammar);
     let create_parse_tree_functions: Vec<_> = grammar
@@ -125,14 +123,6 @@ pub fn generate(
         quote! {}
     };
 
-    let as_parse_tree_ref_trait = quote! {
-        pub trait AsParseTreeRef {
-            fn as_parse_tree_ref(&self) -> ParseTreeRef<'_>;
-        }
-    };
-
-    let as_parse_tree_ref_impls = gen_as_parse_tree_ref_trait_impls(grammar);
-
     let to_sexpr_function = gen_to_sexpr_function();
     let node_to_sexpr_function = gen_node_to_sexpr_function();
     let to_json_function = gen_to_json_function();
@@ -144,11 +134,6 @@ pub fn generate(
         #start_struct
         #parse_tree_enum
         #parse_tree_impl
-        #parse_tree_ref_enum
-        #parse_tree_ref_impl
-        #from_for_tree_impls
-        #as_parse_tree_ref_trait
-        #as_parse_tree_ref_impls
         #list_node_trait
         #opt_node_trait
         #(#nonterminal_types)*
@@ -177,7 +162,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         use std::{fmt::Write, vec::IntoIter};
         use iguana_runtime::{
             ids::{NonterminalId, SlotId, TerminalId},
-            parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
+            parse_tree::{Bump, OneOrMany, ParseContext, ParseTreeBuilder, visit_sppf},
             parser::Parser,
             sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
         };
@@ -198,36 +183,29 @@ fn nt_ident(name: &str) -> Ident {
     format_ident!("{}", to_pascal_case(name))
 }
 
-/// Returns the Rust type for a parse tree field: `Token` for terminals, or the
-/// nonterminal's PascalCase name (wrapped in `Box<>` if recursive).
-fn gen_field_type(grammar: &Grammar, symbol: &Symbol, head: &Nonterminal) -> TokenStream {
+/// Returns the Rust type for a parse tree field: `Token` for terminals,
+/// `&'a Type<'a>` for nonterminals.
+fn gen_field_type(grammar: &Grammar, symbol: &Symbol) -> TokenStream {
     let def = grammar.definition(symbol.resolved_def());
     match def {
-        Definition::Terminal(_) => {
-            quote! { Token }
-        }
-        Definition::Nonterminal(nt) => {
+        Definition::Terminal(_) => quote! { Token },
+        Definition::Nonterminal(_) => {
             let name = Ident::new(
                 &nonterminal_type_name(grammar, def.name()),
                 Span::call_site(),
             );
-            if should_be_boxed(grammar, unwrap_exclude(grammar, nt), head) {
-                quote! { Box<#name> }
-            } else {
-                quote! { #name }
-            }
+            quote! { &'a #name<'a> }
         }
     }
 }
 
 /// Returns (name, type) pairs for each parse-tree-relevant symbol in an alternative.
 /// Literals are filtered out. For example, given `Expr = Expr "+" Expr`, this returns:
-///   `[(expr_0, Box<Expr>), (expr_1, Box<Expr>)]`
-/// The `"+"` is skipped, and both `Expr` references are boxed due to recursion.
+///   `[(expr_0, &'a Expr<'a>), (expr_1, &'a Expr<'a>)]`
+/// The `"+"` is skipped.
 fn gen_fields_for_alternative_symbols(
     grammar: &Grammar,
     alternative: &Alternative,
-    head: &Nonterminal,
 ) -> Vec<(Ident, TokenStream)> {
     let counts = count_symbol_occurrences(grammar, &alternative.symbols);
     alternative
@@ -241,7 +219,7 @@ fn gen_fields_for_alternative_symbols(
                 base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
             let field_name = gen_field_name(grammar, s, i, needs_index);
             let field_ident = safe_ident(&field_name);
-            let field_type = gen_field_type(grammar, s, head);
+            let field_type = gen_field_type(grammar, s);
             (field_ident, field_type)
         })
         .collect()
@@ -252,7 +230,7 @@ fn gen_nonterminal_type_with_one_alternative(
     nonterminal: &Nonterminal,
     alternative: &Alternative,
 ) -> TokenStream {
-    let fields: Vec<_> = gen_fields_for_alternative_symbols(grammar, alternative, nonterminal)
+    let fields: Vec<_> = gen_fields_for_alternative_symbols(grammar, alternative)
         .into_iter()
         .map(|(ident, ty)| quote! { pub #ident: #ty })
         .collect();
@@ -272,7 +250,7 @@ fn gen_nonterminal_type_with_one_alternative(
     quote! {
         #comment
         #[derive(Debug)]
-        pub struct #nonterminal_name_id {
+        pub struct #nonterminal_name_id<'a> {
             #(#fields,)*
             pub span: Span,
         }
@@ -473,7 +451,7 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
         .enumerate()
         .map(|(index, alternative)| {
             let fields: Vec<_> =
-                gen_fields_for_alternative_symbols(grammar, alternative, nonterminal)
+                gen_fields_for_alternative_symbols(grammar, alternative)
                     .into_iter()
                     .map(|(ident, ty)| quote! { #ident: #ty })
                     .collect();
@@ -497,24 +475,25 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
     quote! {
         #comment
         #[derive(Debug)]
-        pub enum #nonterminal_name_id {
-            #(#arms),*
+        pub enum #nonterminal_name_id<'a> {
+            #(#arms,)*
+            Amb(&'a [&'a #nonterminal_name_id<'a>])
         }
     }
 }
 
 fn gen_nonterminal_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let nonterminal_name = nt_ident(&nonterminal.name);
+    let as_parse_tree_method = gen_as_parse_tree_method(&nonterminal.name);
     let child_method = gen_child_method(grammar, nonterminal);
     let child_count_method = gen_child_count_method(grammar, nonterminal);
-    let as_node_ref_method = gen_as_parse_tree_ref_method(&nonterminal.name);
     let span_method = gen_span_method(grammar, nonterminal);
     let typed_accessor = gen_typed_accessor(grammar, nonterminal);
     quote! {
-        impl #nonterminal_name {
+        impl<'a> #nonterminal_name<'a> {
+            #as_parse_tree_method
             #child_method
             #child_count_method
-            #as_node_ref_method
             #span_method
             #typed_accessor
         }
@@ -523,22 +502,22 @@ fn gen_nonterminal_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> To
 
 fn gen_start_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let start_ty = nonterminal_type(grammar, nonterminal);
-    let variant = nt_ident(&nonterminal.name);
+    let inner_ident = nonterminal.origin.as_ref().unwrap().as_identifier().unwrap();
+    let layout_ident = grammar.layout.as_ref().unwrap().as_identifier().unwrap();
+    let inner_variant = nt_ident(&nonterminal_type_name(grammar, &inner_ident.name));
+    let layout_variant = nt_ident(&nonterminal_type_name(grammar, &layout_ident.name));
     quote! {
-        impl #start_ty {
-            pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+        impl<'a> #start_ty {
+            pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
                 match index {
-                    0 => Some(self.before.as_parse_tree_ref()),
-                    1 => Some(self.node.as_parse_tree_ref()),
-                    2 => Some(self.after.as_parse_tree_ref()),
+                    0 => Some(ParseTree::#layout_variant(self.before)),
+                    1 => Some(ParseTree::#inner_variant(self.node)),
+                    2 => Some(ParseTree::#layout_variant(self.after)),
                     _ => None,
                 }
             }
             pub fn child_count(&self) -> usize {
                 3usize
-            }
-            pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-                ParseTreeRef::#variant(self)
             }
             pub fn span(&self) -> Span {
                 self.span
@@ -566,7 +545,8 @@ fn gen_span_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream 
             .collect();
         quote! {
             match self {
-                #(#arms),*
+                #(#arms,)*
+                #ident::Amb(alts) => alts[0].span()
             }
         }
     };
@@ -580,7 +560,7 @@ fn gen_span_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream 
 fn gen_child_method(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let children_by_index = gen_children_by_index(grammar, nonterminal);
     quote! {
-        pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+        pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
             #children_by_index
         }
     }
@@ -606,7 +586,6 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
                 let alt_variant = nt_ident(&label);
                 let field_names = field_names(grammar, alternative);
                 let body = child_by_index(grammar, alternative, false);
-                // Use struct pattern with .. to ignore the span field
                 quote! {
                     #ident::#alt_variant { #(#field_names,)* .. } => #body
                 }
@@ -614,13 +593,13 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
             .collect();
         quote! {
             match self {
-                #(#arms),*
+                #(#arms,)*
+                #ident::Amb(_) => None
             }
         }
     }
 }
 
-// TODO: simplify the single_rule logic here:
 fn child_by_index(grammar: &Grammar, alternative: &Alternative, single_rule: bool) -> TokenStream {
     let counts = count_symbol_occurrences(grammar, &alternative.symbols);
     let cases: Vec<_> = alternative
@@ -634,25 +613,19 @@ fn child_by_index(grammar: &Grammar, alternative: &Alternative, single_rule: boo
             let needs_index =
                 base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
             let field_name = safe_ident(&gen_field_name(grammar, s, i, needs_index));
-            // For nonterminals with only one body, i.e., no alternatives,
-            // generate the arms as 0 => Some(self.field_name.as_parse_tree_ref())
-            // As, we can access the children by field name directly.
+            let def = grammar.definition(s.resolved_def());
+            let wrap = match def {
+                Definition::Terminal(_) => quote! { ParseTree::Token(*#field_name) },
+                Definition::Nonterminal(nt) => {
+                    let resolved = unwrap_exclude(grammar, nt);
+                    let variant = nt_ident(&resolved.name);
+                    quote! { ParseTree::#variant(#field_name) }
+                }
+            };
             if single_rule {
-                quote! {
-                    #i_lit => Some(self.#field_name.as_parse_tree_ref())
-                }
+                quote! { #i_lit => Some({ let #field_name = &self.#field_name; #wrap }) }
             } else {
-                // For nonterminals with alternatives, we need to return the exact child:
-                // case E::Plus { symbol, layout1, lit2, .. } {
-                //     match index {
-                //         0 => Some(symbol.as_parse_tree_ref()),
-                //         1 => Some(layout1.as_parse_tree_ref()),
-                //         2 => Some(lit2.as_parse_tree_ref()),
-                //         _ => None
-                // }
-                quote! {
-                    #i_lit => Some(#field_name.as_parse_tree_ref())
-                }
+                quote! { #i_lit => Some(#wrap) }
             }
         })
         .collect();
@@ -695,7 +668,6 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
                     .iter()
                     .filter(|s| s.is_parse_tree_symbol())
                     .count();
-                // Use { .. } to match any fields (including span)
                 quote! {
                     #ident::#alt_variant { .. } => #count_symbols
                 }
@@ -703,7 +675,8 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
             .collect();
         quote! {
             match self {
-                #(#arms),*
+                #(#arms,)*
+                #ident::Amb(alts) => alts.len()
             }
         }
     };
@@ -714,57 +687,18 @@ fn gen_child_count_method(grammar: &Grammar, nonterminal: &Nonterminal) -> Token
     }
 }
 
-fn gen_as_parse_tree_ref_method(nonterminal_name: &str) -> TokenStream {
+fn gen_as_parse_tree_method(nonterminal_name: &str) -> TokenStream {
     let name_ident = nt_ident(nonterminal_name);
     quote! {
-        pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-            ParseTreeRef::#name_ident(self)
+        pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+            ParseTree::#name_ident(self)
         }
-    }
-}
-
-fn gen_as_parse_tree_ref_trait_impls(grammar: &Grammar) -> TokenStream {
-    let nonterminal_impls: Vec<_> = grammar
-        .nonterminals()
-        .filter(|n| !n.is_exclude())
-        .map(|n| {
-            let ty = nonterminal_type(grammar, n);
-            quote! {
-                impl AsParseTreeRef for #ty {
-                    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-                        self.as_parse_tree_ref()
-                    }
-                }
-            }
-        })
-        .collect();
-
-    let token_impl = quote! {
-        impl AsParseTreeRef for Token {
-            fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-                self.as_parse_tree_ref()
-            }
-        }
-    };
-
-    let parse_tree_impl = quote! {
-        impl AsParseTreeRef for ParseTree {
-            fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-                self.as_parse_tree_ref()
-            }
-        }
-    };
-
-    quote! {
-        #(#nonterminal_impls)*
-        #token_impl
-        #parse_tree_impl
     }
 }
 
 fn gen_token_struct() -> TokenStream {
     quote! {
-        #[derive(Debug)]
+        #[derive(Debug, Clone, Copy)]
         pub struct Token {
             pub kind: TokenKind,
             span: Span,
@@ -775,10 +709,9 @@ fn gen_token_struct() -> TokenStream {
 fn gen_token_impl() -> TokenStream {
     quote! {
         impl Token {
-            pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-                ParseTreeRef::Token(self)
+            pub fn as_parse_tree<'a>(&self) -> ParseTree<'a> {
+                ParseTree::Token(*self)
             }
-
             pub fn span(&self) -> Span {
                 self.span
             }
@@ -798,7 +731,7 @@ fn gen_token_kind_enum(terminals: &[(TerminalId, String)]) -> TokenStream {
         })
         .collect();
     quote! {
-        #[derive(Debug)]
+        #[derive(Debug, Clone, Copy)]
         pub enum TokenKind {
             #(#terminal_ids),*
         }
@@ -857,8 +790,15 @@ fn gen_parse_tree_builder_impl(
     let nonterminal_node_method = gen_nonterminal_node_method(grammar, nonterminal_ids, slot_ids);
     let new_token_method = gen_new_token_method();
     quote! {
-        pub struct #builder_name_ident;
-        impl ParseTreeBuilder<ParseTree> for #builder_name_ident {
+        pub struct #builder_name_ident<'a> {
+            pub bump: &'a Bump,
+        }
+        impl<'a> #builder_name_ident<'a> {
+            pub fn new(ctx: &'a ParseContext) -> Self {
+                Self { bump: ctx.bump() }
+            }
+        }
+        impl<'a> ParseTreeBuilder<ParseTree<'a>> for #builder_name_ident<'a> {
             #nonterminal_node_method
             #new_token_method
         }
@@ -900,7 +840,7 @@ fn gen_nonterminal_node_method(
                     let slot_name = slot_ids.display_name(&end_slot.slot_id);
                     let num_symbols = alternative.symbols.iter().filter(|s| s.is_parse_tree_symbol()).count();
                     let field_names = field_names(grammar, alternative);
-                    let methods: Vec<_> = alternative
+                    let method_calls: Vec<_> = alternative
                         .symbols
                         .iter()
                         .filter(|s| s.is_parse_tree_symbol())
@@ -908,52 +848,39 @@ fn gen_nonterminal_node_method(
                             let def_id = s.resolved_def();
                             let def = grammar.definition(def_id);
                             match def {
-                                Definition::Terminal(_) => {
-                                    (Ident::new("unwrap_token", Span::call_site()), false)
-                                },
+                                Definition::Terminal(_) =>
+                                    Ident::new("unwrap_token", Span::call_site()),
                                 Definition::Nonterminal(nt) => {
                                     let resolved_nt = unwrap_exclude(grammar, nt);
-                                    let ident = format_ident!("unwrap_{}", to_snake_case(&resolved_nt.name));
-                                    let resolved_head = unwrap_exclude(grammar, nonterminal);
-                                    (ident, should_be_boxed(grammar, resolved_nt, resolved_head))
+                                    format_ident!("unwrap_{}", to_snake_case(&resolved_nt.name))
                                 }
-                            }})
-                        .collect();
-                    let method_calls: Vec<_> = field_names
-                        .iter()
-                        .cloned()
-                        .zip(methods)
-                        .map(|(child, (method, should_be_boxed))| {
-                            if should_be_boxed {
-                                quote! {
-                                    Box::new(#child.#method())
-                                }
-                            } else {
-                                quote! { #child.#method() }
                             }
                         })
+                        .zip(field_names.iter().cloned())
+                        .map(|(method, child)| quote! { #child.#method() })
                         .collect();
                     let resolved_nt = unwrap_exclude(grammar, nonterminal);
                     let num_alternatives = grammar.alternatives(resolved_nt).len();
                     let nonterminal_type = nt_ident(&resolved_nt.name);
+                    let parse_tree_variant = nt_ident(&resolved_nt.name);
                     let construction = if grammar.is_start(resolved_nt) {
                         let before = &method_calls[0];
                         let node = &method_calls[1];
                         let after = &method_calls[2];
                         quote! {
-                            Start {
+                            ParseTree::#parse_tree_variant(self.bump.alloc(Start {
                                 before: #before,
                                 node: #node,
                                 after: #after,
                                 span: nonterminal_node.span,
-                            }
+                            }))
                         }
                     } else if num_alternatives == 1 {
                         quote! {
-                            #nonterminal_type {
+                            ParseTree::#parse_tree_variant(self.bump.alloc(#nonterminal_type {
                                 #(#field_names: #method_calls,)*
                                 span: nonterminal_node.span,
-                            }
+                            }))
                         }
                     } else {
                         let variant = Ident::new(
@@ -961,17 +888,17 @@ fn gen_nonterminal_node_method(
                             Span::call_site()
                         );
                         quote! {
-                            #nonterminal_type::#variant {
+                            ParseTree::#parse_tree_variant(self.bump.alloc(#nonterminal_type::#variant {
                                 #(#field_names: #method_calls,)*
                                 span: nonterminal_node.span,
-                            }
+                            }))
                         }
                     };
                     quote! {
                         #[comment = #slot_name]
                         #end_slot_id => {
                             let [#(#field_names),*] = children.into_array::<#num_symbols>();
-                            #construction.into()
+                            #construction
                         }
                     }
                 })
@@ -990,8 +917,8 @@ fn gen_nonterminal_node_method(
         fn new_nonterminal_node(
             &self,
             nonterminal_node: &NonterminalNode,
-            children: OneOrMany<ParseTree>
-        ) -> ParseTree {
+            children: OneOrMany<ParseTree<'a>>
+        ) -> ParseTree<'a> {
             match nonterminal_node.nonterminal_id {
                 #(#nonterminal_cases),*
                 _ => unreachable!()
@@ -1021,93 +948,9 @@ fn unwrap_exclude<'a>(grammar: &'a Grammar, nt: &'a Nonterminal) -> &'a Nontermi
     }
 }
 
-/// Determines whether a field of type `nonterminal` inside `head` should be boxed.
-///
-/// 1. Direct self-reference: `nonterminal.name == head.name` → box
-/// 2. EBNF head (Plus/Star/Opt/Group/Alt): box if the head's origin symbol contains
-///    the nonterminal (e.g., `Symbol` inside `AlternativePlus7` whose origin is `Symbol+`)
-/// 3. Non-EBNF head, non-EBNF field: box if `nonterminal` can transitively reach `head`
-///    through non-EBNF nonterminals (handles mutual recursion like `E → F → E`)
-fn should_be_boxed(grammar: &Grammar, nonterminal: &Nonterminal, head: &Nonterminal) -> bool {
-    if nonterminal.name == head.name {
-        return true;
-    }
-    match &head.origin {
-        Some(s) => match s {
-            Symbol::Star(symbol, _) | Symbol::Plus(symbol, _) | Symbol::Opt(symbol) => {
-                symbol_contains_nonterminal(symbol, &nonterminal.name)
-            }
-            Symbol::Group(symbols) | Symbol::Alt(symbols) => symbols
-                .iter()
-                .any(|s| symbol_contains_nonterminal(s, &nonterminal.name)),
-            _ => false,
-        },
-        None => {
-            if nonterminal.is_derived() {
-                return false;
-            }
-            let mut visited = FxHashSet::default();
-            is_recursive(grammar, nonterminal, &head.name, &mut visited)
-        }
-    }
-}
-
-/// Recursively checks if a symbol contains a reference to a nonterminal with the given name.
-fn symbol_contains_nonterminal(symbol: &Symbol, nt_name: &str) -> bool {
-    match symbol {
-        Symbol::Identifier(identifier) => identifier.name == nt_name,
-        Symbol::Call { name, .. } => name.name == nt_name,
-        Symbol::Group(symbols) | Symbol::Alt(symbols) => symbols
-            .iter()
-            .any(|s| symbol_contains_nonterminal(s, nt_name)),
-        Symbol::Labeled { symbol, .. }
-        | Symbol::Binding { symbol, .. }
-        | Symbol::Except { symbol, .. }
-        | Symbol::FollowRestriction { symbol, .. }
-        | Symbol::PrecedeRestriction { symbol, .. }
-        | Symbol::Exclude { symbol, .. } => symbol_contains_nonterminal(symbol, nt_name),
-        Symbol::Opt(inner) => symbol_contains_nonterminal(inner, nt_name),
-        Symbol::Star(inner, sep) | Symbol::Plus(inner, sep) => {
-            symbol_contains_nonterminal(inner, nt_name)
-                || sep
-                    .as_ref()
-                    .is_some_and(|s| symbol_contains_nonterminal(s, nt_name))
-        }
-        Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => false,
-    }
-}
-
-/// Checks if `from` can transitively reach `target` through the grammar's nonterminal references.
-/// Skips EBNF-derived nonterminals since they already handle their own boxing via the origin check.
-fn is_recursive(
-    grammar: &Grammar,
-    from: &Nonterminal,
-    target: &str,
-    visited: &mut FxHashSet<String>,
-) -> bool {
-    if !visited.insert(from.name.clone()) {
-        return false;
-    }
-    for alternative in grammar.alternatives(from) {
-        for symbol in &alternative.symbols {
-            if let Some(ident) = symbol.as_identifier() {
-                if ident.name == target {
-                    return true;
-                }
-                if let Some(nt) = grammar.nonterminal(&ident.name) {
-                    if !nt.is_derived() && is_recursive(grammar, nt, target, visited) {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    false
-}
-
 fn gen_new_token_method() -> TokenStream {
     quote! {
-        fn new_token(&self, terminal_node: &TerminalNode) -> ParseTree {
+        fn new_token(&self, terminal_node: &TerminalNode) -> ParseTree<'a> {
             ParseTree::Token(Token {
                 kind: token_kind(terminal_node.terminal_id),
                 span: terminal_node.span,
@@ -1127,16 +970,16 @@ fn gen_parse_tree_enum(grammar: &Grammar) -> TokenStream {
                 let display_name = n.display_name();
                 quote! {
                     #[comment = #display_name]
-                    #variant(#ty)
+                    #variant(&'a #ty)
                 }
             } else {
-                quote! { #variant(#ty) }
+                quote! { #variant(&'a #ty) }
             }
         })
         .collect();
     quote! {
-        #[derive(Debug)]
-        pub enum ParseTree {
+        #[derive(Debug, Clone, Copy)]
+        pub enum ParseTree<'a> {
             #(#arms,)*
             Token(Token)
         }
@@ -1144,34 +987,23 @@ fn gen_parse_tree_enum(grammar: &Grammar) -> TokenStream {
 }
 
 fn gen_parse_tree_impl(grammar: &Grammar) -> TokenStream {
-    let as_parse_tree_ref_method = gen_as_parse_tree_ref_method_for_parse_tree(grammar);
     let unwrap_methods = gen_unwrap_methods(grammar);
+    let children_method = gen_parse_tree_children_method(grammar);
+    let name_method = gen_parse_tree_name_method(grammar);
+    let child_count_method = gen_parse_tree_child_count_method(grammar);
+    let span_method = gen_parse_tree_span_method(grammar);
     quote! {
-        impl ParseTree {
-            #as_parse_tree_ref_method
+        impl<'a> ParseTree<'a> {
+            #children_method
+            #name_method
+            #child_count_method
+            #span_method
             #(#unwrap_methods)*
             fn unwrap_token(self) -> Token {
                 match self {
                     ParseTree::Token(t) => t,
                     _ => panic!(),
                 }
-            }
-        }
-    }
-}
-
-fn gen_as_parse_tree_ref_method_for_parse_tree(grammar: &Grammar) -> TokenStream {
-    let arms = grammar.nonterminals().filter(|n| !n.is_exclude()).map(|n| {
-        let name = &n.name;
-        let variant = nt_ident(name);
-        let var = safe_ident(&to_snake_case(name));
-        quote! { ParseTree::#variant(#var) => #var.as_parse_tree_ref() }
-    });
-    quote! {
-        pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-            match self {
-                #(#arms,)*
-                ParseTree::Token(token) => token.as_parse_tree_ref(),
             }
         }
     }
@@ -1187,7 +1019,7 @@ fn gen_unwrap_methods(grammar: &Grammar) -> Vec<TokenStream> {
             let var = safe_ident(&to_snake_case(&n.name));
             let return_type = nonterminal_type(grammar, n);
             quote! {
-                fn #method_ident(self) -> #return_type {
+                fn #method_ident(self) -> &'a #return_type {
                     match self {
                         ParseTree::#variant(#var) => #var,
                         _ => panic!(),
@@ -1198,41 +1030,7 @@ fn gen_unwrap_methods(grammar: &Grammar) -> Vec<TokenStream> {
         .collect()
 }
 
-fn gen_parse_tree_ref_enum(grammar: &Grammar) -> TokenStream {
-    let variants: Vec<_> = grammar
-        .nonterminals()
-        .filter(|n| !n.is_exclude())
-        .map(|n| {
-            let variant = nt_ident(&n.name);
-            let ty = nonterminal_type(grammar, n);
-            quote! { #variant(&'a #ty) }
-        })
-        .collect();
-    quote! {
-        #[derive(Clone, Copy)]
-        pub enum ParseTreeRef<'a> {
-            #(#variants,)*
-            Token(&'a Token),
-        }
-    }
-}
-
-fn gen_parse_tree_ref_impl(grammar: &Grammar) -> TokenStream {
-    let name_method = gen_name_method(grammar);
-    let children_method = gen_children_method(grammar);
-    let child_count_method = gen_child_count_method_for_parse_tree_ref(grammar);
-    let span_method = gen_span_method_for_parse_tree_ref(grammar);
-    quote! {
-        impl<'a> ParseTreeRef<'a> {
-            #children_method
-            #name_method
-            #child_count_method
-            #span_method
-        }
-    }
-}
-
-fn gen_children_method(grammar: &Grammar) -> TokenStream {
+fn gen_parse_tree_children_method(grammar: &Grammar) -> TokenStream {
     let arms: Vec<_> = grammar
         .nonterminals()
         .filter(|n| !n.is_exclude())
@@ -1241,11 +1039,11 @@ fn gen_children_method(grammar: &Grammar) -> TokenStream {
             let var_ident = safe_ident(&to_snake_case(&n.name));
             if n.is_plus() || n.is_star() {
                 quote! {
-                    ParseTreeRef::#variant(#var_ident) => #var_ident.iter().collect()
+                    ParseTree::#variant(#var_ident) => #var_ident.iter().collect()
                 }
             } else {
                 quote! {
-                    ParseTreeRef::#variant(#var_ident) => (0..#var_ident.child_count())
+                    ParseTree::#variant(#var_ident) => (0..#var_ident.child_count())
                         .filter_map(|i| #var_ident.child(i))
                         .collect()
                 }
@@ -1253,32 +1051,32 @@ fn gen_children_method(grammar: &Grammar) -> TokenStream {
         })
         .collect();
     quote! {
-        pub fn children(&self) -> Vec<ParseTreeRef<'a>> {
+        pub fn children(&self) -> Vec<ParseTree<'a>> {
             match self {
                 #(#arms,)*
-                ParseTreeRef::Token(_) => vec![],
+                ParseTree::Token(_) => vec![],
             }
         }
     }
 }
 
-fn gen_name_method(grammar: &Grammar) -> TokenStream {
+fn gen_parse_tree_name_method(grammar: &Grammar) -> TokenStream {
     let arms = grammar.nonterminals().filter(|n| !n.is_exclude()).map(|n| {
         let display_name = &n.display_name();
         let name_ident = nt_ident(&n.name);
-        quote! { ParseTreeRef::#name_ident(_) => #display_name }
+        quote! { ParseTree::#name_ident(_) => #display_name }
     });
     quote! {
         pub fn display_name(&self) -> &'static str {
             match self {
                 #(#arms,)*
-                ParseTreeRef::Token(token) => token.kind.name(),
+                ParseTree::Token(token) => token.kind.name(),
             }
         }
     }
 }
 
-fn gen_child_count_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
+fn gen_parse_tree_child_count_method(grammar: &Grammar) -> TokenStream {
     let arms: Vec<_> = grammar
         .nonterminals()
         .filter(|n| !n.is_exclude())
@@ -1286,7 +1084,7 @@ fn gen_child_count_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
             let variant = nt_ident(&n.name);
             let var_ident = safe_ident(&to_snake_case(&n.name));
             quote! {
-                ParseTreeRef::#variant(#var_ident) => #var_ident.child_count()
+                ParseTree::#variant(#var_ident) => #var_ident.child_count()
             }
         })
         .collect();
@@ -1294,13 +1092,13 @@ fn gen_child_count_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
         pub fn child_count(&self) -> usize {
             match self {
                 #(#arms,)*
-                ParseTreeRef::Token(_) => 0,
+                ParseTree::Token(_) => 0,
             }
         }
     }
 }
 
-fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
+fn gen_parse_tree_span_method(grammar: &Grammar) -> TokenStream {
     let arms: Vec<_> = grammar
         .nonterminals()
         .filter(|n| !n.is_exclude())
@@ -1308,7 +1106,7 @@ fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
             let variant = nt_ident(&n.name);
             let var_ident = safe_ident(&to_snake_case(&n.name));
             quote! {
-                ParseTreeRef::#variant(#var_ident) => #var_ident.span()
+                ParseTree::#variant(#var_ident) => #var_ident.span()
             }
         })
         .collect();
@@ -1316,7 +1114,7 @@ fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
         pub fn span(&self) -> Span {
             match self {
                 #(#arms,)*
-                ParseTreeRef::Token(token) => token.span(),
+                ParseTree::Token(token) => token.span(),
             }
         }
     }
@@ -1325,7 +1123,7 @@ fn gen_span_method_for_parse_tree_ref(grammar: &Grammar) -> TokenStream {
 fn gen_list_node_trait() -> TokenStream {
     quote! {
         pub trait ListNode<'a> {
-            fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
+            fn iter(&'a self) -> IntoIter<ParseTree<'a>>;
         }
     }
 }
@@ -1346,26 +1144,22 @@ fn gen_opt_node_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
     let inner_symbol = &alt0.symbols[0];
     let inner_def = grammar.definition(inner_symbol.resolved_def());
     let inner_type = match inner_def {
-        Definition::Terminal(_) => Ident::new("Token", Span::call_site()),
-        Definition::Nonterminal(_) => nt_ident(inner_def.name()),
+        Definition::Terminal(_) => quote! { Token },
+        Definition::Nonterminal(_) => {
+            let name = nt_ident(inner_def.name());
+            quote! { #name<'a> }
+        }
     };
     let field_name = safe_ident(&gen_field_name(grammar, inner_symbol, 0, false));
 
-    let boxed = matches!(inner_def, Definition::Nonterminal(nt) if
-        should_be_boxed(grammar, unwrap_exclude(grammar, nt), nonterminal));
-    let some_expr = if boxed {
-        quote! { Some(#field_name.as_ref()) }
-    } else {
-        quote! { Some(#field_name) }
-    };
-
     quote! {
-        impl OptNode for #opt_type {
+        impl<'a> OptNode for #opt_type<'a> {
             type Inner = #inner_type;
             fn value(&self) -> Option<&Self::Inner> {
                 match self {
-                    #opt_type::Alt0 { #field_name, .. } => #some_expr,
+                    #opt_type::Alt0 { #field_name, .. } => Some(#field_name),
                     #opt_type::Alt1 { .. } => None,
+                    #opt_type::Amb(_) => panic!("unexpected ambiguity in optional node"),
                 }
             }
         }
@@ -1431,18 +1225,10 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
             let variant = format_ident!("{}", to_pascal_case(&alternative_label(alt, i)));
             let field_name = safe_ident(&gen_field_name(grammar, symbol, 0, false));
 
-            let boxed = matches!(def, Definition::Nonterminal(nt) if
-                should_be_boxed(grammar, unwrap_exclude(grammar, nt), nonterminal));
-            let some_expr = if boxed {
-                quote! { Some(#field_name.as_ref()) }
-            } else {
-                quote! { Some(#field_name) }
-            };
-
             quote! {
                 pub fn #method_name(&self) -> Option<&#return_type> {
                     match self {
-                        #alt_type::#variant { #field_name, .. } => #some_expr,
+                        #alt_type::#variant { #field_name, .. } => Some(#field_name),
                         _ => None,
                     }
                 }
@@ -1451,7 +1237,7 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
         .collect();
 
     quote! {
-        impl #alt_type {
+        impl<'a> #alt_type<'a> {
             #(#accessors)*
         }
     }
@@ -1499,7 +1285,7 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
 /// // For {Regex+ "|"}+, returns iterator over groups, each group is an iterator over Regex
 /// pub fn regexes(&self) -> impl Iterator<Item = impl Iterator<Item = &Regex>> {
 ///     self.iter().filter_map(|node| match node {
-///         ParseTreeRef::RegexPlus(r) => Some(r.regexes()),
+///         ParseTree::RegexPlus(r) => Some(r.regexes()),
 ///         _ => None,
 ///     })
 /// }
@@ -1516,7 +1302,7 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             }
             let innermost = &element_types[0];
             let child_name = get_element_type_name(grammar, nonterminal)?;
-            let innermost_type = symbol_type(grammar, innermost);
+            let innermost_type = symbol_ident(grammar, innermost);
 
             let method_name = safe_ident(&pluralize(&to_snake_case(&innermost.name)));
             let child_type = nt_ident(child_name);
@@ -1525,9 +1311,9 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             if child_name == innermost.name {
                 // Simple case: e.g., `Regex+` or `Identifier+`
                 Some(quote! {
-                    pub fn #method_name(&self) -> #return_type {
+                    pub fn #method_name(&'a self) -> #return_type {
                         self.iter().filter_map(|node| match node {
-                            ParseTreeRef::#innermost_type(r) => Some(r),
+                            ParseTree::#innermost_type(r) => Some(r),
                             _ => None,
                         })
                     }
@@ -1537,18 +1323,18 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
                 let field_name = safe_ident(&to_snake_case(&innermost.name));
                 if grammar.is_terminal(innermost) {
                     Some(quote! {
-                        pub fn #method_name(&self) -> #return_type {
+                        pub fn #method_name(&'a self) -> #return_type {
                             self.iter().filter_map(|node| match node {
-                                ParseTreeRef::#child_type(r) => Some(&r.#field_name),
+                                ParseTree::#child_type(r) => Some(r.#field_name),
                                 _ => None,
                             })
                         }
                     })
                 } else {
                     Some(quote! {
-                        pub fn #method_name(&self) -> #return_type {
+                        pub fn #method_name(&'a self) -> #return_type {
                             self.iter().filter_map(|node| match node {
-                                ParseTreeRef::#child_type(r) => Some(r.#field_name.as_ref()),
+                                ParseTree::#child_type(r) => Some(r.#field_name),
                                 _ => None,
                             })
                         }
@@ -1557,9 +1343,9 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             } else {
                 // Nested case: e.g., `{Regex+ "|"}+` where child is an intermediate Plus/Star type.
                 Some(quote! {
-                    pub fn #method_name(&self) -> #return_type {
+                    pub fn #method_name(&'a self) -> #return_type {
                         self.iter().filter_map(|node| match node {
-                            ParseTreeRef::#child_type(r) => Some(r.#method_name()),
+                            ParseTree::#child_type(r) => Some(r.#method_name()),
                             _ => None,
                         })
                     }
@@ -1602,7 +1388,7 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
                 let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
                 let return_type = gen_accessor_return_type(grammar, nonterminal, elem);
                 quote! {
-                    pub fn #method_name(&self) -> #return_type {
+                    pub fn #method_name(&'a self) -> #return_type {
                         self.value().into_iter().flat_map(|inner| inner.#method_name())
                     }
                 }
@@ -1620,13 +1406,13 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             }
             let innermost = &named_elements[0];
             let method_name = safe_ident(&to_snake_case(&innermost.name));
-            let innermost_type = symbol_type(grammar, innermost);
+            let innermost_type = symbol_ident(grammar, innermost);
             let return_type = gen_accessor_return_type(grammar, nonterminal, innermost);
 
             Some(quote! {
-                pub fn #method_name(&self) -> #return_type {
+                pub fn #method_name(&'a self) -> #return_type {
                     self.iter().find_map(|node| match node {
-                        ParseTreeRef::#innermost_type(inner) => Some(inner),
+                        ParseTree::#innermost_type(inner) => Some(inner),
                         _ => None,
                     }).unwrap()
                 }
@@ -1693,17 +1479,22 @@ fn gen_accessor_return_type(
     nonterminal: &Nonterminal,
     elem: &Identifier,
 ) -> TokenStream {
-    let elem_type = symbol_type(grammar, elem);
+    let elem_ident = symbol_ident(grammar, elem);
+    let item_type = if grammar.is_terminal(elem) {
+        quote! { Token }
+    } else {
+        quote! { &'a #elem_ident<'a> }
+    };
     match &nonterminal.origin {
-        Some(Symbol::Group(_)) => quote! { &#elem_type },
+        Some(Symbol::Group(_)) => quote! { #item_type },
         Some(Symbol::Plus(inner, _)) => {
             let child_name = get_element_type_name(grammar, nonterminal);
             let is_nested = child_name.map_or(false, |cn| cn != elem.name)
                 && !matches!(inner.as_ref(), Symbol::Group(_) | Symbol::Alt(_));
             if is_nested {
-                quote! { impl Iterator<Item = impl Iterator<Item = &#elem_type> + '_> }
+                quote! { impl Iterator<Item = impl Iterator<Item = #item_type> + '_> }
             } else {
-                quote! { impl Iterator<Item = &#elem_type> }
+                quote! { impl Iterator<Item = #item_type> }
             }
         }
         Some(Symbol::Star(_, _) | Symbol::Opt(_)) => {
@@ -1744,19 +1535,15 @@ fn gen_alt_variant_accessors_for_plus(
             let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
             let return_type = gen_accessor_return_type(grammar, nonterminal, elem);
             let field_name = safe_ident(&gen_field_name(grammar, &alt.symbols[0], 0, false));
-            let boxed = matches!(
-                grammar.definition(elem.definition?),
-                Definition::Nonterminal(nt) if should_be_boxed(grammar, nt, alt_nonterminal)
-            );
-            let some_expr = if boxed {
-                quote! { Some(#field_name.as_ref()) }
+            let extract = if grammar.is_terminal(elem) {
+                quote! { Some(*#field_name) }
             } else {
                 quote! { Some(#field_name) }
             };
             Some(quote! {
-                pub fn #method_name(&self) -> #return_type {
+                pub fn #method_name(&'a self) -> #return_type {
                     self.iter().filter_map(|node| match node {
-                        ParseTreeRef::#child_type(#child_type::#variant_name { #field_name, .. }) => #some_expr,
+                        ParseTree::#child_type(#child_type::#variant_name { #field_name, .. }) => #extract,
                         _ => None,
                     })
                 }
@@ -1767,8 +1554,9 @@ fn gen_alt_variant_accessors_for_plus(
     Some(quote! { #(#methods)* })
 }
 
-/// Returns `Token` for terminal identifiers, or the pascal-cased name for nonterminals.
-fn symbol_type(grammar: &Grammar, ident: &Identifier) -> Ident {
+/// Returns `Token` for terminals, or the PascalCase ident for nonterminals.
+/// Use this for match patterns and enum variant names.
+fn symbol_ident(grammar: &Grammar, ident: &Identifier) -> Ident {
     if grammar.is_terminal(ident) {
         Ident::new("Token", Span::call_site())
     } else {
@@ -1890,14 +1678,6 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let label = alternative_label(&alternatives[0], 0);
     let alt_variant = nt_ident(&label);
     let first_alt_fields = field_names(grammar, &alternatives[0]);
-    // The first field (rest) is a self-reference to Plus, which is always boxed
-    // since Plus is self-recursive. We need to deref through the Box.
-    let self_boxed = should_be_boxed(grammar, nonterminal, nonterminal);
-    let deref_rest = if self_boxed {
-        quote! { current = rest.as_ref(); }
-    } else {
-        quote! { current = rest; }
-    };
     let first_arm = match &nonterminal.origin {
         Some(Symbol::Plus(_symbol, sep)) => match sep {
             Some(_) => {
@@ -1912,11 +1692,11 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                     );
                     quote! {
                         #ident::#alt_variant { #f0: rest, #f1: layout1, #f2: sep, #f3: layout2, #f4: item, .. } => {
-                            items.push(item.as_parse_tree_ref());
-                            items.push(layout2.as_parse_tree_ref());
-                            items.push(sep.as_parse_tree_ref());
-                            items.push(layout1.as_parse_tree_ref());
-                            #deref_rest
+                            items.push(item.as_parse_tree());
+                            items.push(layout2.as_parse_tree());
+                            items.push(sep.as_parse_tree());
+                            items.push(layout1.as_parse_tree());
+                            current = rest;
                         }
                     }
                 } else {
@@ -1928,9 +1708,9 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                     );
                     quote! {
                         #ident::#alt_variant { #f0: rest, #f1: sep, #f2: item, .. } => {
-                            items.push(item.as_parse_tree_ref());
-                            items.push(sep.as_parse_tree_ref());
-                            #deref_rest
+                            items.push(item.as_parse_tree());
+                            items.push(sep.as_parse_tree());
+                            current = rest;
                         }
                     }
                 }
@@ -1945,9 +1725,9 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                     );
                     quote! {
                         #ident::#alt_variant { #f0: rest, #f1: layout, #f2: item, .. } => {
-                            items.push(item.as_parse_tree_ref());
-                            items.push(layout.as_parse_tree_ref());
-                            #deref_rest
+                            items.push(item.as_parse_tree());
+                            items.push(layout.as_parse_tree());
+                            current = rest;
                         }
                     }
                 } else {
@@ -1955,8 +1735,8 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                     let (f0, f1) = (&first_alt_fields[0], &first_alt_fields[1]);
                     quote! {
                         #ident::#alt_variant { #f0: rest, #f1: item, .. } => {
-                            items.push(item.as_parse_tree_ref());
-                            #deref_rest
+                            items.push(item.as_parse_tree());
+                            current = rest;
                         }
                     }
                 }
@@ -1970,19 +1750,20 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let f0 = &second_alt_fields[0];
     let second_arm = quote! {
         #ident::#alt_variant { #f0: item, .. } => {
-            items.push(item.as_parse_tree_ref());
+            items.push(item.as_parse_tree());
             break;
         }
     };
     quote! {
-        impl<'a> ListNode<'a> for #ident {
-            fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
+        impl<'a> ListNode<'a> for #ident<'a> {
+            fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
                 let mut items = vec![];
                 let mut current = self;
                 loop {
                     match current {
                         #first_arm
                         #second_arm
+                        #ident::Amb(_) => panic!("unexpected ambiguity in list node"),
                     }
                 }
                 items.reverse();
@@ -2016,22 +1797,13 @@ fn gen_list_node_impl_for_star(grammar: &Grammar, nonterminal: &Nonterminal) -> 
     let second_arm = quote! {
         #opt_ident::#alt_variant { .. } => vec![].into_iter(),
     };
-    let boxed = should_be_boxed(
-        grammar,
-        unwrap_exclude(grammar, nonterminal),
-        star_nonterminal,
-    );
-    let match_expr = if boxed {
-        quote! { match self.#field_name.as_ref() }
-    } else {
-        quote! { match &self.#field_name }
-    };
     quote! {
-        impl<'a> ListNode<'a> for #star_ident {
-            fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
-                #match_expr {
+        impl<'a> ListNode<'a> for #star_ident<'a> {
+            fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
+                match self.#field_name {
                     #first_arm
                     #second_arm
+                    #opt_ident::Amb(_) => panic!("unexpected ambiguity in list node"),
                 }
             }
         }
@@ -2051,14 +1823,14 @@ fn gen_list_node_impl_for_group(grammar: &Grammar, nonterminal: &Nonterminal) ->
         .iter()
         .map(|field| {
             quote! {
-                items.push(self.#field.as_parse_tree_ref());
+                items.push(self.#field.as_parse_tree());
             }
         })
         .collect();
 
     quote! {
-        impl<'a> ListNode<'a> for #ident {
-            fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
+        impl<'a> ListNode<'a> for #ident<'a> {
+            fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
                 let mut items = vec![];
                 #(#field_refs)*
                 items.into_iter()
@@ -2067,25 +1839,6 @@ fn gen_list_node_impl_for_group(grammar: &Grammar, nonterminal: &Nonterminal) ->
     }
 }
 
-fn gen_from_for_tree_impls(grammar: &Grammar) -> TokenStream {
-    let from_impls: Vec<_> = grammar
-        .nonterminals()
-        .filter(|n| !n.is_exclude())
-        .map(|n| {
-            let variant = nt_ident(&n.name);
-            let var = safe_ident(&to_snake_case(&n.name));
-            let ty = nonterminal_type(grammar, n);
-            quote! {
-                impl From<#ty> for ParseTree {
-                    fn from(#var: #ty) -> Self {
-                        ParseTree::#variant(#var)
-                    }
-                }
-            }
-        })
-        .collect();
-    quote! { #(#from_impls)* }
-}
 
 fn gen_create_parse_tree_function(grammar: &Grammar) -> TokenStream {
     let parser_name_ident = format_ident!("{}Parser", grammar.name);
@@ -2102,12 +1855,12 @@ fn gen_create_parse_tree_function(grammar: &Grammar) -> TokenStream {
         })
         .collect();
     quote! {
-        pub fn create_parse_tree(
+        pub fn create_parse_tree<'a>(
             root_id: SPPFNodeId,
             nonterminal_id: NonterminalId,
             parser: &#parser_name_ident,
-            builder: &#builder_name_ident,
-        ) -> ParseTree {
+            builder: &#builder_name_ident<'a>,
+        ) -> ParseTree<'a> {
             match nonterminal_id {
                 #(#arms,)*
                 _ => panic!()
@@ -2128,11 +1881,11 @@ fn gen_create_parse_tree_nonterminal_function(
     let function_name = format_ident!("create_parse_tree_{}", to_snake_case(nonterminal_name));
     let unwrap_method = format_ident!("unwrap_{}", to_snake_case(nonterminal_name));
     quote! {
-        pub fn #function_name(
+        pub fn #function_name<'a>(
             root_id: SPPFNodeId,
             parser: &#parser_name_ident,
-            builder: &#builder_name_ident,
-        ) -> #return_type {
+            builder: &#builder_name_ident<'a>,
+        ) -> &'a #return_type {
             let node = parser.sppf_node(root_id);
             visit_sppf(node, parser, builder).unwrap_one().#unwrap_method()
         }
@@ -2141,7 +1894,7 @@ fn gen_create_parse_tree_nonterminal_function(
 
 fn gen_to_sexpr_function() -> TokenStream {
     quote! {
-        pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
+        pub fn to_sexpr(node: ParseTree<'_>) -> String {
             let mut s = String::new();
             node_to_sexpr(node, 0, &mut s).expect("error");
             s
@@ -2151,7 +1904,7 @@ fn gen_to_sexpr_function() -> TokenStream {
 
 fn gen_node_to_sexpr_function() -> TokenStream {
     quote! {
-        fn node_to_sexpr(node: ParseTreeRef<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
+        fn node_to_sexpr(node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
             let children = node.children();
             if children.is_empty() {
                 writeln!(w, "{:indent$}{}", "", node.display_name())
@@ -2170,7 +1923,7 @@ fn gen_to_json_function() -> TokenStream {
     quote! {
         /// Converts a parse tree to JSON format for visualization.
         /// Returns a JSON string with nodes and edges arrays.
-        pub fn to_json(node: ParseTreeRef<'_>) -> String {
+        pub fn to_json(node: ParseTree<'_>) -> String {
             let mut nodes = Vec::new();
             let mut edges = Vec::new();
             let mut next_id = 0u32;
@@ -2185,7 +1938,7 @@ fn gen_to_json_function() -> TokenStream {
         }
 
         fn build_json_graph(
-            node: ParseTreeRef<'_>,
+            node: ParseTree<'_>,
             nodes: &mut Vec<serde_json::Value>,
             edges: &mut Vec<serde_json::Value>,
             next_id: &mut u32,
@@ -2195,7 +1948,7 @@ fn gen_to_json_function() -> TokenStream {
 
             let span = node.span();
             let kind = match node {
-                ParseTreeRef::Token(_) => "Token",
+                ParseTree::Token(_) => "Token",
                 _ => "Nonterminal",
             };
 

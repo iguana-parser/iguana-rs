@@ -17,6 +17,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         use clap::Parser as ClapParser;
         use iguana_runtime::{
             input::Input,
+            parse_tree::ParseContext,
             parser::{ParseResult, Parser},
             visualization::{dot::write_svg, gss::{build_gss_dot_graph, render_gss}, sppf::{build_sppf_graph, write_sppf_dot}},
         };
@@ -177,13 +178,14 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             // and write a flamegraph SVG. Short-circuits all other output.
             #[cfg(feature = "profile")]
             if let Some(iterations) = cli.profile {
-                let parse_tree_builder = #parse_tree_builder;
                 let guard = ProfilerGuardBuilder::default()
                     .frequency(999)
                     .build()
                     .unwrap();
 
                 for _ in 0..iterations {
+                    let ctx = ParseContext::new();
+                    let parse_tree_builder = #parse_tree_builder::new(&ctx);
                     let mut parser = #parser::new(&input, start_nonterminal_id);
                     let result = parser.run();
                     if let ParseResult::Success(success) = result {
@@ -208,6 +210,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 eprintln!("Warning: --profile flag ignored. Recompile with `--features profile` to enable profiling.");
             }
 
+            let ctx = ParseContext::new();
             let mut parser = #parser::new(&input, start_nonterminal_id);
 
             #[cfg(feature = "debug-trace")]
@@ -215,7 +218,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 parser.trace_events = Some(vec![]);
             }
 
-            let parse_tree_builder = #parse_tree_builder;
+            let parse_tree_builder = #parse_tree_builder::new(&ctx);
             let result = parser.run();
 
             // Write trace events immediately after parsing (before any visualization that might panic)
@@ -267,7 +270,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
                     // Handle --write-parse-tree (write parse tree as JSON for visualization)
                     if let (Some(path), Some(parse_tree)) = (cli.write_parse_tree.as_ref(), parse_tree_opt.as_ref()) {
-                        let json = to_json(parse_tree.as_parse_tree_ref());
+                        let json = to_json(*parse_tree);
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
                         writeln!(writer, "{}", json)?;
@@ -308,7 +311,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     // (trace mode skips parse tree to avoid panics on ambiguous grammars)
                     if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() && cli.trace.is_none() {
                         if let Some(ref parse_tree) = parse_tree_opt {
-                            println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
+                            println!("{}", to_sexpr(*parse_tree));
                         }
                     }
                 }

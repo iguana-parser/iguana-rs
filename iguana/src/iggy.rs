@@ -1,5 +1,5 @@
 use iggy::{ParseError, parse_tree, parse_tree::{ListNode, OptNode, Start}};
-use iguana_runtime::{input::Input, sppf::Span};
+use iguana_runtime::{input::Input, parse_tree::ParseContext, sppf::Span};
 
 use crate::grammar::{
     def::{
@@ -12,8 +12,9 @@ use crate::grammar::{
 
 pub fn parse_grammar(source: &str) -> Result<GrammarDef, ParseError> {
     let input = Input::from(source);
-    let success = iggy::parse_grammar(&input)?;
-    build_grammar(&success.tree, &input)
+    let ctx = ParseContext::new();
+    let success = iggy::parse_grammar(&input, &ctx)?;
+    build_grammar(success.tree, &input)
 }
 
 fn text(input: &Input, span: Span) -> String {
@@ -21,7 +22,7 @@ fn text(input: &Input, span: Span) -> String {
 }
 
 pub fn build_grammar(
-    start_grammar: &Start<parse_tree::Grammar, parse_tree::Layout>,
+    start_grammar: &Start<&parse_tree::Grammar<'_>, &parse_tree::Layout<'_>>,
     input: &Input,
 ) -> Result<GrammarDef, ParseError> {
     let grammar = &start_grammar.node;
@@ -38,6 +39,7 @@ pub fn build_grammar(
             parse_tree::Rule::RegexRule { regex_rule, .. } => {
                 lexical_rules.push(convert_regex_rule(regex_rule, input));
             }
+            parse_tree::Rule::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
 
@@ -80,6 +82,7 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
                 });
             }
             parse_tree::Annotation::Start { .. } => start = true,
+            parse_tree::Annotation::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
 
@@ -179,13 +182,10 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
         } => Symbol::Except {
             symbol: Box::new(convert_symbol(symbol, input)),
             except: excepts
-                .iter()
-                .filter_map(|node| match node {
-                    parse_tree::ParseTreeRef::SymbolGroup1(group) => Some(Identifier {
-                        name: text(input, group.identifier.span()),
-                        definition: None,
-                    }),
-                    _ => None,
+                .identifiers()
+                .map(|token| Identifier {
+                    name: text(input, token.span()),
+                    definition: None,
                 })
                 .collect(),
         },
@@ -194,13 +194,10 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
         } => Symbol::FollowRestriction {
             symbol: Box::new(convert_symbol(symbol, input)),
             restrictions: restrictions
-                .iter()
-                .filter_map(|node| match node {
-                    parse_tree::ParseTreeRef::SymbolGroup2(group) => Some(Identifier {
-                        name: text(input, group.identifier.span()),
-                        definition: None,
-                    }),
-                    _ => None,
+                .identifiers()
+                .map(|token| Identifier {
+                    name: text(input, token.span()),
+                    definition: None,
                 })
                 .collect(),
         },
@@ -223,6 +220,7 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 labels,
             }
         }
+        parse_tree::Symbol::Amb(_) => panic!("unexpected ambiguity"),
     }
 }
 
@@ -257,6 +255,7 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
                     definition: None,
                 });
             }
+            parse_tree::PostCondition::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
     if let Some(pc) = rule.pre_condition.value() {
@@ -301,6 +300,7 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
                 definition: None,
             })
         }
+        parse_tree::Regex::Amb(_) => panic!("unexpected ambiguity"),
     }
 }
 

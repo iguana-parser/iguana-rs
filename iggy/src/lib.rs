@@ -8,7 +8,9 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::time::Duration;
-use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
+use iguana_runtime::{
+    input::Input, parse_tree::ParseContext, parser::{ParseResult, Parser},
+};
 use parse_tree::IggyParseTreeBuilder;
 use parser::IggyParser;
 #[derive(Debug)]
@@ -31,15 +33,13 @@ pub struct ParseSuccess<T> {
     pub parse_duration: Duration,
     pub tree_construction_duration: Duration,
 }
-impl<T: parse_tree::AsParseTreeRef> ParseSuccess<T> {
-    pub fn as_parse_tree_ref(&self) -> parse_tree::ParseTreeRef<'_> {
-        self.tree.as_parse_tree_ref()
-    }
-}
-pub fn parse_grammar(
+pub fn parse_grammar<'a>(
     input: &Input,
+    ctx: &'a ParseContext,
 ) -> Result<
-    ParseSuccess<parse_tree::Start<parse_tree::Grammar, parse_tree::Layout>>,
+    ParseSuccess<
+        &'a parse_tree::Start<&'a parse_tree::Grammar<'a>, &'a parse_tree::Layout<'a>>,
+    >,
     ParseError,
 > {
     let mut parser = IggyParser::new(input, grammar_data::START_GRAMMAR);
@@ -47,10 +47,11 @@ pub fn parse_grammar(
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_start_grammar(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -69,18 +70,20 @@ pub fn parse_grammar(
         }
     }
 }
-pub fn parse_layout_def(
+pub fn parse_layout_def<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::LayoutDef>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::LayoutDef<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::LAYOUT_DEF);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_layout_def(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -99,16 +102,20 @@ pub fn parse_layout_def(
         }
     }
 }
-pub fn parse_rule(input: &Input) -> Result<ParseSuccess<parse_tree::Rule>, ParseError> {
+pub fn parse_rule<'a>(
+    input: &Input,
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::Rule<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::RULE);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_rule(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -127,18 +134,20 @@ pub fn parse_rule(input: &Input) -> Result<ParseSuccess<parse_tree::Rule>, Parse
         }
     }
 }
-pub fn parse_syntax_rule(
+pub fn parse_syntax_rule<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::SyntaxRule>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::SyntaxRule<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::SYNTAX_RULE);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_syntax_rule(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -157,18 +166,20 @@ pub fn parse_syntax_rule(
         }
     }
 }
-pub fn parse_annotation(
+pub fn parse_annotation<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::Annotation>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::Annotation<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::ANNOTATION);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_annotation(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -187,18 +198,20 @@ pub fn parse_annotation(
         }
     }
 }
-pub fn parse_regex_rule(
+pub fn parse_regex_rule<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::RegexRule>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::RegexRule<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::REGEX_RULE);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_regex_rule(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -217,18 +230,20 @@ pub fn parse_regex_rule(
         }
     }
 }
-pub fn parse_pre_condition(
+pub fn parse_pre_condition<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::PreCondition>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::PreCondition<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::PRE_CONDITION);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_pre_condition(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -247,18 +262,20 @@ pub fn parse_pre_condition(
         }
     }
 }
-pub fn parse_post_condition(
+pub fn parse_post_condition<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::PostCondition>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::PostCondition<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::POST_CONDITION);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_post_condition(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -277,18 +294,20 @@ pub fn parse_post_condition(
         }
     }
 }
-pub fn parse_priority_level(
+pub fn parse_priority_level<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::PriorityLevel>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::PriorityLevel<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::PRIORITY_LEVEL);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_priority_level(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -307,18 +326,20 @@ pub fn parse_priority_level(
         }
     }
 }
-pub fn parse_associativity(
+pub fn parse_associativity<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::Associativity>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::Associativity<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::ASSOCIATIVITY);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_associativity(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -337,18 +358,20 @@ pub fn parse_associativity(
         }
     }
 }
-pub fn parse_alternative(
+pub fn parse_alternative<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::Alternative>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::Alternative<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::ALTERNATIVE);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_alternative(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -367,18 +390,20 @@ pub fn parse_alternative(
         }
     }
 }
-pub fn parse_regex(
+pub fn parse_regex<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::Regex>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::Regex<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::REGEX);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_regex(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -397,18 +422,20 @@ pub fn parse_regex(
         }
     }
 }
-pub fn parse_char_class(
+pub fn parse_char_class<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::CharClass>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::CharClass<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::CHAR_CLASS);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_char_class(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -427,18 +454,20 @@ pub fn parse_char_class(
         }
     }
 }
-pub fn parse_range_element(
+pub fn parse_range_element<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::RangeElement>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::RangeElement<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::RANGE_ELEMENT);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_range_element(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -457,18 +486,20 @@ pub fn parse_range_element(
         }
     }
 }
-pub fn parse_range(
+pub fn parse_range<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::Range>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::Range<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::RANGE);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_range(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
@@ -487,18 +518,20 @@ pub fn parse_range(
         }
     }
 }
-pub fn parse_layout(
+pub fn parse_layout<'a>(
     input: &Input,
-) -> Result<ParseSuccess<parse_tree::Layout>, ParseError> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a parse_tree::Layout<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::LAYOUT);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_layout(
                 success.sppf_node_id,
                 &parser,
-                &IggyParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {

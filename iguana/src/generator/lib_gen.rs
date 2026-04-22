@@ -35,6 +35,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         use std::time::Duration;
         use iguana_runtime::{
             input::Input,
+            parse_tree::ParseContext,
             parser::{ParseResult, Parser},
         };
         use parse_tree::#parse_tree_builder;
@@ -61,12 +62,6 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             pub tree_construction_duration: Duration,
         }
 
-        impl<T: parse_tree::AsParseTreeRef> ParseSuccess<T> {
-            pub fn as_parse_tree_ref(&self) -> parse_tree::ParseTreeRef<'_> {
-                self.tree.as_parse_tree_ref()
-            }
-        }
-
         #(#parse_methods)*
     }
 }
@@ -91,7 +86,7 @@ fn gen_parse_method(
         };
         let name = &start_nt.name;
         (
-            quote! { parse_tree::Start<parse_tree::#inner_type, parse_tree::#layout> },
+            quote! { parse_tree::Start<&'a parse_tree::#inner_type<'a>, &'a parse_tree::#layout<'a>> },
             format_ident!("{}", to_snake_case(name).to_uppercase()),
             format_ident!("create_parse_tree_{}", to_snake_case(name)),
         )
@@ -99,20 +94,21 @@ fn gen_parse_method(
         let name = &nt.name;
         let nt_type = format_ident!("{}", to_pascal_case(name));
         (
-            quote! { parse_tree::#nt_type },
+            quote! { parse_tree::#nt_type<'a> },
             format_ident!("{}", to_snake_case(name).to_uppercase()),
             format_ident!("create_parse_tree_{}", to_snake_case(name)),
         )
     };
 
     quote! {
-        pub fn #fn_name(input: &Input) -> Result<ParseSuccess<#return_type>, ParseError> {
+        pub fn #fn_name<'a>(input: &Input, ctx: &'a ParseContext) -> Result<ParseSuccess<&'a #return_type>, ParseError> {
             let mut parser = #parser::new(input, grammar_data::#nt_const);
             match parser.run() {
                 ParseResult::Success(success) => {
                     let parse_duration = success.duration;
                     let tree_start = std::time::Instant::now();
-                    let tree = parse_tree::#create_fn(success.sppf_node_id, &parser, &#parse_tree_builder);
+                    let parse_tree_builder = #parse_tree_builder::new(ctx);
+                    let tree = parse_tree::#create_fn(success.sppf_node_id, &parser, &parse_tree_builder);
                     let tree_construction_duration = tree_start.elapsed();
                     Ok(ParseSuccess { tree, parse_duration, tree_construction_duration })
                 }

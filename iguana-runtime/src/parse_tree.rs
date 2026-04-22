@@ -1,6 +1,6 @@
 use std::fmt;
 
-use bumpalo::Bump;
+pub use bumpalo::Bump;
 
 use crate::{
     parser::Parser,
