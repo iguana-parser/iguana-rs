@@ -4364,6 +4364,9 @@ impl<'a> LayoutStar6<'a> {
     }
 }
 impl<'a> Start<&'a Grammar<'a>, &'a Layout<'a>> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::StartGrammar(self)
+    }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),

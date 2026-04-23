@@ -3,12 +3,14 @@
 
 use regex_composition::{parse_s, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
+use iguana_runtime::parse_tree::ParseContext;
 use iguana_runtime::testing::{check_golden_file, golden_path};
 
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);
-    let result = parse_s(&input).expect("Parse failed");
-    let actual = to_sexpr(result.as_parse_tree_ref());
+    let ctx = ParseContext::new();
+    let result = parse_s(&input, &ctx).expect("Parse failed");
+    let actual = to_sexpr(result.tree.as_parse_tree());
     check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
 }
 
@@ -40,5 +42,6 @@ fn test_mixed() {
 #[test]
 fn test_digit_only_fails() {
     let input = Input::from("123");
-    assert!(parse_s(&input).is_err(), "Should not parse: identifiers cannot start with a digit");
+    let ctx = ParseContext::new();
+    assert!(parse_s(&input, &ctx).is_err(), "Should not parse: identifiers cannot start with a digit");
 }

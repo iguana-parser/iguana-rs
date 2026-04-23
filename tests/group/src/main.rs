@@ -6,7 +6,7 @@ use std::{
 };
 use clap::Parser as ClapParser;
 use iguana_runtime::{
-    input::Input, parser::{ParseResult, Parser},
+    input::Input, parse_tree::ParseContext, parser::{ParseResult, Parser},
     visualization::{
         dot::write_svg, gss::{build_gss_dot_graph, render_gss},
         sppf::{build_sppf_graph, write_sppf_dot},
@@ -146,9 +146,10 @@ fn main() -> Result<(), io::Error> {
         ))?;
     #[cfg(feature = "profile")]
     if let Some(iterations) = cli.profile {
-        let parse_tree_builder = GroupParseTreeBuilder;
         let guard = ProfilerGuardBuilder::default().frequency(999).build().unwrap();
         for _ in 0..iterations {
+            let ctx = ParseContext::new();
+            let parse_tree_builder = GroupParseTreeBuilder::new(&ctx);
             let mut parser = GroupParser::new(&input, start_nonterminal_id);
             let result = parser.run();
             if let ParseResult::Success(success) = result {
@@ -172,12 +173,13 @@ fn main() -> Result<(), io::Error> {
             "Warning: --profile flag ignored. Recompile with `--features profile` to enable profiling."
         );
     }
+    let ctx = ParseContext::new();
     let mut parser = GroupParser::new(&input, start_nonterminal_id);
     #[cfg(feature = "debug-trace")]
     if cli.trace.is_some() {
         parser.trace_events = Some(vec![]);
     }
-    let parse_tree_builder = GroupParseTreeBuilder;
+    let parse_tree_builder = GroupParseTreeBuilder::new(&ctx);
     let result = parser.run();
     #[cfg(feature = "debug-trace")]
     if let Some(ref trace_events) = parser.trace_events {
@@ -228,7 +230,7 @@ fn main() -> Result<(), io::Error> {
                 cli.write_parse_tree.as_ref(),
                 parse_tree_opt.as_ref(),
             ) {
-                let json = to_json(parse_tree.as_parse_tree_ref());
+                let json = to_json(*parse_tree);
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", json)?;
@@ -262,7 +264,7 @@ fn main() -> Result<(), io::Error> {
                 && cli.trace.is_none()
             {
                 if let Some(ref parse_tree) = parse_tree_opt {
-                    println!("{}", to_sexpr(parse_tree.as_parse_tree_ref()));
+                    println!("{}", to_sexpr(* parse_tree));
                 }
             }
         }

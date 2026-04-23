@@ -8,8 +8,10 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::time::Duration;
-use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
-use parse_tree::CommentsParseTreeBuilder;
+use iguana_runtime::{
+    input::Input, parse_tree::ParseContext, parser::{ParseResult, Parser},
+};
+use parse_tree::*;
 use parser::CommentsParser;
 #[derive(Debug)]
 pub struct ParseError {
@@ -31,26 +33,20 @@ pub struct ParseSuccess<T> {
     pub parse_duration: Duration,
     pub tree_construction_duration: Duration,
 }
-impl<T: parse_tree::AsParseTreeRef> ParseSuccess<T> {
-    pub fn as_parse_tree_ref(&self) -> parse_tree::ParseTreeRef<'_> {
-        self.tree.as_parse_tree_ref()
-    }
-}
-pub fn parse_expr(
+pub fn parse_expr<'a>(
     input: &Input,
-) -> Result<
-    ParseSuccess<parse_tree::Start<parse_tree::Expr, parse_tree::Token>>,
-    ParseError,
-> {
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a Start<&'a Expr<'a>, Token>>, ParseError> {
     let mut parser = CommentsParser::new(input, grammar_data::START_EXPR);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = CommentsParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_start_expr(
                 success.sppf_node_id,
                 &parser,
-                &CommentsParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {

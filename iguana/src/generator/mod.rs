@@ -28,6 +28,7 @@ pub struct GenerateResult {
 
 mod cargo_toml_gen;
 mod grammar_data_gen;
+pub(crate) mod grammar_utils;
 mod id;
 mod lib_gen;
 mod main_gen;

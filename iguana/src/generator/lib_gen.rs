@@ -2,7 +2,10 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use crate::{
-    generator::utils::{to_first_uppercase, to_pascal_case, to_snake_case},
+    generator::{
+        grammar_utils::nonterminal_type,
+        utils::{to_first_uppercase, to_snake_case},
+    },
     grammar::{
         def::Grammar,
         symbols::Nonterminal,
@@ -38,7 +41,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             parse_tree::ParseContext,
             parser::{ParseResult, Parser},
         };
-        use parse_tree::#parse_tree_builder;
+        use parse_tree::*;
         use parser::#parser;
 
         #[derive(Debug)]
@@ -75,30 +78,11 @@ fn gen_parse_method(
 ) -> TokenStream {
     let fn_name = format_ident!("parse_{}", to_snake_case(&nt.name));
 
-    let (return_type, nt_const, create_fn) = if let Some(start_nt) = start_nt {
-        let inner_type = format_ident!("{}", to_pascal_case(&nt.name));
-        // Safe: start wrappers are only created when layout is defined
-        let layout_ident = grammar.layout.as_ref().unwrap().as_identifier().unwrap();
-        let layout = if grammar.is_terminal(layout_ident) {
-            format_ident!("Token")
-        } else {
-            format_ident!("{}", to_pascal_case(&layout_ident.name))
-        };
-        let name = &start_nt.name;
-        (
-            quote! { parse_tree::Start<&'a parse_tree::#inner_type<'a>, &'a parse_tree::#layout<'a>> },
-            format_ident!("{}", to_snake_case(name).to_uppercase()),
-            format_ident!("create_parse_tree_{}", to_snake_case(name)),
-        )
-    } else {
-        let name = &nt.name;
-        let nt_type = format_ident!("{}", to_pascal_case(name));
-        (
-            quote! { parse_tree::#nt_type<'a> },
-            format_ident!("{}", to_snake_case(name).to_uppercase()),
-            format_ident!("create_parse_tree_{}", to_snake_case(name)),
-        )
-    };
+    let target_nt = start_nt.unwrap_or(nt);
+    let nt_const = format_ident!("{}", to_snake_case(&target_nt.name).to_uppercase());
+    let create_fn = format_ident!("create_parse_tree_{}", to_snake_case(&target_nt.name));
+
+    let return_type = nonterminal_type(grammar, target_nt);
 
     quote! {
         pub fn #fn_name<'a>(input: &Input, ctx: &'a ParseContext) -> Result<ParseSuccess<&'a #return_type>, ParseError> {

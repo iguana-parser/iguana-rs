@@ -4,11 +4,11 @@ use core::fmt;
 use std::{fmt::Write, vec::IntoIter};
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
-    parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
+    parse_tree::{Bump, OneOrMany, ParseContext, ParseTreeBuilder, visit_sppf},
     parser::Parser, sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
 use crate::parser::Pepm16ExpressionsParser;
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum TokenKind {
     //WS
     T0,
@@ -57,27 +57,48 @@ impl TokenKind {
         }
     }
 }
-#[derive(Debug)]
-pub enum ParseTree {
-    S(S),
-    E(E),
+#[derive(Debug, Clone, Copy)]
+pub enum ParseTree<'a> {
+    S(&'a S<'a>),
+    E(&'a E<'a>),
     Token(Token),
 }
-impl ParseTree {
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+impl<'a> ParseTree<'a> {
+    pub fn children(&self) -> Vec<ParseTree<'a>> {
         match self {
-            ParseTree::S(s) => s.as_parse_tree_ref(),
-            ParseTree::E(e) => e.as_parse_tree_ref(),
-            ParseTree::Token(token) => token.as_parse_tree_ref(),
+            ParseTree::S(s) => (0..s.child_count()).filter_map(|i| s.child(i)).collect(),
+            ParseTree::E(e) => (0..e.child_count()).filter_map(|i| e.child(i)).collect(),
+            ParseTree::Token(_) => vec![],
         }
     }
-    fn unwrap_s(self) -> S {
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            ParseTree::S(_) => "S",
+            ParseTree::E(_) => "E",
+            ParseTree::Token(token) => token.kind.name(),
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        match self {
+            ParseTree::S(s) => s.child_count(),
+            ParseTree::E(e) => e.child_count(),
+            ParseTree::Token(_) => 0,
+        }
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            ParseTree::S(s) => s.span(),
+            ParseTree::E(e) => e.span(),
+            ParseTree::Token(token) => token.span(),
+        }
+    }
+    fn unwrap_s(self) -> &'a S<'a> {
         match self {
             ParseTree::S(s) => s,
             _ => panic!(),
         }
     }
-    fn unwrap_e(self) -> E {
+    fn unwrap_e(self) -> &'a E<'a> {
         match self {
             ParseTree::E(e) => e,
             _ => panic!(),
@@ -90,81 +111,8 @@ impl ParseTree {
         }
     }
 }
-#[derive(Clone, Copy)]
-pub enum ParseTreeRef<'a> {
-    S(&'a S),
-    E(&'a E),
-    Token(&'a Token),
-}
-impl<'a> ParseTreeRef<'a> {
-    pub fn children(&self) -> Vec<ParseTreeRef<'a>> {
-        match self {
-            ParseTreeRef::S(s) => {
-                (0..s.child_count()).filter_map(|i| s.child(i)).collect()
-            }
-            ParseTreeRef::E(e) => {
-                (0..e.child_count()).filter_map(|i| e.child(i)).collect()
-            }
-            ParseTreeRef::Token(_) => vec![],
-        }
-    }
-    pub fn display_name(&self) -> &'static str {
-        match self {
-            ParseTreeRef::S(_) => "S",
-            ParseTreeRef::E(_) => "E",
-            ParseTreeRef::Token(token) => token.kind.name(),
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        match self {
-            ParseTreeRef::S(s) => s.child_count(),
-            ParseTreeRef::E(e) => e.child_count(),
-            ParseTreeRef::Token(_) => 0,
-        }
-    }
-    pub fn span(&self) -> Span {
-        match self {
-            ParseTreeRef::S(s) => s.span(),
-            ParseTreeRef::E(e) => e.span(),
-            ParseTreeRef::Token(token) => token.span(),
-        }
-    }
-}
-impl From<S> for ParseTree {
-    fn from(s: S) -> Self {
-        ParseTree::S(s)
-    }
-}
-impl From<E> for ParseTree {
-    fn from(e: E) -> Self {
-        ParseTree::E(e)
-    }
-}
-pub trait AsParseTreeRef {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_>;
-}
-impl AsParseTreeRef for S {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
-impl AsParseTreeRef for E {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
-impl AsParseTreeRef for Token {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
-impl AsParseTreeRef for ParseTree {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
 pub trait ListNode<'a> {
-    fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
+    fn iter(&'a self) -> IntoIter<ParseTree<'a>>;
 }
 pub trait OptNode {
     type Inner;
@@ -172,147 +120,170 @@ pub trait OptNode {
 }
 //S = E(0)
 #[derive(Debug)]
-pub struct S {
-    pub e: E,
+pub struct S<'a> {
+    pub e: &'a E<'a>,
     pub span: Span,
 }
 #[derive(Debug)]
-pub enum E {
+pub enum E<'a> {
     //[6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
-    Alt0 { e: Box<E>, ws_1: Token, lit_2: Token, ws_3: Token, lit_4: Token, span: Span },
-    //[6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
-    Alt1 { e_0: Box<E>, ws: Token, e_2: Box<E>, span: Span },
-    //[5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
-    Alt2 {
-        e_0: Box<E>,
+    Alt0 {
+        e: &'a E<'a>,
         ws_1: Token,
         lit_2: Token,
         ws_3: Token,
-        e_4: Box<E>,
+        lit_4: Token,
+        span: Span,
+    },
+    //[6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
+    Alt1 { e_0: &'a E<'a>, ws: Token, e_2: &'a E<'a>, span: Span },
+    //[5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
+    Alt2 {
+        e_0: &'a E<'a>,
+        ws_1: Token,
+        lit_2: Token,
+        ws_3: Token,
+        e_4: &'a E<'a>,
         span: Span,
     },
     //[4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
     Alt3 {
-        e_0: Box<E>,
+        e_0: &'a E<'a>,
         ws_1: Token,
         lit_2: Token,
         ws_3: Token,
-        e_4: Box<E>,
+        e_4: &'a E<'a>,
         span: Span,
     },
     //[4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
     Alt4 {
-        e_0: Box<E>,
+        e_0: &'a E<'a>,
         ws_1: Token,
         lit_2: Token,
         ws_3: Token,
-        e_4: Box<E>,
+        e_4: &'a E<'a>,
         span: Span,
     },
     //"-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
-    Alt5 { lit_0: Token, ws: Token, e: Box<E>, span: Span },
+    Alt5 { lit_0: Token, ws: Token, e: &'a E<'a>, span: Span },
     //"if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
     Alt6 {
         lit_0: Token,
         ws_1: Token,
-        e_2: Box<E>,
+        e_2: &'a E<'a>,
         ws_3: Token,
         lit_4: Token,
         ws_5: Token,
-        e_6: Box<E>,
+        e_6: &'a E<'a>,
         ws_7: Token,
         lit_8: Token,
         ws_9: Token,
-        e_10: Box<E>,
+        e_10: &'a E<'a>,
         span: Span,
     },
     //[1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
     Alt7 {
-        e_0: Box<E>,
+        e_0: &'a E<'a>,
         ws_1: Token,
         lit_2: Token,
         ws_3: Token,
-        e_4: Box<E>,
+        e_4: &'a E<'a>,
         span: Span,
     },
     //"(" WS E(0) WS ")" return 0
-    Alt8 { lit_0: Token, ws_1: Token, e: Box<E>, ws_3: Token, lit_4: Token, span: Span },
+    Alt8 {
+        lit_0: Token,
+        ws_1: Token,
+        e: &'a E<'a>,
+        ws_3: Token,
+        lit_4: Token,
+        span: Span,
+    },
     //"a" return 0
     Alt9 { lit_0: Token, span: Span },
+    Amb(&'a [&'a E<'a>]),
 }
-impl S {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+impl<'a> S<'a> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::S(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
-            0 => Some(self.e.as_parse_tree_ref()),
+            0 => {
+                Some({
+                    let e = &self.e;
+                    ParseTree::E(e)
+                })
+            }
             _ => None,
         }
     }
     pub fn child_count(&self) -> usize {
         1usize
     }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::S(self)
-    }
     pub fn span(&self) -> Span {
         self.span
     }
 }
-impl E {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+impl<'a> E<'a> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::E(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             E::Alt0 { e, ws_1, lit_2, ws_3, lit_4, .. } => {
                 match index {
-                    0 => Some(e.as_parse_tree_ref()),
-                    1 => Some(ws_1.as_parse_tree_ref()),
-                    2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(ws_3.as_parse_tree_ref()),
-                    4 => Some(lit_4.as_parse_tree_ref()),
+                    0 => Some(ParseTree::E(e)),
+                    1 => Some(ParseTree::Token(*ws_1)),
+                    2 => Some(ParseTree::Token(*lit_2)),
+                    3 => Some(ParseTree::Token(*ws_3)),
+                    4 => Some(ParseTree::Token(*lit_4)),
                     _ => None,
                 }
             }
             E::Alt1 { e_0, ws, e_2, .. } => {
                 match index {
-                    0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(ws.as_parse_tree_ref()),
-                    2 => Some(e_2.as_parse_tree_ref()),
+                    0 => Some(ParseTree::E(e_0)),
+                    1 => Some(ParseTree::Token(*ws)),
+                    2 => Some(ParseTree::E(e_2)),
                     _ => None,
                 }
             }
             E::Alt2 { e_0, ws_1, lit_2, ws_3, e_4, .. } => {
                 match index {
-                    0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(ws_1.as_parse_tree_ref()),
-                    2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(ws_3.as_parse_tree_ref()),
-                    4 => Some(e_4.as_parse_tree_ref()),
+                    0 => Some(ParseTree::E(e_0)),
+                    1 => Some(ParseTree::Token(*ws_1)),
+                    2 => Some(ParseTree::Token(*lit_2)),
+                    3 => Some(ParseTree::Token(*ws_3)),
+                    4 => Some(ParseTree::E(e_4)),
                     _ => None,
                 }
             }
             E::Alt3 { e_0, ws_1, lit_2, ws_3, e_4, .. } => {
                 match index {
-                    0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(ws_1.as_parse_tree_ref()),
-                    2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(ws_3.as_parse_tree_ref()),
-                    4 => Some(e_4.as_parse_tree_ref()),
+                    0 => Some(ParseTree::E(e_0)),
+                    1 => Some(ParseTree::Token(*ws_1)),
+                    2 => Some(ParseTree::Token(*lit_2)),
+                    3 => Some(ParseTree::Token(*ws_3)),
+                    4 => Some(ParseTree::E(e_4)),
                     _ => None,
                 }
             }
             E::Alt4 { e_0, ws_1, lit_2, ws_3, e_4, .. } => {
                 match index {
-                    0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(ws_1.as_parse_tree_ref()),
-                    2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(ws_3.as_parse_tree_ref()),
-                    4 => Some(e_4.as_parse_tree_ref()),
+                    0 => Some(ParseTree::E(e_0)),
+                    1 => Some(ParseTree::Token(*ws_1)),
+                    2 => Some(ParseTree::Token(*lit_2)),
+                    3 => Some(ParseTree::Token(*ws_3)),
+                    4 => Some(ParseTree::E(e_4)),
                     _ => None,
                 }
             }
             E::Alt5 { lit_0, ws, e, .. } => {
                 match index {
-                    0 => Some(lit_0.as_parse_tree_ref()),
-                    1 => Some(ws.as_parse_tree_ref()),
-                    2 => Some(e.as_parse_tree_ref()),
+                    0 => Some(ParseTree::Token(*lit_0)),
+                    1 => Some(ParseTree::Token(*ws)),
+                    2 => Some(ParseTree::E(e)),
                     _ => None,
                 }
             }
@@ -331,46 +302,47 @@ impl E {
                 ..
             } => {
                 match index {
-                    0 => Some(lit_0.as_parse_tree_ref()),
-                    1 => Some(ws_1.as_parse_tree_ref()),
-                    2 => Some(e_2.as_parse_tree_ref()),
-                    3 => Some(ws_3.as_parse_tree_ref()),
-                    4 => Some(lit_4.as_parse_tree_ref()),
-                    5 => Some(ws_5.as_parse_tree_ref()),
-                    6 => Some(e_6.as_parse_tree_ref()),
-                    7 => Some(ws_7.as_parse_tree_ref()),
-                    8 => Some(lit_8.as_parse_tree_ref()),
-                    9 => Some(ws_9.as_parse_tree_ref()),
-                    10 => Some(e_10.as_parse_tree_ref()),
+                    0 => Some(ParseTree::Token(*lit_0)),
+                    1 => Some(ParseTree::Token(*ws_1)),
+                    2 => Some(ParseTree::E(e_2)),
+                    3 => Some(ParseTree::Token(*ws_3)),
+                    4 => Some(ParseTree::Token(*lit_4)),
+                    5 => Some(ParseTree::Token(*ws_5)),
+                    6 => Some(ParseTree::E(e_6)),
+                    7 => Some(ParseTree::Token(*ws_7)),
+                    8 => Some(ParseTree::Token(*lit_8)),
+                    9 => Some(ParseTree::Token(*ws_9)),
+                    10 => Some(ParseTree::E(e_10)),
                     _ => None,
                 }
             }
             E::Alt7 { e_0, ws_1, lit_2, ws_3, e_4, .. } => {
                 match index {
-                    0 => Some(e_0.as_parse_tree_ref()),
-                    1 => Some(ws_1.as_parse_tree_ref()),
-                    2 => Some(lit_2.as_parse_tree_ref()),
-                    3 => Some(ws_3.as_parse_tree_ref()),
-                    4 => Some(e_4.as_parse_tree_ref()),
+                    0 => Some(ParseTree::E(e_0)),
+                    1 => Some(ParseTree::Token(*ws_1)),
+                    2 => Some(ParseTree::Token(*lit_2)),
+                    3 => Some(ParseTree::Token(*ws_3)),
+                    4 => Some(ParseTree::E(e_4)),
                     _ => None,
                 }
             }
             E::Alt8 { lit_0, ws_1, e, ws_3, lit_4, .. } => {
                 match index {
-                    0 => Some(lit_0.as_parse_tree_ref()),
-                    1 => Some(ws_1.as_parse_tree_ref()),
-                    2 => Some(e.as_parse_tree_ref()),
-                    3 => Some(ws_3.as_parse_tree_ref()),
-                    4 => Some(lit_4.as_parse_tree_ref()),
+                    0 => Some(ParseTree::Token(*lit_0)),
+                    1 => Some(ParseTree::Token(*ws_1)),
+                    2 => Some(ParseTree::E(e)),
+                    3 => Some(ParseTree::Token(*ws_3)),
+                    4 => Some(ParseTree::Token(*lit_4)),
                     _ => None,
                 }
             }
             E::Alt9 { lit_0, .. } => {
                 match index {
-                    0 => Some(lit_0.as_parse_tree_ref()),
+                    0 => Some(ParseTree::Token(*lit_0)),
                     _ => None,
                 }
             }
+            E::Amb(_) => None,
         }
     }
     pub fn child_count(&self) -> usize {
@@ -385,10 +357,8 @@ impl E {
             E::Alt7 { .. } => 5usize,
             E::Alt8 { .. } => 5usize,
             E::Alt9 { .. } => 1usize,
+            E::Amb(alts) => alts.len(),
         }
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::E(self)
     }
     pub fn span(&self) -> Span {
         match self {
@@ -402,17 +372,18 @@ impl E {
             E::Alt7 { span, .. } => *span,
             E::Alt8 { span, .. } => *span,
             E::Alt9 { span, .. } => *span,
+            E::Amb(alts) => alts[0].span(),
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Token {
     pub kind: TokenKind,
     span: Span,
 }
 impl Token {
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::Token(self)
+    pub fn as_parse_tree<'a>(&self) -> ParseTree<'a> {
+        ParseTree::Token(*self)
     }
     pub fn span(&self) -> Span {
         self.span
@@ -449,13 +420,20 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
-pub struct Pepm16ExpressionsParseTreeBuilder;
-impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
+pub struct Pepm16ExpressionsParseTreeBuilder<'a> {
+    pub bump: &'a Bump,
+}
+impl<'a> Pepm16ExpressionsParseTreeBuilder<'a> {
+    pub fn new(ctx: &'a ParseContext) -> Self {
+        Self { bump: ctx.bump() }
+    }
+}
+impl<'a> ParseTreeBuilder<ParseTree<'a>> for Pepm16ExpressionsParseTreeBuilder<'a> {
     fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree>,
-    ) -> ParseTree {
+        children: OneOrMany<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
@@ -463,11 +441,14 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                     //S : E(0).
                     SlotId(1) => {
                         let [e] = children.into_array::<1usize>();
-                        S {
-                            e: e.unwrap_e(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::S(
+                            self
+                                .bump
+                                .alloc(S {
+                                    e: e.unwrap_e(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     _ => unreachable!(),
                 }
@@ -479,136 +460,166 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
                     SlotId(10) => {
                         let [e, ws_1, lit_2, ws_3, lit_4] = children
                             .into_array::<5usize>();
-                        E::Alt0 {
-                            e: Box::new(e.unwrap_e()),
-                            ws_1: ws_1.unwrap_token(),
-                            lit_2: lit_2.unwrap_token(),
-                            ws_3: ws_3.unwrap_token(),
-                            lit_4: lit_4.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::E(
+                            self
+                                .bump
+                                .alloc(E::Alt0 {
+                                    e: e.unwrap_e(),
+                                    ws_1: ws_1.unwrap_token(),
+                                    lit_2: lit_2.unwrap_token(),
+                                    ws_3: ws_3.unwrap_token(),
+                                    lit_4: lit_4.unwrap_token(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     //E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6).
                     SlotId(17) => {
                         let [e_0, ws, e_2] = children.into_array::<3usize>();
-                        E::Alt1 {
-                            e_0: Box::new(e_0.unwrap_e()),
-                            ws: ws.unwrap_token(),
-                            e_2: Box::new(e_2.unwrap_e()),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::E(
+                            self
+                                .bump
+                                .alloc(E::Alt1 {
+                                    e_0: e_0.unwrap_e(),
+                                    ws: ws.unwrap_token(),
+                                    e_2: e_2.unwrap_e(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     //E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5).
                     SlotId(26) => {
                         let [e_0, ws_1, lit_2, ws_3, e_4] = children
                             .into_array::<5usize>();
-                        E::Alt2 {
-                            e_0: Box::new(e_0.unwrap_e()),
-                            ws_1: ws_1.unwrap_token(),
-                            lit_2: lit_2.unwrap_token(),
-                            ws_3: ws_3.unwrap_token(),
-                            e_4: Box::new(e_4.unwrap_e()),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::E(
+                            self
+                                .bump
+                                .alloc(E::Alt2 {
+                                    e_0: e_0.unwrap_e(),
+                                    ws_1: ws_1.unwrap_token(),
+                                    lit_2: lit_2.unwrap_token(),
+                                    ws_3: ws_3.unwrap_token(),
+                                    e_4: e_4.unwrap_e(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     //E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4).
                     SlotId(35) => {
                         let [e_0, ws_1, lit_2, ws_3, e_4] = children
                             .into_array::<5usize>();
-                        E::Alt3 {
-                            e_0: Box::new(e_0.unwrap_e()),
-                            ws_1: ws_1.unwrap_token(),
-                            lit_2: lit_2.unwrap_token(),
-                            ws_3: ws_3.unwrap_token(),
-                            e_4: Box::new(e_4.unwrap_e()),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::E(
+                            self
+                                .bump
+                                .alloc(E::Alt3 {
+                                    e_0: e_0.unwrap_e(),
+                                    ws_1: ws_1.unwrap_token(),
+                                    lit_2: lit_2.unwrap_token(),
+                                    ws_3: ws_3.unwrap_token(),
+                                    e_4: e_4.unwrap_e(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     //E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4).
                     SlotId(44) => {
                         let [e_0, ws_1, lit_2, ws_3, e_4] = children
                             .into_array::<5usize>();
-                        E::Alt4 {
-                            e_0: Box::new(e_0.unwrap_e()),
-                            ws_1: ws_1.unwrap_token(),
-                            lit_2: lit_2.unwrap_token(),
-                            ws_3: ws_3.unwrap_token(),
-                            e_4: Box::new(e_4.unwrap_e()),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::E(
+                            self
+                                .bump
+                                .alloc(E::Alt4 {
+                                    e_0: e_0.unwrap_e(),
+                                    ws_1: ws_1.unwrap_token(),
+                                    lit_2: lit_2.unwrap_token(),
+                                    ws_3: ws_3.unwrap_token(),
+                                    e_4: e_4.unwrap_e(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     //E : "-" WS r=E(3) return r == 0 ? 3 : min(r, 3).
                     SlotId(49) => {
                         let [lit_0, ws, e] = children.into_array::<3usize>();
-                        E::Alt5 {
-                            lit_0: lit_0.unwrap_token(),
-                            ws: ws.unwrap_token(),
-                            e: Box::new(e.unwrap_e()),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::E(
+                            self
+                                .bump
+                                .alloc(E::Alt5 {
+                                    lit_0: lit_0.unwrap_token(),
+                                    ws: ws.unwrap_token(),
+                                    e: e.unwrap_e(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     //E : "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2.
                     SlotId(62) => {
                         let [lit_0, ws_1, e_2, ws_3, lit_4, ws_5, e_6, ws_7, lit_8, ws_9,
                         e_10] = children.into_array::<11usize>();
-                        E::Alt6 {
-                            lit_0: lit_0.unwrap_token(),
-                            ws_1: ws_1.unwrap_token(),
-                            e_2: Box::new(e_2.unwrap_e()),
-                            ws_3: ws_3.unwrap_token(),
-                            lit_4: lit_4.unwrap_token(),
-                            ws_5: ws_5.unwrap_token(),
-                            e_6: Box::new(e_6.unwrap_e()),
-                            ws_7: ws_7.unwrap_token(),
-                            lit_8: lit_8.unwrap_token(),
-                            ws_9: ws_9.unwrap_token(),
-                            e_10: Box::new(e_10.unwrap_e()),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::E(
+                            self
+                                .bump
+                                .alloc(E::Alt6 {
+                                    lit_0: lit_0.unwrap_token(),
+                                    ws_1: ws_1.unwrap_token(),
+                                    e_2: e_2.unwrap_e(),
+                                    ws_3: ws_3.unwrap_token(),
+                                    lit_4: lit_4.unwrap_token(),
+                                    ws_5: ws_5.unwrap_token(),
+                                    e_6: e_6.unwrap_e(),
+                                    ws_7: ws_7.unwrap_token(),
+                                    lit_8: lit_8.unwrap_token(),
+                                    ws_9: ws_9.unwrap_token(),
+                                    e_10: e_10.unwrap_e(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     //E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1.
                     SlotId(71) => {
                         let [e_0, ws_1, lit_2, ws_3, e_4] = children
                             .into_array::<5usize>();
-                        E::Alt7 {
-                            e_0: Box::new(e_0.unwrap_e()),
-                            ws_1: ws_1.unwrap_token(),
-                            lit_2: lit_2.unwrap_token(),
-                            ws_3: ws_3.unwrap_token(),
-                            e_4: Box::new(e_4.unwrap_e()),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::E(
+                            self
+                                .bump
+                                .alloc(E::Alt7 {
+                                    e_0: e_0.unwrap_e(),
+                                    ws_1: ws_1.unwrap_token(),
+                                    lit_2: lit_2.unwrap_token(),
+                                    ws_3: ws_3.unwrap_token(),
+                                    e_4: e_4.unwrap_e(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     //E : "(" WS E(0) WS ")" return 0.
                     SlotId(78) => {
                         let [lit_0, ws_1, e, ws_3, lit_4] = children
                             .into_array::<5usize>();
-                        E::Alt8 {
-                            lit_0: lit_0.unwrap_token(),
-                            ws_1: ws_1.unwrap_token(),
-                            e: Box::new(e.unwrap_e()),
-                            ws_3: ws_3.unwrap_token(),
-                            lit_4: lit_4.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::E(
+                            self
+                                .bump
+                                .alloc(E::Alt8 {
+                                    lit_0: lit_0.unwrap_token(),
+                                    ws_1: ws_1.unwrap_token(),
+                                    e: e.unwrap_e(),
+                                    ws_3: ws_3.unwrap_token(),
+                                    lit_4: lit_4.unwrap_token(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     //E : "a" return 0.
                     SlotId(81) => {
                         let [lit_0] = children.into_array::<1usize>();
-                        E::Alt9 {
-                            lit_0: lit_0.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::E(
+                            self
+                                .bump
+                                .alloc(E::Alt9 {
+                                    lit_0: lit_0.unwrap_token(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     _ => unreachable!(),
                 }
@@ -616,19 +627,19 @@ impl ParseTreeBuilder<ParseTree> for Pepm16ExpressionsParseTreeBuilder {
             _ => unreachable!(),
         }
     }
-    fn new_token(&self, terminal_node: &TerminalNode) -> ParseTree {
+    fn new_token(&self, terminal_node: &TerminalNode) -> ParseTree<'a> {
         ParseTree::Token(Token {
             kind: token_kind(terminal_node.terminal_id),
             span: terminal_node.span,
         })
     }
 }
-pub fn create_parse_tree(
+pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
     nonterminal_id: NonterminalId,
     parser: &Pepm16ExpressionsParser,
-    builder: &Pepm16ExpressionsParseTreeBuilder,
-) -> ParseTree {
+    builder: &Pepm16ExpressionsParseTreeBuilder<'a>,
+) -> ParseTree<'a> {
     match nonterminal_id {
         crate::grammar_data::S => {
             ParseTree::S(create_parse_tree_s(root_id, parser, builder))
@@ -639,32 +650,28 @@ pub fn create_parse_tree(
         _ => panic!(),
     }
 }
-pub fn create_parse_tree_s(
+pub fn create_parse_tree_s<'a>(
     root_id: SPPFNodeId,
     parser: &Pepm16ExpressionsParser,
-    builder: &Pepm16ExpressionsParseTreeBuilder,
-) -> S {
+    builder: &Pepm16ExpressionsParseTreeBuilder<'a>,
+) -> &'a S<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
 }
-pub fn create_parse_tree_e(
+pub fn create_parse_tree_e<'a>(
     root_id: SPPFNodeId,
     parser: &Pepm16ExpressionsParser,
-    builder: &Pepm16ExpressionsParseTreeBuilder,
-) -> E {
+    builder: &Pepm16ExpressionsParseTreeBuilder<'a>,
+) -> &'a E<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_e()
 }
-pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
+pub fn to_sexpr(node: ParseTree<'_>) -> String {
     let mut s = String::new();
     node_to_sexpr(node, 0, &mut s).expect("error");
     s
 }
-fn node_to_sexpr(
-    node: ParseTreeRef<'_>,
-    indent: usize,
-    w: &mut impl Write,
-) -> fmt::Result {
+fn node_to_sexpr(node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
     let children = node.children();
     if children.is_empty() {
         writeln!(w, "{:indent$}{}", "", node.display_name())
@@ -678,7 +685,7 @@ fn node_to_sexpr(
 }
 /// Converts a parse tree to JSON format for visualization.
 /// Returns a JSON string with nodes and edges arrays.
-pub fn to_json(node: ParseTreeRef<'_>) -> String {
+pub fn to_json(node: ParseTree<'_>) -> String {
     let mut nodes = Vec::new();
     let mut edges = Vec::new();
     let mut next_id = 0u32;
@@ -687,7 +694,7 @@ pub fn to_json(node: ParseTreeRef<'_>) -> String {
     result.to_string()
 }
 fn build_json_graph(
-    node: ParseTreeRef<'_>,
+    node: ParseTree<'_>,
     nodes: &mut Vec<serde_json::Value>,
     edges: &mut Vec<serde_json::Value>,
     next_id: &mut u32,
@@ -696,7 +703,7 @@ fn build_json_graph(
     *next_id += 1;
     let span = node.span();
     let kind = match node {
-        ParseTreeRef::Token(_) => "Token",
+        ParseTree::Token(_) => "Token",
         _ => "Nonterminal",
     };
     nodes

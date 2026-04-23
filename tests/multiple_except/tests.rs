@@ -3,6 +3,7 @@
 
 use multiple_except::{parse_syntax_identifier, parse_lexical_identifier, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
+use iguana_runtime::parse_tree::ParseContext;
 use iguana_runtime::testing::{check_golden_file, golden_path};
 
 // --- SyntaxIdentifier tests (nonterminal except path) ---
@@ -10,34 +11,39 @@ use iguana_runtime::testing::{check_golden_file, golden_path};
 #[test]
 fn test_syntax_identifier() {
     let input = Input::from("abc");
-    let result = parse_syntax_identifier(&input).expect("Parse failed");
-    let actual = to_sexpr(result.as_parse_tree_ref());
+    let ctx = ParseContext::new();
+    let result = parse_syntax_identifier(&input, &ctx).expect("Parse failed");
+    let actual = to_sexpr(result.tree.as_parse_tree());
     check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), "syntax_identifier"));
 }
 
 #[test]
 fn test_syntax_keyword_rejected() {
     let input = Input::from("if");
-    assert!(parse_syntax_identifier(&input).is_err(), "Expected parse to fail for input: if");
+    let ctx = ParseContext::new();
+    assert!(parse_syntax_identifier(&input, &ctx).is_err(), "Expected parse to fail for input: if");
 }
 
 #[test]
 fn test_syntax_boolean_rejected() {
     let input = Input::from("true");
-    assert!(parse_syntax_identifier(&input).is_err(), "Expected parse to fail for input: true");
+    let ctx = ParseContext::new();
+    assert!(parse_syntax_identifier(&input, &ctx).is_err(), "Expected parse to fail for input: true");
 }
 
 #[test]
 fn test_syntax_null_rejected() {
     let input = Input::from("null");
-    assert!(parse_syntax_identifier(&input).is_err(), "Expected parse to fail for input: null");
+    let ctx = ParseContext::new();
+    assert!(parse_syntax_identifier(&input, &ctx).is_err(), "Expected parse to fail for input: null");
 }
 
 #[test]
 fn test_syntax_keyword_prefix_accepted() {
     let input = Input::from("ifx");
-    let result = parse_syntax_identifier(&input).expect("Parse failed");
-    let actual = to_sexpr(result.as_parse_tree_ref());
+    let ctx = ParseContext::new();
+    let result = parse_syntax_identifier(&input, &ctx).expect("Parse failed");
+    let actual = to_sexpr(result.tree.as_parse_tree());
     check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), "syntax_keyword_prefix"));
 }
 
@@ -46,33 +52,38 @@ fn test_syntax_keyword_prefix_accepted() {
 #[test]
 fn test_lexical_identifier() {
     let input = Input::from("abc");
-    let result = parse_lexical_identifier(&input).expect("Parse failed");
-    let actual = to_sexpr(result.as_parse_tree_ref());
+    let ctx = ParseContext::new();
+    let result = parse_lexical_identifier(&input, &ctx).expect("Parse failed");
+    let actual = to_sexpr(result.tree.as_parse_tree());
     check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), "lexical_identifier"));
 }
 
 #[test]
 fn test_lexical_keyword_rejected() {
     let input = Input::from("while");
-    assert!(parse_lexical_identifier(&input).is_err(), "Expected parse to fail for input: while");
+    let ctx = ParseContext::new();
+    assert!(parse_lexical_identifier(&input, &ctx).is_err(), "Expected parse to fail for input: while");
 }
 
 #[test]
 fn test_lexical_boolean_rejected() {
     let input = Input::from("false");
-    assert!(parse_lexical_identifier(&input).is_err(), "Expected parse to fail for input: false");
+    let ctx = ParseContext::new();
+    assert!(parse_lexical_identifier(&input, &ctx).is_err(), "Expected parse to fail for input: false");
 }
 
 #[test]
 fn test_lexical_null_rejected() {
     let input = Input::from("null");
-    assert!(parse_lexical_identifier(&input).is_err(), "Expected parse to fail for input: null");
+    let ctx = ParseContext::new();
+    assert!(parse_lexical_identifier(&input, &ctx).is_err(), "Expected parse to fail for input: null");
 }
 
 #[test]
 fn test_lexical_keyword_prefix_accepted() {
     let input = Input::from("forall");
-    let result = parse_lexical_identifier(&input).expect("Parse failed");
-    let actual = to_sexpr(result.as_parse_tree_ref());
+    let ctx = ParseContext::new();
+    let result = parse_lexical_identifier(&input, &ctx).expect("Parse failed");
+    let actual = to_sexpr(result.tree.as_parse_tree());
     check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), "lexical_keyword_prefix"));
 }

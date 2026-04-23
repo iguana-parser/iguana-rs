@@ -4,11 +4,11 @@ use core::fmt;
 use std::{fmt::Write, vec::IntoIter};
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
-    parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
+    parse_tree::{Bump, OneOrMany, ParseContext, ParseTreeBuilder, visit_sppf},
     parser::Parser, sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
 use crate::parser::MultipleExceptParser;
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum TokenKind {
     //Identifier
     T0,
@@ -33,31 +33,60 @@ impl TokenKind {
         }
     }
 }
-#[derive(Debug)]
-pub enum ParseTree {
-    SyntaxIdentifier(SyntaxIdentifier),
-    LexicalIdentifier(LexicalIdentifier),
+#[derive(Debug, Clone, Copy)]
+pub enum ParseTree<'a> {
+    SyntaxIdentifier(&'a SyntaxIdentifier),
+    LexicalIdentifier(&'a LexicalIdentifier),
     Token(Token),
 }
-impl ParseTree {
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+impl<'a> ParseTree<'a> {
+    pub fn children(&self) -> Vec<ParseTree<'a>> {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => {
-                syntax_identifier.as_parse_tree_ref()
+                (0..syntax_identifier.child_count())
+                    .filter_map(|i| syntax_identifier.child(i))
+                    .collect()
             }
             ParseTree::LexicalIdentifier(lexical_identifier) => {
-                lexical_identifier.as_parse_tree_ref()
+                (0..lexical_identifier.child_count())
+                    .filter_map(|i| lexical_identifier.child(i))
+                    .collect()
             }
-            ParseTree::Token(token) => token.as_parse_tree_ref(),
+            ParseTree::Token(_) => vec![],
         }
     }
-    fn unwrap_syntax_identifier(self) -> SyntaxIdentifier {
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            ParseTree::SyntaxIdentifier(_) => "SyntaxIdentifier",
+            ParseTree::LexicalIdentifier(_) => "LexicalIdentifier",
+            ParseTree::Token(token) => token.kind.name(),
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        match self {
+            ParseTree::SyntaxIdentifier(syntax_identifier) => {
+                syntax_identifier.child_count()
+            }
+            ParseTree::LexicalIdentifier(lexical_identifier) => {
+                lexical_identifier.child_count()
+            }
+            ParseTree::Token(_) => 0,
+        }
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier.span(),
+            ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier.span(),
+            ParseTree::Token(token) => token.span(),
+        }
+    }
+    fn unwrap_syntax_identifier(self) -> &'a SyntaxIdentifier {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier,
             _ => panic!(),
         }
     }
-    fn unwrap_lexical_identifier(self) -> LexicalIdentifier {
+    fn unwrap_lexical_identifier(self) -> &'a LexicalIdentifier {
         match self {
             ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier,
             _ => panic!(),
@@ -70,91 +99,8 @@ impl ParseTree {
         }
     }
 }
-#[derive(Clone, Copy)]
-pub enum ParseTreeRef<'a> {
-    SyntaxIdentifier(&'a SyntaxIdentifier),
-    LexicalIdentifier(&'a LexicalIdentifier),
-    Token(&'a Token),
-}
-impl<'a> ParseTreeRef<'a> {
-    pub fn children(&self) -> Vec<ParseTreeRef<'a>> {
-        match self {
-            ParseTreeRef::SyntaxIdentifier(syntax_identifier) => {
-                (0..syntax_identifier.child_count())
-                    .filter_map(|i| syntax_identifier.child(i))
-                    .collect()
-            }
-            ParseTreeRef::LexicalIdentifier(lexical_identifier) => {
-                (0..lexical_identifier.child_count())
-                    .filter_map(|i| lexical_identifier.child(i))
-                    .collect()
-            }
-            ParseTreeRef::Token(_) => vec![],
-        }
-    }
-    pub fn display_name(&self) -> &'static str {
-        match self {
-            ParseTreeRef::SyntaxIdentifier(_) => "SyntaxIdentifier",
-            ParseTreeRef::LexicalIdentifier(_) => "LexicalIdentifier",
-            ParseTreeRef::Token(token) => token.kind.name(),
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        match self {
-            ParseTreeRef::SyntaxIdentifier(syntax_identifier) => {
-                syntax_identifier.child_count()
-            }
-            ParseTreeRef::LexicalIdentifier(lexical_identifier) => {
-                lexical_identifier.child_count()
-            }
-            ParseTreeRef::Token(_) => 0,
-        }
-    }
-    pub fn span(&self) -> Span {
-        match self {
-            ParseTreeRef::SyntaxIdentifier(syntax_identifier) => syntax_identifier.span(),
-            ParseTreeRef::LexicalIdentifier(lexical_identifier) => {
-                lexical_identifier.span()
-            }
-            ParseTreeRef::Token(token) => token.span(),
-        }
-    }
-}
-impl From<SyntaxIdentifier> for ParseTree {
-    fn from(syntax_identifier: SyntaxIdentifier) -> Self {
-        ParseTree::SyntaxIdentifier(syntax_identifier)
-    }
-}
-impl From<LexicalIdentifier> for ParseTree {
-    fn from(lexical_identifier: LexicalIdentifier) -> Self {
-        ParseTree::LexicalIdentifier(lexical_identifier)
-    }
-}
-pub trait AsParseTreeRef {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_>;
-}
-impl AsParseTreeRef for SyntaxIdentifier {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
-impl AsParseTreeRef for LexicalIdentifier {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
-impl AsParseTreeRef for Token {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
-impl AsParseTreeRef for ParseTree {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
 pub trait ListNode<'a> {
-    fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
+    fn iter(&'a self) -> IntoIter<ParseTree<'a>>;
 }
 pub trait OptNode {
     type Inner;
@@ -172,48 +118,58 @@ pub struct LexicalIdentifier {
     pub identifier: Token,
     pub span: Span,
 }
-impl SyntaxIdentifier {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+impl<'a> SyntaxIdentifier {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::SyntaxIdentifier(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
-            0 => Some(self.identifier_chars.as_parse_tree_ref()),
+            0 => {
+                Some({
+                    let identifier_chars = &self.identifier_chars;
+                    ParseTree::Token(*identifier_chars)
+                })
+            }
             _ => None,
         }
     }
     pub fn child_count(&self) -> usize {
         1usize
     }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::SyntaxIdentifier(self)
-    }
     pub fn span(&self) -> Span {
         self.span
     }
 }
-impl LexicalIdentifier {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+impl<'a> LexicalIdentifier {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::LexicalIdentifier(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
-            0 => Some(self.identifier.as_parse_tree_ref()),
+            0 => {
+                Some({
+                    let identifier = &self.identifier;
+                    ParseTree::Token(*identifier)
+                })
+            }
             _ => None,
         }
     }
     pub fn child_count(&self) -> usize {
         1usize
     }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::LexicalIdentifier(self)
-    }
     pub fn span(&self) -> Span {
         self.span
     }
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Token {
     pub kind: TokenKind,
     span: Span,
 }
 impl Token {
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::Token(self)
+    pub fn as_parse_tree<'a>(&self) -> ParseTree<'a> {
+        ParseTree::Token(*self)
     }
     pub fn span(&self) -> Span {
         self.span
@@ -234,13 +190,20 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
-pub struct MultipleExceptParseTreeBuilder;
-impl ParseTreeBuilder<ParseTree> for MultipleExceptParseTreeBuilder {
+pub struct MultipleExceptParseTreeBuilder<'a> {
+    pub bump: &'a Bump,
+}
+impl<'a> MultipleExceptParseTreeBuilder<'a> {
+    pub fn new(ctx: &'a ParseContext) -> Self {
+        Self { bump: ctx.bump() }
+    }
+}
+impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> {
     fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree>,
-    ) -> ParseTree {
+        children: OneOrMany<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
         match nonterminal_node.nonterminal_id {
             //SyntaxIdentifier
             NonterminalId(0) => {
@@ -248,11 +211,14 @@ impl ParseTreeBuilder<ParseTree> for MultipleExceptParseTreeBuilder {
                     //SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
                     SlotId(1) => {
                         let [identifier_chars] = children.into_array::<1usize>();
-                        SyntaxIdentifier {
-                            identifier_chars: identifier_chars.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::SyntaxIdentifier(
+                            self
+                                .bump
+                                .alloc(SyntaxIdentifier {
+                                    identifier_chars: identifier_chars.unwrap_token(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     _ => unreachable!(),
                 }
@@ -263,11 +229,14 @@ impl ParseTreeBuilder<ParseTree> for MultipleExceptParseTreeBuilder {
                     //LexicalIdentifier : Identifier.
                     SlotId(3) => {
                         let [identifier] = children.into_array::<1usize>();
-                        LexicalIdentifier {
-                            identifier: identifier.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::LexicalIdentifier(
+                            self
+                                .bump
+                                .alloc(LexicalIdentifier {
+                                    identifier: identifier.unwrap_token(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     _ => unreachable!(),
                 }
@@ -275,19 +244,19 @@ impl ParseTreeBuilder<ParseTree> for MultipleExceptParseTreeBuilder {
             _ => unreachable!(),
         }
     }
-    fn new_token(&self, terminal_node: &TerminalNode) -> ParseTree {
+    fn new_token(&self, terminal_node: &TerminalNode) -> ParseTree<'a> {
         ParseTree::Token(Token {
             kind: token_kind(terminal_node.terminal_id),
             span: terminal_node.span,
         })
     }
 }
-pub fn create_parse_tree(
+pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
     nonterminal_id: NonterminalId,
     parser: &MultipleExceptParser,
-    builder: &MultipleExceptParseTreeBuilder,
-) -> ParseTree {
+    builder: &MultipleExceptParseTreeBuilder<'a>,
+) -> ParseTree<'a> {
     match nonterminal_id {
         crate::grammar_data::SYNTAX_IDENTIFIER => {
             ParseTree::SyntaxIdentifier(
@@ -302,32 +271,28 @@ pub fn create_parse_tree(
         _ => panic!(),
     }
 }
-pub fn create_parse_tree_syntax_identifier(
+pub fn create_parse_tree_syntax_identifier<'a>(
     root_id: SPPFNodeId,
     parser: &MultipleExceptParser,
-    builder: &MultipleExceptParseTreeBuilder,
-) -> SyntaxIdentifier {
+    builder: &MultipleExceptParseTreeBuilder<'a>,
+) -> &'a SyntaxIdentifier {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_syntax_identifier()
 }
-pub fn create_parse_tree_lexical_identifier(
+pub fn create_parse_tree_lexical_identifier<'a>(
     root_id: SPPFNodeId,
     parser: &MultipleExceptParser,
-    builder: &MultipleExceptParseTreeBuilder,
-) -> LexicalIdentifier {
+    builder: &MultipleExceptParseTreeBuilder<'a>,
+) -> &'a LexicalIdentifier {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_lexical_identifier()
 }
-pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
+pub fn to_sexpr(node: ParseTree<'_>) -> String {
     let mut s = String::new();
     node_to_sexpr(node, 0, &mut s).expect("error");
     s
 }
-fn node_to_sexpr(
-    node: ParseTreeRef<'_>,
-    indent: usize,
-    w: &mut impl Write,
-) -> fmt::Result {
+fn node_to_sexpr(node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
     let children = node.children();
     if children.is_empty() {
         writeln!(w, "{:indent$}{}", "", node.display_name())
@@ -341,7 +306,7 @@ fn node_to_sexpr(
 }
 /// Converts a parse tree to JSON format for visualization.
 /// Returns a JSON string with nodes and edges arrays.
-pub fn to_json(node: ParseTreeRef<'_>) -> String {
+pub fn to_json(node: ParseTree<'_>) -> String {
     let mut nodes = Vec::new();
     let mut edges = Vec::new();
     let mut next_id = 0u32;
@@ -350,7 +315,7 @@ pub fn to_json(node: ParseTreeRef<'_>) -> String {
     result.to_string()
 }
 fn build_json_graph(
-    node: ParseTreeRef<'_>,
+    node: ParseTree<'_>,
     nodes: &mut Vec<serde_json::Value>,
     edges: &mut Vec<serde_json::Value>,
     next_id: &mut u32,
@@ -359,7 +324,7 @@ fn build_json_graph(
     *next_id += 1;
     let span = node.span();
     let kind = match node {
-        ParseTreeRef::Token(_) => "Token",
+        ParseTree::Token(_) => "Token",
         _ => "Nonterminal",
     };
     nodes

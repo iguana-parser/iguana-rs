@@ -4,11 +4,11 @@ use core::fmt;
 use std::{fmt::Write, vec::IntoIter};
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
-    parse_tree::{OneOrMany, ParseTreeBuilder, visit_sppf},
+    parse_tree::{Bump, OneOrMany, ParseContext, ParseTreeBuilder, visit_sppf},
     parser::Parser, sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
 use crate::parser::FollowRestrictionLexicalParser;
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum TokenKind {
     //Num
     T0,
@@ -30,36 +30,62 @@ impl TokenKind {
         }
     }
 }
-#[derive(Debug)]
-pub enum ParseTree {
-    S(S),
-    Element(Element),
+#[derive(Debug, Clone, Copy)]
+pub enum ParseTree<'a> {
+    S(&'a S<'a>),
+    Element(&'a Element<'a>),
     //Element+
-    SPlus0(SPlus0),
+    SPlus0(&'a SPlus0<'a>),
     Token(Token),
 }
-impl ParseTree {
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
+impl<'a> ParseTree<'a> {
+    pub fn children(&self) -> Vec<ParseTree<'a>> {
         match self {
-            ParseTree::S(s) => s.as_parse_tree_ref(),
-            ParseTree::Element(element) => element.as_parse_tree_ref(),
-            ParseTree::SPlus0(s_plus_0) => s_plus_0.as_parse_tree_ref(),
-            ParseTree::Token(token) => token.as_parse_tree_ref(),
+            ParseTree::S(s) => (0..s.child_count()).filter_map(|i| s.child(i)).collect(),
+            ParseTree::Element(element) => {
+                (0..element.child_count()).filter_map(|i| element.child(i)).collect()
+            }
+            ParseTree::SPlus0(s_plus_0) => s_plus_0.iter().collect(),
+            ParseTree::Token(_) => vec![],
         }
     }
-    fn unwrap_s(self) -> S {
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            ParseTree::S(_) => "S",
+            ParseTree::Element(_) => "Element",
+            ParseTree::SPlus0(_) => "Element+",
+            ParseTree::Token(token) => token.kind.name(),
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        match self {
+            ParseTree::S(s) => s.child_count(),
+            ParseTree::Element(element) => element.child_count(),
+            ParseTree::SPlus0(s_plus_0) => s_plus_0.child_count(),
+            ParseTree::Token(_) => 0,
+        }
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            ParseTree::S(s) => s.span(),
+            ParseTree::Element(element) => element.span(),
+            ParseTree::SPlus0(s_plus_0) => s_plus_0.span(),
+            ParseTree::Token(token) => token.span(),
+        }
+    }
+    fn unwrap_s(self) -> &'a S<'a> {
         match self {
             ParseTree::S(s) => s,
             _ => panic!(),
         }
     }
-    fn unwrap_element(self) -> Element {
+    fn unwrap_element(self) -> &'a Element<'a> {
         match self {
             ParseTree::Element(element) => element,
             _ => panic!(),
         }
     }
-    fn unwrap_s_plus_0(self) -> SPlus0 {
+    fn unwrap_s_plus_0(self) -> &'a SPlus0<'a> {
         match self {
             ParseTree::SPlus0(s_plus_0) => s_plus_0,
             _ => panic!(),
@@ -72,96 +98,8 @@ impl ParseTree {
         }
     }
 }
-#[derive(Clone, Copy)]
-pub enum ParseTreeRef<'a> {
-    S(&'a S),
-    Element(&'a Element),
-    SPlus0(&'a SPlus0),
-    Token(&'a Token),
-}
-impl<'a> ParseTreeRef<'a> {
-    pub fn children(&self) -> Vec<ParseTreeRef<'a>> {
-        match self {
-            ParseTreeRef::S(s) => {
-                (0..s.child_count()).filter_map(|i| s.child(i)).collect()
-            }
-            ParseTreeRef::Element(element) => {
-                (0..element.child_count()).filter_map(|i| element.child(i)).collect()
-            }
-            ParseTreeRef::SPlus0(s_plus_0) => s_plus_0.iter().collect(),
-            ParseTreeRef::Token(_) => vec![],
-        }
-    }
-    pub fn display_name(&self) -> &'static str {
-        match self {
-            ParseTreeRef::S(_) => "S",
-            ParseTreeRef::Element(_) => "Element",
-            ParseTreeRef::SPlus0(_) => "Element+",
-            ParseTreeRef::Token(token) => token.kind.name(),
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        match self {
-            ParseTreeRef::S(s) => s.child_count(),
-            ParseTreeRef::Element(element) => element.child_count(),
-            ParseTreeRef::SPlus0(s_plus_0) => s_plus_0.child_count(),
-            ParseTreeRef::Token(_) => 0,
-        }
-    }
-    pub fn span(&self) -> Span {
-        match self {
-            ParseTreeRef::S(s) => s.span(),
-            ParseTreeRef::Element(element) => element.span(),
-            ParseTreeRef::SPlus0(s_plus_0) => s_plus_0.span(),
-            ParseTreeRef::Token(token) => token.span(),
-        }
-    }
-}
-impl From<S> for ParseTree {
-    fn from(s: S) -> Self {
-        ParseTree::S(s)
-    }
-}
-impl From<Element> for ParseTree {
-    fn from(element: Element) -> Self {
-        ParseTree::Element(element)
-    }
-}
-impl From<SPlus0> for ParseTree {
-    fn from(s_plus_0: SPlus0) -> Self {
-        ParseTree::SPlus0(s_plus_0)
-    }
-}
-pub trait AsParseTreeRef {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_>;
-}
-impl AsParseTreeRef for S {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
-impl AsParseTreeRef for Element {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
-impl AsParseTreeRef for SPlus0 {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
-impl AsParseTreeRef for Token {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
-impl AsParseTreeRef for ParseTree {
-    fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        self.as_parse_tree_ref()
-    }
-}
 pub trait ListNode<'a> {
-    fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>>;
+    fn iter(&'a self) -> IntoIter<ParseTree<'a>>;
 }
 pub trait OptNode {
     type Inner;
@@ -169,142 +107,156 @@ pub trait OptNode {
 }
 //S = Element+
 #[derive(Debug)]
-pub struct S {
-    pub elements: SPlus0,
+pub struct S<'a> {
+    pub elements: &'a SPlus0<'a>,
     pub span: Span,
 }
 #[derive(Debug)]
-pub enum Element {
+pub enum Element<'a> {
     //Num
     Alt0 { num: Token, span: Span },
     //Id
     Alt1 { id: Token, span: Span },
+    Amb(&'a [&'a Element<'a>]),
 }
 //Element+
 #[derive(Debug)]
-pub enum SPlus0 {
+pub enum SPlus0<'a> {
     //Element+ WS Element
-    Alt0 { elements: Box<SPlus0>, ws: Token, element_2: Box<Element>, span: Span },
+    Alt0 { elements: &'a SPlus0<'a>, ws: Token, element_2: &'a Element<'a>, span: Span },
     //Element
-    Alt1 { element: Box<Element>, span: Span },
+    Alt1 { element: &'a Element<'a>, span: Span },
+    Amb(&'a [&'a SPlus0<'a>]),
 }
-impl S {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+impl<'a> S<'a> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::S(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
-            0 => Some(self.elements.as_parse_tree_ref()),
+            0 => {
+                Some({
+                    let elements = &self.elements;
+                    ParseTree::SPlus0(elements)
+                })
+            }
             _ => None,
         }
     }
     pub fn child_count(&self) -> usize {
         1usize
     }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::S(self)
-    }
     pub fn span(&self) -> Span {
         self.span
     }
-    pub fn elements(&self) -> impl Iterator<Item = &Element> {
+    pub fn elements(&self) -> impl Iterator<Item = &'a Element<'a>> {
         self.elements.elements()
     }
 }
-impl Element {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+impl<'a> Element<'a> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::Element(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Element::Alt0 { num, .. } => {
                 match index {
-                    0 => Some(num.as_parse_tree_ref()),
+                    0 => Some(ParseTree::Token(*num)),
                     _ => None,
                 }
             }
             Element::Alt1 { id, .. } => {
                 match index {
-                    0 => Some(id.as_parse_tree_ref()),
+                    0 => Some(ParseTree::Token(*id)),
                     _ => None,
                 }
             }
+            Element::Amb(_) => None,
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
             Element::Alt0 { .. } => 1usize,
             Element::Alt1 { .. } => 1usize,
+            Element::Amb(alts) => alts.len(),
         }
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::Element(self)
     }
     pub fn span(&self) -> Span {
         match self {
             Element::Alt0 { span, .. } => *span,
             Element::Alt1 { span, .. } => *span,
+            Element::Amb(alts) => alts[0].span(),
         }
     }
 }
-impl SPlus0 {
-    pub fn child(&self, index: usize) -> Option<ParseTreeRef<'_>> {
+impl<'a> SPlus0<'a> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::SPlus0(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             SPlus0::Alt0 { elements, ws, element_2, .. } => {
                 match index {
-                    0 => Some(elements.as_parse_tree_ref()),
-                    1 => Some(ws.as_parse_tree_ref()),
-                    2 => Some(element_2.as_parse_tree_ref()),
+                    0 => Some(ParseTree::SPlus0(elements)),
+                    1 => Some(ParseTree::Token(*ws)),
+                    2 => Some(ParseTree::Element(element_2)),
                     _ => None,
                 }
             }
             SPlus0::Alt1 { element, .. } => {
                 match index {
-                    0 => Some(element.as_parse_tree_ref()),
+                    0 => Some(ParseTree::Element(element)),
                     _ => None,
                 }
             }
+            SPlus0::Amb(_) => None,
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
             SPlus0::Alt0 { .. } => 3usize,
             SPlus0::Alt1 { .. } => 1usize,
+            SPlus0::Amb(alts) => alts.len(),
         }
-    }
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::SPlus0(self)
     }
     pub fn span(&self) -> Span {
         match self {
             SPlus0::Alt0 { span, .. } => *span,
             SPlus0::Alt1 { span, .. } => *span,
+            SPlus0::Amb(alts) => alts[0].span(),
         }
     }
-    pub fn elements(&self) -> impl Iterator<Item = &Element> {
+    pub fn elements(&'a self) -> impl Iterator<Item = &'a Element<'a>> {
         self.iter()
             .filter_map(|node| match node {
-                ParseTreeRef::Element(r) => Some(r),
+                ParseTree::Element(r) => Some(r),
                 _ => None,
             })
     }
 }
-impl<'a> ListNode<'a> for SPlus0 {
-    fn iter(&'a self) -> IntoIter<ParseTreeRef<'a>> {
+impl<'a> ListNode<'a> for SPlus0<'a> {
+    fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
         let mut items = vec![];
         let mut current = self;
         loop {
             match current {
                 SPlus0::Alt0 { elements: rest, ws: layout, element_2: item, .. } => {
-                    items.push(item.as_parse_tree_ref());
-                    items.push(layout.as_parse_tree_ref());
-                    current = rest.as_ref();
+                    items.push(item.as_parse_tree());
+                    items.push(layout.as_parse_tree());
+                    current = rest;
                 }
                 SPlus0::Alt1 { element: item, .. } => {
-                    items.push(item.as_parse_tree_ref());
+                    items.push(item.as_parse_tree());
                     break;
                 }
+                SPlus0::Amb(_) => panic!("unexpected ambiguity in list node"),
             }
         }
         items.reverse();
         items.into_iter()
     }
 }
-impl Element {
+impl<'a> Element<'a> {
     pub fn as_num(&self) -> Option<&Token> {
         match self {
             Element::Alt0 { num, .. } => Some(num),
@@ -318,14 +270,14 @@ impl Element {
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Token {
     pub kind: TokenKind,
     span: Span,
 }
 impl Token {
-    pub fn as_parse_tree_ref(&self) -> ParseTreeRef<'_> {
-        ParseTreeRef::Token(self)
+    pub fn as_parse_tree<'a>(&self) -> ParseTree<'a> {
+        ParseTree::Token(*self)
     }
     pub fn span(&self) -> Span {
         self.span
@@ -344,13 +296,21 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
-pub struct FollowRestrictionLexicalParseTreeBuilder;
-impl ParseTreeBuilder<ParseTree> for FollowRestrictionLexicalParseTreeBuilder {
+pub struct FollowRestrictionLexicalParseTreeBuilder<'a> {
+    pub bump: &'a Bump,
+}
+impl<'a> FollowRestrictionLexicalParseTreeBuilder<'a> {
+    pub fn new(ctx: &'a ParseContext) -> Self {
+        Self { bump: ctx.bump() }
+    }
+}
+impl<'a> ParseTreeBuilder<ParseTree<'a>>
+for FollowRestrictionLexicalParseTreeBuilder<'a> {
     fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree>,
-    ) -> ParseTree {
+        children: OneOrMany<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
         match nonterminal_node.nonterminal_id {
             //S
             NonterminalId(0) => {
@@ -358,11 +318,14 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionLexicalParseTreeBuilder {
                     //S : Element+.
                     SlotId(1) => {
                         let [elements] = children.into_array::<1usize>();
-                        S {
-                            elements: elements.unwrap_s_plus_0(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::S(
+                            self
+                                .bump
+                                .alloc(S {
+                                    elements: elements.unwrap_s_plus_0(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     _ => unreachable!(),
                 }
@@ -373,20 +336,26 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionLexicalParseTreeBuilder {
                     //Element : Num.
                     SlotId(3) => {
                         let [num] = children.into_array::<1usize>();
-                        Element::Alt0 {
-                            num: num.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::Element(
+                            self
+                                .bump
+                                .alloc(Element::Alt0 {
+                                    num: num.unwrap_token(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     //Element : Id.
                     SlotId(5) => {
                         let [id] = children.into_array::<1usize>();
-                        Element::Alt1 {
-                            id: id.unwrap_token(),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::Element(
+                            self
+                                .bump
+                                .alloc(Element::Alt1 {
+                                    id: id.unwrap_token(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     _ => unreachable!(),
                 }
@@ -397,22 +366,28 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionLexicalParseTreeBuilder {
                     //Element+ : Element+ WS Element.
                     SlotId(9) => {
                         let [elements, ws, element_2] = children.into_array::<3usize>();
-                        SPlus0::Alt0 {
-                            elements: Box::new(elements.unwrap_s_plus_0()),
-                            ws: ws.unwrap_token(),
-                            element_2: Box::new(element_2.unwrap_element()),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::SPlus0(
+                            self
+                                .bump
+                                .alloc(SPlus0::Alt0 {
+                                    elements: elements.unwrap_s_plus_0(),
+                                    ws: ws.unwrap_token(),
+                                    element_2: element_2.unwrap_element(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     //Element+ : Element.
                     SlotId(11) => {
                         let [element] = children.into_array::<1usize>();
-                        SPlus0::Alt1 {
-                            element: Box::new(element.unwrap_element()),
-                            span: nonterminal_node.span,
-                        }
-                            .into()
+                        ParseTree::SPlus0(
+                            self
+                                .bump
+                                .alloc(SPlus0::Alt1 {
+                                    element: element.unwrap_element(),
+                                    span: nonterminal_node.span,
+                                }),
+                        )
                     }
                     _ => unreachable!(),
                 }
@@ -420,19 +395,19 @@ impl ParseTreeBuilder<ParseTree> for FollowRestrictionLexicalParseTreeBuilder {
             _ => unreachable!(),
         }
     }
-    fn new_token(&self, terminal_node: &TerminalNode) -> ParseTree {
+    fn new_token(&self, terminal_node: &TerminalNode) -> ParseTree<'a> {
         ParseTree::Token(Token {
             kind: token_kind(terminal_node.terminal_id),
             span: terminal_node.span,
         })
     }
 }
-pub fn create_parse_tree(
+pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
     nonterminal_id: NonterminalId,
     parser: &FollowRestrictionLexicalParser,
-    builder: &FollowRestrictionLexicalParseTreeBuilder,
-) -> ParseTree {
+    builder: &FollowRestrictionLexicalParseTreeBuilder<'a>,
+) -> ParseTree<'a> {
     match nonterminal_id {
         crate::grammar_data::S => {
             ParseTree::S(create_parse_tree_s(root_id, parser, builder))
@@ -446,40 +421,36 @@ pub fn create_parse_tree(
         _ => panic!(),
     }
 }
-pub fn create_parse_tree_s(
+pub fn create_parse_tree_s<'a>(
     root_id: SPPFNodeId,
     parser: &FollowRestrictionLexicalParser,
-    builder: &FollowRestrictionLexicalParseTreeBuilder,
-) -> S {
+    builder: &FollowRestrictionLexicalParseTreeBuilder<'a>,
+) -> &'a S<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
 }
-pub fn create_parse_tree_element(
+pub fn create_parse_tree_element<'a>(
     root_id: SPPFNodeId,
     parser: &FollowRestrictionLexicalParser,
-    builder: &FollowRestrictionLexicalParseTreeBuilder,
-) -> Element {
+    builder: &FollowRestrictionLexicalParseTreeBuilder<'a>,
+) -> &'a Element<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_element()
 }
-pub fn create_parse_tree_s_plus_0(
+pub fn create_parse_tree_s_plus_0<'a>(
     root_id: SPPFNodeId,
     parser: &FollowRestrictionLexicalParser,
-    builder: &FollowRestrictionLexicalParseTreeBuilder,
-) -> SPlus0 {
+    builder: &FollowRestrictionLexicalParseTreeBuilder<'a>,
+) -> &'a SPlus0<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_s_plus_0()
 }
-pub fn to_sexpr(node: ParseTreeRef<'_>) -> String {
+pub fn to_sexpr(node: ParseTree<'_>) -> String {
     let mut s = String::new();
     node_to_sexpr(node, 0, &mut s).expect("error");
     s
 }
-fn node_to_sexpr(
-    node: ParseTreeRef<'_>,
-    indent: usize,
-    w: &mut impl Write,
-) -> fmt::Result {
+fn node_to_sexpr(node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
     let children = node.children();
     if children.is_empty() {
         writeln!(w, "{:indent$}{}", "", node.display_name())
@@ -493,7 +464,7 @@ fn node_to_sexpr(
 }
 /// Converts a parse tree to JSON format for visualization.
 /// Returns a JSON string with nodes and edges arrays.
-pub fn to_json(node: ParseTreeRef<'_>) -> String {
+pub fn to_json(node: ParseTree<'_>) -> String {
     let mut nodes = Vec::new();
     let mut edges = Vec::new();
     let mut next_id = 0u32;
@@ -502,7 +473,7 @@ pub fn to_json(node: ParseTreeRef<'_>) -> String {
     result.to_string()
 }
 fn build_json_graph(
-    node: ParseTreeRef<'_>,
+    node: ParseTree<'_>,
     nodes: &mut Vec<serde_json::Value>,
     edges: &mut Vec<serde_json::Value>,
     next_id: &mut u32,
@@ -511,7 +482,7 @@ fn build_json_graph(
     *next_id += 1;
     let span = node.span();
     let kind = match node {
-        ParseTreeRef::Token(_) => "Token",
+        ParseTree::Token(_) => "Token",
         _ => "Nonterminal",
     };
     nodes

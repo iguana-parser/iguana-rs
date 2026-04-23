@@ -8,8 +8,10 @@ pub mod types;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::time::Duration;
-use iguana_runtime::{input::Input, parser::{ParseResult, Parser}};
-use parse_tree::PrecedeRestrictionLexicalParseTreeBuilder;
+use iguana_runtime::{
+    input::Input, parse_tree::ParseContext, parser::{ParseResult, Parser},
+};
+use parse_tree::*;
 use parser::PrecedeRestrictionLexicalParser;
 #[derive(Debug)]
 pub struct ParseError {
@@ -31,21 +33,20 @@ pub struct ParseSuccess<T> {
     pub parse_duration: Duration,
     pub tree_construction_duration: Duration,
 }
-impl<T: parse_tree::AsParseTreeRef> ParseSuccess<T> {
-    pub fn as_parse_tree_ref(&self) -> parse_tree::ParseTreeRef<'_> {
-        self.tree.as_parse_tree_ref()
-    }
-}
-pub fn parse_s(input: &Input) -> Result<ParseSuccess<parse_tree::S>, ParseError> {
+pub fn parse_s<'a>(
+    input: &Input,
+    ctx: &'a ParseContext,
+) -> Result<ParseSuccess<&'a S<'a>>, ParseError> {
     let mut parser = PrecedeRestrictionLexicalParser::new(input, grammar_data::S);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = std::time::Instant::now();
+            let parse_tree_builder = PrecedeRestrictionLexicalParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_s(
                 success.sppf_node_id,
                 &parser,
-                &PrecedeRestrictionLexicalParseTreeBuilder,
+                &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
             Ok(ParseSuccess {
