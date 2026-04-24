@@ -5,7 +5,7 @@
 
 use by_address::ByAddress;
 use iguana::grammar::def::{GrammarDef, SyntaxRule};
-use iguana::grammar::symbols::Symbol;
+use iguana::grammar::symbols::{DefinitionId, Symbol};
 use iguana_runtime::{input::Input, sppf::Span};
 use rustc_hash::FxHashMap;
 use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
@@ -19,6 +19,8 @@ pub fn diagnostics(
 ) -> Vec<Diagnostic> {
     let mut out = Vec::new();
 
+    check_duplicate_definitions(grammar_def, spans, input, &mut out);
+
     grammar_def.for_each_identifier(&mut |id| {
         if id.definition.is_none() {
             if let Some(span) = spans.identifier_span(id) {
@@ -30,6 +32,37 @@ pub fn diagnostics(
     check_exclude_labels(grammar_def, spans, input, &mut out);
 
     out
+}
+
+fn check_duplicate_definitions(
+    grammar_def: &GrammarDef,
+    spans: &GrammarSpans<'_>,
+    input: &Input,
+    out: &mut Vec<Diagnostic>,
+) {
+    let lex_count = grammar_def.lexical_rules.len();
+    let mut seen = FxHashMap::default();
+
+    for (i, rule) in grammar_def.lexical_rules.iter().enumerate() {
+        let def_id = DefinitionId(i as u16);
+        if let Some(&head_span) = spans.definition_spans.get(&def_id) {
+            if seen.contains_key(rule.head.name.as_str()) {
+                out.push(make_diagnostic("Duplicate definition", &rule.head.name, head_span, input));
+            } else {
+                seen.insert(rule.head.name.as_str(), head_span);
+            }
+        }
+    }
+    for (i, rule) in grammar_def.syntax_rules.iter().enumerate() {
+        let def_id = DefinitionId((lex_count + i) as u16);
+        if let Some(&head_span) = spans.definition_spans.get(&def_id) {
+            if seen.contains_key(rule.head.name.as_str()) {
+                out.push(make_diagnostic("Duplicate definition", &rule.head.name, head_span, input));
+            } else {
+                seen.insert(rule.head.name.as_str(), head_span);
+            }
+        }
+    }
 }
 
 /// Reports labels in `Exclude` symbols (`A!label`) that don't match any
@@ -188,5 +221,41 @@ Primary
   = "x"
 "#);
         assert!(d.is_empty(), "expected no diagnostics, got: {:?}", d.iter().map(|d| &d.message).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn unresolved_identifier_in_priority_level() {
+        let d = diags(r#"
+grammar T
+
+Expression
+  = Primary                         #Primary
+  > left Expression "+" Expression
+  > right Expression Foo Expression
+
+Primary
+  = "x"
+"#);
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(d.len(), 1, "expected 1 diagnostic for Foo, got: {names:?}");
+        assert!(d[0].message.contains("Foo"));
+    }
+
+    #[test]
+    fn unresolved_identifier_next_to_exclude() {
+        let d = diags(r#"
+grammar T
+
+Expression
+  = Primary                                  #Primary
+  > left Expression "+" Expression           #Add
+  > right Expression!Add Foo Expression
+
+Primary
+  = "x"
+"#);
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(d.len(), 1, "expected 1 diagnostic for Foo, got: {names:?}");
+        assert!(d[0].message.contains("Foo"));
     }
 }
