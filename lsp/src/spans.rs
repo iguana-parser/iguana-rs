@@ -46,6 +46,8 @@ pub struct GrammarSpans<'a> {
     pub definition_spans: FxHashMap<DefinitionId, Span>,
     /// Maps a DefinitionId to all the spans where it is referenced in rule bodies.
     pub reference_spans: FxHashMap<DefinitionId, Vec<Span>>,
+    /// Maps each label name (from Exclude `!label` or alternative `#Label`) to its source span.
+    pub label_spans: FxHashMap<ByAddress<&'a Symbol>, Vec<Span>>,
 }
 
 impl<'a> GrammarSpans<'a> {
@@ -297,12 +299,16 @@ fn collect_symbol_spans<'a>(
                 collect_symbol_spans(ir, pt, spans);
             }
         }
-        (Symbol::Labeled { symbol: gr_inner, .. }, parse_tree::Symbol::Labeled { symbol, .. })
-        | (
+        (Symbol::Labeled { symbol: gr_inner, .. }, parse_tree::Symbol::Labeled { symbol, .. }) => {
+            collect_symbol_spans(gr_inner, symbol, spans);
+        }
+        (
             Symbol::Exclude { symbol: gr_inner, .. },
-            parse_tree::Symbol::Exclude { symbol, .. },
+            parse_tree::Symbol::Exclude { symbol, labels, .. },
         ) => {
             collect_symbol_spans(gr_inner, symbol, spans);
+            let label_spans: Vec<Span> = labels.identifiers().map(|t| t.span()).collect();
+            spans.label_spans.insert(ByAddress(gr_sym), label_spans);
         }
         (
             Symbol::Except { symbol: gr_inner, except, .. },

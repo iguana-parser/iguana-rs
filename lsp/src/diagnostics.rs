@@ -3,8 +3,11 @@
 // Walks resolved GrammarDef symbols and reports identifiers with
 // definition: None as unresolved reference errors.
 
-use iguana::grammar::def::GrammarDef;
+use by_address::ByAddress;
+use iguana::grammar::def::{GrammarDef, SyntaxRule};
+use iguana::grammar::symbols::Symbol;
 use iguana_runtime::{input::Input, sppf::Span};
+use rustc_hash::FxHashMap;
 use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
 
 use crate::spans::GrammarSpans;
@@ -19,15 +22,59 @@ pub fn diagnostics(
     grammar_def.for_each_identifier(&mut |id| {
         if id.definition.is_none() {
             if let Some(span) = spans.identifier_span(id) {
-                out.push(unresolved_diagnostic(&id.name, span, input));
+                out.push(make_diagnostic("Unresolved reference", &id.name, span, input));
             }
         }
     });
 
+    check_exclude_labels(grammar_def, spans, input, &mut out);
+
     out
 }
 
-fn unresolved_diagnostic(name: &str, span: Span, input: &Input) -> Diagnostic {
+/// Reports labels in `Exclude` symbols (`A!label`) that don't match any
+/// alternative label on the referenced nonterminal.
+fn check_exclude_labels(
+    grammar_def: &GrammarDef,
+    spans: &GrammarSpans<'_>,
+    input: &Input,
+    out: &mut Vec<Diagnostic>,
+) {
+    let rules_by_name: FxHashMap<&str, &SyntaxRule> = grammar_def
+        .syntax_rules
+        .iter()
+        .map(|r| (r.head.name.as_str(), r))
+        .collect();
+
+    grammar_def.for_each_symbol(&mut |symbol| {
+        if let Symbol::Exclude { symbol: inner, labels } = symbol {
+            if let Some(id) = inner.as_identifier() {
+                if let Some(rule) = rules_by_name.get(id.name.as_str()) {
+                    let label_spans = spans
+                        .label_spans
+                        .get(&ByAddress(symbol))
+                        .map(|v| v.as_slice())
+                        .unwrap_or_default();
+
+                    let valid_labels: Vec<&str> = rule
+                        .priority_levels
+                        .iter()
+                        .flat_map(|pl| &pl.alternatives)
+                        .filter_map(|alt| alt.label.as_deref())
+                        .collect();
+
+                    for (label, span) in labels.iter().zip(label_spans) {
+                        if !valid_labels.contains(&label.as_str()) {
+                            out.push(make_diagnostic("Unresolved label", label, *span, input));
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+fn make_diagnostic(kind: &str, name: &str, span: Span, input: &Input) -> Diagnostic {
     let (sl, sc) = input.line_column(span.left_extent);
     let (el, ec) = input.line_column(span.right_extent);
     Diagnostic {
@@ -36,7 +83,7 @@ fn unresolved_diagnostic(name: &str, span: Span, input: &Input) -> Diagnostic {
             end: Position::new(el, ec),
         },
         severity: Some(DiagnosticSeverity::ERROR),
-        message: format!("Unresolved reference '{}'", name),
+        message: format!("{kind} '{name}'"),
         ..Default::default()
     }
 }
@@ -107,5 +154,39 @@ Term
   = "x"
 "#);
         assert!(d.is_empty());
+    }
+
+    #[test]
+    fn unresolved_exclude_label() {
+        let d = diags(r#"
+grammar T
+
+Expression
+  = Primary                         #Primary
+  > left Expression "+" Expression
+  > right Expression!NoSuchLabel "=" Expression
+
+Primary
+  = "x"
+"#);
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(d.len(), 1, "expected 1 diagnostic, got: {names:?}");
+        assert!(d[0].message.contains("NoSuchLabel"));
+    }
+
+    #[test]
+    fn valid_exclude_label_no_error() {
+        let d = diags(r#"
+grammar T
+
+Expression
+  = Primary                         #Primary
+  > left Expression "+" Expression  #Add
+  > right Expression!Add "=" Expression
+
+Primary
+  = "x"
+"#);
+        assert!(d.is_empty(), "expected no diagnostics, got: {:?}", d.iter().map(|d| &d.message).collect::<Vec<_>>());
     }
 }
