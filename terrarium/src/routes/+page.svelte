@@ -146,6 +146,7 @@
       } else {
         buildStatus = "error";
         buildError = event.payload.message;
+        errorBubbleDismissed = false;
         logError(`Build failed\n${event.payload.message}`);
       }
     });
@@ -164,8 +165,9 @@
         await buildParser();
       } else {
         generateStatus = "error";
+        generateError = event.payload.message;
+        errorBubbleDismissed = false;
         logError(event.payload.message);
-        setTimeout(() => { generateStatus = "none"; }, 3000);
       }
     });
 
@@ -387,6 +389,8 @@
   // Generation state
   let isGenerating = $state(false);
   let generateStatus = $state<"none" | "success" | "error">("none");
+  let generateError = $state<string | null>(null);
+  let errorBubbleDismissed = $state(false);
   let grammarText = $state("");
   let grammarFileName = $state<string | null>(null);
 
@@ -411,6 +415,8 @@
   let outlineSelectedIndex = $state(-1);
   let outlineListEl: HTMLDivElement;
   let editorInstance: import("monaco-editor").editor.IStandaloneCodeEditor | undefined;
+  let cursorLine = $state(1);
+  let cursorColumn = $state(1);
 
   interface OutlineItem {
     sym: DocumentSymbolData;
@@ -516,6 +522,10 @@
 
   function onEditorReady(editor: import("monaco-editor").editor.IStandaloneCodeEditor) {
     editorInstance = editor;
+    editor.onDidChangeCursorPosition((e) => {
+      cursorLine = e.position.lineNumber;
+      cursorColumn = e.position.column;
+    });
   }
 
   function revealSymbol(sym: DocumentSymbolData, focusEditor = false) {
@@ -1328,6 +1338,8 @@
       parserDirectory = selected as string;
       buildStatus = "none";
       buildError = null;
+      generateStatus = "none";
+      generateError = null;
       sppf = null;
       gss = null;
       parseTree = null;
@@ -1389,6 +1401,7 @@
     generateDurationMs = null;
     buildDurationMs = null;
     generateStatus = "none";
+    generateError = null;
     const ll1Flag = buildConfig.ll1 ? "" : " --no-ll1";
     logCommand(`iguana generate --output .${ll1Flag}`);
     // Command returns immediately, results come via events; build chains after generate succeeds
@@ -2327,6 +2340,9 @@
     }
     if (!target.closest('.generate-split')) {
       generateMenuOpen = false;
+      if (!errorBubbleDismissed && (generateError || buildError)) {
+        errorBubbleDismissed = true;
+      }
     }
   }
 
@@ -2512,9 +2528,6 @@
           {/if}
         </div>
         <div class="palette-status-area">
-          {#if buildStatus === "error"}
-            <AlertTriangle size={14} class="palette-status-error" />
-          {/if}
         </div>
       </button>
       {#if grammarFileName}
@@ -2559,6 +2572,31 @@
                 <input type="checkbox" bind:checked={buildConfig.debugTrace} />
                 <span>Debug trace</span>
               </label>
+            </div>
+          {/if}
+          {#if generateStatus === "error" && generateError}
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div
+              class="generate-error-bubble"
+              class:dismissed={errorBubbleDismissed}
+              onmousedown={(e) => e.stopPropagation()}
+            >
+              <span class="generate-error-text">{generateError}</span>
+              <button class="generate-error-close" onclick={() => { errorBubbleDismissed = true; }}>
+                <X size={12} />
+              </button>
+            </div>
+          {:else if buildStatus === "error" && buildError}
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div
+              class="generate-error-bubble"
+              class:dismissed={errorBubbleDismissed}
+              onmousedown={(e) => e.stopPropagation()}
+            >
+              <span class="generate-error-text">{buildError}</span>
+              <button class="generate-error-close" onclick={() => { errorBubbleDismissed = true; }}>
+                <X size={12} />
+              </button>
             </div>
           {/if}
         </div>
@@ -3331,6 +3369,12 @@
           {statusMessage}
         {:else if parserDirectory && buildStatus === "success"}
           Parser Generated
+        {:else if generateStatus === "error"}
+          Generation failed
+        {:else if buildStatus === "error"}
+          Build failed
+        {:else if parserDirectory}
+          Ready
         {:else}
           No grammar selected
         {/if}
@@ -3343,6 +3387,7 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
       </button>
     </div>
     <div class="status-right">
+      <span class="cursor-position">Ln {cursorLine}, Col {cursorColumn}</span>
       <button
         class="status-icon-btn"
         class:active={outputPanelOpen}
@@ -5079,6 +5124,12 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     gap: 4px;
   }
 
+  .cursor-position {
+    font-size: 12px;
+    color: #888;
+    margin-right: 8px;
+  }
+
   .status-text-btn {
     position: relative;
     background: transparent;
@@ -5310,6 +5361,49 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
   .generate-split:hover:not(.busy) { background: #3a3a3a; }
   .generate-split.disabled { opacity: 0.5; }
   .generate-split.generate-error { border-color: #e05050; }
+  .generate-error-bubble {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: #352020;
+    border: 1px solid #e05050;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #f48771;
+    width: 400px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    z-index: 100;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .generate-error-bubble.dismissed {
+    display: none;
+  }
+  .generate-split:hover .generate-error-bubble.dismissed {
+    display: flex;
+  }
+  .generate-error-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .generate-error-close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: #f48771;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    opacity: 0.6;
+  }
+  .generate-error-close:hover {
+    opacity: 1;
+  }
   .generate-main,
   .generate-chevron {
     background: transparent;

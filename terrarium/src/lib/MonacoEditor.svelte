@@ -88,7 +88,8 @@
             // First: parse and cache the grammar
             const analyzeResult = await invoke<{
               success: boolean;
-              duration_ms: number;
+              parse_duration_ms: number;
+              tree_construction_duration_ms: number;
             }>("analyze_grammar", { source: model.getValue() });
 
             onAnalyzeCallback?.(analyzeResult);
@@ -284,37 +285,37 @@
     editor.addAction({
       id: "terrarium.openGrammar",
       label: "Open Grammar",
-      run: () => window.dispatchEvent(new CustomEvent("terrarium-open-grammar")),
+      run: () => { window.dispatchEvent(new CustomEvent("terrarium-open-grammar")); },
     });
     editor.addAction({
       id: "terrarium.generate",
       label: "Generate Parser",
       keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG],
-      run: () => window.dispatchEvent(new CustomEvent("terrarium-generate")),
+      run: () => { window.dispatchEvent(new CustomEvent("terrarium-generate")); },
     });
     editor.addAction({
       id: "terrarium.parse",
       label: "Parse Input",
       keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP],
-      run: () => window.dispatchEvent(new CustomEvent("terrarium-parse")),
+      run: () => { window.dispatchEvent(new CustomEvent("terrarium-parse")); },
     });
     editor.addAction({
       id: "terrarium.mode.design",
       label: "Switch to Design Mode",
       keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit1],
-      run: () => window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "design" })),
+      run: () => { window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "design" })); },
     });
     editor.addAction({
       id: "terrarium.mode.parse",
       label: "Switch to Parse Mode",
       keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit2],
-      run: () => window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "parse" })),
+      run: () => { window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "parse" })); },
     });
     editor.addAction({
       id: "terrarium.mode.debug",
       label: "Switch to Debug Mode",
       keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit3],
-      run: () => window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "debug" })),
+      run: () => { window.dispatchEvent(new CustomEvent("terrarium-mode", { detail: "debug" })); },
     });
     editor.addAction({
       id: "terrarium.formatGrammar",
