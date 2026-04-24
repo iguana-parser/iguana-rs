@@ -391,6 +391,7 @@
   let generateStatus = $state<"none" | "success" | "error">("none");
   let generateError = $state<string | null>(null);
   let errorBubbleDismissed = $state(false);
+  let errorBubbleHoverReveal = $state(false);
   let grammarText = $state("");
   let grammarFileName = $state<string | null>(null);
 
@@ -2342,6 +2343,7 @@
       generateMenuOpen = false;
       if (!errorBubbleDismissed && (generateError || buildError)) {
         errorBubbleDismissed = true;
+        errorBubbleHoverReveal = false;
       }
     }
   }
@@ -2434,6 +2436,12 @@
       }
       if (showErrorModal) {
         showErrorModal = false;
+        return;
+      }
+      // Dismiss error bubble (initial or hover-revealed)
+      if ((generateError || buildError) && (!errorBubbleDismissed || errorBubbleHoverReveal)) {
+        errorBubbleDismissed = true;
+        errorBubbleHoverReveal = false;
         return;
       }
       window.getSelection()?.removeAllRanges();
@@ -2538,6 +2546,8 @@
           class:busy={isGenerating || isBuilding}
           onmousedown={(e) => e.stopPropagation()}
           ondblclick={(e) => e.stopPropagation()}
+          onmouseenter={() => { if (errorBubbleDismissed) errorBubbleHoverReveal = true; }}
+          onmouseleave={() => { errorBubbleHoverReveal = false; }}
         >
           <button
             class="generate-main"
@@ -2578,11 +2588,11 @@
             <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
               class="generate-error-bubble"
-              class:dismissed={errorBubbleDismissed}
+              class:dismissed={errorBubbleDismissed && !errorBubbleHoverReveal}
               onmousedown={(e) => e.stopPropagation()}
             >
               <span class="generate-error-text">{generateError}</span>
-              <button class="generate-error-close" onclick={() => { errorBubbleDismissed = true; }}>
+              <button class="generate-error-close" onclick={() => { errorBubbleDismissed = true; errorBubbleHoverReveal = false; }}>
                 <X size={12} />
               </button>
             </div>
@@ -2590,11 +2600,11 @@
             <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
               class="generate-error-bubble"
-              class:dismissed={errorBubbleDismissed}
+              class:dismissed={errorBubbleDismissed && !errorBubbleHoverReveal}
               onmousedown={(e) => e.stopPropagation()}
             >
               <span class="generate-error-text">{buildError}</span>
-              <button class="generate-error-close" onclick={() => { errorBubbleDismissed = true; }}>
+              <button class="generate-error-close" onclick={() => { errorBubbleDismissed = true; errorBubbleHoverReveal = false; }}>
                 <X size={12} />
               </button>
             </div>
@@ -5382,9 +5392,6 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
   }
   .generate-error-bubble.dismissed {
     display: none;
-  }
-  .generate-split:hover .generate-error-bubble.dismissed {
-    display: flex;
   }
   .generate-error-text {
     flex: 1;
