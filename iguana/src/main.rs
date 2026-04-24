@@ -136,6 +136,12 @@ fn init_project(output: &Path, name: &str) -> std::io::Result<()> {
         println!("Created grammar: {}", grammar_file.display());
     }
 
+    // Create .gitignore if it doesn't exist
+    let gitignore = output.join(".gitignore");
+    if !gitignore.exists() {
+        std::fs::write(&gitignore, "/target\n")?;
+    }
+
     // Generate parser (creates Cargo.toml and source files)
     let cargo_toml = output.join("Cargo.toml");
     if !cargo_toml.exists() {
