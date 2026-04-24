@@ -261,6 +261,23 @@ impl GrammarDef {
         unresolved
     }
 
+    /// Returns names that are defined more than once across syntax and lexical rules.
+    pub fn duplicate_definitions(&self) -> Vec<String> {
+        let mut seen = FxHashSet::default();
+        let mut duplicates = Vec::new();
+        for rule in &self.lexical_rules {
+            if !seen.insert(&rule.head.name) {
+                duplicates.push(rule.head.name.clone());
+            }
+        }
+        for rule in &self.syntax_rules {
+            if !seen.insert(&rule.head.name) {
+                duplicates.push(rule.head.name.clone());
+            }
+        }
+        duplicates
+    }
+
 }
 
 impl TryFrom<GrammarDef> for Grammar {
@@ -271,7 +288,8 @@ impl TryFrom<GrammarDef> for Grammar {
     /// layout insertion, etc.).
     fn try_from(grammar_def: GrammarDef) -> Result<Self, Self::Error> {
         let resolved = grammar_def.resolve();
-        let mut errors = resolved.unresolved_identifiers();
+        let mut errors = resolved.duplicate_definitions();
+        errors.extend(resolved.unresolved_identifiers());
         errors.extend(resolved.unresolved_labels());
         if !errors.is_empty() {
             return Err(errors);
@@ -359,11 +377,13 @@ impl Display for GrammarDef {
 #[derive(Default, Debug, PartialEq)]
 pub struct SymbolTable {
     symbol_table: FxHashMap<String, DefinitionId>,
+    next_id: u16,
 }
 
 impl SymbolTable {
     pub fn insert(&mut self, name: String) -> DefinitionId {
-        let def_id = DefinitionId(self.symbol_table.len() as u16);
+        let def_id = DefinitionId(self.next_id);
+        self.next_id += 1;
         self.symbol_table.insert(name, def_id);
         def_id
     }
