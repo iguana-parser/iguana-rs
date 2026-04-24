@@ -2,6 +2,7 @@ use by_address::ByAddress;
 use iggy::parse_tree::{self, Layout, ParseTree};
 use iguana::grammar::{
     def::{Alternative, GrammarDef, LexicalRule, SyntaxRule},
+    regex::Regex,
     symbols::{DefinitionId, Identifier, Symbol},
 };
 use iguana_runtime::{input::Input, sppf::Span};
@@ -205,7 +206,9 @@ pub fn build_spans<'a>(
                 collect_syntax_rule_spans(gr_rule, &syntax_rule, &mut builder.spans);
                 syntax_idx += 1;
             }
-            parse_tree::Rule::RegexRule { .. } => {
+            parse_tree::Rule::RegexRule { regex_rule, .. } => {
+                let gr_rule = &grammar_def.lexical_rules[lexical_idx];
+                collect_regex_rule_spans(gr_rule, regex_rule, &mut builder.spans);
                 lexical_idx += 1;
             }
             parse_tree::Rule::Amb(_) => panic!("unexpected ambiguity"),
@@ -244,6 +247,58 @@ fn collect_syntax_rule_spans<'a>(
                 collect_symbol_spans(gr_sym, pt_sym, spans);
             }
         }
+    }
+}
+
+fn collect_regex_rule_spans<'a>(
+    gr_rule: &'a LexicalRule,
+    pt_rule: &parse_tree::RegexRule,
+    spans: &mut GrammarSpans<'a>,
+) {
+    let Regex::Alt(alts) = &gr_rule.regex else {
+        return;
+    };
+    for (gr_alt, pt_alt_regexes) in alts.iter().zip(pt_rule.body.regexes()) {
+        let Regex::Seq(parts) = gr_alt else {
+            continue;
+        };
+        for (gr_regex, pt_regex) in parts.iter().zip(pt_alt_regexes) {
+            collect_regex_spans(gr_regex, pt_regex, spans);
+        }
+    }
+}
+
+fn collect_regex_spans<'a>(
+    gr_regex: &'a Regex,
+    pt_regex: &parse_tree::Regex,
+    spans: &mut GrammarSpans<'a>,
+) {
+    match (gr_regex, pt_regex) {
+        (Regex::Identifier(id), parse_tree::Regex::Identifier { identifier, .. }) => {
+            let span = identifier.span();
+            spans.identifiers.insert(ByAddress(id), span);
+            if let Some(def_id) = id.definition {
+                spans.reference_spans.entry(def_id).or_default().push(span);
+            }
+        }
+        (Regex::Plus(inner), parse_tree::Regex::Plus { regex, .. })
+        | (Regex::Star(inner), parse_tree::Regex::Star { regex, .. })
+        | (Regex::Opt(inner), parse_tree::Regex::Opt { regex, .. }) => {
+            collect_regex_spans(inner, regex, spans);
+        }
+        (Regex::Alt(choices), parse_tree::Regex::Alt { first, rest, .. }) => {
+            let pt_regexes: Vec<&parse_tree::Regex> =
+                std::iter::once(*first).chain(rest.regexes()).collect();
+            for (gr, pt) in choices.iter().zip(pt_regexes) {
+                collect_regex_spans(gr, pt, spans);
+            }
+        }
+        (Regex::Seq(parts), parse_tree::Regex::Group { regexes, .. }) => {
+            for (gr, pt) in parts.iter().zip(regexes.regexes()) {
+                collect_regex_spans(gr, pt, spans);
+            }
+        }
+        _ => {}
     }
 }
 

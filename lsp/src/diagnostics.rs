@@ -258,4 +258,60 @@ Primary
         assert_eq!(d.len(), 1, "expected 1 diagnostic for Foo, got: {names:?}");
         assert!(d[0].message.contains("Foo"));
     }
+
+    #[test]
+    fn unresolved_regex_identifier() {
+        let d = diags(r#"
+grammar T
+
+@regex
+DecimalLiteral
+  = Digits ExponentPart
+
+@regex
+Digits
+  = [0-9]+
+"#);
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(d.len(), 1, "expected 1 diagnostic for ExponentPart, got: {names:?}");
+        assert!(d[0].message.contains("ExponentPart"));
+    }
+
+    #[test]
+    fn resolved_regex_identifier_no_error() {
+        let d = diags(r#"
+grammar T
+
+@regex
+DecimalLiteral
+  = Digits ExponentPart
+
+@regex
+Digits
+  = [0-9]+
+
+@regex
+ExponentPart
+  = [eE] [0-9]+
+"#);
+        assert!(d.is_empty(), "expected no diagnostics, got: {:?}", d.iter().map(|d| &d.message).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn unresolved_regex_identifier_in_nested_regex() {
+        let d = diags(r#"
+grammar T
+
+@regex
+FloatLiteral
+  = [0-9]+ Suffix?
+
+@regex
+Digits
+  = [0-9]+
+"#);
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(d.len(), 1, "expected 1 diagnostic for Suffix, got: {names:?}");
+        assert!(d[0].message.contains("Suffix"));
+    }
 }
