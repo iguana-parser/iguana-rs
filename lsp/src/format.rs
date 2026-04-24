@@ -13,7 +13,8 @@
 // - Blank line between every rule
 // - `@regex` annotation on the line before the regex rule head
 // - `@NoLayout` / `@Layout(X)` annotation on the line before the syntax rule head
-// - Regex rules are single-line (head = body postconditions)
+// - Regex rules with a single alternative are single-line
+// - Regex rules with multiple alternatives use multi-line layout (one per line) (head = body postconditions)
 // - Character classes have no internal spaces
 // - Comments are emitted from Layout nodes during the tree walk
 // - Final newline at end of file
@@ -103,6 +104,18 @@ impl<'a> Formatter<'a> {
         }
     }
 
+    fn symbol_to_string(&self, symbol: &Symbol) -> String {
+        let mut s = String::new();
+        self.format_symbol(&mut s, symbol);
+        s
+    }
+
+    fn regex_to_string(&self, regex: &Regex) -> String {
+        let mut s = String::new();
+        self.format_regex(&mut s, regex);
+        s
+    }
+
     fn format_syntax_rule(&self, out: &mut String, rule: &SyntaxRule) {
         for annotation in rule.annotations.annotations() {
             self.format_annotation(out, annotation);
@@ -120,27 +133,25 @@ impl<'a> Formatter<'a> {
             let alternatives: Vec<_> = pl.alternatives.alternatives().collect();
 
             let assoc_str = pl.associativity.value().map(|a| match a {
-                Associativity::Alt0 { .. } => "left ",
-                Associativity::Alt1 { .. } => "right ",
-                Associativity::Alt2 { .. } => "none ",
+                Associativity::Alt0 { .. } => "left",
+                Associativity::Alt1 { .. } => "right",
+                Associativity::Alt2 { .. } => "none",
                 Associativity::Amb(_) => panic!("unexpected ambiguity"),
             });
 
             for (ai, alt) in alternatives.iter().enumerate() {
                 let prefix = if ai == 0 { prefix_first } else { ALT_PREFIX };
-                let mut symbols_str = String::new();
-                if ai == 0 && assoc_str.is_some() {
-                    symbols_str.push_str(assoc_str.unwrap());
-                }
-                let syms: Vec<_> = alt.symbols.symbols().collect();
-                for (si, sym) in syms.iter().enumerate() {
-                    if si > 0 {
-                        symbols_str.push(' ');
+                let mut chunks: Vec<String> = Vec::new();
+                if ai == 0 {
+                    if let Some(assoc) = assoc_str {
+                        chunks.push(assoc.to_string());
                     }
-                    self.format_symbol(&mut symbols_str, sym);
+                }
+                for sym in alt.symbols.symbols() {
+                    chunks.push(self.symbol_to_string(&sym));
                 }
                 let label = alt.label.value().map(|t| self.text(t.span()));
-                let lines = wrap_line(prefix, &symbols_str, CONT_INDENT, MAX_LINE_WIDTH);
+                let lines = wrap_chunks(prefix, &chunks, CONT_INDENT, MAX_LINE_WIDTH);
                 formatted_alts.push((FormattedAlt { lines, label }, alt));
             }
         }
@@ -292,45 +303,81 @@ impl<'a> Formatter<'a> {
         }
     }
 
-    fn format_regex_rule(&self, out: &mut String, rule: &RegexRule) {
-        out.push_str("@regex\n");
-        out.push_str(&self.text(rule.identifier.span()));
-
-        if let Some(pre) = rule.pre_condition.value() {
-            out.push_str(" = ");
-            out.push_str(&self.text(pre.identifier.span()));
-            out.push_str(" !<< ");
-        } else {
-            out.push_str(" = ");
-        }
-
-        let mut first_alt = true;
-        for regex_group in rule.body.regexes() {
-            if !first_alt {
-                out.push_str(" | ");
-            }
-            first_alt = false;
-            let mut first_regex = true;
-            for regex in regex_group {
-                if !first_regex {
-                    out.push(' ');
-                }
-                first_regex = false;
-                self.format_regex(out, regex);
-            }
-        }
-
+    fn postconditions_to_string(&self, rule: &RegexRule) -> String {
+        let mut s = String::new();
         for pc in rule.post_conditions.post_conditions() {
             match pc {
                 PostCondition::Except { identifier, .. } => {
-                    out.push_str(" \\ ");
-                    out.push_str(&self.text(identifier.span()));
+                    s.push_str(" \\ ");
+                    s.push_str(&self.text(identifier.span()));
                 }
                 PostCondition::FollowRestriction { identifier, .. } => {
-                    out.push_str(" !>> ");
-                    out.push_str(&self.text(identifier.span()));
+                    s.push_str(" !>> ");
+                    s.push_str(&self.text(identifier.span()));
                 }
                 PostCondition::Amb(_) => panic!("unexpected ambiguity"),
+            }
+        }
+        s
+    }
+
+    fn format_regex_rule(&self, out: &mut String, rule: &RegexRule) {
+        out.push_str("@regex\n");
+
+        let groups: Vec<Vec<_>> = rule
+            .body
+            .regexes()
+            .map(|group| group.collect::<Vec<_>>())
+            .collect();
+
+        let pre_prefix = rule.pre_condition.value().map(|pre| {
+            format!("{} !<< ", self.text(pre.identifier.span()))
+        });
+        let pre_str = pre_prefix.as_deref().unwrap_or("");
+        let postcond = self.postconditions_to_string(rule);
+        let name = self.text(rule.identifier.span());
+
+        if groups.len() > 1 {
+            // Multi-alt: name on its own line, each alt on its own line(s)
+            out.push_str(&name);
+            for (i, group) in groups.iter().enumerate() {
+                let chunks: Vec<String> =
+                    group.iter().map(|r| self.regex_to_string(r)).collect();
+                let prefix = if i == 0 {
+                    format!("{}{}", RULE_PREFIX, pre_str)
+                } else {
+                    ALT_PREFIX.to_string()
+                };
+                let lines = wrap_chunks(&prefix, &chunks, CONT_INDENT, MAX_LINE_WIDTH);
+                for (j, line) in lines.iter().enumerate() {
+                    out.push('\n');
+                    out.push_str(line);
+                    if i == groups.len() - 1 && j == lines.len() - 1 {
+                        out.push_str(&postcond);
+                    }
+                }
+            }
+        } else {
+            // Single-alt: try single line first
+            let chunks: Vec<String> =
+                groups[0].iter().map(|r| self.regex_to_string(r)).collect();
+            let body = chunks.join(" ");
+            let single = format!("{} = {}{}{}", name, pre_str, body, postcond);
+
+            if single.len() <= MAX_LINE_WIDTH {
+                out.push_str(&single);
+            } else {
+                // Too long: name on its own line, wrapped body
+                out.push_str(&name);
+                let prefix = format!("{}{}", RULE_PREFIX, pre_str);
+                let mut lines = wrap_chunks(&prefix, &chunks, CONT_INDENT, MAX_LINE_WIDTH);
+                if let Some(last) = lines.last_mut() {
+                    last.push_str(&postcond);
+                }
+                for line in &lines {
+                    out.push('\n');
+                    out.push_str(line);
+                }
             }
         }
     }
@@ -403,31 +450,30 @@ impl<'a> Formatter<'a> {
     }
 }
 
-/// Wrap a line of symbols if it exceeds `max_width`.
-fn wrap_line(
+/// Wrap a sequence of atomic chunks across lines, breaking only between chunks.
+fn wrap_chunks(
     prefix: &str,
-    symbols: &str,
+    chunks: &[String],
     cont_indent: &str,
     max_width: usize,
 ) -> Vec<String> {
-    let first_line = format!("{}{}", prefix, symbols);
-    if first_line.len() <= max_width {
-        return vec![first_line];
+    let single_line = format!("{}{}", prefix, chunks.join(" "));
+    if single_line.len() <= max_width {
+        return vec![single_line];
     }
 
-    let words: Vec<&str> = symbols.split(' ').collect();
     let mut lines = Vec::new();
     let mut current = String::from(prefix);
 
-    for (i, word) in words.iter().enumerate() {
+    for (i, chunk) in chunks.iter().enumerate() {
         if i == 0 {
-            current.push_str(word);
-        } else if current.len() + 1 + word.len() <= max_width {
+            current.push_str(chunk);
+        } else if current.len() + 1 + chunk.len() <= max_width {
             current.push(' ');
-            current.push_str(word);
+            current.push_str(chunk);
         } else {
             lines.push(current);
-            current = format!("{}{}", cont_indent, word);
+            current = format!("{}{}", cont_indent, chunk);
         }
     }
     if !current.is_empty() && current != cont_indent {
@@ -435,7 +481,7 @@ fn wrap_line(
     }
 
     if lines.is_empty() {
-        vec![first_line]
+        vec![single_line]
     } else {
         lines
     }
@@ -489,6 +535,16 @@ mod tests {
     }
 
     #[test]
+    fn test_regex_rule_multi_alt() {
+        let input = "grammar T\n\n@regex\nInt = Dec | Hex | Oct\n";
+        let formatted = format_source(input).unwrap();
+        assert_eq!(
+            formatted,
+            "grammar T\n\n@regex\nInt\n  = Dec\n  | Hex\n  | Oct\n"
+        );
+    }
+
+    #[test]
     fn test_label_alignment() {
         let input = "grammar T\n\nS\n  = \"a\" #Short\n  | \"longer\" \"alt\" #Long\n";
         let formatted = format_source(input).unwrap();
@@ -522,17 +578,51 @@ mod tests {
     }
 
     #[test]
-    fn test_wrap_line_short() {
-        let lines = wrap_line("  = ", "A B C", "      ", 100);
+    fn test_wrap_chunks_short() {
+        let chunks: Vec<String> = vec!["A", "B", "C"].into_iter().map(String::from).collect();
+        let lines = wrap_chunks("  = ", &chunks, "      ", 100);
         assert_eq!(lines, vec!["  = A B C"]);
     }
 
     #[test]
-    fn test_wrap_line_long() {
-        let lines = wrap_line("  = ", "A B C D E F", "      ", 12);
+    fn test_wrap_chunks_long() {
+        let chunks: Vec<String> = vec!["A", "B", "C", "D", "E", "F"]
+            .into_iter()
+            .map(String::from)
+            .collect();
+        let lines = wrap_chunks("  = ", &chunks, "      ", 12);
         assert_eq!(lines.len(), 2);
         assert!(lines[0].starts_with("  = "));
         assert!(lines[1].starts_with("      "));
+    }
+
+    #[test]
+    fn test_wrap_chunks_preserves_atomic_symbol() {
+        // A symbol like { A "," }+ should never be split
+        let chunks: Vec<String> = vec!["AAAA", "{ B \",\" }+", "CCCC"]
+            .into_iter()
+            .map(String::from)
+            .collect();
+        let lines = wrap_chunks("  = ", &chunks, "      ", 20);
+        // { B "," }+ must appear intact on one line
+        let joined = lines.join("\n");
+        assert!(
+            joined.contains("{ B \",\" }+"),
+            "separator list symbol was split: {lines:?}"
+        );
+    }
+
+    #[test]
+    fn test_regex_rule_long_single_alt() {
+        let input = "grammar T\n\n\
+            @regex\n\
+            VeryLongRuleNameHere = [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z]+\n";
+        let formatted = format_source(input).unwrap();
+        // Should wrap: name on its own line, body wrapped
+        assert!(formatted.contains("VeryLongRuleNameHere\n  = "));
+        // Idempotent
+        let second = format_source(&formatted).unwrap();
+        assert_eq!(formatted, second);
     }
 
     #[test]
