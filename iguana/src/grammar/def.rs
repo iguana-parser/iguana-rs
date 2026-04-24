@@ -228,6 +228,39 @@ impl GrammarDef {
         unresolved
     }
 
+    /// Returns labels in `Exclude` symbols (`A!label`) that don't match any
+    /// alternative label on the referenced nonterminal.
+    pub fn unresolved_labels(&self) -> Vec<String> {
+        let rules_by_name: FxHashMap<&str, &SyntaxRule> = self
+            .syntax_rules
+            .iter()
+            .map(|r| (r.head.name.as_str(), r))
+            .collect();
+
+        let mut unresolved = Vec::new();
+        self.for_each_symbol(&mut |symbol| {
+            if let Symbol::Exclude { symbol: inner, labels } = symbol {
+                if let Some(id) = inner.as_identifier() {
+                    if let Some(rule) = rules_by_name.get(id.name.as_str()) {
+                        let valid_labels: Vec<&str> = rule
+                            .priority_levels
+                            .iter()
+                            .flat_map(|pl| &pl.alternatives)
+                            .filter_map(|alt| alt.label.as_deref())
+                            .collect();
+
+                        for label in labels {
+                            if !valid_labels.contains(&label.as_str()) {
+                                unresolved.push(label.clone());
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        unresolved
+    }
+
 }
 
 impl TryFrom<GrammarDef> for Grammar {
@@ -238,9 +271,10 @@ impl TryFrom<GrammarDef> for Grammar {
     /// layout insertion, etc.).
     fn try_from(grammar_def: GrammarDef) -> Result<Self, Self::Error> {
         let resolved = grammar_def.resolve();
-        let unresolved = resolved.unresolved_identifiers();
-        if !unresolved.is_empty() {
-            return Err(unresolved);
+        let mut errors = resolved.unresolved_identifiers();
+        errors.extend(resolved.unresolved_labels());
+        if !errors.is_empty() {
+            return Err(errors);
         }
         Ok(build_grammar(resolved))
     }
