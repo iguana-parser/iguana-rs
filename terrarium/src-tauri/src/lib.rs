@@ -1,6 +1,16 @@
 mod trace_replay;
 
-use std::{fs, io::Write, path::Path, path::PathBuf, process::Command, sync::Mutex, thread};
+use std::{
+    cell::Cell,
+    fs,
+    fs::OpenOptions,
+    io::Write,
+    panic,
+    path::{Path, PathBuf},
+    process::Command,
+    sync::{Mutex, OnceLock},
+    thread,
+};
 
 use iguana::input::Input;
 use iguana::parse_tree::ParseContext;
@@ -14,6 +24,44 @@ use tempfile::{NamedTempFile, TempDir};
 use toml::Value;
 
 use trace_replay::{DebugGSSInfo, DebugSPPFNode, ErrorInfo, EventLogEntry, TraceReplay};
+
+static LOG_DIR: OnceLock<PathBuf> = OnceLock::new();
+
+fn log_file_path() -> Option<PathBuf> {
+    LOG_DIR.get().map(|d| d.join("terrarium.log"))
+}
+
+// Thread-local panic capture: the panic hook stores the formatted message here
+// when CAPTURING is true (inside catch_unwind). The catch_unwind caller reads
+// it and routes through log_event so both file and UI get the same content.
+thread_local! {
+    static CAPTURING: Cell<bool> = const { Cell::new(false) };
+    static LAST_PANIC: Cell<Option<String>> = const { Cell::new(None) };
+}
+
+fn log_to_file(kind: &str, message: &str) {
+    let Some(path) = log_file_path() else { return };
+    if let Some(dir) = path.parent() {
+        let _ = fs::create_dir_all(dir);
+    }
+    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&path) {
+        let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
+        let _ = writeln!(file, "[{timestamp}] [{kind}] {message}");
+    }
+}
+
+fn log_event(app: &tauri::AppHandle, kind: &str, message: &str) {
+    let timestamp = chrono::Local::now().format("%H:%M:%S").to_string();
+    log_to_file(kind, message);
+    let _ = app.emit(
+        "log",
+        LogEntry {
+            kind: kind.to_string(),
+            message: message.to_string(),
+            timestamp,
+        },
+    );
+}
 
 /// Specta-compatible wrapper for lsp_types::SemanticToken
 #[derive(Clone, Serialize, Type)]
@@ -77,9 +125,10 @@ struct DebugSPPFInfo {
 }
 
 #[derive(Clone, Serialize, Type)]
-struct BuildProgress {
-    stage: String,
+struct LogEntry {
+    kind: String,
     message: String,
+    timestamp: String,
 }
 
 #[derive(Clone, Serialize, Type)]
@@ -368,12 +417,10 @@ fn build_parser(
     state.lock().unwrap().features = None;
 
     thread::spawn(move || {
-        let _ = app.emit(
-            "build-progress",
-            BuildProgress {
-                stage: "compile".into(),
-                message: "Compiling parser...".into(),
-            },
+        log_event(
+            &app,
+            "command",
+            &format!("cargo build --release --features {features_arg}"),
         );
 
         let build_output = Command::new("cargo")
@@ -386,6 +433,7 @@ fn build_parser(
                 if let Some(state) = app.try_state::<Mutex<BuildState>>() {
                     state.lock().unwrap().features = Some(built_features);
                 }
+                log_event(&app, "output", "Build successful");
                 let _ = app.emit(
                     "build-result",
                     BuildResult {
@@ -398,6 +446,7 @@ fn build_parser(
             }
             Ok(output) => {
                 let stderr = String::from_utf8_lossy(&output.stderr);
+                log_event(&app, "error", &format!("Build failed\n{stderr}"));
                 let _ = app.emit(
                     "build-result",
                     BuildResult {
@@ -409,11 +458,13 @@ fn build_parser(
                 );
             }
             Err(e) => {
+                let msg = format!("Failed to run cargo build: {e}");
+                log_event(&app, "error", &msg);
                 let _ = app.emit(
                     "build-result",
                     BuildResult {
                         success: false,
-                        message: format!("Failed to run cargo build: {}", e),
+                        message: msg,
                         duration_ms: None,
                         features: None,
                     },
@@ -657,17 +708,16 @@ fn profile(
     app: tauri::AppHandle,
 ) {
     thread::spawn(move || {
-        let _ = app.emit(
-            "profile-progress",
-            BuildProgress {
-                stage: "profile".into(),
-                message: "Profiling...".into(),
-            },
+        log_event(
+            &app,
+            "command",
+            &format!("<parser> <input> --start {start_nonterminal} --profile {iterations}"),
         );
 
         let parser_path = match find_parser_binary(&directory, "release") {
             Ok(p) => p,
             Err(e) => {
+                log_event(&app, "error", &e);
                 let _ = app.emit(
                     "profile-result",
                     BuildResult {
@@ -685,11 +735,13 @@ fn profile(
         let mut input_file = match NamedTempFile::new() {
             Ok(f) => f,
             Err(e) => {
+                let msg = format!("Failed to create temp file: {e}");
+                log_event(&app, "error", &msg);
                 let _ = app.emit(
                     "profile-result",
                     BuildResult {
                         success: false,
-                        message: format!("Failed to create temp file: {}", e),
+                        message: msg,
                         duration_ms: None,
                         features: None,
                     },
@@ -698,11 +750,13 @@ fn profile(
             }
         };
         if let Err(e) = input_file.write_all(input.as_bytes()) {
+            let msg = format!("Failed to write input: {e}");
+            log_event(&app, "error", &msg);
             let _ = app.emit(
                 "profile-result",
                 BuildResult {
                     success: false,
-                    message: format!("Failed to write input: {}", e),
+                    message: msg,
                     duration_ms: None,
                     features: None,
                 },
@@ -724,17 +778,15 @@ fn profile(
 
         match output {
             Ok(output) if output.status.success() => {
-                // Open the flamegraph SVG in the default browser
                 let url = format!("file://{}", flamegraph_path.display());
                 let _ = app.opener().open_url(&url, None::<&str>);
+                let msg = format!("Flamegraph written to {}", flamegraph_path.display());
+                log_event(&app, "output", &msg);
                 let _ = app.emit(
                     "profile-result",
                     BuildResult {
                         success: true,
-                        message: format!(
-                            "Flamegraph written to {}",
-                            flamegraph_path.display()
-                        ),
+                        message: msg,
                         duration_ms: None,
                         features: None,
                     },
@@ -742,22 +794,26 @@ fn profile(
             }
             Ok(output) => {
                 let stderr = String::from_utf8_lossy(&output.stderr);
+                let msg = format!("Profiling failed: {stderr}");
+                log_event(&app, "error", &msg);
                 let _ = app.emit(
                     "profile-result",
                     BuildResult {
                         success: false,
-                        message: format!("Profiling failed: {}", stderr),
+                        message: msg,
                         duration_ms: None,
                         features: None,
                     },
                 );
             }
             Err(e) => {
+                let msg = format!("Failed to run parser: {e}");
+                log_event(&app, "error", &msg);
                 let _ = app.emit(
                     "profile-result",
                     BuildResult {
                         success: false,
-                        message: format!("Failed to run parser: {}", e),
+                        message: msg,
                         duration_ms: None,
                         features: None,
                     },
@@ -860,16 +916,12 @@ fn get_nonterminals(directory: String) -> Result<Vec<String>, String> {
 #[specta::specta]
 fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
     thread::spawn(move || {
-        let _ = app.emit(
-            "generate-progress",
-            BuildProgress {
-                stage: "generate".into(),
-                message: "Generating parser...".into(),
-            },
-        );
+        let ll1_flag = if no_ll1 { " --no-ll1" } else { "" };
+        log_event(&app, "command", &format!("iguana generate --output .{ll1_flag}"));
 
-        let dir = Path::new(&directory);
-        let result = (|| -> Result<u64, String> {
+        CAPTURING.set(true);
+        let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+            let dir = Path::new(&directory);
             let iggy_file = find_iggy_file(dir).map_err(|e| e.to_string())?;
             let source = fs::read_to_string(&iggy_file).map_err(|e| e.to_string())?;
             let grammar_def = iguana::iggy::parse_grammar(&source)
@@ -886,10 +938,16 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
             )
             .map_err(|e| e.to_string())?;
             Ok(result.total_duration_ms)
-        })();
+        }));
+        CAPTURING.set(false);
 
-        match result {
-            Ok(duration_ms) => {
+        let message = match result {
+            Ok(Ok(duration_ms)) => {
+                log_event(
+                    &app,
+                    "output",
+                    &format!("Parser generated successfully ({duration_ms}ms)"),
+                );
                 let _ = app.emit(
                     "generate-result",
                     BuildResult {
@@ -899,19 +957,25 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
                         features: None,
                     },
                 );
+                return;
             }
-            Err(message) => {
-                let _ = app.emit(
-                    "generate-result",
-                    BuildResult {
-                        success: false,
-                        message,
-                        duration_ms: None,
-                        features: None,
-                    },
-                );
+            Ok(Err(message)) => message,
+            Err(_) => {
+                let detail = LAST_PANIC.take().unwrap_or_else(|| "unknown error".into());
+                format!("Internal error during generation:\n{detail}")
             }
-        }
+        };
+
+        log_event(&app, "error", &message);
+        let _ = app.emit(
+            "generate-result",
+            BuildResult {
+                success: false,
+                message,
+                duration_ms: None,
+                features: None,
+            },
+        );
     });
 }
 
@@ -1526,6 +1590,12 @@ fn debug_prev_error(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo,
     })
 }
 
+#[tauri::command]
+#[specta::specta]
+fn get_log_path() -> Option<String> {
+    log_file_path().map(|p| p.display().to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = Builder::<tauri::Wry>::new().commands(collect_commands![
@@ -1563,7 +1633,8 @@ pub fn run() {
         get_definition,
         get_references,
         get_folding_ranges,
-        get_diagnostics
+        get_diagnostics,
+        get_log_path
     ]);
 
     #[cfg(debug_assertions)]
@@ -1592,6 +1663,36 @@ pub fn run() {
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             builder.mount_events(app);
+
+            if let Ok(log_dir) = app.path().app_log_dir() {
+                // Truncate the log file on startup so each session starts fresh
+                let _ = fs::create_dir_all(&log_dir);
+                let _ = fs::write(log_dir.join("terrarium.log"), b"");
+                let _ = LOG_DIR.set(log_dir);
+            }
+
+            panic::set_hook(Box::new(|info| {
+                let backtrace = std::backtrace::Backtrace::force_capture();
+                let message = info
+                    .payload()
+                    .downcast_ref::<String>()
+                    .map(|s| s.as_str())
+                    .or_else(|| info.payload().downcast_ref::<&str>().copied())
+                    .unwrap_or("unknown error");
+                let location = info
+                    .location()
+                    .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
+                    .unwrap_or_default();
+                let formatted = format!("at {location}: {message}\n{backtrace}");
+                if CAPTURING.get() {
+                    // Inside catch_unwind — stash for the caller to route through log_event
+                    LAST_PANIC.set(Some(formatted));
+                } else {
+                    // Uncaught panic — write to file directly as a safety net
+                    log_to_file("panic", &formatted);
+                }
+            }));
+
             Ok(())
         })
         .run(tauri::generate_context!())

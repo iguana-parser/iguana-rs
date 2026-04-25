@@ -96,14 +96,19 @@
 
   cytoscape.use(dagre);
 
-  // Event listeners for build progress
+  // Event listeners
   onMount(() => {
-    const unlistenProgress = listen<{ stage: string; message: string }>("build-progress", (event) => {
-      // Progress is shown in title bar status, not status bar
+    commands.getLogPath().then((path) => { logFilePath = path; });
+
+    const unlistenLog = listen<{ kind: string; message: string; timestamp: string }>("log", (event) => {
+      const { kind, message, timestamp } = event.payload;
+      if (kind === "command") logCommand(message, timestamp);
+      else if (kind === "error") logError(message, timestamp);
+      else logOutput(message, timestamp);
     });
 
     const unlistenResult = listen<{ success: boolean; message: string; features?: BuildFeatures | null }>("build-result", async (event) => {
-      statusMessage = null;  // Clear status message
+      statusMessage = null;
       if (!event.payload.success) {
         isBuilding = false;
       }
@@ -111,8 +116,6 @@
         buildStatus = "success";
         buildDurationMs = buildStartTime != null ? Math.round(performance.now() - buildStartTime) : null;
         buildFeatures = event.payload.features ?? null;
-        // If the new binary lacks debug-trace, leave Debug mode.
-        // If it lacks instrument, clear stats and leave the Stats tab.
         if (buildFeatures && !buildFeatures.debug_trace && activeMode === "debug") {
           activeMode = "parse";
         }
@@ -120,9 +123,7 @@
           statsData = null;
           if (activeTab === "stats") activeTab = "parse-tree";
         }
-        logOutput("Build successful");
         if (parserDirectory) {
-          // Fetch parser name and nonterminals in parallel
           const [nameResult, ntResult] = await Promise.all([
             commands.getParserName(parserDirectory),
             commands.getNonterminals(parserDirectory)
@@ -147,42 +148,32 @@
         buildStatus = "error";
         buildError = event.payload.message;
         errorBubbleDismissed = false;
-        logError(`Build failed\n${event.payload.message}`);
       }
     });
 
     const unlistenGenerateResult = listen<{ success: boolean; message: string; duration_ms?: number }>("generate-result", async (event) => {
       isGenerating = false;
-      statusMessage = null;  // Clear status message
+      statusMessage = null;
       if (event.payload.success) {
         generateStatus = "success";
         generateDurationMs = event.payload.duration_ms ?? (generateStartTime != null ? Math.round(performance.now() - generateStartTime) : null);
         const durationStr = generateDurationMs != null ? ` (${generateDurationMs}ms)` : "";
-        logOutput(`Parser generated successfully${durationStr}`);
         setStatus(`Generated${durationStr}`, "success");
         setTimeout(() => { generateStatus = "none"; }, 2000);
-        // Chain into build with the current build config
         await buildParser();
       } else {
         generateStatus = "error";
         generateError = event.payload.message;
         errorBubbleDismissed = false;
-        logError(event.payload.message);
       }
-    });
-
-    const unlistenProfileProgress = listen<{ stage: string; message: string }>("profile-progress", (event) => {
-      setStatus(event.payload.message, "info");
     });
 
     const unlistenProfileResult = listen<{ success: boolean; message: string }>("profile-result", (event) => {
       isProfiling = false;
       if (event.payload.success) {
         setStatus("Flamegraph opened in browser", "success");
-        logOutput(event.payload.message);
       } else {
         setStatus("Profiling failed", "error");
-        logError(`Profiling failed\n${event.payload.message}`);
       }
     });
 
@@ -350,7 +341,7 @@
     window.addEventListener("terrarium-mode", handleTerrariumMode);
 
     return () => {
-      unlistenProgress.then(fn => fn());
+      unlistenLog.then(fn => fn());
       unlistenResult.then(fn => fn());
       unlistenGenerateResult.then(fn => fn());
       unlistenGraphWindowReady.then(fn => fn());
@@ -561,10 +552,9 @@
   let nonterminals = $state<string[]>([]);
   let dropdownOpen = $state(false);
 
-  // Helper for displaying nonterminal (strips "Start" prefix if present for backwards compatibility)
   function displayNonterminal(nt: string | null): string {
     if (!nt) return "Select...";
-    return nt.replace(/^Start/, "");
+    return nt;
   }
 
   // Playback state
@@ -678,9 +668,10 @@
   let outputPanelOpen = $state(false);
   let outputPanelHeight = $state(150);
 
-  // Output log entries: each entry has a type and content
-  type LogEntry = { type: "command" | "output" | "error"; content: string };
+  // Output log entries: each entry has a type, content, and timestamp
+  type LogEntry = { type: "command" | "output" | "error"; content: string; timestamp: string };
   let outputLog = $state<LogEntry[]>([]);
+  let logFilePath = $state<string | null>(null);
   // svelte-ignore non_reactive_update
   let outputContentEl: HTMLDivElement | null = null;
 
@@ -695,18 +686,23 @@
     }
   }
 
-  function logCommand(cmd: string) {
-    outputLog = [...outputLog, { type: "command", content: cmd }];
+  function localTimestamp(): string {
+    const now = new Date();
+    return now.toLocaleTimeString("en-GB", { hour12: false }); // HH:MM:SS
+  }
+
+  function logCommand(cmd: string, timestamp?: string) {
+    outputLog = [...outputLog, { type: "command", content: cmd, timestamp: timestamp ?? localTimestamp() }];
     scrollOutputToBottom();
   }
 
-  function logOutput(text: string) {
-    outputLog = [...outputLog, { type: "output", content: text }];
+  function logOutput(text: string, timestamp?: string) {
+    outputLog = [...outputLog, { type: "output", content: text, timestamp: timestamp ?? localTimestamp() }];
     scrollOutputToBottom();
   }
 
-  function logError(text: string) {
-    outputLog = [...outputLog, { type: "error", content: text }];
+  function logError(text: string, timestamp?: string) {
+    outputLog = [...outputLog, { type: "error", content: text, timestamp: timestamp ?? localTimestamp() }];
     scrollOutputToBottom();
   }
 
@@ -1390,7 +1386,6 @@
     const featList = ["profile"];
     if (buildConfig.instrument) featList.push("instrument");
     if (buildConfig.debugTrace) featList.push("debug-trace");
-    logCommand(`cargo build --release --features ${featList.join(",")}`);
     // Command returns immediately, results come via events
     await commands.buildParser(parserDirectory, buildConfig.instrument, buildConfig.debugTrace);
   }
@@ -1403,8 +1398,6 @@
     buildDurationMs = null;
     generateStatus = "none";
     generateError = null;
-    const ll1Flag = buildConfig.ll1 ? "" : " --no-ll1";
-    logCommand(`iguana generate --output .${ll1Flag}`);
     // Command returns immediately, results come via events; build chains after generate succeeds
     await commands.generateParser(parserDirectory, !buildConfig.ll1);
   }
@@ -1417,8 +1410,7 @@
 
   async function fetchStats() {
     if (!parserDirectory || !startNonterminal) return;
-    const startSymbol = `Start${startNonterminal}`;
-    const result = await commands.getStats(parserDirectory, inputText, startSymbol);
+    const result = await commands.getStats(parserDirectory, inputText, startNonterminal);
     if (result.status === "ok") {
       statsData = result.data;
     } else {
@@ -1440,10 +1432,9 @@
     sppfSelectedSpan = null;
     parseErrorInfo = null;
 
-    const startSymbol = `Start${startNonterminal}`;
-    logCommand(`${parserName} <input> --start ${startSymbol}`);
+    logCommand(`${parserName} <input> --start ${startNonterminal}`);
 
-    const result = await commands.parse(parserDirectory, inputText, startSymbol);
+    const result = await commands.parse(parserDirectory, inputText, startNonterminal);
     if (result.status === "error") {
       // Command itself failed (couldn't run parser)
       logError(result.error);
@@ -1510,16 +1501,13 @@
   function profileParser() {
     if (!parserDirectory || buildStatus !== "success" || !startNonterminal) return;
     isProfiling = true;
-    const startSymbol = `Start${startNonterminal}`;
-    logCommand(`${parserName} <input> --start ${startSymbol} --profile 1000`);
-    commands.profile(parserDirectory, inputText, startSymbol, 1000);
+    commands.profile(parserDirectory, inputText, startNonterminal, 1000);
   }
 
   async function setupVscodeDebug() {
     if (!parserDirectory || !startNonterminal) return;
 
-    const startSymbol = `Start${startNonterminal}`;
-    const result = await commands.setupVscodeDebug(parserDirectory, inputText, startSymbol);
+    const result = await commands.setupVscodeDebug(parserDirectory, inputText, startNonterminal);
     if (result.status === "ok") {
       setStatus("Debug config created — open in VS Code, press F5", "success");
     } else {
@@ -1986,12 +1974,11 @@
     descriptorSet = [];
     inputIndex = null;
 
-    const startSymbol = `Start${startNonterminal}`;
-    const result = await commands.loadDebugTrace(parserDirectory, inputText, startSymbol);
+    const result = await commands.loadDebugTrace(parserDirectory, inputText, startNonterminal);
     if (result.status === "ok") {
       const { input_path, symbols_path, trace_path, current_action, descriptor_set, input_index, total_errors, current_error_index } = result.data;
       logCommand(`${parserName} --write-symbols ${symbols_path}`);
-      logCommand(`${parserName} ${input_path} --start ${startSymbol} --trace ${trace_path} --format json`);
+      logCommand(`${parserName} ${input_path} --start ${startNonterminal} --trace ${trace_path} --format json`);
       debugLoaded = true;
       currentStep = result.data.current_step;
       totalSteps = result.data.total_steps;
@@ -2007,7 +1994,7 @@
       await notifyDebugGraphWindows();
     } else {
       logCommand(`${parserName} --write-symbols <symbols.json>`);
-      logCommand(`${parserName} <input> --start ${startSymbol} --trace <trace.json> --format json`);
+      logCommand(`${parserName} <input> --start ${startNonterminal} --trace <trace.json> --format json`);
       setStatus("Debug failed", "error");
       logError(result.error);
     }
@@ -2591,7 +2578,8 @@
               class:dismissed={errorBubbleDismissed && !errorBubbleHoverReveal}
               onmousedown={(e) => e.stopPropagation()}
             >
-              <span class="generate-error-text">{generateError}</span>
+              <span class="generate-error-text">Generation failed</span>
+              <button class="generate-error-show-logs" onclick={() => { outputPanelOpen = true; errorBubbleDismissed = true; errorBubbleHoverReveal = false; }}>Show Logs</button>
               <button class="generate-error-close" onclick={() => { errorBubbleDismissed = true; errorBubbleHoverReveal = false; }}>
                 <X size={12} />
               </button>
@@ -2603,7 +2591,8 @@
               class:dismissed={errorBubbleDismissed && !errorBubbleHoverReveal}
               onmousedown={(e) => e.stopPropagation()}
             >
-              <span class="generate-error-text">{buildError}</span>
+              <span class="generate-error-text">Build failed</span>
+              <button class="generate-error-show-logs" onclick={() => { outputPanelOpen = true; errorBubbleDismissed = true; errorBubbleHoverReveal = false; }}>Show Logs</button>
               <button class="generate-error-close" onclick={() => { errorBubbleDismissed = true; errorBubbleHoverReveal = false; }}>
                 <X size={12} />
               </button>
@@ -3337,6 +3326,9 @@
       <div class="output-panel">
         <div class="output-header">
           <span class="output-title">Output</span>
+          {#if logFilePath}
+            <span class="log-file-path">{logFilePath}</span>
+          {/if}
           <div class="output-header-buttons">
             <button class="output-header-btn" onclick={clearOutput} title="Clear output">
               <Trash2 size={20} />
@@ -3356,7 +3348,7 @@
         >
           {#if outputLog.length > 0}
             {#each outputLog as entry}
-              <pre class="log-entry {entry.type}">{entry.content}</pre>
+              <pre class="log-entry {entry.type}"><span class="log-timestamp">[{entry.timestamp}]</span> {entry.content}</pre>
             {/each}
           {:else}
             <span class="placeholder">No output</span>
@@ -5043,6 +5035,20 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     font-weight: 600;
     text-transform: uppercase;
     color: #888;
+    flex-shrink: 0;
+  }
+
+  .log-file-path {
+    font-size: 11px;
+    color: #666;
+    font-family: "Fira Code", "Consolas", monospace;
+    margin-left: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+    user-select: text;
   }
 
   .output-header-buttons {
@@ -5093,14 +5099,14 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     word-break: break-word;
   }
 
+  .log-timestamp {
+    color: #666;
+  }
+
   .log-entry.command {
     color: #569cd6;
   }
 
-  .log-entry.command::before {
-    content: "$ ";
-    color: #6a9955;
-  }
 
   .log-entry.output {
     color: #d4d4d4;
@@ -5396,6 +5402,19 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
   .generate-error-text {
     flex: 1;
     min-width: 0;
+  }
+  .generate-error-show-logs {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: #569cd6;
+    cursor: pointer;
+    padding: 0;
+    font-size: 12px;
+    text-decoration: underline;
+  }
+  .generate-error-show-logs:hover {
+    color: #7eb8ff;
   }
   .generate-error-close {
     flex-shrink: 0;

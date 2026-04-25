@@ -268,6 +268,9 @@ async getFoldingRanges(source: string) : Promise<FoldingRangeData[]> {
  */
 async getDiagnostics(source: string) : Promise<DiagnosticData[]> {
     return await TAURI_INVOKE("get_diagnostics", { source });
+},
+async getLogPath() : Promise<string | null> {
+    return await TAURI_INVOKE("get_log_path");
 }
 }
 
