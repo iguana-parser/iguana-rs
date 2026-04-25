@@ -269,6 +269,19 @@ fn get_symbol_base_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
                                 }
                                 return None;
                             }
+                            // Must match gen_field_name, which uses the inner name for
+                            // Exclude origins. Without this, `E!X '+' E` would count
+                            // "e_except_x" and "e" as different base names, miss the
+                            // duplicate, and produce two fields both named `e`.
+                            Symbol::Exclude { symbol, .. } => {
+                                if let Some(inner_ident) = symbol.as_identifier() {
+                                    let snake = to_snake_case(&inner_ident.name);
+                                    if is_valid_rust_ident(&snake) {
+                                        return Some(snake);
+                                    }
+                                }
+                                return None;
+                            }
                             _ => {}
                         }
                     }
@@ -413,11 +426,7 @@ fn gen_field_name(
         Symbol::Return(_) => format!("field_{}", position),
     };
 
-    if is_rust_keyword(&field_name) {
-        format!("r#{}", field_name)
-    } else {
-        field_name
-    }
+    field_name
 }
 
 fn gen_nonterminal_type_with_more_than_one_alternative(
@@ -874,8 +883,13 @@ fn gen_nonterminal_node_method(
                             }))
                         }
                     } else {
+                        let variant_index = if nonterminal.is_exclude() {
+                            exclude_index_map(grammar, nonterminal, resolved_nt)[index]
+                        } else {
+                            index
+                        };
                         let variant = Ident::new(
-                            &to_pascal_case(&alternative_label(alternative, index)),
+                            &to_pascal_case(&alternative_label(alternative, variant_index)),
                             Span::call_site()
                         );
                         quote! {
@@ -916,6 +930,38 @@ fn gen_nonterminal_node_method(
             }
         }
     }
+}
+
+/// Maps each alternative index in an exclude-derived nonterminal to the
+/// corresponding index in the parent nonterminal's alternatives.
+///
+/// Exclude-derived nonterminals reuse the parent's enum type. Unlabeled variants
+/// are named `Alt{index}`, so the index must match the parent's numbering. But the
+/// exclude nonterminal has fewer alternatives, so its local indices are shifted.
+///
+/// Example: `E = A #X | B #Y | C | D` and `E!X` produces:
+///   E:   0: X, 1: Y, 2: Alt2, 3: Alt3
+///   E!X: 0: Y, 1: Alt2, 2: Alt3
+/// This function returns [1, 2, 3], mapping E!X local index 0 to E index 1, etc.
+fn exclude_index_map(
+    grammar: &Grammar,
+    exclude_nt: &Nonterminal,
+    parent_nt: &Nonterminal,
+) -> Vec<usize> {
+    let excluded_labels = match &exclude_nt.origin {
+        Some(Symbol::Exclude { labels, .. }) => labels,
+        _ => unreachable!("expected Exclude origin"),
+    };
+    grammar
+        .alternatives(parent_nt)
+        .iter()
+        .enumerate()
+        .filter(|(_, alt)| match &alt.label {
+            Some(label) => !excluded_labels.contains(label),
+            None => true,
+        })
+        .map(|(parent_index, _)| parent_index)
+        .collect()
 }
 
 fn gen_new_token_method() -> TokenStream {
@@ -1175,12 +1221,21 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
     let accessors: Vec<_> = alternatives
         .iter()
         .enumerate()
-        .map(|(i, alt)| {
+        .filter_map(|(i, alt)| {
             let symbol = &alt.symbols[0];
             let def = grammar.definition(symbol.resolved_def());
             let (method_name, return_type) = match def {
+                // For alternations with a single terminal, e.g., `Type | "void"`,
+                // we generate `as_void()`. Terminal names for keyword literals include
+                // quotes ("\"void\""), so strip them first. If the stripped name isn't
+                // a valid identifier (e.g., "+"), skip -- those need explicit naming.
                 Definition::Terminal(t) => {
-                    let method = format_ident!("as_{}", to_snake_case(&t.name));
+                    let stripped = t.name.trim_matches('"');
+                    let snake = to_snake_case(stripped);
+                    if !is_valid_rust_ident(&snake) {
+                        return None;
+                    }
+                    let method = format_ident!("as_{}", snake);
                     let ret = Ident::new("Token", Span::call_site());
                     (method, ret)
                 }
@@ -1193,14 +1248,14 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
             let variant = format_ident!("{}", to_pascal_case(&alternative_label(alt, i)));
             let field_name = safe_ident(&gen_field_name(grammar, symbol, 0, false));
 
-            quote! {
+            Some(quote! {
                 pub fn #method_name(&self) -> Option<&#return_type> {
                     match self {
                         #alt_type::#variant { #field_name, .. } => Some(#field_name),
                         _ => None,
                     }
                 }
-            }
+            })
         })
         .collect();
 
