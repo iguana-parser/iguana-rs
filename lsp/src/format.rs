@@ -407,7 +407,11 @@ impl<'a> Formatter<'a> {
             }
             Regex::Group { regexes, .. } => {
                 out.push('(');
-                for r in regexes.regexes() {
+                let regs: Vec<_> = regexes.regexes().collect();
+                for (i, r) in regs.iter().enumerate() {
+                    if i > 0 {
+                        out.push(' ');
+                    }
                     self.format_regex(out, r);
                 }
                 out.push(')');
