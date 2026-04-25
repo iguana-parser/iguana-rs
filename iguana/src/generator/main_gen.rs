@@ -168,7 +168,13 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             }
 
             let input = Input::try_from(file.as_path())?;
-            let start_nonterminal_id = nonterminal_id(&start_nonterminal_name)
+
+            // A nonterminal A can be a start nonterminal or not. If it is, the
+            // generator produces a StartA wrapper that handles layout and EOF.
+            // We first try to resolve StartA; if it doesn't exist, A is not a
+            // start nonterminal so we use A directly.
+            let start_nonterminal_id = nonterminal_id(&format!("Start{}", start_nonterminal_name))
+                .or_else(|| nonterminal_id(&start_nonterminal_name))
                 .ok_or_else(|| io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("Unknown nonterminal: '{}'", start_nonterminal_name)
