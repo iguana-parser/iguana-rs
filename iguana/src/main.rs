@@ -105,7 +105,7 @@ fn main() -> std::io::Result<()> {
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
             } else {
-                println!("Generated in {}ms", result.total_duration_ms);
+                println!("Generated {} grammar in {} ms", grammar.name, result.total_duration_ms);
             }
         }
         Commands::Run => todo!(),

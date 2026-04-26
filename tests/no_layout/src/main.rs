@@ -346,7 +346,9 @@ fn run_batch(
     let mut files = Vec::new();
     collect_files(dir, ext, &mut files)?;
     files.sort();
-    println!("{:<6}  {:<26}  {}", "STATUS", "TIME (parse, tree)", "PATH");
+    println!(
+        "{:<6}  {:<26}  {:<36}  {}", "STATUS", "TIME (parse, tree)", "REASON", "PATH"
+    );
     let mut ok = 0usize;
     let mut failed = 0usize;
     let mut errs = 0usize;
@@ -354,13 +356,15 @@ fn run_batch(
     let mut total_tree_ms: u128 = 0;
     let mut max_total_ms: u128 = 0;
     for path in &files {
+        let rel = path.strip_prefix(dir).unwrap_or(path.as_path());
         let input = match Input::try_from(path.as_path()) {
             Ok(input) => input,
             Err(e) => {
                 errs += 1;
+                let reason = format!("IO Error: {}", e);
                 println!(
-                    "{}{:<6}{}  {:<26}  {}: cannot open: {}", red, "ERR", reset, "-",
-                    path.display(), e
+                    "{}{:<6}{}  {:<26}  {:<36}  {}", red, "ERR", reset, "-", reason, rel
+                    .display()
                 );
                 continue;
             }
@@ -388,15 +392,17 @@ fn run_batch(
                 }
                 let time = format!("{} ms ({} ms, {} ms)", total_ms, parse_ms, tree_ms);
                 println!(
-                    "{}{:<6}{}  {:<26}  {}", green, "OK", reset, time, path.display()
+                    "{}{:<6}{}  {:<26}  {:<36}  {}", green, "OK", reset, time, "-", rel
+                    .display()
                 );
             }
             ParseResult::Failure(error) => {
-                let (line, column, message) = parser.format_error(&error);
+                let (line, column, _) = parser.format_error(&error);
                 failed += 1;
+                let reason = format!("Parse Error at line {}, col {}", line, column);
                 println!(
-                    "{}{:<6}{}  {:<26}  {}: line {}, col {}: {}", red, "FAIL", reset,
-                    "-", path.display(), line, column, message
+                    "{}{:<6}{}  {:<26}  {:<36}  {}", red, "FAIL", reset, "-", reason, rel
+                    .display()
                 );
             }
         }
