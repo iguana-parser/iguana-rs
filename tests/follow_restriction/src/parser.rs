@@ -285,51 +285,21 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             }
             //S_Plus_0
             NonterminalId(3) => {
-                let mut matched = false;
-                //S_Plus_0 : . S_Plus_0 WS Id
-                if self.scanner.match_any(PREDICTION_SET_S_PLUS_0_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
-                //S_Plus_0 : . Id
-                if self.scanner.match_any(PREDICTION_SET_S_PLUS_0_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(6),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_S_PLUS_0.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(
+                    ALTERNATIVES_S_PLUS_0,
+                    input_index,
+                    gss_node_id,
+                    env,
+                );
             }
             //Id_Plus_1
             NonterminalId(4) => {
-                let mut matched = false;
-                //Id_Plus_1 : . Id_Plus_1 Char
-                if self.scanner.match_any(PREDICTION_SET_ID_PLUS_1_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-                }
-                //Id_Plus_1 : . Char
-                if self.scanner.match_any(PREDICTION_SET_ID_PLUS_1_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(12),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ID_PLUS_1.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(
+                    ALTERNATIVES_ID_PLUS_1,
+                    input_index,
+                    gss_node_id,
+                    env,
+                );
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

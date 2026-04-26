@@ -362,80 +362,25 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         match nonterminal_id {
             //Expr
             NonterminalId(0) => {
-                let mut matched = false;
-                //Expr : . Id
-                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
-                //Expr : . Expr "(" Expr_Star_0 ")"
-                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
-                //Expr : . Expr "," Expr
-                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT2, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(0),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_EXPR.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(ALTERNATIVES_EXPR, input_index, gss_node_id, env);
             }
             //Expr_Plus_0
             NonterminalId(1) => {
-                let mut matched = false;
-                //Expr_Plus_0 : . Expr_Plus_0 "," Expr_except_comma
-                if self.scanner.match_any(PREDICTION_SET_EXPR_PLUS_0_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
-                }
-                //Expr_Plus_0 : . Expr_except_comma
-                if self.scanner.match_any(PREDICTION_SET_EXPR_PLUS_0_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(11),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_EXPR_PLUS_0.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(
+                    ALTERNATIVES_EXPR_PLUS_0,
+                    input_index,
+                    gss_node_id,
+                    env,
+                );
             }
             //Expr_Opt_0
             NonterminalId(2) => {
-                let mut matched = false;
-                //Expr_Opt_0 : . Expr_Plus_0
-                if self.scanner.match_any(PREDICTION_SET_EXPR_OPT_0_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(17), input_index, gss_node_id, env);
-                }
-                //Expr_Opt_0 : .
-                if self.scanner.match_any(PREDICTION_SET_EXPR_OPT_0_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(17),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_EXPR_OPT_0.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(
+                    ALTERNATIVES_EXPR_OPT_0,
+                    input_index,
+                    gss_node_id,
+                    env,
+                );
             }
             //Expr_Star_0 : . Expr_Opt_0
             NonterminalId(3) => {
@@ -443,33 +388,12 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             //Expr_except_comma
             NonterminalId(4) => {
-                let mut matched = false;
-                //Expr_except_comma : . Id
-                if self
-                    .scanner
-                    .match_any(PREDICTION_SET_EXPR_EXCEPT_COMMA_ALT0, input_index)
-                {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(22), input_index, gss_node_id, env);
-                }
-                //Expr_except_comma : . Expr "(" Expr_Star_0 ")"
-                if self
-                    .scanner
-                    .match_any(PREDICTION_SET_EXPR_EXCEPT_COMMA_ALT1, input_index)
-                {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(22),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_EXPR_EXCEPT_COMMA.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(
+                    ALTERNATIVES_EXPR_EXCEPT_COMMA,
+                    input_index,
+                    gss_node_id,
+                    env,
+                );
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

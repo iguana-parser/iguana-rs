@@ -247,51 +247,21 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             //Id_Plus_0
             NonterminalId(2) => {
-                let mut matched = false;
-                //Id_Plus_0 : . Id_Plus_0 LetterOrDigit
-                if self.scanner.match_any(PREDICTION_SET_ID_PLUS_0_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
-                }
-                //Id_Plus_0 : . LetterOrDigit
-                if self.scanner.match_any(PREDICTION_SET_ID_PLUS_0_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(5),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ID_PLUS_0.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(
+                    ALTERNATIVES_ID_PLUS_0,
+                    input_index,
+                    gss_node_id,
+                    env,
+                );
             }
             //Id_Opt_0
             NonterminalId(3) => {
-                let mut matched = false;
-                //Id_Opt_0 : . Id_Plus_0
-                if self.scanner.match_any(PREDICTION_SET_ID_OPT_0_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
-                //Id_Opt_0 : .
-                if self.scanner.match_any(PREDICTION_SET_ID_OPT_0_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(10),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ID_OPT_0.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(
+                    ALTERNATIVES_ID_OPT_0,
+                    input_index,
+                    gss_node_id,
+                    env,
+                );
             }
             //Id_Star_0 : . Id_Opt_0
             NonterminalId(4) => {

@@ -318,34 +318,11 @@ impl<'a> ParserGen<'a> {
             } else {
                 let nt_name = &nonterminal.name;
                 let nt_upper = self.prediction_set_name(nonterminal);
-                let mut alternative_quotes = vec![];
-                for (alt_index, alternative) in alternatives.iter().enumerate() {
-                    let first_slot = Slot::new(nonterminal, alternative, 0);
-                    let first_slot_name = first_slot.name();
-                    let first_slot_id = self.slot_ids.get_id(&first_slot);
-                    let condition = self.gen_match_any(
-                        &format!("PREDICTION_SET_{}_ALT{}", nt_upper, alt_index),
-                        quote! { input_index },
-                    );
-                    alternative_quotes.push(quote! {
-                        #[comment = #first_slot_name]
-                        if #condition {
-                            matched = true;
-                            self.add_first_descriptor(#first_slot_id, input_index, gss_node_id, env);
-                        }
-                    });
-                }
-                let first_set_name = format_ident!("FIRST_SET_{}", nt_upper);
-                let first_slot = Slot::new(nonterminal, &alternatives[0], 0);
-                let first_slot_id = self.slot_ids.get_id(&first_slot);
+                let alternatives_name = format_ident!("ALTERNATIVES_{}", nt_upper);
                 nonterminal_quotes.push(quote! {
                     #[comment = #nt_name]
                     #nonterminal_id => {
-                        let mut matched = false;
-                        #( #alternative_quotes)*
-                        if !matched {
-                            self.add_parse_error(input_index, #first_slot_id, Some(gss_node_id), ParseErrorKind::UnexpectedToken { expected: #first_set_name.to_vec() });
-                        }
+                        self.try_alternatives(#alternatives_name, input_index, gss_node_id, env);
                     }
                 });
             }

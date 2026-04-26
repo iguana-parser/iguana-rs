@@ -220,27 +220,12 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             //A_Alt_0
             NonterminalId(4) => {
-                let mut matched = false;
-                //A_Alt_0 : . C
-                if self.scanner.match_any(PREDICTION_SET_A_ALT_0_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
-                }
-                //A_Alt_0 : . D
-                if self.scanner.match_any(PREDICTION_SET_A_ALT_0_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(9),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_A_ALT_0.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(
+                    ALTERNATIVES_A_ALT_0,
+                    input_index,
+                    gss_node_id,
+                    env,
+                );
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

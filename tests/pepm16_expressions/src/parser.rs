@@ -1193,67 +1193,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             }
             //E
             NonterminalId(1) => {
-                let mut matched = false;
-                //E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
-                if self.scanner.match_any(PREDICTION_SET_E_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
-                //E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
-                if self.scanner.match_any(PREDICTION_SET_E_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
-                }
-                //E(p: i32) : . [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
-                if self.scanner.match_any(PREDICTION_SET_E_ALT2, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
-                }
-                //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
-                if self.scanner.match_any(PREDICTION_SET_E_ALT3, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(27), input_index, gss_node_id, env);
-                }
-                //E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
-                if self.scanner.match_any(PREDICTION_SET_E_ALT4, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
-                }
-                //E(p: i32) : . "-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
-                if self.scanner.match_any(PREDICTION_SET_E_ALT5, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(45), input_index, gss_node_id, env);
-                }
-                //E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-                if self.scanner.match_any(PREDICTION_SET_E_ALT6, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
-                }
-                //E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
-                if self.scanner.match_any(PREDICTION_SET_E_ALT7, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(63), input_index, gss_node_id, env);
-                }
-                //E(p: i32) : . "(" WS E(0) WS ")" return 0
-                if self.scanner.match_any(PREDICTION_SET_E_ALT8, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
-                }
-                //E(p: i32) : . "a" return 0
-                if self.scanner.match_any(PREDICTION_SET_E_ALT9, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(79), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(2),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_E.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(ALTERNATIVES_E, input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

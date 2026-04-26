@@ -260,75 +260,30 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             //S_Plus_0
             NonterminalId(2) => {
-                let mut matched = false;
-                //S_Plus_0 : . S_Plus_0 Id
-                if self.scanner.match_any(PREDICTION_SET_S_PLUS_0_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
-                //S_Plus_0 : . Id
-                if self.scanner.match_any(PREDICTION_SET_S_PLUS_0_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(4),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_S_PLUS_0.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(
+                    ALTERNATIVES_S_PLUS_0,
+                    input_index,
+                    gss_node_id,
+                    env,
+                );
             }
             //Id_Alt_0
             NonterminalId(3) => {
-                let mut matched = false;
-                //Id_Alt_0 : . Alpha
-                if self.scanner.match_any(PREDICTION_SET_ID_ALT_0_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
-                }
-                //Id_Alt_0 : . Digit
-                if self.scanner.match_any(PREDICTION_SET_ID_ALT_0_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(9),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ID_ALT_0.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(
+                    ALTERNATIVES_ID_ALT_0,
+                    input_index,
+                    gss_node_id,
+                    env,
+                );
             }
             //Id_Plus_1
             NonterminalId(4) => {
-                let mut matched = false;
-                //Id_Plus_1 : . Id_Plus_1 Id_Alt_0
-                if self.scanner.match_any(PREDICTION_SET_ID_PLUS_1_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
-                }
-                //Id_Plus_1 : . Id_Alt_0
-                if self.scanner.match_any(PREDICTION_SET_ID_PLUS_1_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(13),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ID_PLUS_1.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(
+                    ALTERNATIVES_ID_PLUS_1,
+                    input_index,
+                    gss_node_id,
+                    env,
+                );
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

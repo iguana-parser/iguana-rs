@@ -119,6 +119,27 @@ pub fn generate<'a>(
                 }
             }
         }
+
+        // Bundled alternatives constant for multi-alternative nonterminals
+        if alternatives.len() > 1 {
+            let alt_entries: Vec<_> = alternatives
+                .iter()
+                .enumerate()
+                .map(|(alt_index, alternative)| {
+                    let pred_name = format_ident!("PREDICTION_SET_{}_ALT{}", nt_upper, alt_index);
+                    let first_slot = Slot::new(nonterminal, alternative, 0);
+                    let first_slot_id = slot_ids.get_id(&first_slot);
+                    quote! { (#pred_name, #first_slot_id) }
+                })
+                .collect();
+            let alternatives_name = format_ident!("ALTERNATIVES_{}", nt_upper);
+            items.push(quote! {
+                pub static #alternatives_name: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
+                    &[#(#alt_entries),*],
+                    #first_name,
+                );
+            });
+        }
     }
 
     // NONTERMINALS array
@@ -177,7 +198,7 @@ pub fn generate<'a>(
     });
 
     quote! {
-        use iguana_runtime::ids::{NonterminalId, TerminalId};
+        use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
         use crate::types::{Nonterminal, Slot, Terminal};
 
         pub const NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminals),*];

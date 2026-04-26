@@ -158,32 +158,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
         match nonterminal_id {
             //E
             NonterminalId(0) => {
-                let mut matched = false;
-                //E : . E "*" E
-                if self.scanner.match_any(PREDICTION_SET_E_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
-                //E : . E "+" E
-                if self.scanner.match_any(PREDICTION_SET_E_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
-                //E : . "a"
-                if self.scanner.match_any(PREDICTION_SET_E_ALT2, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(0),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_E.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(ALTERNATIVES_E, input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

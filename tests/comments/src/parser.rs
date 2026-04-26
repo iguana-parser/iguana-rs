@@ -287,32 +287,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
         match nonterminal_id {
             //Expr
             NonterminalId(0) => {
-                let mut matched = false;
-                //Expr : . Expr Layout "+" Layout Expr
-                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT0, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
-                //Expr : . Expr Layout "*" Layout Expr
-                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT1, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
-                //Expr : . "x"
-                if self.scanner.match_any(PREDICTION_SET_EXPR_ALT2, input_index) {
-                    matched = true;
-                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_parse_error(
-                        input_index,
-                        SlotId(0),
-                        Some(gss_node_id),
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_EXPR.to_vec(),
-                        },
-                    );
-                }
+                self.try_alternatives(ALTERNATIVES_EXPR, input_index, gss_node_id, env);
             }
             //StartExpr : . Layout start:Expr Layout
             NonterminalId(1) => {
