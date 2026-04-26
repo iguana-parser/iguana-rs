@@ -36,7 +36,7 @@ pub struct ParseSuccess<T> {
 pub fn parse_a<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a A<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a A<'a>>, ParseError> {
     let mut parser = LeftRecursiveListParser::new(input, grammar_data::A);
     match parser.run() {
         ParseResult::Success(success) => {

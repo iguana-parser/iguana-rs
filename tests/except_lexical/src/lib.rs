@@ -36,7 +36,7 @@ pub struct ParseSuccess<T> {
 pub fn parse_s<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a S>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a S>, ParseError> {
     let mut parser = ExceptLexicalParser::new(input, grammar_data::S);
     match parser.run() {
         ParseResult::Success(success) => {

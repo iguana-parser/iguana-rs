@@ -36,7 +36,7 @@ pub struct ParseSuccess<T> {
 pub fn parse_a<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a A<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a A<'a>>, ParseError> {
     let mut parser = GroupParser::new(input, grammar_data::A);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -68,7 +68,7 @@ pub fn parse_a<'a>(
 pub fn parse_b<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a B>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a B>, ParseError> {
     let mut parser = GroupParser::new(input, grammar_data::B);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -100,7 +100,7 @@ pub fn parse_b<'a>(
 pub fn parse_c<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a C>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a C>, ParseError> {
     let mut parser = GroupParser::new(input, grammar_data::C);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -132,7 +132,7 @@ pub fn parse_c<'a>(
 pub fn parse_d<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a D>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a D>, ParseError> {
     let mut parser = GroupParser::new(input, grammar_data::D);
     match parser.run() {
         ParseResult::Success(success) => {

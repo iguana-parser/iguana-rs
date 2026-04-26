@@ -36,7 +36,7 @@ pub struct ParseSuccess<T> {
 pub fn parse_s<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a S<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a S<'a>>, ParseError> {
     let mut parser = FollowRestrictionLexicalParser::new(input, grammar_data::S);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -68,7 +68,7 @@ pub fn parse_s<'a>(
 pub fn parse_element<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a Element<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Element<'a>>, ParseError> {
     let mut parser = FollowRestrictionLexicalParser::new(input, grammar_data::ELEMENT);
     match parser.run() {
         ParseResult::Success(success) => {

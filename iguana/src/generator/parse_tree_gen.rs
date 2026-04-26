@@ -1240,8 +1240,9 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
                     (method, ret)
                 }
                 Definition::Nonterminal(nt) => {
-                    let method = format_ident!("as_{}", to_snake_case(&nt.name));
-                    let ret = nt_ident(&nt.name);
+                    let resolved = unwrap_exclude(grammar, nt);
+                    let method = format_ident!("as_{}", to_snake_case(&resolved.name));
+                    let ret = nt_ident(&resolved.name);
                     (method, ret)
                 }
             };

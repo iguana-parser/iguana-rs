@@ -36,7 +36,7 @@ pub struct ParseSuccess<T> {
 pub fn parse_e<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a E<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a E<'a>>, ParseError> {
     let mut parser = ExpressionParser::new(input, grammar_data::E);
     match parser.run() {
         ParseResult::Success(success) => {

@@ -36,7 +36,7 @@ pub struct ParseSuccess<T> {
 pub fn parse_expr<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a Expr<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Expr<'a>>, ParseError> {
     let mut parser = ExcludeByLabelParser::new(input, grammar_data::EXPR);
     match parser.run() {
         ParseResult::Success(success) => {

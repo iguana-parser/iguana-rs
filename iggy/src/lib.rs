@@ -36,7 +36,10 @@ pub struct ParseSuccess<T> {
 pub fn parse_grammar<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a Start<&'a Grammar<'a>, &'a Layout<'a>>>, ParseError> {
+) -> std::result::Result<
+    ParseSuccess<&'a Start<&'a Grammar<'a>, &'a Layout<'a>>>,
+    ParseError,
+> {
     let mut parser = IggyParser::new(input, grammar_data::START_GRAMMAR);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -68,7 +71,7 @@ pub fn parse_grammar<'a>(
 pub fn parse_layout_def<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a LayoutDef<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a LayoutDef<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::LAYOUT_DEF);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -100,7 +103,7 @@ pub fn parse_layout_def<'a>(
 pub fn parse_rule<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a Rule<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Rule<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::RULE);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -132,7 +135,7 @@ pub fn parse_rule<'a>(
 pub fn parse_syntax_rule<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a SyntaxRule<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a SyntaxRule<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::SYNTAX_RULE);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -164,7 +167,7 @@ pub fn parse_syntax_rule<'a>(
 pub fn parse_annotation<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a Annotation<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Annotation<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::ANNOTATION);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -196,7 +199,7 @@ pub fn parse_annotation<'a>(
 pub fn parse_regex_rule<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a RegexRule<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a RegexRule<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::REGEX_RULE);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -228,7 +231,7 @@ pub fn parse_regex_rule<'a>(
 pub fn parse_pre_condition<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a PreCondition<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a PreCondition<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::PRE_CONDITION);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -260,7 +263,7 @@ pub fn parse_pre_condition<'a>(
 pub fn parse_post_condition<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a PostCondition<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a PostCondition<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::POST_CONDITION);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -292,7 +295,7 @@ pub fn parse_post_condition<'a>(
 pub fn parse_priority_level<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a PriorityLevel<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a PriorityLevel<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::PRIORITY_LEVEL);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -324,7 +327,7 @@ pub fn parse_priority_level<'a>(
 pub fn parse_associativity<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a Associativity<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Associativity<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::ASSOCIATIVITY);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -356,7 +359,7 @@ pub fn parse_associativity<'a>(
 pub fn parse_alternative<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a Alternative<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Alternative<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::ALTERNATIVE);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -388,7 +391,7 @@ pub fn parse_alternative<'a>(
 pub fn parse_regex<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a Regex<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Regex<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::REGEX);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -420,7 +423,7 @@ pub fn parse_regex<'a>(
 pub fn parse_char_class<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a CharClass<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a CharClass<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::CHAR_CLASS);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -452,7 +455,7 @@ pub fn parse_char_class<'a>(
 pub fn parse_range_element<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a RangeElement<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a RangeElement<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::RANGE_ELEMENT);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -484,7 +487,7 @@ pub fn parse_range_element<'a>(
 pub fn parse_range<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a Range<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Range<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::RANGE);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -516,7 +519,7 @@ pub fn parse_range<'a>(
 pub fn parse_layout<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a Layout<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Layout<'a>>, ParseError> {
     let mut parser = IggyParser::new(input, grammar_data::LAYOUT);
     match parser.run() {
         ParseResult::Success(success) => {

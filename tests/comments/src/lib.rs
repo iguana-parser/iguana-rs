@@ -36,7 +36,7 @@ pub struct ParseSuccess<T> {
 pub fn parse_expr<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> Result<ParseSuccess<&'a Start<&'a Expr<'a>, Token>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a Expr<'a>, Token>>, ParseError> {
     let mut parser = CommentsParser::new(input, grammar_data::START_EXPR);
     match parser.run() {
         ParseResult::Success(success) => {

@@ -85,7 +85,7 @@ fn gen_parse_method(
     let return_type = nonterminal_type(grammar, target_nt);
 
     quote! {
-        pub fn #fn_name<'a>(input: &Input, ctx: &'a ParseContext) -> Result<ParseSuccess<&'a #return_type>, ParseError> {
+        pub fn #fn_name<'a>(input: &Input, ctx: &'a ParseContext) -> std::result::Result<ParseSuccess<&'a #return_type>, ParseError> {
             let mut parser = #parser::new(input, grammar_data::#nt_const);
             match parser.run() {
                 ParseResult::Success(success) => {
