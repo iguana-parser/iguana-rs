@@ -1,9 +1,12 @@
-use std::path::{Path, PathBuf};
+use std::{
+    io,
+    path::{Path, PathBuf},
+};
 
 use clap::{Parser, Subcommand};
 use iguana::{
     alternative, bind, c, call, cond, cond_expr,
-    generator::{GenConfig, generate},
+    generator::{GenConfig, generate_scaffold, generate_sources},
     grammar::def::{Grammar, GrammarDef},
     grammar_def, id,
     iggy::parse_grammar,
@@ -11,6 +14,7 @@ use iguana::{
 };
 
 #[derive(Parser)]
+#[command(name = "iguana", version, about = "A GLL-based parser generator")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -27,8 +31,9 @@ enum Commands {
         #[arg(short, long, default_value = ".")]
         output: PathBuf,
     },
+    /// Generate a parser crate from an iggy grammar
     Generate {
-        /// Path to an iggy grammar file. If not provided, uses the built-in iggy grammar.
+        /// Path to an iggy grammar file. Defaults to the .iggy file in the output directory.
         #[arg(short, long)]
         grammar: Option<PathBuf>,
 
@@ -44,7 +49,6 @@ enum Commands {
         #[arg(long)]
         no_ll1: bool,
     },
-    Run,
     /// Test-related commands
     Test {
         #[command(subcommand)]
@@ -101,14 +105,13 @@ fn main() -> std::io::Result<()> {
             let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
                 std::io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
             })?;
-            let result = generate(&grammar, &output, config)?;
+            let result = generate_sources(&grammar, &output, config)?;
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
             } else {
                 println!("Generated {} grammar in {} ms", grammar.name, result.total_duration_ms);
             }
         }
-        Commands::Run => todo!(),
         Commands::Test { command } => match command {
             TestCommands::Init { name } => init_test(&name)?,
             TestCommands::Delete { name } => delete_test(&name)?,
@@ -142,14 +145,10 @@ fn init_project(output: &Path, name: &str) -> std::io::Result<()> {
         std::fs::write(&gitignore, "/target\n")?;
     }
 
-    // Generate parser (creates Cargo.toml and source files)
-    let cargo_toml = output.join("Cargo.toml");
-    if !cargo_toml.exists() {
-        print!("Generating parser... ");
-        std::io::stdout().flush()?;
-        generate_parser(Some(&grammar_file), output)?;
-        println!("done");
-    }
+    print!("Generating parser... ");
+    std::io::stdout().flush()?;
+    generate_parser(Some(&grammar_file), output)?;
+    println!("done");
 
     println!("Initialized iggy project at {}", output.display());
     Ok(())
@@ -164,22 +163,17 @@ fn init_test(name: &str) -> std::io::Result<()> {
     let cargo_toml = test_dir.join("Cargo.toml");
     let tests_rs = test_dir.join("tests.rs");
 
-    // Create directory and grammar file if they don't exist
     if !test_dir.exists() {
         std::fs::create_dir_all(&test_dir)?;
         std::fs::write(&grammar_file, format!("grammar {grammar_name}\n"))?;
         println!("Created grammar: {}", grammar_file.display());
     }
 
-    // Generate parser if not yet generated
-    if !cargo_toml.exists() {
-        print!("Generating parser... ");
-        std::io::stdout().flush()?;
-        generate_parser(Some(&grammar_file), &test_dir)?;
-        println!("done");
-    }
+    print!("Generating parser... ");
+    std::io::stdout().flush()?;
+    generate_parser(Some(&grammar_file), &test_dir)?;
+    println!("done");
 
-    // Add test infrastructure
     std::fs::create_dir_all(test_dir.join("parse_trees"))?;
 
     // Add [[test]] section to Cargo.toml if not present
@@ -300,22 +294,7 @@ fn generate_test(name: &str) -> std::io::Result<()> {
 
     print!("Generating {}... ", name);
     std::io::stdout().flush()?;
-    generate_parser(Some(&grammar_file), &path)?;
-
-    // Re-add [[test]] section if tests.rs exists
-    let tests_rs = path.join("tests.rs");
-    if tests_rs.exists() {
-        let cargo_toml = path.join("Cargo.toml");
-        let cargo_content = std::fs::read_to_string(&cargo_toml)?;
-        if !cargo_content.contains("[[test]]") {
-            let updated = cargo_content.replace(
-                "[features]",
-                "[[test]]\nname = \"tests\"\npath = \"tests.rs\"\n\n[features]",
-            );
-            std::fs::write(&cargo_toml, updated)?;
-        }
-    }
-
+    regenerate_sources(Some(&grammar_file), &path)?;
     println!("done");
     Ok(())
 }
@@ -376,7 +355,20 @@ fn find_iggy_file(directory: &Path) -> std::io::Result<PathBuf> {
     }
 }
 
-fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Result<()> {
+fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> io::Result<()> {
+    let grammar = load_grammar(grammar_path, output)?;
+    generate_scaffold(&grammar, output)?;
+    generate_sources(&grammar, output, GenConfig::default())?;
+    Ok(())
+}
+
+fn regenerate_sources(grammar_path: Option<&Path>, output: &Path) -> io::Result<()> {
+    let grammar = load_grammar(grammar_path, output)?;
+    generate_sources(&grammar, output, GenConfig::default())?;
+    Ok(())
+}
+
+fn load_grammar(grammar_path: Option<&Path>, output: &Path) -> io::Result<Grammar> {
     let resolved_path;
     let path = match grammar_path {
         Some(path) => path,
@@ -386,12 +378,10 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> std::io::Resul
         }
     };
     let source = std::fs::read_to_string(path)?;
-    let grammar_def = parse_grammar(&source).map_err(std::io::Error::other)?;
-    let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
-        std::io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
-    })?;
-    generate(&grammar, output, GenConfig::default())?;
-    Ok(())
+    let grammar_def = parse_grammar(&source).map_err(io::Error::other)?;
+    grammar_def.try_into().map_err(|names: Vec<String>| {
+        io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
+    })
 }
 
 #[allow(dead_code)]
