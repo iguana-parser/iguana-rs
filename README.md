@@ -189,4 +189,4 @@ This repository contains code under multiple licenses:
 
 The runtime is permissively licensed so generated parsers and any code linking them can be released under any license. The generator (`iguana`) is GPL'd to keep modifications and forks of the generator itself open.
 
-See [LICENSE-MIT](LICENSE-MIT), [LICENSE-APACHE](LICENSE-APACHE), and [LICENSE-GPL](LICENSE-GPL) for the full license texts.
+See [COPYRIGHT](COPYRIGHT) for an overview, and [LICENSE-MIT](LICENSE-MIT), [LICENSE-APACHE](LICENSE-APACHE), [LICENSE-GPL](LICENSE-GPL) for the full license texts.

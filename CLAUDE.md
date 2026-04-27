@@ -41,7 +41,7 @@ Tests use s-expression golden file comparison via `check_golden_file`.
 
 # Code Style
 
-- Prefer `use` imports over fully-qualified paths. Qualify only when (a) there is ambiguity, or (b) the qualifier is short and adds context (e.g. `serde_json::json!`, `fs::read_dir`). Use the shortest qualifier that suffices. Avoid long paths like `std::time::Instant::now()` or `std::path::Path::new(...)` when a `use` import would do.
+- Prefer `use` imports over fully-qualified paths. Qualify only when (a) there is ambiguity, or (b) the qualifier is short and adds context (e.g. `serde_json::json!`, `fs::read_dir`). Use the shortest qualifier that suffices. Avoid long paths like `std::io::Result`, `std::fs::read_to_string`, `std::time::Instant::now()`, or `std::path::Path::new(...)` when a `use` import would do — write `io::Result`, `fs::read_to_string`, etc. instead.
 - Optimize for readability rather than clever tricks
 - State what, then why. Not the reverse.
 - Use project terminology: "parse tree" not "CST"
