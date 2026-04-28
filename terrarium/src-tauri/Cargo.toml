@@ -36,3 +36,9 @@ chrono = "0.4"
 # The terrarium crate itself stays at opt-level 0 for fast compiles.
 [profile.dev.package."*"]
 opt-level = 2
+
+# Redirect git-based iguana-runtime references (used by iggy and the
+# generated test parsers) to the local copy. Without this, cargo would
+# try to fetch from GitHub and fail on private repos / offline builds.
+[patch."https://github.com/iguana-parser/iguana-rs"]
+iguana-runtime = { path = "../../iguana-runtime" }
