@@ -1,0 +1,38 @@
+[workspace]  # standalone workspace, excluded from parent to speed up rust-analyzer
+
+[package]
+name = "terrarium"
+version = "0.1.0"
+description = "Iguana grammar debugger"
+authors = ["you"]
+edition = "2021"
+license = "GPL-3.0-only"
+
+[lib]
+name = "terrarium_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+tempfile = "3"
+specta = { version = "=2.0.0-rc.22", features = ["derive"] }
+tauri-specta = { version = "=2.0.0-rc.21", features = ["typescript"] }
+specta-typescript = "0.0.9"
+iguana = { path = "../../iguana" }
+lsp = { path = "../../lsp" }
+lsp-types = "0.97"
+chrono = "0.4"
+
+# Optimize dependencies in dev builds so the parser runs at near-release speed.
+# The terrarium crate itself stays at opt-level 0 for fast compiles.
+[profile.dev.package."*"]
+opt-level = 2

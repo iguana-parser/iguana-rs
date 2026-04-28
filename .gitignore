@@ -3,3 +3,8 @@
 .vscode/launch.json
 **/.DS_Store
 iggy/flamegraph.svg
+terrarium/node_modules
+terrarium/.svelte-kit
+terrarium/src-tauri/target
+editors/vscode/node_modules
+editors/vscode/out

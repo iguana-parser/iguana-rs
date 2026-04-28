@@ -1,0 +1,23 @@
+[package]
+name = "lsp"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-only"
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "iguana-lsp"
+path = "src/main.rs"
+
+[dependencies]
+by_address = "1.2.1"
+iggy.workspace = true
+iguana.workspace = true
+iguana-runtime.workspace = true
+rustc-hash = "2.1.1"
+lsp-server.workspace = true
+serde.workspace = true
+lsp-types.workspace = true
+serde_json.workspace = true
