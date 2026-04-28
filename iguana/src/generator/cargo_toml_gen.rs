@@ -13,7 +13,7 @@ edition = "2024"
 path = "src/lib.rs"
 
 [dependencies]
-iguana-runtime = {{ path = "/Users/afroozeh/Workspace/iguana-rs/iguana-runtime" }}
+iguana-runtime = {{ git = "https://github.com/iguana-parser/iguana-rs" }}
 clap = {{ version = "4.5.51", features = ["derive"] }}
 dot = {{ git = "https://github.com/przygienda/dot-rust.git", rev = "fed06f613a9d72bfde711a12791f96a777b2371e" }}
 log = "0.4"
