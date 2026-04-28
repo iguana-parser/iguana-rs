@@ -1,0 +1,56 @@
+{
+  "name": "iguana-vscode",
+  "displayName": "Iguana",
+  "description": "Language support for iggy grammars",
+  "version": "0.1.0",
+  "publisher": "iguana-parser",
+  "license": "GPL-3.0-only",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:iggy"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "iggy",
+        "aliases": [
+          "Iggy",
+          "iggy"
+        ],
+        "extensions": [
+          ".iggy"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Iguana",
+      "properties": {
+        "iguana.lsp.path": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the iguana-lsp binary. If empty, looks for 'iguana-lsp' on PATH."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^5.0.0"
+  }
+}
