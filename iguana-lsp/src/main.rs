@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
     let server_capabilities = serde_json::to_value(&ServerCapabilities {
         semantic_tokens_provider: Some(
             SemanticTokensOptions {
-                legend: lsp::semantic_tokens::legend(),
+                legend: iguana_lsp::semantic_tokens::legend(),
                 full: Some(SemanticTokensFullOptions::Bool(true)),
                 range: None,
                 work_done_progress_options: Default::default(),

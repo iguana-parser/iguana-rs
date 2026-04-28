@@ -28,7 +28,7 @@ specta = { version = "=2.0.0-rc.22", features = ["derive"] }
 tauri-specta = { version = "=2.0.0-rc.21", features = ["typescript"] }
 specta-typescript = "0.0.9"
 iguana = { path = "../../iguana" }
-lsp = { path = "../../lsp" }
+iguana-lsp = { path = "../../iguana-lsp" }
 lsp-types = "0.97"
 chrono = "0.4"
 

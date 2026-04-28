@@ -196,19 +196,19 @@ impl GrammarState {
         }
         let input = Input::from(source);
         let ctx = ParseContext::new();
-        let result = lsp::build(&input, &ctx);
+        let result = iguana_lsp::build(&input, &ctx);
         match &result {
-            lsp::BuildResult::Success {
+            iguana_lsp::BuildResult::Success {
                 ref tree,
                 parse_duration,
                 tree_construction_duration,
             } => {
-                self.grammar_def = lsp::build_grammar_def(tree, &input);
+                self.grammar_def = iguana_lsp::build_grammar_def(tree, &input);
                 self.parse_ms = parse_duration.as_millis() as u32;
                 self.tree_ms = tree_construction_duration.as_millis() as u32;
                 self.success = true;
             }
-            lsp::BuildResult::Error { .. } => {
+            iguana_lsp::BuildResult::Error { .. } => {
                 self.grammar_def = None;
                 self.parse_ms = 0;
                 self.tree_ms = 0;
@@ -222,10 +222,10 @@ impl GrammarState {
 
     /// Parse the current source and return the tree. Returns None if no source
     /// is set or parsing fails.
-    fn parse<'a>(&self, ctx: &'a ParseContext) -> Option<lsp::BuildResult<'a>> {
+    fn parse<'a>(&self, ctx: &'a ParseContext) -> Option<iguana_lsp::BuildResult<'a>> {
         let input = self.input.as_ref()?;
-        match lsp::build(input, ctx) {
-            result @ lsp::BuildResult::Success { .. } => Some(result),
+        match iguana_lsp::build(input, ctx) {
+            result @ iguana_lsp::BuildResult::Success { .. } => Some(result),
             _ => None,
         }
     }
@@ -1026,11 +1026,11 @@ fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> O
     let mut st = state.lock().unwrap();
     st.ensure_built(&source);
     let ctx = ParseContext::new();
-    let lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
+    let iguana_lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
         return None;
     };
     let input = st.input.as_ref()?;
-    Some(lsp::format::format(tree, input))
+    Some(iguana_lsp::format::format(tree, input))
 }
 
 /// Return semantic tokens from the cached parse result.
@@ -1039,13 +1039,13 @@ fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> O
 fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<SemanticTokenData> {
     let st = state.lock().unwrap();
     let ctx = ParseContext::new();
-    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+    let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
         return vec![];
     };
     let Some(ref input) = st.input else {
         return vec![];
     };
-    lsp::semantic_tokens::semantic_tokens(tree, input)
+    iguana_lsp::semantic_tokens::semantic_tokens(tree, input)
         .into_iter()
         .map(|t| SemanticTokenData {
             delta_line: t.delta_line,
@@ -1068,7 +1068,7 @@ fn get_document_symbols(
     let mut st = state.lock().unwrap();
     st.ensure_built(&source);
     let ctx = ParseContext::new();
-    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+    let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
         return vec![];
     };
     let Some(ref input) = st.input else {
@@ -1077,8 +1077,8 @@ fn get_document_symbols(
     let Some(ref grammar_def) = st.grammar_def else {
         return vec![];
     };
-    let spans = lsp::build_spans(grammar_def, tree, input);
-    lsp::document_symbols::document_symbols(grammar_def, &spans, input)
+    let spans = iguana_lsp::build_spans(grammar_def, tree, input);
+    iguana_lsp::document_symbols::document_symbols(grammar_def, &spans, input)
         .into_iter()
         .map(convert_symbol)
         .collect()
@@ -1096,15 +1096,15 @@ fn get_definition(
     let mut st = state.lock().unwrap();
     st.ensure_built(&source);
     let ctx = ParseContext::new();
-    let lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
+    let iguana_lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
         return None;
     };
     let input = st.input.as_ref()?;
     let grammar_def = st.grammar_def.as_ref()?;
-    let spans = lsp::build_spans(grammar_def, tree, input);
+    let spans = iguana_lsp::build_spans(grammar_def, tree, input);
     let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
     let offset = input.offset(line, column);
-    let loc = lsp::references::definition(&spans, input, &uri, offset)?;
+    let loc = iguana_lsp::references::definition(&spans, input, &uri, offset)?;
     Some(LocationData {
         range: RangeData {
             start_line: loc.range.start.line,
@@ -1128,7 +1128,7 @@ fn get_references(
     let mut st = state.lock().unwrap();
     st.ensure_built(&source);
     let ctx = ParseContext::new();
-    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+    let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
         return vec![];
     };
     let Some(ref input) = st.input else {
@@ -1137,10 +1137,10 @@ fn get_references(
     let Some(ref grammar_def) = st.grammar_def else {
         return vec![];
     };
-    let spans = lsp::build_spans(grammar_def, tree, input);
+    let spans = iguana_lsp::build_spans(grammar_def, tree, input);
     let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
     let offset = input.offset(line, column);
-    lsp::references::references(&spans, input, &uri, offset, include_declaration)
+    iguana_lsp::references::references(&spans, input, &uri, offset, include_declaration)
         .into_iter()
         .map(|loc| LocationData {
             range: RangeData {
@@ -1163,7 +1163,7 @@ fn get_folding_ranges(
     let mut st = state.lock().unwrap();
     st.ensure_built(&source);
     let ctx = ParseContext::new();
-    let Some(lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+    let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
         return vec![];
     };
     let Some(ref input) = st.input else {
@@ -1172,8 +1172,8 @@ fn get_folding_ranges(
     let Some(ref grammar_def) = st.grammar_def else {
         return vec![];
     };
-    let spans = lsp::build_spans(grammar_def, tree, input);
-    lsp::folding::folding_ranges(grammar_def, &spans, input)
+    let spans = iguana_lsp::build_spans(grammar_def, tree, input);
+    iguana_lsp::folding::folding_ranges(grammar_def, &spans, input)
         .into_iter()
         .map(|r| FoldingRangeData {
             start_line: r.start_line,
@@ -1195,13 +1195,13 @@ fn get_diagnostics(
         return vec![];
     };
     let ctx = ParseContext::new();
-    match lsp::build(input, &ctx) {
-        lsp::BuildResult::Success { ref tree, .. } => {
+    match iguana_lsp::build(input, &ctx) {
+        iguana_lsp::BuildResult::Success { ref tree, .. } => {
             let Some(ref grammar_def) = st.grammar_def else {
                 return vec![];
             };
-            let spans = lsp::build_spans(grammar_def, tree, input);
-            lsp::diagnostics::diagnostics(grammar_def, &spans, input)
+            let spans = iguana_lsp::build_spans(grammar_def, tree, input);
+            iguana_lsp::diagnostics::diagnostics(grammar_def, &spans, input)
                 .into_iter()
                 .map(|d| {
                     let severity = match d.severity {
@@ -1224,7 +1224,7 @@ fn get_diagnostics(
                 })
                 .collect()
         }
-        lsp::BuildResult::Error { line, column, message } => {
+        iguana_lsp::BuildResult::Error { line, column, message } => {
             vec![DiagnosticData {
                 range: RangeData {
                     start_line: line,
@@ -1280,7 +1280,7 @@ fn convert_symbol(s: lsp_types::DocumentSymbol) -> DocumentSymbolData {
 #[tauri::command]
 #[specta::specta]
 fn get_semantic_tokens_legend() -> SemanticTokensLegendData {
-    let legend = lsp::semantic_tokens::legend();
+    let legend = iguana_lsp::semantic_tokens::legend();
     SemanticTokensLegendData {
         token_types: legend.token_types.iter().map(|t| t.as_str().to_string()).collect(),
     }

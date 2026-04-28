@@ -11,13 +11,13 @@ use lsp_types::{
     SemanticTokensResult, TextEdit, Uri,
 };
 use iguana_runtime::{input::Input, parse_tree::ParseContext};
-use lsp::diagnostics::diagnostics;
-use lsp::document_symbols::document_symbols;
-use lsp::folding::folding_ranges;
-use lsp::format::format;
-use lsp::references::{definition, references};
-use lsp::semantic_tokens::semantic_tokens;
-use lsp::{build, build_grammar_def, build_spans, BuildResult};
+use iguana_lsp::diagnostics::diagnostics;
+use iguana_lsp::document_symbols::document_symbols;
+use iguana_lsp::folding::folding_ranges;
+use iguana_lsp::format::format;
+use iguana_lsp::references::{definition, references};
+use iguana_lsp::semantic_tokens::semantic_tokens;
+use iguana_lsp::{build, build_grammar_def, build_spans, BuildResult};
 
 pub fn main_loop(
     connection: Connection,
