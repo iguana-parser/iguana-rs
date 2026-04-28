@@ -929,7 +929,7 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
             let grammar: iguana::grammar::def::Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
                 format!("Unresolved identifiers: {}", names.join(", "))
             })?;
-            let result = iguana::generator::generate(
+            let result = iguana::generator::generate_sources(
                 &grammar,
                 dir,
                 iguana::generator::GenConfig {
@@ -937,7 +937,7 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
                 },
             )
             .map_err(|e| e.to_string())?;
-            Ok(result.total_duration_ms)
+            Ok::<u64, String>(result.total_duration_ms)
         }));
         CAPTURING.set(false);
 
