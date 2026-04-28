@@ -86,6 +86,7 @@ Shared utilities live in `terrarium/src/lib/` (`graph-styles.ts`, `graph-utils.t
 - No filler words ("simply," "just," "basically," "naturally," "seamlessly")
 - No filler phrases ("it should be noted that," "it is worth mentioning")
 - Almost all the code in `iguana-runtime` is performance critical. Be aware of adding anything expensive there.
+- Be consistent. When you make a stylistic choice (e.g. how a term is abbreviated, how a list item is formatted, which phrasing you use for a concept), apply it the same way everywhere in the change. The same rule applies to code: parallel constructs should look parallel.
 
 # Approach
 
@@ -101,3 +102,7 @@ Don't rush to the first solution. When a change touches shared infrastructure (g
 
 - Don't write scripts with sed/awk for code refactoring or fixing a failed bootstrap. Only use those tools when you're sure they won't mess things up. Otherwise, fix things manually.
 - Start a new conversation before hitting 20% context usage.
+
+# Git
+
+- Never run `git commit`, `git push`, `git tag`, or other write operations unless explicitly asked. The user makes those calls. Exception: when an operation the user authorized inherently creates a commit (e.g., `git merge`, `git rebase`, `git subtree add`), the resulting commit is part of the authorized operation and is fine.
