@@ -6,7 +6,7 @@ version = "0.1.0"
 description = "Iguana grammar debugger"
 authors = ["you"]
 edition = "2021"
-license = "GPL-3.0-only"
+license = "GPL-3.0-or-later"
 
 [lib]
 name = "terrarium_lib"
