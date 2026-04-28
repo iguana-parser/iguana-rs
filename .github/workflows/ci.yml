@@ -41,8 +41,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo clippy --workspace --all-targets
 
-  pipeline:
-    name: test pipeline
+  parser-generation:
+    name: parser generation
     needs: check
     runs-on: ubuntu-latest
     steps:
@@ -50,10 +50,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
-      - name: iguana tests
-        run: cargo test -p iguana
-
-      - name: bootstrap twice (parser stability)
+      - name: bootstrap twice (verify stable)
         run: |
           ./bootstrap.sh
           ./bootstrap.sh
@@ -64,7 +61,12 @@ jobs:
             exit 1
           fi
 
-      - name: regenerate all test parsers (generator stability)
+      - name: iguana & iguana-runtime tests
+        run: |
+          cargo test -p iguana
+          cargo test -p iguana-runtime
+
+      - name: regenerate all test parsers (verify stable)
         run: |
           cargo run -p iguana -- test generate-all
           if ! git diff --quiet; then
@@ -74,12 +76,19 @@ jobs:
             exit 1
           fi
 
-      - name: workspace tests
-        run: cargo test --workspace
+  workspace-test:
+    name: workspace tests
+    needs: parser-generation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace
 
   terrarium:
     name: terrarium build & smoke test
-    needs: check
+    needs: parser-generation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
