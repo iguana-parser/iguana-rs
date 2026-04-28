@@ -2,7 +2,7 @@ use std::{
     fs,
     io::{self, Write},
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Stdio},
     time::Instant,
 };
 
@@ -201,13 +201,6 @@ fn write_rust_file(content: impl AsRef<str>, path: &Path) -> io::Result<()> {
 }
 
 /// Run rustfmt on the given files, one process per file in parallel.
-///
-/// Each rustfmt instance is single-threaded, so spawning one process per
-/// file lets us use multiple cores and is faster than passing all paths
-/// to a single rustfmt invocation.
-///
-/// Passes `--edition 2024` because rustfmt's CLI default is edition 2015,
-/// which produces subtly different formatting than the workspace's edition.
 fn format_files(paths: &[PathBuf]) -> io::Result<()> {
     if paths.is_empty() {
         return Ok(());
@@ -225,19 +218,52 @@ fn format_files(paths: &[PathBuf]) -> io::Result<()> {
     })
 }
 
+/// Format a single file by piping its contents through rustfmt's stdin.
+///
+/// We deliberately avoid `rustfmt <path>` because rustfmt enters "project
+/// mode" when given a path: it walks `mod foo;` declarations and reads
+/// the corresponding sibling files to validate the mod tree. Running
+/// multiple such invocations in parallel on files of the same crate
+/// races — one rustfmt may read a sibling while another truncates it
+/// for output, producing the error
+/// `failed to resolve mod 'foo': cannot parse foo.rs` and leaving files
+/// corrupted.
+///
+/// Stdin mode (`Operation::Stdin` → `Input::Text`) has no file location to
+/// anchor mod resolution against, so siblings are not touched. We do the
+/// read/write ourselves and pipe the source through rustfmt as bytes.
+///
+/// Passes `--edition 2024` because rustfmt's CLI default is edition 2015,
+/// which produces subtly different formatting than the workspace's edition.
+/// Stdin mode has no Cargo.toml to infer the edition from, so we must be
+/// explicit.
+///
+/// References:
+///   https://github.com/rust-lang/rustfmt/blob/master/README.md
+///   https://github.com/rust-lang/rustfmt/issues/562
+///   https://github.com/rust-lang/rustfmt/issues/5024
 fn format_file(path: &Path) -> io::Result<()> {
-    let status = Command::new("rustfmt")
+    let input = fs::read(path)?;
+    let mut child = Command::new("rustfmt")
         .arg("--edition")
         .arg("2024")
-        .arg(path)
-        .status()?;
-    if !status.success() {
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+
+    // Drop stdin after writing so rustfmt sees EOF and returns.
+    child.stdin.take().unwrap().write_all(&input)?;
+
+    let output = child.wait_with_output()?;
+    if !output.status.success() {
         return Err(io::Error::other(format!(
-            "rustfmt failed on {}: {status}",
-            path.display()
+            "rustfmt failed on {}: {}",
+            path.display(),
+            String::from_utf8_lossy(&output.stderr).trim()
         )));
     }
-    Ok(())
+    fs::write(path, &output.stdout)
 }
 
 fn write_plain_file(content: impl AsRef<str>, path: &Path) -> io::Result<()> {
