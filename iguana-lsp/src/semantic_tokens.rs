@@ -29,7 +29,10 @@ const TOKEN_DECORATOR: u32 = 5;
 const TOKEN_LABEL: u32 = 6;
 
 /// Extract semantic tokens from a parse tree.
-pub fn semantic_tokens(tree: &Start<&Grammar<'_>, &Layout<'_>>, input: &Input) -> Vec<SemanticToken> {
+pub fn semantic_tokens(
+    tree: &Start<&Grammar<'_>, &Layout<'_>>,
+    input: &Input,
+) -> Vec<SemanticToken> {
     let mut builder = SemanticTokensBuilder::new();
 
     for i in 0..tree.child_count() {

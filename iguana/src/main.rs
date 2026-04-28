@@ -101,6 +101,7 @@ fn main() -> std::io::Result<()> {
             let grammar_def = parse_grammar(&source).map_err(std::io::Error::other)?;
             let config = GenConfig {
                 ll1_optimization: !no_ll1,
+                run_rustfmt: true,
             };
             let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
                 std::io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
@@ -109,7 +110,10 @@ fn main() -> std::io::Result<()> {
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
             } else {
-                println!("Generated {} grammar in {} ms", grammar.name, result.total_duration_ms);
+                println!(
+                    "Generated {} grammar in {} ms",
+                    grammar.name, result.total_duration_ms
+                );
             }
         }
         Commands::Test { command } => match command {
@@ -396,7 +400,8 @@ fn grammar3() -> Grammar {
             ))
         ]
     )
-    .try_into().unwrap()
+    .try_into()
+    .unwrap()
 }
 
 #[allow(dead_code)]
@@ -409,7 +414,8 @@ fn ambiguous_grammar() -> Grammar {
             syntax_rule!("A" => alternative!(lit!("a")))
         ]
     )
-    .try_into().unwrap()
+    .try_into()
+    .unwrap()
 }
 
 fn nonterminal_parameters() -> GrammarDef {

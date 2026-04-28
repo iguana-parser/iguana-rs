@@ -8,17 +8,17 @@ impl<'i> ExpressionScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //"*" = *
+    // "*" = *
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '*')
     }
-    //"+" = +
+    // "+" = +
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '+')
     }
-    //"a" = a
+    // "a" = a
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'a')
@@ -31,7 +31,11 @@ impl Scanner for ExpressionScanner<'_> {
             TerminalId(1) => self.match_terminal_1(input_index),
             TerminalId(2) => self.match_terminal_2(input_index),
             TerminalId(4) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -42,4 +46,3 @@ impl Scanner for ExpressionScanner<'_> {
         self.input.char_at(i)
     }
 }
-

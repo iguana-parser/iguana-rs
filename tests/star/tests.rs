@@ -1,10 +1,10 @@
 // To regenerate parser:  cargo run -p iguana -- generate --grammar tests/star/star.iggy --output tests/star
 // To update golden files: REGENERATE=1 cargo test -p star
 
-use star::{parse_s, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
 use iguana_runtime::parse_tree::ParseContext;
 use iguana_runtime::testing::{check_golden_file, golden_path};
+use star::{parse_s, parse_tree::to_sexpr};
 
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);

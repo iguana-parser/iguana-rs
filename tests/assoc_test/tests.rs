@@ -18,7 +18,10 @@ fn check_fails(input: &str) {
     let input_str = input;
     let input = Input::from(input);
     let ctx = ParseContext::new();
-    assert!(parse_s(&input, &ctx).is_err(), "Expected parse to fail for input: {input_str}");
+    assert!(
+        parse_s(&input, &ctx).is_err(),
+        "Expected parse to fail for input: {input_str}"
+    );
 }
 
 // Left associativity: E '+' E and E '-' E

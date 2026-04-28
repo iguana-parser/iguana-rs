@@ -23,7 +23,12 @@ pub fn needs_lifetime(grammar: &Grammar, nonterminal: &Nonterminal) -> bool {
         .symbols
         .iter()
         .filter(|s| s.is_parse_tree_symbol())
-        .any(|s| matches!(grammar.definition(s.resolved_def()), Definition::Nonterminal(_)))
+        .any(|s| {
+            matches!(
+                grammar.definition(s.resolved_def()),
+                Definition::Nonterminal(_)
+            )
+        })
 }
 
 /// Returns the parse tree type for a nonterminal, with lifetime if needed.
@@ -31,7 +36,12 @@ pub fn needs_lifetime(grammar: &Grammar, nonterminal: &Nonterminal) -> bool {
 /// Regular nonterminals: `Ident<'a>` or `Ident` depending on `needs_lifetime`.
 pub fn nonterminal_type(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     if grammar.is_start(nonterminal) {
-        let inner_ident = nonterminal.origin.as_ref().unwrap().as_identifier().unwrap();
+        let inner_ident = nonterminal
+            .origin
+            .as_ref()
+            .unwrap()
+            .as_identifier()
+            .unwrap();
         let inner = symbol_type(grammar, inner_ident.resolve());
         let layout_ident = grammar.layout.as_ref().unwrap().as_identifier().unwrap();
         let layout = symbol_type(grammar, layout_ident.resolve());

@@ -25,11 +25,7 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
                     .clone();
                 let key = (nonterminal_name.clone(), labels.clone());
                 if !exclude_map.contains_key(&key) {
-                    let new_name = format!(
-                        "{}_except_{}",
-                        nonterminal_name,
-                        labels.join("_")
-                    );
+                    let new_name = format!("{}_except_{}", nonterminal_name, labels.join("_"));
                     exclude_map.insert(key, new_name);
                 }
             }
@@ -125,11 +121,17 @@ fn replace_exclude(
             symbol: Box::new(replace_exclude(*symbol, exclude_map)),
             except,
         },
-        Symbol::FollowRestriction { symbol, restrictions } => Symbol::FollowRestriction {
+        Symbol::FollowRestriction {
+            symbol,
+            restrictions,
+        } => Symbol::FollowRestriction {
             symbol: Box::new(replace_exclude(*symbol, exclude_map)),
             restrictions,
         },
-        Symbol::PrecedeRestriction { symbol, restriction } => Symbol::PrecedeRestriction {
+        Symbol::PrecedeRestriction {
+            symbol,
+            restriction,
+        } => Symbol::PrecedeRestriction {
             symbol: Box::new(replace_exclude(*symbol, exclude_map)),
             restriction,
         },
@@ -144,4 +146,3 @@ fn replace_exclude(
         other => other,
     }
 }
-

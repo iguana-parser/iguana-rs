@@ -11,30 +11,28 @@ impl<'i> RegexCompositionScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //Digit = ([0-9])
+    // Digit = ([0-9])
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)
+        (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i)
     }
-    //Letter = ([a-z A-Z _])
+    // Letter = ([a-z A-Z _])
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(i)
+        (|i| self.match_char_class(i, &CHAR_CLASS_1, false))(i)
     }
-    //LetterOrDigit = (([a-z A-Z _])|([0-9]))
+    // LetterOrDigit = (([a-z A-Z _])|([0-9]))
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| { (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(i) })(i)
-            .or_else(|| { (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i) })
+        (|i| (|i| self.match_char_class(i, &CHAR_CLASS_1, false))(i))(i)
+            .or_else(|| (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i))
     }
-    //WS = ([  \n]*)
+    // WS = ([  \n]*)
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             let mut j = i;
-            while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_2, false)
-            })(j) {
+            while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_2, false))(j) {
                 j = k;
             }
             Some(j)
@@ -49,7 +47,11 @@ impl Scanner for RegexCompositionScanner<'_> {
             TerminalId(2) => self.match_terminal_2(input_index),
             TerminalId(3) => self.match_terminal_3(input_index),
             TerminalId(5) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -60,4 +62,3 @@ impl Scanner for RegexCompositionScanner<'_> {
         self.input.char_at(i)
     }
 }
-

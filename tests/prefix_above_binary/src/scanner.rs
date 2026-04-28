@@ -9,30 +9,28 @@ impl<'i> PrefixAboveBinaryScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //WS = ([ ]*)
+    // WS = ([ ]*)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             let mut j = i;
-            while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_0, false)
-            })(j) {
+            while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(j) {
                 j = k;
             }
             Some(j)
         })(i)
     }
-    //"a" = a
+    // "a" = a
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'a')
     }
-    //"-" = -
+    // "-" = -
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '-')
     }
-    //"+" = +
+    // "+" = +
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '+')
@@ -46,7 +44,11 @@ impl Scanner for PrefixAboveBinaryScanner<'_> {
             TerminalId(2) => self.match_terminal_2(input_index),
             TerminalId(3) => self.match_terminal_3(input_index),
             TerminalId(5) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -57,4 +59,3 @@ impl Scanner for PrefixAboveBinaryScanner<'_> {
         self.input.char_at(i)
     }
 }
-

@@ -9,103 +9,102 @@ impl<'i> MultipleExceptScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //Identifier = ([a-z A-Z]+) \ Keyword \ BooleanLiteral \ NullLiteral
+    // Identifier = ([a-z A-Z]+) \ Keyword \ BooleanLiteral \ NullLiteral
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
-            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
+            let i = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i)?;
             let mut j = i;
-            while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_0, false)
-            })(j) {
+            while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(j) {
                 j = k;
             }
             Some(j)
         })(i)
-            .and_then(|end| {
-                if self.match_terminal_2(input_index) == Some(end) {
-                    None
-                } else {
-                    Some(end)
-                }
-            })
-            .and_then(|end| {
-                if self.match_terminal_3(input_index) == Some(end) {
-                    None
-                } else {
-                    Some(end)
-                }
-            })
-            .and_then(|end| {
-                if self.match_terminal_4(input_index) == Some(end) {
-                    None
-                } else {
-                    Some(end)
-                }
-            })
+        .and_then(|end| {
+            if self.match_terminal_2(input_index) == Some(end) {
+                None
+            } else {
+                Some(end)
+            }
+        })
+        .and_then(|end| {
+            if self.match_terminal_3(input_index) == Some(end) {
+                None
+            } else {
+                Some(end)
+            }
+        })
+        .and_then(|end| {
+            if self.match_terminal_4(input_index) == Some(end) {
+                None
+            } else {
+                Some(end)
+            }
+        })
     }
-    //IdentifierChars = ([a-z A-Z]+)
+    // IdentifierChars = ([a-z A-Z]+)
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
-            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
+            let i = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i)?;
             let mut j = i;
-            while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_0, false)
-            })(j) {
+            while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(j) {
                 j = k;
             }
             Some(j)
         })(i)
     }
-    //Keyword = (if|else|while|for)
+    // Keyword = (if|else|while|for)
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| { self.match_char(i, 'i').and_then(|i| { self.match_char(i, 'f') }) })(i)
-            .or_else(|| {
-                self.match_char(i, 'e')
-                    .and_then(|i| { self.match_char(i, 'l') })
-                    .and_then(|i| { self.match_char(i, 's') })
-                    .and_then(|i| { self.match_char(i, 'e') })
-            })
-            .or_else(|| {
-                self.match_char(i, 'w')
-                    .and_then(|i| { self.match_char(i, 'h') })
-                    .and_then(|i| { self.match_char(i, 'i') })
-                    .and_then(|i| { self.match_char(i, 'l') })
-                    .and_then(|i| { self.match_char(i, 'e') })
-            })
-            .or_else(|| {
-                self.match_char(i, 'f')
-                    .and_then(|i| { self.match_char(i, 'o') })
-                    .and_then(|i| { self.match_char(i, 'r') })
-            })
+        (|i| {
+            self.match_char(i, 'i')
+                .and_then(|i| self.match_char(i, 'f'))
+        })(i)
+        .or_else(|| {
+            self.match_char(i, 'e')
+                .and_then(|i| self.match_char(i, 'l'))
+                .and_then(|i| self.match_char(i, 's'))
+                .and_then(|i| self.match_char(i, 'e'))
+        })
+        .or_else(|| {
+            self.match_char(i, 'w')
+                .and_then(|i| self.match_char(i, 'h'))
+                .and_then(|i| self.match_char(i, 'i'))
+                .and_then(|i| self.match_char(i, 'l'))
+                .and_then(|i| self.match_char(i, 'e'))
+        })
+        .or_else(|| {
+            self.match_char(i, 'f')
+                .and_then(|i| self.match_char(i, 'o'))
+                .and_then(|i| self.match_char(i, 'r'))
+        })
     }
-    //BooleanLiteral = (true|false)
+    // BooleanLiteral = (true|false)
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             self.match_char(i, 't')
-                .and_then(|i| { self.match_char(i, 'r') })
-                .and_then(|i| { self.match_char(i, 'u') })
-                .and_then(|i| { self.match_char(i, 'e') })
+                .and_then(|i| self.match_char(i, 'r'))
+                .and_then(|i| self.match_char(i, 'u'))
+                .and_then(|i| self.match_char(i, 'e'))
         })(i)
-            .or_else(|| {
-                self.match_char(i, 'f')
-                    .and_then(|i| { self.match_char(i, 'a') })
-                    .and_then(|i| { self.match_char(i, 'l') })
-                    .and_then(|i| { self.match_char(i, 's') })
-                    .and_then(|i| { self.match_char(i, 'e') })
-            })
+        .or_else(|| {
+            self.match_char(i, 'f')
+                .and_then(|i| self.match_char(i, 'a'))
+                .and_then(|i| self.match_char(i, 'l'))
+                .and_then(|i| self.match_char(i, 's'))
+                .and_then(|i| self.match_char(i, 'e'))
+        })
     }
-    //NullLiteral = (null)
+    // NullLiteral = (null)
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             self.match_char(i, 'n')
-                .and_then(|i| { self.match_char(i, 'u') })
-                .and_then(|i| { self.match_char(i, 'l') })
-                .and_then(|i| { self.match_char(i, 'l') })
+                .and_then(|i| self.match_char(i, 'u'))
+                .and_then(|i| self.match_char(i, 'l'))
+                .and_then(|i| self.match_char(i, 'l'))
         })(i)
     }
 }
@@ -118,7 +117,11 @@ impl Scanner for MultipleExceptScanner<'_> {
             TerminalId(3) => self.match_terminal_3(input_index),
             TerminalId(4) => self.match_terminal_4(input_index),
             TerminalId(6) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -129,4 +132,3 @@ impl Scanner for MultipleExceptScanner<'_> {
         self.input.char_at(i)
     }
 }
-

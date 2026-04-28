@@ -1,10 +1,10 @@
 // To regenerate parser:  cargo run -p iguana -- test gen precede_restriction
 // To update golden files: REGENERATE=1 cargo test -p precede_restriction
 
-use precede_restriction::{parse_s, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
 use iguana_runtime::parse_tree::ParseContext;
 use iguana_runtime::testing::{check_golden_file, golden_path};
+use precede_restriction::{parse_s, parse_tree::to_sexpr};
 
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);
@@ -18,7 +18,10 @@ fn check_fails(input: &str) {
     let input_str = input;
     let input = Input::from(input);
     let ctx = ParseContext::new();
-    assert!(parse_s(&input, &ctx).is_err(), "Expected parse to fail for input: {input_str}");
+    assert!(
+        parse_s(&input, &ctx).is_err(),
+        "Expected parse to fail for input: {input_str}"
+    );
 }
 
 // Nonterminal case: Char !<< Char+

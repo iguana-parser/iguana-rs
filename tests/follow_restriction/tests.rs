@@ -14,7 +14,10 @@ fn single_id() {
     let ctx = ParseContext::new();
     let result = parse_s(&input, &ctx).expect("Parse failed");
     let actual = to_sexpr(result.tree.as_parse_tree());
-    check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), "single_id"));
+    check_golden_file(
+        &actual,
+        &golden_path(env!("CARGO_MANIFEST_DIR"), "single_id"),
+    );
 }
 
 #[test]
@@ -34,12 +37,18 @@ fn single_char() {
     let ctx = ParseContext::new();
     let result = parse_t(&input, &ctx).expect("Parse failed");
     let actual = to_sexpr(result.tree.as_parse_tree());
-    check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), "single_char"));
+    check_golden_file(
+        &actual,
+        &golden_path(env!("CARGO_MANIFEST_DIR"), "single_char"),
+    );
 }
 
 #[test]
 fn rejects_char_followed_by_char() {
     let input = Input::from("ab");
     let ctx = ParseContext::new();
-    assert!(parse_t(&input, &ctx).is_err(), "Expected parse to fail for input: ab");
+    assert!(
+        parse_t(&input, &ctx).is_err(),
+        "Expected parse to fail for input: ab"
+    );
 }

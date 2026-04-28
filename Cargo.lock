@@ -709,6 +709,7 @@ dependencies = [
  "prettyplease",
  "proc-macro2",
  "quote",
+ "regex",
  "rustc-hash 2.1.2",
  "serde",
  "specta",

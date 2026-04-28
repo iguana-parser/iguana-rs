@@ -10,40 +10,38 @@ impl<'i> PrecedeRestrictionScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //Char = ([a-z])
+    // Char = ([a-z])
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)
+        (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i)
     }
-    //WS = ([ ]*)
+    // WS = ([ ]*)
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             let mut j = i;
-            while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_1, false)
-            })(j) {
+            while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_1, false))(j) {
                 j = k;
             }
             Some(j)
         })(i)
     }
-    //"for" = for
+    // "for" = for
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'f')
-            .and_then(|i| { self.match_char(i, 'o') })
-            .and_then(|i| { self.match_char(i, 'r') })
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'r'))
     }
-    //"forall" = forall
+    // "forall" = forall
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'f')
-            .and_then(|i| { self.match_char(i, 'o') })
-            .and_then(|i| { self.match_char(i, 'r') })
-            .and_then(|i| { self.match_char(i, 'a') })
-            .and_then(|i| { self.match_char(i, 'l') })
-            .and_then(|i| { self.match_char(i, 'l') })
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'r'))
+            .and_then(|i| self.match_char(i, 'a'))
+            .and_then(|i| self.match_char(i, 'l'))
+            .and_then(|i| self.match_char(i, 'l'))
     }
 }
 impl Scanner for PrecedeRestrictionScanner<'_> {
@@ -54,7 +52,11 @@ impl Scanner for PrecedeRestrictionScanner<'_> {
             TerminalId(2) => self.match_terminal_2(input_index),
             TerminalId(3) => self.match_terminal_3(input_index),
             TerminalId(5) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -65,4 +67,3 @@ impl Scanner for PrecedeRestrictionScanner<'_> {
         self.input.char_at(i)
     }
 }
-

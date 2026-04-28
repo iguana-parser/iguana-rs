@@ -1,10 +1,10 @@
 // To regenerate parser:  cargo run -p iguana -- generate --grammar tests/prefix_postfix_priority/prefix_postfix_priority.iggy --output tests/prefix_postfix_priority
 // To update golden files: REGENERATE=1 cargo test -p prefix_postfix_priority
 
-use prefix_postfix_priority::{parse_s, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
 use iguana_runtime::parse_tree::ParseContext;
 use iguana_runtime::testing::{check_golden_file, golden_path};
+use prefix_postfix_priority::{parse_s, parse_tree::to_sexpr};
 
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);

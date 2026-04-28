@@ -1,27 +1,30 @@
+use clap::Parser as ClapParser;
+#[cfg(feature = "debug-trace")]
+use iguana_runtime::trace::TraceEvent;
+use iguana_runtime::{
+    ids::NonterminalId,
+    input::Input,
+    parse_tree::ParseContext,
+    parser::{ParseResult, Parser},
+    visualization::{
+        dot::write_svg,
+        gss::{build_gss_dot_graph, render_gss},
+        sppf::{build_sppf_graph, write_sppf_dot},
+    },
+};
+use opt::{
+    grammar_data::{NONTERMINALS, SLOTS, TERMINALS, nonterminal_id},
+    parse_tree::{OptParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
+    parser::OptParser,
+};
+#[cfg(feature = "profile")]
+use pprof::ProfilerGuardBuilder;
 use std::{
     fs::{self, File},
     io::{self, BufWriter, IsTerminal, Write},
     path::{Path, PathBuf},
     time::Instant,
 };
-use clap::Parser as ClapParser;
-use iguana_runtime::{
-    ids::NonterminalId, input::Input, parse_tree::ParseContext,
-    parser::{ParseResult, Parser},
-    visualization::{
-        dot::write_svg, gss::{build_gss_dot_graph, render_gss},
-        sppf::{build_sppf_graph, write_sppf_dot},
-    },
-};
-#[cfg(feature = "profile")]
-use pprof::ProfilerGuardBuilder;
-use opt::{
-    parse_tree::{OptParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
-    grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
-    parser::OptParser,
-};
-#[cfg(feature = "debug-trace")]
-use iguana_runtime::trace::TraceEvent;
 #[derive(Clone, Copy, Default, clap::ValueEnum)]
 enum TraceFormat {
     #[default]
@@ -121,45 +124,42 @@ fn main() -> Result<(), io::Error> {
         );
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
-        writeln!(writer, "{}", serde_json::to_string_pretty(& symbols).unwrap())?;
+        writeln!(
+            writer,
+            "{}",
+            serde_json::to_string_pretty(&symbols).unwrap()
+        )?;
         return Ok(());
     }
     if let Some(dir) = cli.dir.as_ref() {
-        let start_nonterminal_name = cli
-            .start_nonterminal
-            .as_ref()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "--start is required for parsing",
-                )
-            })?;
-        let start_nonterminal_id = nonterminal_id(
-                &format!("Start{}", start_nonterminal_name),
-            )
-            .or_else(|| nonterminal_id(start_nonterminal_name))
-            .ok_or_else(|| io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("Unknown nonterminal: '{}'", start_nonterminal_name),
-            ))?;
-        return run_batch(dir, cli.ext.as_deref(), start_nonterminal_id);
-    }
-    let file = cli
-        .file
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "Input file is required for parsing",
-            )
-        })?;
-    let start_nonterminal_name = cli
-        .start_nonterminal
-        .ok_or_else(|| {
+        let start_nonterminal_name = cli.start_nonterminal.as_ref().ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "--start is required for parsing",
             )
         })?;
+        let start_nonterminal_id = nonterminal_id(&format!("Start{}", start_nonterminal_name))
+            .or_else(|| nonterminal_id(start_nonterminal_name))
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("Unknown nonterminal: '{}'", start_nonterminal_name),
+                )
+            })?;
+        return run_batch(dir, cli.ext.as_deref(), start_nonterminal_id);
+    }
+    let file = cli.file.ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "Input file is required for parsing",
+        )
+    })?;
+    let start_nonterminal_name = cli.start_nonterminal.ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "--start is required for parsing",
+        )
+    })?;
     #[cfg(not(feature = "debug-trace"))]
     if cli.trace.is_some() {
         eprintln!(
@@ -167,17 +167,20 @@ fn main() -> Result<(), io::Error> {
         );
     }
     let input = Input::try_from(file.as_path())?;
-    let start_nonterminal_id = nonterminal_id(
-            &format!("Start{}", start_nonterminal_name),
-        )
+    let start_nonterminal_id = nonterminal_id(&format!("Start{}", start_nonterminal_name))
         .or_else(|| nonterminal_id(&start_nonterminal_name))
-        .ok_or_else(|| io::Error::new(
-            io::ErrorKind::InvalidInput,
-            format!("Unknown nonterminal: '{}'", start_nonterminal_name),
-        ))?;
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("Unknown nonterminal: '{}'", start_nonterminal_name),
+            )
+        })?;
     #[cfg(feature = "profile")]
     if let Some(iterations) = cli.profile {
-        let guard = ProfilerGuardBuilder::default().frequency(999).build().unwrap();
+        let guard = ProfilerGuardBuilder::default()
+            .frequency(999)
+            .build()
+            .unwrap();
         for _ in 0..iterations {
             let ctx = ParseContext::new();
             let parse_tree_builder = OptParseTreeBuilder::new(&ctx);
@@ -223,44 +226,43 @@ fn main() -> Result<(), io::Error> {
                 let sppf = build_sppf_graph(&parser, node_id);
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
-                writeln!(writer, "{}", serde_json::to_string(& sppf).unwrap())?;
+                writeln!(writer, "{}", serde_json::to_string(&sppf).unwrap())?;
             }
             if let Some(ref path) = cli.write_gss {
                 let gss = build_gss_dot_graph(&parser);
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
-                writeln!(writer, "{}", serde_json::to_string(& gss).unwrap())?;
+                writeln!(writer, "{}", serde_json::to_string(&gss).unwrap())?;
             }
             if let Some(ref path) = cli.write_gss_nodes {
                 let gss_nodes: Vec<_> = parser.gss_nodes().collect();
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
-                writeln!(writer, "{}", serde_json::to_string(& gss_nodes).unwrap())?;
+                writeln!(writer, "{}", serde_json::to_string(&gss_nodes).unwrap())?;
             }
             let tc_start = Instant::now();
             let parse_tree_opt = if cli.write_parse_tree.is_some()
                 || cli.write_result.is_some()
-                || (cli.write_sppf.is_none() && cli.write_gss.is_none()
-                    && cli.vis.is_none() && cli.trace.is_none())
+                || (cli.write_sppf.is_none()
+                    && cli.write_gss.is_none()
+                    && cli.vis.is_none()
+                    && cli.trace.is_none())
             {
-                Some(
-                    create_parse_tree(
-                        node_id,
-                        start_nonterminal_id,
-                        &parser,
-                        &parse_tree_builder,
-                    ),
-                )
+                Some(create_parse_tree(
+                    node_id,
+                    start_nonterminal_id,
+                    &parser,
+                    &parse_tree_builder,
+                ))
             } else {
                 None
             };
             let tree_construction_ms = parse_tree_opt
                 .as_ref()
                 .map(|_| tc_start.elapsed().as_millis());
-            if let (Some(path), Some(parse_tree)) = (
-                cli.write_parse_tree.as_ref(),
-                parse_tree_opt.as_ref(),
-            ) {
+            if let (Some(path), Some(parse_tree)) =
+                (cli.write_parse_tree.as_ref(), parse_tree_opt.as_ref())
+            {
                 let json = to_json(*parse_tree);
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
@@ -273,7 +275,7 @@ fn main() -> Result<(), io::Error> {
                 );
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
-                writeln!(writer, "{}", serde_json::to_string(& result).unwrap())?;
+                writeln!(writer, "{}", serde_json::to_string(&result).unwrap())?;
             }
             match cli.vis {
                 Some(VisTarget::Gss) => {
@@ -291,11 +293,13 @@ fn main() -> Result<(), io::Error> {
                 None => {}
             }
             println!("Parse success in {}ms", parse_success.duration.as_millis());
-            if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none()
+            if cli.write_sppf.is_none()
+                && cli.write_gss.is_none()
+                && cli.vis.is_none()
                 && cli.trace.is_none()
             {
                 if let Some(ref parse_tree) = parse_tree_opt {
-                    println!("{}", to_sexpr(* parse_tree));
+                    println!("{}", to_sexpr(*parse_tree));
                 }
             }
         }
@@ -309,7 +313,7 @@ fn main() -> Result<(), io::Error> {
                 );
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
-                writeln!(writer, "{}", serde_json::to_string(& result).unwrap())?;
+                writeln!(writer, "{}", serde_json::to_string(&result).unwrap())?;
             }
         }
     }
@@ -319,7 +323,7 @@ fn main() -> Result<(), io::Error> {
         if let Some(ref path) = cli.write_stats {
             let file = File::create(path)?;
             let mut writer = BufWriter::new(file);
-            writeln!(writer, "{}", serde_json::to_string(& stats).unwrap())?;
+            writeln!(writer, "{}", serde_json::to_string(&stats).unwrap())?;
         } else {
             eprintln!("{}", stats);
         }
@@ -332,11 +336,7 @@ fn main() -> Result<(), io::Error> {
     }
     Ok(())
 }
-fn run_batch(
-    dir: &Path,
-    ext: Option<&str>,
-    start_nonterminal_id: NonterminalId,
-) -> io::Result<()> {
+fn run_batch(dir: &Path, ext: Option<&str>, start_nonterminal_id: NonterminalId) -> io::Result<()> {
     let use_color = io::stdout().is_terminal();
     let green = if use_color { "\x1b[32m" } else { "" };
     let red = if use_color { "\x1b[31m" } else { "" };
@@ -345,7 +345,8 @@ fn run_batch(
     collect_files(dir, ext, &mut files)?;
     files.sort();
     println!(
-        "{:<6}  {:<26}  {:<36}  {}", "STATUS", "TIME (parse, tree)", "REASON", "PATH"
+        "{:<6}  {:<26}  {:<36}  {}",
+        "STATUS", "TIME (parse, tree)", "REASON", "PATH"
     );
     let mut ok = 0usize;
     let mut failed = 0usize;
@@ -361,8 +362,13 @@ fn run_batch(
                 errs += 1;
                 let reason = format!("IO Error: {}", e);
                 println!(
-                    "{}{:<6}{}  {:<26}  {:<36}  {}", red, "ERR", reset, "-", reason, rel
-                    .display()
+                    "{}{:<6}{}  {:<26}  {:<36}  {}",
+                    red,
+                    "ERR",
+                    reset,
+                    "-",
+                    reason,
+                    rel.display()
                 );
                 continue;
             }
@@ -390,8 +396,13 @@ fn run_batch(
                 }
                 let time = format!("{} ms ({} ms, {} ms)", total_ms, parse_ms, tree_ms);
                 println!(
-                    "{}{:<6}{}  {:<26}  {:<36}  {}", green, "OK", reset, time, "-", rel
-                    .display()
+                    "{}{:<6}{}  {:<26}  {:<36}  {}",
+                    green,
+                    "OK",
+                    reset,
+                    time,
+                    "-",
+                    rel.display()
                 );
             }
             ParseResult::Failure(error) => {
@@ -399,8 +410,13 @@ fn run_batch(
                 failed += 1;
                 let reason = format!("Parse Error at line {}, col {}", line, column);
                 println!(
-                    "{}{:<6}{}  {:<26}  {:<36}  {}", red, "FAIL", reset, "-", reason, rel
-                    .display()
+                    "{}{:<6}{}  {:<26}  {:<36}  {}",
+                    red,
+                    "FAIL",
+                    reset,
+                    "-",
+                    reason,
+                    rel.display()
                 );
             }
         }
@@ -409,19 +425,19 @@ fn run_batch(
     let avg_ms = if ok > 0 { total_ms / ok as u128 } else { 0 };
     println!();
     println!(
-        "Parsed {} files: {} OK, {} failed, {} errors", files.len(), ok, failed, errs
+        "Parsed {} files: {} OK, {} failed, {} errors",
+        files.len(),
+        ok,
+        failed,
+        errs
     );
     println!(
-        "Total {} ms (parse {} ms, tree {} ms); avg {} ms, max {} ms", total_ms,
-        total_parse_ms, total_tree_ms, avg_ms, max_total_ms
+        "Total {} ms (parse {} ms, tree {} ms); avg {} ms, max {} ms",
+        total_ms, total_parse_ms, total_tree_ms, avg_ms, max_total_ms
     );
     Ok(())
 }
-fn collect_files(
-    dir: &Path,
-    ext: Option<&str>,
-    out: &mut Vec<PathBuf>,
-) -> io::Result<()> {
+fn collect_files(dir: &Path, ext: Option<&str>, out: &mut Vec<PathBuf>) -> io::Result<()> {
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
@@ -456,26 +472,21 @@ fn write_trace_events<'i>(
                     }
                 }
                 TraceFormat::Json => {
-                    writeln!(
-                        writer, "{}", serde_json::to_string(trace_events).unwrap()
-                    )?;
+                    writeln!(writer, "{}", serde_json::to_string(trace_events).unwrap())?;
                 }
             }
         }
-        Some(None) => {
-            match format {
-                TraceFormat::Text => {
-                    for event in trace_events {
-                        println!("{}", event.message(parser));
-                    }
-                }
-                TraceFormat::Json => {
-                    println!("{}", serde_json::to_string(trace_events).unwrap());
+        Some(None) => match format {
+            TraceFormat::Text => {
+                for event in trace_events {
+                    println!("{}", event.message(parser));
                 }
             }
-        }
+            TraceFormat::Json => {
+                println!("{}", serde_json::to_string(trace_events).unwrap());
+            }
+        },
         None => {}
     }
     Ok(())
 }
-

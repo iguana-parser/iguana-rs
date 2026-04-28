@@ -438,11 +438,10 @@ fn gen_nonterminal_type_with_more_than_one_alternative(
         .iter()
         .enumerate()
         .map(|(index, alternative)| {
-            let fields: Vec<_> =
-                gen_fields_for_alternative_symbols(grammar, alternative)
-                    .into_iter()
-                    .map(|(ident, ty)| quote! { #ident: #ty })
-                    .collect();
+            let fields: Vec<_> = gen_fields_for_alternative_symbols(grammar, alternative)
+                .into_iter()
+                .map(|(ident, ty)| quote! { #ident: #ty })
+                .collect();
             let label = to_pascal_case(&alternative_label(alternative, index));
             let variant_name = Ident::new(&label, Span::call_site());
             let variant_comment = alternative.display_name(grammar);
@@ -490,16 +489,27 @@ fn gen_nonterminal_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> To
 
 fn gen_start_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let start_ty = nonterminal_type(grammar, nonterminal);
-    let inner_ident = nonterminal.origin.as_ref().unwrap().as_identifier().unwrap();
+    let inner_ident = nonterminal
+        .origin
+        .as_ref()
+        .unwrap()
+        .as_identifier()
+        .unwrap();
     let layout_ident = grammar.layout.as_ref().unwrap().as_identifier().unwrap();
 
     let inner_variant = nt_ident(&nonterminal_type_name(grammar, &inner_ident.name));
     let inner_child = quote! { ParseTree::#inner_variant(self.node) };
     let (layout_before, layout_after) = if grammar.is_terminal(layout_ident) {
-        (quote! { ParseTree::Token(self.before) }, quote! { ParseTree::Token(self.after) })
+        (
+            quote! { ParseTree::Token(self.before) },
+            quote! { ParseTree::Token(self.after) },
+        )
     } else {
         let variant = nt_ident(&nonterminal_type_name(grammar, &layout_ident.name));
-        (quote! { ParseTree::#variant(self.before) }, quote! { ParseTree::#variant(self.after) })
+        (
+            quote! { ParseTree::#variant(self.before) },
+            quote! { ParseTree::#variant(self.after) },
+        )
     };
 
     let start_variant = nt_ident(&nonterminal.name);
@@ -1386,15 +1396,18 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             let opt_symbol = alternatives[0].symbols.first()?;
             let opt_field_name = safe_ident(&gen_field_name(grammar, opt_symbol, 0, false));
 
-            let methods: Vec<_> = element_types.iter().map(|elem| {
-                let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
-                let return_type = gen_accessor_return_type(grammar, nonterminal, elem);
-                quote! {
-                    pub fn #method_name(&self) -> #return_type {
-                        self.#opt_field_name.#method_name()
+            let methods: Vec<_> = element_types
+                .iter()
+                .map(|elem| {
+                    let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
+                    let return_type = gen_accessor_return_type(grammar, nonterminal, elem);
+                    quote! {
+                        pub fn #method_name(&self) -> #return_type {
+                            self.#opt_field_name.#method_name()
+                        }
                     }
-                }
-            }).collect();
+                })
+                .collect();
             Some(quote! { #(#methods)* })
         }
         Some(Symbol::Opt(inner)) => {
@@ -1409,15 +1422,18 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
             if element_types.is_empty() {
                 return None;
             }
-            let methods: Vec<_> = element_types.iter().map(|elem| {
-                let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
-                let return_type = gen_accessor_return_type(grammar, nonterminal, elem);
-                quote! {
-                    pub fn #method_name(&'a self) -> #return_type {
-                        self.value().into_iter().flat_map(|inner| inner.#method_name())
+            let methods: Vec<_> = element_types
+                .iter()
+                .map(|elem| {
+                    let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
+                    let return_type = gen_accessor_return_type(grammar, nonterminal, elem);
+                    quote! {
+                        pub fn #method_name(&'a self) -> #return_type {
+                            self.value().into_iter().flat_map(|inner| inner.#method_name())
+                        }
                     }
-                }
-            }).collect();
+                })
+                .collect();
             Some(quote! { #(#methods)* })
         }
         Some(Symbol::Group(elements)) => {
@@ -1476,16 +1492,23 @@ fn gen_delegated_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> Opti
     };
     let field_name = safe_ident(&gen_field_name(grammar, symbol, 0, false));
     let element_types = get_list_element_types(grammar, inner);
-    let methods: Vec<_> = element_types.iter().map(|elem| {
-        let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
-        let return_type = gen_accessor_return_type(grammar, child_nt, elem);
-        quote! {
-            pub fn #method_name(&self) -> #return_type {
-                self.#field_name.#method_name()
+    let methods: Vec<_> = element_types
+        .iter()
+        .map(|elem| {
+            let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
+            let return_type = gen_accessor_return_type(grammar, child_nt, elem);
+            quote! {
+                pub fn #method_name(&self) -> #return_type {
+                    self.#field_name.#method_name()
+                }
             }
-        }
-    }).collect();
-    if methods.is_empty() { None } else { Some(quote! { #(#methods)* }) }
+        })
+        .collect();
+    if methods.is_empty() {
+        None
+    } else {
+        Some(quote! { #(#methods)* })
+    }
 }
 
 // Returns the return type of a typed accessor that iterates over the children
@@ -1641,11 +1664,7 @@ fn get_list_element_types(grammar: &Grammar, symbol: &Symbol) -> Vec<Identifier>
                 .iter()
                 .flat_map(|elem| get_list_element_types(grammar, elem))
                 .collect();
-            if named.len() == 1 {
-                named
-            } else {
-                vec![]
-            }
+            if named.len() == 1 { named } else { vec![] }
         }
         _ => vec![],
     }
@@ -1848,7 +1867,6 @@ fn gen_list_node_impl_for_group(grammar: &Grammar, nonterminal: &Nonterminal) ->
         }
     }
 }
-
 
 fn gen_create_parse_tree_function(grammar: &Grammar) -> TokenStream {
     let parser_name_ident = format_ident!("{}Parser", grammar.name);

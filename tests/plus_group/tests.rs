@@ -1,10 +1,10 @@
 // To regenerate parser:  cargo run -p iguana -- generate --grammar tests/plus_group/plus_group.iggy --output tests/plus_group
 // To update golden files: REGENERATE=1 cargo test -p plus_group
 
-use plus_group::{parse_s, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
 use iguana_runtime::parse_tree::ParseContext;
 use iguana_runtime::testing::{check_golden_file, golden_path};
+use plus_group::{parse_s, parse_tree::to_sexpr};
 
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);

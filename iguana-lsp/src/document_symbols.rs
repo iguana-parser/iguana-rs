@@ -167,7 +167,8 @@ mod tests {
 
     #[test]
     fn nonterminals_and_terminals() {
-        let s = symbols(r#"
+        let s = symbols(
+            r#"
 grammar T
 
 Expr
@@ -175,7 +176,8 @@ Expr
 
 @regex
 Number = [0-9]+
-"#);
+"#,
+        );
         assert_eq!(s.len(), 2);
         assert_eq!(s[0].name, "Expr");
         assert_eq!(s[0].kind, SymbolKind::CLASS);
@@ -185,7 +187,8 @@ Number = [0-9]+
 
     #[test]
     fn labels_become_children() {
-        let s = symbols(r#"
+        let s = symbols(
+            r#"
 grammar T
 
 Expr
@@ -195,7 +198,8 @@ Expr
 
 @regex
 Number = [0-9]+
-"#);
+"#,
+        );
         assert_eq!(s.len(), 2);
         let children = s[0].children.as_ref().unwrap();
         assert_eq!(children.len(), 3);
@@ -209,12 +213,14 @@ Number = [0-9]+
 
     #[test]
     fn unlabeled_alternative_no_child() {
-        let s = symbols(r#"
+        let s = symbols(
+            r#"
 grammar T
 
 A
   = "x"
-"#);
+"#,
+        );
         assert_eq!(s.len(), 1);
         assert!(s[0].children.is_none());
     }
@@ -226,14 +232,16 @@ A
 
     #[test]
     fn leading_comment_block_extends_range_start() {
-        let s = symbols(r#"
+        let s = symbols(
+            r#"
 grammar T
 
 // first
 // second
 Expr
   = "x"
-"#);
+"#,
+        );
         assert_eq!(s.len(), 1);
         // Range should start at line 2 (zero-based), col 0 — the `// first`
         assert_eq!(s[0].range.start.line, 2);
@@ -244,17 +252,23 @@ Expr
 
     #[test]
     fn trailing_same_line_comment_extends_range_end() {
-        let s = symbols(r#"
+        let s = symbols(
+            r#"
 grammar T
 
 Expr
   = "x" // trailing
-"#);
+"#,
+        );
         assert_eq!(s.len(), 1);
         // Range end should sit past the trailing comment.
         assert_eq!(s[0].range.end.line, 3);
         // Character should be after `// trailing`
-        assert!(s[0].range.end.character >= 18, "got {}", s[0].range.end.character);
+        assert!(
+            s[0].range.end.character >= 18,
+            "got {}",
+            s[0].range.end.character
+        );
     }
 
     /// Rule ranges must not overlap: each rule's range.end must be <= the
@@ -262,7 +276,8 @@ Expr
     /// include trailing layout and bleed into the next rule.
     #[test]
     fn rule_ranges_do_not_overlap() {
-        let s = symbols(r#"
+        let s = symbols(
+            r#"
 grammar T
 
 A
@@ -273,7 +288,8 @@ B
 
 C
   = "y"+
-"#);
+"#,
+        );
         assert_eq!(s.len(), 3);
         for i in 0..s.len() - 1 {
             let end = &s[i].range.end;
@@ -296,12 +312,14 @@ C
     /// line_column when right_extent == input.len()).
     #[test]
     fn last_rule_range_does_not_exceed_content() {
-        let s = symbols(r#"
+        let s = symbols(
+            r#"
 grammar T
 
 @regex
 Id = [a-z]+
-"#);
+"#,
+        );
         assert_eq!(s.len(), 1);
         // Line 3 (zero-based) is `Id = [a-z]+`, the range end must sit on
         // that line, not beyond it.
@@ -310,7 +328,8 @@ Id = [a-z]+
 
     #[test]
     fn multiple_rules_with_nullable_symbols() {
-        let s = symbols(r#"
+        let s = symbols(
+            r#"
 grammar T
 
 A
@@ -318,7 +337,8 @@ A
 
 B
   = "b"
-"#);
+"#,
+        );
         assert_eq!(s.len(), 2);
         assert_eq!(s[0].name, "A");
         assert_eq!(s[1].name, "B");
@@ -332,7 +352,8 @@ B
 
     #[test]
     fn nested_optional_and_star_symbols() {
-        let s = symbols(r#"
+        let s = symbols(
+            r#"
 grammar T
 
 A
@@ -340,7 +361,8 @@ A
 
 B
   = "y"
-"#);
+"#,
+        );
         assert_eq!(s.len(), 2);
         assert_eq!(s[0].name, "A");
         assert_eq!(s[1].name, "B");
@@ -349,14 +371,16 @@ B
 
     #[test]
     fn blank_line_separated_comment_is_not_leading() {
-        let s = symbols(r#"
+        let s = symbols(
+            r#"
 grammar T
 
 // floating
 
 Expr
   = "x"
-"#);
+"#,
+        );
         assert_eq!(s.len(), 1);
         // The comment is separated from Expr by a blank line, so it's NOT
         // attached. Range should start at the head.

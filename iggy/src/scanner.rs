@@ -2,12 +2,7 @@
 
 use iguana_runtime::{ids::TerminalId, input::Input, scanner::Scanner};
 const CHAR_CLASS_0: [(char, char); 3usize] = [('a', 'z'), ('A', 'Z'), ('_', '_')];
-const CHAR_CLASS_1: [(char, char); 4usize] = [
-    ('a', 'z'),
-    ('A', 'Z'),
-    ('_', '_'),
-    ('0', '9'),
-];
+const CHAR_CLASS_1: [(char, char); 4usize] = [('a', 'z'), ('A', 'Z'), ('_', '_'), ('0', '9')];
 const CHAR_CLASS_2: [(char, char); 7usize] = [
     ('"', '"'),
     ('\'', '\''),
@@ -50,70 +45,68 @@ impl<'i> IggyScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //Keyword = (grammar|layout|left|right|none)
+    // Keyword = (grammar|layout|left|right|none)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             self.match_char(i, 'g')
-                .and_then(|i| { self.match_char(i, 'r') })
-                .and_then(|i| { self.match_char(i, 'a') })
-                .and_then(|i| { self.match_char(i, 'm') })
-                .and_then(|i| { self.match_char(i, 'm') })
-                .and_then(|i| { self.match_char(i, 'a') })
-                .and_then(|i| { self.match_char(i, 'r') })
+                .and_then(|i| self.match_char(i, 'r'))
+                .and_then(|i| self.match_char(i, 'a'))
+                .and_then(|i| self.match_char(i, 'm'))
+                .and_then(|i| self.match_char(i, 'm'))
+                .and_then(|i| self.match_char(i, 'a'))
+                .and_then(|i| self.match_char(i, 'r'))
         })(i)
-            .or_else(|| {
-                self.match_char(i, 'l')
-                    .and_then(|i| { self.match_char(i, 'a') })
-                    .and_then(|i| { self.match_char(i, 'y') })
-                    .and_then(|i| { self.match_char(i, 'o') })
-                    .and_then(|i| { self.match_char(i, 'u') })
-                    .and_then(|i| { self.match_char(i, 't') })
-            })
-            .or_else(|| {
-                self.match_char(i, 'l')
-                    .and_then(|i| { self.match_char(i, 'e') })
-                    .and_then(|i| { self.match_char(i, 'f') })
-                    .and_then(|i| { self.match_char(i, 't') })
-            })
-            .or_else(|| {
-                self.match_char(i, 'r')
-                    .and_then(|i| { self.match_char(i, 'i') })
-                    .and_then(|i| { self.match_char(i, 'g') })
-                    .and_then(|i| { self.match_char(i, 'h') })
-                    .and_then(|i| { self.match_char(i, 't') })
-            })
-            .or_else(|| {
-                self.match_char(i, 'n')
-                    .and_then(|i| { self.match_char(i, 'o') })
-                    .and_then(|i| { self.match_char(i, 'n') })
-                    .and_then(|i| { self.match_char(i, 'e') })
-            })
+        .or_else(|| {
+            self.match_char(i, 'l')
+                .and_then(|i| self.match_char(i, 'a'))
+                .and_then(|i| self.match_char(i, 'y'))
+                .and_then(|i| self.match_char(i, 'o'))
+                .and_then(|i| self.match_char(i, 'u'))
+                .and_then(|i| self.match_char(i, 't'))
+        })
+        .or_else(|| {
+            self.match_char(i, 'l')
+                .and_then(|i| self.match_char(i, 'e'))
+                .and_then(|i| self.match_char(i, 'f'))
+                .and_then(|i| self.match_char(i, 't'))
+        })
+        .or_else(|| {
+            self.match_char(i, 'r')
+                .and_then(|i| self.match_char(i, 'i'))
+                .and_then(|i| self.match_char(i, 'g'))
+                .and_then(|i| self.match_char(i, 'h'))
+                .and_then(|i| self.match_char(i, 't'))
+        })
+        .or_else(|| {
+            self.match_char(i, 'n')
+                .and_then(|i| self.match_char(i, 'o'))
+                .and_then(|i| self.match_char(i, 'n'))
+                .and_then(|i| self.match_char(i, 'e'))
+        })
     }
-    //Identifier = ([a-z A-Z _][a-z A-Z _ 0-9]*) \ Keyword
+    // Identifier = ([a-z A-Z _][a-z A-Z _ 0-9]*) \ Keyword
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             self.match_char_class(i, &CHAR_CLASS_0, false)
                 .and_then(|i| {
                     let mut j = i;
-                    while let Some(k) = (|i| {
-                        self.match_char_class(i, &CHAR_CLASS_1, false)
-                    })(j) {
+                    while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_1, false))(j) {
                         j = k;
                     }
                     Some(j)
                 })
         })(i)
-            .and_then(|end| {
-                if self.match_terminal_0(input_index) == Some(end) {
-                    None
-                } else {
-                    Some(end)
-                }
-            })
+        .and_then(|end| {
+            if self.match_terminal_0(input_index) == Some(end) {
+                None
+            } else {
+                Some(end)
+            }
+        })
     }
-    //String = (\"(((\\[\" \' \\ t f r n])|![\" \\]))*\")
+    // String = (\"(((\\[\" \' \\ t f r n])|![\" \\]))*\")
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
@@ -124,23 +117,20 @@ impl<'i> IggyScanner<'i> {
                         (|i| {
                             (|i| {
                                 self.match_char(i, '\\')
-                                    .and_then(|i| {
-                                        self.match_char_class(i, &CHAR_CLASS_2, false)
-                                    })
+                                    .and_then(|i| self.match_char_class(i, &CHAR_CLASS_2, false))
                             })(i)
                         })(i)
-                            .or_else(|| {
-                                self.match_char_class(i, &CHAR_CLASS_3, true)
-                            })
-                    })(j) {
+                        .or_else(|| self.match_char_class(i, &CHAR_CLASS_3, true))
+                    })(j)
+                    {
                         j = k;
                     }
                     Some(j)
                 })
-                .and_then(|i| { self.match_char(i, '"') })
+                .and_then(|i| self.match_char(i, '"'))
         })(i)
     }
-    //Char = (\'((\\[\" \' \\ t f r n])|![\' \\])\')
+    // Char = (\'((\\[\" \' \\ t f r n])|![\' \\])\')
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
@@ -149,268 +139,257 @@ impl<'i> IggyScanner<'i> {
                     (|i| {
                         (|i| {
                             self.match_char(i, '\\')
-                                .and_then(|i| {
-                                    self.match_char_class(i, &CHAR_CLASS_2, false)
-                                })
+                                .and_then(|i| self.match_char_class(i, &CHAR_CLASS_2, false))
                         })(i)
                     })(i)
-                        .or_else(|| { self.match_char_class(i, &CHAR_CLASS_4, true) })
+                    .or_else(|| self.match_char_class(i, &CHAR_CLASS_4, true))
                 })
-                .and_then(|i| { self.match_char(i, '\'') })
+                .and_then(|i| self.match_char(i, '\''))
         })(i)
     }
-    //EscapeChar = (\\[\" \' \\ t f r n])
+    // EscapeChar = (\\[\" \' \\ t f r n])
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             self.match_char(i, '\\')
-                .and_then(|i| { self.match_char_class(i, &CHAR_CLASS_2, false) })
+                .and_then(|i| self.match_char_class(i, &CHAR_CLASS_2, false))
         })(i)
     }
-    //RangeChar = (![\\ - [ ] \t \u{c} \r \n  ]|\\[\\ - [ ] t f r n  ])
+    // RangeChar = (![\\ - [ ] \t \u{c} \r \n  ]|\\[\\ - [ ] t f r n  ])
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| { self.match_char_class(i, &CHAR_CLASS_5, true) })(i)
-            .or_else(|| {
-                self.match_char(i, '\\')
-                    .and_then(|i| { self.match_char_class(i, &CHAR_CLASS_6, false) })
-            })
+        (|i| self.match_char_class(i, &CHAR_CLASS_5, true))(i).or_else(|| {
+            self.match_char(i, '\\')
+                .and_then(|i| self.match_char_class(i, &CHAR_CLASS_6, false))
+        })
     }
-    //Label = (#[a-z A-Z _][a-z A-Z _ 0-9]*)
+    // Label = (#[a-z A-Z _][a-z A-Z _ 0-9]*)
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             self.match_char(i, '#')
-                .and_then(|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })
+                .and_then(|i| self.match_char_class(i, &CHAR_CLASS_0, false))
                 .and_then(|i| {
                     let mut j = i;
-                    while let Some(k) = (|i| {
-                        self.match_char_class(i, &CHAR_CLASS_1, false)
-                    })(j) {
+                    while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_1, false))(j) {
                         j = k;
                     }
                     Some(j)
                 })
         })(i)
     }
-    //WS = ((([  \n \t]))+)
+    // WS = ((([  \n \t]))+)
     pub fn match_terminal_7(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
-            let i = (|i| {
-                (|i| { self.match_char_class(i, &CHAR_CLASS_7, false) })(i)
-            })(i)?;
+            let i = (|i| (|i| self.match_char_class(i, &CHAR_CLASS_7, false))(i))(i)?;
             let mut j = i;
-            while let Some(k) = (|i| {
-                (|i| { self.match_char_class(i, &CHAR_CLASS_7, false) })(i)
-            })(j) {
+            while let Some(k) = (|i| (|i| self.match_char_class(i, &CHAR_CLASS_7, false))(i))(j) {
                 j = k;
             }
             Some(j)
         })(i)
     }
-    //WSChar = ([  \n \t])
+    // WSChar = ([  \n \t])
     pub fn match_terminal_8(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| { self.match_char_class(i, &CHAR_CLASS_7, false) })(i)
+        (|i| self.match_char_class(i, &CHAR_CLASS_7, false))(i)
     }
-    //LineComment = (//![\n]*)
+    // LineComment = (//![\n]*)
     pub fn match_terminal_9(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             self.match_char(i, '/')
-                .and_then(|i| { self.match_char(i, '/') })
+                .and_then(|i| self.match_char(i, '/'))
                 .and_then(|i| {
                     let mut j = i;
-                    while let Some(k) = (|i| {
-                        self.match_char_class(i, &CHAR_CLASS_8, true)
-                    })(j) {
+                    while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_8, true))(j) {
                         j = k;
                     }
                     Some(j)
                 })
         })(i)
     }
-    //"grammar" = grammar
+    // "grammar" = grammar
     pub fn match_terminal_10(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'g')
-            .and_then(|i| { self.match_char(i, 'r') })
-            .and_then(|i| { self.match_char(i, 'a') })
-            .and_then(|i| { self.match_char(i, 'm') })
-            .and_then(|i| { self.match_char(i, 'm') })
-            .and_then(|i| { self.match_char(i, 'a') })
-            .and_then(|i| { self.match_char(i, 'r') })
+            .and_then(|i| self.match_char(i, 'r'))
+            .and_then(|i| self.match_char(i, 'a'))
+            .and_then(|i| self.match_char(i, 'm'))
+            .and_then(|i| self.match_char(i, 'm'))
+            .and_then(|i| self.match_char(i, 'a'))
+            .and_then(|i| self.match_char(i, 'r'))
     }
-    //"layout" = layout
+    // "layout" = layout
     pub fn match_terminal_11(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'l')
-            .and_then(|i| { self.match_char(i, 'a') })
-            .and_then(|i| { self.match_char(i, 'y') })
-            .and_then(|i| { self.match_char(i, 'o') })
-            .and_then(|i| { self.match_char(i, 'u') })
-            .and_then(|i| { self.match_char(i, 't') })
+            .and_then(|i| self.match_char(i, 'a'))
+            .and_then(|i| self.match_char(i, 'y'))
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'u'))
+            .and_then(|i| self.match_char(i, 't'))
     }
-    //"=" = =
+    // "=" = =
     pub fn match_terminal_12(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '=')
     }
-    //">" = >
+    // ">" = >
     pub fn match_terminal_13(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '>')
     }
-    //"@NoLayout" = @NoLayout
+    // "@NoLayout" = @NoLayout
     pub fn match_terminal_14(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '@')
-            .and_then(|i| { self.match_char(i, 'N') })
-            .and_then(|i| { self.match_char(i, 'o') })
-            .and_then(|i| { self.match_char(i, 'L') })
-            .and_then(|i| { self.match_char(i, 'a') })
-            .and_then(|i| { self.match_char(i, 'y') })
-            .and_then(|i| { self.match_char(i, 'o') })
-            .and_then(|i| { self.match_char(i, 'u') })
-            .and_then(|i| { self.match_char(i, 't') })
+            .and_then(|i| self.match_char(i, 'N'))
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'L'))
+            .and_then(|i| self.match_char(i, 'a'))
+            .and_then(|i| self.match_char(i, 'y'))
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'u'))
+            .and_then(|i| self.match_char(i, 't'))
     }
-    //"@Layout" = @Layout
+    // "@Layout" = @Layout
     pub fn match_terminal_15(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '@')
-            .and_then(|i| { self.match_char(i, 'L') })
-            .and_then(|i| { self.match_char(i, 'a') })
-            .and_then(|i| { self.match_char(i, 'y') })
-            .and_then(|i| { self.match_char(i, 'o') })
-            .and_then(|i| { self.match_char(i, 'u') })
-            .and_then(|i| { self.match_char(i, 't') })
+            .and_then(|i| self.match_char(i, 'L'))
+            .and_then(|i| self.match_char(i, 'a'))
+            .and_then(|i| self.match_char(i, 'y'))
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'u'))
+            .and_then(|i| self.match_char(i, 't'))
     }
-    //"(" = (
+    // "(" = (
     pub fn match_terminal_16(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '(')
     }
-    //")" = )
+    // ")" = )
     pub fn match_terminal_17(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ')')
     }
-    //"@Start" = @Start
+    // "@Start" = @Start
     pub fn match_terminal_18(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '@')
-            .and_then(|i| { self.match_char(i, 'S') })
-            .and_then(|i| { self.match_char(i, 't') })
-            .and_then(|i| { self.match_char(i, 'a') })
-            .and_then(|i| { self.match_char(i, 'r') })
-            .and_then(|i| { self.match_char(i, 't') })
+            .and_then(|i| self.match_char(i, 'S'))
+            .and_then(|i| self.match_char(i, 't'))
+            .and_then(|i| self.match_char(i, 'a'))
+            .and_then(|i| self.match_char(i, 'r'))
+            .and_then(|i| self.match_char(i, 't'))
     }
-    //"@regex" = @regex
+    // "@regex" = @regex
     pub fn match_terminal_19(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '@')
-            .and_then(|i| { self.match_char(i, 'r') })
-            .and_then(|i| { self.match_char(i, 'e') })
-            .and_then(|i| { self.match_char(i, 'g') })
-            .and_then(|i| { self.match_char(i, 'e') })
-            .and_then(|i| { self.match_char(i, 'x') })
+            .and_then(|i| self.match_char(i, 'r'))
+            .and_then(|i| self.match_char(i, 'e'))
+            .and_then(|i| self.match_char(i, 'g'))
+            .and_then(|i| self.match_char(i, 'e'))
+            .and_then(|i| self.match_char(i, 'x'))
     }
-    //"|" = |
+    // "|" = |
     pub fn match_terminal_20(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '|')
     }
-    //"!<<" = !<<
+    // "!<<" = !<<
     pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '!')
-            .and_then(|i| { self.match_char(i, '<') })
-            .and_then(|i| { self.match_char(i, '<') })
+            .and_then(|i| self.match_char(i, '<'))
+            .and_then(|i| self.match_char(i, '<'))
     }
-    //"\" = \\
+    // "\" = \\
     pub fn match_terminal_22(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '\\')
     }
-    //"!>>" = !>>
+    // "!>>" = !>>
     pub fn match_terminal_23(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '!')
-            .and_then(|i| { self.match_char(i, '>') })
-            .and_then(|i| { self.match_char(i, '>') })
+            .and_then(|i| self.match_char(i, '>'))
+            .and_then(|i| self.match_char(i, '>'))
     }
-    //"left" = left
+    // "left" = left
     pub fn match_terminal_24(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'l')
-            .and_then(|i| { self.match_char(i, 'e') })
-            .and_then(|i| { self.match_char(i, 'f') })
-            .and_then(|i| { self.match_char(i, 't') })
+            .and_then(|i| self.match_char(i, 'e'))
+            .and_then(|i| self.match_char(i, 'f'))
+            .and_then(|i| self.match_char(i, 't'))
     }
-    //"right" = right
+    // "right" = right
     pub fn match_terminal_25(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'r')
-            .and_then(|i| { self.match_char(i, 'i') })
-            .and_then(|i| { self.match_char(i, 'g') })
-            .and_then(|i| { self.match_char(i, 'h') })
-            .and_then(|i| { self.match_char(i, 't') })
+            .and_then(|i| self.match_char(i, 'i'))
+            .and_then(|i| self.match_char(i, 'g'))
+            .and_then(|i| self.match_char(i, 'h'))
+            .and_then(|i| self.match_char(i, 't'))
     }
-    //"none" = none
+    // "none" = none
     pub fn match_terminal_26(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'n')
-            .and_then(|i| { self.match_char(i, 'o') })
-            .and_then(|i| { self.match_char(i, 'n') })
-            .and_then(|i| { self.match_char(i, 'e') })
+            .and_then(|i| self.match_char(i, 'o'))
+            .and_then(|i| self.match_char(i, 'n'))
+            .and_then(|i| self.match_char(i, 'e'))
     }
-    //"{" = {
+    // "{" = {
     pub fn match_terminal_27(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '{')
     }
-    //"}" = }
+    // "}" = }
     pub fn match_terminal_28(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '}')
     }
-    //"*" = *
+    // "*" = *
     pub fn match_terminal_29(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '*')
     }
-    //"+" = +
+    // "+" = +
     pub fn match_terminal_30(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '+')
     }
-    //"?" = ?
+    // "?" = ?
     pub fn match_terminal_31(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '?')
     }
-    //"!" = !
+    // "!" = !
     pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '!')
     }
-    //":" = :
+    // ":" = :
     pub fn match_terminal_33(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ':')
     }
-    //"[" = [
+    // "[" = [
     pub fn match_terminal_34(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '[')
     }
-    //"]" = ]
+    // "]" = ]
     pub fn match_terminal_35(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ']')
     }
-    //"-" = -
+    // "-" = -
     pub fn match_terminal_36(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '-')
@@ -457,7 +436,11 @@ impl Scanner for IggyScanner<'_> {
             TerminalId(35) => self.match_terminal_35(input_index),
             TerminalId(36) => self.match_terminal_36(input_index),
             TerminalId(38) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -468,4 +451,3 @@ impl Scanner for IggyScanner<'_> {
         self.input.char_at(i)
     }
 }
-

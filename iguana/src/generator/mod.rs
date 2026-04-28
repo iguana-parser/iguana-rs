@@ -1,6 +1,10 @@
-use std::{fs, io::{self, Write}, path::Path, time::Instant};
-
-use proc_macro2::TokenStream;
+use std::{
+    fs,
+    io::{self, Write},
+    path::{Path, PathBuf},
+    process::Command,
+    time::Instant,
+};
 
 use crate::{
     generator::{
@@ -12,12 +16,17 @@ use crate::{
 
 pub struct GenConfig {
     pub ll1_optimization: bool,
+    /// Run rustfmt on generated files. Disable to skip the subprocess call
+    /// (e.g. for tests that don't care about formatting, or when rustfmt
+    /// is unavailable).
+    pub run_rustfmt: bool,
 }
 
 impl Default for GenConfig {
     fn default() -> Self {
         Self {
             ll1_optimization: true,
+            run_rustfmt: true,
         }
     }
 }
@@ -84,10 +93,19 @@ pub fn generate_sources(
         fs::create_dir(&src_dir)?;
     }
 
+    let lib_path = src_dir.join("lib.rs");
+    let parser_path = src_dir.join("parser.rs");
+    let scanner_path = src_dir.join("scanner.rs");
+    let parse_tree_path = src_dir.join("parse_tree.rs");
+    let types_path = src_dir.join("types.rs");
+    let grammar_data_path = src_dir.join("grammar_data.rs");
+
     write_rust_file(
-        to_string(lib_gen::generate(grammar)),
-        &src_dir.join("lib.rs"),
+        replace_comment_attrs(&lib_gen::generate(grammar).to_string()),
+        &lib_path,
     )?;
+
+    let run_rustfmt = config.run_rustfmt;
     let mut parser_gen =
         ParserGen::new(grammar, &nonterminal_ids, &terminal_ids, &slot_ids, config);
     let parser_code = parser_gen.generate();
@@ -97,21 +115,48 @@ pub fn generate_sources(
         .map(|l| format!("// {l}"))
         .collect::<Vec<_>>()
         .join("\n");
-    let parser_source = format!("{grammar_comment}\n{}", to_string(parser_code));
-    write_rust_file(parser_source, &src_dir.join("parser.rs"))?;
+    let parser_source = format!(
+        "{grammar_comment}\n{}",
+        replace_comment_attrs(&parser_code.to_string())
+    );
+    write_rust_file(parser_source, &parser_path)?;
 
-    let scanner_code = scanner_gen::generate(grammar, &terminal_ids);
-    write_rust_file(to_string(scanner_code), &src_dir.join("scanner.rs"))?;
+    write_rust_file(
+        replace_comment_attrs(&scanner_gen::generate(grammar, &terminal_ids).to_string()),
+        &scanner_path,
+    )?;
 
-    let parse_tree_code =
-        parse_tree_gen::generate(grammar, &nonterminal_ids, &terminal_ids, &slot_ids);
-    write_rust_file(to_string(parse_tree_code), &src_dir.join("parse_tree.rs"))?;
+    write_rust_file(
+        replace_comment_attrs(
+            &parse_tree_gen::generate(grammar, &nonterminal_ids, &terminal_ids, &slot_ids)
+                .to_string(),
+        ),
+        &parse_tree_path,
+    )?;
 
-    let types_code = types_gen::generate();
-    write_rust_file(to_string(types_code), &src_dir.join("types.rs"))?;
+    write_rust_file(
+        replace_comment_attrs(&types_gen::generate().to_string()),
+        &types_path,
+    )?;
 
-    let grammar_data_code = grammar_data_gen::generate(grammar, &nonterminal_ids, &terminal_ids, &slot_ids);
-    write_rust_file(to_string(grammar_data_code), &src_dir.join("grammar_data.rs"))?;
+    write_rust_file(
+        replace_comment_attrs(
+            &grammar_data_gen::generate(grammar, &nonterminal_ids, &terminal_ids, &slot_ids)
+                .to_string(),
+        ),
+        &grammar_data_path,
+    )?;
+
+    if run_rustfmt {
+        format_files(&[
+            lib_path,
+            parser_path,
+            scanner_path,
+            parse_tree_path,
+            types_path,
+            grammar_data_path,
+        ])?;
+    }
 
     Ok(GenerateResult {
         total_duration_ms: start.elapsed().as_millis() as u64,
@@ -140,7 +185,8 @@ pub fn generate_scaffold(grammar: &Grammar, output_dir: &Path) -> io::Result<()>
     let main_rs = src_dir.join("main.rs");
     if !main_rs.exists() {
         let main_code = main_gen::generate(grammar);
-        write_plain_file(to_string(main_code), &main_rs)?;
+        write_plain_file(replace_comment_attrs(&main_code.to_string()), &main_rs)?;
+        format_files(&[main_rs])?;
     }
 
     Ok(())
@@ -154,6 +200,46 @@ fn write_rust_file(content: impl AsRef<str>, path: &Path) -> io::Result<()> {
     Ok(())
 }
 
+/// Run rustfmt on the given files, one process per file in parallel.
+///
+/// Each rustfmt instance is single-threaded, so spawning one process per
+/// file lets us use multiple cores and is faster than passing all paths
+/// to a single rustfmt invocation.
+///
+/// Passes `--edition 2024` because rustfmt's CLI default is edition 2015,
+/// which produces subtly different formatting than the workspace's edition.
+fn format_files(paths: &[PathBuf]) -> io::Result<()> {
+    if paths.is_empty() {
+        return Ok(());
+    }
+    std::thread::scope(|s| -> io::Result<()> {
+        let handles: Vec<_> = paths
+            .iter()
+            .map(|p| s.spawn(move || format_file(p)))
+            .collect();
+        for h in handles {
+            h.join()
+                .map_err(|_| io::Error::other("rustfmt thread panicked"))??;
+        }
+        Ok(())
+    })
+}
+
+fn format_file(path: &Path) -> io::Result<()> {
+    let status = Command::new("rustfmt")
+        .arg("--edition")
+        .arg("2024")
+        .arg(path)
+        .status()?;
+    if !status.success() {
+        return Err(io::Error::other(format!(
+            "rustfmt failed on {}: {status}",
+            path.display()
+        )));
+    }
+    Ok(())
+}
+
 fn write_plain_file(content: impl AsRef<str>, path: &Path) -> io::Result<()> {
     let mut file = fs::File::create(path)?;
     file.write_all(content.as_ref().as_bytes())?;
@@ -161,17 +247,53 @@ fn write_plain_file(content: impl AsRef<str>, path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-/// Formats the generated token stream into Rust source code using prettyplease.
+/// Rewrite `#[comment = "..."]` pseudo-attributes into `// ...` line comments.
 ///
-/// prettyplease handles:
-/// 1. Formatting macro contents (rustfmt leaves them as-is)
-/// 2. Converting `#[doc = "..."]` attributes back to `/// ...` doc comments
-/// 3. Converting `#[comment = "..."]` attributes to `// ...` line comments
-///    (undocumented feature, but stable - this is how we embed comments in
-///    generated code since TokenStream cannot represent comments directly)
-fn to_string(tokens: TokenStream) -> String {
-    let syntax = syn::parse_file(&tokens.to_string()).unwrap_or_else(|e| {
-        panic!("Parse error at {:?}: {}", e.span().start(), e);
+/// `quote!` produces a `TokenStream`, and Rust line comments are lexer-level
+/// — they have no token representation. To inject `// ...` comments into
+/// generated code, our generators emit `#[comment = "..."]` as a stand-in
+/// and rely on this pass to rewrite it before the file becomes Rust source.
+///
+/// `#[comment]` is not a real Rust attribute, so any unrewritten occurrence
+/// would be a compile error in the generated file. Run this on every
+/// generator output that goes to disk.
+fn replace_comment_attrs(input: &str) -> String {
+    use std::sync::OnceLock;
+    static RE: OnceLock<regex::Regex> = OnceLock::new();
+    let re = RE.get_or_init(|| {
+        regex::Regex::new(r#"#\s*\[\s*comment\s*=\s*"((?:[^"\\]|\\.)*)"\s*\]"#).unwrap()
     });
-    prettyplease::unparse(&syntax)
+    re.replace_all(input, |caps: &regex::Captures| {
+        format!("\n// {}\n", unescape(&caps[1]))
+    })
+    .into_owned()
+}
+
+/// The regex captures the *source-text* inside a string literal, so escape
+/// sequences are still in their escaped form (`\"`, `\\`, `\n`, …). Line
+/// comments don't interpret escapes — leaving them as-is would render
+/// `#[comment = "He said \"hi\""]` as `// He said \"hi\"` (with literal
+/// backslashes) rather than `// He said "hi"`. Decode them back to the
+/// real string value before splicing into the comment.
+fn unescape(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            match chars.next() {
+                Some('n') => out.push('\n'),
+                Some('t') => out.push('\t'),
+                Some('"') => out.push('"'),
+                Some('\\') => out.push('\\'),
+                Some(other) => {
+                    out.push('\\');
+                    out.push(other);
+                }
+                None => out.push('\\'),
+            }
+        } else {
+            out.push(c);
+        }
+    }
+    out
 }

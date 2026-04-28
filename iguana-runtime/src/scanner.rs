@@ -13,7 +13,9 @@ pub struct Range {
 pub trait Scanner {
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
     fn match_any(&self, terminal_ids: &[TerminalId], input_index: u32) -> bool {
-        terminal_ids.iter().any(|id| self.match_token(*id, input_index).is_some())
+        terminal_ids
+            .iter()
+            .any(|id| self.match_token(*id, input_index).is_some())
     }
     fn char_at(&self, i: u32) -> Option<char>;
     fn match_char(&self, i: u32, c: char) -> Option<u32> {

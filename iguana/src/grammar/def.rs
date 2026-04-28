@@ -207,9 +207,7 @@ impl GrammarDef {
         self.for_each_symbol(&mut |symbol| match symbol {
             Symbol::Identifier(id) | Symbol::Call { name: id, .. } => f(id),
             Symbol::Except { except, .. } => except.iter().for_each(&mut *f),
-            Symbol::FollowRestriction { restrictions, .. } => {
-                restrictions.iter().for_each(&mut *f)
-            }
+            Symbol::FollowRestriction { restrictions, .. } => restrictions.iter().for_each(&mut *f),
             Symbol::PrecedeRestriction { restriction, .. } => f(restriction),
             _ => {}
         });
@@ -239,7 +237,11 @@ impl GrammarDef {
 
         let mut unresolved = Vec::new();
         self.for_each_symbol(&mut |symbol| {
-            if let Symbol::Exclude { symbol: inner, labels } = symbol {
+            if let Symbol::Exclude {
+                symbol: inner,
+                labels,
+            } = symbol
+            {
                 if let Some(id) = inner.as_identifier() {
                     if let Some(rule) = rules_by_name.get(id.name.as_str()) {
                         let valid_labels: Vec<&str> = rule
@@ -277,7 +279,6 @@ impl GrammarDef {
         }
         duplicates
     }
-
 }
 
 impl TryFrom<GrammarDef> for Grammar {
@@ -787,10 +788,11 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         .into_iter()
         .map(|mut r| {
             for except in &mut r.except {
-                except.definition =
-                    Some(symbol_table.get(&except.name).unwrap_or_else(|| {
-                        panic!("Except terminal {} not found", except.name)
-                    }));
+                except.definition = Some(
+                    symbol_table
+                        .get(&except.name)
+                        .unwrap_or_else(|| panic!("Except terminal {} not found", except.name)),
+                );
             }
             if let Some(restriction) = &mut r.follow_restriction {
                 restriction.definition =
@@ -811,26 +813,36 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         })
         .collect();
 
-    let (syntax_rules, layout, start_nonterminals, start_wrapper_names) = if let Some(layout) = &grammar_def.layout {
-        let resolved = resolve_identifier(layout.clone(), &symbol_table);
-        let mut syntax_rules = layout_insertion::transform(syntax_rules, &resolved);
-        let start_rules: Vec<_> = syntax_rules
-            .iter()
-            .filter(|r| r.start)
-            .map(|r| add_start_rule(&r.head, &resolved, &symbol_table))
-            .collect();
-        let start_names: FxHashMap<String, String> = syntax_rules
-            .iter()
-            .filter(|r| r.start)
-            .map(|r| (r.head.name.clone(), format!("Start{}", r.head.name)))
-            .collect();
-        let start_wrapper_names: FxHashSet<String> =
-            start_names.values().cloned().collect();
-        syntax_rules.extend(start_rules);
-        (syntax_rules, Some(resolved), start_names, start_wrapper_names)
-    } else {
-        (syntax_rules, None, FxHashMap::default(), FxHashSet::default())
-    };
+    let (syntax_rules, layout, start_nonterminals, start_wrapper_names) =
+        if let Some(layout) = &grammar_def.layout {
+            let resolved = resolve_identifier(layout.clone(), &symbol_table);
+            let mut syntax_rules = layout_insertion::transform(syntax_rules, &resolved);
+            let start_rules: Vec<_> = syntax_rules
+                .iter()
+                .filter(|r| r.start)
+                .map(|r| add_start_rule(&r.head, &resolved, &symbol_table))
+                .collect();
+            let start_names: FxHashMap<String, String> = syntax_rules
+                .iter()
+                .filter(|r| r.start)
+                .map(|r| (r.head.name.clone(), format!("Start{}", r.head.name)))
+                .collect();
+            let start_wrapper_names: FxHashSet<String> = start_names.values().cloned().collect();
+            syntax_rules.extend(start_rules);
+            (
+                syntax_rules,
+                Some(resolved),
+                start_names,
+                start_wrapper_names,
+            )
+        } else {
+            (
+                syntax_rules,
+                None,
+                FxHashMap::default(),
+                FxHashSet::default(),
+            )
+        };
 
     let lexical_rules_map: IndexMap<Terminal, LexicalRule> = lexical_rules
         .into_iter()

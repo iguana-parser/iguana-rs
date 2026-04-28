@@ -60,7 +60,11 @@ impl<'a> Formatter<'a> {
     /// their own line.
     fn emit_comments(&self, out: &mut String, layout: &Layout, previous: Span) {
         for comment in layout.line_comments() {
-            if is_same_line(self.input, comment.span().left_extent, previous.right_extent) {
+            if is_same_line(
+                self.input,
+                comment.span().left_extent,
+                previous.right_extent,
+            ) {
                 out.push(' ');
                 out.push_str(&self.text(comment.span()));
             } else {
@@ -268,21 +272,29 @@ impl<'a> Formatter<'a> {
                 self.format_symbol(out, sep);
                 out.push_str(" }+");
             }
-            Symbol::Except { symbol, excepts, .. } => {
+            Symbol::Except {
+                symbol, excepts, ..
+            } => {
                 self.format_symbol(out, symbol);
                 for id in excepts.identifiers() {
                     out.push_str(" \\ ");
                     out.push_str(&self.text(id.span()));
                 }
             }
-            Symbol::FollowRestriction { symbol, restrictions, .. } => {
+            Symbol::FollowRestriction {
+                symbol,
+                restrictions,
+                ..
+            } => {
                 self.format_symbol(out, symbol);
                 for id in restrictions.identifiers() {
                     out.push_str(" !>> ");
                     out.push_str(&self.text(id.span()));
                 }
             }
-            Symbol::PrecedeRestriction { identifier, symbol, .. } => {
+            Symbol::PrecedeRestriction {
+                identifier, symbol, ..
+            } => {
                 out.push_str(&self.text(identifier.span()));
                 out.push_str(" !<< ");
                 self.format_symbol(out, symbol);
@@ -330,9 +342,10 @@ impl<'a> Formatter<'a> {
             .map(|group| group.collect::<Vec<_>>())
             .collect();
 
-        let pre_prefix = rule.pre_condition.value().map(|pre| {
-            format!("{} !<< ", self.text(pre.identifier.span()))
-        });
+        let pre_prefix = rule
+            .pre_condition
+            .value()
+            .map(|pre| format!("{} !<< ", self.text(pre.identifier.span())));
         let pre_str = pre_prefix.as_deref().unwrap_or("");
         let postcond = self.postconditions_to_string(rule);
         let name = self.text(rule.identifier.span());
@@ -341,8 +354,7 @@ impl<'a> Formatter<'a> {
             // Multi-alt: name on its own line, each alt on its own line(s)
             out.push_str(&name);
             for (i, group) in groups.iter().enumerate() {
-                let chunks: Vec<String> =
-                    group.iter().map(|r| self.regex_to_string(r)).collect();
+                let chunks: Vec<String> = group.iter().map(|r| self.regex_to_string(r)).collect();
                 let prefix = if i == 0 {
                     format!("{}{}", RULE_PREFIX, pre_str)
                 } else {
@@ -359,8 +371,7 @@ impl<'a> Formatter<'a> {
             }
         } else {
             // Single-alt: try single line first
-            let chunks: Vec<String> =
-                groups[0].iter().map(|r| self.regex_to_string(r)).collect();
+            let chunks: Vec<String> = groups[0].iter().map(|r| self.regex_to_string(r)).collect();
             let body = chunks.join(" ");
             let single = format!("{} = {}{}{}", name, pre_str, body, postcond);
 
@@ -518,10 +529,7 @@ mod tests {
     fn test_multiple_alternatives() {
         let input = "grammar T\n\nA\n  = \"x\"  #X\n  | \"y\"  #Y\n";
         let formatted = format_source(input).unwrap();
-        assert_eq!(
-            formatted,
-            "grammar T\n\nA\n  = \"x\" #X\n  | \"y\" #Y\n"
-        );
+        assert_eq!(formatted, "grammar T\n\nA\n  = \"x\" #X\n  | \"y\" #Y\n");
     }
 
     #[test]

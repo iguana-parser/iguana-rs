@@ -8,27 +8,27 @@ impl<'i> PrefixPostfixPriorityScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //"a" = a
+    // "a" = a
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'a')
     }
-    //"!" = !
+    // "!" = !
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '!')
     }
-    //"-" = -
+    // "-" = -
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '-')
     }
-    //"*" = *
+    // "*" = *
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '*')
     }
-    //"+" = +
+    // "+" = +
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '+')
@@ -43,7 +43,11 @@ impl Scanner for PrefixPostfixPriorityScanner<'_> {
             TerminalId(3) => self.match_terminal_3(input_index),
             TerminalId(4) => self.match_terminal_4(input_index),
             TerminalId(6) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -54,4 +58,3 @@ impl Scanner for PrefixPostfixPriorityScanner<'_> {
         self.input.char_at(i)
     }
 }
-

@@ -1,4 +1,7 @@
-use iggy::{ParseError, parse_tree, parse_tree::{ListNode, OptNode, Start}};
+use iggy::{
+    ParseError, parse_tree,
+    parse_tree::{ListNode, OptNode, Start},
+};
 use iguana_runtime::{input::Input, parse_tree::ParseContext, sppf::Span};
 
 use crate::grammar::{
@@ -190,7 +193,9 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 .collect(),
         },
         parse_tree::Symbol::FollowRestriction {
-            symbol, restrictions, ..
+            symbol,
+            restrictions,
+            ..
         } => Symbol::FollowRestriction {
             symbol: Box::new(convert_symbol(symbol, input)),
             restrictions: restrictions

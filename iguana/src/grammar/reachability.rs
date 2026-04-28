@@ -21,11 +21,7 @@ impl<'a> ReachabilityGraph<'a> {
         ReachabilityGraph { reachable }
     }
 
-    fn dfs(
-        grammar: &'a Grammar,
-        nt: &'a Nonterminal,
-        visited: &mut FxHashSet<&'a Nonterminal>,
-    ) {
+    fn dfs(grammar: &'a Grammar, nt: &'a Nonterminal, visited: &mut FxHashSet<&'a Nonterminal>) {
         for alt in grammar.alternatives(nt) {
             for symbol in &alt.symbols {
                 Self::visit_symbol(grammar, symbol, visited);

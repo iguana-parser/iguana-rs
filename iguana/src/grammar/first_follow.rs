@@ -108,7 +108,6 @@ impl<'a> FirstFollowSets<'a> {
         set
     }
 
-
     // -- Nullables --
 
     fn calc_nullables(&mut self) {
@@ -120,11 +119,7 @@ impl<'a> FirstFollowSets<'a> {
                     continue;
                 }
                 for alternative in self.grammar.alternatives(nonterminal) {
-                    if alternative
-                        .symbols
-                        .iter()
-                        .all(|s| self.is_nullable(s))
-                    {
+                    if alternative.symbols.iter().all(|s| self.is_nullable(s)) {
                         self.nullables.insert(nonterminal);
                         changed = true;
                         break;
@@ -274,9 +269,7 @@ impl<'a> FirstFollowSets<'a> {
             | Symbol::FollowRestriction { symbol, .. }
             | Symbol::PrecedeRestriction { symbol, .. }
             | Symbol::Exclude { symbol, .. } => self.symbol_nonterminal(symbol),
-            Symbol::Call { name, .. } => {
-                self.symbol_nonterminal(&Symbol::Identifier(name.clone()))
-            }
+            Symbol::Call { name, .. } => self.symbol_nonterminal(&Symbol::Identifier(name.clone())),
             _ => None,
         }
     }

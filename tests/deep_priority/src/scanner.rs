@@ -9,49 +9,48 @@ impl<'i> DeepPriorityScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //WS = ([ ]*)
+    // WS = ([ ]*)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
             let mut j = i;
-            while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_0, false)
-            })(j) {
+            while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(j) {
                 j = k;
             }
             Some(j)
         })(i)
     }
-    //"a" = a
+    // "a" = a
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'a')
     }
-    //"+" = +
+    // "+" = +
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, '+')
     }
-    //"if" = if
+    // "if" = if
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        self.match_char(i, 'i').and_then(|i| { self.match_char(i, 'f') })
+        self.match_char(i, 'i')
+            .and_then(|i| self.match_char(i, 'f'))
     }
-    //"then" = then
+    // "then" = then
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 't')
-            .and_then(|i| { self.match_char(i, 'h') })
-            .and_then(|i| { self.match_char(i, 'e') })
-            .and_then(|i| { self.match_char(i, 'n') })
+            .and_then(|i| self.match_char(i, 'h'))
+            .and_then(|i| self.match_char(i, 'e'))
+            .and_then(|i| self.match_char(i, 'n'))
     }
-    //"else" = else
+    // "else" = else
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'e')
-            .and_then(|i| { self.match_char(i, 'l') })
-            .and_then(|i| { self.match_char(i, 's') })
-            .and_then(|i| { self.match_char(i, 'e') })
+            .and_then(|i| self.match_char(i, 'l'))
+            .and_then(|i| self.match_char(i, 's'))
+            .and_then(|i| self.match_char(i, 'e'))
     }
 }
 impl Scanner for DeepPriorityScanner<'_> {
@@ -64,7 +63,11 @@ impl Scanner for DeepPriorityScanner<'_> {
             TerminalId(4) => self.match_terminal_4(input_index),
             TerminalId(5) => self.match_terminal_5(input_index),
             TerminalId(7) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -75,4 +78,3 @@ impl Scanner for DeepPriorityScanner<'_> {
         self.input.char_at(i)
     }
 }
-

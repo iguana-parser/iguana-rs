@@ -36,7 +36,12 @@ impl Display for CharRange {
         if self.start == self.end {
             write!(f, "{}", self.start.escape_debug())
         } else {
-            write!(f, "{}-{}", self.start.escape_debug(), self.end.escape_debug())
+            write!(
+                f,
+                "{}-{}",
+                self.start.escape_debug(),
+                self.end.escape_debug()
+            )
         }
     }
 }

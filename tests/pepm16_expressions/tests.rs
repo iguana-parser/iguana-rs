@@ -1,10 +1,10 @@
 // To regenerate parser:  cargo run -p iguana -- generate --grammar tests/pepm16_expressions/pepm16_expressions.iggy --output tests/pepm16_expressions
 // To update golden files: REGENERATE=1 cargo test -p pepm16_expressions
 
-use pepm16_expressions::{parse_s, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
 use iguana_runtime::parse_tree::ParseContext;
 use iguana_runtime::testing::{check_golden_file, golden_path};
+use pepm16_expressions::{parse_s, parse_tree::to_sexpr};
 
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);

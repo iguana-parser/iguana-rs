@@ -9,37 +9,38 @@ impl<'i> ExceptNonterminalScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //Identifier = ([a-z A-Z]+)
+    // Identifier = ([a-z A-Z]+)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         (|i| {
-            let i = (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)?;
+            let i = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i)?;
             let mut j = i;
-            while let Some(k) = (|i| {
-                self.match_char_class(i, &CHAR_CLASS_0, false)
-            })(j) {
+            while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(j) {
                 j = k;
             }
             Some(j)
         })(i)
     }
-    //Keyword = (if|else|while)
+    // Keyword = (if|else|while)
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| { self.match_char(i, 'i').and_then(|i| { self.match_char(i, 'f') }) })(i)
-            .or_else(|| {
-                self.match_char(i, 'e')
-                    .and_then(|i| { self.match_char(i, 'l') })
-                    .and_then(|i| { self.match_char(i, 's') })
-                    .and_then(|i| { self.match_char(i, 'e') })
-            })
-            .or_else(|| {
-                self.match_char(i, 'w')
-                    .and_then(|i| { self.match_char(i, 'h') })
-                    .and_then(|i| { self.match_char(i, 'i') })
-                    .and_then(|i| { self.match_char(i, 'l') })
-                    .and_then(|i| { self.match_char(i, 'e') })
-            })
+        (|i| {
+            self.match_char(i, 'i')
+                .and_then(|i| self.match_char(i, 'f'))
+        })(i)
+        .or_else(|| {
+            self.match_char(i, 'e')
+                .and_then(|i| self.match_char(i, 'l'))
+                .and_then(|i| self.match_char(i, 's'))
+                .and_then(|i| self.match_char(i, 'e'))
+        })
+        .or_else(|| {
+            self.match_char(i, 'w')
+                .and_then(|i| self.match_char(i, 'h'))
+                .and_then(|i| self.match_char(i, 'i'))
+                .and_then(|i| self.match_char(i, 'l'))
+                .and_then(|i| self.match_char(i, 'e'))
+        })
     }
 }
 impl Scanner for ExceptNonterminalScanner<'_> {
@@ -48,7 +49,11 @@ impl Scanner for ExceptNonterminalScanner<'_> {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(1) => self.match_terminal_1(input_index),
             TerminalId(3) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -59,4 +64,3 @@ impl Scanner for ExceptNonterminalScanner<'_> {
         self.input.char_at(i)
     }
 }
-

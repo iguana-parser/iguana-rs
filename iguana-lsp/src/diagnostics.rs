@@ -7,8 +7,8 @@ use by_address::ByAddress;
 use iguana::grammar::def::{GrammarDef, SyntaxRule};
 use iguana::grammar::symbols::{DefinitionId, Symbol};
 use iguana_runtime::{input::Input, sppf::Span};
-use rustc_hash::FxHashMap;
 use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
+use rustc_hash::FxHashMap;
 
 use crate::spans::GrammarSpans;
 
@@ -24,7 +24,12 @@ pub fn diagnostics(
     grammar_def.for_each_identifier(&mut |id| {
         if id.definition.is_none() {
             if let Some(span) = spans.identifier_span(id) {
-                out.push(make_diagnostic("Unresolved reference", &id.name, span, input));
+                out.push(make_diagnostic(
+                    "Unresolved reference",
+                    &id.name,
+                    span,
+                    input,
+                ));
             }
         }
     });
@@ -47,7 +52,12 @@ fn check_duplicate_definitions(
         let def_id = DefinitionId(i as u16);
         if let Some(&head_span) = spans.definition_spans.get(&def_id) {
             if seen.contains_key(rule.head.name.as_str()) {
-                out.push(make_diagnostic("Duplicate definition", &rule.head.name, head_span, input));
+                out.push(make_diagnostic(
+                    "Duplicate definition",
+                    &rule.head.name,
+                    head_span,
+                    input,
+                ));
             } else {
                 seen.insert(rule.head.name.as_str(), head_span);
             }
@@ -57,7 +67,12 @@ fn check_duplicate_definitions(
         let def_id = DefinitionId((lex_count + i) as u16);
         if let Some(&head_span) = spans.definition_spans.get(&def_id) {
             if seen.contains_key(rule.head.name.as_str()) {
-                out.push(make_diagnostic("Duplicate definition", &rule.head.name, head_span, input));
+                out.push(make_diagnostic(
+                    "Duplicate definition",
+                    &rule.head.name,
+                    head_span,
+                    input,
+                ));
             } else {
                 seen.insert(rule.head.name.as_str(), head_span);
             }
@@ -80,7 +95,11 @@ fn check_exclude_labels(
         .collect();
 
     grammar_def.for_each_symbol(&mut |symbol| {
-        if let Symbol::Exclude { symbol: inner, labels } = symbol {
+        if let Symbol::Exclude {
+            symbol: inner,
+            labels,
+        } = symbol
+        {
             if let Some(id) = inner.as_identifier() {
                 if let Some(rule) = rules_by_name.get(id.name.as_str()) {
                     let label_spans = spans
@@ -142,23 +161,27 @@ mod tests {
 
     #[test]
     fn no_errors_on_valid_grammar() {
-        let d = diags(r#"
+        let d = diags(
+            r#"
 grammar T
 
 Expr
   = "x"
-"#);
+"#,
+        );
         assert!(d.is_empty());
     }
 
     #[test]
     fn unresolved_identifier_reported() {
-        let d = diags(r#"
+        let d = diags(
+            r#"
 grammar T
 
 Expr
   = Foo
-"#);
+"#,
+        );
         assert_eq!(d.len(), 1);
         assert!(d[0].message.contains("Foo"));
         assert_eq!(d[0].severity, Some(DiagnosticSeverity::ERROR));
@@ -166,18 +189,21 @@ Expr
 
     #[test]
     fn multiple_unresolved() {
-        let d = diags(r#"
+        let d = diags(
+            r#"
 grammar T
 
 Expr
   = Foo Bar
-"#);
+"#,
+        );
         assert_eq!(d.len(), 2);
     }
 
     #[test]
     fn resolved_reference_no_error() {
-        let d = diags(r#"
+        let d = diags(
+            r#"
 grammar T
 
 Expr
@@ -185,13 +211,15 @@ Expr
 
 Term
   = "x"
-"#);
+"#,
+        );
         assert!(d.is_empty());
     }
 
     #[test]
     fn unresolved_exclude_label() {
-        let d = diags(r#"
+        let d = diags(
+            r#"
 grammar T
 
 Expression
@@ -201,7 +229,8 @@ Expression
 
 Primary
   = "x"
-"#);
+"#,
+        );
         let names: Vec<_> = d.iter().map(|d| &d.message).collect();
         assert_eq!(d.len(), 1, "expected 1 diagnostic, got: {names:?}");
         assert!(d[0].message.contains("NoSuchLabel"));
@@ -209,7 +238,8 @@ Primary
 
     #[test]
     fn valid_exclude_label_no_error() {
-        let d = diags(r#"
+        let d = diags(
+            r#"
 grammar T
 
 Expression
@@ -219,13 +249,19 @@ Expression
 
 Primary
   = "x"
-"#);
-        assert!(d.is_empty(), "expected no diagnostics, got: {:?}", d.iter().map(|d| &d.message).collect::<Vec<_>>());
+"#,
+        );
+        assert!(
+            d.is_empty(),
+            "expected no diagnostics, got: {:?}",
+            d.iter().map(|d| &d.message).collect::<Vec<_>>()
+        );
     }
 
     #[test]
     fn unresolved_identifier_in_priority_level() {
-        let d = diags(r#"
+        let d = diags(
+            r#"
 grammar T
 
 Expression
@@ -235,7 +271,8 @@ Expression
 
 Primary
   = "x"
-"#);
+"#,
+        );
         let names: Vec<_> = d.iter().map(|d| &d.message).collect();
         assert_eq!(d.len(), 1, "expected 1 diagnostic for Foo, got: {names:?}");
         assert!(d[0].message.contains("Foo"));
@@ -243,7 +280,8 @@ Primary
 
     #[test]
     fn unresolved_identifier_next_to_exclude() {
-        let d = diags(r#"
+        let d = diags(
+            r#"
 grammar T
 
 Expression
@@ -253,7 +291,8 @@ Expression
 
 Primary
   = "x"
-"#);
+"#,
+        );
         let names: Vec<_> = d.iter().map(|d| &d.message).collect();
         assert_eq!(d.len(), 1, "expected 1 diagnostic for Foo, got: {names:?}");
         assert!(d[0].message.contains("Foo"));
@@ -261,7 +300,8 @@ Primary
 
     #[test]
     fn unresolved_regex_identifier() {
-        let d = diags(r#"
+        let d = diags(
+            r#"
 grammar T
 
 @regex
@@ -271,15 +311,21 @@ DecimalLiteral
 @regex
 Digits
   = [0-9]+
-"#);
+"#,
+        );
         let names: Vec<_> = d.iter().map(|d| &d.message).collect();
-        assert_eq!(d.len(), 1, "expected 1 diagnostic for ExponentPart, got: {names:?}");
+        assert_eq!(
+            d.len(),
+            1,
+            "expected 1 diagnostic for ExponentPart, got: {names:?}"
+        );
         assert!(d[0].message.contains("ExponentPart"));
     }
 
     #[test]
     fn resolved_regex_identifier_no_error() {
-        let d = diags(r#"
+        let d = diags(
+            r#"
 grammar T
 
 @regex
@@ -293,13 +339,19 @@ Digits
 @regex
 ExponentPart
   = [eE] [0-9]+
-"#);
-        assert!(d.is_empty(), "expected no diagnostics, got: {:?}", d.iter().map(|d| &d.message).collect::<Vec<_>>());
+"#,
+        );
+        assert!(
+            d.is_empty(),
+            "expected no diagnostics, got: {:?}",
+            d.iter().map(|d| &d.message).collect::<Vec<_>>()
+        );
     }
 
     #[test]
     fn unresolved_regex_identifier_in_nested_regex() {
-        let d = diags(r#"
+        let d = diags(
+            r#"
 grammar T
 
 @regex
@@ -309,9 +361,14 @@ FloatLiteral
 @regex
 Digits
   = [0-9]+
-"#);
+"#,
+        );
         let names: Vec<_> = d.iter().map(|d| &d.message).collect();
-        assert_eq!(d.len(), 1, "expected 1 diagnostic for Suffix, got: {names:?}");
+        assert_eq!(
+            d.len(),
+            1,
+            "expected 1 diagnostic for Suffix, got: {names:?}"
+        );
         assert!(d[0].message.contains("Suffix"));
     }
 }

@@ -8,17 +8,17 @@ impl<'i> PlusGroupScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //"a" = a
+    // "a" = a
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'a')
     }
-    //"b" = b
+    // "b" = b
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'b')
     }
-    //"c" = c
+    // "c" = c
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'c')
@@ -31,7 +31,11 @@ impl Scanner for PlusGroupScanner<'_> {
             TerminalId(1) => self.match_terminal_1(input_index),
             TerminalId(2) => self.match_terminal_2(input_index),
             TerminalId(4) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -42,4 +46,3 @@ impl Scanner for PlusGroupScanner<'_> {
         self.input.char_at(i)
     }
 }
-

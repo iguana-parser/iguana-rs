@@ -233,8 +233,8 @@ fn collect_syntax_rule_spans<'a>(
             .iter()
             .zip(pt_level.alternatives.alternatives())
         {
-            let alt_end = rightmost_token_end(pt_alt.as_parse_tree())
-                .unwrap_or(pt_alt.span.right_extent);
+            let alt_end =
+                rightmost_token_end(pt_alt.as_parse_tree()).unwrap_or(pt_alt.span.right_extent);
             let alt_span = Span::new(pt_alt.span.left_extent, alt_end);
             spans.alternatives.insert(
                 ByAddress(gr_alt),
@@ -319,13 +319,21 @@ fn collect_symbol_spans<'a>(
         Symbol::Identifier(id) => {
             spans.identifiers.insert(ByAddress(id), sym_span);
             if let Some(def_id) = id.definition {
-                spans.reference_spans.entry(def_id).or_default().push(sym_span);
+                spans
+                    .reference_spans
+                    .entry(def_id)
+                    .or_default()
+                    .push(sym_span);
             }
         }
         Symbol::Call { name, .. } => {
             spans.identifiers.insert(ByAddress(name), sym_span);
             if let Some(def_id) = name.definition {
-                spans.reference_spans.entry(def_id).or_default().push(sym_span);
+                spans
+                    .reference_spans
+                    .entry(def_id)
+                    .or_default()
+                    .push(sym_span);
             }
         }
         _ => {}
@@ -354,11 +362,18 @@ fn collect_symbol_spans<'a>(
                 collect_symbol_spans(ir, pt, spans);
             }
         }
-        (Symbol::Labeled { symbol: gr_inner, .. }, parse_tree::Symbol::Labeled { symbol, .. }) => {
+        (
+            Symbol::Labeled {
+                symbol: gr_inner, ..
+            },
+            parse_tree::Symbol::Labeled { symbol, .. },
+        ) => {
             collect_symbol_spans(gr_inner, symbol, spans);
         }
         (
-            Symbol::Exclude { symbol: gr_inner, .. },
+            Symbol::Exclude {
+                symbol: gr_inner, ..
+            },
             parse_tree::Symbol::Exclude { symbol, labels, .. },
         ) => {
             collect_symbol_spans(gr_inner, symbol, spans);
@@ -366,8 +381,14 @@ fn collect_symbol_spans<'a>(
             spans.label_spans.insert(ByAddress(gr_sym), label_spans);
         }
         (
-            Symbol::Except { symbol: gr_inner, except, .. },
-            parse_tree::Symbol::Except { symbol, excepts, .. },
+            Symbol::Except {
+                symbol: gr_inner,
+                except,
+                ..
+            },
+            parse_tree::Symbol::Except {
+                symbol, excepts, ..
+            },
         ) => {
             collect_symbol_spans(gr_inner, symbol, spans);
             for (id, token) in except.iter().zip(excepts.identifiers()) {
@@ -375,8 +396,16 @@ fn collect_symbol_spans<'a>(
             }
         }
         (
-            Symbol::FollowRestriction { symbol: gr_inner, restrictions: gr_restrictions, .. },
-            parse_tree::Symbol::FollowRestriction { symbol, restrictions, .. },
+            Symbol::FollowRestriction {
+                symbol: gr_inner,
+                restrictions: gr_restrictions,
+                ..
+            },
+            parse_tree::Symbol::FollowRestriction {
+                symbol,
+                restrictions,
+                ..
+            },
         ) => {
             collect_symbol_spans(gr_inner, symbol, spans);
             for (id, token) in gr_restrictions.iter().zip(restrictions.identifiers()) {
@@ -384,11 +413,19 @@ fn collect_symbol_spans<'a>(
             }
         }
         (
-            Symbol::PrecedeRestriction { symbol: gr_inner, restriction, .. },
-            parse_tree::Symbol::PrecedeRestriction { symbol, identifier, .. },
+            Symbol::PrecedeRestriction {
+                symbol: gr_inner,
+                restriction,
+                ..
+            },
+            parse_tree::Symbol::PrecedeRestriction {
+                symbol, identifier, ..
+            },
         ) => {
             collect_symbol_spans(gr_inner, symbol, spans);
-            spans.identifiers.insert(ByAddress(restriction), identifier.span());
+            spans
+                .identifiers
+                .insert(ByAddress(restriction), identifier.span());
         }
         _ => {}
     }

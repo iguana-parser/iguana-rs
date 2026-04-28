@@ -17,9 +17,9 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>, layout_symbol: &Symbol) -> Vec<S
                 }
             };
             match layout_symbol {
-                Some(layout) => transform_rule_by_symbols(rule, |symbols| {
-                    insert_layout(&symbols, &layout)
-                }),
+                Some(layout) => {
+                    transform_rule_by_symbols(rule, |symbols| insert_layout(&symbols, &layout))
+                }
                 None => rule,
             }
         })

@@ -171,7 +171,9 @@ impl<'a, 'i, P: Parser<'i>> SPPFGraphBuilder<'a, P> {
             SPPFNode::Nonterminal(n) => {
                 let dot_node = SPPFDotNode {
                     id,
-                    kind: NodeKind::Nonterminal { ambiguous: n.ambiguous },
+                    kind: NodeKind::Nonterminal {
+                        ambiguous: n.ambiguous,
+                    },
                     label,
                     left_extent: node.left_extent(),
                     right_extent: node.right_extent(),
@@ -193,7 +195,9 @@ impl<'a, 'i, P: Parser<'i>> SPPFGraphBuilder<'a, P> {
             SPPFNode::Intermediate(i) => {
                 let dot_node = SPPFDotNode {
                     id,
-                    kind: NodeKind::Intermediate { ambiguous: i.ambiguous },
+                    kind: NodeKind::Intermediate {
+                        ambiguous: i.ambiguous,
+                    },
                     label,
                     left_extent: node.left_extent(),
                     right_extent: node.right_extent(),

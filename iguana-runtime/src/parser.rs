@@ -155,7 +155,12 @@ pub trait Parser<'i> {
     /// Checks whether the post-conditions for a given slot are satisfied.
     /// Called during pop and edge processing to filter results (e.g., nonterminal except).
     /// Returns `None` if the result should be accepted, or `Some(error_kind)` if rejected.
-    fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> Option<ParseErrorKind>;
+    fn post_conditions(
+        &self,
+        slot: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+    ) -> Option<ParseErrorKind>;
     /// Checks whether the input at the given position is in the follow set of the nonterminal.
     fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool;
     /// Returns the terminal IDs in the follow set of the given nonterminal.
@@ -173,9 +178,7 @@ pub trait Parser<'i> {
         };
         let message = match &error.kind {
             ParseErrorKind::UnexpectedToken { expected } => {
-                let names: Vec<_> = expected.iter()
-                    .map(|t| Self::terminal_name(*t))
-                    .collect();
+                let names: Vec<_> = expected.iter().map(|t| Self::terminal_name(*t)).collect();
                 match names.len() {
                     0 => format!("Unexpected {found}"),
                     1 => format!("Expected {} but found {found}", names[0]),
@@ -183,15 +186,14 @@ pub trait Parser<'i> {
                 }
             }
             ParseErrorKind::ExcludedMatch { excluded_by } => {
-                let names: Vec<_> = excluded_by.iter()
+                let names: Vec<_> = excluded_by
+                    .iter()
                     .map(|t| Self::terminal_name(*t))
                     .collect();
                 format!("Match excluded by {}", names.join(", "))
             }
             ParseErrorKind::ForbiddenFollow { forbidden } => {
-                let names: Vec<_> = forbidden.iter()
-                    .map(|t| Self::terminal_name(*t))
-                    .collect();
+                let names: Vec<_> = forbidden.iter().map(|t| Self::terminal_name(*t)).collect();
                 format!("Forbidden follow: {}", names.join(", "))
             }
         };
@@ -201,13 +203,21 @@ pub trait Parser<'i> {
     /// Returns the parse error at the farthest input position, if any.
     fn parse_error(&self) -> Option<&ParseError>;
     /// Records a parse error at the given input position.
-    fn add_parse_error(&mut self, input_index: u32, slot_id: SlotId, gss_node_id: Option<GssNodeId>, kind: ParseErrorKind);
+    fn add_parse_error(
+        &mut self,
+        input_index: u32,
+        slot_id: SlotId,
+        gss_node_id: Option<GssNodeId>,
+        kind: ParseErrorKind,
+    );
     /// Delegates to the scanner's match_token.
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
 
     /// Returns true if any of the given terminals match at the given input position.
     fn match_any(&self, terminal_ids: &[TerminalId], input_index: u32) -> bool {
-        terminal_ids.iter().any(|id| self.match_token(*id, input_index).is_some())
+        terminal_ids
+            .iter()
+            .any(|id| self.match_token(*id, input_index).is_some())
     }
 
     /// Tries each alternative's prediction set and adds a first descriptor for each match.
@@ -242,10 +252,24 @@ pub trait Parser<'i> {
     /// Matches a terminal at the given input position.
     /// On success, creates a terminal node and returns the end position and node id.
     /// On failure, records a parse error and returns None.
-    fn match_terminal(&mut self, terminal_id: TerminalId, input_index: u32, slot_id: SlotId, gss_node_id: Option<GssNodeId>, terminal_name: &str) -> Option<(u32, SPPFNodeId)> {
+    fn match_terminal(
+        &mut self,
+        terminal_id: TerminalId,
+        input_index: u32,
+        slot_id: SlotId,
+        gss_node_id: Option<GssNodeId>,
+        terminal_name: &str,
+    ) -> Option<(u32, SPPFNodeId)> {
         record!(self, MatchingTerminal, terminal_name, input_index);
         let j = self.match_token(terminal_id, input_index).or_else(|| {
-            self.add_parse_error(input_index, slot_id, gss_node_id, ParseErrorKind::UnexpectedToken { expected: vec![terminal_id] });
+            self.add_parse_error(
+                input_index,
+                slot_id,
+                gss_node_id,
+                ParseErrorKind::UnexpectedToken {
+                    expected: vec![terminal_id],
+                },
+            );
             None
         })?;
         record!(self, MatchSuccess, terminal_name, input_index, j);
@@ -334,11 +358,21 @@ pub trait Parser<'i> {
             let right_extent = popped_node.right_extent();
             if !self.follow_set_check(nonterminal_id, right_extent) {
                 let expected = self.follow_set_terminals(nonterminal_id);
-                self.add_parse_error(right_extent, return_slot, Some(existing_gss_node_id), ParseErrorKind::UnexpectedToken { expected });
+                self.add_parse_error(
+                    right_extent,
+                    return_slot,
+                    Some(existing_gss_node_id),
+                    ParseErrorKind::UnexpectedToken { expected },
+                );
                 continue;
             }
             if let Some(error_kind) = self.post_conditions(return_slot, left_extent, right_extent) {
-                self.add_parse_error(right_extent, return_slot, Some(existing_gss_node_id), error_kind);
+                self.add_parse_error(
+                    right_extent,
+                    return_slot,
+                    Some(existing_gss_node_id),
+                    error_kind,
+                );
                 continue;
             }
             let right_child = (popped_element.nonterminal_node_id, right_extent);
@@ -427,7 +461,12 @@ pub trait Parser<'i> {
         let right_extent = node.right_extent();
         if !self.follow_set_check(nonterminal_id, right_extent) {
             let expected = self.follow_set_terminals(nonterminal_id);
-            self.add_parse_error(right_extent, slot_id, Some(gss_node_id), ParseErrorKind::UnexpectedToken { expected });
+            self.add_parse_error(
+                right_extent,
+                slot_id,
+                Some(gss_node_id),
+                ParseErrorKind::UnexpectedToken { expected },
+            );
             return;
         }
         let right_child = (popped_element.nonterminal_node_id, right_extent);
@@ -436,8 +475,15 @@ pub trait Parser<'i> {
         gss.add_to_popped_elements(popped_element);
         let edges = gss.edges().clone();
         for edge in edges.iter() {
-            if let Some(error_kind) = self.post_conditions(edge.return_slot, left_extent, right_extent) {
-                self.add_parse_error(right_extent, edge.return_slot, Some(gss_node_id), error_kind);
+            if let Some(error_kind) =
+                self.post_conditions(edge.return_slot, left_extent, right_extent)
+            {
+                self.add_parse_error(
+                    right_extent,
+                    edge.return_slot,
+                    Some(gss_node_id),
+                    error_kind,
+                );
                 continue;
             }
             let left_child = edge
@@ -633,7 +679,12 @@ pub trait Parser<'i> {
         let left_child_id = result.expect("Result should not be None.");
         let left_extent = self.sppf_node(left_child_id).left_extent();
         self.get_or_create_intermediate_node(
-            next_slot_id, left_extent, right_extent, left_child_id, right_child_id, true,
+            next_slot_id,
+            left_extent,
+            right_extent,
+            left_child_id,
+            right_child_id,
+            true,
         )
         .map(|new_node| (right_extent, new_node))
     }
@@ -653,7 +704,12 @@ pub trait Parser<'i> {
         let left_extent = node.left_extent();
         let right_extent = node.right_extent();
         self.get_or_create_nonterminal_node(
-            nonterminal_id, end_slot_id, left_extent, right_extent, result, true,
+            nonterminal_id,
+            end_slot_id,
+            left_extent,
+            right_extent,
+            result,
+            true,
         )
     }
 
@@ -767,4 +823,3 @@ pub fn init_logger() {
             .try_init();
     });
 }
-

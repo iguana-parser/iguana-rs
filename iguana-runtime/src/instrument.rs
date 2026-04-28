@@ -41,9 +41,7 @@ mod imp {
         }
 
         pub fn count_all_sppf_nodes(&self) -> usize {
-            self.nonterminal_nodes_count
-                + self.intermediate_nodes_count
-                + self.terminal_nodes_count
+            self.nonterminal_nodes_count + self.intermediate_nodes_count + self.terminal_nodes_count
         }
 
         pub fn record(&mut self, name: &'static str, len: usize) {
@@ -58,7 +56,11 @@ mod imp {
             writeln!(f, "  gss_nodes:           {}", self.gss_nodes_count)?;
             writeln!(f, "  gss_edges:           {}", self.gss_edges_count)?;
             writeln!(f, "  nonterminal_nodes:   {}", self.nonterminal_nodes_count)?;
-            writeln!(f, "  intermediate_nodes:  {}", self.intermediate_nodes_count)?;
+            writeln!(
+                f,
+                "  intermediate_nodes:  {}",
+                self.intermediate_nodes_count
+            )?;
             writeln!(f, "  terminal_nodes:      {}", self.terminal_nodes_count)?;
             writeln!(f, "  ambiguous_nodes:     {}", self.ambiguous_nodes_count)?;
             writeln!(f, "  sppf_nodes (total):  {}", self.count_all_sppf_nodes())?;
@@ -94,7 +96,11 @@ mod imp {
                     for (label, &count) in BUCKETS.iter().zip(hist.iter()) {
                         let bar_len = (count * BAR_WIDTH) / bucket_max;
                         let bar: String = "█".repeat(bar_len);
-                        writeln!(f, "    {label:>5} | {bar:<width$} {count}", width = BAR_WIDTH)?;
+                        writeln!(
+                            f,
+                            "    {label:>5} | {bar:<width$} {count}",
+                            width = BAR_WIDTH
+                        )?;
                     }
                 }
             }

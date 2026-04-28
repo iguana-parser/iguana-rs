@@ -1,5 +1,13 @@
 use std::error::Error;
 
+use iguana_lsp::diagnostics::diagnostics;
+use iguana_lsp::document_symbols::document_symbols;
+use iguana_lsp::folding::folding_ranges;
+use iguana_lsp::format::format;
+use iguana_lsp::references::{definition, references};
+use iguana_lsp::semantic_tokens::semantic_tokens;
+use iguana_lsp::{BuildResult, build, build_grammar_def, build_spans};
+use iguana_runtime::{input::Input, parse_tree::ParseContext};
 use lsp_server::{Connection, Message, Notification, Request, RequestId, Response};
 use lsp_types::notification::Notification as LspNotification;
 use lsp_types::request::{
@@ -10,14 +18,6 @@ use lsp_types::{
     Diagnostic, DocumentSymbolResponse, Position, PublishDiagnosticsParams, Range, SemanticTokens,
     SemanticTokensResult, TextEdit, Uri,
 };
-use iguana_runtime::{input::Input, parse_tree::ParseContext};
-use iguana_lsp::diagnostics::diagnostics;
-use iguana_lsp::document_symbols::document_symbols;
-use iguana_lsp::folding::folding_ranges;
-use iguana_lsp::format::format;
-use iguana_lsp::references::{definition, references};
-use iguana_lsp::semantic_tokens::semantic_tokens;
-use iguana_lsp::{build, build_grammar_def, build_spans, BuildResult};
 
 pub fn main_loop(
     connection: Connection,
@@ -46,9 +46,7 @@ pub fn main_loop(
                         let input = Input::from(source.as_str());
                         let ctx = ParseContext::new();
                         let tokens = match build(&input, &ctx) {
-                            BuildResult::Success { ref tree, .. } => {
-                                semantic_tokens(tree, &input)
-                            }
+                            BuildResult::Success { ref tree, .. } => semantic_tokens(tree, &input),
                             BuildResult::Error { .. } => vec![],
                         };
                         let result = SemanticTokensResult::Tokens(SemanticTokens {
@@ -122,13 +120,7 @@ pub fn main_loop(
                             let pos = params.text_document_position.position;
                             let offset = input.offset(pos.line, pos.character);
                             let include_declaration = params.context.include_declaration;
-                            Some(references(
-                                &spans,
-                                &input,
-                                uri,
-                                offset,
-                                include_declaration,
-                            ))
+                            Some(references(&spans, &input, uri, offset, include_declaration))
                         })()
                         .unwrap_or_default();
                         let result = serde_json::to_value(&locations).unwrap();
@@ -195,10 +187,8 @@ pub fn main_loop(
                             Some(document_symbols(&grammar_def, &spans, &input))
                         })()
                         .unwrap_or_default();
-                        let result = serde_json::to_value(
-                            &DocumentSymbolResponse::Nested(symbols),
-                        )
-                        .unwrap();
+                        let result =
+                            serde_json::to_value(&DocumentSymbolResponse::Nested(symbols)).unwrap();
                         let resp = Response {
                             id,
                             result: Some(result),
@@ -242,31 +232,25 @@ pub fn main_loop(
             Message::Response(resp) => {
                 eprintln!("got response: {resp:?}");
             }
-            Message::Notification(notif) => {
-                match notif.method.as_str() {
-                    lsp_types::notification::DidOpenTextDocument::METHOD => {
-                        let params: lsp_types::DidOpenTextDocumentParams =
-                            serde_json::from_value(notif.params).unwrap();
-                        publish_diagnostics(
-                            &connection,
-                            params.text_document.uri,
-                            &params.text_document.text,
-                        )?;
-                    }
-                    lsp_types::notification::DidChangeTextDocument::METHOD => {
-                        let params: lsp_types::DidChangeTextDocumentParams =
-                            serde_json::from_value(notif.params).unwrap();
-                        if let Some(change) = params.content_changes.into_iter().last() {
-                            publish_diagnostics(
-                                &connection,
-                                params.text_document.uri,
-                                &change.text,
-                            )?;
-                        }
-                    }
-                    _ => {}
+            Message::Notification(notif) => match notif.method.as_str() {
+                lsp_types::notification::DidOpenTextDocument::METHOD => {
+                    let params: lsp_types::DidOpenTextDocumentParams =
+                        serde_json::from_value(notif.params).unwrap();
+                    publish_diagnostics(
+                        &connection,
+                        params.text_document.uri,
+                        &params.text_document.text,
+                    )?;
                 }
-            }
+                lsp_types::notification::DidChangeTextDocument::METHOD => {
+                    let params: lsp_types::DidChangeTextDocumentParams =
+                        serde_json::from_value(notif.params).unwrap();
+                    if let Some(change) = params.content_changes.into_iter().last() {
+                        publish_diagnostics(&connection, params.text_document.uri, &change.text)?;
+                    }
+                }
+                _ => {}
+            },
         }
     }
     Ok(())
@@ -280,15 +264,17 @@ fn publish_diagnostics(
     let input = Input::from(source);
     let ctx = ParseContext::new();
     let diagnostics = match build(&input, &ctx) {
-        BuildResult::Success { ref tree, .. } => {
-            build_grammar_def(tree, &input)
-                .map(|grammar_def| {
-                    let spans = build_spans(&grammar_def, tree, &input);
-                    diagnostics(&grammar_def, &spans, &input)
-                })
-                .unwrap_or_default()
-        }
-        BuildResult::Error { line, column, message } => {
+        BuildResult::Success { ref tree, .. } => build_grammar_def(tree, &input)
+            .map(|grammar_def| {
+                let spans = build_spans(&grammar_def, tree, &input);
+                diagnostics(&grammar_def, &spans, &input)
+            })
+            .unwrap_or_default(),
+        BuildResult::Error {
+            line,
+            column,
+            message,
+        } => {
             vec![Diagnostic {
                 range: Range {
                     start: Position::new(line, column),

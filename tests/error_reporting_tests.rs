@@ -22,8 +22,5 @@ fn grammar_without_name() {
 
 #[test]
 fn grammar_with_trailing_space() {
-    assert_eq!(
-        parse_error("grammar "),
-        "Expected Identifier but found EOF"
-    );
+    assert_eq!(parse_error("grammar "), "Expected Identifier but found EOF");
 }

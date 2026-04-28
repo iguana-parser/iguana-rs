@@ -8,7 +8,7 @@ impl<'i> OptScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //"a" = a
+    // "a" = a
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'a')
@@ -19,7 +19,11 @@ impl Scanner for OptScanner<'_> {
         match terminal_id {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(2) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -30,4 +34,3 @@ impl Scanner for OptScanner<'_> {
         self.input.char_at(i)
     }
 }
-

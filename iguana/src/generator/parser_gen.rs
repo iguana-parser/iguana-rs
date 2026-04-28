@@ -405,7 +405,9 @@ impl<'a> ParserGen<'a> {
                         | Symbol::Condition(_)
                         | Symbol::Return(_)
                         | Symbol::Binding { .. } => vec![],
-                        Symbol::Exclude { .. } => unreachable!("Exclude should be desugared before code generation"),
+                        Symbol::Exclude { .. } => {
+                            unreachable!("Exclude should be desugared before code generation")
+                        }
                     };
                     self.gen_nonterminal_slot(nonterminal, &arguments, slot, &[], &[])
                 }
@@ -539,11 +541,7 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_follow_restriction_code(
-        &self,
-        symbol: &Symbol,
-        slot: &Slot<'a>,
-    ) -> TokenStream {
+    fn gen_follow_restriction_code(&self, symbol: &Symbol, slot: &Slot<'a>) -> TokenStream {
         let Some(identifier) = symbol.as_identifier() else {
             return quote! {};
         };
@@ -621,7 +619,9 @@ impl<'a> ParserGen<'a> {
         let mut arms = vec![];
         for nonterminal in self.grammar.nonterminals() {
             let nt_upper = self.prediction_set_name(nonterminal);
-            for (alt_index, alternative) in self.grammar.alternatives(nonterminal).iter().enumerate() {
+            for (alt_index, alternative) in
+                self.grammar.alternatives(nonterminal).iter().enumerate()
+            {
                 for pos in 0..alternative.symbols.len() {
                     let symbol = &alternative.symbols[pos];
                     if let Symbol::Except { symbol, except } = symbol {
@@ -706,10 +706,8 @@ impl<'a> ParserGen<'a> {
         for nonterminal in self.grammar.nonterminals() {
             let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
             let nt_upper = self.prediction_set_name(nonterminal);
-            let condition = self.gen_match_any(
-                &format!("FOLLOW_SET_{}", nt_upper),
-                quote! { input_index },
-            );
+            let condition =
+                self.gen_match_any(&format!("FOLLOW_SET_{}", nt_upper), quote! { input_index });
             arms.push(quote! {
                 #nonterminal_id => { #condition }
             });
@@ -1215,7 +1213,12 @@ impl<'a> ParserGen<'a> {
     /// `TokenStream` that evaluates to `Option<(SPPFNodeId, u32)>` — the
     /// node and end position. Records a parse error on terminal match
     /// failure, consistent with GLL.
-    fn gen_match_symbol_ll1(&self, symbol: &Symbol, pos: TokenStream, slot_id: SlotId) -> TokenStream {
+    fn gen_match_symbol_ll1(
+        &self,
+        symbol: &Symbol,
+        pos: TokenStream,
+        slot_id: SlotId,
+    ) -> TokenStream {
         let identifier = symbol.as_identifier().unwrap();
         let def = self.grammar.definition(identifier.resolve());
         match def {
@@ -1789,10 +1792,8 @@ impl<'a> ParserGen<'a> {
     fn gen_create_method(nt: &Nonterminal, id: usize) -> TokenStream {
         let create_method_name = format_ident!("create_{}", to_snake_case(&nt.name));
         let id = Literal::usize_unsuffixed(id);
-        let get_gss_node_method_name =
-            format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
-        let add_gss_node_method_name =
-            format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
+        let get_gss_node_method_name = format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
+        let add_gss_node_method_name = format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
         let parameters: Vec<_> = nt
             .parameters
             .iter()

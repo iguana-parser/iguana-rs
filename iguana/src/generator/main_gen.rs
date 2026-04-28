@@ -1,7 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use crate::{generator::utils::{to_first_uppercase, to_snake_case}, grammar::def::Grammar};
+use crate::{
+    generator::utils::{to_first_uppercase, to_snake_case},
+    grammar::def::Grammar,
+};
 
 pub fn generate(grammar: &Grammar) -> TokenStream {
     let grammar_name = format_ident!("{}", to_snake_case(&grammar.name));

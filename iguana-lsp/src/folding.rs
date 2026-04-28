@@ -109,13 +109,15 @@ mod tests {
 
     #[test]
     fn multiline_syntax_rule_folds() {
-        let r = ranges(r#"
+        let r = ranges(
+            r#"
 grammar T
 
 Expr
   = "x"
   | "y"
-"#);
+"#,
+        );
         assert_eq!(r.len(), 1);
         assert_eq!(r[0].start_line, 2);
         assert_eq!(r[0].end_line, 4);
@@ -123,19 +125,22 @@ Expr
 
     #[test]
     fn annotated_single_line_lexical_rule_no_fold() {
-        let r = ranges(r#"
+        let r = ranges(
+            r#"
 grammar T
 
 @regex
 Id = [a-z]+
-"#);
+"#,
+        );
         // The rule head is on a single line; @regex stays visible, no fold.
         assert_eq!(r.len(), 0);
     }
 
     #[test]
     fn multiple_rules_multiple_folds() {
-        let r = ranges(r#"
+        let r = ranges(
+            r#"
 grammar T
 
 A
@@ -145,7 +150,8 @@ A
 B
   = "c"
   | "d"
-"#);
+"#,
+        );
         assert_eq!(r.len(), 2);
         assert_eq!(r[0].start_line, 2);
         assert_eq!(r[1].start_line, 6);
@@ -153,14 +159,16 @@ B
 
     #[test]
     fn annotated_multiline_syntax_rule_folds_from_head() {
-        let r = ranges(r#"
+        let r = ranges(
+            r#"
 grammar T
 
 @NoLayout
 Rule
   = "a"
   | "b"
-"#);
+"#,
+        );
         assert_eq!(r.len(), 1);
         // Fold starts at the rule head, not the @NoLayout annotation.
         assert_eq!(r[0].start_line, 3);

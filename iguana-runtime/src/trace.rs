@@ -21,7 +21,7 @@ pub enum TraceEvent {
     MatchingTerminal(String, u32),  // terminal_name
     MatchSuccess(String, u32, u32), // terminal_name, next_input match
     ParseError(u32, SlotId, Option<GssNodeId>, ParseErrorKind), // input_index, slot, gss_node, error_kind
-    MatchedLayout(Option<u32>),                                      // next_input match
+    MatchedLayout(Option<u32>),                                 // next_input match
     GSSNodeCreated(NonterminalId, u32),
     GSSNodeFound(NonterminalId, u32),
     GSSNodeNotFound(NonterminalId, u32),
@@ -91,21 +91,27 @@ impl TraceEvent {
                     .unwrap_or_else(|| "?".to_string());
                 let kind_str = match kind {
                     ParseErrorKind::UnexpectedToken { expected } => {
-                        let names: Vec<&str> = expected.iter().map(|id| P::terminal_name(*id)).collect();
+                        let names: Vec<&str> =
+                            expected.iter().map(|id| P::terminal_name(*id)).collect();
                         format!("expected {}", names.join(", "))
                     }
                     ParseErrorKind::ExcludedMatch { excluded_by } => {
-                        let names: Vec<&str> = excluded_by.iter().map(|id| P::terminal_name(*id)).collect();
+                        let names: Vec<&str> =
+                            excluded_by.iter().map(|id| P::terminal_name(*id)).collect();
                         format!("excluded by {}", names.join(", "))
                     }
                     ParseErrorKind::ForbiddenFollow { forbidden } => {
-                        let names: Vec<&str> = forbidden.iter().map(|id| P::terminal_name(*id)).collect();
+                        let names: Vec<&str> =
+                            forbidden.iter().map(|id| P::terminal_name(*id)).collect();
                         format!("forbidden follow {}", names.join(", "))
                     }
                 };
                 format!(
                     "Parse error at input index {} (slot: {}, GSS node: {}): {}",
-                    input_index, P::slot_name(slot_id), gss, kind_str
+                    input_index,
+                    P::slot_name(slot_id),
+                    gss,
+                    kind_str
                 )
             }
             TraceEvent::MatchedLayout(matched_index) => {
@@ -175,14 +181,18 @@ impl TraceEvent {
                         "Pop GSS node {} for the slot {} with SPPF node {} and return value {}",
                         parser.gss_to_string(gss_node_id),
                         P::slot_name(slot_id),
-                        parser.sppf_node_to_string(parser.sppf_node(popped_element.nonterminal_node_id)),
+                        parser.sppf_node_to_string(
+                            parser.sppf_node(popped_element.nonterminal_node_id)
+                        ),
                         return_value
                     ),
                     None => format!(
                         "Pop GSS node {} for the slot {} with SPPF node {}",
                         parser.gss_to_string(gss_node_id),
                         P::slot_name(slot_id),
-                        parser.sppf_node_to_string(parser.sppf_node(popped_element.nonterminal_node_id))
+                        parser.sppf_node_to_string(
+                            parser.sppf_node(popped_element.nonterminal_node_id)
+                        )
                     ),
                 }
             }
@@ -190,13 +200,17 @@ impl TraceEvent {
                 match popped_element.return_value {
                     Some(return_value) => format!(
                         "Added {} to {}'s popped elements with return value {}",
-                        parser.sppf_node_to_string(parser.sppf_node(popped_element.nonterminal_node_id)),
+                        parser.sppf_node_to_string(
+                            parser.sppf_node(popped_element.nonterminal_node_id)
+                        ),
                         parser.gss_to_string(gss_node_id),
                         return_value
                     ),
                     None => format!(
                         "Added {} to {}'s popped elements",
-                        parser.sppf_node_to_string(parser.sppf_node(popped_element.nonterminal_node_id)),
+                        parser.sppf_node_to_string(
+                            parser.sppf_node(popped_element.nonterminal_node_id)
+                        ),
                         parser.gss_to_string(gss_node_id)
                     ),
                 }

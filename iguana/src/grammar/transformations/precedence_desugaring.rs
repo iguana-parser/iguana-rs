@@ -49,9 +49,7 @@
 
 use crate::grammar::{
     def::{Alternative, Associativity, PriorityLevel, SyntaxRule},
-    symbols::{
-        Cond, CondOp, Expr, Identifier, Nonterminal, ParamType, Parameter, Symbol,
-    },
+    symbols::{Cond, CondOp, Expr, Identifier, Nonterminal, ParamType, Parameter, Symbol},
     transformations::transform_syntax_rule,
 };
 
@@ -90,8 +88,10 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
         }
     }
 
-    let all_desugared: Vec<String> =
-        recursive_names.iter().map(|(name, _)| name.clone()).collect();
+    let all_desugared: Vec<String> = recursive_names
+        .iter()
+        .map(|(name, _)| name.clone())
+        .collect();
 
     // Second pass: desugar rules and update external references.
     // When classifying alternatives, we need to recognize indirect recursion: if E and
@@ -238,15 +238,11 @@ fn desugar_rule(
         for alt in level.alternatives {
             let recursion = classify(&alt, recursive_name, recursive_names);
             let rewritten = match (recursion, precedence) {
-                (RecursiveEnds::Binary, Some(pr)) => {
-                    rewrite_binary(alt, *pr, assoc, min_prefix_pr)
-                }
+                (RecursiveEnds::Binary, Some(pr)) => rewrite_binary(alt, *pr, assoc, min_prefix_pr),
                 (RecursiveEnds::Right, Some(pr)) => {
                     rewrite_prefix(recursive_name, alt, *pr, min_prefix_pr)
                 }
-                (RecursiveEnds::Left, Some(pr)) => {
-                    rewrite_postfix(recursive_name, alt, *pr)
-                }
+                (RecursiveEnds::Left, Some(pr)) => rewrite_postfix(recursive_name, alt, *pr),
                 (RecursiveEnds::None, _) => rewrite_non_recursive(recursive_name, alt),
                 _ => alt,
             };
@@ -400,7 +396,12 @@ fn replace_head_ref(symbol: Symbol, head_name: &str) -> Symbol {
 /// - Non-associative:
 ///   `[pr>=p] l=E(p) [l==0||l>=pr+1] op E(pr+1) {pr}`
 ///   (both restrictions)
-fn rewrite_binary(alt: Alternative, pr: i64, assoc: Option<Associativity>, min_prefix_pr: Option<i64>) -> Alternative {
+fn rewrite_binary(
+    alt: Alternative,
+    pr: i64,
+    assoc: Option<Associativity>,
+    min_prefix_pr: Option<i64>,
+) -> Alternative {
     // Postcondition threshold: pr+1 for right-assoc and non-assoc, pr otherwise
     let postcond_threshold = match assoc {
         Some(Associativity::Right | Associativity::NonAssoc) => pr + 1,
@@ -431,7 +432,12 @@ fn rewrite_binary(alt: Alternative, pr: i64, assoc: Option<Associativity>, min_p
 
     // Middle symbols (everything except the first and last, which are the recursive references)
     let num_symbols = alt.symbols.len();
-    for symbol in alt.symbols.into_iter().skip(1).take(num_symbols.saturating_sub(2)) {
+    for symbol in alt
+        .symbols
+        .into_iter()
+        .skip(1)
+        .take(num_symbols.saturating_sub(2))
+    {
         symbols.push(symbol);
     }
 
@@ -456,7 +462,12 @@ fn rewrite_binary(alt: Alternative, pr: i64, assoc: Option<Associativity>, min_p
 ///   op E(pr) {pr}
 /// Or with the min trick (when a prefix exists at lower precedence):
 ///   op r=E(pr) {r==0 ? pr : min(r, pr)}
-fn rewrite_prefix(recursive_name: &str, alt: Alternative, pr: i64, min_prefix_pr: Option<i64>) -> Alternative {
+fn rewrite_prefix(
+    recursive_name: &str,
+    alt: Alternative,
+    pr: i64,
+    min_prefix_pr: Option<i64>,
+) -> Alternative {
     let mut symbols = Vec::new();
     let num_symbols = alt.symbols.len();
 
@@ -534,7 +545,9 @@ fn rewrite_non_recursive(head_name: &str, alt: Alternative) -> Alternative {
 /// `E` becomes `E(0)`.
 fn update_external_references(rule: SyntaxRule, desugared_names: &[String]) -> SyntaxRule {
     transform_syntax_rule(rule, |symbol| {
-        if let Symbol::Identifier(id) = &symbol && desugared_names.contains(&id.name) {
+        if let Symbol::Identifier(id) = &symbol
+            && desugared_names.contains(&id.name)
+        {
             return Symbol::Call {
                 name: Identifier {
                     name: id.name.clone(),

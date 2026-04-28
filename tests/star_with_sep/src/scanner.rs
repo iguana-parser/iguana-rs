@@ -8,12 +8,12 @@ impl<'i> StarWithSepScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //"," = ,
+    // "," = ,
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, ',')
     }
-    //"a" = a
+    // "a" = a
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
         self.match_char(i, 'a')
@@ -25,7 +25,11 @@ impl Scanner for StarWithSepScanner<'_> {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(1) => self.match_terminal_1(input_index),
             TerminalId(3) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -36,4 +40,3 @@ impl Scanner for StarWithSepScanner<'_> {
         self.input.char_at(i)
     }
 }
-

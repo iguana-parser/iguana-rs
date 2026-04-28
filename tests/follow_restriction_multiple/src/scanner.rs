@@ -10,15 +10,15 @@ impl<'i> FollowRestrictionMultipleScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         Self { input }
     }
-    //Alpha = ([a-z A-Z])
+    // Alpha = ([a-z A-Z])
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| { self.match_char_class(i, &CHAR_CLASS_0, false) })(i)
+        (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i)
     }
-    //Digit = ([0-9])
+    // Digit = ([0-9])
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| { self.match_char_class(i, &CHAR_CLASS_1, false) })(i)
+        (|i| self.match_char_class(i, &CHAR_CLASS_1, false))(i)
     }
 }
 impl Scanner for FollowRestrictionMultipleScanner<'_> {
@@ -27,7 +27,11 @@ impl Scanner for FollowRestrictionMultipleScanner<'_> {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(1) => self.match_terminal_1(input_index),
             TerminalId(3) => {
-                if input_index == self.input.len() { Some(input_index) } else { None }
+                if input_index == self.input.len() {
+                    Some(input_index)
+                } else {
+                    None
+                }
             }
             _ => {
                 unreachable!("Unknown token type: {terminal_id}");
@@ -38,4 +42,3 @@ impl Scanner for FollowRestrictionMultipleScanner<'_> {
         self.input.char_at(i)
     }
 }
-

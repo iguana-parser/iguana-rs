@@ -101,7 +101,11 @@ pub fn visit_sppf<'i, T: fmt::Debug, P: Parser<'i>>(
         }
         SPPFNode::Nonterminal(n) => {
             if n.ambiguous {
-                todo!("ambiguous nonterminal extraction: id={:?}, span={:?}", n.nonterminal_id, n.span)
+                todo!(
+                    "ambiguous nonterminal extraction: id={:?}, span={:?}",
+                    n.nonterminal_id,
+                    n.span
+                )
             }
             let child = parser.sppf_node(n.child);
             let children = visit_sppf(child, parser, builder);
@@ -109,7 +113,11 @@ pub fn visit_sppf<'i, T: fmt::Debug, P: Parser<'i>>(
         }
         SPPFNode::Intermediate(i) => {
             if i.ambiguous {
-                todo!("ambiguous intermediate extraction: slot_id={:?}, span={:?}", i.slot_id, i.span)
+                todo!(
+                    "ambiguous intermediate extraction: slot_id={:?}, span={:?}",
+                    i.slot_id,
+                    i.span
+                )
             }
             let (left_child, right_child) = i.child;
             let left_child = parser.sppf_node(left_child);

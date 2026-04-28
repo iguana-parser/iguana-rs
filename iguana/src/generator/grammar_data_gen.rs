@@ -41,11 +41,7 @@ pub fn generate<'a>(
         let follow_name = format_ident!("FOLLOW_SET_{}", nt_upper);
         let follow_terminals: Vec<_> = ff.follow_set(nonterminal).cloned().collect();
         let follow_ids: Vec<_> = follow_terminals.iter().map(&terminal_id_tokens).collect();
-        let follow_comment = format!(
-            "{} {}",
-            nonterminal.name,
-            terminal_names(&follow_terminals),
-        );
+        let follow_comment = format!("{} {}", nonterminal.name, terminal_names(&follow_terminals),);
         items.push(quote! {
             #[comment = #follow_comment]
             pub static #follow_name: &[TerminalId] = &[#(#follow_ids),*];
@@ -60,11 +56,7 @@ pub fn generate<'a>(
             .into_iter()
             .collect();
         let first_ids: Vec<_> = first_terminals.iter().map(&terminal_id_tokens).collect();
-        let first_comment = format!(
-            "{} {}",
-            nonterminal.name,
-            terminal_names(&first_terminals),
-        );
+        let first_comment = format!("{} {}", nonterminal.name, terminal_names(&first_terminals),);
         items.push(quote! {
             #[comment = #first_comment]
             pub static #first_name: &[TerminalId] = &[#(#first_ids),*];
@@ -77,11 +69,7 @@ pub fn generate<'a>(
             let pred_terminals: Vec<_> = prediction_set.iter().cloned().collect();
             let pred_ids: Vec<_> = pred_terminals.iter().map(&terminal_id_tokens).collect();
             let slot = Slot::new(nonterminal, alternative, 0);
-            let pred_comment = format!(
-                "{} {}",
-                slot.name(),
-                terminal_names(&pred_terminals),
-            );
+            let pred_comment = format!("{} {}", slot.name(), terminal_names(&pred_terminals),);
             items.push(quote! {
                 #[comment = #pred_comment]
                 pub static #pred_name: &[TerminalId] = &[#(#pred_ids),*];
@@ -99,8 +87,10 @@ pub fn generate<'a>(
                             t.clone()
                         })
                         .collect();
-                    let restriction_ids: Vec<_> =
-                        restriction_terminals.iter().map(&terminal_id_tokens).collect();
+                    let restriction_ids: Vec<_> = restriction_terminals
+                        .iter()
+                        .map(&terminal_id_tokens)
+                        .collect();
                     let name = format_ident!(
                         "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
                         nt_upper,

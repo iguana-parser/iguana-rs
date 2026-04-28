@@ -6,10 +6,7 @@ use crate::{
         grammar_utils::nonterminal_type,
         utils::{to_first_uppercase, to_snake_case},
     },
-    grammar::{
-        def::Grammar,
-        symbols::Nonterminal,
-    },
+    grammar::{def::Grammar, symbols::Nonterminal},
 };
 
 pub fn generate(grammar: &Grammar) -> TokenStream {

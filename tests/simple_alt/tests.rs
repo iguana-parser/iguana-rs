@@ -1,10 +1,10 @@
 // To regenerate parser:  cargo run -p iguana -- generate --grammar tests/simple_alt/simple_alt.iggy --output tests/simple_alt
 // To update golden files: REGENERATE=1 cargo test -p simple_alt
 
-use simple_alt::{parse_a, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
 use iguana_runtime::parse_tree::ParseContext;
 use iguana_runtime::testing::{check_golden_file, golden_path};
+use simple_alt::{parse_a, parse_tree::to_sexpr};
 
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);
