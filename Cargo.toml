@@ -9,7 +9,9 @@ iguana-runtime.workspace = true
 
 [workspace]
 resolver = "3"
-members = ["tests/follow_restriction_multiple", "tests/comments", "tests/indirect_precedence", "tests/multiple_except", "tests/exclude_by_label", "tests/regex_composition", "tests/precede_restriction", "tests/precede_restriction_lexical", "tests/follow_restriction_lexical", "tests/no_layout", "tests/follow_restriction", "tests/pepm16_expressions", "tests/deep_priority_full", "tests/prefix_above_binary", "tests/deep_priority", "tests/assoc_test", "tests/except_lexical", "tests/except_nonterminal", "tests/except_terminal", "tests/prefix_postfix_priority", "tests/binary_expression_priority", "tests/opt", "tests/simple_alt", "tests/group", "tests/plus_group", "tests/plus_with_sep", "tests/plus", "tests/star_with_sep", "tests/star", "tests/left_recursive_list", "iguana", "iguana-runtime", "iggy", "tests/expression"]
+# terrarium excluded by default - it's a Tauri app with 500+ dependencies that slows rust-analyzer
+# uncomment terrarium/src-tauri when working on it
+members = ["tests/follow_restriction_multiple", "tests/comments", "tests/indirect_precedence", "tests/multiple_except", "tests/exclude_by_label", "tests/regex_composition", "tests/precede_restriction", "tests/precede_restriction_lexical", "tests/follow_restriction_lexical", "tests/no_layout", "tests/follow_restriction", "tests/pepm16_expressions", "tests/deep_priority_full", "tests/prefix_above_binary", "tests/deep_priority", "tests/assoc_test", "tests/except_lexical", "tests/except_nonterminal", "tests/except_terminal", "tests/prefix_postfix_priority", "tests/binary_expression_priority", "tests/opt", "tests/simple_alt", "tests/group", "tests/plus_group", "tests/plus_with_sep", "tests/plus", "tests/star_with_sep", "tests/star", "tests/left_recursive_list", "iguana", "iguana-runtime", "iggy", "iguana-lsp", "tests/expression"]
 
 [workspace.dependencies]
 # Shared dependencies
@@ -23,10 +25,13 @@ rustc-hash = "2.1.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 specta = { version = "=2.0.0-rc.22", features = ["derive"] }
+lsp-server = "0.7"
+lsp-types = "0.97"
 
 # Internal crates
 iguana-runtime = { path = "iguana-runtime" }
 iggy = { path = "iggy" }
+iguana = { path = "iguana" }
 
 [profile.release]
 debug = true
