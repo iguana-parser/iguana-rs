@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  fmt:
+    name: rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all --check
+
+  check:
+    name: cargo check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo check --workspace --all-targets
+
+  clippy:
+    name: clippy
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --workspace --all-targets
+
+  pipeline:
+    name: test pipeline
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: iguana tests
+        run: cargo test -p iguana
+
+      - name: bootstrap twice (parser stability)
+        run: |
+          ./bootstrap.sh
+          ./bootstrap.sh
+          if ! git diff --quiet; then
+            echo "::error::bootstrap.sh produced changes:"
+            git diff --stat
+            git diff
+            exit 1
+          fi
+
+      - name: regenerate all test parsers (generator stability)
+        run: |
+          cargo run -p iguana -- test generate-all
+          if ! git diff --quiet; then
+            echo "::error::generate-all produced changes:"
+            git diff --stat
+            git diff
+            exit 1
+          fi
+
+      - name: workspace tests
+        run: cargo test --workspace
+
+  terrarium:
+    name: terrarium build & smoke test
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: terrarium/src-tauri
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terrarium/package-lock.json
+
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libsoup-3.0-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            xvfb
+
+      - name: Install npm dependencies
+        working-directory: terrarium
+        run: npm ci
+
+      - name: Build Tauri app
+        working-directory: terrarium
+        run: npm run tauri build -- --no-bundle
+
+      - name: Smoke test (launch headless, wait for ready marker)
+        run: |
+          TERRARIUM_SMOKE_TEST=1 xvfb-run -a ./terrarium/src-tauri/target/release/terrarium > smoke.log 2>&1
+          EXIT=$?
+          if [ $EXIT -eq 0 ] && grep -q "TERRARIUM_READY" smoke.log; then
+            echo "Smoke test passed"
+          else
+            echo "::error::Smoke test failed (exit=$EXIT)"
+            cat smoke.log
+            exit 1
+          fi

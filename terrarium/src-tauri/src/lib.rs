@@ -1693,6 +1693,11 @@ pub fn run() {
                 }
             }));
 
+            if std::env::var("TERRARIUM_SMOKE_TEST").is_ok() {
+                println!("TERRARIUM_READY");
+                std::process::exit(0);
+            }
+
             Ok(())
         })
         .run(tauri::generate_context!())
