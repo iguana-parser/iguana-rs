@@ -83,11 +83,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             // S : S_Plus_0.
             SlotId(1) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1))
-                {
-                    self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
+                self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
             // Id : . Id_Plus_1 !>> Alpha !>> Digit
             SlotId(2) => {
@@ -103,11 +101,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             // Id : Id_Plus_1 !>> Alpha !>> Digit.
             SlotId(3) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3))
-                {
-                    self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3));
+                self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
             }
             // S_Plus_0 : . S_Plus_0 Id
             SlotId(4) => {
@@ -130,11 +126,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             // S_Plus_0 : S_Plus_0 Id.
             SlotId(6) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(6))
-                {
-                    self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(6));
+                self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
             }
             // S_Plus_0 : . Id
             SlotId(7) => {
@@ -146,11 +140,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             // S_Plus_0 : Id.
             SlotId(8) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(8))
-                {
-                    self.pop(gss_node_id, SlotId(8), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(8));
+                self.pop(gss_node_id, SlotId(8), nonterminal_node_id, None);
             }
             // Id_Alt_0 : . Alpha
             SlotId(9) => {
@@ -167,11 +159,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             // Id_Alt_0 : Alpha.
             SlotId(10) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(10))
-                {
-                    self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(10));
+                self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
             }
             // Id_Alt_0 : . Digit
             SlotId(11) => {
@@ -188,11 +178,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             // Id_Alt_0 : Digit.
             SlotId(12) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(12))
-                {
-                    self.pop(gss_node_id, SlotId(12), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(12));
+                self.pop(gss_node_id, SlotId(12), nonterminal_node_id, None);
             }
             // Id_Plus_1 : . Id_Plus_1 Id_Alt_0
             SlotId(13) => {
@@ -215,11 +203,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             // Id_Plus_1 : Id_Plus_1 Id_Alt_0.
             SlotId(15) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(15))
-                {
-                    self.pop(gss_node_id, SlotId(15), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(15));
+                self.pop(gss_node_id, SlotId(15), nonterminal_node_id, None);
             }
             // Id_Plus_1 : . Id_Alt_0
             SlotId(16) => {
@@ -231,11 +217,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             // Id_Plus_1 : Id_Alt_0.
             SlotId(17) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(17))
-                {
-                    self.pop(gss_node_id, SlotId(17), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(17));
+                self.pop(gss_node_id, SlotId(17), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -680,17 +664,14 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(0),
-                    SlotId(1),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(0),
+                SlotId(1),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }
@@ -711,17 +692,14 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(1),
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(1),
+                SlotId(3),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }
@@ -734,16 +712,14 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
         }))?;
         j = body_end;
         let left_extent = i;
-        let mut current = self
-            .get_or_create_nonterminal_node(
-                NonterminalId(2),
-                SlotId(8),
-                left_extent,
-                j,
-                body_node,
-                false,
-            )
-            .unwrap();
+        let mut current = self.get_or_create_nonterminal_node(
+            NonterminalId(2),
+            SlotId(8),
+            left_extent,
+            j,
+            body_node,
+            false,
+        );
         loop {
             let Some((node_0, pos_0)) = self.parse_id_ll1(j).map(|node| {
                 let end = self.sppf_node(node).right_extent();
@@ -762,16 +738,14 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                     false,
                 )
                 .unwrap();
-            current = self
-                .get_or_create_nonterminal_node(
-                    NonterminalId(2),
-                    SlotId(6),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap();
+            current = self.get_or_create_nonterminal_node(
+                NonterminalId(2),
+                SlotId(6),
+                left_extent,
+                j,
+                current,
+                false,
+            );
         }
         Some(current)
     }
@@ -787,17 +761,14 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(10),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(3),
+                SlotId(10),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             if self.scanner.match_any(PREDICTION_SET_ID_ALT_0_ALT1, i) {
                 let mut j = i;
@@ -810,17 +781,14 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let mut current = right_child;
-                return Some(
-                    self.get_or_create_nonterminal_node(
-                        NonterminalId(3),
-                        SlotId(12),
-                        left_extent,
-                        j,
-                        current,
-                        false,
-                    )
-                    .unwrap(),
-                );
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(3),
+                    SlotId(12),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
             } else {
                 None
             }
@@ -834,16 +802,14 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
         }))?;
         j = body_end;
         let left_extent = i;
-        let mut current = self
-            .get_or_create_nonterminal_node(
-                NonterminalId(4),
-                SlotId(17),
-                left_extent,
-                j,
-                body_node,
-                false,
-            )
-            .unwrap();
+        let mut current = self.get_or_create_nonterminal_node(
+            NonterminalId(4),
+            SlotId(17),
+            left_extent,
+            j,
+            body_node,
+            false,
+        );
         loop {
             let Some((node_0, pos_0)) = self.parse_id_alt_0_ll1(j).map(|node| {
                 let end = self.sppf_node(node).right_extent();
@@ -862,16 +828,14 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                     false,
                 )
                 .unwrap();
-            current = self
-                .get_or_create_nonterminal_node(
-                    NonterminalId(4),
-                    SlotId(15),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap();
+            current = self.get_or_create_nonterminal_node(
+                NonterminalId(4),
+                SlotId(15),
+                left_extent,
+                j,
+                current,
+                false,
+            );
         }
         Some(current)
     }

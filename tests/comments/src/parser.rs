@@ -129,11 +129,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // Expr : Expr Layout "+" Layout Expr.
             SlotId(5) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(5))
-                {
-                    self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(5));
+                self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
             // Expr : . Expr Layout "*" Layout Expr
             SlotId(6) => {
@@ -196,11 +194,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // Expr : Expr Layout "*" Layout Expr.
             SlotId(11) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(11))
-                {
-                    self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(11));
+                self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
             }
             // Expr : . "x"
             SlotId(12) => {
@@ -217,11 +213,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // Expr : "x".
             SlotId(13) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(13))
-                {
-                    self.pop(gss_node_id, SlotId(13), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(13));
+                self.pop(gss_node_id, SlotId(13), nonterminal_node_id, None);
             }
             // StartExpr : . Layout start:Expr Layout
             SlotId(14) => {
@@ -259,11 +253,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // StartExpr : Layout start:Expr Layout.
             SlotId(17) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(17))
-                {
-                    self.pop(gss_node_id, SlotId(17), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(17));
+                self.pop(gss_node_id, SlotId(17), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");

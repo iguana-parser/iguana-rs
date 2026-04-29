@@ -81,11 +81,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             // S : S_Star_0.
             SlotId(1) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1))
-                {
-                    self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
+                self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
             // A : . "a"
             SlotId(2) => {
@@ -102,11 +100,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             // A : "a".
             SlotId(3) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3))
-                {
-                    self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3));
+                self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
             }
             // S_Plus_0 : . S_Plus_0 A
             SlotId(4) => {
@@ -129,11 +125,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             // S_Plus_0 : S_Plus_0 A.
             SlotId(6) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(6))
-                {
-                    self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(6));
+                self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
             }
             // S_Plus_0 : . A
             SlotId(7) => {
@@ -145,11 +139,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             // S_Plus_0 : A.
             SlotId(8) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(8))
-                {
-                    self.pop(gss_node_id, SlotId(8), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(8));
+                self.pop(gss_node_id, SlotId(8), nonterminal_node_id, None);
             }
             // S_Opt_0 : . S_Plus_0
             SlotId(9) => {
@@ -161,26 +153,23 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             // S_Opt_0 : S_Plus_0.
             SlotId(10) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(10))
-                {
-                    self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(10));
+                self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
             }
             // S_Opt_0 : .
             SlotId(11) => {
                 let epsilon_node_id =
                     self.get_or_create_terminal_node(TerminalId(1), input_index, input_index);
-                if let Some(nonterminal_node_id) = self.get_or_create_nonterminal_node(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(3),
                     SlotId(11),
                     input_index,
                     input_index,
                     epsilon_node_id,
                     true,
-                ) {
-                    self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
-                }
+                );
+                self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
             }
             // S_Star_0 : . S_Opt_0
             SlotId(12) => {
@@ -192,11 +181,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             // S_Star_0 : S_Opt_0.
             SlotId(13) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(13))
-                {
-                    self.pop(gss_node_id, SlotId(13), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(13));
+                self.pop(gss_node_id, SlotId(13), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -629,17 +616,14 @@ impl<'i> StarParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(0),
-                    SlotId(1),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(0),
+                SlotId(1),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }
@@ -656,17 +640,14 @@ impl<'i> StarParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(1),
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(1),
+                SlotId(3),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }
@@ -679,16 +660,14 @@ impl<'i> StarParser<'i> {
         }))?;
         j = body_end;
         let left_extent = i;
-        let mut current = self
-            .get_or_create_nonterminal_node(
-                NonterminalId(2),
-                SlotId(8),
-                left_extent,
-                j,
-                body_node,
-                false,
-            )
-            .unwrap();
+        let mut current = self.get_or_create_nonterminal_node(
+            NonterminalId(2),
+            SlotId(8),
+            left_extent,
+            j,
+            body_node,
+            false,
+        );
         loop {
             let Some((node_0, pos_0)) = self.parse_a_ll1(j).map(|node| {
                 let end = self.sppf_node(node).right_extent();
@@ -707,16 +686,14 @@ impl<'i> StarParser<'i> {
                     false,
                 )
                 .unwrap();
-            current = self
-                .get_or_create_nonterminal_node(
-                    NonterminalId(2),
-                    SlotId(6),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap();
+            current = self.get_or_create_nonterminal_node(
+                NonterminalId(2),
+                SlotId(6),
+                left_extent,
+                j,
+                current,
+                false,
+            );
         }
         Some(current)
     }
@@ -732,31 +709,25 @@ impl<'i> StarParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(10),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(3),
+                SlotId(10),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             if self.scanner.match_any(PREDICTION_SET_S_OPT_0_ALT1, i) {
                 let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(1), i, i);
-                return Some(
-                    self.get_or_create_nonterminal_node(
-                        NonterminalId(3),
-                        SlotId(11),
-                        i,
-                        i,
-                        epsilon_node_id,
-                        false,
-                    )
-                    .unwrap(),
-                );
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(3),
+                    SlotId(11),
+                    i,
+                    i,
+                    epsilon_node_id,
+                    false,
+                ));
             } else {
                 None
             }
@@ -774,17 +745,14 @@ impl<'i> StarParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(4),
-                    SlotId(13),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(4),
+                SlotId(13),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }

@@ -223,16 +223,15 @@ impl<'a> ParserGen<'a> {
                                     input_index,
                                     input_index,
                                 );
-                            if let Some(nonterminal_node_id) = self.get_or_create_nonterminal_node(
+                            let nonterminal_node_id = self.get_or_create_nonterminal_node(
                                 #nonterminal_id,
                                 #end_slot_id,
                                 input_index,
                                 input_index,
                                 epsilon_node_id,
                                 true,
-                            ) {
-                                self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, None);
-                            }
+                            );
+                            self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, None);
                         }
                     }
                 } else {
@@ -249,24 +248,22 @@ impl<'a> ParserGen<'a> {
                             };
                             let node = self.sppf_node(result);
                             let return_value = #expr;
-                            if let Some(nonterminal_node_id) = self.#create_method(
+                            let nonterminal_node_id = self.#create_method(
                                 #nonterminal_id,
                                 #end_slot_id,
                                 node.left_extent(),
                                 node.right_extent(),
                                 result,
                                 return_value,
-                            ) {
-                                self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, Some(return_value));
-                            }
+                            );
+                            self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, Some(return_value));
                         }
                     } else {
                         quote! {
-                            if let Some(nonterminal_node_id) = self.create_nonterminal_node(
+                            let nonterminal_node_id = self.create_nonterminal_node(
                                 result, #nonterminal_id, #end_slot_id,
-                            ) {
-                                self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, None);
-                            }
+                            );
+                            self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, None);
                         }
                     };
                     quote! {
@@ -1085,7 +1082,7 @@ impl<'a> ParserGen<'a> {
                     );
                     return Some(self.get_or_create_nonterminal_node(
                         #nonterminal_id, #end_slot_id, i, i, epsilon_node_id, false,
-                    ).unwrap());
+                    ));
                 }
             } else {
                 self.gen_parse_alternative_ll1(
@@ -1196,13 +1193,13 @@ impl<'a> ParserGen<'a> {
                 let left_extent = i;
                 let mut current = self.get_or_create_nonterminal_node(
                     #nonterminal_id, #base_end_slot_id, left_extent, j, body_node, false,
-                ).unwrap();
+                );
                 loop {
                     #(#parses)*
                     #(#build_nodes)*
                     current = self.get_or_create_nonterminal_node(
                         #nonterminal_id, #recursive_end_slot_id, left_extent, j, current, false,
-                    ).unwrap();
+                    );
                 }
                 Some(current)
             }
@@ -1364,7 +1361,7 @@ impl<'a> ParserGen<'a> {
         body.push(quote! {
             return Some(self.get_or_create_nonterminal_node(
                 #nonterminal_id, #end_slot_id, left_extent, j, current, false,
-            ).unwrap());
+            ));
         });
 
         quote! { #(#body)* }
@@ -1919,7 +1916,7 @@ impl<'a> ParserGen<'a> {
                 right_extent: u32,
                 child: SPPFNodeId,
                 return_value: i32,
-            ) -> Option<SPPFNodeId> {
+            ) -> SPPFNodeId {
                 if let Some(existing_node_id) =
                     self.#lookup_method_name(left_extent, right_extent, return_value)
                 {
@@ -1930,7 +1927,7 @@ impl<'a> ParserGen<'a> {
                     };
                     node.ambiguous = true;
                     self.add_nonterminal_node_child(existing_node_id, child);
-                    return None;
+                    return existing_node_id;
                 }
                 let nonterminal_node = NonterminalNode {
                     nonterminal_id,
@@ -1942,7 +1939,7 @@ impl<'a> ParserGen<'a> {
                     child,
                     ambiguous: false,
                 };
-                Some(self.#add_method_name(nonterminal_node, return_value))
+                self.#add_method_name(nonterminal_node, return_value)
             }
         }
     }

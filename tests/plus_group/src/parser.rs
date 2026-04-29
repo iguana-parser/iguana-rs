@@ -85,11 +85,9 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             }
             // S : S_Plus_0.
             SlotId(1) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1))
-                {
-                    self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
+                self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
             // A : . "a"
             SlotId(2) => {
@@ -106,11 +104,9 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             }
             // A : "a".
             SlotId(3) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3))
-                {
-                    self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3));
+                self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
             }
             // B : . "b"
             SlotId(4) => {
@@ -127,11 +123,9 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             }
             // B : "b".
             SlotId(5) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(5))
-                {
-                    self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(5));
+                self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
             // C : . "c"
             SlotId(6) => {
@@ -148,11 +142,9 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             }
             // C : "c".
             SlotId(7) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(7))
-                {
-                    self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(7));
+                self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
             }
             // S_Group_0 : . A B C
             SlotId(8) => {
@@ -186,11 +178,9 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             }
             // S_Group_0 : A B C.
             SlotId(11) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(11))
-                {
-                    self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(11));
+                self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
             }
             // S_Plus_0 : . S_Plus_0 S_Group_0
             SlotId(12) => {
@@ -213,11 +203,9 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             }
             // S_Plus_0 : S_Plus_0 S_Group_0.
             SlotId(14) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(5), SlotId(14))
-                {
-                    self.pop(gss_node_id, SlotId(14), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(5), SlotId(14));
+                self.pop(gss_node_id, SlotId(14), nonterminal_node_id, None);
             }
             // S_Plus_0 : . S_Group_0
             SlotId(15) => {
@@ -229,11 +217,9 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             }
             // S_Plus_0 : S_Group_0.
             SlotId(16) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(5), SlotId(16))
-                {
-                    self.pop(gss_node_id, SlotId(16), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(5), SlotId(16));
+                self.pop(gss_node_id, SlotId(16), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -672,17 +658,14 @@ impl<'i> PlusGroupParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(0),
-                    SlotId(1),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(0),
+                SlotId(1),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }
@@ -699,17 +682,14 @@ impl<'i> PlusGroupParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(1),
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(1),
+                SlotId(3),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }
@@ -726,17 +706,14 @@ impl<'i> PlusGroupParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(2),
-                    SlotId(5),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(2),
+                SlotId(5),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }
@@ -753,17 +730,14 @@ impl<'i> PlusGroupParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(7),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(3),
+                SlotId(7),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }
@@ -814,17 +788,14 @@ impl<'i> PlusGroupParser<'i> {
                     false,
                 )
                 .unwrap();
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(4),
-                    SlotId(11),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(4),
+                SlotId(11),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }
@@ -837,16 +808,14 @@ impl<'i> PlusGroupParser<'i> {
         }))?;
         j = body_end;
         let left_extent = i;
-        let mut current = self
-            .get_or_create_nonterminal_node(
-                NonterminalId(5),
-                SlotId(16),
-                left_extent,
-                j,
-                body_node,
-                false,
-            )
-            .unwrap();
+        let mut current = self.get_or_create_nonterminal_node(
+            NonterminalId(5),
+            SlotId(16),
+            left_extent,
+            j,
+            body_node,
+            false,
+        );
         loop {
             let Some((node_0, pos_0)) = self.parse_s_group_0_ll1(j).map(|node| {
                 let end = self.sppf_node(node).right_extent();
@@ -865,16 +834,14 @@ impl<'i> PlusGroupParser<'i> {
                     false,
                 )
                 .unwrap();
-            current = self
-                .get_or_create_nonterminal_node(
-                    NonterminalId(5),
-                    SlotId(14),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap();
+            current = self.get_or_create_nonterminal_node(
+                NonterminalId(5),
+                SlotId(14),
+                left_extent,
+                j,
+                current,
+                false,
+            );
         }
         Some(current)
     }

@@ -75,11 +75,9 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             // S : S_Plus_0.
             SlotId(1) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1))
-                {
-                    self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
+                self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
             // A : . "a"
             SlotId(2) => {
@@ -96,11 +94,9 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             // A : "a".
             SlotId(3) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3))
-                {
-                    self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3));
+                self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
             }
             // S_Plus_0 : . S_Plus_0 "," A
             SlotId(4) => {
@@ -140,11 +136,9 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             // S_Plus_0 : S_Plus_0 "," A.
             SlotId(7) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(7))
-                {
-                    self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(7));
+                self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
             }
             // S_Plus_0 : . A
             SlotId(8) => {
@@ -156,11 +150,9 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             // S_Plus_0 : A.
             SlotId(9) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(9))
-                {
-                    self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(9));
+                self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -581,17 +573,14 @@ impl<'i> PlusWithSepParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(0),
-                    SlotId(1),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(0),
+                SlotId(1),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }
@@ -608,17 +597,14 @@ impl<'i> PlusWithSepParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let mut current = right_child;
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(1),
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(1),
+                SlotId(3),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             None
         }
@@ -631,16 +617,14 @@ impl<'i> PlusWithSepParser<'i> {
         }))?;
         j = body_end;
         let left_extent = i;
-        let mut current = self
-            .get_or_create_nonterminal_node(
-                NonterminalId(2),
-                SlotId(9),
-                left_extent,
-                j,
-                body_node,
-                false,
-            )
-            .unwrap();
+        let mut current = self.get_or_create_nonterminal_node(
+            NonterminalId(2),
+            SlotId(9),
+            left_extent,
+            j,
+            body_node,
+            false,
+        );
         loop {
             let Some((node_0, pos_0)) = self
                 .match_terminal(TerminalId(0), j, SlotId(5), None, "\",\"")
@@ -675,16 +659,14 @@ impl<'i> PlusWithSepParser<'i> {
                     false,
                 )
                 .unwrap();
-            current = self
-                .get_or_create_nonterminal_node(
-                    NonterminalId(2),
-                    SlotId(7),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap();
+            current = self.get_or_create_nonterminal_node(
+                NonterminalId(2),
+                SlotId(7),
+                left_extent,
+                j,
+                current,
+                false,
+            );
         }
         Some(current)
     }

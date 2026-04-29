@@ -79,11 +79,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // S : E(0).
             SlotId(1) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1))
-                {
-                    self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
+                self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
             // E(p: i32) : . [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
             SlotId(2) => {
@@ -178,23 +176,20 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                 } else {
                     std::cmp::min(self.lookup("r", env.unwrap()), 5)
                 };
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(1),
-                        SlotId(10),
-                        node.left_extent(),
-                        node.right_extent(),
-                        result,
-                        return_value,
-                    )
-                {
-                    self.pop(
-                        gss_node_id,
-                        SlotId(10),
-                        nonterminal_node_id,
-                        Some(return_value),
-                    );
-                }
+                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                    NonterminalId(1),
+                    SlotId(10),
+                    node.left_extent(),
+                    node.right_extent(),
+                    result,
+                    return_value,
+                );
+                self.pop(
+                    gss_node_id,
+                    SlotId(10),
+                    nonterminal_node_id,
+                    Some(return_value),
+                );
             }
             // E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
             SlotId(11) => {
@@ -289,23 +284,20 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                 } else {
                     std::cmp::min(self.lookup("r", env.unwrap()), 4)
                 };
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(1),
-                        SlotId(19),
-                        node.left_extent(),
-                        node.right_extent(),
-                        result,
-                        return_value,
-                    )
-                {
-                    self.pop(
-                        gss_node_id,
-                        SlotId(19),
-                        nonterminal_node_id,
-                        Some(return_value),
-                    );
-                }
+                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                    NonterminalId(1),
+                    SlotId(19),
+                    node.left_extent(),
+                    node.right_extent(),
+                    result,
+                    return_value,
+                );
+                self.pop(
+                    gss_node_id,
+                    SlotId(19),
+                    nonterminal_node_id,
+                    Some(return_value),
+                );
             }
             // E(p: i32) : . "-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
             SlotId(20) => {
@@ -356,23 +348,20 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                 } else {
                     std::cmp::min(self.lookup("r", env.unwrap()), 3)
                 };
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(1),
-                        SlotId(24),
-                        node.left_extent(),
-                        node.right_extent(),
-                        result,
-                        return_value,
-                    )
-                {
-                    self.pop(
-                        gss_node_id,
-                        SlotId(24),
-                        nonterminal_node_id,
-                        Some(return_value),
-                    );
-                }
+                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                    NonterminalId(1),
+                    SlotId(24),
+                    node.left_extent(),
+                    node.right_extent(),
+                    result,
+                    return_value,
+                );
+                self.pop(
+                    gss_node_id,
+                    SlotId(24),
+                    nonterminal_node_id,
+                    Some(return_value),
+                );
             }
             // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(25) => {
@@ -529,23 +518,20 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 2;
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(1),
-                        SlotId(37),
-                        node.left_extent(),
-                        node.right_extent(),
-                        result,
-                        return_value,
-                    )
-                {
-                    self.pop(
-                        gss_node_id,
-                        SlotId(37),
-                        nonterminal_node_id,
-                        Some(return_value),
-                    );
-                }
+                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                    NonterminalId(1),
+                    SlotId(37),
+                    node.left_extent(),
+                    node.right_extent(),
+                    result,
+                    return_value,
+                );
+                self.pop(
+                    gss_node_id,
+                    SlotId(37),
+                    nonterminal_node_id,
+                    Some(return_value),
+                );
             }
             // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
             SlotId(38) => {
@@ -636,23 +622,20 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 1;
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(1),
-                        SlotId(46),
-                        node.left_extent(),
-                        node.right_extent(),
-                        result,
-                        return_value,
-                    )
-                {
-                    self.pop(
-                        gss_node_id,
-                        SlotId(46),
-                        nonterminal_node_id,
-                        Some(return_value),
-                    );
-                }
+                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                    NonterminalId(1),
+                    SlotId(46),
+                    node.left_extent(),
+                    node.right_extent(),
+                    result,
+                    return_value,
+                );
+                self.pop(
+                    gss_node_id,
+                    SlotId(46),
+                    nonterminal_node_id,
+                    Some(return_value),
+                );
             }
             // E(p: i32) : . "a" return 0
             SlotId(47) => {
@@ -678,23 +661,20 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 0;
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(1),
-                        SlotId(49),
-                        node.left_extent(),
-                        node.right_extent(),
-                        result,
-                        return_value,
-                    )
-                {
-                    self.pop(
-                        gss_node_id,
-                        SlotId(49),
-                        nonterminal_node_id,
-                        Some(return_value),
-                    );
-                }
+                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                    NonterminalId(1),
+                    SlotId(49),
+                    node.left_extent(),
+                    node.right_extent(),
+                    result,
+                    return_value,
+                );
+                self.pop(
+                    gss_node_id,
+                    SlotId(49),
+                    nonterminal_node_id,
+                    Some(return_value),
+                );
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -1203,7 +1183,7 @@ impl<'i> DeepPriorityFullParser<'i> {
         right_extent: u32,
         child: SPPFNodeId,
         return_value: i32,
-    ) -> Option<SPPFNodeId> {
+    ) -> SPPFNodeId {
         if let Some(existing_node_id) =
             self.lookup_nonterminal_node_e(left_extent, right_extent, return_value)
         {
@@ -1214,7 +1194,7 @@ impl<'i> DeepPriorityFullParser<'i> {
             };
             node.ambiguous = true;
             self.add_nonterminal_node_child(existing_node_id, child);
-            return None;
+            return existing_node_id;
         }
         let nonterminal_node = NonterminalNode {
             nonterminal_id,
@@ -1226,6 +1206,6 @@ impl<'i> DeepPriorityFullParser<'i> {
             child,
             ambiguous: false,
         };
-        Some(self.add_nonterminal_node_e(nonterminal_node, return_value))
+        self.add_nonterminal_node_e(nonterminal_node, return_value)
     }
 }

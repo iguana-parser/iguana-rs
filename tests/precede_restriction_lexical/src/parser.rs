@@ -111,11 +111,9 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             // S : "for" WS Id.
             SlotId(3) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(3))
-                {
-                    self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(3));
+                self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
             }
             // S : . "forall"
             SlotId(4) => {
@@ -132,11 +130,9 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             // S : "forall".
             SlotId(5) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(5))
-                {
-                    self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(5));
+                self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -579,17 +575,14 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                     false,
                 )
                 .unwrap();
-            return Some(
-                self.get_or_create_nonterminal_node(
-                    NonterminalId(0),
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                )
-                .unwrap(),
-            );
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(0),
+                SlotId(3),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
         } else {
             if self.scanner.match_any(PREDICTION_SET_S_ALT1, i) {
                 let mut j = i;
@@ -602,17 +595,14 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let mut current = right_child;
-                return Some(
-                    self.get_or_create_nonterminal_node(
-                        NonterminalId(0),
-                        SlotId(5),
-                        left_extent,
-                        j,
-                        current,
-                        false,
-                    )
-                    .unwrap(),
-                );
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(0),
+                    SlotId(5),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
             } else {
                 None
             }

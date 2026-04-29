@@ -574,8 +574,7 @@ pub trait Parser<'i> {
     /// added to the index; see `add_nonterminal_node`.
     ///
     /// If the node already exists and `attach_ambiguity` is true (GLL path),
-    /// `child` is added to its list of children and returns None. This only
-    /// occurs when there is an ambiguity.
+    /// `child` is added to its list of children as ambiguity.
     ///
     /// If `attach_ambiguity` is false (LL1 path), the existing node is returned
     /// as-is. LL1 nonterminals can be called multiple times from GLL with the
@@ -589,7 +588,7 @@ pub trait Parser<'i> {
         right_extent: u32,
         child: SPPFNodeId,
         attach_ambiguity: bool,
-    ) -> Option<SPPFNodeId> {
+    ) -> SPPFNodeId {
         if let Some(existing_node_id) =
             self.lookup_nonterminal_node(nonterminal_id, left_extent, right_extent)
         {
@@ -601,9 +600,8 @@ pub trait Parser<'i> {
                 };
                 node.ambiguous = true;
                 self.add_nonterminal_node_child(existing_node_id, child);
-                return None;
             }
-            return Some(existing_node_id);
+            return existing_node_id;
         }
         let nonterminal_node = NonterminalNode {
             nonterminal_id,
@@ -615,7 +613,7 @@ pub trait Parser<'i> {
             child,
             ambiguous: false,
         };
-        Some(self.add_nonterminal_node(nonterminal_node))
+        self.add_nonterminal_node(nonterminal_node)
     }
 
     /// Looks up the intermediate node identified by `slot_id` and the span
@@ -690,15 +688,14 @@ pub trait Parser<'i> {
     }
 
     /// Extracts extents from the result node and creates the nonterminal SPPF
-    /// node, handling ambiguity. Returns the nonterminal node id, or None if the
-    /// node already existed and ambiguity was recorded.
+    /// node, handling ambiguity.
     #[inline]
     fn create_nonterminal_node(
         &mut self,
         result: Option<SPPFNodeId>,
         nonterminal_id: NonterminalId,
         end_slot_id: SlotId,
-    ) -> Option<SPPFNodeId> {
+    ) -> SPPFNodeId {
         let result = result.expect("Result should not be None.");
         let node = self.sppf_node(result);
         let left_extent = node.left_extent();

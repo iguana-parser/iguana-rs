@@ -88,11 +88,9 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             }
             // E : E "*" E.
             SlotId(3) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(3))
-                {
-                    self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(3));
+                self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
             }
             // E : . E "+" E
             SlotId(4) => {
@@ -121,11 +119,9 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             }
             // E : E "+" E.
             SlotId(7) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(7))
-                {
-                    self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(7));
+                self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
             }
             // E : . "a"
             SlotId(8) => {
@@ -142,11 +138,9 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             }
             // E : "a".
             SlotId(9) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(9))
-                {
-                    self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(9));
+                self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");

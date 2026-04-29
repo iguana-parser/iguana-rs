@@ -81,11 +81,9 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             }
             // A : A "a".
             SlotId(2) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(2))
-                {
-                    self.pop(gss_node_id, SlotId(2), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(2));
+                self.pop(gss_node_id, SlotId(2), nonterminal_node_id, None);
             }
             // A : . "a"
             SlotId(3) => {
@@ -102,11 +100,9 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             }
             // A : "a".
             SlotId(4) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(4))
-                {
-                    self.pop(gss_node_id, SlotId(4), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(4));
+                self.pop(gss_node_id, SlotId(4), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");

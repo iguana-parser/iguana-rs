@@ -74,11 +74,9 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
             }
             // S : E(0).
             SlotId(1) => {
-                if let Some(nonterminal_node_id) =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1))
-                {
-                    self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
-                }
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
+                self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
             // E(p: i32) : . "a" return 0
             SlotId(2) => {
@@ -104,23 +102,20 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 0;
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(1),
-                        SlotId(4),
-                        node.left_extent(),
-                        node.right_extent(),
-                        result,
-                        return_value,
-                    )
-                {
-                    self.pop(
-                        gss_node_id,
-                        SlotId(4),
-                        nonterminal_node_id,
-                        Some(return_value),
-                    );
-                }
+                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                    NonterminalId(1),
+                    SlotId(4),
+                    node.left_extent(),
+                    node.right_extent(),
+                    result,
+                    return_value,
+                );
+                self.pop(
+                    gss_node_id,
+                    SlotId(4),
+                    nonterminal_node_id,
+                    Some(return_value),
+                );
             }
             // E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] "!" return 0
             SlotId(5) => {
@@ -173,23 +168,20 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 0;
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(1),
-                        SlotId(10),
-                        node.left_extent(),
-                        node.right_extent(),
-                        result,
-                        return_value,
-                    )
-                {
-                    self.pop(
-                        gss_node_id,
-                        SlotId(10),
-                        nonterminal_node_id,
-                        Some(return_value),
-                    );
-                }
+                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                    NonterminalId(1),
+                    SlotId(10),
+                    node.left_extent(),
+                    node.right_extent(),
+                    result,
+                    return_value,
+                );
+                self.pop(
+                    gss_node_id,
+                    SlotId(10),
+                    nonterminal_node_id,
+                    Some(return_value),
+                );
             }
             // E(p: i32) : . "-" E(3) return 3
             SlotId(11) => {
@@ -219,23 +211,20 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 3;
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(1),
-                        SlotId(14),
-                        node.left_extent(),
-                        node.right_extent(),
-                        result,
-                        return_value,
-                    )
-                {
-                    self.pop(
-                        gss_node_id,
-                        SlotId(14),
-                        nonterminal_node_id,
-                        Some(return_value),
-                    );
-                }
+                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                    NonterminalId(1),
+                    SlotId(14),
+                    node.left_extent(),
+                    node.right_extent(),
+                    result,
+                    return_value,
+                );
+                self.pop(
+                    gss_node_id,
+                    SlotId(14),
+                    nonterminal_node_id,
+                    Some(return_value),
+                );
             }
             // E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
             SlotId(15) => {
@@ -292,23 +281,20 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 2;
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(1),
-                        SlotId(21),
-                        node.left_extent(),
-                        node.right_extent(),
-                        result,
-                        return_value,
-                    )
-                {
-                    self.pop(
-                        gss_node_id,
-                        SlotId(21),
-                        nonterminal_node_id,
-                        Some(return_value),
-                    );
-                }
+                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                    NonterminalId(1),
+                    SlotId(21),
+                    node.left_extent(),
+                    node.right_extent(),
+                    result,
+                    return_value,
+                );
+                self.pop(
+                    gss_node_id,
+                    SlotId(21),
+                    nonterminal_node_id,
+                    Some(return_value),
+                );
             }
             // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
             SlotId(22) => {
@@ -365,23 +351,20 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 1;
-                if let Some(nonterminal_node_id) = self
-                    .create_nonterminal_node_or_attach_children_e(
-                        NonterminalId(1),
-                        SlotId(28),
-                        node.left_extent(),
-                        node.right_extent(),
-                        result,
-                        return_value,
-                    )
-                {
-                    self.pop(
-                        gss_node_id,
-                        SlotId(28),
-                        nonterminal_node_id,
-                        Some(return_value),
-                    );
-                }
+                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                    NonterminalId(1),
+                    SlotId(28),
+                    node.left_extent(),
+                    node.right_extent(),
+                    result,
+                    return_value,
+                );
+                self.pop(
+                    gss_node_id,
+                    SlotId(28),
+                    nonterminal_node_id,
+                    Some(return_value),
+                );
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -890,7 +873,7 @@ impl<'i> PrefixPostfixPriorityParser<'i> {
         right_extent: u32,
         child: SPPFNodeId,
         return_value: i32,
-    ) -> Option<SPPFNodeId> {
+    ) -> SPPFNodeId {
         if let Some(existing_node_id) =
             self.lookup_nonterminal_node_e(left_extent, right_extent, return_value)
         {
@@ -901,7 +884,7 @@ impl<'i> PrefixPostfixPriorityParser<'i> {
             };
             node.ambiguous = true;
             self.add_nonterminal_node_child(existing_node_id, child);
-            return None;
+            return existing_node_id;
         }
         let nonterminal_node = NonterminalNode {
             nonterminal_id,
@@ -913,6 +896,6 @@ impl<'i> PrefixPostfixPriorityParser<'i> {
             child,
             ambiguous: false,
         };
-        Some(self.add_nonterminal_node_e(nonterminal_node, return_value))
+        self.add_nonterminal_node_e(nonterminal_node, return_value)
     }
 }
