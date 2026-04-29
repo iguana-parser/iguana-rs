@@ -8,3 +8,4 @@ terrarium/.svelte-kit
 terrarium/src-tauri/target
 editors/vscode/node_modules
 editors/vscode/out
+CLAUDE.local.md
