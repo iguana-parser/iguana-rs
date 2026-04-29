@@ -66,6 +66,15 @@ pub trait Parser<'i> {
         env: Option<EnvId>,
     );
     fn start_nonterminal(&self) -> NonterminalId;
+    fn start_env(&mut self) -> Option<EnvId> {
+        None
+    }
+    // Looks up the SPPF node for the completed start nonterminal. Data-dependent
+    // nonterminals are stored in per-nonterminal indexes keyed by parameter values,
+    // not in the global one — so generated code overrides this for those starts.
+    fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
+        self.lookup_nonterminal_node(self.start_nonterminal(), 0, right_extent)
+    }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId>;
     fn add_gss_node(
         &mut self,
@@ -743,11 +752,12 @@ pub trait Parser<'i> {
         let start_input_index = 0;
         let start_nonterminal_id = self.start_nonterminal();
         let start_gss_node_id = self.new_gss_node(start_nonterminal_id, start_input_index);
+        let start_env = self.start_env();
         self.add_first_descriptors(
             start_nonterminal_id,
             start_input_index,
             start_gss_node_id,
-            None,
+            start_env,
         );
         self.add_gss_node(start_nonterminal_id, start_input_index, start_gss_node_id);
         while let Some(descriptor) = self.next_descriptor() {
@@ -761,9 +771,7 @@ pub trait Parser<'i> {
         }
         let duration = start.elapsed();
         let right_extent = self.input().len();
-        if let Some(sppf_node_id) =
-            self.lookup_nonterminal_node(start_nonterminal_id, 0, right_extent)
-        {
+        if let Some(sppf_node_id) = self.lookup_start_nonterminal_node(right_extent) {
             ParseResult::Success(ParseSuccess {
                 sppf_node_id,
                 duration,

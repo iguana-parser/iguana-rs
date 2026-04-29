@@ -87,6 +87,8 @@ impl<'a> ParserGen<'a> {
         let nonterminal_nodes_children_method = Self::gen_nonterminal_nodes_children_map_method();
         let add_trace_event_method = Self::gen_add_trace_event_method();
         let start_nonterminal_method = Self::gen_start_nonterminal_method();
+        let start_env_method = self.gen_start_env_method();
+        let lookup_start_nonterminal_node_method = self.gen_lookup_start_nonterminal_node_method();
         let new_env_method = Self::gen_new_env_method();
         let lookup_method = Self::gen_lookup_method();
         let clone_env_method = Self::gen_clone_env();
@@ -134,6 +136,8 @@ impl<'a> ParserGen<'a> {
                 #nonterminal_nodes_children_method
                 #add_trace_event_method
                 #start_nonterminal_method
+                #start_env_method
+                #lookup_start_nonterminal_node_method
                 #new_env_method
                 #lookup_method
                 #clone_env_method
@@ -1979,6 +1983,80 @@ impl<'a> ParserGen<'a> {
         quote! {
             fn start_nonterminal(&self) -> NonterminalId {
                 self.start_nonterminal
+            }
+        }
+    }
+
+    // Builds the initial environment when the start nonterminal is data-dependent.
+    // Today the only data-dependent use case is operator precedence, so every parameter
+    // is bound to 0 ("any precedence"). TODO: once parameters can have non-i32 types,
+    // pick a default per type (or let the user specify a value).
+    fn gen_start_env_method(&self) -> TokenStream {
+        let arms: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(|nt| {
+                let id = self.nonterminal_ids.get_id(nt);
+                let bindings: Vec<_> = nt
+                    .parameters
+                    .iter()
+                    .map(|p| {
+                        let key = &p.name;
+                        quote! { env.bind(#key, 0); }
+                    })
+                    .collect();
+                quote! {
+                    #id => {
+                        let (env_id, env) = self.new_env();
+                        #(#bindings)*
+                        Some(env_id)
+                    }
+                }
+            })
+            .collect();
+        if arms.is_empty() {
+            return quote! {};
+        }
+        quote! {
+            fn start_env(&mut self) -> Option<EnvId> {
+                match self.start_nonterminal {
+                    #(#arms)*
+                    _ => None,
+                }
+            }
+        }
+    }
+
+    // Resolves the SPPF root for a data-dependent start nonterminal by reading from
+    // its per-nonterminal index. Multiple entries at the same span (different return
+    // values) all represent valid parses; we pick the first.
+    fn gen_lookup_start_nonterminal_node_method(&self) -> TokenStream {
+        let arms: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(|nt| {
+                let id = self.nonterminal_ids.get_id(nt);
+                let field_name =
+                    format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
+                quote! {
+                    #id => {
+                        let span = Span::new(0, right_extent);
+                        self.#field_name
+                            .get(&span)
+                            .and_then(|entries| entries.first().map(|(_, id)| *id))
+                    }
+                }
+            })
+            .collect();
+        if arms.is_empty() {
+            return quote! {};
+        }
+        quote! {
+            fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
+                match self.start_nonterminal {
+                    #(#arms)*
+                    _ => self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent),
+                }
             }
         }
     }

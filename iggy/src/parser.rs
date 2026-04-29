@@ -6827,6 +6827,49 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     fn start_nonterminal(&self) -> NonterminalId {
         self.start_nonterminal
     }
+    fn start_env(&mut self) -> Option<EnvId> {
+        match self.start_nonterminal {
+            NonterminalId(57) => {
+                let (env_id, env) = self.new_env();
+                env.bind("p", 0);
+                Some(env_id)
+            }
+            NonterminalId(58) => {
+                let (env_id, env) = self.new_env();
+                env.bind("p", 0);
+                Some(env_id)
+            }
+            NonterminalId(59) => {
+                let (env_id, env) = self.new_env();
+                env.bind("p", 0);
+                Some(env_id)
+            }
+            _ => None,
+        }
+    }
+    fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
+        match self.start_nonterminal {
+            NonterminalId(57) => {
+                let span = Span::new(0, right_extent);
+                self.nonterminal_nodes_index_symbol
+                    .get(&span)
+                    .and_then(|entries| entries.first().map(|(_, id)| *id))
+            }
+            NonterminalId(58) => {
+                let span = Span::new(0, right_extent);
+                self.nonterminal_nodes_index_symbol_except_except
+                    .get(&span)
+                    .and_then(|entries| entries.first().map(|(_, id)| *id))
+            }
+            NonterminalId(59) => {
+                let span = Span::new(0, right_extent);
+                self.nonterminal_nodes_index_symbol_except_follow_restriction
+                    .get(&span)
+                    .and_then(|entries| entries.first().map(|(_, id)| *id))
+            }
+            _ => self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent),
+        }
+    }
     fn new_env(&mut self) -> (EnvId, &mut Env) {
         let id = EnvId(self.envs.len() as u32);
         self.envs.push(Env::default());
