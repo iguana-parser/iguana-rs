@@ -1,7 +1,0 @@
----
-source: iguana/src/generator/scanner_gen.rs
-expression: code
----
-fn test_match(i: u32) -> Option<u32> {
-    (|i| { self.match_char(i, 'a') })(i).or_else(|| { self.match_char(i, 'b') })
-}

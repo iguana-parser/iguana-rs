@@ -101,14 +101,6 @@ pub fn safe_ident(name: &str) -> proc_macro2::Ident {
 }
 
 #[cfg(test)]
-pub fn prettyprint(code: &str) -> String {
-    let syntax = syn::parse_file(code).unwrap_or_else(|e| {
-        panic!("Parse error at {:?}: {}", e.span().start(), e);
-    });
-    prettyplease::unparse(&syntax)
-}
-
-#[cfg(test)]
 mod tests {
     use super::*;
 

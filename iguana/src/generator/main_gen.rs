@@ -18,8 +18,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             time::Instant,
         };
 
-        use clap::Parser as ClapParser;
+        use clap::{Parser as ClapParser, ValueEnum as ClapValueEnum};
         use iguana_runtime::{
+            cli,
             ids::NonterminalId,
             input::Input,
             parse_tree::ParseContext,
@@ -31,21 +32,21 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         use pprof::ProfilerGuardBuilder;
         use #grammar_name::{
             parse_tree::{#parse_tree_builder, create_parse_tree, to_json, to_sexpr},
-            grammar_data::{nonterminal_id, NONTERMINALS, SLOTS, TERMINALS},
+            grammar_data::{nonterminal_id, NONTERMINALS, NONTERMINAL_DISPLAY_ORDER, SLOTS, TERMINALS},
             parser::#parser,
         };
 
         #[cfg(feature = "debug-trace")]
         use iguana_runtime::trace::TraceEvent;
 
-        #[derive(Clone, Copy, Default, clap::ValueEnum)]
+        #[derive(Clone, Copy, Default, ClapValueEnum)]
         enum TraceFormat {
             #[default]
             Text,
             Json,
         }
 
-        #[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+        #[derive(Clone, Copy, PartialEq, Eq, ClapValueEnum)]
         enum VisTarget {
             Sppf,
             Gss,
@@ -85,7 +86,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             trace: Option<Option<PathBuf>>,
 
             /// Output format for trace (text or json)
-            #[arg(long, value_enum, default_value_t = TraceFormat::Text, requires = "trace")]
+            #[arg(long, value_enum, default_value_t, requires = "trace")]
             format: TraceFormat,
 
             /// Generate visualization as SVG (sppf or gss)
@@ -140,28 +141,24 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             #[cfg(feature = "dhat-heap")]
             let _profiler = dhat::Profiler::new_heap();
 
-            let cli = Cli::parse();
+            let args = Cli::parse();
 
-            // Handle --list-nonterminals: output grammar nonterminals (not EBNF or Start) and exit
-            if cli.list_nonterminals {
-                for nt in NONTERMINALS.iter() {
-                    if !nt.derived {
-                        println!("{}", nt.name);
-                    }
+            // Handle --list-nonterminals: print user-declared nonterminals in grammar source order.
+            // The list is pre-computed at codegen time (filtering and sorting happen there).
+            if args.list_nonterminals {
+                for name in NONTERMINAL_DISPLAY_ORDER.iter() {
+                    println!("{}", name);
                 }
                 return Ok(());
             }
 
             // Handle --write-symbols: write all nonterminals, terminals, and slots as JSON and exit
-            if let Some(ref path) = cli.write_symbols {
-                let nonterminals: Vec<&str> = NONTERMINALS.iter().map(|nt| nt.display).collect();
-                let terminals: Vec<&str> = TERMINALS.iter().map(|t| t.name).collect();
-                let slots: Vec<&str> = SLOTS.iter().map(|s| s.display_name).collect();
-                let symbols = serde_json::json!({
-                    "nonterminals": nonterminals,
-                    "terminals": terminals,
-                    "slots": slots
-                });
+            if let Some(ref path) = args.write_symbols {
+                let symbols = cli::Symbols {
+                    nonterminals: NONTERMINALS.iter().map(|nt| nt.display.to_string()).collect(),
+                    terminals: TERMINALS.iter().map(|t| t.name.to_string()).collect(),
+                    slots: SLOTS.iter().map(|s| s.display_name.to_string()).collect(),
+                };
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", serde_json::to_string_pretty(&symbols).unwrap())?;
@@ -170,8 +167,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             // Batch mode: parse every file under --dir, report per-file results and a summary.
             // Ambiguity is not yet reported here; that lands when non-panicking detection is in place.
-            if let Some(dir) = cli.dir.as_ref() {
-                let start_nonterminal_name = cli.start_nonterminal.as_ref().ok_or_else(|| {
+            if let Some(dir) = args.dir.as_ref() {
+                let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
                     io::Error::new(io::ErrorKind::InvalidInput, "--start is required for parsing")
                 })?;
                 let start_nonterminal_id = nonterminal_id(&format!("Start{}", start_nonterminal_name))
@@ -180,19 +177,19 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         io::ErrorKind::InvalidInput,
                         format!("Unknown nonterminal: '{}'", start_nonterminal_name)
                     ))?;
-                return run_batch(dir, cli.ext.as_deref(), start_nonterminal_id);
+                return run_batch(dir, args.ext.as_deref(), start_nonterminal_id);
             }
 
             // For parsing, file and start_nonterminal are required
-            let file = cli.file.ok_or_else(|| {
+            let file = args.file.ok_or_else(|| {
                 io::Error::new(io::ErrorKind::InvalidInput, "Input file is required for parsing")
             })?;
-            let start_nonterminal_name = cli.start_nonterminal.ok_or_else(|| {
+            let start_nonterminal_name = args.start_nonterminal.ok_or_else(|| {
                 io::Error::new(io::ErrorKind::InvalidInput, "--start is required for parsing")
             })?;
 
             #[cfg(not(feature = "debug-trace"))]
-            if cli.trace.is_some() {
+            if args.trace.is_some() {
                 eprintln!("Warning: --trace flag ignored. Recompile with `--features debug-trace` to enable tracing.");
             }
 
@@ -212,7 +209,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             // Profiling mode: run the parser N times under a sampling profiler
             // and write a flamegraph SVG. Short-circuits all other output.
             #[cfg(feature = "profile")]
-            if let Some(iterations) = cli.profile {
+            if let Some(iterations) = args.profile {
                 let guard = ProfilerGuardBuilder::default()
                     .frequency(999)
                     .build()
@@ -234,14 +231,14 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 }
 
                 let report = guard.report().build().unwrap();
-                let file = File::create(&cli.profile_output)?;
+                let file = File::create(&args.profile_output)?;
                 report.flamegraph(&file).unwrap();
-                eprintln!("Flamegraph written to {}", cli.profile_output.display());
+                eprintln!("Flamegraph written to {}", args.profile_output.display());
                 return Ok(());
             }
 
             #[cfg(not(feature = "profile"))]
-            if cli.profile.is_some() {
+            if args.profile.is_some() {
                 eprintln!("Warning: --profile flag ignored. Recompile with `--features profile` to enable profiling.");
             }
 
@@ -249,7 +246,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             let mut parser = #parser::new(&input, start_nonterminal_id);
 
             #[cfg(feature = "debug-trace")]
-            if cli.trace.is_some() {
+            if args.trace.is_some() {
                 parser.trace_events = Some(vec![]);
             }
 
@@ -259,7 +256,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             // Write trace events immediately after parsing (before any visualization that might panic)
             #[cfg(feature = "debug-trace")]
             if let Some(ref trace_events) = parser.trace_events {
-                write_trace_events(trace_events, &parser, &cli.trace, cli.format)?;
+                write_trace_events(trace_events, &parser, &args.trace, args.format)?;
             }
 
             match result {
@@ -267,7 +264,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     let node_id = parse_success.sppf_node_id;
 
                     // Handle --write-sppf (write SPPF as JSON to file)
-                    if let Some(ref path) = cli.write_sppf {
+                    if let Some(ref path) = args.write_sppf {
                         let sppf = build_sppf_graph(&parser, node_id);
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
@@ -275,7 +272,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     }
 
                     // Handle --write-gss (write GSS graph as JSON for visualization)
-                    if let Some(ref path) = cli.write_gss {
+                    if let Some(ref path) = args.write_gss {
                         let gss = build_gss_dot_graph(&parser);
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
@@ -283,7 +280,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     }
 
                     // Handle --write-gss-nodes (write GSS nodes as JSON for trace replay)
-                    if let Some(ref path) = cli.write_gss_nodes {
+                    if let Some(ref path) = args.write_gss_nodes {
                         let gss_nodes: Vec<_> = parser.gss_nodes().collect();
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
@@ -293,9 +290,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     // Time tree construction once (separately from --write-parse-tree)
                     // so we can report it via --write-result even if no parse-tree file is requested.
                     let tc_start = Instant::now();
-                    let parse_tree_opt = if cli.write_parse_tree.is_some()
-                        || cli.write_result.is_some()
-                        || (cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() && cli.trace.is_none())
+                    let parse_tree_opt = if args.write_parse_tree.is_some()
+                        || args.write_result.is_some()
+                        || (args.write_sppf.is_none() && args.write_gss.is_none() && args.vis.is_none() && args.trace.is_none())
                     {
                         Some(create_parse_tree(node_id, start_nonterminal_id, &parser, &parse_tree_builder))
                     } else {
@@ -304,7 +301,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     let tree_construction_ms = parse_tree_opt.as_ref().map(|_| tc_start.elapsed().as_millis());
 
                     // Handle --write-parse-tree (write parse tree as JSON for visualization)
-                    if let (Some(path), Some(parse_tree)) = (cli.write_parse_tree.as_ref(), parse_tree_opt.as_ref()) {
+                    if let (Some(path), Some(parse_tree)) = (args.write_parse_tree.as_ref(), parse_tree_opt.as_ref()) {
                         let json = to_json(*parse_tree);
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
@@ -312,11 +309,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     }
 
                     // Handle --write-result (write parse result as JSON)
-                    if let Some(ref path) = cli.write_result {
-                        let result = serde_json::json!({
-                            "success": true,
-                            "parse_ms": parse_success.duration.as_millis(),
-                            "tree_construction_ms": tree_construction_ms,
+                    if let Some(ref path) = args.write_result {
+                        let result = cli::ParseResult::Success(cli::ParseSuccess {
+                            parse_ms: parse_success.duration.as_millis() as u64,
+                            tree_construction_ms: tree_construction_ms.map(|ms| ms as u64),
                         });
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
@@ -324,7 +320,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     }
 
                     // Handle --vis (visualization as SVG)
-                    match cli.vis {
+                    match args.vis {
                         Some(VisTarget::Gss) => {
                             let path = Path::new("gss.dot");
                             render_gss(&parser, path)?;
@@ -344,7 +340,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
                     // Print parse tree if no write flags specified and not tracing
                     // (trace mode skips parse tree to avoid panics on ambiguous grammars)
-                    if cli.write_sppf.is_none() && cli.write_gss.is_none() && cli.vis.is_none() && cli.trace.is_none() {
+                    if args.write_sppf.is_none() && args.write_gss.is_none() && args.vis.is_none() && args.trace.is_none() {
                         if let Some(ref parse_tree) = parse_tree_opt {
                             println!("{}", to_sexpr(*parse_tree));
                         }
@@ -354,12 +350,11 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     let (line, column, message) = parser.format_error(&error);
                     println!("Parse failed at line {line}, column {column}: {message}");
 
-                    if let Some(ref path) = cli.write_result {
-                        let result = serde_json::json!({
-                            "success": false,
-                            "line": line,
-                            "column": column,
-                            "message": message,
+                    if let Some(ref path) = args.write_result {
+                        let result = cli::ParseResult::Failure(cli::ParseFailure {
+                            line,
+                            column,
+                            message,
                         });
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
@@ -370,7 +365,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             #[cfg(feature = "instrument")]
             {
                 let stats = parser.record_stats();
-                if let Some(ref path) = cli.write_stats {
+                if let Some(ref path) = args.write_stats {
                     let file = File::create(path)?;
                     let mut writer = BufWriter::new(file);
                     writeln!(writer, "{}", serde_json::to_string(&stats).unwrap())?;
@@ -379,7 +374,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 }
             }
             #[cfg(not(feature = "instrument"))]
-            if cli.write_stats.is_some() {
+            if args.write_stats.is_some() {
                 eprintln!("Warning: --write-stats flag ignored. Recompile with `--features instrument` to enable stats.");
             }
             Ok(())

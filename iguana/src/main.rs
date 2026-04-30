@@ -106,6 +106,7 @@ fn main() -> std::io::Result<()> {
             let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
                 std::io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
             })?;
+            generate_scaffold(&grammar, &output)?;
             let result = generate_sources(&grammar, &output, config)?;
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
@@ -368,6 +369,7 @@ fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> io::Result<()>
 
 fn regenerate_sources(grammar_path: Option<&Path>, output: &Path) -> io::Result<()> {
     let grammar = load_grammar(grammar_path, output)?;
+    generate_scaffold(&grammar, output)?;
     generate_sources(&grammar, output, GenConfig::default())?;
     Ok(())
 }

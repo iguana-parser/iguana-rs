@@ -552,8 +552,9 @@ fn node_to_sexpr(node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt:
         writeln!(w, "{:indent$})", "")
     }
 }
-#[doc = r" Converts a parse tree to JSON format for visualization."]
-#[doc = r" Returns a JSON string with nodes and edges arrays."]
+/// Converts a parse tree to JSON format for visualization.
+
+/// Returns a JSON string with nodes and edges arrays.
 pub fn to_json(node: ParseTree<'_>) -> String {
     let mut nodes = Vec::new();
     let mut edges = Vec::new();

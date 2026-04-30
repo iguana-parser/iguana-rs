@@ -101,7 +101,7 @@ pub fn generate_sources(
     let grammar_data_path = src_dir.join("grammar_data.rs");
 
     write_rust_file(
-        replace_comment_attrs(&lib_gen::generate(grammar).to_string()),
+        rewrite_attrs(&lib_gen::generate(grammar).to_string()),
         &lib_path,
     )?;
 
@@ -117,17 +117,17 @@ pub fn generate_sources(
         .join("\n");
     let parser_source = format!(
         "{grammar_comment}\n{}",
-        replace_comment_attrs(&parser_code.to_string())
+        rewrite_attrs(&parser_code.to_string())
     );
     write_rust_file(parser_source, &parser_path)?;
 
     write_rust_file(
-        replace_comment_attrs(&scanner_gen::generate(grammar, &terminal_ids).to_string()),
+        rewrite_attrs(&scanner_gen::generate(grammar, &terminal_ids).to_string()),
         &scanner_path,
     )?;
 
     write_rust_file(
-        replace_comment_attrs(
+        rewrite_attrs(
             &parse_tree_gen::generate(grammar, &nonterminal_ids, &terminal_ids, &slot_ids)
                 .to_string(),
         ),
@@ -135,12 +135,12 @@ pub fn generate_sources(
     )?;
 
     write_rust_file(
-        replace_comment_attrs(&types_gen::generate().to_string()),
+        rewrite_attrs(&types_gen::generate().to_string()),
         &types_path,
     )?;
 
     write_rust_file(
-        replace_comment_attrs(
+        rewrite_attrs(
             &grammar_data_gen::generate(grammar, &nonterminal_ids, &terminal_ids, &slot_ids)
                 .to_string(),
         ),
@@ -185,7 +185,7 @@ pub fn generate_scaffold(grammar: &Grammar, output_dir: &Path) -> io::Result<()>
     let main_rs = src_dir.join("main.rs");
     if !main_rs.exists() {
         let main_code = main_gen::generate(grammar);
-        write_plain_file(replace_comment_attrs(&main_code.to_string()), &main_rs)?;
+        write_plain_file(rewrite_attrs(&main_code.to_string()), &main_rs)?;
         format_files(&[main_rs])?;
     }
 
@@ -243,7 +243,14 @@ fn format_files(paths: &[PathBuf]) -> io::Result<()> {
 ///   https://github.com/rust-lang/rustfmt/issues/562
 ///   https://github.com/rust-lang/rustfmt/issues/5024
 fn format_file(path: &Path) -> io::Result<()> {
-    let input = fs::read(path)?;
+    let input = fs::read_to_string(path)?;
+    let formatted = rustfmt_string(&input)
+        .map_err(|e| io::Error::other(format!("rustfmt failed on {}: {}", path.display(), e)))?;
+    fs::write(path, formatted)
+}
+
+/// Pipe `input` through rustfmt via stdin/stdout. Returns the formatted source.
+pub fn rustfmt_string(input: &str) -> io::Result<String> {
     let mut child = Command::new("rustfmt")
         .arg("--edition")
         .arg("2024")
@@ -253,17 +260,15 @@ fn format_file(path: &Path) -> io::Result<()> {
         .spawn()?;
 
     // Drop stdin after writing so rustfmt sees EOF and returns.
-    child.stdin.take().unwrap().write_all(&input)?;
+    child.stdin.take().unwrap().write_all(input.as_bytes())?;
 
     let output = child.wait_with_output()?;
     if !output.status.success() {
-        return Err(io::Error::other(format!(
-            "rustfmt failed on {}: {}",
-            path.display(),
-            String::from_utf8_lossy(&output.stderr).trim()
-        )));
+        return Err(io::Error::other(
+            String::from_utf8_lossy(&output.stderr).trim().to_string(),
+        ));
     }
-    fs::write(path, &output.stdout)
+    String::from_utf8(output.stdout).map_err(io::Error::other)
 }
 
 fn write_plain_file(content: impl AsRef<str>, path: &Path) -> io::Result<()> {
@@ -273,16 +278,21 @@ fn write_plain_file(content: impl AsRef<str>, path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-/// Rewrite `#[comment = "..."]` pseudo-attributes into `// ...` line comments.
+/// Rewrite attribute pseudo-syntax in generated code into the cleaner forms.
 ///
-/// `quote!` produces a `TokenStream`, and Rust line comments are lexer-level
-/// — they have no token representation. To inject `// ...` comments into
-/// generated code, our generators emit `#[comment = "..."]` as a stand-in
-/// and rely on this pass to rewrite it before the file becomes Rust source.
+/// Two transformations:
+/// - `#[comment = "..."]` (our pseudo-attribute, not real Rust) → `// ...`.
+/// - `#[doc = r"..."]` / `#[doc = r#"..."#]` (quote!'s default rendering of
+///   `///` doc lines) → `/// ...`. The attribute form is valid Rust but
+///   noisy; restoring `///` keeps generated code legible.
 ///
-/// `#[comment]` is not a real Rust attribute, so any unrewritten occurrence
-/// would be a compile error in the generated file. Run this on every
-/// generator output that goes to disk.
+/// `#[comment]` is not a real attribute, so any unrewritten occurrence would
+/// be a compile error. Run this on every generator output that goes to disk.
+fn rewrite_attrs(input: &str) -> String {
+    let s = replace_comment_attrs(input);
+    desugar_doc_attrs(&s)
+}
+
 fn replace_comment_attrs(input: &str) -> String {
     use std::sync::OnceLock;
     static RE: OnceLock<regex::Regex> = OnceLock::new();
@@ -293,6 +303,21 @@ fn replace_comment_attrs(input: &str) -> String {
         format!("\n// {}\n", unescape(&caps[1]))
     })
     .into_owned()
+}
+
+fn desugar_doc_attrs(input: &str) -> String {
+    use std::sync::OnceLock;
+    static RE_RAW_HASH: OnceLock<regex::Regex> = OnceLock::new();
+    static RE_RAW: OnceLock<regex::Regex> = OnceLock::new();
+    let raw_hash = RE_RAW_HASH
+        .get_or_init(|| regex::Regex::new(r##"#\s*\[\s*doc\s*=\s*r#"(.*?)"#\s*\]"##).unwrap());
+    let raw = RE_RAW
+        .get_or_init(|| regex::Regex::new(r#"#\s*\[\s*doc\s*=\s*r"([^"]*)"\s*\]"#).unwrap());
+    let s = raw_hash
+        .replace_all(input, |caps: &regex::Captures| format!("\n///{}\n", &caps[1]))
+        .into_owned();
+    raw.replace_all(&s, |caps: &regex::Captures| format!("\n///{}\n", &caps[1]))
+        .into_owned()
 }
 
 /// The regex captures the *source-text* inside a string literal, so escape

@@ -528,17 +528,17 @@ fn parse(
     parse_state.parse_tree_path = if has_parse_tree { Some(parse_tree_path) } else { None };
 
     // Read parse result from JSON file written by --write-result
-    let result_json = result_path
+    let result = result_path
         .exists()
         .then(|| {
             fs::read_to_string(&result_path)
                 .ok()
-                .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
+                .and_then(|s| serde_json::from_str::<iguana::cli::ParseResult>(&s).ok())
         })
         .flatten();
 
     // Parser process failed to run (crash, not a parse error)
-    if !output.status.success() && result_json.is_none() {
+    if !output.status.success() && result.is_none() {
         return Ok(ParseOutput {
             success: false,
             error: Some(format!("Parser error: {}", stderr.trim())),
@@ -551,52 +551,46 @@ fn parse(
         });
     }
 
-    if let Some(ref v) = result_json {
-        let success = v.get("success").and_then(|b| b.as_bool()).unwrap_or(false);
-        if success {
-            return Ok(ParseOutput {
-                success: true,
-                error: None,
-                error_info: None,
-                duration_ms: v.get("parse_ms").and_then(|n| n.as_u64()).map(|n| n as u32),
-                tree_construction_ms: v.get("tree_construction_ms").and_then(|n| n.as_u64()).map(|n| n as u32),
-                has_sppf,
-                has_gss,
-                has_parse_tree,
-            });
-        } else {
-            let error_info = Some(ParseErrorInfo {
-                line: v.get("line").and_then(|n| n.as_u64()).unwrap_or(0) as u32,
-                column: v.get("column").and_then(|n| n.as_u64()).unwrap_or(0) as u32,
-                message: v.get("message").and_then(|s| s.as_str()).unwrap_or("").to_string(),
-            });
-            let message = v.get("message").and_then(|s| s.as_str()).unwrap_or("Parse error");
-            let line = v.get("line").and_then(|n| n.as_u64()).unwrap_or(0);
-            let column = v.get("column").and_then(|n| n.as_u64()).unwrap_or(0);
-            return Ok(ParseOutput {
-                success: false,
-                error: Some(format!("Parse failed at line {line}, column {column}: {message}")),
-                error_info,
-                duration_ms: None,
-                tree_construction_ms: None,
-                has_sppf,
-                has_gss,
-                has_parse_tree,
-            });
-        }
+    match result {
+        Some(iguana::cli::ParseResult::Success(s)) => Ok(ParseOutput {
+            success: true,
+            error: None,
+            error_info: None,
+            duration_ms: Some(s.parse_ms as u32),
+            tree_construction_ms: s.tree_construction_ms.map(|n| n as u32),
+            has_sppf,
+            has_gss,
+            has_parse_tree,
+        }),
+        Some(iguana::cli::ParseResult::Failure(f)) => Ok(ParseOutput {
+            success: false,
+            error: Some(format!(
+                "Parse failed at line {}, column {}: {}",
+                f.line, f.column, f.message
+            )),
+            error_info: Some(ParseErrorInfo {
+                line: f.line,
+                column: f.column,
+                message: f.message,
+            }),
+            duration_ms: None,
+            tree_construction_ms: None,
+            has_sppf,
+            has_gss,
+            has_parse_tree,
+        }),
+        // Fallback: no result file (shouldn't happen with current generator)
+        None => Ok(ParseOutput {
+            success: false,
+            error: Some("No parse result available".to_string()),
+            error_info: None,
+            duration_ms: None,
+            tree_construction_ms: None,
+            has_sppf,
+            has_gss,
+            has_parse_tree,
+        }),
     }
-
-    // Fallback: no result file (shouldn't happen with current generator)
-    Ok(ParseOutput {
-        success: false,
-        error: Some("No parse result available".to_string()),
-        error_info: None,
-        duration_ms: None,
-        tree_construction_ms: None,
-        has_sppf,
-        has_gss,
-        has_parse_tree,
-    })
 }
 
 #[tauri::command]
@@ -929,6 +923,7 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
             let grammar: iguana::grammar::def::Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
                 format!("Unresolved identifiers: {}", names.join(", "))
             })?;
+            iguana::generator::generate_scaffold(&grammar, dir).map_err(|e| e.to_string())?;
             let result = iguana::generator::generate_sources(
                 &grammar,
                 dir,

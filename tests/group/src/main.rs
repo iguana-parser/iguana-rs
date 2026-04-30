@@ -1,12 +1,13 @@
-use clap::Parser as ClapParser;
+use clap::{Parser as ClapParser, ValueEnum as ClapValueEnum};
 use group::{
-    grammar_data::{NONTERMINALS, SLOTS, TERMINALS, nonterminal_id},
+    grammar_data::{NONTERMINAL_DISPLAY_ORDER, NONTERMINALS, SLOTS, TERMINALS, nonterminal_id},
     parse_tree::{GroupParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
     parser::GroupParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
+    cli,
     ids::NonterminalId,
     input::Input,
     parse_tree::ParseContext,
@@ -25,13 +26,13 @@ use std::{
     path::{Path, PathBuf},
     time::Instant,
 };
-#[derive(Clone, Copy, Default, clap::ValueEnum)]
+#[derive(Clone, Copy, Default, ClapValueEnum)]
 enum TraceFormat {
     #[default]
     Text,
     Json,
 }
-#[derive(Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+#[derive(Clone, Copy, PartialEq, Eq, ClapValueEnum)]
 enum VisTarget {
     Sppf,
     Gss,
@@ -44,6 +45,7 @@ struct Cli {
     /// Input file to parse (required unless --list-nonterminals or --dir is used)
     file: Option<PathBuf>,
     /// Directory to recursively parse all files in. Reports per-file
+
     /// success/failure with timings, plus a summary at the end.
     #[arg(long, value_name = "DIR", conflicts_with = "file")]
     dir: Option<PathBuf>,
@@ -63,7 +65,7 @@ struct Cli {
     #[arg(long, value_name = "FILE")]
     trace: Option<Option<PathBuf>>,
     /// Output format for trace (text or json)
-    #[arg(long, value_enum, default_value_t = TraceFormat::Text, requires = "trace")]
+    #[arg(long, value_enum, default_value_t, requires = "trace")]
     format: TraceFormat,
     /// Generate visualization as SVG (sppf or gss)
     #[arg(long, value_enum)]
@@ -72,19 +74,24 @@ struct Cli {
     #[arg(long, value_name = "FILE")]
     write_sppf: Option<PathBuf>,
     /// Write GSS graph as JSON for visualization (nodes with labels + edges).
+
     /// Used by Terrarium for Cytoscape.js graph rendering.
     #[arg(long, value_name = "FILE")]
     write_gss: Option<PathBuf>,
     /// Write GSS nodes as JSON for trace replay (normalized with IDs).
+
     /// Used by Terrarium debugger to resolve GssNodeId to (nonterminal, input_index).
     #[arg(long, value_name = "FILE")]
     write_gss_nodes: Option<PathBuf>,
     /// Write parse tree as JSON for visualization.
+
     /// Used by Terrarium for parse tree rendering.
     #[arg(long, value_name = "FILE")]
     write_parse_tree: Option<PathBuf>,
     /// Profile the parser by running it N times in a loop under a
+
     /// sampling profiler, then write a flamegraph SVG.
+
     /// Requires the "profile" feature: cargo build --features profile
     #[arg(long, value_name = "N")]
     profile: Option<u32>,
@@ -92,10 +99,12 @@ struct Cli {
     #[arg(long, value_name = "FILE", default_value = "flamegraph.svg")]
     profile_output: PathBuf,
     /// Write parser stats (counters + histograms) as JSON.
+
     /// Requires the "instrument" feature.
     #[arg(long, value_name = "FILE")]
     write_stats: Option<PathBuf>,
     /// Write parse result as JSON: on success includes timings,
+
     /// on failure includes error location and message.
     #[arg(long, value_name = "FILE")]
     write_result: Option<PathBuf>,
@@ -106,22 +115,22 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 fn main() -> Result<(), io::Error> {
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
-    let cli = Cli::parse();
-    if cli.list_nonterminals {
-        for nt in NONTERMINALS.iter() {
-            if !nt.derived {
-                println!("{}", nt.name);
-            }
+    let args = Cli::parse();
+    if args.list_nonterminals {
+        for name in NONTERMINAL_DISPLAY_ORDER.iter() {
+            println!("{}", name);
         }
         return Ok(());
     }
-    if let Some(ref path) = cli.write_symbols {
-        let nonterminals: Vec<&str> = NONTERMINALS.iter().map(|nt| nt.display).collect();
-        let terminals: Vec<&str> = TERMINALS.iter().map(|t| t.name).collect();
-        let slots: Vec<&str> = SLOTS.iter().map(|s| s.display_name).collect();
-        let symbols = serde_json::json!(
-            { "nonterminals" : nonterminals, "terminals" : terminals, "slots" : slots }
-        );
+    if let Some(ref path) = args.write_symbols {
+        let symbols = cli::Symbols {
+            nonterminals: NONTERMINALS
+                .iter()
+                .map(|nt| nt.display.to_string())
+                .collect(),
+            terminals: TERMINALS.iter().map(|t| t.name.to_string()).collect(),
+            slots: SLOTS.iter().map(|s| s.display_name.to_string()).collect(),
+        };
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
         writeln!(
@@ -131,8 +140,8 @@ fn main() -> Result<(), io::Error> {
         )?;
         return Ok(());
     }
-    if let Some(dir) = cli.dir.as_ref() {
-        let start_nonterminal_name = cli.start_nonterminal.as_ref().ok_or_else(|| {
+    if let Some(dir) = args.dir.as_ref() {
+        let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "--start is required for parsing",
@@ -146,22 +155,22 @@ fn main() -> Result<(), io::Error> {
                     format!("Unknown nonterminal: '{}'", start_nonterminal_name),
                 )
             })?;
-        return run_batch(dir, cli.ext.as_deref(), start_nonterminal_id);
+        return run_batch(dir, args.ext.as_deref(), start_nonterminal_id);
     }
-    let file = cli.file.ok_or_else(|| {
+    let file = args.file.ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::InvalidInput,
             "Input file is required for parsing",
         )
     })?;
-    let start_nonterminal_name = cli.start_nonterminal.ok_or_else(|| {
+    let start_nonterminal_name = args.start_nonterminal.ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::InvalidInput,
             "--start is required for parsing",
         )
     })?;
     #[cfg(not(feature = "debug-trace"))]
-    if cli.trace.is_some() {
+    if args.trace.is_some() {
         eprintln!(
             "Warning: --trace flag ignored. Recompile with `--features debug-trace` to enable tracing."
         );
@@ -176,7 +185,7 @@ fn main() -> Result<(), io::Error> {
             )
         })?;
     #[cfg(feature = "profile")]
-    if let Some(iterations) = cli.profile {
+    if let Some(iterations) = args.profile {
         let guard = ProfilerGuardBuilder::default()
             .frequency(999)
             .build()
@@ -196,13 +205,13 @@ fn main() -> Result<(), io::Error> {
             }
         }
         let report = guard.report().build().unwrap();
-        let file = File::create(&cli.profile_output)?;
+        let file = File::create(&args.profile_output)?;
         report.flamegraph(&file).unwrap();
-        eprintln!("Flamegraph written to {}", cli.profile_output.display());
+        eprintln!("Flamegraph written to {}", args.profile_output.display());
         return Ok(());
     }
     #[cfg(not(feature = "profile"))]
-    if cli.profile.is_some() {
+    if args.profile.is_some() {
         eprintln!(
             "Warning: --profile flag ignored. Recompile with `--features profile` to enable profiling."
         );
@@ -210,43 +219,43 @@ fn main() -> Result<(), io::Error> {
     let ctx = ParseContext::new();
     let mut parser = GroupParser::new(&input, start_nonterminal_id);
     #[cfg(feature = "debug-trace")]
-    if cli.trace.is_some() {
+    if args.trace.is_some() {
         parser.trace_events = Some(vec![]);
     }
     let parse_tree_builder = GroupParseTreeBuilder::new(&ctx);
     let result = parser.run();
     #[cfg(feature = "debug-trace")]
     if let Some(ref trace_events) = parser.trace_events {
-        write_trace_events(trace_events, &parser, &cli.trace, cli.format)?;
+        write_trace_events(trace_events, &parser, &args.trace, args.format)?;
     }
     match result {
         ParseResult::Success(parse_success) => {
             let node_id = parse_success.sppf_node_id;
-            if let Some(ref path) = cli.write_sppf {
+            if let Some(ref path) = args.write_sppf {
                 let sppf = build_sppf_graph(&parser, node_id);
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", serde_json::to_string(&sppf).unwrap())?;
             }
-            if let Some(ref path) = cli.write_gss {
+            if let Some(ref path) = args.write_gss {
                 let gss = build_gss_dot_graph(&parser);
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", serde_json::to_string(&gss).unwrap())?;
             }
-            if let Some(ref path) = cli.write_gss_nodes {
+            if let Some(ref path) = args.write_gss_nodes {
                 let gss_nodes: Vec<_> = parser.gss_nodes().collect();
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", serde_json::to_string(&gss_nodes).unwrap())?;
             }
             let tc_start = Instant::now();
-            let parse_tree_opt = if cli.write_parse_tree.is_some()
-                || cli.write_result.is_some()
-                || (cli.write_sppf.is_none()
-                    && cli.write_gss.is_none()
-                    && cli.vis.is_none()
-                    && cli.trace.is_none())
+            let parse_tree_opt = if args.write_parse_tree.is_some()
+                || args.write_result.is_some()
+                || (args.write_sppf.is_none()
+                    && args.write_gss.is_none()
+                    && args.vis.is_none()
+                    && args.trace.is_none())
             {
                 Some(create_parse_tree(
                     node_id,
@@ -261,23 +270,23 @@ fn main() -> Result<(), io::Error> {
                 .as_ref()
                 .map(|_| tc_start.elapsed().as_millis());
             if let (Some(path), Some(parse_tree)) =
-                (cli.write_parse_tree.as_ref(), parse_tree_opt.as_ref())
+                (args.write_parse_tree.as_ref(), parse_tree_opt.as_ref())
             {
                 let json = to_json(*parse_tree);
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", json)?;
             }
-            if let Some(ref path) = cli.write_result {
-                let result = serde_json::json!(
-                    { "success" : true, "parse_ms" : parse_success.duration.as_millis(),
-                    "tree_construction_ms" : tree_construction_ms, }
-                );
+            if let Some(ref path) = args.write_result {
+                let result = cli::ParseResult::Success(cli::ParseSuccess {
+                    parse_ms: parse_success.duration.as_millis() as u64,
+                    tree_construction_ms: tree_construction_ms.map(|ms| ms as u64),
+                });
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", serde_json::to_string(&result).unwrap())?;
             }
-            match cli.vis {
+            match args.vis {
                 Some(VisTarget::Gss) => {
                     let path = Path::new("gss.dot");
                     render_gss(&parser, path)?;
@@ -293,10 +302,10 @@ fn main() -> Result<(), io::Error> {
                 None => {}
             }
             println!("Parse success in {}ms", parse_success.duration.as_millis());
-            if cli.write_sppf.is_none()
-                && cli.write_gss.is_none()
-                && cli.vis.is_none()
-                && cli.trace.is_none()
+            if args.write_sppf.is_none()
+                && args.write_gss.is_none()
+                && args.vis.is_none()
+                && args.trace.is_none()
             {
                 if let Some(ref parse_tree) = parse_tree_opt {
                     println!("{}", to_sexpr(*parse_tree));
@@ -306,11 +315,12 @@ fn main() -> Result<(), io::Error> {
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             println!("Parse failed at line {line}, column {column}: {message}");
-            if let Some(ref path) = cli.write_result {
-                let result = serde_json::json!(
-                    { "success" : false, "line" : line, "column" : column, "message" :
-                    message, }
-                );
+            if let Some(ref path) = args.write_result {
+                let result = cli::ParseResult::Failure(cli::ParseFailure {
+                    line,
+                    column,
+                    message,
+                });
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", serde_json::to_string(&result).unwrap())?;
@@ -320,7 +330,7 @@ fn main() -> Result<(), io::Error> {
     #[cfg(feature = "instrument")]
     {
         let stats = parser.record_stats();
-        if let Some(ref path) = cli.write_stats {
+        if let Some(ref path) = args.write_stats {
             let file = File::create(path)?;
             let mut writer = BufWriter::new(file);
             writeln!(writer, "{}", serde_json::to_string(&stats).unwrap())?;
@@ -329,7 +339,7 @@ fn main() -> Result<(), io::Error> {
         }
     }
     #[cfg(not(feature = "instrument"))]
-    if cli.write_stats.is_some() {
+    if args.write_stats.is_some() {
         eprintln!(
             "Warning: --write-stats flag ignored. Recompile with `--features instrument` to enable stats."
         );

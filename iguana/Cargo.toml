@@ -25,6 +25,4 @@ specta.workspace = true
 syn = { version = "2.0.108", features = ["full", "parsing"] }
 indexmap = "2.12.1"
 itertools = "0.14.0"
-insta = "1.44.3"
-prettyplease = "0.2.37"
 regex = "1"
