@@ -762,6 +762,13 @@ fn inline_regex(
 fn build_grammar(grammar_def: GrammarDef) -> Grammar {
     let mut lexical_rules = grammar_def.lexical_rules;
     let syntax_rules = grammar_def.syntax_rules;
+    // Built before transformations run: precedence and exclude desugaring would
+    // otherwise reposition rules and lose source order.
+    let source_order: FxHashMap<String, u16> = syntax_rules
+        .iter()
+        .enumerate()
+        .map(|(i, r)| (r.head.name.clone(), i as u16))
+        .collect();
     let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules);
     let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
     let (syntax_rules, lexical_rules) =
@@ -870,6 +877,7 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         symbol_table,
         start_nonterminals,
         start_wrapper_names,
+        source_order,
     }
 }
 
@@ -927,6 +935,7 @@ pub struct Grammar {
     pub layout: Option<Symbol>,
     start_nonterminals: FxHashMap<String, String>,
     start_wrapper_names: FxHashSet<String>,
+    source_order: FxHashMap<String, u16>,
 }
 
 impl PartialEq for Grammar {
@@ -938,6 +947,11 @@ impl PartialEq for Grammar {
 impl Grammar {
     pub fn count_nonterminals(&self) -> usize {
         self.productions.len()
+    }
+    /// Returns `u16::MAX` for derived rules, so callers can sort directly without
+    /// special-casing missing entries.
+    pub fn source_index(&self, name: &str) -> u16 {
+        self.source_order.get(name).copied().unwrap_or(u16::MAX)
     }
     pub fn nonterminals(&self) -> impl Iterator<Item = &'_ Nonterminal> {
         self.productions.keys()

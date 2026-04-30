@@ -28,6 +28,7 @@
   import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng, parseNodeKind } from "$lib/graph-utils";
   import MonacoEditor from "$lib/MonacoEditor.svelte";
   import InputEditor from "$lib/InputEditor.svelte";
+  import NonterminalPicker from "$lib/NonterminalPicker.svelte";
 
   // Parse Tree types (manually defined, not via specta)
   interface ParseTreeNode {
@@ -550,12 +551,6 @@
   let lastParsedInput = $state<string | null>(null);
   let startNonterminal = $state<string | null>(null);
   let nonterminals = $state<string[]>([]);
-  let dropdownOpen = $state(false);
-
-  function displayNonterminal(nt: string | null): string {
-    if (!nt) return "Select...";
-    return nt;
-  }
 
   // Playback state
   let currentStep = $state(0);
@@ -2318,11 +2313,8 @@
   }
 
   function handleWindowClick(e: MouseEvent) {
-    // Close dropdowns when clicking outside
+    // Close popovers when clicking outside
     const target = e.target as HTMLElement;
-    if (!target.closest('.custom-dropdown')) {
-      dropdownOpen = false;
-    }
     if (!target.closest('.title-bar-menu')) {
       titleBarMenuOpen = false;
     }
@@ -2734,29 +2726,11 @@
       <div class="header">
         <div class="dropdown-wrapper">
           <span class="dropdown-label">Start:</span>
-          <div class="custom-dropdown" class:disabled={!parserDirectory || nonterminals.length === 0}>
-            <button
-              class="dropdown-trigger"
-              onclick={() => dropdownOpen = !dropdownOpen}
-              disabled={!parserDirectory || nonterminals.length === 0}
-            >
-              <span class="dropdown-value">{displayNonterminal(startNonterminal)}</span>
-              <ChevronDown size={14} class="dropdown-chevron" />
-            </button>
-            {#if dropdownOpen}
-              <div class="dropdown-menu">
-                {#each nonterminals as nt}
-                  <button
-                    class="dropdown-item"
-                    class:selected={nt === startNonterminal}
-                    onclick={() => { startNonterminal = nt; dropdownOpen = false; }}
-                  >
-                    {displayNonterminal(nt)}
-                  </button>
-                {/each}
-              </div>
-            {/if}
-          </div>
+          <NonterminalPicker
+            bind:value={startNonterminal}
+            options={nonterminals}
+            disabled={!parserDirectory || nonterminals.length === 0}
+          />
         </div>
         <div class="parse-actions">
           <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Parse</button>
@@ -3057,29 +3031,11 @@
       <div class="header">
         <div class="dropdown-wrapper">
           <span class="dropdown-label">Start:</span>
-          <div class="custom-dropdown" class:disabled={!parserDirectory || nonterminals.length === 0}>
-            <button
-              class="dropdown-trigger"
-              onclick={() => dropdownOpen = !dropdownOpen}
-              disabled={!parserDirectory || nonterminals.length === 0}
-            >
-              <span class="dropdown-value">{displayNonterminal(startNonterminal)}</span>
-              <ChevronDown size={14} class="dropdown-chevron" />
-            </button>
-            {#if dropdownOpen}
-              <div class="dropdown-menu">
-                {#each nonterminals as nt}
-                  <button
-                    class="dropdown-item"
-                    class:selected={nt === startNonterminal}
-                    onclick={() => { startNonterminal = nt; dropdownOpen = false; }}
-                  >
-                    {displayNonterminal(nt)}
-                  </button>
-                {/each}
-              </div>
-            {/if}
-          </div>
+          <NonterminalPicker
+            bind:value={startNonterminal}
+            options={nonterminals}
+            disabled={!parserDirectory || nonterminals.length === 0}
+          />
         </div>
         {#if debugLoaded}
           <button class="parse-btn" onclick={stopDebug}>Stop</button>
@@ -4203,91 +4159,6 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
   .dropdown-label {
     color: #d4d4d4;
     font-size: 13px;
-  }
-
-  .custom-dropdown {
-    position: relative;
-    width: 150px;
-  }
-
-  .custom-dropdown.disabled {
-    opacity: 0.5;
-  }
-
-  .dropdown-trigger {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 5px 8px;
-    background: #3c3c3c;
-    color: #d4d4d4;
-    border: 1px solid #555;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    text-align: left;
-  }
-
-  .dropdown-trigger:hover:not(:disabled) {
-    background: #454545;
-    border-color: #666;
-  }
-
-  .dropdown-trigger:focus {
-    outline: none;
-    border-color: #0e639c;
-  }
-
-  .dropdown-trigger:disabled {
-    cursor: not-allowed;
-  }
-
-  .dropdown-value {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 1;
-  }
-
-  :global(.dropdown-chevron) {
-    flex-shrink: 0;
-    color: #888;
-  }
-
-  .dropdown-menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    margin-top: 2px;
-    background: #2d2d2d;
-    border: 1px solid #454545;
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 100;
-  }
-
-  .dropdown-item {
-    display: block;
-    width: 100%;
-    padding: 6px 10px;
-    background: transparent;
-    color: #d4d4d4;
-    border: none;
-    cursor: pointer;
-    font-size: 13px;
-    text-align: left;
-  }
-
-  .dropdown-item:hover {
-    background: #094771;
-  }
-
-  .dropdown-item.selected {
-    background: #0e639c;
   }
 
   .parse-btn {

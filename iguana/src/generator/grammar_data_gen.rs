@@ -7,7 +7,7 @@ use crate::generator::utils::to_snake_case;
 use crate::grammar::def::Grammar;
 use crate::grammar::first_follow::FirstFollowSets;
 use crate::grammar::slot::Slot;
-use crate::grammar::symbols::{Definition, Symbol, Terminal};
+use crate::grammar::symbols::{Definition, Nonterminal, Symbol, Terminal};
 
 pub fn generate<'a>(
     grammar: &'a Grammar,
@@ -147,6 +147,18 @@ pub fn generate<'a>(
         }
     });
 
+    // User-facing nonterminal listing in grammar source order. Filter out derived
+    // (start wrappers, EBNF expansions, exclude/precedence desugarings) and sort by
+    // their original .iggy declaration position. Pre-computed at codegen time so
+    // the CLI just iterates this static for `--list-nonterminals`.
+    let mut display_order: Vec<&Nonterminal> = nonterminal_ids
+        .nonterminals()
+        .filter(|n| !n.is_derived())
+        .collect();
+    display_order.sort_by_key(|n| grammar.source_index(&n.name));
+    let display_order_names: Vec<&str> = display_order.iter().map(|n| n.name.as_str()).collect();
+    let display_order_len = Literal::usize_unsuffixed(display_order_names.len());
+
     // Individual nonterminal ID constants
     let nonterminal_id_consts: Vec<_> = nonterminal_ids
         .nonterminals()
@@ -192,6 +204,9 @@ pub fn generate<'a>(
         use crate::types::{Nonterminal, Slot, Terminal};
 
         pub const NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminals),*];
+
+        #[comment = "User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`."]
+        pub const NONTERMINAL_DISPLAY_ORDER: [&str; #display_order_len] = [#(#display_order_names),*];
 
         #(#nonterminal_id_consts)*
 

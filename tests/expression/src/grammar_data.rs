@@ -7,6 +7,8 @@ pub const NONTERMINALS: [Nonterminal; 1] = [Nonterminal {
     display: "E",
     derived: false,
 }];
+// User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
+pub const NONTERMINAL_DISPLAY_ORDER: [&str; 1] = ["E"];
 pub const E: NonterminalId = NonterminalId(0);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {

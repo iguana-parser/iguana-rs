@@ -304,6 +304,26 @@ pub const NONTERMINALS: [Nonterminal; 60] = [
         derived: true,
     },
 ];
+// User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
+pub const NONTERMINAL_DISPLAY_ORDER: [&str; 17] = [
+    "Grammar",
+    "LayoutDef",
+    "Rule",
+    "SyntaxRule",
+    "Annotation",
+    "RegexRule",
+    "PreCondition",
+    "PostCondition",
+    "PriorityLevel",
+    "Associativity",
+    "Alternative",
+    "Symbol",
+    "Regex",
+    "CharClass",
+    "RangeElement",
+    "Range",
+    "Layout",
+];
 pub const GRAMMAR: NonterminalId = NonterminalId(0);
 pub const LAYOUT_DEF: NonterminalId = NonterminalId(1);
 pub const RULE: NonterminalId = NonterminalId(2);

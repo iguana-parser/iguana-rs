@@ -14,6 +14,8 @@ pub const NONTERMINALS: [Nonterminal; 2] = [
         derived: true,
     },
 ];
+// User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
+pub const NONTERMINAL_DISPLAY_ORDER: [&str; 1] = ["Expr"];
 pub const EXPR: NonterminalId = NonterminalId(0);
 pub const START_EXPR: NonterminalId = NonterminalId(1);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
