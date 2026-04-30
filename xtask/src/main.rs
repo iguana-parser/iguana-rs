@@ -76,7 +76,10 @@ fn test_new(name: &str) -> io::Result<()> {
     }
 
     let result = regenerate(&grammar_file, &test_dir)?;
-    println!("Generated {name} grammar in {} ms", result.total_duration_ms);
+    println!(
+        "Generated {name} grammar in {} ms",
+        result.total_duration_ms
+    );
 
     fs::create_dir_all(test_dir.join("parse_trees"))?;
 
@@ -159,7 +162,10 @@ fn test_gen(name: &str) -> io::Result<()> {
     }
 
     let result = regenerate(&grammar_file, &path)?;
-    println!("Generated {name} grammar in {} ms", result.total_duration_ms);
+    println!(
+        "Generated {name} grammar in {} ms",
+        result.total_duration_ms
+    );
     Ok(())
 }
 

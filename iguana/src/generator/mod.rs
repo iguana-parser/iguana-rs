@@ -221,10 +221,12 @@ fn desugar_doc_attrs(input: &str) -> String {
     static RE_RAW: OnceLock<regex::Regex> = OnceLock::new();
     let raw_hash = RE_RAW_HASH
         .get_or_init(|| regex::Regex::new(r##"#\s*\[\s*doc\s*=\s*r#"(.*?)"#\s*\]"##).unwrap());
-    let raw = RE_RAW
-        .get_or_init(|| regex::Regex::new(r#"#\s*\[\s*doc\s*=\s*r"([^"]*)"\s*\]"#).unwrap());
+    let raw =
+        RE_RAW.get_or_init(|| regex::Regex::new(r#"#\s*\[\s*doc\s*=\s*r"([^"]*)"\s*\]"#).unwrap());
     let s = raw_hash
-        .replace_all(input, |caps: &regex::Captures| format!("\n///{}\n", &caps[1]))
+        .replace_all(input, |caps: &regex::Captures| {
+            format!("\n///{}\n", &caps[1])
+        })
         .into_owned();
     raw.replace_all(&s, |caps: &regex::Captures| format!("\n///{}\n", &caps[1]))
         .into_owned()

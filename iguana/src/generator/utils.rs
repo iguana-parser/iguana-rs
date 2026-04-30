@@ -45,4 +45,3 @@ pub fn safe_ident(name: &str) -> proc_macro2::Ident {
         proc_macro2::Ident::new(name, proc_macro2::Span::call_site())
     }
 }
-

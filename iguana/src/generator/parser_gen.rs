@@ -7,8 +7,6 @@ use crate::generator::GenConfig;
 use crate::generator::id::NonterminalIds;
 use crate::generator::id::SlotIds;
 use crate::generator::id::TerminalIds;
-use crate::utils::to_first_uppercase;
-use crate::utils::to_snake_case;
 use crate::grammar::def::Alternative;
 use crate::grammar::def::Grammar;
 use crate::grammar::first_follow::FirstFollowSets;
@@ -23,6 +21,8 @@ use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
 use crate::ids::NonterminalId;
 use crate::ids::SlotId;
+use crate::utils::to_first_uppercase;
+use crate::utils::to_snake_case;
 
 pub struct ParserGen<'a> {
     grammar: &'a Grammar,

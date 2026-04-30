@@ -365,4 +365,3 @@ fn match_opt(r: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
 fn match_epsilon() -> TokenStream {
     quote! { Some(i) }
 }
-
