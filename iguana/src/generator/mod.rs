@@ -1,8 +1,7 @@
 use std::{
     fs,
     io::{self, Write},
-    path::{Path, PathBuf},
-    process::{Command, Stdio},
+    path::Path,
     time::Instant,
 };
 
@@ -16,17 +15,12 @@ use crate::{
 
 pub struct GenConfig {
     pub ll1_optimization: bool,
-    /// Run rustfmt on generated files. Disable to skip the subprocess call
-    /// (e.g. for tests that don't care about formatting, or when rustfmt
-    /// is unavailable).
-    pub run_rustfmt: bool,
 }
 
 impl Default for GenConfig {
     fn default() -> Self {
         Self {
             ll1_optimization: true,
-            run_rustfmt: true,
         }
     }
 }
@@ -105,7 +99,6 @@ pub fn generate_sources(
         &lib_path,
     )?;
 
-    let run_rustfmt = config.run_rustfmt;
     let mut parser_gen =
         ParserGen::new(grammar, &nonterminal_ids, &terminal_ids, &slot_ids, config);
     let parser_code = parser_gen.generate();
@@ -147,17 +140,6 @@ pub fn generate_sources(
         &grammar_data_path,
     )?;
 
-    if run_rustfmt {
-        format_files(&[
-            lib_path,
-            parser_path,
-            scanner_path,
-            parse_tree_path,
-            types_path,
-            grammar_data_path,
-        ])?;
-    }
-
     Ok(GenerateResult {
         total_duration_ms: start.elapsed().as_millis() as u64,
     })
@@ -186,7 +168,6 @@ pub fn generate_scaffold(grammar: &Grammar, output_dir: &Path) -> io::Result<()>
     if !main_rs.exists() {
         let main_code = main_gen::generate(grammar);
         write_plain_file(rewrite_attrs(&main_code.to_string()), &main_rs)?;
-        format_files(&[main_rs])?;
     }
 
     Ok(())
@@ -198,77 +179,6 @@ fn write_rust_file(content: impl AsRef<str>, path: &Path) -> io::Result<()> {
     file.write_all(content.as_ref().as_bytes())?;
     file.write_all(b"\n")?;
     Ok(())
-}
-
-/// Run rustfmt on the given files, one process per file in parallel.
-fn format_files(paths: &[PathBuf]) -> io::Result<()> {
-    if paths.is_empty() {
-        return Ok(());
-    }
-    std::thread::scope(|s| -> io::Result<()> {
-        let handles: Vec<_> = paths
-            .iter()
-            .map(|p| s.spawn(move || format_file(p)))
-            .collect();
-        for h in handles {
-            h.join()
-                .map_err(|_| io::Error::other("rustfmt thread panicked"))??;
-        }
-        Ok(())
-    })
-}
-
-/// Format a single file by piping its contents through rustfmt's stdin.
-///
-/// We deliberately avoid `rustfmt <path>` because rustfmt enters "project
-/// mode" when given a path: it walks `mod foo;` declarations and reads
-/// the corresponding sibling files to validate the mod tree. Running
-/// multiple such invocations in parallel on files of the same crate
-/// races — one rustfmt may read a sibling while another truncates it
-/// for output, producing the error
-/// `failed to resolve mod 'foo': cannot parse foo.rs` and leaving files
-/// corrupted.
-///
-/// Stdin mode (`Operation::Stdin` → `Input::Text`) has no file location to
-/// anchor mod resolution against, so siblings are not touched. We do the
-/// read/write ourselves and pipe the source through rustfmt as bytes.
-///
-/// Passes `--edition 2024` because rustfmt's CLI default is edition 2015,
-/// which produces subtly different formatting than the workspace's edition.
-/// Stdin mode has no Cargo.toml to infer the edition from, so we must be
-/// explicit.
-///
-/// References:
-///   https://github.com/rust-lang/rustfmt/blob/master/README.md
-///   https://github.com/rust-lang/rustfmt/issues/562
-///   https://github.com/rust-lang/rustfmt/issues/5024
-fn format_file(path: &Path) -> io::Result<()> {
-    let input = fs::read_to_string(path)?;
-    let formatted = rustfmt_string(&input)
-        .map_err(|e| io::Error::other(format!("rustfmt failed on {}: {}", path.display(), e)))?;
-    fs::write(path, formatted)
-}
-
-/// Pipe `input` through rustfmt via stdin/stdout. Returns the formatted source.
-pub fn rustfmt_string(input: &str) -> io::Result<String> {
-    let mut child = Command::new("rustfmt")
-        .arg("--edition")
-        .arg("2024")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
-
-    // Drop stdin after writing so rustfmt sees EOF and returns.
-    child.stdin.take().unwrap().write_all(input.as_bytes())?;
-
-    let output = child.wait_with_output()?;
-    if !output.status.success() {
-        return Err(io::Error::other(
-            String::from_utf8_lossy(&output.stderr).trim().to_string(),
-        ));
-    }
-    String::from_utf8(output.stdout).map_err(io::Error::other)
 }
 
 fn write_plain_file(content: impl AsRef<str>, path: &Path) -> io::Result<()> {

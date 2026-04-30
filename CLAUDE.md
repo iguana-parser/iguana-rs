@@ -12,10 +12,10 @@ Iguana is a data-dependent GLL parser generator.
 
 # Build & Test
 
-- `./bootstrap.sh` — regenerate iggy from its own grammar
-- `cargo run -p iguana -- test generate-all` — regenerate all test parsers
+- `cargo xtask bootstrap` — regenerate iggy from its own grammar
+- `cargo xtask test-gen-all` — regenerate all test parsers
 - `cargo test` — run all tests
-- After any generator change: bootstrap → generate-all → test
+- After any generator change: bootstrap → test-gen-all → test
 
 ## LSP
 - `cargo test -p iguana-lsp` — run LSP tests
@@ -41,8 +41,8 @@ When doing bootstrapping, we need to always run it twice to ensure stability.
 
 Tests live in `tests/<name>/`, each with a `.iggy` grammar, generated `src/`, `tests.rs`, and golden files in `parse_trees/`.
 
-- `cargo run -p iguana -- test init <name>` — scaffold a new test
-- `cargo run -p iguana -- test generate <name>` — regenerate one test parser
+- `cargo xtask test-new <name>` — scaffold a new test
+- `cargo xtask test-gen <name>` — regenerate one test parser
 - `REGENERATE=1 cargo test -p <name>` — update golden files
 
 Tests use s-expression golden file comparison via `check_golden_file`.

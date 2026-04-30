@@ -1,4 +1,4 @@
-// To regenerate parser:  cargo run -p iguana -- test gen precede_restriction_lexical
+// To regenerate parser:  cargo xtask test-gen precede_restriction_lexical
 // To update golden files: REGENERATE=1 cargo test -p precede_restriction_lexical
 
 use iguana_runtime::input::Input;

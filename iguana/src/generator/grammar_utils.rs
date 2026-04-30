@@ -7,7 +7,7 @@ use crate::grammar::{
     symbols::{Definition, DefinitionId, Nonterminal, Symbol},
 };
 
-use super::utils::to_pascal_case;
+use crate::utils::to_pascal_case;
 
 /// Returns true if a nonterminal's generated type needs a lifetime parameter `'a`.
 /// Nonterminal children are stored as `&'a T` references, which introduces `'a`.

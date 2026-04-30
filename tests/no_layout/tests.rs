@@ -1,4 +1,4 @@
-// To regenerate parser:  cargo run -p iguana -- test gen no_layout
+// To regenerate parser:  cargo xtask test-gen no_layout
 // To update golden files: REGENERATE=1 cargo test -p no_layout
 
 use iguana_runtime::input::Input;

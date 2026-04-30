@@ -3,7 +3,7 @@ use quote::{format_ident, quote};
 use rustc_hash::FxHashSet;
 
 use crate::generator::id::{NonterminalIds, SlotIds, TerminalIds};
-use crate::generator::utils::to_snake_case;
+use crate::utils::to_snake_case;
 use crate::grammar::def::Grammar;
 use crate::grammar::first_follow::FirstFollowSets;
 use crate::grammar::slot::Slot;

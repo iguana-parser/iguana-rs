@@ -2,8 +2,8 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use crate::{
-    generator::utils::{to_first_uppercase, to_snake_case},
     grammar::def::Grammar,
+    utils::{to_first_uppercase, to_snake_case},
 };
 
 pub fn generate(grammar: &Grammar) -> TokenStream {

@@ -1,4 +1,4 @@
-// To regenerate parser:  cargo run -p iguana -- test gen follow_restriction_lexical
+// To regenerate parser:  cargo xtask test-gen follow_restriction_lexical
 // To update golden files: REGENERATE=1 cargo test -p follow_restriction_lexical
 
 use follow_restriction_lexical::{parse_s, parse_tree::to_sexpr};

@@ -1,4 +1,4 @@
-use crate::{generator::utils::to_snake_case, grammar::def::Grammar};
+use crate::{grammar::def::Grammar, utils::to_snake_case};
 
 pub fn generate(grammar: &Grammar) -> String {
     let grammar_name = &grammar.name;

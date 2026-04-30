@@ -2,11 +2,9 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use crate::{
-    generator::{
-        grammar_utils::nonterminal_type,
-        utils::{to_first_uppercase, to_snake_case},
-    },
+    generator::grammar_utils::nonterminal_type,
     grammar::{def::Grammar, symbols::Nonterminal},
+    utils::{to_first_uppercase, to_snake_case},
 };
 
 pub fn generate(grammar: &Grammar) -> TokenStream {

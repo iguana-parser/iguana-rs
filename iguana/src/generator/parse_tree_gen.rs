@@ -11,16 +11,14 @@ use crate::{
             unwrap_exclude,
         },
         id::{NonterminalIds, SlotIds, TerminalIds},
-        utils::{
-            alternative_label, is_rust_keyword, is_valid_rust_ident, safe_ident,
-            to_first_uppercase, to_pascal_case, to_snake_case,
-        },
+        utils::{alternative_label, is_valid_rust_ident, safe_ident},
     },
     grammar::{
         def::{Alternative, Grammar},
         symbols::{Definition, Identifier, Nonterminal, Symbol},
     },
     ids::TerminalId,
+    utils::{to_first_uppercase, to_pascal_case, to_snake_case},
 };
 
 pub fn generate(

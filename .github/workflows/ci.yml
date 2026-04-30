@@ -48,14 +48,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
       - uses: Swatinem/rust-cache@v2
 
       - name: bootstrap twice (verify stable)
         run: |
-          ./bootstrap.sh
-          ./bootstrap.sh
+          cargo xtask bootstrap
+          cargo xtask bootstrap
           if ! git diff --quiet; then
-            echo "::error::bootstrap.sh produced changes:"
+            echo "::error::cargo xtask bootstrap produced changes:"
             git diff --stat
             git diff
             exit 1
@@ -68,9 +70,9 @@ jobs:
 
       - name: regenerate all test parsers (verify stable)
         run: |
-          cargo run -p iguana -- test generate-all
+          cargo xtask test-gen-all
           if ! git diff --quiet; then
-            echo "::error::generate-all produced changes:"
+            echo "::error::cargo xtask test-gen-all produced changes:"
             git diff --stat
             git diff
             exit 1
