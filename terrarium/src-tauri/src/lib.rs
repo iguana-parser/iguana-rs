@@ -929,7 +929,6 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
                 dir,
                 iguana::generator::GenConfig {
                     ll1_optimization: !no_ll1,
-                    run_rustfmt: true,
                 },
             )
             .map_err(|e| e.to_string())?;
