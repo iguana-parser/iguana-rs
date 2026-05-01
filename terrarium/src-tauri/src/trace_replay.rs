@@ -2,12 +2,12 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
-use iguana::descriptor::Descriptor;
-use iguana::gss::{GSSEdge, GSSNode};
-use iguana::ids::{GssNodeId, NonterminalId, SlotId};
-use iguana::parser::ParseErrorKind;
-use iguana::sppf::SPPFNodeId;
-use iguana::trace::TraceEvent;
+use iguana_runtime::descriptor::Descriptor;
+use iguana_runtime::gss::{GSSEdge, GSSNode};
+use iguana_runtime::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
+use iguana_runtime::parser::ParseErrorKind;
+use iguana_runtime::sppf::SPPFNodeId;
+use iguana_runtime::trace::TraceEvent;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
@@ -139,7 +139,7 @@ impl SymbolTable {
         &self.nonterminals[id.index()]
     }
 
-    pub fn terminal(&self, id: &iguana::ids::TerminalId) -> String {
+    pub fn terminal(&self, id: &TerminalId) -> String {
         self.terminals
             .get(id.index())
             .cloned()

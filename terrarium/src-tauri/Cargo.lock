@@ -4411,8 +4411,8 @@ name = "terrarium"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "iguana",
  "iguana-lsp",
+ "iguana-runtime",
  "lsp-types",
  "serde",
  "serde_json",

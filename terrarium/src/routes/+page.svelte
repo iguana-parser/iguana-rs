@@ -100,6 +100,11 @@
   // Event listeners
   onMount(() => {
     commands.getLogPath().then((path) => { logFilePath = path; });
+    commands.checkIguana().then((result) => {
+      if (result.status === "error") {
+        iguanaMissingMessage = result.error;
+      }
+    });
 
     const unlistenLog = listen<{ kind: string; message: string; timestamp: string }>("log", (event) => {
       const { kind, message, timestamp } = event.payload;
@@ -382,6 +387,7 @@
   let isGenerating = $state(false);
   let generateStatus = $state<"none" | "success" | "error">("none");
   let generateError = $state<string | null>(null);
+  let iguanaMissingMessage = $state<string | null>(null);
   let errorBubbleDismissed = $state(false);
   let errorBubbleHoverReveal = $state(false);
   let grammarText = $state("");
@@ -2625,6 +2631,13 @@
     </div>
   </div>
 
+  {#if iguanaMissingMessage}
+    <div class="iguana-missing-banner">
+      <AlertTriangle size={14} />
+      <span>{iguanaMissingMessage}</span>
+    </div>
+  {/if}
+
   <!-- Middle Area (activity bar + content) -->
   <div class="middle-area" class:output-open={outputPanelOpen}>
     <!-- Activity Bar -->
@@ -3517,6 +3530,17 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     flex-direction: row;
     flex: 1;
     min-height: 0;
+  }
+
+  .iguana-missing-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: #5a3a00;
+    color: #f5d68a;
+    font-size: 12px;
+    border-bottom: 1px solid #3c2700;
   }
 
   /* Add padding to scrollable areas when output panel is open */

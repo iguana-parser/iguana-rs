@@ -9,7 +9,7 @@ pub mod spans;
 pub mod symbols;
 
 use iggy::parse_tree::{Grammar, Layout, Start};
-use iguana::grammar::def::GrammarDef;
+pub use iguana::grammar::def::GrammarDef;
 use iguana_runtime::{input::Input, parse_tree::ParseContext};
 use spans::GrammarSpans;
 use std::time::Duration;

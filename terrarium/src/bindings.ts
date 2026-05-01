@@ -271,6 +271,18 @@ async getDiagnostics(source: string) : Promise<DiagnosticData[]> {
 },
 async getLogPath() : Promise<string | null> {
     return await TAURI_INVOKE("get_log_path");
+},
+/**
+ * Probe whether the `iguana` binary is reachable on PATH. Returns `Ok(())`
+ * on success and an actionable install hint when missing.
+ */
+async checkIguana() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("check_iguana") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

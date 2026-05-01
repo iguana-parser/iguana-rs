@@ -41,6 +41,10 @@ enum Commands {
     },
     /// Regenerate all test parsers
     TestGenAll,
+    /// Build iguana from this workspace and install it into `$CARGO_HOME/bin`
+    Install,
+    /// Install iguana, then launch the terrarium dev server
+    Terrarium,
 }
 
 fn main() -> io::Result<()> {
@@ -51,6 +55,8 @@ fn main() -> io::Result<()> {
         Commands::TestRm { name } => test_rm(&name),
         Commands::TestGen { name } => test_gen(&name),
         Commands::TestGenAll => test_gen_all(),
+        Commands::Install => install(),
+        Commands::Terrarium => terrarium(),
     }
 }
 
@@ -230,6 +236,60 @@ fn format_sources(crate_dir: &Path) -> io::Result<()> {
         )));
     }
     Ok(())
+}
+
+fn install() -> io::Result<()> {
+    let root = workspace_root();
+    println!("Building iguana (release)...");
+    let status = Command::new("cargo")
+        .current_dir(root)
+        .args(["build", "--release", "-p", "iguana"])
+        .status()?;
+    if !status.success() {
+        return Err(io::Error::other("cargo build failed"));
+    }
+
+    let built = root.join("target/release/iguana");
+    let dest_dir = cargo_bin_dir();
+    fs::create_dir_all(&dest_dir)?;
+    let dest = dest_dir.join("iguana");
+    fs::copy(&built, &dest)?;
+    println!("Installed: {}", dest.display());
+    Ok(())
+}
+
+fn terrarium() -> io::Result<()> {
+    install()?;
+
+    let terrarium_dir = workspace_root().join("terrarium");
+    if !terrarium_dir.join("node_modules").exists() {
+        println!("Installing npm dependencies...");
+        let status = Command::new("npm")
+            .current_dir(&terrarium_dir)
+            .arg("install")
+            .status()?;
+        if !status.success() {
+            return Err(io::Error::other("npm install failed"));
+        }
+    }
+
+    println!("Launching terrarium dev server...");
+    let status = Command::new("npm")
+        .current_dir(&terrarium_dir)
+        .args(["run", "tauri", "dev"])
+        .status()?;
+    if !status.success() {
+        return Err(io::Error::other("npm run tauri dev failed"));
+    }
+    Ok(())
+}
+
+fn cargo_bin_dir() -> PathBuf {
+    if let Ok(cargo_home) = std::env::var("CARGO_HOME") {
+        return PathBuf::from(cargo_home).join("bin");
+    }
+    let home = std::env::var("HOME").expect("HOME must be set");
+    PathBuf::from(home).join(".cargo").join("bin")
 }
 
 fn workspace_root() -> &'static Path {

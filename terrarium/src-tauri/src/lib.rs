@@ -1,7 +1,6 @@
 mod trace_replay;
 
 use std::{
-    cell::Cell,
     fs,
     fs::OpenOptions,
     io::Write,
@@ -12,9 +11,10 @@ use std::{
     thread,
 };
 
-use iguana::input::Input;
-use iguana::parse_tree::ParseContext;
-use iguana::visualization::{gss::GSS, sppf::SPPF};
+use iguana_runtime::cli::ParseResult;
+use iguana_runtime::input::Input;
+use iguana_runtime::parse_tree::ParseContext;
+use iguana_runtime::visualization::{gss::GSS, sppf::SPPF};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::{Emitter, Manager};
@@ -29,14 +29,6 @@ static LOG_DIR: OnceLock<PathBuf> = OnceLock::new();
 
 fn log_file_path() -> Option<PathBuf> {
     LOG_DIR.get().map(|d| d.join("terrarium.log"))
-}
-
-// Thread-local panic capture: the panic hook stores the formatted message here
-// when CAPTURING is true (inside catch_unwind). The catch_unwind caller reads
-// it and routes through log_event so both file and UI get the same content.
-thread_local! {
-    static CAPTURING: Cell<bool> = const { Cell::new(false) };
-    static LAST_PANIC: Cell<Option<String>> = const { Cell::new(None) };
 }
 
 fn log_to_file(kind: &str, message: &str) {
@@ -179,7 +171,7 @@ struct AnalyzeResult {
 struct GrammarState {
     source: Option<String>,
     input: Option<Input>,
-    grammar_def: Option<iguana::grammar::def::GrammarDef>,
+    grammar_def: Option<iguana_lsp::GrammarDef>,
     /// Cached timings from the last parse.
     parse_ms: u32,
     tree_ms: u32,
@@ -533,7 +525,7 @@ fn parse(
         .then(|| {
             fs::read_to_string(&result_path)
                 .ok()
-                .and_then(|s| serde_json::from_str::<iguana::cli::ParseResult>(&s).ok())
+                .and_then(|s| serde_json::from_str::<ParseResult>(&s).ok())
         })
         .flatten();
 
@@ -552,7 +544,7 @@ fn parse(
     }
 
     match result {
-        Some(iguana::cli::ParseResult::Success(s)) => Ok(ParseOutput {
+        Some(ParseResult::Success(s)) => Ok(ParseOutput {
             success: true,
             error: None,
             error_info: None,
@@ -562,7 +554,7 @@ fn parse(
             has_gss,
             has_parse_tree,
         }),
-        Some(iguana::cli::ParseResult::Failure(f)) => Ok(ParseOutput {
+        Some(ParseResult::Failure(f)) => Ok(ParseOutput {
             success: false,
             error: Some(format!(
                 "Parse failed at line {}, column {}: {}",
@@ -913,86 +905,97 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
         let ll1_flag = if no_ll1 { " --no-ll1" } else { "" };
         log_event(&app, "command", &format!("iguana generate --output .{ll1_flag}"));
 
-        CAPTURING.set(true);
-        let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
-            let dir = Path::new(&directory);
-            let iggy_file = find_iggy_file(dir).map_err(|e| e.to_string())?;
-            let source = fs::read_to_string(&iggy_file).map_err(|e| e.to_string())?;
-            let grammar_def = iguana::iggy::parse_grammar(&source)
-                .map_err(|e| format!("{}", e))?;
-            let grammar: iguana::grammar::def::Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
-                format!("Unresolved identifiers: {}", names.join(", "))
-            })?;
-            iguana::generator::generate_scaffold(&grammar, dir).map_err(|e| e.to_string())?;
-            let result = iguana::generator::generate_sources(
-                &grammar,
-                dir,
-                iguana::generator::GenConfig {
-                    ll1_optimization: !no_ll1,
-                },
-            )
-            .map_err(|e| e.to_string())?;
-            Ok::<u64, String>(result.total_duration_ms)
-        }));
-        CAPTURING.set(false);
+        let mut cmd = Command::new("iguana");
+        cmd.arg("generate")
+            .arg("--output")
+            .arg(&directory)
+            .arg("--json");
+        if no_ll1 {
+            cmd.arg("--no-ll1");
+        }
 
-        let message = match result {
-            Ok(Ok(duration_ms)) => {
-                log_event(
-                    &app,
-                    "output",
-                    &format!("Parser generated successfully ({duration_ms}ms)"),
-                );
+        let output = match cmd.output() {
+            Ok(output) => output,
+            Err(e) => {
+                let message = if e.kind() == std::io::ErrorKind::NotFound {
+                    "iguana binary not found on PATH. Install with `cargo install iguana` \
+                     or `brew install iguana`."
+                        .to_string()
+                } else {
+                    format!("Failed to run iguana: {e}")
+                };
+                log_event(&app, "error", &message);
                 let _ = app.emit(
                     "generate-result",
                     BuildResult {
-                        success: true,
-                        message: "Generation successful".into(),
-                        duration_ms: Some(duration_ms),
+                        success: false,
+                        message,
+                        duration_ms: None,
                         features: None,
                     },
                 );
                 return;
             }
-            Ok(Err(message)) => message,
-            Err(_) => {
-                let detail = LAST_PANIC.take().unwrap_or_else(|| "unknown error".into());
-                format!("Internal error during generation:\n{detail}")
-            }
         };
 
-        log_event(&app, "error", &message);
-        let _ = app.emit(
-            "generate-result",
-            BuildResult {
-                success: false,
-                message,
-                duration_ms: None,
-                features: None,
-            },
-        );
+        if output.status.success() {
+            let duration_ms = parse_total_duration_ms(&output.stdout);
+            let suffix = duration_ms.map(|d| format!(" ({d}ms)")).unwrap_or_default();
+            log_event(
+                &app,
+                "output",
+                &format!("Parser generated successfully{suffix}"),
+            );
+            let _ = app.emit(
+                "generate-result",
+                BuildResult {
+                    success: true,
+                    message: "Generation successful".into(),
+                    duration_ms,
+                    features: None,
+                },
+            );
+        } else {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let message = stderr.trim();
+            let message = if message.is_empty() {
+                format!("iguana exited with status {}", output.status)
+            } else {
+                message.to_string()
+            };
+            log_event(&app, "error", &message);
+            let _ = app.emit(
+                "generate-result",
+                BuildResult {
+                    success: false,
+                    message,
+                    duration_ms: None,
+                    features: None,
+                },
+            );
+        }
     });
 }
 
-fn find_iggy_file(directory: &Path) -> Result<PathBuf, std::io::Error> {
-    let iggy_files: Vec<_> = fs::read_dir(directory)?
-        .filter_map(|entry| entry.ok())
-        .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "iggy"))
-        .collect();
-    match iggy_files.len() {
-        0 => Err(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            format!("No .iggy file found in {}", directory.display()),
-        )),
-        1 => Ok(iggy_files[0].path()),
-        n => Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!(
-                "Found {n} .iggy files in {}. Expected exactly one.",
-                directory.display()
-            ),
-        )),
+/// Probe whether the `iguana` binary is reachable on PATH. Returns `Ok(())`
+/// on success and an actionable install hint when missing.
+#[tauri::command]
+#[specta::specta]
+fn check_iguana() -> Result<(), String> {
+    match Command::new("iguana").arg("help").output() {
+        Ok(_) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Err(
+            "iguana CLI not found on PATH. Install with `cargo install iguana` or `brew install iguana`."
+                .into(),
+        ),
+        Err(e) => Err(format!("Failed to run iguana: {e}")),
     }
+}
+
+fn parse_total_duration_ms(stdout: &[u8]) -> Option<u64> {
+    let s = std::str::from_utf8(stdout).ok()?;
+    let value: serde_json::Value = serde_json::from_str(s.trim()).ok()?;
+    value.get("total_duration_ms")?.as_u64()
 }
 
 // ============ Language Intelligence Commands ============
@@ -1629,7 +1632,8 @@ pub fn run() {
         get_references,
         get_folding_ranges,
         get_diagnostics,
-        get_log_path
+        get_log_path,
+        check_iguana
     ]);
 
     #[cfg(debug_assertions)]
@@ -1679,13 +1683,7 @@ pub fn run() {
                     .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
                     .unwrap_or_default();
                 let formatted = format!("at {location}: {message}\n{backtrace}");
-                if CAPTURING.get() {
-                    // Inside catch_unwind — stash for the caller to route through log_event
-                    LAST_PANIC.set(Some(formatted));
-                } else {
-                    // Uncaught panic — write to file directly as a safety net
-                    log_to_file("panic", &formatted);
-                }
+                log_to_file("panic", &formatted);
             }));
 
             if std::env::var("TERRARIUM_SMOKE_TEST").is_ok() {
