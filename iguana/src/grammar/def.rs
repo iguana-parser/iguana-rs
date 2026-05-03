@@ -1021,6 +1021,12 @@ macro_rules! alternative {
             label: None,
         }
     };
+    ($($symbol:expr),+ $(,)? ; #$label:ident) => {
+        $crate::grammar::def::Alternative {
+            symbols: vec![$($symbol),+],
+            label: Some(stringify!($label).to_string()),
+        }
+    };
 }
 
 #[macro_export]

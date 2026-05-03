@@ -47,6 +47,8 @@
 // name. For `E_except_comma` with recursive name `E`, the calls go to `E(p)` /
 // `E(pr)` — the parameter is passed through to `E`, which does the enforcement.
 
+use rustc_hash::FxHashMap;
+
 use crate::grammar::{
     def::{Alternative, Associativity, PriorityLevel, SyntaxRule},
     symbols::{Cond, CondOp, Expr, Identifier, Nonterminal, ParamType, Parameter, Symbol},
@@ -67,37 +69,33 @@ enum RecursiveEnds {
 }
 
 pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
-    // First pass: identify which nonterminals need desugaring (multiple priority levels)
-    // and find their recursive names. At this stage, classify uses exact name matching only,
-    // which is sufficient because find_recursive_name checks each candidate name individually.
-    let desugared_names: Vec<String> = syntax_rules
+    // Rules with `>` separators (multiple priority levels). Candidates for
+    // desugaring; each one we'll try to find a recursive name for.
+    let rules_with_priority_levels: Vec<String> = syntax_rules
         .iter()
         .filter(|rule| needs_desugaring(rule))
         .map(|rule| rule.head.name.clone())
         .collect();
 
-    // Map each desugared nonterminal to its recursive name.
-    // Direct recursion: E → E. Indirect recursion: E_except_comma → E.
-    let mut recursive_names: Vec<(String, String)> = Vec::new();
-    for rule in &syntax_rules {
-        if !needs_desugaring(rule) {
-            continue;
-        }
-        if let Some(rec_name) = find_recursive_name(rule, &desugared_names) {
-            recursive_names.push((rule.head.name.clone(), rec_name));
-        }
-    }
+    let rules_by_name: FxHashMap<&str, &SyntaxRule> = syntax_rules
+        .iter()
+        .map(|r| (r.head.name.as_str(), r))
+        .collect();
 
-    let all_desugared: Vec<String> = recursive_names
+    let recursive_names =
+        compute_recursive_names(&syntax_rules, &rules_with_priority_levels, &rules_by_name);
+    let precedences_by_rule = compute_precedences(&recursive_names, &rules_by_name);
+
+    // Subset of `rules_with_priority_levels` that have recursive ends (and so
+    // actually get rewritten with a `p: i32` parameter). Used by
+    // `update_external_references` to know which references to rewrite as `R(0)`.
+    let rules_with_recursive_ends: Vec<String> = recursive_names
         .iter()
         .map(|(name, _)| name.clone())
         .collect();
 
-    // Second pass: desugar rules and update external references.
-    // When classifying alternatives, we need to recognize indirect recursion: if E and
-    // E_except_comma both have recursive name E, then E_except_comma at a left/right end
-    // of E's alternatives is an indirect reference to E. The recursive_names mapping
-    // enables this lookup.
+    // `rules_by_name` borrow ends after this line (last use was building
+    // `precedences_by_rule`), so the move below is fine under NLL.
     syntax_rules
         .into_iter()
         .map(|rule| {
@@ -105,31 +103,115 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
                 .iter()
                 .find(|(name, _)| *name == rule.head.name)
             {
-                desugar_rule(rule, rec_name, &recursive_names)
+                let precedences = precedences_by_rule[&rule.head.name].clone();
+                desugar_rule(rule, rec_name, &recursive_names, precedences)
             } else {
                 rule
             };
-            update_external_references(rule, &all_desugared)
+            update_external_references(rule, &rules_with_recursive_ends)
         })
         .collect()
 }
 
-/// Finds the nonterminal name that appears at recursive (left/right) ends of a rule's
-/// alternatives. For directly recursive rules this is the head name itself. For indirectly
-/// recursive rules this is a different desugared nonterminal.
-/// Returns `None` if no recursive ends are found.
-fn find_recursive_name(rule: &SyntaxRule, desugared_names: &[String]) -> Option<String> {
-    // Check direct recursion first
+/// For each rule with priority levels, find the nonterminal that appears at
+/// recursive (left/right) ends of its alternatives. See `find_recursive_name`.
+fn compute_recursive_names(
+    syntax_rules: &[SyntaxRule],
+    rules_with_priority_levels: &[String],
+    rules_by_name: &FxHashMap<&str, &SyntaxRule>,
+) -> Vec<(String, String)> {
+    let mut result = Vec::new();
+    for rule in syntax_rules {
+        if !needs_desugaring(rule) {
+            continue;
+        }
+        if let Some(rec_name) = find_recursive_name(rule, rules_with_priority_levels, rules_by_name)
+        {
+            result.push((rule.head.name.clone(), rec_name));
+        }
+    }
+    result
+}
+
+/// Materialize the precedence vector for each rule that gets desugared. Same
+/// shape as `assign_precedence`'s output (`Some(i)` for a priority level with
+/// recursive alternatives, `None` for a non-recursive level), indexed by level
+/// position.
+///
+/// Exclude-derived rules (head.origin = `Symbol::Exclude`) reuse the parent
+/// rule's vector verbatim. They're filtered views of the parent's precedence
+/// cascade rather than standalone cascades, so they must use the same
+/// precedence numbers at the same level positions; otherwise excluded levels
+/// would shift the numbering and recursive calls would pass mismatched `p`
+/// values, producing spurious GSS duplication and false ambiguities at parse
+/// time. Index alignment relies on `exclude_desugaring` keeping empty
+/// placeholder levels for filtered alternatives.
+fn compute_precedences(
+    recursive_names: &[(String, String)],
+    rules_by_name: &FxHashMap<&str, &SyntaxRule>,
+) -> FxHashMap<String, Vec<Option<i64>>> {
+    let mut result = FxHashMap::default();
+    for (rule_name, rec_name) in recursive_names {
+        let rule = rules_by_name[rule_name.as_str()];
+        let levels =
+            parent_priority_levels(rule, rules_by_name).unwrap_or(&rule.priority_levels);
+        result.insert(
+            rule_name.clone(),
+            assign_precedence(levels, rec_name, recursive_names),
+        );
+    }
+    result
+}
+
+/// If `rule` was synthesized by exclude-desugaring (its head's origin is a
+/// `Symbol::Exclude` wrapping an Identifier), return the parent rule's priority
+/// levels. Otherwise `None`.
+fn parent_priority_levels<'a>(
+    rule: &'a SyntaxRule,
+    rules_by_name: &FxHashMap<&str, &'a SyntaxRule>,
+) -> Option<&'a [PriorityLevel]> {
+    let Symbol::Exclude { symbol, .. } = rule.head.origin.as_ref()? else {
+        return None;
+    };
+    let parent_name = symbol.as_identifier()?.name.as_str();
+    Some(&rules_by_name.get(parent_name)?.priority_levels)
+}
+
+/// Finds the nonterminal name that appears at recursive (left/right) ends of a
+/// rule's alternatives. For exclude-derived rules (head.origin = `Exclude`) the
+/// recursive name is inherited from the parent rule, since the derived rule is
+/// a filtered view of the parent's precedence cascade and shares its spine.
+/// For other rules: direct recursion (head name appears at ends) takes
+/// precedence, then indirect recursion (some other rule with priority levels
+/// appears at ends). Returns `None` if no recursive ends are found.
+fn find_recursive_name(
+    rule: &SyntaxRule,
+    rules_with_priority_levels: &[String],
+    rules_by_name: &FxHashMap<&str, &SyntaxRule>,
+) -> Option<String> {
+    if let Some(parent_name) = exclude_parent_name(rule)
+        && let Some(parent_rule) = rules_by_name.get(parent_name)
+    {
+        return find_recursive_name(parent_rule, rules_with_priority_levels, rules_by_name);
+    }
     if has_recursive_ends(rule, &rule.head.name) {
         return Some(rule.head.name.clone());
     }
-    // Check indirect recursion: does any desugared nonterminal appear at left/right ends?
-    for name in desugared_names {
+    for name in rules_with_priority_levels {
         if has_recursive_ends(rule, name) {
             return Some(name.clone());
         }
     }
     None
+}
+
+/// If `rule`'s head was synthesized by exclude-desugaring, return the parent
+/// nonterminal's name (the identifier wrapped by the `Symbol::Exclude` origin).
+fn exclude_parent_name(rule: &SyntaxRule) -> Option<&str> {
+    let Symbol::Exclude { symbol, .. } = rule.head.origin.as_ref()? else {
+        return None;
+    };
+    Some(symbol.as_identifier()?.name.as_str())
 }
 
 /// Returns true if any alternative in the rule has the given nonterminal at a left or right end.
@@ -218,9 +300,9 @@ fn desugar_rule(
     rule: SyntaxRule,
     recursive_name: &str,
     recursive_names: &[(String, String)],
+    precedences: Vec<Option<i64>>,
 ) -> SyntaxRule {
     let head_name = rule.head.name.clone();
-    let precedences = assign_precedence(&rule.priority_levels, recursive_name, recursive_names);
 
     // Find the minimum precedence among prefix (Right-only) alternatives.
     // This determines which alternatives need the min trick.
@@ -563,7 +645,7 @@ fn update_external_references(rule: SyntaxRule, desugared_names: &[String]) -> S
 #[cfg(test)]
 mod tests {
     use crate::{
-        alternative, bind, call, cond, cond_expr,
+        alternative, bind, call, cond, cond_expr, exclude,
         grammar::def::{Grammar, GrammarDef},
         grammar_def, id, left, lit, min, non_assoc, priority_level, ret, right, syntax_rule,
         ternary,
@@ -1189,6 +1271,113 @@ mod tests {
                         lit!("+"),
                         call!("E", 1),
                         ret!(1),
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
+        assert_eq!(actual, expected);
+    }
+
+    /// Exclude inside a precedence cascade. `E!B` synthesizes `E_except_B`, which
+    /// is a *filtered view* of `E`'s cascade: it shares the same precedence
+    /// numbering, just with the `B` alternative removed. The shared alternatives
+    /// (`A`, `C`, `D`) must desugar to the same shape on both sides — including
+    /// the same `pr` values and the same right-side calls — otherwise an
+    /// excluded level would shift the numbering and recursive calls would pass
+    /// mismatched `p` values, producing spurious GSS duplication and false
+    /// ambiguities at parse time.
+    ///
+    ///   E
+    ///     = "a"           #A
+    ///     > E!B "++"      #C
+    ///     > E "+" E       #D
+    ///     > E "-" E       #B
+    ///
+    /// Precedences (bottom = 1):  B = 1, D = 2, C = 3
+    /// In `E_except_B`, the `B` level is kept as an empty placeholder so that
+    /// `D` stays at position 2 (pr = 2) and `C` at position 1 (pr = 3),
+    /// matching `E`'s numbering.
+    #[test]
+    fn test_exclude_inside_precedence_cascade() {
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(
+                        alternative!(lit!("a"); #A)
+                    ),
+                    priority_level!(
+                        alternative!(exclude!(id!("E"), "B"), lit!("++"); #C)
+                    ),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("+"), id!("E"); #D)
+                    ),
+                    priority_level!(
+                        alternative!(id!("E"), lit!("-"), id!("E"); #B)
+                    )
+                ),
+            ]
+        );
+
+        // E(p):
+        //   "a" {0}                                                 #A
+        //   [3>=p] l=E_except_B(p) [l==0||l>=3] "++" {0}            #C
+        //   [2>=p] l=E(p) [l==0||l>=2] "+" E(2) {2}                 #D
+        //   [1>=p] l=E(p) [l==0||l>=1] "-" E(1) {1}                 #B
+        //
+        // E_except_B(p): same as E except the #B alternative is gone.
+        // Crucially #D keeps pr = 2 (calls E(2) on the right), not pr = 1.
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0); #A),
+                    alternative!(
+                        cond!(3 >= "p"),
+                        bind!("l", call!("E_except_B", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 3)),
+                        lit!("++"),
+                        ret!(0);
+                        #C
+                    ),
+                    alternative!(
+                        cond!(2 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!("+"),
+                        call!("E", 2),
+                        ret!(2);
+                        #D
+                    ),
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 1)),
+                        lit!("-"),
+                        call!("E", 1),
+                        ret!(1);
+                        #B
+                    ),
+                )),
+                syntax_rule!("E_except_B"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0); #A),
+                    alternative!(
+                        cond!(3 >= "p"),
+                        bind!("l", call!("E_except_B", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 3)),
+                        lit!("++"),
+                        ret!(0);
+                        #C
+                    ),
+                    alternative!(
+                        cond!(2 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!("+"),
+                        call!("E", 2),
+                        ret!(2);
+                        #D
                     ),
                 )),
             ]

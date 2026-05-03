@@ -43,10 +43,14 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
             .get(nonterminal_name)
             .unwrap_or_else(|| panic!("Nonterminal {} not found for Exclude", nonterminal_name));
 
+        // Keep an empty placeholder for any priority level whose alternatives
+        // are all excluded, so the derived rule's level positions stay aligned
+        // with the parent's. `precedence_desugaring` relies on that alignment
+        // to reuse the parent's precedence numbering for the derived rule.
         let filtered_priority_levels: Vec<PriorityLevel> = original_rule
             .priority_levels
             .iter()
-            .filter_map(|pl| {
+            .map(|pl| {
                 let filtered_alternatives: Vec<_> = pl
                     .alternatives
                     .iter()
@@ -56,19 +60,17 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
                     })
                     .cloned()
                     .collect();
-                if filtered_alternatives.is_empty() {
-                    None
-                } else {
-                    Some(PriorityLevel {
-                        alternatives: filtered_alternatives,
-                        associativity: pl.associativity.clone(),
-                    })
+                PriorityLevel {
+                    alternatives: filtered_alternatives,
+                    associativity: pl.associativity.clone(),
                 }
             })
             .collect();
 
         assert!(
-            !filtered_priority_levels.is_empty(),
+            filtered_priority_levels
+                .iter()
+                .any(|pl| !pl.alternatives.is_empty()),
             "Exclude removed all alternatives from {}",
             nonterminal_name
         );
