@@ -664,6 +664,17 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             _ => self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent),
         }
     }
+    fn add_start_gss_node(
+        &mut self,
+        nonterminal_id: NonterminalId,
+        input_index: u32,
+        gss_node_id: GssNodeId,
+    ) {
+        match nonterminal_id {
+            NonterminalId(1) => self.add_gss_node_e(input_index, 0, gss_node_id),
+            _ => self.add_gss_node(nonterminal_id, input_index, gss_node_id),
+        }
+    }
     fn new_env(&mut self) -> (EnvId, &mut Env) {
         let id = EnvId(self.envs.len() as u32);
         self.envs.push(Env::default());

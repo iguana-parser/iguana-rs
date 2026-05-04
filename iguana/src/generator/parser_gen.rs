@@ -89,6 +89,7 @@ impl<'a> ParserGen<'a> {
         let start_nonterminal_method = Self::gen_start_nonterminal_method();
         let start_env_method = self.gen_start_env_method();
         let lookup_start_nonterminal_node_method = self.gen_lookup_start_nonterminal_node_method();
+        let add_start_gss_node_method = self.gen_add_start_gss_node_method();
         let new_env_method = Self::gen_new_env_method();
         let lookup_method = Self::gen_lookup_method();
         let clone_env_method = Self::gen_clone_env();
@@ -138,6 +139,7 @@ impl<'a> ParserGen<'a> {
                 #start_nonterminal_method
                 #start_env_method
                 #lookup_start_nonterminal_node_method
+                #add_start_gss_node_method
                 #new_env_method
                 #lookup_method
                 #clone_env_method
@@ -2014,15 +2016,19 @@ impl<'a> ParserGen<'a> {
                 }
             })
             .collect();
-        if arms.is_empty() {
-            return quote! {};
-        }
-        quote! {
-            fn start_env(&mut self) -> Option<EnvId> {
+        let body = if arms.is_empty() {
+            quote! { None }
+        } else {
+            quote! {
                 match self.start_nonterminal {
                     #(#arms)*
                     _ => None,
                 }
+            }
+        };
+        quote! {
+            fn start_env(&mut self) -> Option<EnvId> {
+                #body
             }
         }
     }
@@ -2048,15 +2054,59 @@ impl<'a> ParserGen<'a> {
                 }
             })
             .collect();
-        if arms.is_empty() {
-            return quote! {};
-        }
-        quote! {
-            fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
+        let body = if arms.is_empty() {
+            quote! { self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent) }
+        } else {
+            quote! {
                 match self.start_nonterminal {
                     #(#arms)*
                     _ => self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent),
                 }
+            }
+        };
+        quote! {
+            fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
+                #body
+            }
+        }
+    }
+
+    // Routes the start GSS node into the per-nonterminal index for data-dependent
+    // nonterminals. Recursive callers read from `gss_nodes_index_<name>` keyed by
+    // parameter values, so the start node has to live in the same specialized index
+    // or a duplicate gets created on the first recursive call. Parameters are bound
+    // to 0, matching `gen_start_env_method`.
+    fn gen_add_start_gss_node_method(&self) -> TokenStream {
+        let arms: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(|nt| {
+                let id = self.nonterminal_ids.get_id(nt);
+                let method_name = format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
+                let zeros: Vec<_> = nt.parameters.iter().map(|_| quote! { 0 }).collect();
+                quote! {
+                    #id => self.#method_name(input_index, #(#zeros,)* gss_node_id),
+                }
+            })
+            .collect();
+        let body = if arms.is_empty() {
+            quote! { self.add_gss_node(nonterminal_id, input_index, gss_node_id); }
+        } else {
+            quote! {
+                match nonterminal_id {
+                    #(#arms)*
+                    _ => self.add_gss_node(nonterminal_id, input_index, gss_node_id),
+                }
+            }
+        };
+        quote! {
+            fn add_start_gss_node(
+                &mut self,
+                nonterminal_id: NonterminalId,
+                input_index: u32,
+                gss_node_id: GssNodeId,
+            ) {
+                #body
             }
         }
     }

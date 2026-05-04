@@ -355,6 +355,20 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
     fn start_nonterminal(&self) -> NonterminalId {
         self.start_nonterminal
     }
+    fn start_env(&mut self) -> Option<EnvId> {
+        None
+    }
+    fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
+        self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent)
+    }
+    fn add_start_gss_node(
+        &mut self,
+        nonterminal_id: NonterminalId,
+        input_index: u32,
+        gss_node_id: GssNodeId,
+    ) {
+        self.add_gss_node(nonterminal_id, input_index, gss_node_id);
+    }
     fn new_env(&mut self) -> (EnvId, &mut Env) {
         let id = EnvId(self.envs.len() as u32);
         self.envs.push(Env::default());
