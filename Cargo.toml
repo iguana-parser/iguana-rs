@@ -19,6 +19,7 @@ members = [
     "iggy",
     "iguana-lsp",
     "xtask",
+    "tests/longest_match",
     "tests/assoc_test",
     "tests/binary_expression_priority",
     "tests/comments",

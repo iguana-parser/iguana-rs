@@ -7420,85 +7420,94 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_layout_def_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_LAYOUT_DEF_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(11), start, SlotId(9), None, "\"layout\"")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(10),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(1), start, SlotId(11), None, "Identifier")?;
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
+        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_DEF, i)?;
+        match matched {
+            TerminalId(11) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(11), start, SlotId(9), None, "\"layout\"")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(10),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(1), start, SlotId(11), None, "Identifier")?;
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(11),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(1),
                     SlotId(11),
                     left_extent,
                     j,
                     current,
-                    right_child,
                     false,
-                )
-                .unwrap();
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(1),
-                SlotId(11),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            None
+                ));
+            }
+            _ => None,
         }
     }
     fn parse_annotation_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_ANNOTATION_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(14), start, SlotId(25), None, "\"@NoLayout\"")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(4),
-                SlotId(25),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self.scanner.match_any(PREDICTION_SET_ANNOTATION_ALT1, i) {
+        let matched = self.scanner.longest_match(FIRST_SET_ANNOTATION, i)?;
+        match matched {
+            TerminalId(14) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(
+                        TerminalId(14),
+                        start,
+                        SlotId(25),
+                        None,
+                        "\"@NoLayout\"",
+                    )?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(4),
+                    SlotId(25),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            TerminalId(15) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -7624,157 +7633,148 @@ impl<'i> IggyParser<'i> {
                     current,
                     false,
                 ));
-            } else {
-                if self.scanner.match_any(PREDICTION_SET_ANNOTATION_ALT2, i) {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.match_terminal(
-                            TerminalId(18),
-                            start,
-                            SlotId(35),
-                            None,
-                            "\"@Start\"",
-                        )?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = self.sppf_node(right_child).left_extent();
-                    let mut current = right_child;
-                    return Some(self.get_or_create_nonterminal_node(
-                        NonterminalId(4),
-                        SlotId(35),
-                        left_extent,
-                        j,
-                        current,
-                        false,
-                    ));
-                } else {
-                    None
-                }
             }
-        }
-    }
-    fn parse_pre_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_PRE_CONDITION_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(1), start, SlotId(49), None, "Identifier")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(50),
+            TerminalId(18) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(18), start, SlotId(35), None, "\"@Start\"")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(4),
+                    SlotId(35),
                     left_extent,
                     j,
                     current,
-                    right_child,
                     false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(21), start, SlotId(51), None, "\"!<<\"")?;
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
+                ));
+            }
+            _ => None,
+        }
+    }
+    fn parse_pre_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        let matched = self.scanner.longest_match(FIRST_SET_PRE_CONDITION, i)?;
+        match matched {
+            TerminalId(1) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(1), start, SlotId(49), None, "Identifier")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(50),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(21), start, SlotId(51), None, "\"!<<\"")?;
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(51),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(6),
                     SlotId(51),
                     left_extent,
                     j,
                     current,
-                    right_child,
                     false,
-                )
-                .unwrap();
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(6),
-                SlotId(51),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            None
+                ));
+            }
+            _ => None,
         }
     }
     fn parse_post_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(PREDICTION_SET_POST_CONDITION_ALT0, i)
-        {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(22), start, SlotId(53), None, "\"\\\"")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(54),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(1), start, SlotId(55), None, "Identifier")?;
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
+        let matched = self.scanner.longest_match(FIRST_SET_POST_CONDITION, i)?;
+        match matched {
+            TerminalId(22) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(22), start, SlotId(53), None, "\"\\\"")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(54),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(1), start, SlotId(55), None, "Identifier")?;
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(55),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(7),
                     SlotId(55),
                     left_extent,
                     j,
                     current,
-                    right_child,
                     false,
-                )
-                .unwrap();
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(7),
-                SlotId(55),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self
-                .scanner
-                .match_any(PREDICTION_SET_POST_CONDITION_ALT1, i)
-            {
+                ));
+            }
+            TerminalId(23) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -7827,33 +7827,34 @@ impl<'i> IggyParser<'i> {
                     current,
                     false,
                 ));
-            } else {
-                None
             }
+            _ => None,
         }
     }
     fn parse_associativity_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_ASSOCIATIVITY_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(24), start, SlotId(65), None, "\"left\"")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(9),
-                SlotId(65),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self.scanner.match_any(PREDICTION_SET_ASSOCIATIVITY_ALT1, i) {
+        let matched = self.scanner.longest_match(FIRST_SET_ASSOCIATIVITY, i)?;
+        match matched {
+            TerminalId(24) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(24), start, SlotId(65), None, "\"left\"")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(9),
+                    SlotId(65),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            TerminalId(25) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -7872,179 +7873,186 @@ impl<'i> IggyParser<'i> {
                     current,
                     false,
                 ));
-            } else {
-                if self.scanner.match_any(PREDICTION_SET_ASSOCIATIVITY_ALT2, i) {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.match_terminal(
-                            TerminalId(26),
-                            start,
-                            SlotId(69),
-                            None,
-                            "\"none\"",
-                        )?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = self.sppf_node(right_child).left_extent();
-                    let mut current = right_child;
-                    return Some(self.get_or_create_nonterminal_node(
-                        NonterminalId(9),
-                        SlotId(69),
-                        left_extent,
-                        j,
-                        current,
-                        false,
-                    ));
-                } else {
-                    None
-                }
             }
+            TerminalId(26) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(26), start, SlotId(69), None, "\"none\"")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(9),
+                    SlotId(69),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            _ => None,
         }
     }
     fn parse_range_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_RANGE_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(5), start, SlotId(221), None, "RangeChar")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(222),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(36), start, SlotId(223), None, "\"-\"")?;
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(223),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(224),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(5), start, SlotId(225), None, "RangeChar")?;
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
+        let matched = self.scanner.longest_match(FIRST_SET_RANGE, i)?;
+        match matched {
+            TerminalId(5) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(5), start, SlotId(221), None, "RangeChar")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(222),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(36), start, SlotId(223), None, "\"-\"")?;
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(223),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(224),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(5), start, SlotId(225), None, "RangeChar")?;
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(225),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(14),
                     SlotId(225),
                     left_extent,
                     j,
                     current,
-                    right_child,
                     false,
-                )
-                .unwrap();
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(14),
-                SlotId(225),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            None
+                ));
+            }
+            _ => None,
         }
     }
     fn parse_layout_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_LAYOUT_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_star_6_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                if let Some(error_kind) = self.post_conditions(SlotId(227), start, end) {
-                    self.add_parse_error(end, SlotId(227), None, error_kind);
-                    return None;
-                }
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(15),
-                SlotId(227),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            None
+        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT, i)?;
+        match matched {
+            TerminalId(24) | TerminalId(18) | TerminalId(34) | TerminalId(31) | TerminalId(33)
+            | TerminalId(6) | TerminalId(22) | TerminalId(1) | TerminalId(32) | TerminalId(21)
+            | TerminalId(23) | TerminalId(25) | TerminalId(19) | TerminalId(3) | TerminalId(14)
+            | TerminalId(20) | TerminalId(36) | TerminalId(28) | TerminalId(9) | TerminalId(26)
+            | TerminalId(35) | TerminalId(7) | TerminalId(12) | TerminalId(29) | TerminalId(5)
+            | TerminalId(38) | TerminalId(16) | TerminalId(15) | TerminalId(17)
+            | TerminalId(11) | TerminalId(2) | TerminalId(27) | TerminalId(30) | TerminalId(10)
+            | TerminalId(13) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_star_6_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    if let Some(error_kind) = self.post_conditions(SlotId(227), start, end) {
+                        self.add_parse_error(end, SlotId(227), None, error_kind);
+                        return None;
+                    }
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(15),
+                    SlotId(227),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            _ => None,
         }
     }
     fn parse_grammar_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_GRAMMAR_OPT_0_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_def_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(16),
-                SlotId(229),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self.scanner.match_any(PREDICTION_SET_GRAMMAR_OPT_0_ALT1, i) {
+        let matched = self.scanner.longest_match(FIRST_SET_GRAMMAR_OPT_0, i)?;
+        match matched {
+            TerminalId(11) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_def_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(16),
+                    SlotId(229),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            TerminalId(19) | TerminalId(18) | TerminalId(14) | TerminalId(38) | TerminalId(1)
+            | TerminalId(15) | TerminalId(9) | TerminalId(7) => {
                 let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
                 return Some(self.get_or_create_nonterminal_node(
                     NonterminalId(16),
@@ -8054,9 +8062,8 @@ impl<'i> IggyParser<'i> {
                     epsilon_node_id,
                     false,
                 ));
-            } else {
-                None
             }
+            _ => None,
         }
     }
     fn parse_syntax_rule_plus_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -8121,33 +8128,29 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_syntax_rule_opt_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(PREDICTION_SET_SYNTAX_RULE_OPT_2_ALT0, i)
-        {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let node = self.parse_syntax_rule_plus_1_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(21),
-                SlotId(249),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self
-                .scanner
-                .match_any(PREDICTION_SET_SYNTAX_RULE_OPT_2_ALT1, i)
-            {
+        let matched = self.scanner.longest_match(FIRST_SET_SYNTAX_RULE_OPT_2, i)?;
+        match matched {
+            TerminalId(15) | TerminalId(18) | TerminalId(14) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_syntax_rule_plus_1_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(21),
+                    SlotId(249),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            TerminalId(38) | TerminalId(1) | TerminalId(9) | TerminalId(7) => {
                 let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
                 return Some(self.get_or_create_nonterminal_node(
                     NonterminalId(21),
@@ -8157,36 +8160,37 @@ impl<'i> IggyParser<'i> {
                     epsilon_node_id,
                     false,
                 ));
-            } else {
-                None
             }
+            _ => None,
         }
     }
     fn parse_syntax_rule_star_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
+        let matched = self
             .scanner
-            .match_any(PREDICTION_SET_SYNTAX_RULE_STAR_1_ALT0, i)
-        {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let node = self.parse_syntax_rule_opt_2_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(22),
-                SlotId(252),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            None
+            .longest_match(FIRST_SET_SYNTAX_RULE_STAR_1, i)?;
+        match matched {
+            TerminalId(7) | TerminalId(18) | TerminalId(1) | TerminalId(14) | TerminalId(15)
+            | TerminalId(9) | TerminalId(38) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_syntax_rule_opt_2_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(22),
+                    SlotId(252),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            _ => None,
         }
     }
     fn parse_regex_rule_plus_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -8251,33 +8255,30 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_regex_rule_opt_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(PREDICTION_SET_REGEX_RULE_OPT_5_ALT0, i)
-        {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let node = self.parse_regex_rule_plus_5_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(30),
-                SlotId(290),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self
-                .scanner
-                .match_any(PREDICTION_SET_REGEX_RULE_OPT_5_ALT1, i)
-            {
+        let matched = self.scanner.longest_match(FIRST_SET_REGEX_RULE_OPT_5, i)?;
+        match matched {
+            TerminalId(22) | TerminalId(23) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_regex_rule_plus_5_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(30),
+                    SlotId(290),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            TerminalId(19) | TerminalId(18) | TerminalId(14) | TerminalId(38) | TerminalId(1)
+            | TerminalId(15) | TerminalId(9) | TerminalId(7) => {
                 let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
                 return Some(self.get_or_create_nonterminal_node(
                     NonterminalId(30),
@@ -8287,66 +8288,65 @@ impl<'i> IggyParser<'i> {
                     epsilon_node_id,
                     false,
                 ));
-            } else {
-                None
             }
+            _ => None,
         }
     }
     fn parse_regex_rule_star_3_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(PREDICTION_SET_REGEX_RULE_STAR_3_ALT0, i)
-        {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let node = self.parse_regex_rule_opt_5_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(31),
-                SlotId(293),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            None
+        let matched = self.scanner.longest_match(FIRST_SET_REGEX_RULE_STAR_3, i)?;
+        match matched {
+            TerminalId(19) | TerminalId(18) | TerminalId(14) | TerminalId(38) | TerminalId(22)
+            | TerminalId(1) | TerminalId(15) | TerminalId(23) | TerminalId(9) | TerminalId(7) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_regex_rule_opt_5_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(31),
+                    SlotId(293),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            _ => None,
         }
     }
     fn parse_priority_level_opt_6_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
+        let matched = self
             .scanner
-            .match_any(PREDICTION_SET_PRIORITY_LEVEL_OPT_6_ALT0, i)
-        {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let node = self.parse_associativity_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(32),
-                SlotId(295),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self
-                .scanner
-                .match_any(PREDICTION_SET_PRIORITY_LEVEL_OPT_6_ALT1, i)
-            {
+            .longest_match(FIRST_SET_PRIORITY_LEVEL_OPT_6, i)?;
+        match matched {
+            TerminalId(24) | TerminalId(25) | TerminalId(26) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_associativity_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(32),
+                    SlotId(295),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            TerminalId(13) | TerminalId(18) | TerminalId(19) | TerminalId(2) | TerminalId(14)
+            | TerminalId(6) | TerminalId(20) | TerminalId(38) | TerminalId(27) | TerminalId(1)
+            | TerminalId(16) | TerminalId(15) | TerminalId(9) | TerminalId(7) => {
                 let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
                 return Some(self.get_or_create_nonterminal_node(
                     NonterminalId(32),
@@ -8356,39 +8356,35 @@ impl<'i> IggyParser<'i> {
                     epsilon_node_id,
                     false,
                 ));
-            } else {
-                None
             }
+            _ => None,
         }
     }
     fn parse_alternative_opt_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(PREDICTION_SET_ALTERNATIVE_OPT_9_ALT0, i)
-        {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(6), start, SlotId(322), None, "Label")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(39),
-                SlotId(322),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self
-                .scanner
-                .match_any(PREDICTION_SET_ALTERNATIVE_OPT_9_ALT1, i)
-            {
+        let matched = self.scanner.longest_match(FIRST_SET_ALTERNATIVE_OPT_9, i)?;
+        match matched {
+            TerminalId(6) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(6), start, SlotId(322), None, "Label")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(39),
+                    SlotId(322),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            TerminalId(13) | TerminalId(19) | TerminalId(18) | TerminalId(14) | TerminalId(20)
+            | TerminalId(38) | TerminalId(1) | TerminalId(15) | TerminalId(9) | TerminalId(7) => {
                 let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
                 return Some(self.get_or_create_nonterminal_node(
                     NonterminalId(39),
@@ -8398,70 +8394,68 @@ impl<'i> IggyParser<'i> {
                     epsilon_node_id,
                     false,
                 ));
-            } else {
-                None
             }
+            _ => None,
         }
     }
     fn parse_symbol_group_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(PREDICTION_SET_SYMBOL_GROUP_1_ALT0, i)
-        {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(22), start, SlotId(335), None, "\"\\\"")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(336),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(1), start, SlotId(337), None, "Identifier")?;
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
+        let matched = self.scanner.longest_match(FIRST_SET_SYMBOL_GROUP_1, i)?;
+        match matched {
+            TerminalId(22) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(22), start, SlotId(335), None, "\"\\\"")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(336),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(1), start, SlotId(337), None, "Identifier")?;
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(337),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(42),
                     SlotId(337),
                     left_extent,
                     j,
                     current,
-                    right_child,
                     false,
-                )
-                .unwrap();
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(42),
-                SlotId(337),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            None
+                ));
+            }
+            _ => None,
         }
     }
     fn parse_symbol_plus_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -8526,64 +8520,63 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_symbol_group_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(PREDICTION_SET_SYMBOL_GROUP_2_ALT0, i)
-        {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(23), start, SlotId(345), None, "\"!>>\"")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(346),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(1), start, SlotId(347), None, "Identifier")?;
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
+        let matched = self.scanner.longest_match(FIRST_SET_SYMBOL_GROUP_2, i)?;
+        match matched {
+            TerminalId(23) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(23), start, SlotId(345), None, "\"!>>\"")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(346),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(1), start, SlotId(347), None, "Identifier")?;
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(347),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(44),
                     SlotId(347),
                     left_extent,
                     j,
                     current,
-                    right_child,
                     false,
-                )
-                .unwrap();
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(44),
-                SlotId(347),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            None
+                ));
+            }
+            _ => None,
         }
     }
     fn parse_symbol_plus_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -8648,64 +8641,63 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_symbol_group_3_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(PREDICTION_SET_SYMBOL_GROUP_3_ALT0, i)
-        {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(32), start, SlotId(355), None, "\"!\"")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(356),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(1), start, SlotId(357), None, "Identifier")?;
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
+        let matched = self.scanner.longest_match(FIRST_SET_SYMBOL_GROUP_3, i)?;
+        match matched {
+            TerminalId(32) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(32), start, SlotId(355), None, "\"!\"")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(356),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(1), start, SlotId(357), None, "Identifier")?;
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(357),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(46),
                     SlotId(357),
                     left_extent,
                     j,
                     current,
-                    right_child,
                     false,
-                )
-                .unwrap();
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(46),
-                SlotId(357),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            None
+                ));
+            }
+            _ => None,
         }
     }
     fn parse_symbol_plus_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -8770,33 +8762,29 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_char_class_opt_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self
-            .scanner
-            .match_any(PREDICTION_SET_CHAR_CLASS_OPT_10_ALT0, i)
-        {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(32), start, SlotId(375), None, "\"!\"")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(50),
-                SlotId(375),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self
-                .scanner
-                .match_any(PREDICTION_SET_CHAR_CLASS_OPT_10_ALT1, i)
-            {
+        let matched = self.scanner.longest_match(FIRST_SET_CHAR_CLASS_OPT_10, i)?;
+        match matched {
+            TerminalId(32) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(32), start, SlotId(375), None, "\"!\"")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(50),
+                    SlotId(375),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            TerminalId(34) | TerminalId(7) | TerminalId(9) | TerminalId(38) => {
                 let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
                 return Some(self.get_or_create_nonterminal_node(
                     NonterminalId(50),
@@ -8806,33 +8794,34 @@ impl<'i> IggyParser<'i> {
                     epsilon_node_id,
                     false,
                 ));
-            } else {
-                None
             }
+            _ => None,
         }
     }
     fn parse_layout_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_LAYOUT_ALT_0_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(7), start, SlotId(384), None, "WS")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(52),
-                SlotId(384),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self.scanner.match_any(PREDICTION_SET_LAYOUT_ALT_0_ALT1, i) {
+        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_ALT_0, i)?;
+        match matched {
+            TerminalId(7) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(7), start, SlotId(384), None, "WS")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(52),
+                    SlotId(384),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            TerminalId(9) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -8856,9 +8845,8 @@ impl<'i> IggyParser<'i> {
                     current,
                     false,
                 ));
-            } else {
-                None
             }
+            _ => None,
         }
     }
     fn parse_layout_plus_14_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -8907,27 +8895,35 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_layout_opt_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_LAYOUT_OPT_11_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_plus_14_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(54),
-                SlotId(393),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self.scanner.match_any(PREDICTION_SET_LAYOUT_OPT_11_ALT1, i) {
+        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_OPT_11, i)?;
+        match matched {
+            TerminalId(9) | TerminalId(7) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_plus_14_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(54),
+                    SlotId(393),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            TerminalId(24) | TerminalId(18) | TerminalId(34) | TerminalId(31) | TerminalId(33)
+            | TerminalId(6) | TerminalId(22) | TerminalId(1) | TerminalId(32) | TerminalId(21)
+            | TerminalId(23) | TerminalId(25) | TerminalId(19) | TerminalId(3) | TerminalId(14)
+            | TerminalId(20) | TerminalId(36) | TerminalId(28) | TerminalId(26)
+            | TerminalId(35) | TerminalId(12) | TerminalId(29) | TerminalId(5) | TerminalId(38)
+            | TerminalId(16) | TerminalId(15) | TerminalId(17) | TerminalId(11) | TerminalId(2)
+            | TerminalId(27) | TerminalId(30) | TerminalId(10) | TerminalId(13) => {
                 let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
                 return Some(self.get_or_create_nonterminal_node(
                     NonterminalId(54),
@@ -8937,33 +8933,41 @@ impl<'i> IggyParser<'i> {
                     epsilon_node_id,
                     false,
                 ));
-            } else {
-                None
             }
+            _ => None,
         }
     }
     fn parse_layout_star_6_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_LAYOUT_STAR_6_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let node = self.parse_layout_opt_11_ll1(start)?;
-                let end = self.sppf_node(node).right_extent();
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(55),
-                SlotId(396),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            None
+        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_STAR_6, i)?;
+        match matched {
+            TerminalId(24) | TerminalId(18) | TerminalId(34) | TerminalId(31) | TerminalId(33)
+            | TerminalId(6) | TerminalId(22) | TerminalId(1) | TerminalId(32) | TerminalId(21)
+            | TerminalId(23) | TerminalId(25) | TerminalId(19) | TerminalId(3) | TerminalId(14)
+            | TerminalId(20) | TerminalId(36) | TerminalId(28) | TerminalId(9) | TerminalId(26)
+            | TerminalId(35) | TerminalId(7) | TerminalId(12) | TerminalId(29) | TerminalId(5)
+            | TerminalId(38) | TerminalId(16) | TerminalId(15) | TerminalId(17)
+            | TerminalId(11) | TerminalId(2) | TerminalId(27) | TerminalId(30) | TerminalId(10)
+            | TerminalId(13) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let node = self.parse_layout_opt_11_ll1(start)?;
+                    let end = self.sppf_node(node).right_extent();
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(55),
+                    SlotId(396),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            _ => None,
         }
     }
     fn get_gss_node_symbol(&self, input_index: u32, p: i32) -> Option<GssNodeId> {

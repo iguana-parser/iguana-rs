@@ -1066,51 +1066,69 @@ impl<'a> ParserGen<'a> {
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
         let alternatives = self.grammar.alternatives(nonterminal);
         let nt_upper = self.prediction_set_name(nonterminal);
-        // Build if-else if-else chain. The final else just returns None
-        // without recording an error as the caller decides whether to record an error.
-        let mut chain = quote! {
-            None
-        };
+        let first_set_name = format_ident!("FIRST_SET_{}", nt_upper);
 
-        for (alt_index, alternative) in alternatives.iter().enumerate().rev() {
-            let condition = self.gen_match_any(
-                &format!("PREDICTION_SET_{}_ALT{}", nt_upper, alt_index),
-                quote! { i },
-            );
-            let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
-            let end_slot_id = self.slot_ids.get_id(&end_slot);
+        // Each LL(1) alternative becomes a match arm keyed by the terminals
+        // in its prediction set. The dispatch key is the longest-matching
+        // terminal at position `i` across the union of prediction sets.
+        // Longest match disambiguates literals that share a prefix — e.g.,
+        // `"<"` vs `"<="` — and any other operational overlap between
+        // terminals (regex/literal). Disjoint prediction sets at the
+        // terminal level (an LL(1) precondition) guarantee no two arms
+        // claim the same terminal.
+        let arms: Vec<_> = alternatives
+            .iter()
+            .map(|alternative| {
+                let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
+                let end_slot_id = self.slot_ids.get_id(&end_slot);
 
-            let body = if alternative.symbols.is_empty() {
-                let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
-                quote! {
-                    let epsilon_node_id = self.get_or_create_terminal_node(
-                        TerminalId(#epsilon_id), i, i,
-                    );
-                    return Some(self.get_or_create_nonterminal_node(
-                        #nonterminal_id, #end_slot_id, i, i, epsilon_node_id, false,
-                    ));
-                }
-            } else {
-                self.gen_parse_alternative_ll1(
-                    nonterminal,
-                    alternative,
-                    nonterminal_id,
-                    end_slot_id,
-                )
-            };
-
-            chain = quote! {
-                if #condition {
-                    #body
+                let body = if alternative.symbols.is_empty() {
+                    let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
+                    quote! {
+                        let epsilon_node_id = self.get_or_create_terminal_node(
+                            TerminalId(#epsilon_id), i, i,
+                        );
+                        return Some(self.get_or_create_nonterminal_node(
+                            #nonterminal_id, #end_slot_id, i, i, epsilon_node_id, false,
+                        ));
+                    }
                 } else {
-                    #chain
+                    self.gen_parse_alternative_ll1(
+                        nonterminal,
+                        alternative,
+                        nonterminal_id,
+                        end_slot_id,
+                    )
+                };
+
+                let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
+                let pred_patterns: Vec<_> = self
+                    .ff
+                    .prediction_set(nonterminal, alternative)
+                    .iter()
+                    .map(|t| {
+                        if t.name == "EOF" {
+                            quote! { TerminalId(#eof_id) }
+                        } else {
+                            let id = self.terminal_ids.get_id(t);
+                            quote! { #id }
+                        }
+                    })
+                    .collect();
+
+                quote! {
+                    #(#pred_patterns)|* => { #body }
                 }
-            };
-        }
+            })
+            .collect();
 
         quote! {
             fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
-                #chain
+                let matched = self.scanner.longest_match(#first_set_name, i)?;
+                match matched {
+                    #(#arms)*
+                    _ => None,
+                }
             }
         }
     }

@@ -544,61 +544,63 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_S_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(3), start, SlotId(1), None, "\"for\"")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(2), start, SlotId(2), None, "WS")?;
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(2),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                    false,
-                )
-                .unwrap();
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(0), start, SlotId(3), None, "Id")?;
-                j = end;
-                node
-            };
-            current = self
-                .get_or_create_intermediate_node(
+        let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
+        match matched {
+            TerminalId(3) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(3), start, SlotId(1), None, "\"for\"")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(2), start, SlotId(2), None, "WS")?;
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(2),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(0), start, SlotId(3), None, "Id")?;
+                    j = end;
+                    node
+                };
+                current = self
+                    .get_or_create_intermediate_node(
+                        SlotId(3),
+                        left_extent,
+                        j,
+                        current,
+                        right_child,
+                        false,
+                    )
+                    .unwrap();
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(0),
                     SlotId(3),
                     left_extent,
                     j,
                     current,
-                    right_child,
                     false,
-                )
-                .unwrap();
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(0),
-                SlotId(3),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            if self.scanner.match_any(PREDICTION_SET_S_ALT1, i) {
+                ));
+            }
+            TerminalId(4) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -617,9 +619,8 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                     current,
                     false,
                 ));
-            } else {
-                None
             }
+            _ => None,
         }
     }
 }

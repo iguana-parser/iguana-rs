@@ -1,0 +1,5 @@
+grammar LongestMatch
+
+S = X "x"
+
+X = "<" | "<="

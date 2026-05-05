@@ -17,6 +17,25 @@ pub trait Scanner {
             .iter()
             .any(|id| self.match_token(*id, input_index).is_some())
     }
+    /// Returns the terminal that produces the longest match at `input_index`,
+    /// or `None` if none of the given terminals match.
+    fn longest_match(
+        &self,
+        terminal_ids: &[TerminalId],
+        input_index: u32,
+    ) -> Option<TerminalId> {
+        let mut terminal_id = None;
+        let mut longest_match = 0;
+        for &id in terminal_ids {
+            if let Some(end) = self.match_token(id, input_index) {
+                if terminal_id.is_none() || end > longest_match {
+                    terminal_id = Some(id);
+                    longest_match = end;
+                }
+            }
+        }
+        terminal_id
+    }
     fn char_at(&self, i: u32) -> Option<char>;
     fn match_char(&self, i: u32, c: char) -> Option<u32> {
         let ch = self.char_at(i)?;

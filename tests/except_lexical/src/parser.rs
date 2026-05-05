@@ -487,27 +487,29 @@ impl<'i> ExceptLexicalParser<'i> {
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        if self.scanner.match_any(PREDICTION_SET_S_ALT0, i) {
-            let mut j = i;
-            let right_child = {
-                let start = j;
-                let (end, node) =
-                    self.match_terminal(TerminalId(1), start, SlotId(1), None, "Identifier")?;
-                j = end;
-                node
-            };
-            let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
-            return Some(self.get_or_create_nonterminal_node(
-                NonterminalId(0),
-                SlotId(1),
-                left_extent,
-                j,
-                current,
-                false,
-            ));
-        } else {
-            None
+        let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
+        match matched {
+            TerminalId(1) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(1), start, SlotId(1), None, "Identifier")?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                return Some(self.get_or_create_nonterminal_node(
+                    NonterminalId(0),
+                    SlotId(1),
+                    left_extent,
+                    j,
+                    current,
+                    false,
+                ));
+            }
+            _ => None,
         }
     }
 }
