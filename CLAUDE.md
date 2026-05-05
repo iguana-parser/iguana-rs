@@ -42,8 +42,9 @@ When doing bootstrapping, we need to always run it twice to ensure stability.
 
 Tests live in `tests/<name>/`, each with a `.iggy` grammar, generated `src/`, `tests.rs`, and golden files in `parse_trees/`.
 
-- `cargo xtask test-new <name>` — scaffold a new test
-- `cargo xtask test-gen <name>` — regenerate one test parser
+- `cargo xtask test-new <name>` — scaffold a new test (dir + stub `.iggy` + `parse_trees/`). Pure scaffolding; does not run the generator and does not register the crate in the workspace.
+- `cargo xtask test-gen <name>` — run the generator, write `Cargo.toml`/`src/`, write `tests.rs` (only if missing; based on `@Start` in the grammar), and add the crate to the workspace
+- `cargo xtask test-gen-all` — run `test-gen` on every test that has a grammar file
 - `REGENERATE=1 cargo test -p <name>` — update golden files
 
 Tests use s-expression golden file comparison via `check_golden_file`.

@@ -1896,6 +1896,8 @@ version = "0.0.0"
 dependencies = [
  "clap",
  "iguana",
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]

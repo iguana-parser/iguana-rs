@@ -27,6 +27,9 @@ dhat-heap = []
 debug-trace = ["iguana-runtime/debug-trace"]
 profile = ["pprof"]
 instrument = ["iguana-runtime/instrument"]
+
+[profile.release]
+debug = true
     "#,
         to_snake_case(grammar_name)
     )

@@ -7,11 +7,13 @@ use std::{
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    generator::{GenConfig, GenerateResult, generate_scaffold, generate_sources},
+    generator::{GenConfig, GenerateResult, generate_scaffold, generate_sources, post_process},
     grammar::def::Grammar,
     iggy::parse_grammar,
-    utils::to_pascal_case,
+    utils::{to_pascal_case, to_snake_case},
 };
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::quote;
 
 #[derive(Parser)]
 #[command(name = "xtask", about = "Iguana dev commands")]
@@ -63,7 +65,7 @@ fn main() -> io::Result<()> {
 fn bootstrap() -> io::Result<()> {
     let iggy_dir = workspace_root().join("iggy");
     let grammar_file = iggy_dir.join("iggy.iggy");
-    let result = regenerate(&grammar_file, &iggy_dir)?;
+    let (result, _) = regenerate(&grammar_file, &iggy_dir)?;
     println!("Generated iggy grammar in {} ms", result.total_duration_ms);
     Ok(())
 }
@@ -72,71 +74,18 @@ fn test_new(name: &str) -> io::Result<()> {
     let test_dir = workspace_root().join("tests").join(name);
     let grammar_name = to_pascal_case(name);
     let grammar_file = test_dir.join(format!("{name}.iggy"));
-    let cargo_toml = test_dir.join("Cargo.toml");
-    let tests_rs = test_dir.join("tests.rs");
+    let parse_trees = test_dir.join("parse_trees");
 
-    if !test_dir.exists() {
-        fs::create_dir_all(&test_dir)?;
+    fs::create_dir_all(&test_dir)?;
+    fs::create_dir_all(&parse_trees)?;
+    if !grammar_file.exists() {
         fs::write(&grammar_file, format!("grammar {grammar_name}\n"))?;
         println!("Created grammar: {}", grammar_file.display());
     }
 
-    let result = regenerate(&grammar_file, &test_dir)?;
-    println!(
-        "Generated {name} grammar in {} ms",
-        result.total_duration_ms
-    );
-
-    fs::create_dir_all(test_dir.join("parse_trees"))?;
-
-    let cargo_content = fs::read_to_string(&cargo_toml)?;
-    if !cargo_content.contains("[[test]]") {
-        let updated = cargo_content.replace(
-            "[features]",
-            "[[test]]\nname = \"tests\"\npath = \"tests.rs\"\n\n[features]",
-        );
-        fs::write(&cargo_toml, updated)?;
-    }
-
-    if !tests_rs.exists() {
-        let tests_content = format!(
-            r#"// To regenerate parser:  cargo xtask test-gen {name}
-// To update golden files: REGENERATE=1 cargo test -p {name}
-
-use {name}::{{parse, parse_tree::to_sexpr}};
-use iguana_runtime::{{input::Input, testing::{{check_golden_file, golden_path}}}};
-
-fn check(start_nonterminal: &str, input: &str, test_name: &str) {{
-    let input = Input::from(input);
-    let tree = parse(&input, start_nonterminal).expect("Parse failed");
-    let actual = to_sexpr(tree.as_parse_tree_ref());
-    check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
-}}
-
-#[test]
-fn test_example() {{
-    // check("Start", "input", "example");
-}}
-"#,
-            name = name
-        );
-        fs::write(&tests_rs, tests_content)?;
-    }
-
-    let workspace_cargo = workspace_root().join("Cargo.toml");
-    let content = fs::read_to_string(&workspace_cargo)?;
-    let member_entry = format!("\"tests/{name}\"");
-    if !content.contains(&member_entry) {
-        let new_content = content.replace(
-            "    \"xtask\",\n",
-            &format!("    \"xtask\",\n    {member_entry},\n"),
-        );
-        fs::write(&workspace_cargo, new_content)?;
-    }
-
     println!();
-    println!("To regenerate parser:  cargo xtask test-gen {name}");
-    println!("To update golden files: REGENERATE=1 cargo test -p {name}");
+    println!("Edit {} to define your grammar, then run:", grammar_file.display());
+    println!("    cargo xtask test-gen {name}");
     Ok(())
 }
 
@@ -163,16 +112,117 @@ fn test_gen(name: &str) -> io::Result<()> {
     let path = workspace_root().join("tests").join(name);
     let grammar_file = path.join(format!("{name}.iggy"));
     if !grammar_file.exists() {
-        println!("Grammar file not found: {}", grammar_file.display());
-        return Ok(());
+        return Err(io::Error::other(format!(
+            "Grammar file not found: {}\nRun `cargo xtask test-new {name}` first.",
+            grammar_file.display()
+        )));
     }
 
-    let result = regenerate(&grammar_file, &path)?;
+    let (result, starts) = regenerate(&grammar_file, &path)?;
     println!(
         "Generated {name} grammar in {} ms",
         result.total_duration_ms
     );
+
+    let cargo_toml = path.join("Cargo.toml");
+    let cargo_content = fs::read_to_string(&cargo_toml)?;
+    if !cargo_content.contains("[[test]]") {
+        let updated = cargo_content.replace(
+            "[features]",
+            "[[test]]\nname = \"tests\"\npath = \"tests.rs\"\n\n[features]",
+        );
+        fs::write(&cargo_toml, updated)?;
+    }
+
+    let tests_rs = path.join("tests.rs");
+    if !tests_rs.exists() {
+        if starts.is_empty() {
+            println!(
+                "No @Start in grammar; tests.rs not created. Add @Start and re-run `cargo xtask test-gen {name}`."
+            );
+        } else {
+            fs::write(&tests_rs, generate_tests_rs(name, &starts))?;
+            rustfmt_file(&tests_rs)?;
+            println!("Wrote: {}", tests_rs.display());
+        }
+    }
+
+    let workspace_cargo = workspace_root().join("Cargo.toml");
+    let content = fs::read_to_string(&workspace_cargo)?;
+    let member_entry = format!("\"tests/{name}\"");
+    if !content.contains(&member_entry) {
+        let new_content = content.replace(
+            "    \"xtask\",\n",
+            &format!("    \"xtask\",\n    {member_entry},\n"),
+        );
+        fs::write(&workspace_cargo, new_content)?;
+        println!("Added tests/{name} to workspace");
+    }
+
     Ok(())
+}
+
+fn generate_tests_rs(crate_name: &str, starts: &[String]) -> String {
+    let crate_ident = Ident::new(crate_name, Span::call_site());
+    let snakes: Vec<String> = starts.iter().map(|s| to_snake_case(s)).collect();
+    let parse_idents: Vec<Ident> = snakes
+        .iter()
+        .map(|s| Ident::new(&format!("parse_{s}"), Span::call_site()))
+        .collect();
+
+    let header = format!(
+        "// To regenerate parser:  cargo xtask test-gen {crate_name}\n\
+         // To update golden files: REGENERATE=1 cargo test -p {crate_name}\n\n"
+    );
+
+    let check_fns: TokenStream = if snakes.len() == 1 {
+        let fn_name = Ident::new("check", Span::call_site());
+        let parse_fn = &parse_idents[0];
+        check_fn(&fn_name, parse_fn)
+    } else {
+        snakes
+            .iter()
+            .zip(parse_idents.iter())
+            .map(|(snake, parse_fn)| {
+                let fn_name = Ident::new(&format!("check_{snake}"), Span::call_site());
+                check_fn(&fn_name, parse_fn)
+            })
+            .collect()
+    };
+
+    let example_call = if snakes.len() == 1 {
+        "check(\"input text\", \"example\");".to_string()
+    } else {
+        format!("check_{}(\"input text\", \"example\");", snakes[0])
+    };
+
+    let tokens = quote! {
+        use #crate_ident::{#(#parse_idents),*, parse_tree::to_sexpr};
+        use iguana_runtime::input::Input;
+        use iguana_runtime::parse_tree::ParseContext;
+        use iguana_runtime::testing::{check_golden_file, golden_path};
+
+        #check_fns
+
+        #[test]
+        fn example() {
+            #[comment = #example_call]
+        }
+    };
+
+    format!("{header}{}", post_process(&tokens.to_string()))
+}
+
+fn check_fn(fn_name: &Ident, parse_fn: &Ident) -> TokenStream {
+    quote! {
+        fn #fn_name(input: &str, test_name: &str) {
+            let input = Input::from(input);
+            let ctx = ParseContext::new();
+            let result = #parse_fn(&input, &ctx).expect("Parse failed");
+            let actual = to_sexpr(result.tree.as_parse_tree());
+            check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
+        }
+    }
 }
 
 fn test_gen_all() -> io::Result<()> {
@@ -196,16 +246,38 @@ fn test_gen_all() -> io::Result<()> {
     Ok(())
 }
 
-fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<GenerateResult> {
+fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<(GenerateResult, Vec<String>)> {
     let source = fs::read_to_string(grammar_path)?;
     let grammar_def = parse_grammar(&source).map_err(io::Error::other)?;
+    let starts: Vec<String> = grammar_def
+        .syntax_rules
+        .iter()
+        .filter(|r| r.start)
+        .map(|r| r.head.name.clone())
+        .collect();
     let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
         io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
     })?;
     generate_scaffold(&grammar, output)?;
     let result = generate_sources(&grammar, output, GenConfig::default())?;
     format_sources(output)?;
-    Ok(result)
+    Ok((result, starts))
+}
+
+fn rustfmt_file(path: &Path) -> io::Result<()> {
+    let status = Command::new("rustfmt")
+        .arg("--edition")
+        .arg("2024")
+        .arg("--quiet")
+        .arg(path)
+        .status()?;
+    if !status.success() {
+        return Err(io::Error::other(format!(
+            "rustfmt failed on {}",
+            path.display()
+        )));
+    }
+    Ok(())
 }
 
 /// Format every `.rs` file in `<crate_dir>/src/` with rustfmt. One invocation
