@@ -475,8 +475,9 @@ pub trait Parser<'i> {
         record!(self, AddToPoppedElements, gss_node_id, popped_element);
         let gss = self.gss_node_mut(gss_node_id);
         gss.add_to_popped_elements(popped_element);
-        let edges = gss.edges().clone();
-        for edge in edges.iter() {
+        let edge_count = gss.edges().len();
+        for i in 0..edge_count {
+            let edge = self.gss_node(gss_node_id).edges().get(i).unwrap().clone();
             if let Some(error_kind) =
                 self.post_conditions(edge.return_slot, left_extent, right_extent)
             {

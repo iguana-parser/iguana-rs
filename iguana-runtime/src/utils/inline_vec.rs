@@ -67,6 +67,19 @@ impl<T, const SPILL_CAP: usize> InlineVec<T, SPILL_CAP> {
         }
     }
 
+    pub fn get(&self, index: usize) -> Option<&T> {
+        match self {
+            InlineVec::Empty => None,
+            InlineVec::Single(v) => (index == 0).then_some(v),
+            InlineVec::Pair(first, second) => match index {
+                0 => Some(first),
+                1 => Some(second),
+                _ => None,
+            },
+            InlineVec::Multiple(v) => v.get(index),
+        }
+    }
+
     /// Drops all elements. If currently spilled, keeps the heap `Vec`'s
     /// capacity so subsequent pushes within the same level reuse it.
     pub fn clear(&mut self) {
