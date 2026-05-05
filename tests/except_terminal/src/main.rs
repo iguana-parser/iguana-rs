@@ -108,6 +108,13 @@ struct Cli {
     /// on failure includes error location and message.
     #[arg(long, value_name = "FILE")]
     write_result: Option<PathBuf>,
+    /// Suppress the parse-tree dump on stdout. Status messages
+
+    /// (timing, errors) still go to stderr; redirect with `2>/dev/null`
+
+    /// to silence them too.
+    #[arg(short, long)]
+    quiet: bool,
 }
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
@@ -291,18 +298,20 @@ fn main() -> Result<(), io::Error> {
                     let path = Path::new("gss.dot");
                     render_gss(&parser, path)?;
                     write_svg(path)?;
-                    println!("GSS visualization generated: gss.svg");
+                    eprintln!("GSS visualization generated: gss.svg");
                 }
                 Some(VisTarget::Sppf) => {
                     let path = Path::new("sppf.dot");
                     write_sppf_dot(&parser, node_id, path)?;
                     write_svg(path)?;
-                    println!("SPPF visualization generated: sppf.svg");
+                    eprintln!("SPPF visualization generated: sppf.svg");
                 }
                 None => {}
             }
-            println!("Parse success in {}ms", parse_success.duration.as_millis());
-            if args.write_sppf.is_none()
+            eprintln!("Parse success in {}ms", parse_success.duration.as_millis());
+            if !args.quiet
+                && args.write_parse_tree.is_none()
+                && args.write_sppf.is_none()
                 && args.write_gss.is_none()
                 && args.vis.is_none()
                 && args.trace.is_none()
@@ -314,7 +323,7 @@ fn main() -> Result<(), io::Error> {
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
-            println!("Parse failed at line {line}, column {column}: {message}");
+            eprintln!("Parse failed at line {line}, column {column}: {message}");
             if let Some(ref path) = args.write_result {
                 let result = cli::ParseResult::Failure(cli::ParseFailure {
                     line,
@@ -325,6 +334,7 @@ fn main() -> Result<(), io::Error> {
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", serde_json::to_string(&result).unwrap())?;
             }
+            std::process::exit(1);
         }
     }
     #[cfg(feature = "instrument")]
