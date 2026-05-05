@@ -65,11 +65,6 @@ impl NonterminalIds {
     pub fn dd_nonterminals(&self) -> impl Iterator<Item = &Nonterminal> {
         self.nonterminals.iter().skip(self.dd_id_start)
     }
-    // Nonterminals are sorted so that data-dependent ones (with parameters)
-    // come after dd_id_start. If dd_id_start == len, there are none.
-    pub fn has_data_dependent_nt(&self) -> bool {
-        self.dd_id_start < self.nonterminals.len()
-    }
     pub fn add_end_slot(&mut self, nonterminal_id: NonterminalId, alternative: EndSlot) {
         self.alternatives
             .entry(nonterminal_id)

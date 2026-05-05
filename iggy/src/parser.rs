@@ -316,7 +316,6 @@ use iguana_runtime::{
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
-use std::collections::BTreeMap;
 impl<'i> Parser<'i> for IggyParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -2750,7 +2749,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if let Some(right_child) = self.parse_layout_star_6_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
                     if let Some(error_kind) = self.post_conditions(SlotId(227), input_index, j) {
-                        self.add_parse_error(j, SlotId(227), Some(gss_node_id), error_kind);
+                        self.add_parse_error(j, SlotId(227), Some(gss_node_id), || error_kind);
                         return;
                     }
                     // Layout : Layout_Star_6 !>> WS !>> LineComment.
@@ -7183,15 +7182,21 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         }
     }
     fn parse_error(&self) -> Option<&ParseError> {
-        self.parse_errors.values().next_back()?.first()
+        self.parse_errors.first()
     }
     fn add_parse_error(
         &mut self,
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: ParseErrorKind,
+        kind: impl FnOnce() -> ParseErrorKind,
     ) {
+        let level = self.parse_errors.first().map_or(0, |e| e.input_index);
+        if input_index < level {
+            record!(self, ParseError, input_index, slot_id, gss_node_id, kind());
+            return;
+        }
+        let kind = kind();
         record!(
             self,
             ParseError,
@@ -7200,15 +7205,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             gss_node_id,
             kind.clone()
         );
-        self.parse_errors
-            .entry(input_index)
-            .or_default()
-            .push(ParseError {
-                input_index,
-                slot_id,
-                gss_node_id,
-                kind,
-            });
+        if input_index > level {
+            self.parse_errors.clear();
+        }
+        self.parse_errors.push(ParseError {
+            input_index,
+            slot_id,
+            gss_node_id,
+            kind,
+        });
     }
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
@@ -7242,7 +7247,7 @@ pub struct IggyParser<'i> {
     nonterminal_nodes_index_symbol_except_follow_restriction:
         FxHashMap<Span, InlineVec<(i32, SPPFNodeId)>>,
     envs: Vec<Env>,
-    parse_errors: BTreeMap<u32, Vec<ParseError>>,
+    parse_errors: InlineVec<ParseError, 8>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -7272,7 +7277,7 @@ impl<'i> IggyParser<'i> {
             nonterminal_nodes_index_symbol_except_except: FxHashMap::default(),
             nonterminal_nodes_index_symbol_except_follow_restriction: FxHashMap::default(),
             envs: vec![],
-            parse_errors: BTreeMap::new(),
+            parse_errors: InlineVec::Empty,
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
@@ -8009,7 +8014,7 @@ impl<'i> IggyParser<'i> {
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     if let Some(error_kind) = self.post_conditions(SlotId(227), start, end) {
-                        self.add_parse_error(end, SlotId(227), None, error_kind);
+                        self.add_parse_error(end, SlotId(227), None, || error_kind);
                         return None;
                     }
                     node

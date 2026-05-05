@@ -66,6 +66,16 @@ impl<T, const SPILL_CAP: usize> InlineVec<T, SPILL_CAP> {
             InlineVec::Multiple(v) => v.first(),
         }
     }
+
+    /// Drops all elements. If currently spilled, keeps the heap `Vec`'s
+    /// capacity so subsequent pushes within the same level reuse it.
+    pub fn clear(&mut self) {
+        match self {
+            InlineVec::Empty => {}
+            InlineVec::Single(_) | InlineVec::Pair(_, _) => *self = InlineVec::Empty,
+            InlineVec::Multiple(v) => v.clear(),
+        }
+    }
 }
 
 pub enum Iter<'a, T> {

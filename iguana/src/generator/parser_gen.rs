@@ -150,12 +150,27 @@ impl<'a> ParserGen<'a> {
                 #follow_set_terminals_method
 
                 fn parse_error(&self) -> Option<&ParseError> {
-                    self.parse_errors.values().next_back()?.first()
+                    self.parse_errors.first()
                 }
 
-                fn add_parse_error(&mut self, input_index: u32, slot_id: SlotId, gss_node_id: Option<GssNodeId>, kind: ParseErrorKind) {
+                fn add_parse_error(
+                    &mut self,
+                    input_index: u32,
+                    slot_id: SlotId,
+                    gss_node_id: Option<GssNodeId>,
+                    kind: impl FnOnce() -> ParseErrorKind,
+                ) {
+                    let level = self.parse_errors.first().map_or(0, |e| e.input_index);
+                    if input_index < level {
+                        record!(self, ParseError, input_index, slot_id, gss_node_id, kind());
+                        return;
+                    }
+                    let kind = kind();
                     record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
-                    self.parse_errors.entry(input_index).or_default().push(ParseError {
+                    if input_index > level {
+                        self.parse_errors.clear();
+                    }
+                    self.parse_errors.push(ParseError {
                         input_index,
                         slot_id,
                         gss_node_id,
@@ -174,14 +189,8 @@ impl<'a> ParserGen<'a> {
 
     fn gen_imports(&self) -> TokenStream {
         let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&self.grammar.name));
-        let inline_vec_import = if self.nonterminal_ids.has_data_dependent_nt() {
-            quote! { , inline_vec::InlineVec }
-        } else {
-            quote! {}
-        };
         quote! {
             use std::cell::OnceCell;
-            use std::collections::BTreeMap;
             use crate::{grammar_data::*, scanner::#scanner_name};
             use iguana_runtime::{
                 descriptor::Descriptor,
@@ -193,7 +202,7 @@ impl<'a> ParserGen<'a> {
                 record,
                 scanner::Scanner,
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
-                utils::{inline_map::InlineMap #inline_vec_import}
+                utils::{inline_map::InlineMap, inline_vec::InlineVec}
             };
             #[cfg(feature = "debug-trace")]
             use iguana_runtime::trace::TraceEvent;
@@ -455,7 +464,7 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {
                 if let Some(error_kind) = self.post_conditions(#next_slot_id, input_index, j) {
-                    self.add_parse_error(j, #next_slot_id, Some(gss_node_id), error_kind);
+                    self.add_parse_error(j, #next_slot_id, Some(gss_node_id), || error_kind);
                 } else {
                     #new_node
                 }
@@ -769,7 +778,7 @@ impl<'a> ParserGen<'a> {
             } else {
                 quote! {
                     if let Some(error_kind) = self.post_conditions(#next_slot_id, input_index, j) {
-                        self.add_parse_error(j, #next_slot_id, Some(gss_node_id), error_kind);
+                        self.add_parse_error(j, #next_slot_id, Some(gss_node_id), || error_kind);
                         return;
                     }
                 }
@@ -964,7 +973,7 @@ impl<'a> ParserGen<'a> {
                     nonterminal_nodes_children_map: OnceCell::new(),
                     #(#return_value_fields,)*
                     envs: vec![],
-                    parse_errors: BTreeMap::new(),
+                    parse_errors: InlineVec::Empty,
                     #[cfg(feature = "debug-trace")]
                     trace_events: None,
                 }
@@ -1010,7 +1019,7 @@ impl<'a> ParserGen<'a> {
                 nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
                 #(#specialized_nonterminal_nodes_index_fields,)*
                 envs: Vec<Env>,
-                parse_errors: BTreeMap<u32, Vec<ParseError>>,
+                parse_errors: InlineVec<ParseError, 8>,
                 #[cfg(feature = "debug-trace")]
                 pub trace_events: Option<Vec<TraceEvent>>,
             }
@@ -1331,7 +1340,7 @@ impl<'a> ParserGen<'a> {
             } else {
                 quote! {
                     if let Some(error_kind) = self.post_conditions(#next_slot_id, start, end) {
-                        self.add_parse_error(end, #next_slot_id, None, error_kind);
+                        self.add_parse_error(end, #next_slot_id, None, || error_kind);
                         return None;
                     }
                 }

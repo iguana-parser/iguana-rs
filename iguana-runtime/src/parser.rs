@@ -208,15 +208,21 @@ pub trait Parser<'i> {
         (line, column, message)
     }
 
-    /// Returns the parse error at the farthest input position, if any.
+    /// Returns the first parse error at the farthest input position, if any.
     fn parse_error(&self) -> Option<&ParseError>;
     /// Records a parse error at the given input position.
+    ///
+    /// Only errors at the farthest input position seen so far are kept; calls at
+    /// strictly lower positions are discarded without invoking `kind`. A higher
+    /// position clears the prior level. Taking `kind` as a closure lets call sites
+    /// avoid building the `ParseErrorKind` (and its `Vec<TerminalId>`) on the drop
+    /// path, which is the common case during GLL parsing.
     fn add_parse_error(
         &mut self,
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: ParseErrorKind,
+        kind: impl FnOnce() -> ParseErrorKind,
     );
     /// Delegates to the scanner's match_token.
     fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
@@ -246,14 +252,11 @@ pub trait Parser<'i> {
             }
         }
         if !matched {
-            self.add_parse_error(
-                input_index,
-                alts[0].1,
-                Some(gss_node_id),
+            self.add_parse_error(input_index, alts[0].1, Some(gss_node_id), || {
                 ParseErrorKind::UnexpectedToken {
                     expected: first_set.to_vec(),
-                },
-            );
+                }
+            });
         }
     }
 
@@ -270,14 +273,11 @@ pub trait Parser<'i> {
     ) -> Option<(u32, SPPFNodeId)> {
         record!(self, MatchingTerminal, terminal_name, input_index);
         let j = self.match_token(terminal_id, input_index).or_else(|| {
-            self.add_parse_error(
-                input_index,
-                slot_id,
-                gss_node_id,
+            self.add_parse_error(input_index, slot_id, gss_node_id, || {
                 ParseErrorKind::UnexpectedToken {
                     expected: vec![terminal_id],
-                },
-            );
+                }
+            });
             None
         })?;
         record!(self, MatchSuccess, terminal_name, input_index, j);
@@ -366,12 +366,9 @@ pub trait Parser<'i> {
             let right_extent = popped_node.right_extent();
             if !self.follow_set_check(nonterminal_id, right_extent) {
                 let expected = self.follow_set_terminals(nonterminal_id);
-                self.add_parse_error(
-                    right_extent,
-                    return_slot,
-                    Some(existing_gss_node_id),
-                    ParseErrorKind::UnexpectedToken { expected },
-                );
+                self.add_parse_error(right_extent, return_slot, Some(existing_gss_node_id), || {
+                    ParseErrorKind::UnexpectedToken { expected }
+                });
                 continue;
             }
             if let Some(error_kind) = self.post_conditions(return_slot, left_extent, right_extent) {
@@ -379,7 +376,7 @@ pub trait Parser<'i> {
                     right_extent,
                     return_slot,
                     Some(existing_gss_node_id),
-                    error_kind,
+                    || error_kind,
                 );
                 continue;
             }
@@ -469,12 +466,9 @@ pub trait Parser<'i> {
         let right_extent = node.right_extent();
         if !self.follow_set_check(nonterminal_id, right_extent) {
             let expected = self.follow_set_terminals(nonterminal_id);
-            self.add_parse_error(
-                right_extent,
-                slot_id,
-                Some(gss_node_id),
-                ParseErrorKind::UnexpectedToken { expected },
-            );
+            self.add_parse_error(right_extent, slot_id, Some(gss_node_id), || {
+                ParseErrorKind::UnexpectedToken { expected }
+            });
             return;
         }
         let right_child = (popped_element.nonterminal_node_id, right_extent);
@@ -490,7 +484,7 @@ pub trait Parser<'i> {
                     right_extent,
                     edge.return_slot,
                     Some(gss_node_id),
-                    error_kind,
+                    || error_kind,
                 );
                 continue;
             }
