@@ -13,14 +13,17 @@ use crate::{
     grammar::{def::Grammar, slot::Slot},
 };
 
+#[derive(Clone, Copy)]
 pub struct GenConfig {
     pub ll1_optimization: bool,
+    pub match_memo: bool,
 }
 
 impl Default for GenConfig {
     fn default() -> Self {
         Self {
             ll1_optimization: true,
+            match_memo: true,
         }
     }
 }
@@ -118,7 +121,7 @@ pub fn generate_sources(
     write_rust_file(parser_source, &parser_path)?;
 
     write_rust_file(
-        post_process(&scanner_gen::generate(grammar, &terminal_ids).to_string()),
+        post_process(&scanner_gen::generate(grammar, &terminal_ids, &config).to_string()),
         &scanner_path,
     )?;
 

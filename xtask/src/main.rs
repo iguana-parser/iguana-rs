@@ -84,7 +84,10 @@ fn test_new(name: &str) -> io::Result<()> {
     }
 
     println!();
-    println!("Edit {} to define your grammar, then run:", grammar_file.display());
+    println!(
+        "Edit {} to define your grammar, then run:",
+        grammar_file.display()
+    );
     println!("    cargo xtask test-gen {name}");
     Ok(())
 }

@@ -19,9 +19,8 @@ use std::sync::LazyLock;
 
 use regex::Regex;
 
-static COMMENT_ATTR_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"^#\s*\[\s*comment\s*=\s*"((?:[^"\\]|\\.)*)"\s*\]"#).unwrap()
-});
+static COMMENT_ATTR_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"^#\s*\[\s*comment\s*=\s*"((?:[^"\\]|\\.)*)"\s*\]"#).unwrap());
 
 static DOC_RAW_HASH_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r##"^#\s*\[\s*doc\s*=\s*r#"(.*?)"#\s*\]"##).unwrap());

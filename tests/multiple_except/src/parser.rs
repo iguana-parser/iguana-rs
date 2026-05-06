@@ -418,7 +418,7 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
         stats
     }
     fn post_conditions(
-        &self,
+        &mut self,
         slot: SlotId,
         left_extent: u32,
         right_extent: u32,
@@ -439,7 +439,7 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
             _ => None,
         }
     }
-    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => self
                 .scanner
@@ -491,7 +491,7 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
             kind,
         });
     }
-    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+    fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
     }
 }

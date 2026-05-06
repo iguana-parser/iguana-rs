@@ -2,7 +2,10 @@ use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote};
 
 use crate::{
-    generator::id::{CharClassIds, TerminalIds, collect_char_classes},
+    generator::{
+        GenConfig,
+        id::{CharClassIds, TerminalIds, collect_char_classes},
+    },
     grammar::{
         def::Grammar,
         regex::{CharClass, CharRange, Regex},
@@ -10,7 +13,7 @@ use crate::{
     },
 };
 
-pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
+pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStream {
     let grammar_name = &grammar.name;
 
     // Collect all character classes from lexical rules
@@ -21,13 +24,15 @@ pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
         }
     }
 
-    let imports = gen_imports();
+    let imports = gen_imports(config);
+    let memo_words = gen_memo_words_const(terminal_ids, config);
     let char_class_consts = gen_char_class_consts(&char_class_ids);
-    let scanner_struct = gen_scanner_struct(grammar_name);
-    let scanner_impl = gen_scanner_imp(grammar, terminal_ids, &char_class_ids);
-    let scanner_trait_impl = gen_scanner_trait_impl(grammar, terminal_ids, &char_class_ids);
+    let scanner_struct = gen_scanner_struct(grammar_name, config);
+    let scanner_impl = gen_scanner_imp(grammar, terminal_ids, &char_class_ids, config);
+    let scanner_trait_impl = gen_scanner_trait_impl(grammar, terminal_ids, &char_class_ids, config);
     quote! {
         #imports
+        #memo_words
         #char_class_consts
         #scanner_struct
         #scanner_impl
@@ -35,21 +40,53 @@ pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
     }
 }
 
-fn gen_imports() -> TokenStream {
-    quote! {
-        use iguana_runtime::{
-            ids::TerminalId,
-            input::Input,
-            scanner::Scanner,
-        };
+fn gen_imports(config: &GenConfig) -> TokenStream {
+    if config.match_memo {
+        quote! {
+            use iguana_runtime::{
+                ids::TerminalId,
+                input::Input,
+                scanner::{Lookup, MatchMemo, Scanner},
+            };
+        }
+    } else {
+        quote! {
+            use iguana_runtime::{
+                ids::TerminalId,
+                input::Input,
+                scanner::Scanner,
+            };
+        }
     }
 }
 
-fn gen_scanner_struct(grammar_name: &str) -> TokenStream {
-    let name_ident = syn::Ident::new(&format!("{}{}", grammar_name, "Scanner"), Span::call_site());
+fn gen_memo_words_const(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStream {
+    if !config.match_memo {
+        return quote! {};
+    }
+    // Bitset words to cover terminal IDs 0..N+1. Regular terminals are 0..N;
+    // EPSILON is N (never matches via the scanner) and EOF is N+1.
+    let words = (terminal_ids.len() + 2).div_ceil(64);
+    let words_lit = Literal::usize_unsuffixed(words);
     quote! {
-        pub struct #name_ident<'i> {
-            pub input: &'i Input,
+        const MATCH_MEMO_WORDS: usize = #words_lit;
+    }
+}
+
+fn gen_scanner_struct(grammar_name: &str, config: &GenConfig) -> TokenStream {
+    let name_ident = syn::Ident::new(&format!("{}{}", grammar_name, "Scanner"), Span::call_site());
+    if config.match_memo {
+        quote! {
+            pub struct #name_ident<'i> {
+                pub input: &'i Input,
+                memo: MatchMemo<MATCH_MEMO_WORDS>,
+            }
+        }
+    } else {
+        quote! {
+            pub struct #name_ident<'i> {
+                pub input: &'i Input,
+            }
         }
     }
 }
@@ -84,6 +121,7 @@ fn gen_scanner_imp(
     grammar: &Grammar,
     terminal_ids: &TerminalIds,
     char_class_ids: &CharClassIds,
+    config: &GenConfig,
 ) -> TokenStream {
     let name_ident = syn::Ident::new(&format!("{}{}", grammar.name, "Scanner"), Span::call_site());
     let match_terminals: Vec<_> = terminal_ids
@@ -93,10 +131,20 @@ fn gen_scanner_imp(
             gen_match_terminal_method(id as u16, terminal, char_class_ids, grammar, terminal_ids)
         })
         .collect();
+    let new_body = if config.match_memo {
+        quote! {
+            let memo = MatchMemo::new(input.len() as usize);
+            Self { input, memo }
+        }
+    } else {
+        quote! {
+            Self { input }
+        }
+    };
     quote! {
         impl<'i> #name_ident<'i> {
             pub fn new(input: &'i Input) -> Self {
-                Self { input }
+                #new_body
             }
             #(#match_terminals)*
         }
@@ -107,8 +155,9 @@ fn gen_scanner_trait_impl(
     grammar: &Grammar,
     terminal_ids: &TerminalIds,
     _char_class_ids: &CharClassIds,
+    config: &GenConfig,
 ) -> TokenStream {
-    let match_token_method = gen_match_token(terminal_ids);
+    let match_token_method = gen_match_token(terminal_ids, config);
     let char_at_method = gen_char_at_method();
     let scanner_name = format_ident!("{}Scanner", grammar.name);
     quote! {
@@ -127,7 +176,7 @@ fn gen_char_at_method() -> TokenStream {
     }
 }
 
-fn gen_match_token(terminal_ids: &TerminalIds) -> TokenStream {
+fn gen_match_token(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStream {
     let match_terminal_arms: Vec<_> = terminal_ids
         .ids()
         .map(|id| {
@@ -141,25 +190,41 @@ fn gen_match_token(terminal_ids: &TerminalIds) -> TokenStream {
         .collect();
 
     let eof_id = Literal::u16_unsuffixed(terminal_ids.len() as u16 + 1);
+    let dispatch = quote! {
+        match terminal_id {
+            #(#match_terminal_arms)*
+            TerminalId(#eof_id) => {
+                if input_index == self.input.len() { Some(input_index) } else { None }
+            }
+            _ => {
+                unreachable!("Unknown token type: {terminal_id}");
+            }
+        }
+    };
     let match_token = if match_terminal_arms.is_empty() {
         quote! {
             None
         }
-    } else {
+    } else if config.match_memo {
         quote! {
-            match terminal_id {
-                #(#match_terminal_arms)*
-                TerminalId(#eof_id) => {
-                    if input_index == self.input.len() { Some(input_index) } else { None }
-                }
-                _ => {
-                    unreachable!("Unknown token type: {terminal_id}");
-                }
+            if let Some(lookup) = self.memo.get(terminal_id, input_index) {
+                return match lookup {
+                    Lookup::Match(end) => Some(end),
+                    Lookup::Fail => None,
+                };
             }
+            let result = #dispatch;
+            match result {
+                Some(end) => self.memo.insert_match(terminal_id, input_index, end),
+                None => self.memo.insert_fail(terminal_id, input_index),
+            }
+            result
         }
+    } else {
+        dispatch
     };
     quote! {
-        fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
             #match_token
         }
     }

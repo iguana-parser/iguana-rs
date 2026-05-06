@@ -849,6 +849,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "layout_nonterminal"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

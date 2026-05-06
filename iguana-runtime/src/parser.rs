@@ -164,13 +164,13 @@ pub trait Parser<'i> {
     /// Called during pop and edge processing to filter results (e.g., nonterminal except).
     /// Returns `None` if the result should be accepted, or `Some(error_kind)` if rejected.
     fn post_conditions(
-        &self,
+        &mut self,
         slot: SlotId,
         left_extent: u32,
         right_extent: u32,
     ) -> Option<ParseErrorKind>;
     /// Checks whether the input at the given position is in the follow set of the nonterminal.
-    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool;
+    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool;
     /// Returns the terminal IDs in the follow set of the given nonterminal.
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId>;
 
@@ -225,10 +225,10 @@ pub trait Parser<'i> {
         kind: impl FnOnce() -> ParseErrorKind,
     );
     /// Delegates to the scanner's match_token.
-    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
+    fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
 
     /// Returns true if any of the given terminals match at the given input position.
-    fn match_any(&self, terminal_ids: &[TerminalId], input_index: u32) -> bool {
+    fn match_any(&mut self, terminal_ids: &[TerminalId], input_index: u32) -> bool {
         terminal_ids
             .iter()
             .any(|id| self.match_token(*id, input_index).is_some())
@@ -366,9 +366,12 @@ pub trait Parser<'i> {
             let right_extent = popped_node.right_extent();
             if !self.follow_set_check(nonterminal_id, right_extent) {
                 let expected = self.follow_set_terminals(nonterminal_id);
-                self.add_parse_error(right_extent, return_slot, Some(existing_gss_node_id), || {
-                    ParseErrorKind::UnexpectedToken { expected }
-                });
+                self.add_parse_error(
+                    right_extent,
+                    return_slot,
+                    Some(existing_gss_node_id),
+                    || ParseErrorKind::UnexpectedToken { expected },
+                );
                 continue;
             }
             if let Some(error_kind) = self.post_conditions(return_slot, left_extent, right_extent) {
@@ -481,12 +484,9 @@ pub trait Parser<'i> {
             if let Some(error_kind) =
                 self.post_conditions(edge.return_slot, left_extent, right_extent)
             {
-                self.add_parse_error(
-                    right_extent,
-                    edge.return_slot,
-                    Some(gss_node_id),
-                    || error_kind,
-                );
+                self.add_parse_error(right_extent, edge.return_slot, Some(gss_node_id), || {
+                    error_kind
+                });
                 continue;
             }
             let left_child = edge

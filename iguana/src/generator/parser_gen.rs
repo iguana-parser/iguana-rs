@@ -178,7 +178,7 @@ impl<'a> ParserGen<'a> {
                     });
                 }
 
-                fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+                fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
                     self.scanner.match_token(terminal_id, input_index)
                 }
             }
@@ -704,7 +704,7 @@ impl<'a> ParserGen<'a> {
             }
         }
         quote! {
-            fn post_conditions(&self, slot: SlotId, left_extent: u32, right_extent: u32) -> Option<ParseErrorKind> {
+            fn post_conditions(&mut self, slot: SlotId, left_extent: u32, right_extent: u32) -> Option<ParseErrorKind> {
                 match slot {
                     #(#arms)*
                     _ => None,
@@ -725,7 +725,7 @@ impl<'a> ParserGen<'a> {
             });
         }
         quote! {
-            fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+            fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
                 match nonterminal_id {
                     #(#arms)*
                     _ => true,

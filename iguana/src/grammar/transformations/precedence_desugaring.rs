@@ -153,8 +153,7 @@ fn compute_precedences(
     let mut result = FxHashMap::default();
     for (rule_name, rec_name) in recursive_names {
         let rule = rules_by_name[rule_name.as_str()];
-        let levels =
-            parent_priority_levels(rule, rules_by_name).unwrap_or(&rule.priority_levels);
+        let levels = parent_priority_levels(rule, rules_by_name).unwrap_or(&rule.priority_levels);
         result.insert(
             rule_name.clone(),
             assign_precedence(levels, rec_name, recursive_names),

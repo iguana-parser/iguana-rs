@@ -450,7 +450,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
         stats
     }
     fn post_conditions(
-        &self,
+        &mut self,
         slot: SlotId,
         left_extent: u32,
         right_extent: u32,
@@ -459,7 +459,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             _ => None,
         }
     }
-    fn follow_set_check(&self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
+    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_E, input_index),
             _ => true,
@@ -505,7 +505,7 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             kind,
         });
     }
-    fn match_token(&self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+    fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
     }
 }

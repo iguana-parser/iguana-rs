@@ -6,29 +6,53 @@ use iguana_runtime::{
     scanner::{Lookup, MatchMemo, Scanner},
 };
 const MATCH_MEMO_WORDS: usize = 1;
-const CHAR_CLASS_0: [(char, char); 2usize] = [('a', 'z'), ('A', 'Z')];
-const CHAR_CLASS_1: [(char, char); 1usize] = [('0', '9')];
-pub struct FollowRestrictionMultipleScanner<'i> {
+const CHAR_CLASS_0: [(char, char); 3usize] = [(' ', ' '), ('\t', '\t'), ('\n', '\n')];
+const CHAR_CLASS_1: [(char, char); 1usize] = [('\n', '\n')];
+const CHAR_CLASS_2: [(char, char); 1usize] = [('\n', '\n')];
+pub struct LayoutNonterminalScanner<'i> {
     pub input: &'i Input,
     memo: MatchMemo<MATCH_MEMO_WORDS>,
 }
-impl<'i> FollowRestrictionMultipleScanner<'i> {
+impl<'i> LayoutNonterminalScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         let memo = MatchMemo::new(input.len() as usize);
         Self { input, memo }
     }
-    // Alpha = ([a-z A-Z])
+    // WhiteSpace = ([  \t \n]+)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i)
+        (|i| {
+            let i = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(i)?;
+            let mut j = i;
+            while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_0, false))(j) {
+                j = k;
+            }
+            Some(j)
+        })(i)
     }
-    // Digit = ([0-9])
+    // Comment = (//![\n]*[\n])
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         let i = input_index;
-        (|i| self.match_char_class(i, &CHAR_CLASS_1, false))(i)
+        (|i| {
+            self.match_char(i, '/')
+                .and_then(|i| self.match_char(i, '/'))
+                .and_then(|i| {
+                    let mut j = i;
+                    while let Some(k) = (|i| self.match_char_class(i, &CHAR_CLASS_1, true))(j) {
+                        j = k;
+                    }
+                    Some(j)
+                })
+                .and_then(|i| self.match_char_class(i, &CHAR_CLASS_2, false))
+        })(i)
+    }
+    // "x" = x
+    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
+        let i = input_index;
+        self.match_char(i, 'x')
     }
 }
-impl Scanner for FollowRestrictionMultipleScanner<'_> {
+impl Scanner for LayoutNonterminalScanner<'_> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         if let Some(lookup) = self.memo.get(terminal_id, input_index) {
             return match lookup {
@@ -39,7 +63,8 @@ impl Scanner for FollowRestrictionMultipleScanner<'_> {
         let result = match terminal_id {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(1) => self.match_terminal_1(input_index),
-            TerminalId(3) => {
+            TerminalId(2) => self.match_terminal_2(input_index),
+            TerminalId(4) => {
                 if input_index == self.input.len() {
                     Some(input_index)
                 } else {
