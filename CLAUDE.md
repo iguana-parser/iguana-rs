@@ -10,12 +10,17 @@ Iguana is a data-dependent GLL parser generator.
 - `terrarium`: Tauri-based grammar debugging tool (separate workspace at `terrarium/src-tauri`, not in the main workspace)
 - `editors/vscode`: VS Code extension (TypeScript, not a Cargo crate)
 
+# Setup
+
+- `./setup.sh` — one-time environment bootstrap after clone (toolchain check, dev tools, git hooks). Pre-commit hook rejects unformatted commits via `cargo fmt --check --all`.
+- See README.md `## Development` for contributor-facing details; keep that and this section aligned.
+
 # Build & Test
 
 - `cargo xtask bootstrap` — regenerate iggy from its own grammar
 - `cargo xtask test-gen-all` — regenerate all test parsers
 - `cargo xtask install` — build iguana from this workspace and install it into `$CARGO_HOME/bin`
-- `cargo test` — run all tests
+- `cargo test` — run all tests (`cargo nextest run` if installed; faster on macOS)
 - After any generator change: bootstrap → test-gen-all → test
 
 ## LSP

@@ -1,0 +1,6 @@
+#!/bin/sh
+cargo fmt --check --all || {
+    echo
+    echo "Run: cargo fmt --all"
+    exit 1
+}

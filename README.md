@@ -186,6 +186,16 @@ Run with `REGENERATE=1` to create or update golden files.
 
 ## Development
 
+### Setup
+
+After cloning, run once:
+
+```bash
+./setup.sh
+```
+
+This checks the rust toolchain, installs `cargo-nextest`, flags missing system dependencies (graphviz), and points git at the tracked `.githooks/` directory. The pre-commit hook runs `cargo fmt --check --all` and rejects unformatted commits.
+
 ### Checking and Linting
 
 ```bash
