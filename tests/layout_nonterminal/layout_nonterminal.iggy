@@ -1,0 +1,14 @@
+grammar LayoutNonterminal
+
+layout Layout
+
+@Start
+S = "x"
+
+Layout = (WhiteSpace | Comment)*
+
+@regex
+WhiteSpace = [\ \t \n]+
+
+@regex
+Comment = "//" ![\n]* [\n]

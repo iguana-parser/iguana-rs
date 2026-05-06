@@ -53,6 +53,16 @@ pub fn build_grammar(
         })
     });
 
+    // The layout rule defines the layout context, so it must not have layout
+    // inserted between its own symbols.
+    if let Some(Symbol::Identifier(layout_id)) = &layout {
+        for rule in &mut syntax_rules {
+            if rule.head.name == layout_id.name {
+                rule.layout = LayoutStrategy::None;
+            }
+        }
+    }
+
     Ok(GrammarDef {
         name,
         syntax_rules,
