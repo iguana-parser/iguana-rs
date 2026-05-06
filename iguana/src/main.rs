@@ -46,9 +46,13 @@ enum Commands {
         #[arg(long)]
         json: bool,
 
-        /// Disable LL(1) optimization in code generation
-        #[arg(long)]
-        no_ll1: bool,
+        /// Enable LL(1) optimization in code generation
+        #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
+        ll1: bool,
+
+        /// Memoize match_token results during parsing
+        #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
+        match_memo: bool,
     },
 }
 
@@ -60,7 +64,8 @@ fn main() -> std::io::Result<()> {
             grammar,
             output,
             json,
-            no_ll1,
+            ll1,
+            match_memo,
         } => {
             let resolved_path;
             let path = match grammar.as_deref() {
@@ -73,7 +78,8 @@ fn main() -> std::io::Result<()> {
             let source = std::fs::read_to_string(path)?;
             let grammar_def = parse_grammar(&source).map_err(std::io::Error::other)?;
             let config = GenConfig {
-                ll1_optimization: !no_ll1,
+                ll1_optimization: ll1,
+                match_memo,
             };
             let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
                 std::io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
