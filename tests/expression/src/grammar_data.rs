@@ -60,16 +60,8 @@ pub static FOLLOW_SET_E: &[TerminalId] = &[TerminalId(1), TerminalId(0), Termina
 // E { "a" }
 pub static FIRST_SET_E: &[TerminalId] = &[TerminalId(2)];
 // E : . E "*" E { "a" }
-pub static PREDICTION_SET_E_ALT0: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_E_ALT0: &[TerminalId] = &[TerminalId(2)];
 // E : . E "+" E { "a" }
-pub static PREDICTION_SET_E_ALT1: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_E_ALT1: &[TerminalId] = &[TerminalId(2)];
 // E : . "a" { "a" }
-pub static PREDICTION_SET_E_ALT2: &[TerminalId] = &[TerminalId(2)];
-pub static ALTERNATIVES_E: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_E_ALT0, SlotId(0)),
-        (PREDICTION_SET_E_ALT1, SlotId(4)),
-        (PREDICTION_SET_E_ALT2, SlotId(8)),
-    ],
-    FIRST_SET_E,
-);
+pub static FIRST_SET_E_ALT2: &[TerminalId] = &[TerminalId(2)];

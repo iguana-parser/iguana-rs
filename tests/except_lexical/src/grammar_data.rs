@@ -35,4 +35,4 @@ pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3)];
 // S { Identifier }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(1)];
 // S : . Identifier { Identifier }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(1)];

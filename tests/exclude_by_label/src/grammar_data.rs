@@ -148,69 +148,39 @@ pub static FOLLOW_SET_EXPR: &[TerminalId] = &[TerminalId(2), TerminalId(1), Term
 // Expr { Id }
 pub static FIRST_SET_EXPR: &[TerminalId] = &[TerminalId(0)];
 // Expr : . Id { Id }
-pub static PREDICTION_SET_EXPR_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_EXPR_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Expr : . Expr "(" Expr_Star_0 ")" { Id }
-pub static PREDICTION_SET_EXPR_ALT1: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_EXPR_ALT1: &[TerminalId] = &[TerminalId(0)];
 // Expr : . Expr "," Expr { Id }
-pub static PREDICTION_SET_EXPR_ALT2: &[TerminalId] = &[TerminalId(0)];
-pub static ALTERNATIVES_EXPR: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_EXPR_ALT0, SlotId(0)),
-        (PREDICTION_SET_EXPR_ALT1, SlotId(2)),
-        (PREDICTION_SET_EXPR_ALT2, SlotId(7)),
-    ],
-    FIRST_SET_EXPR,
-);
+pub static FIRST_SET_EXPR_ALT2: &[TerminalId] = &[TerminalId(0)];
 // Expr_Plus_0 { ",", ")", EOF }
 pub static FOLLOW_SET_EXPR_PLUS_0: &[TerminalId] = &[TerminalId(2), TerminalId(3), TerminalId(5)];
 // Expr_Plus_0 { Id }
 pub static FIRST_SET_EXPR_PLUS_0: &[TerminalId] = &[TerminalId(0)];
 // Expr_Plus_0 : . Expr_Plus_0 "," Expr_except_comma { Id }
-pub static PREDICTION_SET_EXPR_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_EXPR_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Expr_Plus_0 : . Expr_except_comma { Id }
-pub static PREDICTION_SET_EXPR_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
-pub static ALTERNATIVES_EXPR_PLUS_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_EXPR_PLUS_0_ALT0, SlotId(11)),
-        (PREDICTION_SET_EXPR_PLUS_0_ALT1, SlotId(15)),
-    ],
-    FIRST_SET_EXPR_PLUS_0,
-);
+pub static FIRST_SET_EXPR_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
 // Expr_Opt_0 { ")", EOF }
 pub static FOLLOW_SET_EXPR_OPT_0: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
 // Expr_Opt_0 { ")", EOF, Id }
 pub static FIRST_SET_EXPR_OPT_0: &[TerminalId] = &[TerminalId(3), TerminalId(5), TerminalId(0)];
 // Expr_Opt_0 : . Expr_Plus_0 { Id }
-pub static PREDICTION_SET_EXPR_OPT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
-// Expr_Opt_0 : . { ")", EOF }
-pub static PREDICTION_SET_EXPR_OPT_0_ALT1: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
-pub static ALTERNATIVES_EXPR_OPT_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_EXPR_OPT_0_ALT0, SlotId(17)),
-        (PREDICTION_SET_EXPR_OPT_0_ALT1, SlotId(19)),
-    ],
-    FIRST_SET_EXPR_OPT_0,
-);
+pub static FIRST_SET_EXPR_OPT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+// Expr_Opt_0 : . {  }
+pub static FIRST_SET_EXPR_OPT_0_ALT1: &[TerminalId] = &[];
 // Expr_Star_0 { ")", EOF }
 pub static FOLLOW_SET_EXPR_STAR_0: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
 // Expr_Star_0 { ")", Id, EOF }
 pub static FIRST_SET_EXPR_STAR_0: &[TerminalId] = &[TerminalId(3), TerminalId(0), TerminalId(5)];
-// Expr_Star_0 : . Expr_Opt_0 { ")", EOF, Id }
-pub static PREDICTION_SET_EXPR_STAR_0_ALT0: &[TerminalId] =
-    &[TerminalId(3), TerminalId(5), TerminalId(0)];
+// Expr_Star_0 : . Expr_Opt_0 { Id }
+pub static FIRST_SET_EXPR_STAR_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Expr_except_comma { ",", ")", EOF }
 pub static FOLLOW_SET_EXPR_EXCEPT_COMMA: &[TerminalId] =
     &[TerminalId(2), TerminalId(3), TerminalId(5)];
 // Expr_except_comma { Id }
 pub static FIRST_SET_EXPR_EXCEPT_COMMA: &[TerminalId] = &[TerminalId(0)];
 // Expr_except_comma : . Id { Id }
-pub static PREDICTION_SET_EXPR_EXCEPT_COMMA_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_EXPR_EXCEPT_COMMA_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Expr_except_comma : . Expr "(" Expr_Star_0 ")" { Id }
-pub static PREDICTION_SET_EXPR_EXCEPT_COMMA_ALT1: &[TerminalId] = &[TerminalId(0)];
-pub static ALTERNATIVES_EXPR_EXCEPT_COMMA: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_EXPR_EXCEPT_COMMA_ALT0, SlotId(22)),
-        (PREDICTION_SET_EXPR_EXCEPT_COMMA_ALT1, SlotId(24)),
-    ],
-    FIRST_SET_EXPR_EXCEPT_COMMA,
-);
+pub static FIRST_SET_EXPR_EXCEPT_COMMA_ALT1: &[TerminalId] = &[TerminalId(0)];

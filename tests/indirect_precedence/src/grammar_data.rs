@@ -120,34 +120,26 @@ pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(5)];
 // S { "a", "-" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
 // S : . E(0) { "a", "-" }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
 // E { "*", "/", EOF }
 pub static FOLLOW_SET_E: &[TerminalId] = &[TerminalId(1), TerminalId(3), TerminalId(5)];
 // E { "a", "-" }
 pub static FIRST_SET_E: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
 // E(p: i32) : . "-" E(2) return 2 { "-" }
-pub static PREDICTION_SET_E_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_E_ALT0: &[TerminalId] = &[TerminalId(0)];
 // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "*" F return 0 { "a", "-" }
-pub static PREDICTION_SET_E_ALT1: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
+pub static FIRST_SET_E_ALT1: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
 // E(p: i32) : . "a" return 0 { "a" }
-pub static PREDICTION_SET_E_ALT2: &[TerminalId] = &[TerminalId(2)];
-pub static ALTERNATIVES_E: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_E_ALT0, SlotId(2)),
-        (PREDICTION_SET_E_ALT1, SlotId(6)),
-        (PREDICTION_SET_E_ALT2, SlotId(13)),
-    ],
-    FIRST_SET_E,
-);
+pub static FIRST_SET_E_ALT2: &[TerminalId] = &[TerminalId(2)];
 // F { "*", "/", EOF }
 pub static FOLLOW_SET_F: &[TerminalId] = &[TerminalId(1), TerminalId(3), TerminalId(5)];
 // F { "a", "-" }
 pub static FIRST_SET_F: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
 // F : . E(0) "/" K { "a", "-" }
-pub static PREDICTION_SET_F_ALT0: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
+pub static FIRST_SET_F_ALT0: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
 // K { "*", "/", EOF }
 pub static FOLLOW_SET_K: &[TerminalId] = &[TerminalId(1), TerminalId(3), TerminalId(5)];
 // K { "a", "-" }
 pub static FIRST_SET_K: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
 // K : . E(0) { "a", "-" }
-pub static PREDICTION_SET_K_ALT0: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
+pub static FIRST_SET_K_ALT0: &[TerminalId] = &[TerminalId(2), TerminalId(0)];

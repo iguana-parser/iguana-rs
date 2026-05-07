@@ -147,7 +147,26 @@ impl<'i> Parser<'i> for OptParser<'i> {
             }
             // S_Opt_0
             NonterminalId(2) => {
-                self.try_alternatives(ALTERNATIVES_S_OPT_0, input_index, gss_node_id, env);
+                let mut matched = false;
+                // S_Opt_0 : . A
+                if self.scanner.match_any(FIRST_SET_S_OPT_0_ALT0, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
+                // S_Opt_0 : .
+                if self.scanner.match_any(FIRST_SET_S_OPT_0_ALT1, input_index)
+                    || self.scanner.match_any(FOLLOW_SET_S_OPT_0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_S_OPT_0.to_vec(),
+                        }
+                    });
+                }
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

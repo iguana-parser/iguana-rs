@@ -328,15 +328,7 @@ impl<'a> ParserGen<'a> {
                     }
                 });
             } else {
-                let nt_name = &nonterminal.name;
-                let nt_upper = self.prediction_set_name(nonterminal);
-                let alternatives_name = format_ident!("ALTERNATIVES_{}", nt_upper);
-                nonterminal_quotes.push(quote! {
-                    #[comment = #nt_name]
-                    #nonterminal_id => {
-                        self.try_alternatives(#alternatives_name, input_index, gss_node_id, env);
-                    }
-                });
+                nonterminal_quotes.push(self.gen_multi_alt_first_dispatch(nonterminal));
             }
         }
         quote! {
@@ -352,6 +344,63 @@ impl<'a> ParserGen<'a> {
                     _ => {
                         panic!("Unknown nonterminal id: {nonterminal_id}");
                     }
+                }
+            }
+        }
+    }
+
+    /// Emits the GLL dispatch for a multi-alternative nonterminal A.
+    ///
+    /// Each alternative `A → α` tests `FIRST(α)`; nullable alts also fall
+    /// through to `FOLLOW(A)`. The disjunction short-circuits, so FOLLOW is
+    /// scanned only when FIRST misses. Repeat FOLLOW scans across multiple
+    /// nullable alts hit the scanner's `(position, terminal)` memo and are
+    /// near-free. If no alternative spawned, record a parse error.
+    fn gen_multi_alt_first_dispatch(&self, nonterminal: &'a Nonterminal) -> TokenStream {
+        let nt_name = &nonterminal.name;
+        let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
+        let nt_upper = self.prediction_set_name(nonterminal);
+        let alternatives = self.grammar.alternatives(nonterminal);
+        let follow_name = format_ident!("FOLLOW_SET_{}", nt_upper);
+
+        let alt_arms: Vec<_> = alternatives
+            .iter()
+            .enumerate()
+            .map(|(alt_index, alt)| {
+                let first_alt_name = format_ident!("FIRST_SET_{}_ALT{}", nt_upper, alt_index);
+                let slot = Slot::new(nonterminal, alt, 0);
+                let slot_id = self.slot_ids.get_id(&slot);
+                let slot_name = slot.name();
+                let trigger = if self.ff.is_alt_nullable(alt) {
+                    quote! {
+                        self.scanner.match_any(#first_alt_name, input_index)
+                            || self.scanner.match_any(#follow_name, input_index)
+                    }
+                } else {
+                    quote! { self.scanner.match_any(#first_alt_name, input_index) }
+                };
+                quote! {
+                    #[comment = #slot_name]
+                    if #trigger {
+                        matched = true;
+                        self.add_first_descriptor(#slot_id, input_index, gss_node_id, env);
+                    }
+                }
+            })
+            .collect();
+
+        let first_set_name = format_ident!("FIRST_SET_{}", nt_upper);
+        let first_slot_id = self.slot_ids.get_id(&Slot::new(nonterminal, &alternatives[0], 0));
+
+        quote! {
+            #[comment = #nt_name]
+            #nonterminal_id => {
+                let mut matched = false;
+                #(#alt_arms)*
+                if !matched {
+                    self.add_parse_error(input_index, #first_slot_id, Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken { expected: #first_set_name.to_vec() }
+                    });
                 }
             }
         }

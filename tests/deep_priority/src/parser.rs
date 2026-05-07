@@ -412,7 +412,29 @@ impl<'i> Parser<'i> for DeepPriorityParser<'i> {
             }
             // E
             NonterminalId(1) => {
-                self.try_alternatives(ALTERNATIVES_E, input_index, gss_node_id, env);
+                let mut matched = false;
+                // E(p: i32) : . "a" return 0
+                if self.scanner.match_any(FIRST_SET_E_ALT0, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
+                }
+                // E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" WS r=E(2) return r == 0 ? 2 : min(r, 2)
+                if self.scanner.match_any(FIRST_SET_E_ALT1, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
+                }
+                // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
+                if self.scanner.match_any(FIRST_SET_E_ALT2, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(2), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_E.to_vec(),
+                        }
+                    });
+                }
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

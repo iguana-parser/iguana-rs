@@ -94,9 +94,14 @@ impl<'a> FirstFollowSets<'a> {
         matches!(&nt.origin, Some(Symbol::Plus(_, _)))
     }
 
+    /// Returns true if every symbol of an alternative is nullable.
+    pub fn is_alt_nullable(&self, alt: &Alternative) -> bool {
+        alt.symbols.iter().all(|s| self.is_nullable(s))
+    }
+
     /// Returns the FIRST set of an alternative. Walks symbols left to right,
     /// collecting FIRST of each symbol, stopping at the first non-nullable.
-    fn first_set(&self, alt: &Alternative) -> FxHashSet<Terminal> {
+    pub fn first_set(&self, alt: &Alternative) -> FxHashSet<Terminal> {
         let mut set = FxHashSet::default();
         for symbol in &alt.symbols {
             let firsts = self.first_of_symbol(symbol);

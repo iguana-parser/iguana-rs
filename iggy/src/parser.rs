@@ -6283,7 +6283,24 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Rule
             NonterminalId(2) => {
-                self.try_alternatives(ALTERNATIVES_RULE, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Rule : . SyntaxRule
+                if self.scanner.match_any(FIRST_SET_RULE_ALT0, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                }
+                // Rule : . RegexRule
+                if self.scanner.match_any(FIRST_SET_RULE_ALT1, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(12), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_RULE.to_vec(),
+                        }
+                    });
+                }
             }
             // SyntaxRule : . SyntaxRule_Star_1 Layout head:Identifier Layout "=" Layout SyntaxRule_Star_2
             NonterminalId(3) => {
@@ -6291,7 +6308,38 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Annotation
             NonterminalId(4) => {
-                self.try_alternatives(ALTERNATIVES_ANNOTATION, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Annotation : . "@NoLayout"
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ANNOTATION_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
+                }
+                // Annotation : . "@Layout" Layout "(" Layout Identifier Layout ")"
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ANNOTATION_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
+                }
+                // Annotation : . "@Start"
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ANNOTATION_ALT2, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(24), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ANNOTATION.to_vec(),
+                        }
+                    });
+                }
             }
             // RegexRule : . "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3
             NonterminalId(5) => {
@@ -6303,7 +6351,30 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // PostCondition
             NonterminalId(7) => {
-                self.try_alternatives(ALTERNATIVES_POST_CONDITION, input_index, gss_node_id, env);
+                let mut matched = false;
+                // PostCondition : . "\" Layout Identifier
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_POST_CONDITION_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(52), input_index, gss_node_id, env);
+                }
+                // PostCondition : . "!>>" Layout Identifier
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_POST_CONDITION_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(56), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(52), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_POST_CONDITION.to_vec(),
+                        }
+                    });
+                }
             }
             // PriorityLevel : . PriorityLevel_Opt_6 Layout PriorityLevel_Star_4
             NonterminalId(8) => {
@@ -6311,7 +6382,38 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Associativity
             NonterminalId(9) => {
-                self.try_alternatives(ALTERNATIVES_ASSOCIATIVITY, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Associativity : . "left"
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ASSOCIATIVITY_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
+                }
+                // Associativity : . "right"
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ASSOCIATIVITY_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
+                }
+                // Associativity : . "none"
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ASSOCIATIVITY_ALT2, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(68), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(64), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ASSOCIATIVITY.to_vec(),
+                        }
+                    });
+                }
             }
             // Alternative : . Alternative_Star_5 Layout Alternative_Opt_9
             NonterminalId(10) => {
@@ -6319,11 +6421,140 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol
             NonterminalId(57) => {
-                self.try_alternatives(ALTERNATIVES_SYMBOL, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Symbol(p: i32) : . Identifier return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT0, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(74), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . "(" Layout Alternative_Plus_7 Layout ")" return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT1, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(77), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT2, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(84), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . String return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT3, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(93), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT4, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(96), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT5, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(107), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT6, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(118), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT7, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(125), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT8, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(132), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_9 return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT9, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(139), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_10 return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT10, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(146), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_11 return 0
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT11, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(153), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT12, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(160), input_index, gss_node_id, env);
+                }
+                // Symbol(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
+                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT13, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(167), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(74), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYMBOL.to_vec(),
+                        }
+                    });
+                }
             }
             // Regex
             NonterminalId(11) => {
-                self.try_alternatives(ALTERNATIVES_REGEX, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Regex : . Regex Layout "+"
+                if self.scanner.match_any(FIRST_SET_REGEX_ALT0, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(174), input_index, gss_node_id, env);
+                }
+                // Regex : . Regex Layout "*"
+                if self.scanner.match_any(FIRST_SET_REGEX_ALT1, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(178), input_index, gss_node_id, env);
+                }
+                // Regex : . Regex Layout "?"
+                if self.scanner.match_any(FIRST_SET_REGEX_ALT2, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(182), input_index, gss_node_id, env);
+                }
+                // Regex : . "(" Layout first:Regex Layout rest:Regex_Plus_12 Layout ")"
+                if self.scanner.match_any(FIRST_SET_REGEX_ALT3, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(186), input_index, gss_node_id, env);
+                }
+                // Regex : . "(" Layout RegexRule_Plus_4 Layout ")"
+                if self.scanner.match_any(FIRST_SET_REGEX_ALT4, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(194), input_index, gss_node_id, env);
+                }
+                // Regex : . CharClass
+                if self.scanner.match_any(FIRST_SET_REGEX_ALT5, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(200), input_index, gss_node_id, env);
+                }
+                // Regex : . Char
+                if self.scanner.match_any(FIRST_SET_REGEX_ALT6, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(202), input_index, gss_node_id, env);
+                }
+                // Regex : . String
+                if self.scanner.match_any(FIRST_SET_REGEX_ALT7, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(204), input_index, gss_node_id, env);
+                }
+                // Regex : . Identifier
+                if self.scanner.match_any(FIRST_SET_REGEX_ALT8, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(206), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(174), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_REGEX.to_vec(),
+                        }
+                    });
+                }
             }
             // CharClass : . neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_13 Layout "]"
             NonterminalId(12) => {
@@ -6331,7 +6562,30 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // RangeElement
             NonterminalId(13) => {
-                self.try_alternatives(ALTERNATIVES_RANGE_ELEMENT, input_index, gss_node_id, env);
+                let mut matched = false;
+                // RangeElement : . Range
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_RANGE_ELEMENT_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(216), input_index, gss_node_id, env);
+                }
+                // RangeElement : . RangeChar
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_RANGE_ELEMENT_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(218), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(216), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_RANGE_ELEMENT.to_vec(),
+                        }
+                    });
+                }
             }
             // Range : . start:RangeChar Layout "-" Layout end:RangeChar
             NonterminalId(14) => {
@@ -6343,15 +6597,90 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Grammar_Opt_0
             NonterminalId(16) => {
-                self.try_alternatives(ALTERNATIVES_GRAMMAR_OPT_0, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Grammar_Opt_0 : . LayoutDef
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_GRAMMAR_OPT_0_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(228), input_index, gss_node_id, env);
+                }
+                // Grammar_Opt_0 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_GRAMMAR_OPT_0_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_GRAMMAR_OPT_0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(230), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(228), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_GRAMMAR_OPT_0.to_vec(),
+                        }
+                    });
+                }
             }
             // Grammar_Plus_0
             NonterminalId(17) => {
-                self.try_alternatives(ALTERNATIVES_GRAMMAR_PLUS_0, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Grammar_Plus_0 : . Grammar_Plus_0 Layout Rule
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_GRAMMAR_PLUS_0_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(231), input_index, gss_node_id, env);
+                }
+                // Grammar_Plus_0 : . Rule
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_GRAMMAR_PLUS_0_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(235), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(231), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_GRAMMAR_PLUS_0.to_vec(),
+                        }
+                    });
+                }
             }
             // Grammar_Opt_1
             NonterminalId(18) => {
-                self.try_alternatives(ALTERNATIVES_GRAMMAR_OPT_1, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Grammar_Opt_1 : . Grammar_Plus_0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_GRAMMAR_OPT_1_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(237), input_index, gss_node_id, env);
+                }
+                // Grammar_Opt_1 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_GRAMMAR_OPT_1_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_GRAMMAR_OPT_1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(239), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(237), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_GRAMMAR_OPT_1.to_vec(),
+                        }
+                    });
+                }
             }
             // Grammar_Star_0 : . Grammar_Opt_1
             NonterminalId(19) => {
@@ -6359,21 +6688,60 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // SyntaxRule_Plus_1
             NonterminalId(20) => {
-                self.try_alternatives(
-                    ALTERNATIVES_SYNTAX_RULE_PLUS_1,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // SyntaxRule_Plus_1 : . SyntaxRule_Plus_1 Layout Annotation
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYNTAX_RULE_PLUS_1_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(242), input_index, gss_node_id, env);
+                }
+                // SyntaxRule_Plus_1 : . Annotation
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYNTAX_RULE_PLUS_1_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(246), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(242), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYNTAX_RULE_PLUS_1.to_vec(),
+                        }
+                    });
+                }
             }
             // SyntaxRule_Opt_2
             NonterminalId(21) => {
-                self.try_alternatives(
-                    ALTERNATIVES_SYNTAX_RULE_OPT_2,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // SyntaxRule_Opt_2 : . SyntaxRule_Plus_1
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYNTAX_RULE_OPT_2_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(248), input_index, gss_node_id, env);
+                }
+                // SyntaxRule_Opt_2 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYNTAX_RULE_OPT_2_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_SYNTAX_RULE_OPT_2, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(250), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(248), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYNTAX_RULE_OPT_2.to_vec(),
+                        }
+                    });
+                }
             }
             // SyntaxRule_Star_1 : . SyntaxRule_Opt_2
             NonterminalId(22) => {
@@ -6381,21 +6749,66 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // SyntaxRule_Plus_2
             NonterminalId(23) => {
-                self.try_alternatives(
-                    ALTERNATIVES_SYNTAX_RULE_PLUS_2,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // SyntaxRule_Plus_2 : . SyntaxRule_Plus_2 Layout ">" Layout PriorityLevel
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYNTAX_RULE_PLUS_2_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(253), input_index, gss_node_id, env);
+                }
+                // SyntaxRule_Plus_2 : . PriorityLevel
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYNTAX_RULE_PLUS_2_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_SYNTAX_RULE_PLUS_2, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(259), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(253), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYNTAX_RULE_PLUS_2.to_vec(),
+                        }
+                    });
+                }
             }
             // SyntaxRule_Opt_3
             NonterminalId(24) => {
-                self.try_alternatives(
-                    ALTERNATIVES_SYNTAX_RULE_OPT_3,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // SyntaxRule_Opt_3 : . SyntaxRule_Plus_2
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYNTAX_RULE_OPT_3_ALT0, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_SYNTAX_RULE_OPT_3, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(261), input_index, gss_node_id, env);
+                }
+                // SyntaxRule_Opt_3 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYNTAX_RULE_OPT_3_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_SYNTAX_RULE_OPT_3, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(263), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(261), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYNTAX_RULE_OPT_3.to_vec(),
+                        }
+                    });
+                }
             }
             // SyntaxRule_Star_2 : . SyntaxRule_Opt_3
             NonterminalId(25) => {
@@ -6403,38 +6816,144 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // RegexRule_Opt_4
             NonterminalId(26) => {
-                self.try_alternatives(ALTERNATIVES_REGEX_RULE_OPT_4, input_index, gss_node_id, env);
+                let mut matched = false;
+                // RegexRule_Opt_4 : . PreCondition
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_RULE_OPT_4_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(266), input_index, gss_node_id, env);
+                }
+                // RegexRule_Opt_4 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_RULE_OPT_4_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_REGEX_RULE_OPT_4, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(268), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(266), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_REGEX_RULE_OPT_4.to_vec(),
+                        }
+                    });
+                }
             }
             // RegexRule_Plus_4
             NonterminalId(27) => {
-                self.try_alternatives(
-                    ALTERNATIVES_REGEX_RULE_PLUS_4,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // RegexRule_Plus_4 : . RegexRule_Plus_4 Layout Regex
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_RULE_PLUS_4_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(269), input_index, gss_node_id, env);
+                }
+                // RegexRule_Plus_4 : . Regex
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_RULE_PLUS_4_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(273), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(269), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_REGEX_RULE_PLUS_4.to_vec(),
+                        }
+                    });
+                }
             }
             // RegexRule_Plus_3
             NonterminalId(28) => {
-                self.try_alternatives(
-                    ALTERNATIVES_REGEX_RULE_PLUS_3,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // RegexRule_Plus_3 : . RegexRule_Plus_3 Layout "|" Layout RegexRule_Plus_4
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_RULE_PLUS_3_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(275), input_index, gss_node_id, env);
+                }
+                // RegexRule_Plus_3 : . RegexRule_Plus_4
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_RULE_PLUS_3_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(281), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(275), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_REGEX_RULE_PLUS_3.to_vec(),
+                        }
+                    });
+                }
             }
             // RegexRule_Plus_5
             NonterminalId(29) => {
-                self.try_alternatives(
-                    ALTERNATIVES_REGEX_RULE_PLUS_5,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // RegexRule_Plus_5 : . RegexRule_Plus_5 Layout PostCondition
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_RULE_PLUS_5_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(283), input_index, gss_node_id, env);
+                }
+                // RegexRule_Plus_5 : . PostCondition
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_RULE_PLUS_5_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(287), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(283), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_REGEX_RULE_PLUS_5.to_vec(),
+                        }
+                    });
+                }
             }
             // RegexRule_Opt_5
             NonterminalId(30) => {
-                self.try_alternatives(ALTERNATIVES_REGEX_RULE_OPT_5, input_index, gss_node_id, env);
+                let mut matched = false;
+                // RegexRule_Opt_5 : . RegexRule_Plus_5
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_RULE_OPT_5_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(289), input_index, gss_node_id, env);
+                }
+                // RegexRule_Opt_5 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_RULE_OPT_5_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_REGEX_RULE_OPT_5, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(291), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(289), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_REGEX_RULE_OPT_5.to_vec(),
+                        }
+                    });
+                }
             }
             // RegexRule_Star_3 : . RegexRule_Opt_5
             NonterminalId(31) => {
@@ -6442,30 +6961,96 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // PriorityLevel_Opt_6
             NonterminalId(32) => {
-                self.try_alternatives(
-                    ALTERNATIVES_PRIORITY_LEVEL_OPT_6,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // PriorityLevel_Opt_6 : . Associativity
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_PRIORITY_LEVEL_OPT_6_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(294), input_index, gss_node_id, env);
+                }
+                // PriorityLevel_Opt_6 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_PRIORITY_LEVEL_OPT_6_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_PRIORITY_LEVEL_OPT_6, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(296), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(294), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PRIORITY_LEVEL_OPT_6.to_vec(),
+                        }
+                    });
+                }
             }
             // PriorityLevel_Plus_6
             NonterminalId(33) => {
-                self.try_alternatives(
-                    ALTERNATIVES_PRIORITY_LEVEL_PLUS_6,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // PriorityLevel_Plus_6 : . PriorityLevel_Plus_6 Layout "|" Layout Alternative
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_PRIORITY_LEVEL_PLUS_6_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(297), input_index, gss_node_id, env);
+                }
+                // PriorityLevel_Plus_6 : . Alternative
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_PRIORITY_LEVEL_PLUS_6_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_PRIORITY_LEVEL_PLUS_6, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(303), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(297), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PRIORITY_LEVEL_PLUS_6.to_vec(),
+                        }
+                    });
+                }
             }
             // PriorityLevel_Opt_7
             NonterminalId(34) => {
-                self.try_alternatives(
-                    ALTERNATIVES_PRIORITY_LEVEL_OPT_7,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // PriorityLevel_Opt_7 : . PriorityLevel_Plus_6
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_PRIORITY_LEVEL_OPT_7_ALT0, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_PRIORITY_LEVEL_OPT_7, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(305), input_index, gss_node_id, env);
+                }
+                // PriorityLevel_Opt_7 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_PRIORITY_LEVEL_OPT_7_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_PRIORITY_LEVEL_OPT_7, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(307), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(305), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PRIORITY_LEVEL_OPT_7.to_vec(),
+                        }
+                    });
+                }
             }
             // PriorityLevel_Star_4 : . PriorityLevel_Opt_7
             NonterminalId(35) => {
@@ -6473,21 +7058,60 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Alternative_Plus_7
             NonterminalId(36) => {
-                self.try_alternatives(
-                    ALTERNATIVES_ALTERNATIVE_PLUS_7,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // Alternative_Plus_7 : . Alternative_Plus_7 Layout Symbol(0)
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ALTERNATIVE_PLUS_7_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(310), input_index, gss_node_id, env);
+                }
+                // Alternative_Plus_7 : . Symbol(0)
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ALTERNATIVE_PLUS_7_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(314), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(310), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ALTERNATIVE_PLUS_7.to_vec(),
+                        }
+                    });
+                }
             }
             // Alternative_Opt_8
             NonterminalId(37) => {
-                self.try_alternatives(
-                    ALTERNATIVES_ALTERNATIVE_OPT_8,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // Alternative_Opt_8 : . Alternative_Plus_7
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ALTERNATIVE_OPT_8_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(316), input_index, gss_node_id, env);
+                }
+                // Alternative_Opt_8 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ALTERNATIVE_OPT_8_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_ALTERNATIVE_OPT_8, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(318), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(316), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ALTERNATIVE_OPT_8.to_vec(),
+                        }
+                    });
+                }
             }
             // Alternative_Star_5 : . Alternative_Opt_8
             NonterminalId(38) => {
@@ -6495,12 +7119,33 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Alternative_Opt_9
             NonterminalId(39) => {
-                self.try_alternatives(
-                    ALTERNATIVES_ALTERNATIVE_OPT_9,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // Alternative_Opt_9 : . Label
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ALTERNATIVE_OPT_9_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(321), input_index, gss_node_id, env);
+                }
+                // Alternative_Opt_9 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_ALTERNATIVE_OPT_9_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_ALTERNATIVE_OPT_9, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(323), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(321), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ALTERNATIVE_OPT_9.to_vec(),
+                        }
+                    });
+                }
             }
             // Symbol_Group_0 : . "|" Layout Symbol(0)
             NonterminalId(40) => {
@@ -6508,7 +7153,30 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol_Plus_8
             NonterminalId(41) => {
-                self.try_alternatives(ALTERNATIVES_SYMBOL_PLUS_8, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Symbol_Plus_8 : . Symbol_Plus_8 Layout Symbol_Group_0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_PLUS_8_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(328), input_index, gss_node_id, env);
+                }
+                // Symbol_Plus_8 : . Symbol_Group_0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_PLUS_8_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(332), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(328), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYMBOL_PLUS_8.to_vec(),
+                        }
+                    });
+                }
             }
             // Symbol_Group_1 : . "\" Layout Identifier
             NonterminalId(42) => {
@@ -6516,7 +7184,30 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol_Plus_9
             NonterminalId(43) => {
-                self.try_alternatives(ALTERNATIVES_SYMBOL_PLUS_9, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Symbol_Plus_9 : . Symbol_Plus_9 Layout Symbol_Group_1
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_PLUS_9_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(338), input_index, gss_node_id, env);
+                }
+                // Symbol_Plus_9 : . Symbol_Group_1
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_PLUS_9_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(342), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(338), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYMBOL_PLUS_9.to_vec(),
+                        }
+                    });
+                }
             }
             // Symbol_Group_2 : . "!>>" Layout Identifier
             NonterminalId(44) => {
@@ -6524,7 +7215,30 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol_Plus_10
             NonterminalId(45) => {
-                self.try_alternatives(ALTERNATIVES_SYMBOL_PLUS_10, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Symbol_Plus_10 : . Symbol_Plus_10 Layout Symbol_Group_2
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_PLUS_10_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(348), input_index, gss_node_id, env);
+                }
+                // Symbol_Plus_10 : . Symbol_Group_2
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_PLUS_10_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(352), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(348), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYMBOL_PLUS_10.to_vec(),
+                        }
+                    });
+                }
             }
             // Symbol_Group_3 : . "!" Layout Identifier
             NonterminalId(46) => {
@@ -6532,7 +7246,30 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol_Plus_11
             NonterminalId(47) => {
-                self.try_alternatives(ALTERNATIVES_SYMBOL_PLUS_11, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Symbol_Plus_11 : . Symbol_Plus_11 Layout Symbol_Group_3
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_PLUS_11_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(358), input_index, gss_node_id, env);
+                }
+                // Symbol_Plus_11 : . Symbol_Group_3
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_PLUS_11_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(362), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(358), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYMBOL_PLUS_11.to_vec(),
+                        }
+                    });
+                }
             }
             // Regex_Group_4 : . "|" Layout Regex
             NonterminalId(48) => {
@@ -6540,37 +7277,171 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Regex_Plus_12
             NonterminalId(49) => {
-                self.try_alternatives(ALTERNATIVES_REGEX_PLUS_12, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Regex_Plus_12 : . Regex_Plus_12 Layout Regex_Group_4
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_PLUS_12_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(368), input_index, gss_node_id, env);
+                }
+                // Regex_Plus_12 : . Regex_Group_4
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_REGEX_PLUS_12_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(372), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(368), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_REGEX_PLUS_12.to_vec(),
+                        }
+                    });
+                }
             }
             // CharClass_Opt_10
             NonterminalId(50) => {
-                self.try_alternatives(
-                    ALTERNATIVES_CHAR_CLASS_OPT_10,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // CharClass_Opt_10 : . "!"
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_CHAR_CLASS_OPT_10_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(374), input_index, gss_node_id, env);
+                }
+                // CharClass_Opt_10 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_CHAR_CLASS_OPT_10_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_CHAR_CLASS_OPT_10, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(376), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(374), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_CHAR_CLASS_OPT_10.to_vec(),
+                        }
+                    });
+                }
             }
             // CharClass_Plus_13
             NonterminalId(51) => {
-                self.try_alternatives(
-                    ALTERNATIVES_CHAR_CLASS_PLUS_13,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // CharClass_Plus_13 : . CharClass_Plus_13 Layout RangeElement
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_CHAR_CLASS_PLUS_13_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(377), input_index, gss_node_id, env);
+                }
+                // CharClass_Plus_13 : . RangeElement
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_CHAR_CLASS_PLUS_13_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(381), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(377), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_CHAR_CLASS_PLUS_13.to_vec(),
+                        }
+                    });
+                }
             }
             // Layout_Alt_0
             NonterminalId(52) => {
-                self.try_alternatives(ALTERNATIVES_LAYOUT_ALT_0, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Layout_Alt_0 : . WS
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_ALT_0_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(383), input_index, gss_node_id, env);
+                }
+                // Layout_Alt_0 : . LineComment
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_ALT_0_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(385), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(383), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_LAYOUT_ALT_0.to_vec(),
+                        }
+                    });
+                }
             }
             // Layout_Plus_14
             NonterminalId(53) => {
-                self.try_alternatives(ALTERNATIVES_LAYOUT_PLUS_14, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Layout_Plus_14 : . Layout_Plus_14 Layout_Alt_0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_PLUS_14_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(387), input_index, gss_node_id, env);
+                }
+                // Layout_Plus_14 : . Layout_Alt_0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_PLUS_14_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(390), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(387), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_LAYOUT_PLUS_14.to_vec(),
+                        }
+                    });
+                }
             }
             // Layout_Opt_11
             NonterminalId(54) => {
-                self.try_alternatives(ALTERNATIVES_LAYOUT_OPT_11, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Layout_Opt_11 : . Layout_Plus_14
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_OPT_11_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(392), input_index, gss_node_id, env);
+                }
+                // Layout_Opt_11 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_OPT_11_ALT1, input_index)
+                    || self
+                        .scanner
+                        .match_any(FOLLOW_SET_LAYOUT_OPT_11, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(394), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(392), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_LAYOUT_OPT_11.to_vec(),
+                        }
+                    });
+                }
             }
             // Layout_Star_6 : . Layout_Opt_11
             NonterminalId(55) => {
@@ -6578,21 +7449,233 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol_except_Except
             NonterminalId(58) => {
-                self.try_alternatives(
-                    ALTERNATIVES_SYMBOL_EXCEPT_EXCEPT,
-                    input_index,
-                    gss_node_id,
-                    env,
-                );
+                let mut matched = false;
+                // Symbol_except_Except(p: i32) : . Identifier return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(397), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . "(" Layout Alternative_Plus_7 Layout ")" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(400), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT2, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(407), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . String return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT3, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(416), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT4, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(419), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT5, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(430), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT6, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(441), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT7, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(448), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT8, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(455), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_10 return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT9, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(462), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_11 return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT10, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(469), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT11, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(476), input_index, gss_node_id, env);
+                }
+                // Symbol_except_Except(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT12, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(483), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(397), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYMBOL_EXCEPT_EXCEPT.to_vec(),
+                        }
+                    });
+                }
             }
             // Symbol_except_FollowRestriction
             NonterminalId(59) => {
-                self.try_alternatives(
-                    ALTERNATIVES_SYMBOL_EXCEPT_FOLLOW_RESTRICTION,
+                let mut matched = false;
+                // Symbol_except_FollowRestriction(p: i32) : . Identifier return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(490), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . "(" Layout Alternative_Plus_7 Layout ")" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(493), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT2, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(500), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . String return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT3, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(509), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT4, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(512), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT5, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(523), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "*" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT6, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(534), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "+" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT7, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(541), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT8, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(548), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_9 return 0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT9, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(555), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_11 return 0
+                if self.scanner.match_any(
+                    FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT10,
                     input_index,
-                    gss_node_id,
-                    env,
-                );
+                ) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(562), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2)
+                if self.scanner.match_any(
+                    FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT11,
+                    input_index,
+                ) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(569), input_index, gss_node_id, env);
+                }
+                // Symbol_except_FollowRestriction(p: i32) : . label:Identifier Layout ":" Layout Symbol(1) return 1
+                if self.scanner.match_any(
+                    FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT12,
+                    input_index,
+                ) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(576), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(490), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION.to_vec(),
+                        }
+                    });
+                }
             }
             // StartGrammar : . Layout start:Grammar Layout
             NonterminalId(56) => {

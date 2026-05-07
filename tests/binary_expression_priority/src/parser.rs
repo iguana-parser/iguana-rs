@@ -343,7 +343,34 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
             }
             // E
             NonterminalId(1) => {
-                self.try_alternatives(ALTERNATIVES_E, input_index, gss_node_id, env);
+                let mut matched = false;
+                // E(p: i32) : . "a" return 0
+                if self.scanner.match_any(FIRST_SET_E_ALT0, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
+                }
+                // E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
+                if self.scanner.match_any(FIRST_SET_E_ALT1, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
+                }
+                // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
+                if self.scanner.match_any(FIRST_SET_E_ALT2, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                }
+                // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "-" E(1) return 1
+                if self.scanner.match_any(FIRST_SET_E_ALT3, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(2), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_E.to_vec(),
+                        }
+                    });
+                }
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

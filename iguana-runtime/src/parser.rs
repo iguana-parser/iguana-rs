@@ -227,39 +227,6 @@ pub trait Parser<'i> {
     /// Delegates to the scanner's match_token.
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
 
-    /// Returns true if any of the given terminals match at the given input position.
-    fn match_any(&mut self, terminal_ids: &[TerminalId], input_index: u32) -> bool {
-        terminal_ids
-            .iter()
-            .any(|id| self.match_token(*id, input_index).is_some())
-    }
-
-    /// Tries each alternative's prediction set and adds a first descriptor for each match.
-    /// If no alternative matches, records a parse error.
-    fn try_alternatives(
-        &mut self,
-        alternatives: (&[(&[TerminalId], SlotId)], &[TerminalId]),
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        let (alts, first_set) = alternatives;
-        let mut matched = false;
-        for &(prediction_set, slot_id) in alts {
-            if self.match_any(prediction_set, input_index) {
-                matched = true;
-                self.add_first_descriptor(slot_id, input_index, gss_node_id, env);
-            }
-        }
-        if !matched {
-            self.add_parse_error(input_index, alts[0].1, Some(gss_node_id), || {
-                ParseErrorKind::UnexpectedToken {
-                    expected: first_set.to_vec(),
-                }
-            });
-        }
-    }
-
     /// Matches a terminal at the given input position.
     /// On success, creates a terminal node and returns the end position and node id.
     /// On failure, records a parse error and returns None.

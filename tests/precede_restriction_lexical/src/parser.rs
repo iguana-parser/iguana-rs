@@ -148,7 +148,24 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
         match nonterminal_id {
             // S
             NonterminalId(0) => {
-                self.try_alternatives(ALTERNATIVES_S, input_index, gss_node_id, env);
+                let mut matched = false;
+                // S : . "for" WS Id
+                if self.scanner.match_any(FIRST_SET_S_ALT0, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                }
+                // S : . "forall"
+                if self.scanner.match_any(FIRST_SET_S_ALT1, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_S.to_vec(),
+                        }
+                    });
+                }
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

@@ -98,22 +98,14 @@ pub static FOLLOW_SET_EXPR: &[TerminalId] =
 // Expr { "x" }
 pub static FIRST_SET_EXPR: &[TerminalId] = &[TerminalId(6)];
 // Expr : . Expr Layout "+" Layout Expr { "x" }
-pub static PREDICTION_SET_EXPR_ALT0: &[TerminalId] = &[TerminalId(6)];
+pub static FIRST_SET_EXPR_ALT0: &[TerminalId] = &[TerminalId(6)];
 // Expr : . Expr Layout "*" Layout Expr { "x" }
-pub static PREDICTION_SET_EXPR_ALT1: &[TerminalId] = &[TerminalId(6)];
+pub static FIRST_SET_EXPR_ALT1: &[TerminalId] = &[TerminalId(6)];
 // Expr : . "x" { "x" }
-pub static PREDICTION_SET_EXPR_ALT2: &[TerminalId] = &[TerminalId(6)];
-pub static ALTERNATIVES_EXPR: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_EXPR_ALT0, SlotId(0)),
-        (PREDICTION_SET_EXPR_ALT1, SlotId(6)),
-        (PREDICTION_SET_EXPR_ALT2, SlotId(12)),
-    ],
-    FIRST_SET_EXPR,
-);
+pub static FIRST_SET_EXPR_ALT2: &[TerminalId] = &[TerminalId(6)];
 // StartExpr { EOF }
 pub static FOLLOW_SET_START_EXPR: &[TerminalId] = &[TerminalId(8)];
 // StartExpr { Layout, "x" }
 pub static FIRST_SET_START_EXPR: &[TerminalId] = &[TerminalId(0), TerminalId(6)];
 // StartExpr : . Layout start:Expr Layout { Layout, "x" }
-pub static PREDICTION_SET_START_EXPR_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(6)];
+pub static FIRST_SET_START_EXPR_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(6)];

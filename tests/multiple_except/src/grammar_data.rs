@@ -59,10 +59,10 @@ pub static FOLLOW_SET_SYNTAX_IDENTIFIER: &[TerminalId] = &[TerminalId(6)];
 // SyntaxIdentifier { IdentifierChars }
 pub static FIRST_SET_SYNTAX_IDENTIFIER: &[TerminalId] = &[TerminalId(1)];
 // SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral { IdentifierChars }
-pub static PREDICTION_SET_SYNTAX_IDENTIFIER_ALT0: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_SYNTAX_IDENTIFIER_ALT0: &[TerminalId] = &[TerminalId(1)];
 // LexicalIdentifier { EOF }
 pub static FOLLOW_SET_LEXICAL_IDENTIFIER: &[TerminalId] = &[TerminalId(6)];
 // LexicalIdentifier { Identifier }
 pub static FIRST_SET_LEXICAL_IDENTIFIER: &[TerminalId] = &[TerminalId(0)];
 // LexicalIdentifier : . Identifier { Identifier }
-pub static PREDICTION_SET_LEXICAL_IDENTIFIER_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_LEXICAL_IDENTIFIER_ALT0: &[TerminalId] = &[TerminalId(0)];

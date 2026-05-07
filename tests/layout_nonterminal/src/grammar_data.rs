@@ -140,75 +140,51 @@ pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(1), TerminalId(0), Termina
 // S { "x" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(2)];
 // S : . "x" { "x" }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(2)];
 // Layout { "x", EOF }
 pub static FOLLOW_SET_LAYOUT: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
 // Layout { Comment, "x", WhiteSpace, EOF }
 pub static FIRST_SET_LAYOUT: &[TerminalId] =
     &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
-// Layout : . Layout_Star_0 { Comment, "x", WhiteSpace, EOF }
-pub static PREDICTION_SET_LAYOUT_ALT0: &[TerminalId] =
-    &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
+// Layout : . Layout_Star_0 { Comment, WhiteSpace }
+pub static FIRST_SET_LAYOUT_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout_Alt_0 { Comment, "x", WhiteSpace, EOF }
 pub static FOLLOW_SET_LAYOUT_ALT_0: &[TerminalId] =
     &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
 // Layout_Alt_0 { Comment, WhiteSpace }
 pub static FIRST_SET_LAYOUT_ALT_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout_Alt_0 : . WhiteSpace { WhiteSpace }
-pub static PREDICTION_SET_LAYOUT_ALT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_LAYOUT_ALT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Layout_Alt_0 : . Comment { Comment }
-pub static PREDICTION_SET_LAYOUT_ALT_0_ALT1: &[TerminalId] = &[TerminalId(1)];
-pub static ALTERNATIVES_LAYOUT_ALT_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_LAYOUT_ALT_0_ALT0, SlotId(4)),
-        (PREDICTION_SET_LAYOUT_ALT_0_ALT1, SlotId(6)),
-    ],
-    FIRST_SET_LAYOUT_ALT_0,
-);
+pub static FIRST_SET_LAYOUT_ALT_0_ALT1: &[TerminalId] = &[TerminalId(1)];
 // Layout_Plus_0 { Comment, "x", WhiteSpace, EOF }
 pub static FOLLOW_SET_LAYOUT_PLUS_0: &[TerminalId] =
     &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
 // Layout_Plus_0 { Comment, WhiteSpace }
 pub static FIRST_SET_LAYOUT_PLUS_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout_Plus_0 : . Layout_Plus_0 Layout_Alt_0 { Comment, WhiteSpace }
-pub static PREDICTION_SET_LAYOUT_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+pub static FIRST_SET_LAYOUT_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout_Plus_0 : . Layout_Alt_0 { Comment, WhiteSpace }
-pub static PREDICTION_SET_LAYOUT_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-pub static ALTERNATIVES_LAYOUT_PLUS_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_LAYOUT_PLUS_0_ALT0, SlotId(8)),
-        (PREDICTION_SET_LAYOUT_PLUS_0_ALT1, SlotId(11)),
-    ],
-    FIRST_SET_LAYOUT_PLUS_0,
-);
+pub static FIRST_SET_LAYOUT_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout_Opt_0 { "x", EOF }
 pub static FOLLOW_SET_LAYOUT_OPT_0: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
 // Layout_Opt_0 { Comment, "x", WhiteSpace, EOF }
 pub static FIRST_SET_LAYOUT_OPT_0: &[TerminalId] =
     &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
 // Layout_Opt_0 : . Layout_Plus_0 { Comment, WhiteSpace }
-pub static PREDICTION_SET_LAYOUT_OPT_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Layout_Opt_0 : . { "x", EOF }
-pub static PREDICTION_SET_LAYOUT_OPT_0_ALT1: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
-pub static ALTERNATIVES_LAYOUT_OPT_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_LAYOUT_OPT_0_ALT0, SlotId(13)),
-        (PREDICTION_SET_LAYOUT_OPT_0_ALT1, SlotId(15)),
-    ],
-    FIRST_SET_LAYOUT_OPT_0,
-);
+pub static FIRST_SET_LAYOUT_OPT_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Layout_Opt_0 : . {  }
+pub static FIRST_SET_LAYOUT_OPT_0_ALT1: &[TerminalId] = &[];
 // Layout_Star_0 { "x", EOF }
 pub static FOLLOW_SET_LAYOUT_STAR_0: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
 // Layout_Star_0 { Comment, "x", WhiteSpace, EOF }
 pub static FIRST_SET_LAYOUT_STAR_0: &[TerminalId] =
     &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
-// Layout_Star_0 : . Layout_Opt_0 { Comment, "x", WhiteSpace, EOF }
-pub static PREDICTION_SET_LAYOUT_STAR_0_ALT0: &[TerminalId] =
-    &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
+// Layout_Star_0 : . Layout_Opt_0 { Comment, WhiteSpace }
+pub static FIRST_SET_LAYOUT_STAR_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: &[TerminalId] = &[TerminalId(4)];
 // StartS { Comment, WhiteSpace, "x" }
 pub static FIRST_SET_START_S: &[TerminalId] = &[TerminalId(1), TerminalId(0), TerminalId(2)];
 // StartS : . Layout start:S Layout { Comment, WhiteSpace, "x" }
-pub static PREDICTION_SET_START_S_ALT0: &[TerminalId] =
-    &[TerminalId(1), TerminalId(0), TerminalId(2)];
+pub static FIRST_SET_START_S_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0), TerminalId(2)];

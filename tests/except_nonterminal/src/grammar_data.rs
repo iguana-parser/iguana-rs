@@ -63,16 +63,16 @@ pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3)];
 // S { Identifier }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
 // S : . Id { Identifier }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Id { EOF }
 pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(3)];
 // Id { Identifier }
 pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(0)];
 // Id : . Name \ Keyword { Identifier }
-pub static PREDICTION_SET_ID_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_ID_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Name { EOF }
 pub static FOLLOW_SET_NAME: &[TerminalId] = &[TerminalId(3)];
 // Name { Identifier }
 pub static FIRST_SET_NAME: &[TerminalId] = &[TerminalId(0)];
 // Name : . Identifier { Identifier }
-pub static PREDICTION_SET_NAME_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_NAME_ALT0: &[TerminalId] = &[TerminalId(0)];

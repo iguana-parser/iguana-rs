@@ -99,37 +99,30 @@ pub static FOLLOW_SET_A: &[TerminalId] = &[TerminalId(4)];
 // A { "b" }
 pub static FIRST_SET_A: &[TerminalId] = &[TerminalId(0)];
 // A : . B A_Alt_0 { "b" }
-pub static PREDICTION_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
 // B { "c", "d", EOF }
 pub static FOLLOW_SET_B: &[TerminalId] = &[TerminalId(1), TerminalId(2), TerminalId(4)];
 // B { "b" }
 pub static FIRST_SET_B: &[TerminalId] = &[TerminalId(0)];
 // B : . "b" { "b" }
-pub static PREDICTION_SET_B_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_B_ALT0: &[TerminalId] = &[TerminalId(0)];
 // C { EOF }
 pub static FOLLOW_SET_C: &[TerminalId] = &[TerminalId(4)];
 // C { "c" }
 pub static FIRST_SET_C: &[TerminalId] = &[TerminalId(1)];
 // C : . "c" { "c" }
-pub static PREDICTION_SET_C_ALT0: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_C_ALT0: &[TerminalId] = &[TerminalId(1)];
 // D { EOF }
 pub static FOLLOW_SET_D: &[TerminalId] = &[TerminalId(4)];
 // D { "d" }
 pub static FIRST_SET_D: &[TerminalId] = &[TerminalId(2)];
 // D : . "d" { "d" }
-pub static PREDICTION_SET_D_ALT0: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_D_ALT0: &[TerminalId] = &[TerminalId(2)];
 // A_Alt_0 { EOF }
 pub static FOLLOW_SET_A_ALT_0: &[TerminalId] = &[TerminalId(4)];
 // A_Alt_0 { "c", "d" }
 pub static FIRST_SET_A_ALT_0: &[TerminalId] = &[TerminalId(1), TerminalId(2)];
 // A_Alt_0 : . C { "c" }
-pub static PREDICTION_SET_A_ALT_0_ALT0: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_A_ALT_0_ALT0: &[TerminalId] = &[TerminalId(1)];
 // A_Alt_0 : . D { "d" }
-pub static PREDICTION_SET_A_ALT_0_ALT1: &[TerminalId] = &[TerminalId(2)];
-pub static ALTERNATIVES_A_ALT_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_A_ALT_0_ALT0, SlotId(9)),
-        (PREDICTION_SET_A_ALT_0_ALT1, SlotId(11)),
-    ],
-    FIRST_SET_A_ALT_0,
-);
+pub static FIRST_SET_A_ALT_0_ALT1: &[TerminalId] = &[TerminalId(2)];

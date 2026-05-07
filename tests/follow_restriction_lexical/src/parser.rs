@@ -194,11 +194,45 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
             }
             // Element
             NonterminalId(1) => {
-                self.try_alternatives(ALTERNATIVES_ELEMENT, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Element : . Num
+                if self.scanner.match_any(FIRST_SET_ELEMENT_ALT0, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
+                }
+                // Element : . Id
+                if self.scanner.match_any(FIRST_SET_ELEMENT_ALT1, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(2), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ELEMENT.to_vec(),
+                        }
+                    });
+                }
             }
             // S_Plus_0
             NonterminalId(2) => {
-                self.try_alternatives(ALTERNATIVES_S_PLUS_0, input_index, gss_node_id, env);
+                let mut matched = false;
+                // S_Plus_0 : . S_Plus_0 WS Element
+                if self.scanner.match_any(FIRST_SET_S_PLUS_0_ALT0, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                }
+                // S_Plus_0 : . Element
+                if self.scanner.match_any(FIRST_SET_S_PLUS_0_ALT1, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(6), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_S_PLUS_0.to_vec(),
+                        }
+                    });
+                }
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

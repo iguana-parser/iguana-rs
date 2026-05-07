@@ -158,7 +158,24 @@ impl<'i> Parser<'i> for PlusParser<'i> {
             }
             // S_Plus_0
             NonterminalId(2) => {
-                self.try_alternatives(ALTERNATIVES_S_PLUS_0, input_index, gss_node_id, env);
+                let mut matched = false;
+                // S_Plus_0 : . S_Plus_0 A
+                if self.scanner.match_any(FIRST_SET_S_PLUS_0_ALT0, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
+                // S_Plus_0 : . A
+                if self.scanner.match_any(FIRST_SET_S_PLUS_0_ALT1, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_S_PLUS_0.to_vec(),
+                        }
+                    });
+                }
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

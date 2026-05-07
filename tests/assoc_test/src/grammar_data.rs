@@ -140,7 +140,7 @@ pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(6)];
 // S { "a" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(4)];
 // S : . E(0) { "a" }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(4)];
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(4)];
 // E { "+", EOF, "<", ";", "-" }
 pub static FOLLOW_SET_E: &[TerminalId] = &[
     TerminalId(0),
@@ -152,22 +152,12 @@ pub static FOLLOW_SET_E: &[TerminalId] = &[
 // E { "a" }
 pub static FIRST_SET_E: &[TerminalId] = &[TerminalId(4)];
 // E(p: i32) : . [3 >= p] l=E(p) [l == 0 || l >= 3] "+" E(4) return 3 { "a" }
-pub static PREDICTION_SET_E_ALT0: &[TerminalId] = &[TerminalId(4)];
+pub static FIRST_SET_E_ALT0: &[TerminalId] = &[TerminalId(4)];
 // E(p: i32) : . [3 >= p] l=E(p) [l == 0 || l >= 3] "-" E(4) return 3 { "a" }
-pub static PREDICTION_SET_E_ALT1: &[TerminalId] = &[TerminalId(4)];
+pub static FIRST_SET_E_ALT1: &[TerminalId] = &[TerminalId(4)];
 // E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 3] ";" E(2) return 2 { "a" }
-pub static PREDICTION_SET_E_ALT2: &[TerminalId] = &[TerminalId(4)];
+pub static FIRST_SET_E_ALT2: &[TerminalId] = &[TerminalId(4)];
 // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 2] "<" E(2) return 1 { "a" }
-pub static PREDICTION_SET_E_ALT3: &[TerminalId] = &[TerminalId(4)];
+pub static FIRST_SET_E_ALT3: &[TerminalId] = &[TerminalId(4)];
 // E(p: i32) : . "a" return 0 { "a" }
-pub static PREDICTION_SET_E_ALT4: &[TerminalId] = &[TerminalId(4)];
-pub static ALTERNATIVES_E: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_E_ALT0, SlotId(2)),
-        (PREDICTION_SET_E_ALT1, SlotId(9)),
-        (PREDICTION_SET_E_ALT2, SlotId(16)),
-        (PREDICTION_SET_E_ALT3, SlotId(23)),
-        (PREDICTION_SET_E_ALT4, SlotId(30)),
-    ],
-    FIRST_SET_E,
-);
+pub static FIRST_SET_E_ALT4: &[TerminalId] = &[TerminalId(4)];

@@ -150,7 +150,24 @@ impl<'i> Parser<'i> for LongestMatchParser<'i> {
             }
             // X
             NonterminalId(1) => {
-                self.try_alternatives(ALTERNATIVES_X, input_index, gss_node_id, env);
+                let mut matched = false;
+                // X : . "<"
+                if self.scanner.match_any(FIRST_SET_X_ALT0, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(3), input_index, gss_node_id, env);
+                }
+                // X : . "<="
+                if self.scanner.match_any(FIRST_SET_X_ALT1, input_index) {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(3), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_X.to_vec(),
+                        }
+                    });
+                }
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");

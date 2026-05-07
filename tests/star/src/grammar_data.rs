@@ -99,47 +99,33 @@ pub const SLOTS: [Slot; 14] = [
 pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(2)];
 // S { "a", EOF }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
-// S : . S_Star_0 { "a", EOF }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+// S : . S_Star_0 { "a" }
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
 // A { "a", EOF }
 pub static FOLLOW_SET_A: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 // A { "a" }
 pub static FIRST_SET_A: &[TerminalId] = &[TerminalId(0)];
 // A : . "a" { "a" }
-pub static PREDICTION_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
 // S_Plus_0 { "a", EOF }
 pub static FOLLOW_SET_S_PLUS_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 // S_Plus_0 { "a" }
 pub static FIRST_SET_S_PLUS_0: &[TerminalId] = &[TerminalId(0)];
 // S_Plus_0 : . S_Plus_0 A { "a" }
-pub static PREDICTION_SET_S_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_S_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 // S_Plus_0 : . A { "a" }
-pub static PREDICTION_SET_S_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
-pub static ALTERNATIVES_S_PLUS_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_S_PLUS_0_ALT0, SlotId(4)),
-        (PREDICTION_SET_S_PLUS_0_ALT1, SlotId(7)),
-    ],
-    FIRST_SET_S_PLUS_0,
-);
+pub static FIRST_SET_S_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
 // S_Opt_0 { EOF }
 pub static FOLLOW_SET_S_OPT_0: &[TerminalId] = &[TerminalId(2)];
 // S_Opt_0 { "a", EOF }
 pub static FIRST_SET_S_OPT_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 // S_Opt_0 : . S_Plus_0 { "a" }
-pub static PREDICTION_SET_S_OPT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
-// S_Opt_0 : . { EOF }
-pub static PREDICTION_SET_S_OPT_0_ALT1: &[TerminalId] = &[TerminalId(2)];
-pub static ALTERNATIVES_S_OPT_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_S_OPT_0_ALT0, SlotId(9)),
-        (PREDICTION_SET_S_OPT_0_ALT1, SlotId(11)),
-    ],
-    FIRST_SET_S_OPT_0,
-);
+pub static FIRST_SET_S_OPT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+// S_Opt_0 : . {  }
+pub static FIRST_SET_S_OPT_0_ALT1: &[TerminalId] = &[];
 // S_Star_0 { EOF }
 pub static FOLLOW_SET_S_STAR_0: &[TerminalId] = &[TerminalId(2)];
 // S_Star_0 { "a", EOF }
 pub static FIRST_SET_S_STAR_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
-// S_Star_0 : . S_Opt_0 { "a", EOF }
-pub static PREDICTION_SET_S_STAR_0_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+// S_Star_0 : . S_Opt_0 { "a" }
+pub static FIRST_SET_S_STAR_0_ALT0: &[TerminalId] = &[TerminalId(0)];

@@ -290,15 +290,85 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
             }
             // Layout_Alt_0
             NonterminalId(2) => {
-                self.try_alternatives(ALTERNATIVES_LAYOUT_ALT_0, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Layout_Alt_0 : . WhiteSpace
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_ALT_0_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
+                // Layout_Alt_0 : . Comment
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_ALT_0_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_LAYOUT_ALT_0.to_vec(),
+                        }
+                    });
+                }
             }
             // Layout_Plus_0
             NonterminalId(3) => {
-                self.try_alternatives(ALTERNATIVES_LAYOUT_PLUS_0, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Layout_Plus_0 : . Layout_Plus_0 Layout_Alt_0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_PLUS_0_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
+                }
+                // Layout_Plus_0 : . Layout_Alt_0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_PLUS_0_ALT1, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(8), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_LAYOUT_PLUS_0.to_vec(),
+                        }
+                    });
+                }
             }
             // Layout_Opt_0
             NonterminalId(4) => {
-                self.try_alternatives(ALTERNATIVES_LAYOUT_OPT_0, input_index, gss_node_id, env);
+                let mut matched = false;
+                // Layout_Opt_0 : . Layout_Plus_0
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_OPT_0_ALT0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
+                }
+                // Layout_Opt_0 : .
+                if self
+                    .scanner
+                    .match_any(FIRST_SET_LAYOUT_OPT_0_ALT1, input_index)
+                    || self.scanner.match_any(FOLLOW_SET_LAYOUT_OPT_0, input_index)
+                {
+                    matched = true;
+                    self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
+                }
+                if !matched {
+                    self.add_parse_error(input_index, SlotId(13), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_LAYOUT_OPT_0.to_vec(),
+                        }
+                    });
+                }
             }
             // Layout_Star_0 : . Layout_Opt_0
             NonterminalId(5) => {

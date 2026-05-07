@@ -108,46 +108,32 @@ pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(5)];
 // S { Letter }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(1)];
 // S : . Id { Letter }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(1)];
 // Id { EOF }
 pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(5)];
 // Id { Letter }
 pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(1)];
 // Id : . Letter Id_Star_0 { Letter }
-pub static PREDICTION_SET_ID_ALT0: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_ID_ALT0: &[TerminalId] = &[TerminalId(1)];
 // Id_Plus_0 { LetterOrDigit, EOF }
 pub static FOLLOW_SET_ID_PLUS_0: &[TerminalId] = &[TerminalId(2), TerminalId(5)];
 // Id_Plus_0 { LetterOrDigit }
 pub static FIRST_SET_ID_PLUS_0: &[TerminalId] = &[TerminalId(2)];
 // Id_Plus_0 : . Id_Plus_0 LetterOrDigit { LetterOrDigit }
-pub static PREDICTION_SET_ID_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_ID_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(2)];
 // Id_Plus_0 : . LetterOrDigit { LetterOrDigit }
-pub static PREDICTION_SET_ID_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(2)];
-pub static ALTERNATIVES_ID_PLUS_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_ID_PLUS_0_ALT0, SlotId(5)),
-        (PREDICTION_SET_ID_PLUS_0_ALT1, SlotId(8)),
-    ],
-    FIRST_SET_ID_PLUS_0,
-);
+pub static FIRST_SET_ID_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(2)];
 // Id_Opt_0 { EOF }
 pub static FOLLOW_SET_ID_OPT_0: &[TerminalId] = &[TerminalId(5)];
 // Id_Opt_0 { LetterOrDigit, EOF }
 pub static FIRST_SET_ID_OPT_0: &[TerminalId] = &[TerminalId(2), TerminalId(5)];
 // Id_Opt_0 : . Id_Plus_0 { LetterOrDigit }
-pub static PREDICTION_SET_ID_OPT_0_ALT0: &[TerminalId] = &[TerminalId(2)];
-// Id_Opt_0 : . { EOF }
-pub static PREDICTION_SET_ID_OPT_0_ALT1: &[TerminalId] = &[TerminalId(5)];
-pub static ALTERNATIVES_ID_OPT_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_ID_OPT_0_ALT0, SlotId(10)),
-        (PREDICTION_SET_ID_OPT_0_ALT1, SlotId(12)),
-    ],
-    FIRST_SET_ID_OPT_0,
-);
+pub static FIRST_SET_ID_OPT_0_ALT0: &[TerminalId] = &[TerminalId(2)];
+// Id_Opt_0 : . {  }
+pub static FIRST_SET_ID_OPT_0_ALT1: &[TerminalId] = &[];
 // Id_Star_0 { EOF }
 pub static FOLLOW_SET_ID_STAR_0: &[TerminalId] = &[TerminalId(5)];
 // Id_Star_0 { LetterOrDigit, EOF }
 pub static FIRST_SET_ID_STAR_0: &[TerminalId] = &[TerminalId(2), TerminalId(5)];
-// Id_Star_0 : . Id_Opt_0 { LetterOrDigit, EOF }
-pub static PREDICTION_SET_ID_STAR_0_ALT0: &[TerminalId] = &[TerminalId(2), TerminalId(5)];
+// Id_Star_0 : . Id_Opt_0 { LetterOrDigit }
+pub static FIRST_SET_ID_STAR_0_ALT0: &[TerminalId] = &[TerminalId(2)];

@@ -43,13 +43,6 @@ pub static FOLLOW_SET_A: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 // A { "a" }
 pub static FIRST_SET_A: &[TerminalId] = &[TerminalId(0)];
 // A : . A "a" { "a" }
-pub static PREDICTION_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
 // A : . "a" { "a" }
-pub static PREDICTION_SET_A_ALT1: &[TerminalId] = &[TerminalId(0)];
-pub static ALTERNATIVES_A: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_A_ALT0, SlotId(0)),
-        (PREDICTION_SET_A_ALT1, SlotId(3)),
-    ],
-    FIRST_SET_A,
-);
+pub static FIRST_SET_A_ALT1: &[TerminalId] = &[TerminalId(0)];

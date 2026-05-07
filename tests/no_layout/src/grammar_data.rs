@@ -72,25 +72,18 @@ pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3)];
 // S { Char }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
 // S : . Id { Char }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Id { EOF }
 pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(3)];
 // Id { Char }
 pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(0)];
 // Id : . Id_Plus_0 { Char }
-pub static PREDICTION_SET_ID_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_ID_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Id_Plus_0 { Char, EOF }
 pub static FOLLOW_SET_ID_PLUS_0: &[TerminalId] = &[TerminalId(0), TerminalId(3)];
 // Id_Plus_0 { Char }
 pub static FIRST_SET_ID_PLUS_0: &[TerminalId] = &[TerminalId(0)];
 // Id_Plus_0 : . Id_Plus_0 Char { Char }
-pub static PREDICTION_SET_ID_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_ID_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Id_Plus_0 : . Char { Char }
-pub static PREDICTION_SET_ID_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
-pub static ALTERNATIVES_ID_PLUS_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_ID_PLUS_0_ALT0, SlotId(4)),
-        (PREDICTION_SET_ID_PLUS_0_ALT1, SlotId(7)),
-    ],
-    FIRST_SET_ID_PLUS_0,
-);
+pub static FIRST_SET_ID_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];

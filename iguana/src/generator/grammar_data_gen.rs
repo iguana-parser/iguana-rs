@@ -62,17 +62,19 @@ pub fn generate<'a>(
             pub static #first_name: &[TerminalId] = &[#(#first_ids),*];
         });
 
-        // Prediction set for each alternative
+        // FIRST set for each alternative (no FOLLOW absorption — the GLL
+        // dispatch handles nullable alts with a single shared FOLLOW(NT)
+        // check rather than folding FOLLOW into every nullable alt's set).
         for (alt_index, alternative) in alternatives.iter().enumerate() {
-            let prediction_set = ff.prediction_set(nonterminal, alternative);
-            let pred_name = format_ident!("PREDICTION_SET_{}_ALT{}", nt_upper, alt_index);
-            let pred_terminals: Vec<_> = prediction_set.iter().cloned().collect();
-            let pred_ids: Vec<_> = pred_terminals.iter().map(&terminal_id_tokens).collect();
+            let first_alt = ff.first_set(alternative);
+            let first_alt_name = format_ident!("FIRST_SET_{}_ALT{}", nt_upper, alt_index);
+            let first_alt_terminals: Vec<_> = first_alt.iter().cloned().collect();
+            let first_alt_ids: Vec<_> = first_alt_terminals.iter().map(&terminal_id_tokens).collect();
             let slot = Slot::new(nonterminal, alternative, 0);
-            let pred_comment = format!("{} {}", slot.name(), terminal_names(&pred_terminals),);
+            let first_alt_comment = format!("{} {}", slot.name(), terminal_names(&first_alt_terminals));
             items.push(quote! {
-                #[comment = #pred_comment]
-                pub static #pred_name: &[TerminalId] = &[#(#pred_ids),*];
+                #[comment = #first_alt_comment]
+                pub static #first_alt_name: &[TerminalId] = &[#(#first_alt_ids),*];
             });
 
             // Follow restriction sets for symbols in this alternative
@@ -110,26 +112,6 @@ pub fn generate<'a>(
             }
         }
 
-        // Bundled alternatives constant for multi-alternative nonterminals
-        if alternatives.len() > 1 {
-            let alt_entries: Vec<_> = alternatives
-                .iter()
-                .enumerate()
-                .map(|(alt_index, alternative)| {
-                    let pred_name = format_ident!("PREDICTION_SET_{}_ALT{}", nt_upper, alt_index);
-                    let first_slot = Slot::new(nonterminal, alternative, 0);
-                    let first_slot_id = slot_ids.get_id(&first_slot);
-                    quote! { (#pred_name, #first_slot_id) }
-                })
-                .collect();
-            let alternatives_name = format_ident!("ALTERNATIVES_{}", nt_upper);
-            items.push(quote! {
-                pub static #alternatives_name: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-                    &[#(#alt_entries),*],
-                    #first_name,
-                );
-            });
-        }
     }
 
     // NONTERMINALS array

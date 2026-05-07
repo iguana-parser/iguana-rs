@@ -83,36 +83,22 @@ pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(5)];
 // S { Num, Id }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 // S : . S_Plus_0 { Num, Id }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 // Element { WS, Num, Id, EOF }
 pub static FOLLOW_SET_ELEMENT: &[TerminalId] =
     &[TerminalId(3), TerminalId(0), TerminalId(2), TerminalId(5)];
 // Element { Num, Id }
 pub static FIRST_SET_ELEMENT: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 // Element : . Num { Num }
-pub static PREDICTION_SET_ELEMENT_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_ELEMENT_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Element : . Id { Id }
-pub static PREDICTION_SET_ELEMENT_ALT1: &[TerminalId] = &[TerminalId(2)];
-pub static ALTERNATIVES_ELEMENT: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_ELEMENT_ALT0, SlotId(2)),
-        (PREDICTION_SET_ELEMENT_ALT1, SlotId(4)),
-    ],
-    FIRST_SET_ELEMENT,
-);
+pub static FIRST_SET_ELEMENT_ALT1: &[TerminalId] = &[TerminalId(2)];
 // S_Plus_0 { EOF, Num, Id, WS }
 pub static FOLLOW_SET_S_PLUS_0: &[TerminalId] =
     &[TerminalId(5), TerminalId(0), TerminalId(2), TerminalId(3)];
 // S_Plus_0 { Num, Id }
 pub static FIRST_SET_S_PLUS_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 // S_Plus_0 : . S_Plus_0 WS Element { Num, Id }
-pub static PREDICTION_SET_S_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+pub static FIRST_SET_S_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 // S_Plus_0 : . Element { Num, Id }
-pub static PREDICTION_SET_S_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
-pub static ALTERNATIVES_S_PLUS_0: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_S_PLUS_0_ALT0, SlotId(6)),
-        (PREDICTION_SET_S_PLUS_0_ALT1, SlotId(10)),
-    ],
-    FIRST_SET_S_PLUS_0,
-);
+pub static FIRST_SET_S_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0), TerminalId(2)];

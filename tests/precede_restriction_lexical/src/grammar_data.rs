@@ -50,13 +50,6 @@ pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(6)];
 // S { "forall", "for" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(4), TerminalId(3)];
 // S : . "for" WS Id { "for" }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(3)];
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(3)];
 // S : . "forall" { "forall" }
-pub static PREDICTION_SET_S_ALT1: &[TerminalId] = &[TerminalId(4)];
-pub static ALTERNATIVES_S: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_S_ALT0, SlotId(0)),
-        (PREDICTION_SET_S_ALT1, SlotId(4)),
-    ],
-    FIRST_SET_S,
-);
+pub static FIRST_SET_S_ALT1: &[TerminalId] = &[TerminalId(4)];

@@ -50,10 +50,10 @@ pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3)];
 // S { Identifier }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
 // S : . Id { Identifier }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Id { EOF }
 pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(3)];
 // Id { Identifier }
 pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(0)];
 // Id : . Identifier \ Keyword { Identifier }
-pub static PREDICTION_SET_ID_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_ID_ALT0: &[TerminalId] = &[TerminalId(0)];

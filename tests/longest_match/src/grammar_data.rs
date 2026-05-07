@@ -60,19 +60,12 @@ pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(4)];
 // S { "<", "<=" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(1), TerminalId(2)];
 // S : . X "x" { "<", "<=" }
-pub static PREDICTION_SET_S_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(2)];
+pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(2)];
 // X { "x", EOF }
 pub static FOLLOW_SET_X: &[TerminalId] = &[TerminalId(0), TerminalId(4)];
 // X { "<", "<=" }
 pub static FIRST_SET_X: &[TerminalId] = &[TerminalId(1), TerminalId(2)];
 // X : . "<" { "<" }
-pub static PREDICTION_SET_X_ALT0: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_X_ALT0: &[TerminalId] = &[TerminalId(1)];
 // X : . "<=" { "<=" }
-pub static PREDICTION_SET_X_ALT1: &[TerminalId] = &[TerminalId(2)];
-pub static ALTERNATIVES_X: (&[(&[TerminalId], SlotId)], &[TerminalId]) = (
-    &[
-        (PREDICTION_SET_X_ALT0, SlotId(3)),
-        (PREDICTION_SET_X_ALT1, SlotId(5)),
-    ],
-    FIRST_SET_X,
-);
+pub static FIRST_SET_X_ALT1: &[TerminalId] = &[TerminalId(2)];
