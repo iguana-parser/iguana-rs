@@ -14,7 +14,7 @@ cargo build              # build all workspace crates
 cargo build -p iguana    # build just the generator
 cargo check -p iguana    # type check
 cargo clippy -p iguana   # lint
-cargo test               # run all tests
+cargo xtask test         # run all tests (uses cargo-nextest when available)
 ```
 
 The workspace excludes `terrarium/src-tauri` by default to keep rust-analyzer responsive on the rest of the workspace. Uncomment its line in the root `Cargo.toml` when working on the terrarium backend.
@@ -27,10 +27,11 @@ The workspace excludes `terrarium/src-tauri` by default to keep rust-analyzer re
 |---------|---------|
 | `cargo xtask install` | Build `iguana` in release mode and install it into `$CARGO_HOME/bin`. |
 | `cargo xtask bootstrap` | Regenerate `iggy` from `iggy/iggy.iggy`. |
+| `cargo xtask test [args...]` | Run the workspace test suite. Uses `cargo-nextest` if installed, otherwise `cargo test --workspace`. Extra args are forwarded as test-name filters. |
 | `cargo xtask test-new <name>` | Scaffold a new grammar test (directory + stub `.iggy` + `parse_trees/`). Pure scaffolding; no generator. |
-| `cargo xtask test-gen <name>` | Run the generator on the grammar, write `Cargo.toml` and `src/`, write `tests.rs` if missing, register the crate in the workspace. |
+| `cargo xtask test-gen <name>` | Run the generator on the grammar, write the lib sources under `src/` (and a minimal `Cargo.toml` on first generation), write `tests.rs` if missing, and wire the crate into workspace members, root `[dev-dependencies]`, and `tests/grammar_tests.rs`. |
 | `cargo xtask test-gen-all` | Run `test-gen` for every directory under `tests/` that has a grammar file. |
-| `cargo xtask test-rm <name>` | Remove a grammar test (deletes the directory and the workspace member). |
+| `cargo xtask test-rm <name>` | Remove a grammar test: delete the directory and unwire from the three places `test-gen` wired. |
 | `cargo xtask terrarium` | Install iguana, then launch the terrarium dev server. |
 
 ## Bootstrapping
@@ -57,7 +58,7 @@ Full sequence after touching anything under `iguana/src/generator/`:
 2. `cargo xtask bootstrap` — regenerate iggy
 3. `cargo xtask bootstrap` — bootstrap again to verify stability
 4. `cargo xtask test-gen-all` — regenerate every test parser
-5. `cargo test` — run the full suite
+5. `cargo xtask test` — run the full suite
 
 Steps 2–4 rewrite committed files. Review the diffs before committing; an unintended change to a generated file is a sign the generator did something you did not expect.
 

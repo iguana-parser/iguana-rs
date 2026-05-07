@@ -43,6 +43,12 @@ enum Commands {
     },
     /// Regenerate all test parsers
     TestGenAll,
+    /// Run the workspace test suite (uses cargo-nextest if available)
+    Test {
+        /// Extra arguments forwarded to nextest / cargo test
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
     /// Build iguana from this workspace and install it into `$CARGO_HOME/bin`
     Install,
     /// Install iguana, then launch the terrarium dev server
@@ -57,6 +63,7 @@ fn main() -> io::Result<()> {
         Commands::TestRm { name } => test_rm(&name),
         Commands::TestGen { name } => test_gen(&name),
         Commands::TestGenAll => test_gen_all(),
+        Commands::Test { args } => test(&args),
         Commands::Install => install(),
         Commands::Terrarium => terrarium(),
     }
@@ -102,12 +109,9 @@ fn test_rm(name: &str) -> io::Result<()> {
         println!("Test not found: tests/{name}/");
     }
 
-    let workspace_cargo = workspace_root().join("Cargo.toml");
-    let content = fs::read_to_string(&workspace_cargo)?;
-    let member_entry = format!("    \"tests/{name}\",\n");
-    if content.contains(&member_entry) {
-        fs::write(&workspace_cargo, content.replace(&member_entry, ""))?;
-    }
+    remove_workspace_member(name)?;
+    remove_dev_dependency(name)?;
+    remove_grammar_tests_mod(name)?;
     Ok(())
 }
 
@@ -127,16 +131,6 @@ fn test_gen(name: &str) -> io::Result<()> {
         result.total_duration_ms
     );
 
-    let cargo_toml = path.join("Cargo.toml");
-    let cargo_content = fs::read_to_string(&cargo_toml)?;
-    if !cargo_content.contains("[[test]]") {
-        let updated = cargo_content.replace(
-            "[features]",
-            "[[test]]\nname = \"tests\"\npath = \"tests.rs\"\n\n[features]",
-        );
-        fs::write(&cargo_toml, updated)?;
-    }
-
     let tests_rs = path.join("tests.rs");
     if !tests_rs.exists() {
         if starts.is_empty() {
@@ -150,18 +144,106 @@ fn test_gen(name: &str) -> io::Result<()> {
         }
     }
 
+    add_workspace_member(name)?;
+    add_dev_dependency(name)?;
+    add_grammar_tests_mod(name)?;
+    Ok(())
+}
+
+fn add_workspace_member(name: &str) -> io::Result<()> {
     let workspace_cargo = workspace_root().join("Cargo.toml");
     let content = fs::read_to_string(&workspace_cargo)?;
-    let member_entry = format!("\"tests/{name}\"");
-    if !content.contains(&member_entry) {
-        let new_content = content.replace(
-            "    \"xtask\",\n",
-            &format!("    \"xtask\",\n    {member_entry},\n"),
-        );
-        fs::write(&workspace_cargo, new_content)?;
-        println!("Added tests/{name} to workspace");
+    let member_entry = format!("    \"tests/{name}\",\n");
+    if content.contains(&member_entry) {
+        return Ok(());
     }
+    let new_content = content.replace(
+        "    \"xtask\",\n",
+        &format!("    \"xtask\",\n{member_entry}"),
+    );
+    fs::write(&workspace_cargo, new_content)?;
+    println!("Added tests/{name} to workspace members");
+    Ok(())
+}
 
+fn remove_workspace_member(name: &str) -> io::Result<()> {
+    let workspace_cargo = workspace_root().join("Cargo.toml");
+    let content = fs::read_to_string(&workspace_cargo)?;
+    let member_entry = format!("    \"tests/{name}\",\n");
+    if content.contains(&member_entry) {
+        fs::write(&workspace_cargo, content.replace(&member_entry, ""))?;
+    }
+    Ok(())
+}
+
+fn add_dev_dependency(name: &str) -> io::Result<()> {
+    let workspace_cargo = workspace_root().join("Cargo.toml");
+    let content = fs::read_to_string(&workspace_cargo)?;
+    let entry = format!("{name} = {{ path = \"tests/{name}\" }}\n");
+    if content.contains(&entry) {
+        return Ok(());
+    }
+    let header = "[dev-dependencies]\n";
+    let header_pos = content
+        .find(header)
+        .ok_or_else(|| io::Error::other("[dev-dependencies] not found in workspace Cargo.toml"))?;
+    let insert_at = header_pos + header.len();
+    let mut new_content = String::with_capacity(content.len() + entry.len());
+    new_content.push_str(&content[..insert_at]);
+    new_content.push_str(&entry);
+    new_content.push_str(&content[insert_at..]);
+    fs::write(&workspace_cargo, new_content)?;
+    println!("Added {name} to [dev-dependencies]");
+    Ok(())
+}
+
+fn remove_dev_dependency(name: &str) -> io::Result<()> {
+    let workspace_cargo = workspace_root().join("Cargo.toml");
+    let content = fs::read_to_string(&workspace_cargo)?;
+    let entry = format!("{name} = {{ path = \"tests/{name}\" }}\n");
+    if content.contains(&entry) {
+        fs::write(&workspace_cargo, content.replace(&entry, ""))?;
+    }
+    Ok(())
+}
+
+fn add_grammar_tests_mod(name: &str) -> io::Result<()> {
+    let path = workspace_root().join("tests/grammar_tests.rs");
+    let mut content = if path.exists() {
+        fs::read_to_string(&path)?
+    } else {
+        String::new()
+    };
+    if content.contains(&format!("\nmod {name};\n")) || content.starts_with(&format!("mod {name};"))
+    {
+        return Ok(());
+    }
+    if !content.is_empty() && !content.ends_with("\n\n") {
+        if content.ends_with('\n') {
+            content.push('\n');
+        } else {
+            content.push_str("\n\n");
+        }
+    }
+    content.push_str(&format!("#[path = \"{name}/tests.rs\"]\nmod {name};\n"));
+    fs::write(&path, content)?;
+    println!("Added mod {name} to tests/grammar_tests.rs");
+    Ok(())
+}
+
+fn remove_grammar_tests_mod(name: &str) -> io::Result<()> {
+    let path = workspace_root().join("tests/grammar_tests.rs");
+    if !path.exists() {
+        return Ok(());
+    }
+    let content = fs::read_to_string(&path)?;
+    let with_blank = format!("#[path = \"{name}/tests.rs\"]\nmod {name};\n\n");
+    let no_blank = format!("#[path = \"{name}/tests.rs\"]\nmod {name};\n");
+    if content.contains(&with_blank) {
+        fs::write(&path, content.replace(&with_blank, ""))?;
+    } else if content.contains(&no_blank) {
+        fs::write(&path, content.replace(&no_blank, ""))?;
+    }
     Ok(())
 }
 
@@ -175,8 +257,10 @@ fn generate_tests_rs(crate_name: &str, starts: &[String]) -> String {
 
     let header = format!(
         "// To regenerate parser:  cargo xtask test-gen {crate_name}\n\
-         // To update golden files: REGENERATE=1 cargo test -p {crate_name}\n\n"
+         // To update golden files: REGENERATE=1 cargo test -p iguana-tests --test grammar_tests {crate_name}::\n\n"
     );
+
+    let grammar_dir_suffix = format!("/tests/{crate_name}");
 
     let check_fns: TokenStream = if snakes.len() == 1 {
         let fn_name = Ident::new("check", Span::call_site());
@@ -205,6 +289,8 @@ fn generate_tests_rs(crate_name: &str, starts: &[String]) -> String {
         use iguana_runtime::parse_tree::ParseContext;
         use iguana_runtime::testing::{check_golden_file, golden_path};
 
+        const GRAMMAR_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), #grammar_dir_suffix);
+
         #check_fns
 
         #[test]
@@ -223,7 +309,7 @@ fn check_fn(fn_name: &Ident, parse_fn: &Ident) -> TokenStream {
             let ctx = ParseContext::new();
             let result = #parse_fn(&input, &ctx).expect("Parse failed");
             let actual = to_sexpr(result.tree.as_parse_tree());
-            check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
+            check_golden_file(&actual, &golden_path(GRAMMAR_DIR, test_name));
         }
     }
 }
@@ -261,8 +347,12 @@ fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<(GenerateResult,
     let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
         io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
     })?;
-    generate_scaffold(&grammar, output)?;
-    let result = generate_sources(&grammar, output, GenConfig::default())?;
+    let config = GenConfig {
+        cli: false,
+        ..GenConfig::default()
+    };
+    generate_scaffold(&grammar, output, config)?;
+    let result = generate_sources(&grammar, output, config)?;
     format_sources(output)?;
     Ok((result, starts))
 }
@@ -309,6 +399,30 @@ fn format_sources(crate_dir: &Path) -> io::Result<()> {
             "rustfmt failed in {}",
             src_dir.display()
         )));
+    }
+    Ok(())
+}
+
+fn test(extra: &[String]) -> io::Result<()> {
+    let root = workspace_root();
+    let nextest_available = Command::new("cargo")
+        .args(["nextest", "--version"])
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+
+    let mut cmd = Command::new("cargo");
+    cmd.current_dir(root);
+    if nextest_available {
+        cmd.args(["nextest", "run", "--workspace"]);
+    } else {
+        cmd.args(["test", "--workspace"]);
+    }
+    cmd.args(extra);
+
+    let status = cmd.status()?;
+    if !status.success() {
+        return Err(io::Error::other("test run failed"));
     }
     Ok(())
 }

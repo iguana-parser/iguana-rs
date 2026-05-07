@@ -1,17 +1,19 @@
 // To regenerate parser:  cargo run -p iguana -- generate --grammar tests/assoc_test/assoc_test.iggy --output tests/assoc_test
-// To update golden files: REGENERATE=1 cargo test -p assoc_test
+// To update golden files: REGENERATE=1 cargo test -p iguana-tests --test grammar_tests assoc_test::
 
 use assoc_test::{parse_s, parse_tree::to_sexpr};
 use iguana_runtime::input::Input;
 use iguana_runtime::parse_tree::ParseContext;
 use iguana_runtime::testing::{check_golden_file, golden_path};
 
+const GRAMMAR_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/assoc_test");
+
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);
     let ctx = ParseContext::new();
     let result = parse_s(&input, &ctx).expect("Parse failed");
     let actual = to_sexpr(result.tree.as_parse_tree());
-    check_golden_file(&actual, &golden_path(env!("CARGO_MANIFEST_DIR"), test_name));
+    check_golden_file(&actual, &golden_path(GRAMMAR_DIR, test_name));
 }
 
 fn check_fails(input: &str) {

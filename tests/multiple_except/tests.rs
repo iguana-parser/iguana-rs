@@ -1,5 +1,5 @@
 // To regenerate parser:  cargo run -p iguana -- generate --grammar tests/multiple_except/multiple_except.iggy --output tests/multiple_except
-// To update golden files: REGENERATE=1 cargo test -p multiple_except
+// To update golden files: REGENERATE=1 cargo test -p iguana-tests --test grammar_tests multiple_except::
 
 use iguana_runtime::input::Input;
 use iguana_runtime::parse_tree::ParseContext;
@@ -7,6 +7,8 @@ use iguana_runtime::testing::{check_golden_file, golden_path};
 use multiple_except::{parse_lexical_identifier, parse_syntax_identifier, parse_tree::to_sexpr};
 
 // --- SyntaxIdentifier tests (nonterminal except path) ---
+
+const GRAMMAR_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/multiple_except");
 
 #[test]
 fn test_syntax_identifier() {
@@ -16,7 +18,7 @@ fn test_syntax_identifier() {
     let actual = to_sexpr(result.tree.as_parse_tree());
     check_golden_file(
         &actual,
-        &golden_path(env!("CARGO_MANIFEST_DIR"), "syntax_identifier"),
+        &golden_path(GRAMMAR_DIR, "syntax_identifier"),
     );
 }
 
@@ -58,7 +60,7 @@ fn test_syntax_keyword_prefix_accepted() {
     let actual = to_sexpr(result.tree.as_parse_tree());
     check_golden_file(
         &actual,
-        &golden_path(env!("CARGO_MANIFEST_DIR"), "syntax_keyword_prefix"),
+        &golden_path(GRAMMAR_DIR, "syntax_keyword_prefix"),
     );
 }
 
@@ -72,7 +74,7 @@ fn test_lexical_identifier() {
     let actual = to_sexpr(result.tree.as_parse_tree());
     check_golden_file(
         &actual,
-        &golden_path(env!("CARGO_MANIFEST_DIR"), "lexical_identifier"),
+        &golden_path(GRAMMAR_DIR, "lexical_identifier"),
     );
 }
 
@@ -114,6 +116,6 @@ fn test_lexical_keyword_prefix_accepted() {
     let actual = to_sexpr(result.tree.as_parse_tree());
     check_golden_file(
         &actual,
-        &golden_path(env!("CARGO_MANIFEST_DIR"), "lexical_keyword_prefix"),
+        &golden_path(GRAMMAR_DIR, "lexical_keyword_prefix"),
     );
 }

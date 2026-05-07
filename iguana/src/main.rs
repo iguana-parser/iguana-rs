@@ -53,6 +53,11 @@ enum Commands {
         /// Memoize match_token results during parsing
         #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
         match_memo: bool,
+
+        /// Scaffold a CLI binary (Cargo.toml + src/main.rs). When false, the
+        /// caller owns Cargo.toml and no CLI binary is emitted.
+        #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
+        cli: bool,
     },
 }
 
@@ -66,6 +71,7 @@ fn main() -> std::io::Result<()> {
             json,
             ll1,
             match_memo,
+            cli,
         } => {
             let resolved_path;
             let path = match grammar.as_deref() {
@@ -80,11 +86,12 @@ fn main() -> std::io::Result<()> {
             let config = GenConfig {
                 ll1_optimization: ll1,
                 match_memo,
+                cli,
             };
             let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
                 std::io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
             })?;
-            generate_scaffold(&grammar, &output)?;
+            generate_scaffold(&grammar, &output, config)?;
             let result = generate_sources(&grammar, &output, config)?;
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
@@ -155,8 +162,9 @@ fn find_iggy_file(directory: &Path) -> std::io::Result<PathBuf> {
 
 fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> io::Result<()> {
     let grammar = load_grammar(grammar_path, output)?;
-    generate_scaffold(&grammar, output)?;
-    generate_sources(&grammar, output, GenConfig::default())?;
+    let config = GenConfig::default();
+    generate_scaffold(&grammar, output, config)?;
+    generate_sources(&grammar, output, config)?;
     Ok(())
 }
 

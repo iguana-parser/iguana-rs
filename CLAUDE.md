@@ -20,7 +20,7 @@ Iguana is a data-dependent GLL parser generator.
 - `cargo xtask bootstrap` — regenerate iggy from its own grammar
 - `cargo xtask test-gen-all` — regenerate all test parsers
 - `cargo xtask install` — build iguana from this workspace and install it into `$CARGO_HOME/bin`
-- `cargo test` — run all tests (`cargo nextest run` if installed; faster on macOS)
+- `cargo xtask test [args...]` — run the workspace test suite (uses `cargo-nextest` if installed, falls back to `cargo test --workspace`); extra args are forwarded as test-name filters
 - After any generator change: bootstrap → test-gen-all → test
 
 ## LSP
@@ -45,14 +45,19 @@ When doing bootstrapping, we need to always run it twice to ensure stability.
 
 # Tests
 
-Tests live in `tests/<name>/`, each with a `.iggy` grammar, generated `src/`, `tests.rs`, and golden files in `parse_trees/`.
+Each grammar test lives in `tests/<name>/` with a `.iggy` grammar, generated lib-only `src/`, a hand-written `tests.rs`, and golden files in `parse_trees/`. All `tests.rs` files are pulled into a single integration-test binary at `tests/grammar_tests.rs` via `#[path] mod` declarations — there is one workspace test binary for grammar tests, not one per grammar.
 
-- `cargo xtask test-new <name>` — scaffold a new test (dir + stub `.iggy` + `parse_trees/`). Pure scaffolding; does not run the generator and does not register the crate in the workspace.
-- `cargo xtask test-gen <name>` — run the generator, write `Cargo.toml`/`src/`, write `tests.rs` (only if missing; based on `@Start` in the grammar), and add the crate to the workspace
-- `cargo xtask test-gen-all` — run `test-gen` on every test that has a grammar file
-- `REGENERATE=1 cargo test -p <name>` — update golden files
+The per-grammar crate exists only to expose the parser as a library (e.g. `expression::parse_e`) for `iguana-tests` to depend on. It has `test = false` on its `[lib]` and no `[[bin]]`, so it produces no test binary itself. The unified runner is the `iguana-tests` package's `grammar_tests` integration test.
 
-Tests use s-expression golden file comparison via `check_golden_file`.
+- `cargo xtask test-new <name>` — scaffold a new test (dir + stub `.iggy` + `parse_trees/`). Pure scaffolding; does not run the generator.
+- `cargo xtask test-gen <name>` — run the generator (writes lib sources and, on first generation, a minimal `Cargo.toml`), write `tests.rs` if missing (based on `@Start` annotations), and wire the crate into three places: workspace `members`, root `[dev-dependencies]`, and `tests/grammar_tests.rs`.
+- `cargo xtask test-gen-all` — run `test-gen` on every test that has a grammar file.
+- `cargo xtask test-rm <name>` — delete the directory and unwire from all three places.
+- `REGENERATE=1 cargo xtask test <name>::` — update golden files for one grammar.
+
+Tests use s-expression golden file comparison via `check_golden_file`. The generated `tests.rs` defines `const GRAMMAR_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/<name>");` and passes that to `golden_path` — `CARGO_MANIFEST_DIR` resolves to the workspace root when compiled inside the unified runner.
+
+The generator is parameterized by `GenConfig.cli` (default `true`). `iguana generate --cli=true|false` switches between a standalone CLI parser crate (Cargo.toml with `iguana-runtime = { git = ... }`, full deps, `src/main.rs`) and a minimal lib-only crate (`workspace = true` deps, no main.rs). xtask `test-gen` always uses `cli=false`. Terrarium relies on `cli=true` (the default) because it shells out to per-grammar parser binaries.
 
 # Terrarium
 

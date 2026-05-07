@@ -17,6 +17,9 @@ use crate::{
 pub struct GenConfig {
     pub ll1_optimization: bool,
     pub match_memo: bool,
+    /// When true, scaffold a CLI: Cargo.toml + src/main.rs. When false,
+    /// the caller owns Cargo.toml and no CLI binary is emitted.
+    pub cli: bool,
 }
 
 impl Default for GenConfig {
@@ -24,6 +27,7 @@ impl Default for GenConfig {
         Self {
             ll1_optimization: true,
             match_memo: true,
+            cli: true,
         }
     }
 }
@@ -153,10 +157,19 @@ pub fn generate_sources(
 
 /// Scaffold Cargo.toml and src/main.rs into `output_dir`.
 ///
+/// `config.cli` controls the shape: when true, the Cargo.toml describes a
+/// standalone parser crate with a CLI binary (and `src/main.rs` is written);
+/// when false, the Cargo.toml is a minimal lib-only shape that assumes a
+/// workspace context, and `src/main.rs` is not written.
+///
 /// Idempotent: each file is written only if it does not already exist.
 /// The user owns these files after first creation; subsequent grammar
 /// changes do not regenerate them.
-pub fn generate_scaffold(grammar: &Grammar, output_dir: &Path) -> io::Result<()> {
+pub fn generate_scaffold(
+    grammar: &Grammar,
+    output_dir: &Path,
+    config: GenConfig,
+) -> io::Result<()> {
     if !output_dir.exists() {
         fs::create_dir_all(output_dir)?;
     }
@@ -167,13 +180,15 @@ pub fn generate_scaffold(grammar: &Grammar, output_dir: &Path) -> io::Result<()>
 
     let cargo_toml = output_dir.join("Cargo.toml");
     if !cargo_toml.exists() {
-        write_plain_file(cargo_toml_gen::generate(grammar), &cargo_toml)?;
+        write_plain_file(cargo_toml_gen::generate(grammar, config.cli), &cargo_toml)?;
     }
 
-    let main_rs = src_dir.join("main.rs");
-    if !main_rs.exists() {
-        let main_code = main_gen::generate(grammar);
-        write_plain_file(post_process(&main_code.to_string()), &main_rs)?;
+    if config.cli {
+        let main_rs = src_dir.join("main.rs");
+        if !main_rs.exists() {
+            let main_code = main_gen::generate(grammar);
+            write_plain_file(post_process(&main_code.to_string()), &main_rs)?;
+        }
     }
 
     Ok(())
