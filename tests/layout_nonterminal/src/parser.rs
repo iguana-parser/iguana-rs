@@ -205,8 +205,7 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
             }
             // Layout_Opt_0 : .
             SlotId(15) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(3), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(4),
                     SlotId(15),
@@ -762,12 +761,15 @@ pub struct LayoutNonterminalParser<'i> {
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 7],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 22],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
+    // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
+    epsilon_nodes: Vec<SPPFNodeId>,
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
     envs: Vec<Env>,
     parse_errors: InlineVec<ParseError, 8>,
+    layout_memo: Vec<Option<SPPFNodeId>>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -784,6 +786,7 @@ impl<'i> LayoutNonterminalParser<'i> {
             nonterminal_nodes_index: [const { InlineMap::Empty }; 7],
             intermediate_nodes_index: [const { InlineMap::Empty }; 22],
             terminal_nodes_index: [const { InlineMap::Empty }; 5],
+            epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             intermediate_nodes_children: vec![],
@@ -792,6 +795,7 @@ impl<'i> LayoutNonterminalParser<'i> {
             nonterminal_nodes_children_map: OnceCell::new(),
             envs: vec![],
             parse_errors: InlineVec::Empty,
+            layout_memo: vec![None; input.len() as usize + 1],
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
@@ -823,24 +827,33 @@ impl<'i> LayoutNonterminalParser<'i> {
         }
     }
     fn parse_layout_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let mut j = i;
-        let right_child = {
-            let start = j;
-            let node = self.parse_layout_star_0_ll1(start)?;
-            let end = self.sppf_node(node).right_extent();
-            j = end;
-            node
-        };
-        let left_extent = self.sppf_node(right_child).left_extent();
-        let mut current = right_child;
-        return Some(self.get_or_create_nonterminal_node(
-            NonterminalId(1),
-            SlotId(3),
-            left_extent,
-            j,
-            current,
-            false,
-        ));
+        if let Some(memo) = self.layout_memo[i as usize] {
+            return Some(memo);
+        }
+        let result: Option<SPPFNodeId> = (|| -> Option<SPPFNodeId> {
+            let mut j = i;
+            let right_child = {
+                let start = j;
+                let node = self.parse_layout_star_0_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
+                node
+            };
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(1),
+                SlotId(3),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
+        })();
+        if let Some(node) = result {
+            self.layout_memo[i as usize] = Some(node);
+        }
+        result
     }
     fn parse_layout_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_ALT_0, i)?;
@@ -935,7 +948,7 @@ impl<'i> LayoutNonterminalParser<'i> {
     }
     fn parse_layout_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let Some(matched) = self.scanner.longest_match(FIRST_SET_LAYOUT_OPT_0, i) else {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(3), i, i);
+            let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(4),
                 SlotId(15),
@@ -1048,5 +1061,20 @@ impl<'i> LayoutNonterminalParser<'i> {
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
+    }
+    fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
+        let existing = self.epsilon_nodes[i as usize];
+        if existing != SPPFNodeId::NONE {
+            record!(self, TerminalNodeFound, existing);
+            return existing;
+        }
+        let span = Span::new(i, i);
+        let terminal_id = TerminalId(3);
+        let node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+        record!(self, TerminalNodeCreated, terminal_id, span);
+        self.sppf_nodes
+            .push(SPPFNode::Terminal(TerminalNode { terminal_id, span }));
+        self.epsilon_nodes[i as usize] = node_id;
+        node_id
     }
 }

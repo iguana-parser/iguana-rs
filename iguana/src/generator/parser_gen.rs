@@ -236,17 +236,10 @@ impl<'a> ParserGen<'a> {
                 let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
                 // Handles the case for an empty alternative
                 let last_slot_quote = if last_symbol_index == 0 {
-                    // For now we consider the last terminal to be epsilon.
-                    let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
                     quote! {
                         #[comment = #end_slot_name]
                         #end_slot_id => {
-                            let epsilon_node_id =
-                                self.get_or_create_terminal_node(
-                                    TerminalId(#epsilon_id),
-                                    input_index,
-                                    input_index,
-                                );
+                            let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                             let nonterminal_node_id = self.get_or_create_nonterminal_node(
                                 #nonterminal_id,
                                 #end_slot_id,
@@ -999,6 +992,7 @@ impl<'a> ParserGen<'a> {
             .dd_nonterminals()
             .map(Self::gen_create_nonterminal_node_or_attach_children)
             .collect();
+        let get_or_create_epsilon_node_method = self.gen_get_or_create_epsilon_node_method();
         quote! {
             impl<'i> #name_ident<'i> {
                 #new_method
@@ -1009,6 +1003,27 @@ impl<'a> ParserGen<'a> {
                 #(#specialized_lookup_nonterminal_node_methods)*
                 #(#specialized_add_nonterminal_node_methods)*
                 #(#create_nonterminal_node_or_attach_children_methods)*
+                #get_or_create_epsilon_node_method
+            }
+        }
+    }
+
+    fn gen_get_or_create_epsilon_node_method(&self) -> TokenStream {
+        let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
+        quote! {
+            fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
+                let existing = self.epsilon_nodes[i as usize];
+                if existing != SPPFNodeId::NONE {
+                    record!(self, TerminalNodeFound, existing);
+                    return existing;
+                }
+                let span = Span::new(i, i);
+                let terminal_id = TerminalId(#epsilon_id);
+                let node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+                record!(self, TerminalNodeCreated, terminal_id, span);
+                self.sppf_nodes.push(SPPFNode::Terminal(TerminalNode { terminal_id, span }));
+                self.epsilon_nodes[i as usize] = node_id;
+                node_id
             }
         }
     }
@@ -1053,6 +1068,7 @@ impl<'a> ParserGen<'a> {
                     #nonterminal_nodes_index_field,
                     #intermediate_nodes_index_field,
                     #terminal_nodes_index_field,
+                    epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
                     #[cfg(feature = "instrument")]
                     descriptors_count: 0,
                     intermediate_nodes_children: vec![],
@@ -1111,6 +1127,8 @@ impl<'a> ParserGen<'a> {
                 nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #nonterminal_ids_len],
                 intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #slot_ids_len],
                 terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
+                #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
+                epsilon_nodes: Vec<SPPFNodeId>,
                 intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
                 intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
                 nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
@@ -1255,11 +1273,8 @@ impl<'a> ParserGen<'a> {
         let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
         let end_slot_id = self.slot_ids.get_id(&end_slot);
         if alternative.symbols.is_empty() {
-            let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
             quote! {
-                let epsilon_node_id = self.get_or_create_terminal_node(
-                    TerminalId(#epsilon_id), i, i,
-                );
+                let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 return Some(self.get_or_create_nonterminal_node(
                     #nonterminal_id, #end_slot_id, i, i, epsilon_node_id, false,
                 ));

@@ -2778,8 +2778,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Grammar_Opt_0 : .
             SlotId(230) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(16),
                     SlotId(230),
@@ -2837,8 +2836,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Grammar_Opt_1 : .
             SlotId(239) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(18),
                     SlotId(239),
@@ -2925,8 +2923,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // SyntaxRule_Opt_2 : .
             SlotId(250) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(21),
                     SlotId(250),
@@ -3026,8 +3023,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // SyntaxRule_Opt_3 : .
             SlotId(263) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(24),
                     SlotId(263),
@@ -3064,8 +3060,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // RegexRule_Opt_4 : .
             SlotId(268) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(26),
                     SlotId(268),
@@ -3240,8 +3235,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // RegexRule_Opt_5 : .
             SlotId(291) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(30),
                     SlotId(291),
@@ -3282,8 +3276,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // PriorityLevel_Opt_6 : .
             SlotId(296) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(32),
                     SlotId(296),
@@ -3369,8 +3362,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // PriorityLevel_Opt_7 : .
             SlotId(307) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(34),
                     SlotId(307),
@@ -3438,8 +3430,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Alternative_Opt_8 : .
             SlotId(318) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(37),
                     SlotId(318),
@@ -3481,8 +3472,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Alternative_Opt_9 : .
             SlotId(323) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(39),
                     SlotId(323),
@@ -3943,8 +3933,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // CharClass_Opt_10 : .
             SlotId(376) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(50),
                     SlotId(376),
@@ -4083,8 +4072,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Layout_Opt_11 : .
             SlotId(394) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(37), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(54),
                     SlotId(394),
@@ -8377,6 +8365,8 @@ pub struct IggyParser<'i> {
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 60],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 587],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 39],
+    // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
+    epsilon_nodes: Vec<SPPFNodeId>,
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
@@ -8407,6 +8397,7 @@ impl<'i> IggyParser<'i> {
             nonterminal_nodes_index: [const { InlineMap::Empty }; 60],
             intermediate_nodes_index: [const { InlineMap::Empty }; 587],
             terminal_nodes_index: [const { InlineMap::Empty }; 39],
+            epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             intermediate_nodes_children: vec![],
@@ -9172,7 +9163,7 @@ impl<'i> IggyParser<'i> {
     }
     fn parse_grammar_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let Some(matched) = self.scanner.longest_match(FIRST_SET_GRAMMAR_OPT_0, i) else {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(16),
                 SlotId(230),
@@ -9269,7 +9260,7 @@ impl<'i> IggyParser<'i> {
     }
     fn parse_syntax_rule_opt_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let Some(matched) = self.scanner.longest_match(FIRST_SET_SYNTAX_RULE_OPT_2, i) else {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(21),
                 SlotId(250),
@@ -9386,7 +9377,7 @@ impl<'i> IggyParser<'i> {
     }
     fn parse_regex_rule_opt_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let Some(matched) = self.scanner.longest_match(FIRST_SET_REGEX_RULE_OPT_5, i) else {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(30),
                 SlotId(291),
@@ -9445,7 +9436,7 @@ impl<'i> IggyParser<'i> {
             .scanner
             .longest_match(FIRST_SET_PRIORITY_LEVEL_OPT_6, i)
         else {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(32),
                 SlotId(296),
@@ -9481,7 +9472,7 @@ impl<'i> IggyParser<'i> {
     }
     fn parse_alternative_opt_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let Some(matched) = self.scanner.longest_match(FIRST_SET_ALTERNATIVE_OPT_9, i) else {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(39),
                 SlotId(323),
@@ -9880,7 +9871,7 @@ impl<'i> IggyParser<'i> {
     }
     fn parse_char_class_opt_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let Some(matched) = self.scanner.longest_match(FIRST_SET_CHAR_CLASS_OPT_10, i) else {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(50),
                 SlotId(376),
@@ -10012,7 +10003,7 @@ impl<'i> IggyParser<'i> {
     }
     fn parse_layout_opt_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let Some(matched) = self.scanner.longest_match(FIRST_SET_LAYOUT_OPT_11, i) else {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(54),
                 SlotId(394),
@@ -10325,5 +10316,20 @@ impl<'i> IggyParser<'i> {
             ambiguous: false,
         };
         self.add_nonterminal_node_symbol_except_follow_restriction(nonterminal_node, return_value)
+    }
+    fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
+        let existing = self.epsilon_nodes[i as usize];
+        if existing != SPPFNodeId::NONE {
+            record!(self, TerminalNodeFound, existing);
+            return existing;
+        }
+        let span = Span::new(i, i);
+        let terminal_id = TerminalId(37);
+        let node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+        record!(self, TerminalNodeCreated, terminal_id, span);
+        self.sppf_nodes
+            .push(SPPFNode::Terminal(TerminalNode { terminal_id, span }));
+        self.epsilon_nodes[i as usize] = node_id;
+        node_id
     }
 }

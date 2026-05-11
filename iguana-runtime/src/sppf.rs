@@ -101,6 +101,9 @@ pub struct IntermediateNode {
 pub struct SPPFNodeId(pub u32);
 
 impl SPPFNodeId {
+    /// Sentinel for an absent id in dense arrays. Real ids must be < u32::MAX.
+    pub const NONE: Self = Self(u32::MAX);
+
     pub fn index(&self) -> usize {
         self.0 as usize
     }

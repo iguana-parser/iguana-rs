@@ -176,8 +176,7 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
             }
             // S_Opt_0 : .
             SlotId(12) => {
-                let epsilon_node_id =
-                    self.get_or_create_terminal_node(TerminalId(2), input_index, input_index);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(3),
                     SlotId(12),
@@ -647,6 +646,8 @@ pub struct StarWithSepParser<'i> {
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 15],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
+    // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
+    epsilon_nodes: Vec<SPPFNodeId>,
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
@@ -669,6 +670,7 @@ impl<'i> StarWithSepParser<'i> {
             nonterminal_nodes_index: [const { InlineMap::Empty }; 5],
             intermediate_nodes_index: [const { InlineMap::Empty }; 15],
             terminal_nodes_index: [const { InlineMap::Empty }; 4],
+            epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             intermediate_nodes_children: vec![],
@@ -790,7 +792,7 @@ impl<'i> StarWithSepParser<'i> {
     }
     fn parse_s_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let Some(matched) = self.scanner.longest_match(FIRST_SET_S_OPT_0, i) else {
-            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(2), i, i);
+            let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(3),
                 SlotId(12),
@@ -843,5 +845,20 @@ impl<'i> StarWithSepParser<'i> {
             current,
             false,
         ));
+    }
+    fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
+        let existing = self.epsilon_nodes[i as usize];
+        if existing != SPPFNodeId::NONE {
+            record!(self, TerminalNodeFound, existing);
+            return existing;
+        }
+        let span = Span::new(i, i);
+        let terminal_id = TerminalId(2);
+        let node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+        record!(self, TerminalNodeCreated, terminal_id, span);
+        self.sppf_nodes
+            .push(SPPFNode::Terminal(TerminalNode { terminal_id, span }));
+        self.epsilon_nodes[i as usize] = node_id;
+        node_id
     }
 }

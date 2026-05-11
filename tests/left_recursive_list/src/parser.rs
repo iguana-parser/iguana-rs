@@ -501,6 +501,8 @@ pub struct LeftRecursiveListParser<'i> {
     nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 1],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 3],
+    // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
+    epsilon_nodes: Vec<SPPFNodeId>,
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
@@ -523,6 +525,7 @@ impl<'i> LeftRecursiveListParser<'i> {
             nonterminal_nodes_index: [const { InlineMap::Empty }; 1],
             intermediate_nodes_index: [const { InlineMap::Empty }; 5],
             terminal_nodes_index: [const { InlineMap::Empty }; 3],
+            epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             intermediate_nodes_children: vec![],
@@ -534,5 +537,20 @@ impl<'i> LeftRecursiveListParser<'i> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
+    }
+    fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
+        let existing = self.epsilon_nodes[i as usize];
+        if existing != SPPFNodeId::NONE {
+            record!(self, TerminalNodeFound, existing);
+            return existing;
+        }
+        let span = Span::new(i, i);
+        let terminal_id = TerminalId(1);
+        let node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
+        record!(self, TerminalNodeCreated, terminal_id, span);
+        self.sppf_nodes
+            .push(SPPFNode::Terminal(TerminalNode { terminal_id, span }));
+        self.epsilon_nodes[i as usize] = node_id;
+        node_id
     }
 }
