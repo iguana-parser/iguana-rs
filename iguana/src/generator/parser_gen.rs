@@ -51,6 +51,15 @@ impl<'a> ParserGen<'a> {
         }
     }
 
+    fn is_layout(&self, nonterminal: &Nonterminal) -> bool {
+        self.grammar
+            .layout
+            .as_ref()
+            .and_then(|s| s.as_identifier())
+            .map(|i| i.name == nonterminal.name)
+            .unwrap_or(false)
+    }
+
     pub fn generate(&mut self) -> TokenStream {
         let grammar_name = &self.grammar.name;
         let imports = self.gen_imports();
@@ -957,7 +966,7 @@ impl<'a> ParserGen<'a> {
             .grammar
             .nonterminals()
             .filter(|nt| self.config.ll1_optimization && self.ff.is_ll1(nt))
-            .map(|nt| self.gen_parse_method_ll1(nt))
+            .map(|nt| self.gen_parse_method_ll1(nt, self.is_layout(nt)))
             .collect();
         let get_gss_node_methods: Vec<_> = self
             .nonterminal_ids
@@ -1015,6 +1024,15 @@ impl<'a> ParserGen<'a> {
         let nonterminal_nodes_index_field = self.gen_nonterminal_nodes_index_field();
         let intermediate_nodes_index_field = self.gen_intermediate_nodes_index_field();
         let terminal_nodes_index_field = self.gen_terminal_nodes_index_field();
+        let layout_memo_init = if self
+            .grammar
+            .nonterminals()
+            .any(|nt| self.is_layout(nt) && self.ff.is_ll1(nt))
+        {
+            quote! { layout_memo: vec![None; input.len() as usize + 1], }
+        } else {
+            quote! {}
+        };
         quote! {
             pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
                 init_logger();
@@ -1038,6 +1056,7 @@ impl<'a> ParserGen<'a> {
                     #(#return_value_fields,)*
                     envs: vec![],
                     parse_errors: InlineVec::Empty,
+                    #layout_memo_init
                     #[cfg(feature = "debug-trace")]
                     trace_events: None,
                 }
@@ -1062,6 +1081,15 @@ impl<'a> ParserGen<'a> {
         let slot_ids_len = Literal::usize_unsuffixed(self.slot_ids.len());
         let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
         let scanner_name_ident = format_ident!("{}{}", grammar_name, "Scanner");
+        let layout_memo_field = if self
+            .grammar
+            .nonterminals()
+            .any(|nt| self.is_layout(nt) && self.ff.is_ll1(nt))
+        {
+            quote! { layout_memo: Vec<Option<SPPFNodeId>>, }
+        } else {
+            quote! {}
+        };
         quote! {
             pub struct #parser_name_ident<'i> {
                 start_nonterminal: NonterminalId,
@@ -1084,6 +1112,7 @@ impl<'a> ParserGen<'a> {
                 #(#specialized_nonterminal_nodes_index_fields,)*
                 envs: Vec<Env>,
                 parse_errors: InlineVec<ParseError, 8>,
+                #layout_memo_field
                 #[cfg(feature = "debug-trace")]
                 pub trace_events: Option<Vec<TraceEvent>>,
             }
@@ -1123,7 +1152,7 @@ impl<'a> ParserGen<'a> {
         quote! { self.scanner.match_any(#name, #input_index) }
     }
 
-    fn gen_parse_method_ll1(&self, nonterminal: &'a Nonterminal) -> TokenStream {
+    fn gen_parse_method_ll1(&self, nonterminal: &'a Nonterminal, memoize: bool) -> TokenStream {
         // For Plus, generate a loop rather than matching the left-recursive
         // desugared alternatives, which would cause infinite recursion.
         // Star is desugared as `(A+)?`, so Opt and Star are handled by the
@@ -1132,6 +1161,32 @@ impl<'a> ParserGen<'a> {
             return self.gen_plus_loop_ll1(nonterminal);
         }
         let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+        let body_tokens = self.gen_parse_body_ll1(nonterminal);
+        if memoize {
+            quote! {
+                fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
+                    if let Some(memo) = self.layout_memo[i as usize] {
+                        return Some(memo);
+                    }
+                    let result: Option<SPPFNodeId> = (|| -> Option<SPPFNodeId> {
+                        #body_tokens
+                    })();
+                    if let Some(node) = result {
+                        self.layout_memo[i as usize] = Some(node);
+                    }
+                    result
+                }
+            }
+        } else {
+            quote! {
+                fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
+                    #body_tokens
+                }
+            }
+        }
+    }
+
+    fn gen_parse_body_ll1(&self, nonterminal: &'a Nonterminal) -> TokenStream {
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
         let alternatives = self.grammar.alternatives(nonterminal);
 
@@ -1149,7 +1204,7 @@ impl<'a> ParserGen<'a> {
             "FIRST_SET_{}",
             to_snake_case(&nonterminal.name).to_uppercase(),
         );
-        let body_tokens = match (nullable_alt, non_nullable_alts.is_empty()) {
+        match (nullable_alt, non_nullable_alts.is_empty()) {
             (Some(nullable), true) => self.gen_alt_body_ll1(nonterminal, nullable, nonterminal_id),
             (None, _) => {
                 let arms = self.gen_ll1_dispatch_arms(
@@ -1181,12 +1236,6 @@ impl<'a> ParserGen<'a> {
                         _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
                     }
                 }
-            }
-        };
-
-        quote! {
-            fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
-                #body_tokens
             }
         }
     }

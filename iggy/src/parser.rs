@@ -8387,6 +8387,7 @@ pub struct IggyParser<'i> {
         FxHashMap<Span, InlineVec<(i32, SPPFNodeId)>>,
     envs: Vec<Env>,
     parse_errors: InlineVec<ParseError, 8>,
+    layout_memo: Vec<Option<SPPFNodeId>>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -8417,6 +8418,7 @@ impl<'i> IggyParser<'i> {
             nonterminal_nodes_index_symbol_except_follow_restriction: FxHashMap::default(),
             envs: vec![],
             parse_errors: InlineVec::Empty,
+            layout_memo: vec![None; input.len() as usize + 1],
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
@@ -9136,28 +9138,37 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_layout_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let mut j = i;
-        let right_child = {
-            let start = j;
-            let node = self.parse_layout_star_6_ll1(start)?;
-            let end = self.sppf_node(node).right_extent();
-            j = end;
-            if let Some(error_kind) = self.post_conditions(SlotId(227), start, end) {
-                self.add_parse_error(end, SlotId(227), None, || error_kind);
-                return None;
-            }
-            node
-        };
-        let left_extent = self.sppf_node(right_child).left_extent();
-        let mut current = right_child;
-        return Some(self.get_or_create_nonterminal_node(
-            NonterminalId(15),
-            SlotId(227),
-            left_extent,
-            j,
-            current,
-            false,
-        ));
+        if let Some(memo) = self.layout_memo[i as usize] {
+            return Some(memo);
+        }
+        let result: Option<SPPFNodeId> = (|| -> Option<SPPFNodeId> {
+            let mut j = i;
+            let right_child = {
+                let start = j;
+                let node = self.parse_layout_star_6_ll1(start)?;
+                let end = self.sppf_node(node).right_extent();
+                j = end;
+                if let Some(error_kind) = self.post_conditions(SlotId(227), start, end) {
+                    self.add_parse_error(end, SlotId(227), None, || error_kind);
+                    return None;
+                }
+                node
+            };
+            let left_extent = self.sppf_node(right_child).left_extent();
+            let mut current = right_child;
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(15),
+                SlotId(227),
+                left_extent,
+                j,
+                current,
+                false,
+            ));
+        })();
+        if let Some(node) = result {
+            self.layout_memo[i as usize] = Some(node);
+        }
+        result
     }
     fn parse_grammar_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let Some(matched) = self.scanner.longest_match(FIRST_SET_GRAMMAR_OPT_0, i) else {
