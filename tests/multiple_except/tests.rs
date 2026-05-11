@@ -16,10 +16,7 @@ fn test_syntax_identifier() {
     let ctx = ParseContext::new();
     let result = parse_syntax_identifier(&input, &ctx).expect("Parse failed");
     let actual = to_sexpr(result.tree.as_parse_tree());
-    check_golden_file(
-        &actual,
-        &golden_path(GRAMMAR_DIR, "syntax_identifier"),
-    );
+    check_golden_file(&actual, &golden_path(GRAMMAR_DIR, "syntax_identifier"));
 }
 
 #[test]
@@ -58,10 +55,7 @@ fn test_syntax_keyword_prefix_accepted() {
     let ctx = ParseContext::new();
     let result = parse_syntax_identifier(&input, &ctx).expect("Parse failed");
     let actual = to_sexpr(result.tree.as_parse_tree());
-    check_golden_file(
-        &actual,
-        &golden_path(GRAMMAR_DIR, "syntax_keyword_prefix"),
-    );
+    check_golden_file(&actual, &golden_path(GRAMMAR_DIR, "syntax_keyword_prefix"));
 }
 
 // --- LexicalIdentifier tests (lexical except path) ---
@@ -72,10 +66,7 @@ fn test_lexical_identifier() {
     let ctx = ParseContext::new();
     let result = parse_lexical_identifier(&input, &ctx).expect("Parse failed");
     let actual = to_sexpr(result.tree.as_parse_tree());
-    check_golden_file(
-        &actual,
-        &golden_path(GRAMMAR_DIR, "lexical_identifier"),
-    );
+    check_golden_file(&actual, &golden_path(GRAMMAR_DIR, "lexical_identifier"));
 }
 
 #[test]
@@ -114,8 +105,5 @@ fn test_lexical_keyword_prefix_accepted() {
     let ctx = ParseContext::new();
     let result = parse_lexical_identifier(&input, &ctx).expect("Parse failed");
     let actual = to_sexpr(result.tree.as_parse_tree());
-    check_golden_file(
-        &actual,
-        &golden_path(GRAMMAR_DIR, "lexical_keyword_prefix"),
-    );
+    check_golden_file(&actual, &golden_path(GRAMMAR_DIR, "lexical_keyword_prefix"));
 }

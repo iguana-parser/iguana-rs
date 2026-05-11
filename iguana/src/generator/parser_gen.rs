@@ -376,7 +376,8 @@ impl<'a> ParserGen<'a> {
             .iter()
             .enumerate()
             .map(|(alt_index, alt)| {
-                let first_alt_name = format_ident!("FIRST_SET_{}_ALT{}", nt_const_suffix, alt_index);
+                let first_alt_name =
+                    format_ident!("FIRST_SET_{}_ALT{}", nt_const_suffix, alt_index);
                 let slot = Slot::new(nonterminal, alt, 0);
                 let slot_id = self.slot_ids.get_id(&slot);
                 let slot_name = slot.name();
@@ -399,7 +400,9 @@ impl<'a> ParserGen<'a> {
             .collect();
 
         let first_set_name = format_ident!("FIRST_SET_{}", nt_const_suffix);
-        let first_slot_id = self.slot_ids.get_id(&Slot::new(nonterminal, &alternatives[0], 0));
+        let first_slot_id = self
+            .slot_ids
+            .get_id(&Slot::new(nonterminal, &alternatives[0], 0));
 
         // Nullable NTs accept FOLLOW tokens as valid continuations via the ε arm.
         let expected = if self.ff.is_nonterminal_nullable(nonterminal) {
@@ -788,7 +791,10 @@ impl<'a> ParserGen<'a> {
         for nonterminal in self.grammar.nonterminals() {
             let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
             let condition = self.gen_match_any(
-                &format!("FOLLOW_SET_{}", to_snake_case(&nonterminal.name).to_uppercase()),
+                &format!(
+                    "FOLLOW_SET_{}",
+                    to_snake_case(&nonterminal.name).to_uppercase()
+                ),
                 quote! { input_index },
             );
             arms.push(quote! {

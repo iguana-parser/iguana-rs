@@ -16,10 +16,7 @@ fn single_id() {
     let ctx = ParseContext::new();
     let result = parse_s(&input, &ctx).expect("Parse failed");
     let actual = to_sexpr(result.tree.as_parse_tree());
-    check_golden_file(
-        &actual,
-        &golden_path(GRAMMAR_DIR, "single_id"),
-    );
+    check_golden_file(&actual, &golden_path(GRAMMAR_DIR, "single_id"));
 }
 
 #[test]
@@ -39,10 +36,7 @@ fn single_char() {
     let ctx = ParseContext::new();
     let result = parse_t(&input, &ctx).expect("Parse failed");
     let actual = to_sexpr(result.tree.as_parse_tree());
-    check_golden_file(
-        &actual,
-        &golden_path(GRAMMAR_DIR, "single_char"),
-    );
+    check_golden_file(&actual, &golden_path(GRAMMAR_DIR, "single_char"));
 }
 
 #[test]

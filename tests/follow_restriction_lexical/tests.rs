@@ -6,7 +6,10 @@ use iguana_runtime::input::Input;
 use iguana_runtime::parse_tree::ParseContext;
 use iguana_runtime::testing::{check_golden_file, golden_path};
 
-const GRAMMAR_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/follow_restriction_lexical");
+const GRAMMAR_DIR: &str = concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/tests/follow_restriction_lexical"
+);
 
 fn check(input: &str, test_name: &str) {
     let input = Input::from(input);

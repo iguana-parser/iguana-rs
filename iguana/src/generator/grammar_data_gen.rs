@@ -65,9 +65,13 @@ pub fn generate<'a>(
             let first_alt = ff.first_set(alternative);
             let first_alt_name = format_ident!("FIRST_SET_{}_ALT{}", nt_upper, alt_index);
             let first_alt_terminals: Vec<_> = first_alt.iter().cloned().collect();
-            let first_alt_ids: Vec<_> = first_alt_terminals.iter().map(&terminal_id_tokens).collect();
+            let first_alt_ids: Vec<_> = first_alt_terminals
+                .iter()
+                .map(&terminal_id_tokens)
+                .collect();
             let slot = Slot::new(nonterminal, alternative, 0);
-            let first_alt_comment = format!("{} {}", slot.name(), terminal_names(&first_alt_terminals));
+            let first_alt_comment =
+                format!("{} {}", slot.name(), terminal_names(&first_alt_terminals));
             items.push(quote! {
                 #[comment = #first_alt_comment]
                 pub static #first_alt_name: &[TerminalId] = &[#(#first_alt_ids),*];
