@@ -359,15 +359,15 @@ impl<'a> ParserGen<'a> {
     fn gen_multi_alt_first_dispatch(&self, nonterminal: &'a Nonterminal) -> TokenStream {
         let nt_name = &nonterminal.name;
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
-        let nt_upper = self.prediction_set_name(nonterminal);
+        let nt_const_suffix = to_snake_case(&nonterminal.name).to_uppercase();
         let alternatives = self.grammar.alternatives(nonterminal);
-        let follow_name = format_ident!("FOLLOW_SET_{}", nt_upper);
+        let follow_name = format_ident!("FOLLOW_SET_{}", nt_const_suffix);
 
         let alt_arms: Vec<_> = alternatives
             .iter()
             .enumerate()
             .map(|(alt_index, alt)| {
-                let first_alt_name = format_ident!("FIRST_SET_{}_ALT{}", nt_upper, alt_index);
+                let first_alt_name = format_ident!("FIRST_SET_{}_ALT{}", nt_const_suffix, alt_index);
                 let slot = Slot::new(nonterminal, alt, 0);
                 let slot_id = self.slot_ids.get_id(&slot);
                 let slot_name = slot.name();
@@ -389,8 +389,21 @@ impl<'a> ParserGen<'a> {
             })
             .collect();
 
-        let first_set_name = format_ident!("FIRST_SET_{}", nt_upper);
+        let first_set_name = format_ident!("FIRST_SET_{}", nt_const_suffix);
         let first_slot_id = self.slot_ids.get_id(&Slot::new(nonterminal, &alternatives[0], 0));
+
+        // Nullable NTs accept FOLLOW tokens as valid continuations via the ε arm.
+        let expected = if self.ff.is_nonterminal_nullable(nonterminal) {
+            quote! {
+                {
+                    let mut expected = #first_set_name.to_vec();
+                    expected.extend_from_slice(#follow_name);
+                    expected
+                }
+            }
+        } else {
+            quote! { #first_set_name.to_vec() }
+        };
 
         quote! {
             #[comment = #nt_name]
@@ -399,7 +412,7 @@ impl<'a> ParserGen<'a> {
                 #(#alt_arms)*
                 if !matched {
                     self.add_parse_error(input_index, #first_slot_id, Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken { expected: #first_set_name.to_vec() }
+                        ParseErrorKind::UnexpectedToken { expected: #expected }
                     });
                 }
             }
@@ -679,7 +692,6 @@ impl<'a> ParserGen<'a> {
     fn gen_post_conditions_method(&mut self) -> TokenStream {
         let mut arms = vec![];
         for nonterminal in self.grammar.nonterminals() {
-            let nt_upper = self.prediction_set_name(nonterminal);
             for (alt_index, alternative) in
                 self.grammar.alternatives(nonterminal).iter().enumerate()
             {
@@ -730,7 +742,7 @@ impl<'a> ParserGen<'a> {
                         };
                         let static_name = format_ident!(
                             "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
-                            nt_upper,
+                            to_snake_case(&nonterminal.name).to_uppercase(),
                             alt_index,
                             pos
                         );
@@ -766,9 +778,10 @@ impl<'a> ParserGen<'a> {
         let mut arms = vec![];
         for nonterminal in self.grammar.nonterminals() {
             let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
-            let nt_upper = self.prediction_set_name(nonterminal);
-            let condition =
-                self.gen_match_any(&format!("FOLLOW_SET_{}", nt_upper), quote! { input_index });
+            let condition = self.gen_match_any(
+                &format!("FOLLOW_SET_{}", to_snake_case(&nonterminal.name).to_uppercase()),
+                quote! { input_index },
+            );
             arms.push(quote! {
                 #nonterminal_id => { #condition }
             });
@@ -787,8 +800,10 @@ impl<'a> ParserGen<'a> {
         let mut arms = vec![];
         for nonterminal in self.grammar.nonterminals() {
             let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
-            let nt_upper = self.prediction_set_name(nonterminal);
-            let follow_name = format_ident!("FOLLOW_SET_{}", nt_upper);
+            let follow_name = format_ident!(
+                "FOLLOW_SET_{}",
+                to_snake_case(&nonterminal.name).to_uppercase(),
+            );
             arms.push(quote! {
                 #nonterminal_id => { #follow_name.to_vec() }
             });
@@ -1103,10 +1118,6 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn prediction_set_name(&self, nonterminal: &Nonterminal) -> String {
-        to_snake_case(&nonterminal.name).to_uppercase()
-    }
-
     fn gen_match_any(&self, static_name: &str, input_index: TokenStream) -> TokenStream {
         let name = format_ident!("{}", static_name);
         quote! { self.scanner.match_any(#name, #input_index) }
@@ -1123,46 +1134,103 @@ impl<'a> ParserGen<'a> {
         let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
         let alternatives = self.grammar.alternatives(nonterminal);
-        let nt_upper = self.prediction_set_name(nonterminal);
-        let first_set_name = format_ident!("FIRST_SET_{}", nt_upper);
 
-        // Each LL(1) alternative becomes a match arm keyed by the terminals
-        // in its prediction set. The dispatch key is the longest-matching
-        // terminal at position `i` across the union of prediction sets.
-        // Longest match disambiguates literals that share a prefix — e.g.,
-        // `"<"` vs `"<="` — and any other operational overlap between
-        // terminals (regex/literal). Disjoint prediction sets at the
-        // terminal level (an LL(1) precondition) guarantee no two arms
-        // claim the same terminal.
-        let arms: Vec<_> = alternatives
+        let nullable_alt = alternatives.iter().find(|alt| self.ff.is_alt_nullable(alt));
+        let non_nullable_alts: Vec<&Alternative> = alternatives
             .iter()
-            .map(|alternative| {
-                let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
-                let end_slot_id = self.slot_ids.get_id(&end_slot);
+            .filter(|alt| !self.ff.is_alt_nullable(alt))
+            .collect();
 
-                let body = if alternative.symbols.is_empty() {
-                    let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
-                    quote! {
-                        let epsilon_node_id = self.get_or_create_terminal_node(
-                            TerminalId(#epsilon_id), i, i,
-                        );
-                        return Some(self.get_or_create_nonterminal_node(
-                            #nonterminal_id, #end_slot_id, i, i, epsilon_node_id, false,
-                        ));
+        // LL(1) disjointness gives at most one nullable alt: when one
+        // exists, missing on FIRST means the input is a FOLLOW token, so
+        // the nullable body is the correct fall-through. `longest_match`
+        // disambiguates prefix-overlapping terminals (e.g. `<` vs `<=`).
+        let first_set_name = format_ident!(
+            "FIRST_SET_{}",
+            to_snake_case(&nonterminal.name).to_uppercase(),
+        );
+        let body_tokens = match (nullable_alt, non_nullable_alts.is_empty()) {
+            (Some(nullable), true) => self.gen_alt_body_ll1(nonterminal, nullable, nonterminal_id),
+            (None, _) => {
+                let arms = self.gen_ll1_dispatch_arms(
+                    nonterminal,
+                    &alternatives.iter().collect::<Vec<_>>(),
+                    nonterminal_id,
+                );
+                quote! {
+                    let matched = self.scanner.longest_match(#first_set_name, i)?;
+                    match matched {
+                        #(#arms)*
+                        _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
                     }
-                } else {
-                    self.gen_parse_alternative_ll1(
-                        nonterminal,
-                        alternative,
-                        nonterminal_id,
-                        end_slot_id,
-                    )
-                };
+                }
+            }
+            (Some(nullable), false) => {
+                let arms = self.gen_ll1_dispatch_arms(
+                    nonterminal,
+                    &alternatives.iter().collect::<Vec<_>>(),
+                    nonterminal_id,
+                );
+                let nullable_body = self.gen_alt_body_ll1(nonterminal, nullable, nonterminal_id);
+                quote! {
+                    let Some(matched) = self.scanner.longest_match(#first_set_name, i) else {
+                        #nullable_body
+                    };
+                    match matched {
+                        #(#arms)*
+                        _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+                    }
+                }
+            }
+        };
 
-                let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
-                let pred_patterns: Vec<_> = self
-                    .ff
-                    .prediction_set(nonterminal, alternative)
+        quote! {
+            fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
+                #body_tokens
+            }
+        }
+    }
+
+    fn gen_alt_body_ll1(
+        &self,
+        nonterminal: &'a Nonterminal,
+        alternative: &'a Alternative,
+        nonterminal_id: NonterminalId,
+    ) -> TokenStream {
+        let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
+        let end_slot_id = self.slot_ids.get_id(&end_slot);
+        if alternative.symbols.is_empty() {
+            let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
+            quote! {
+                let epsilon_node_id = self.get_or_create_terminal_node(
+                    TerminalId(#epsilon_id), i, i,
+                );
+                return Some(self.get_or_create_nonterminal_node(
+                    #nonterminal_id, #end_slot_id, i, i, epsilon_node_id, false,
+                ));
+            }
+        } else {
+            self.gen_parse_alternative_ll1(nonterminal, alternative, nonterminal_id, end_slot_id)
+        }
+    }
+
+    fn gen_ll1_dispatch_arms(
+        &self,
+        nonterminal: &'a Nonterminal,
+        alternatives: &[&'a Alternative],
+        nonterminal_id: NonterminalId,
+    ) -> Vec<TokenStream> {
+        let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
+        alternatives
+            .iter()
+            .filter_map(|alternative| {
+                let first = self.ff.first_set(alternative);
+                // Empty FIRST = explicit-ε arm: reached via fall-through, not dispatch.
+                if first.is_empty() {
+                    return None;
+                }
+                let body = self.gen_alt_body_ll1(nonterminal, alternative, nonterminal_id);
+                let pred_patterns: Vec<_> = first
                     .iter()
                     .map(|t| {
                         if t.name == "EOF" {
@@ -1173,22 +1241,11 @@ impl<'a> ParserGen<'a> {
                         }
                     })
                     .collect();
-
-                quote! {
+                Some(quote! {
                     #(#pred_patterns)|* => { #body }
-                }
+                })
             })
-            .collect();
-
-        quote! {
-            fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
-                let matched = self.scanner.longest_match(#first_set_name, i)?;
-                match matched {
-                    #(#arms)*
-                    _ => None,
-                }
-            }
-        }
+            .collect()
     }
 
     /// Generates an LL(1) parse method for a Plus nonterminal as a loop.

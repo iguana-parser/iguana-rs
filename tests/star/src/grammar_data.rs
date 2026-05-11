@@ -97,8 +97,8 @@ pub const SLOTS: [Slot; 14] = [
 ];
 // S { EOF }
 pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(2)];
-// S { "a", EOF }
-pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+// S { "a" }
+pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
 // S : . S_Star_0 { "a" }
 pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
 // A { "a", EOF }
@@ -117,15 +117,15 @@ pub static FIRST_SET_S_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 pub static FIRST_SET_S_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
 // S_Opt_0 { EOF }
 pub static FOLLOW_SET_S_OPT_0: &[TerminalId] = &[TerminalId(2)];
-// S_Opt_0 { "a", EOF }
-pub static FIRST_SET_S_OPT_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+// S_Opt_0 { "a" }
+pub static FIRST_SET_S_OPT_0: &[TerminalId] = &[TerminalId(0)];
 // S_Opt_0 : . S_Plus_0 { "a" }
 pub static FIRST_SET_S_OPT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 // S_Opt_0 : . {  }
 pub static FIRST_SET_S_OPT_0_ALT1: &[TerminalId] = &[];
 // S_Star_0 { EOF }
 pub static FOLLOW_SET_S_STAR_0: &[TerminalId] = &[TerminalId(2)];
-// S_Star_0 { "a", EOF }
-pub static FIRST_SET_S_STAR_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+// S_Star_0 { "a" }
+pub static FIRST_SET_S_STAR_0: &[TerminalId] = &[TerminalId(0)];
 // S_Star_0 : . S_Opt_0 { "a" }
 pub static FIRST_SET_S_STAR_0_ALT0: &[TerminalId] = &[TerminalId(0)];

@@ -365,7 +365,11 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(13), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_LAYOUT_OPT_0.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_LAYOUT_OPT_0.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_LAYOUT_OPT_0);
+                                expected
+                            },
                         }
                     });
                 }
@@ -815,34 +819,28 @@ impl<'i> LayoutNonterminalParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_layout_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT, i)?;
-        match matched {
-            TerminalId(1) | TerminalId(2) | TerminalId(0) | TerminalId(4) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let node = self.parse_layout_star_0_ll1(start)?;
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(1),
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
-            }
-            _ => None,
-        }
+        let mut j = i;
+        let right_child = {
+            let start = j;
+            let node = self.parse_layout_star_0_ll1(start)?;
+            let end = self.sppf_node(node).right_extent();
+            j = end;
+            node
+        };
+        let left_extent = self.sppf_node(right_child).left_extent();
+        let mut current = right_child;
+        return Some(self.get_or_create_nonterminal_node(
+            NonterminalId(1),
+            SlotId(3),
+            left_extent,
+            j,
+            current,
+            false,
+        ));
     }
     fn parse_layout_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_ALT_0, i)?;
@@ -887,7 +885,7 @@ impl<'i> LayoutNonterminalParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_layout_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -936,7 +934,17 @@ impl<'i> LayoutNonterminalParser<'i> {
         Some(current)
     }
     fn parse_layout_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_OPT_0, i)?;
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_LAYOUT_OPT_0, i) else {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(3), i, i);
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(4),
+                SlotId(15),
+                i,
+                i,
+                epsilon_node_id,
+                false,
+            ));
+        };
         match matched {
             TerminalId(1) | TerminalId(0) => {
                 let mut j = i;
@@ -958,45 +966,28 @@ impl<'i> LayoutNonterminalParser<'i> {
                     false,
                 ));
             }
-            TerminalId(2) | TerminalId(4) => {
-                let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(3), i, i);
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(4),
-                    SlotId(15),
-                    i,
-                    i,
-                    epsilon_node_id,
-                    false,
-                ));
-            }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_layout_star_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_STAR_0, i)?;
-        match matched {
-            TerminalId(1) | TerminalId(2) | TerminalId(0) | TerminalId(4) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let node = self.parse_layout_opt_0_ll1(start)?;
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(5),
-                    SlotId(17),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
-            }
-            _ => None,
-        }
+        let mut j = i;
+        let right_child = {
+            let start = j;
+            let node = self.parse_layout_opt_0_ll1(start)?;
+            let end = self.sppf_node(node).right_extent();
+            j = end;
+            node
+        };
+        let left_extent = self.sppf_node(right_child).left_extent();
+        let mut current = right_child;
+        return Some(self.get_or_create_nonterminal_node(
+            NonterminalId(5),
+            SlotId(17),
+            left_extent,
+            j,
+            current,
+            false,
+        ));
     }
     fn parse_start_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let matched = self.scanner.longest_match(FIRST_SET_START_S, i)?;
@@ -1055,7 +1046,7 @@ impl<'i> LayoutNonterminalParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
 }

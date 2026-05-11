@@ -99,6 +99,11 @@ impl<'a> FirstFollowSets<'a> {
         alt.symbols.iter().all(|s| self.is_nullable(s))
     }
 
+    /// Returns true if the nonterminal has any nullable alternative.
+    pub fn is_nonterminal_nullable(&self, nt: &Nonterminal) -> bool {
+        self.nullables.contains(nt)
+    }
+
     /// Returns the FIRST set of an alternative. Walks symbols left to right,
     /// collecting FIRST of each symbol, stopping at the first non-nullable.
     pub fn first_set(&self, alt: &Alternative) -> FxHashSet<Terminal> {
@@ -419,11 +424,11 @@ mod tests {
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
-        assert!(ff.nullables.contains(grammar.nonterminal("Ep").unwrap()));
-        assert!(ff.nullables.contains(grammar.nonterminal("Tp").unwrap()));
-        assert!(!ff.nullables.contains(grammar.nonterminal("E").unwrap()));
-        assert!(!ff.nullables.contains(grammar.nonterminal("T").unwrap()));
-        assert!(!ff.nullables.contains(grammar.nonterminal("F").unwrap()));
+        assert!(ff.is_nonterminal_nullable(grammar.nonterminal("Ep").unwrap()));
+        assert!(ff.is_nonterminal_nullable(grammar.nonterminal("Tp").unwrap()));
+        assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("E").unwrap()));
+        assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("T").unwrap()));
+        assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("F").unwrap()));
 
         // FIRST sets
         let lparen = Terminal::new("\"(\"");
@@ -518,10 +523,10 @@ mod tests {
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
-        assert!(ff.nullables.contains(grammar.nonterminal("A").unwrap()));
-        assert!(ff.nullables.contains(grammar.nonterminal("B").unwrap()));
-        assert!(ff.nullables.contains(grammar.nonterminal("C").unwrap()));
-        assert!(!ff.nullables.contains(grammar.nonterminal("S").unwrap()));
+        assert!(ff.is_nonterminal_nullable(grammar.nonterminal("A").unwrap()));
+        assert!(ff.is_nonterminal_nullable(grammar.nonterminal("B").unwrap()));
+        assert!(ff.is_nonterminal_nullable(grammar.nonterminal("C").unwrap()));
+        assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
         let ta = Terminal::new("\"a\"");
@@ -590,9 +595,9 @@ mod tests {
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
-        assert!(ff.nullables.contains(grammar.nonterminal("A").unwrap()));
-        assert!(ff.nullables.contains(grammar.nonterminal("B").unwrap()));
-        assert!(!ff.nullables.contains(grammar.nonterminal("S").unwrap()));
+        assert!(ff.is_nonterminal_nullable(grammar.nonterminal("A").unwrap()));
+        assert!(ff.is_nonterminal_nullable(grammar.nonterminal("B").unwrap()));
+        assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
         let ta = Terminal::new("\"a\"");
@@ -657,8 +662,8 @@ mod tests {
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
-        assert!(ff.nullables.contains(grammar.nonterminal("A").unwrap()));
-        assert!(!ff.nullables.contains(grammar.nonterminal("S").unwrap()));
+        assert!(ff.is_nonterminal_nullable(grammar.nonterminal("A").unwrap()));
+        assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
         let ta = Terminal::new("\"a\"");
@@ -713,8 +718,8 @@ mod tests {
         let ff = FirstFollowSets::new(&grammar);
 
         // Nullables
-        assert!(ff.nullables.contains(grammar.nonterminal("A").unwrap()));
-        assert!(!ff.nullables.contains(grammar.nonterminal("S").unwrap()));
+        assert!(ff.is_nonterminal_nullable(grammar.nonterminal("A").unwrap()));
+        assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
         let tb = Terminal::new("\"b\"");

@@ -758,7 +758,7 @@ impl<'i> FollowRestrictionParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_t_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -788,7 +788,7 @@ impl<'i> FollowRestrictionParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -818,7 +818,7 @@ impl<'i> FollowRestrictionParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_s_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {

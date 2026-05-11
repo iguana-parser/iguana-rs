@@ -514,7 +514,7 @@ impl<'i> ExceptLexicalParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
 }

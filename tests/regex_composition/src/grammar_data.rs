@@ -125,15 +125,15 @@ pub static FIRST_SET_ID_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(2)];
 pub static FIRST_SET_ID_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(2)];
 // Id_Opt_0 { EOF }
 pub static FOLLOW_SET_ID_OPT_0: &[TerminalId] = &[TerminalId(5)];
-// Id_Opt_0 { LetterOrDigit, EOF }
-pub static FIRST_SET_ID_OPT_0: &[TerminalId] = &[TerminalId(2), TerminalId(5)];
+// Id_Opt_0 { LetterOrDigit }
+pub static FIRST_SET_ID_OPT_0: &[TerminalId] = &[TerminalId(2)];
 // Id_Opt_0 : . Id_Plus_0 { LetterOrDigit }
 pub static FIRST_SET_ID_OPT_0_ALT0: &[TerminalId] = &[TerminalId(2)];
 // Id_Opt_0 : . {  }
 pub static FIRST_SET_ID_OPT_0_ALT1: &[TerminalId] = &[];
 // Id_Star_0 { EOF }
 pub static FOLLOW_SET_ID_STAR_0: &[TerminalId] = &[TerminalId(5)];
-// Id_Star_0 { LetterOrDigit, EOF }
-pub static FIRST_SET_ID_STAR_0: &[TerminalId] = &[TerminalId(2), TerminalId(5)];
+// Id_Star_0 { LetterOrDigit }
+pub static FIRST_SET_ID_STAR_0: &[TerminalId] = &[TerminalId(2)];
 // Id_Star_0 : . Id_Opt_0 { LetterOrDigit }
 pub static FIRST_SET_ID_STAR_0_ALT0: &[TerminalId] = &[TerminalId(2)];

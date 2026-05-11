@@ -405,7 +405,11 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(17), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_EXPR_OPT_0.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_EXPR_OPT_0.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_EXPR_OPT_0);
+                                expected
+                            },
                         }
                     });
                 }

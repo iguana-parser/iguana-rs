@@ -275,7 +275,11 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(10), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ID_OPT_0.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_ID_OPT_0.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_ID_OPT_0);
+                                expected
+                            },
                         }
                     });
                 }
@@ -713,7 +717,7 @@ impl<'i> RegexCompositionParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -756,7 +760,7 @@ impl<'i> RegexCompositionParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_id_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -804,7 +808,17 @@ impl<'i> RegexCompositionParser<'i> {
         Some(current)
     }
     fn parse_id_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_ID_OPT_0, i)?;
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_ID_OPT_0, i) else {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(4), i, i);
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(3),
+                SlotId(12),
+                i,
+                i,
+                epsilon_node_id,
+                false,
+            ));
+        };
         match matched {
             TerminalId(2) => {
                 let mut j = i;
@@ -826,44 +840,27 @@ impl<'i> RegexCompositionParser<'i> {
                     false,
                 ));
             }
-            TerminalId(5) => {
-                let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(4), i, i);
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(12),
-                    i,
-                    i,
-                    epsilon_node_id,
-                    false,
-                ));
-            }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_id_star_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_ID_STAR_0, i)?;
-        match matched {
-            TerminalId(2) | TerminalId(5) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let node = self.parse_id_opt_0_ll1(start)?;
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(4),
-                    SlotId(14),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
-            }
-            _ => None,
-        }
+        let mut j = i;
+        let right_child = {
+            let start = j;
+            let node = self.parse_id_opt_0_ll1(start)?;
+            let end = self.sppf_node(node).right_extent();
+            j = end;
+            node
+        };
+        let left_extent = self.sppf_node(right_child).left_extent();
+        let mut current = right_child;
+        return Some(self.get_or_create_nonterminal_node(
+            NonterminalId(4),
+            SlotId(14),
+            left_extent,
+            j,
+            current,
+            false,
+        ));
     }
 }

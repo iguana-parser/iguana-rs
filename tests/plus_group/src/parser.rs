@@ -705,7 +705,7 @@ impl<'i> PlusGroupParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -731,7 +731,7 @@ impl<'i> PlusGroupParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_b_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -757,7 +757,7 @@ impl<'i> PlusGroupParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_c_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -783,7 +783,7 @@ impl<'i> PlusGroupParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_s_group_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -843,7 +843,7 @@ impl<'i> PlusGroupParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_s_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {

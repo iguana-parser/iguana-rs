@@ -143,9 +143,8 @@ pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(2)];
 pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(2)];
 // Layout { "x", EOF }
 pub static FOLLOW_SET_LAYOUT: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
-// Layout { Comment, "x", WhiteSpace, EOF }
-pub static FIRST_SET_LAYOUT: &[TerminalId] =
-    &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
+// Layout { Comment, WhiteSpace }
+pub static FIRST_SET_LAYOUT: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout : . Layout_Star_0 { Comment, WhiteSpace }
 pub static FIRST_SET_LAYOUT_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout_Alt_0 { Comment, "x", WhiteSpace, EOF }
@@ -168,18 +167,16 @@ pub static FIRST_SET_LAYOUT_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(1), Termin
 pub static FIRST_SET_LAYOUT_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout_Opt_0 { "x", EOF }
 pub static FOLLOW_SET_LAYOUT_OPT_0: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
-// Layout_Opt_0 { Comment, "x", WhiteSpace, EOF }
-pub static FIRST_SET_LAYOUT_OPT_0: &[TerminalId] =
-    &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
+// Layout_Opt_0 { Comment, WhiteSpace }
+pub static FIRST_SET_LAYOUT_OPT_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout_Opt_0 : . Layout_Plus_0 { Comment, WhiteSpace }
 pub static FIRST_SET_LAYOUT_OPT_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout_Opt_0 : . {  }
 pub static FIRST_SET_LAYOUT_OPT_0_ALT1: &[TerminalId] = &[];
 // Layout_Star_0 { "x", EOF }
 pub static FOLLOW_SET_LAYOUT_STAR_0: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
-// Layout_Star_0 { Comment, "x", WhiteSpace, EOF }
-pub static FIRST_SET_LAYOUT_STAR_0: &[TerminalId] =
-    &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
+// Layout_Star_0 { Comment, WhiteSpace }
+pub static FIRST_SET_LAYOUT_STAR_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout_Star_0 : . Layout_Opt_0 { Comment, WhiteSpace }
 pub static FIRST_SET_LAYOUT_STAR_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // StartS { EOF }

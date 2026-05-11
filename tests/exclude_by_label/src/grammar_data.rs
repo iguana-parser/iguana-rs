@@ -163,16 +163,16 @@ pub static FIRST_SET_EXPR_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 pub static FIRST_SET_EXPR_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
 // Expr_Opt_0 { ")", EOF }
 pub static FOLLOW_SET_EXPR_OPT_0: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
-// Expr_Opt_0 { ")", EOF, Id }
-pub static FIRST_SET_EXPR_OPT_0: &[TerminalId] = &[TerminalId(3), TerminalId(5), TerminalId(0)];
+// Expr_Opt_0 { Id }
+pub static FIRST_SET_EXPR_OPT_0: &[TerminalId] = &[TerminalId(0)];
 // Expr_Opt_0 : . Expr_Plus_0 { Id }
 pub static FIRST_SET_EXPR_OPT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Expr_Opt_0 : . {  }
 pub static FIRST_SET_EXPR_OPT_0_ALT1: &[TerminalId] = &[];
 // Expr_Star_0 { ")", EOF }
 pub static FOLLOW_SET_EXPR_STAR_0: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
-// Expr_Star_0 { ")", Id, EOF }
-pub static FIRST_SET_EXPR_STAR_0: &[TerminalId] = &[TerminalId(3), TerminalId(0), TerminalId(5)];
+// Expr_Star_0 { Id }
+pub static FIRST_SET_EXPR_STAR_0: &[TerminalId] = &[TerminalId(0)];
 // Expr_Star_0 : . Expr_Opt_0 { Id }
 pub static FIRST_SET_EXPR_STAR_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Expr_except_comma { ",", ")", EOF }

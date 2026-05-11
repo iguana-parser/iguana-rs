@@ -47,11 +47,10 @@ pub fn generate<'a>(
             pub static #follow_name: &[TerminalId] = &[#(#follow_ids),*];
         });
 
-        // First set (union of all prediction sets, for error reporting)
         let first_name = format_ident!("FIRST_SET_{}", nt_upper);
         let first_terminals: Vec<_> = alternatives
             .iter()
-            .flat_map(|alt| ff.prediction_set(nonterminal, alt))
+            .flat_map(|alt| ff.first_set(alt))
             .collect::<FxHashSet<_>>()
             .into_iter()
             .collect();
@@ -62,9 +61,6 @@ pub fn generate<'a>(
             pub static #first_name: &[TerminalId] = &[#(#first_ids),*];
         });
 
-        // FIRST set for each alternative (no FOLLOW absorption — the GLL
-        // dispatch handles nullable alts with a single shared FOLLOW(NT)
-        // check rather than folding FOLLOW into every nullable alt's set).
         for (alt_index, alternative) in alternatives.iter().enumerate() {
             let first_alt = ff.first_set(alternative);
             let first_alt_name = format_ident!("FIRST_SET_{}_ALT{}", nt_upper, alt_index);
@@ -76,8 +72,9 @@ pub fn generate<'a>(
                 #[comment = #first_alt_comment]
                 pub static #first_alt_name: &[TerminalId] = &[#(#first_alt_ids),*];
             });
+        }
 
-            // Follow restriction sets for symbols in this alternative
+        for (alt_index, alternative) in alternatives.iter().enumerate() {
             for (pos, symbol) in alternative.symbols.iter().enumerate() {
                 if let Symbol::FollowRestriction { restrictions, .. } = symbol {
                     let restriction_terminals: Vec<_> = restrictions
@@ -111,7 +108,6 @@ pub fn generate<'a>(
                 }
             }
         }
-
     }
 
     // NONTERMINALS array

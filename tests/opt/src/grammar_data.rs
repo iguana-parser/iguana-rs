@@ -62,8 +62,8 @@ pub const SLOTS: [Slot; 7] = [
 ];
 // S { EOF }
 pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(2)];
-// S { "a", EOF }
-pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+// S { "a" }
+pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
 // S : . S_Opt_0 { "a" }
 pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
 // A { EOF }
@@ -74,8 +74,8 @@ pub static FIRST_SET_A: &[TerminalId] = &[TerminalId(0)];
 pub static FIRST_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
 // S_Opt_0 { EOF }
 pub static FOLLOW_SET_S_OPT_0: &[TerminalId] = &[TerminalId(2)];
-// S_Opt_0 { "a", EOF }
-pub static FIRST_SET_S_OPT_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+// S_Opt_0 { "a" }
+pub static FIRST_SET_S_OPT_0: &[TerminalId] = &[TerminalId(0)];
 // S_Opt_0 : . A { "a" }
 pub static FIRST_SET_S_OPT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 // S_Opt_0 : . {  }

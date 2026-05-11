@@ -262,7 +262,11 @@ impl<'i> Parser<'i> for StarWithSepParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(10), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_S_OPT_0.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_S_OPT_0.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_S_OPT_0);
+                                expected
+                            },
                         }
                     });
                 }
@@ -678,30 +682,24 @@ impl<'i> StarWithSepParser<'i> {
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
-        match matched {
-            TerminalId(1) | TerminalId(3) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let node = self.parse_s_star_0_ll1(start)?;
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(0),
-                    SlotId(1),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
-            }
-            _ => None,
-        }
+        let mut j = i;
+        let right_child = {
+            let start = j;
+            let node = self.parse_s_star_0_ll1(start)?;
+            let end = self.sppf_node(node).right_extent();
+            j = end;
+            node
+        };
+        let left_extent = self.sppf_node(right_child).left_extent();
+        let mut current = right_child;
+        return Some(self.get_or_create_nonterminal_node(
+            NonterminalId(0),
+            SlotId(1),
+            left_extent,
+            j,
+            current,
+            false,
+        ));
     }
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let matched = self.scanner.longest_match(FIRST_SET_A, i)?;
@@ -726,7 +724,7 @@ impl<'i> StarWithSepParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_s_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -791,7 +789,17 @@ impl<'i> StarWithSepParser<'i> {
         Some(current)
     }
     fn parse_s_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_S_OPT_0, i)?;
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_S_OPT_0, i) else {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(2), i, i);
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(3),
+                SlotId(12),
+                i,
+                i,
+                epsilon_node_id,
+                false,
+            ));
+        };
         match matched {
             TerminalId(1) => {
                 let mut j = i;
@@ -813,44 +821,27 @@ impl<'i> StarWithSepParser<'i> {
                     false,
                 ));
             }
-            TerminalId(3) => {
-                let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(2), i, i);
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(12),
-                    i,
-                    i,
-                    epsilon_node_id,
-                    false,
-                ));
-            }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_s_star_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_S_STAR_0, i)?;
-        match matched {
-            TerminalId(1) | TerminalId(3) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let node = self.parse_s_opt_0_ll1(start)?;
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(4),
-                    SlotId(14),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
-            }
-            _ => None,
-        }
+        let mut j = i;
+        let right_child = {
+            let start = j;
+            let node = self.parse_s_opt_0_ll1(start)?;
+            let end = self.sppf_node(node).right_extent();
+            j = end;
+            node
+        };
+        let left_extent = self.sppf_node(right_child).left_extent();
+        let mut current = right_child;
+        return Some(self.get_or_create_nonterminal_node(
+            NonterminalId(4),
+            SlotId(14),
+            left_extent,
+            j,
+            current,
+            false,
+        ));
     }
 }

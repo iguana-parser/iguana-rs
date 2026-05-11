@@ -6620,7 +6620,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(228), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_GRAMMAR_OPT_0.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_GRAMMAR_OPT_0.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_GRAMMAR_OPT_0);
+                                expected
+                            },
                         }
                     });
                 }
@@ -6677,7 +6681,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(237), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_GRAMMAR_OPT_1.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_GRAMMAR_OPT_1.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_GRAMMAR_OPT_1);
+                                expected
+                            },
                         }
                     });
                 }
@@ -6738,7 +6746,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(248), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_SYNTAX_RULE_OPT_2.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_SYNTAX_RULE_OPT_2.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_SYNTAX_RULE_OPT_2);
+                                expected
+                            },
                         }
                     });
                 }
@@ -6772,7 +6784,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(253), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_SYNTAX_RULE_PLUS_2.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_SYNTAX_RULE_PLUS_2.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_SYNTAX_RULE_PLUS_2);
+                                expected
+                            },
                         }
                     });
                 }
@@ -6805,7 +6821,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(261), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_SYNTAX_RULE_OPT_3.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_SYNTAX_RULE_OPT_3.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_SYNTAX_RULE_OPT_3);
+                                expected
+                            },
                         }
                     });
                 }
@@ -6839,7 +6859,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(266), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_REGEX_RULE_OPT_4.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_REGEX_RULE_OPT_4.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_REGEX_RULE_OPT_4);
+                                expected
+                            },
                         }
                     });
                 }
@@ -6950,7 +6974,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(289), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_REGEX_RULE_OPT_5.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_REGEX_RULE_OPT_5.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_REGEX_RULE_OPT_5);
+                                expected
+                            },
                         }
                     });
                 }
@@ -6984,7 +7012,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(294), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PRIORITY_LEVEL_OPT_6.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_PRIORITY_LEVEL_OPT_6.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_PRIORITY_LEVEL_OPT_6);
+                                expected
+                            },
                         }
                     });
                 }
@@ -7014,7 +7046,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(297), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PRIORITY_LEVEL_PLUS_6.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_PRIORITY_LEVEL_PLUS_6.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_PRIORITY_LEVEL_PLUS_6);
+                                expected
+                            },
                         }
                     });
                 }
@@ -7047,7 +7083,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(305), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PRIORITY_LEVEL_OPT_7.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_PRIORITY_LEVEL_OPT_7.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_PRIORITY_LEVEL_OPT_7);
+                                expected
+                            },
                         }
                     });
                 }
@@ -7108,7 +7148,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(316), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ALTERNATIVE_OPT_8.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_ALTERNATIVE_OPT_8.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_ALTERNATIVE_OPT_8);
+                                expected
+                            },
                         }
                     });
                 }
@@ -7142,7 +7186,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(321), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ALTERNATIVE_OPT_9.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_ALTERNATIVE_OPT_9.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_ALTERNATIVE_OPT_9);
+                                expected
+                            },
                         }
                     });
                 }
@@ -7327,7 +7375,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(374), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_CHAR_CLASS_OPT_10.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_CHAR_CLASS_OPT_10.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_CHAR_CLASS_OPT_10);
+                                expected
+                            },
                         }
                     });
                 }
@@ -7438,7 +7490,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(392), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_LAYOUT_OPT_11.to_vec(),
+                            expected: {
+                                let mut expected = FIRST_SET_LAYOUT_OPT_11.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_LAYOUT_OPT_11);
+                                expected
+                            },
                         }
                     });
                 }
@@ -8564,7 +8620,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_annotation_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -8742,7 +8798,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_pre_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -8802,7 +8858,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_post_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -8916,7 +8972,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_associativity_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -8982,7 +9038,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_range_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -9076,48 +9132,45 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_layout_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT, i)?;
-        match matched {
-            TerminalId(24) | TerminalId(18) | TerminalId(34) | TerminalId(31) | TerminalId(33)
-            | TerminalId(6) | TerminalId(22) | TerminalId(1) | TerminalId(32) | TerminalId(21)
-            | TerminalId(23) | TerminalId(25) | TerminalId(19) | TerminalId(3) | TerminalId(14)
-            | TerminalId(20) | TerminalId(36) | TerminalId(28) | TerminalId(9) | TerminalId(26)
-            | TerminalId(35) | TerminalId(7) | TerminalId(12) | TerminalId(29) | TerminalId(5)
-            | TerminalId(38) | TerminalId(16) | TerminalId(15) | TerminalId(17)
-            | TerminalId(11) | TerminalId(2) | TerminalId(27) | TerminalId(30) | TerminalId(10)
-            | TerminalId(13) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let node = self.parse_layout_star_6_ll1(start)?;
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    if let Some(error_kind) = self.post_conditions(SlotId(227), start, end) {
-                        self.add_parse_error(end, SlotId(227), None, || error_kind);
-                        return None;
-                    }
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(15),
-                    SlotId(227),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
+        let mut j = i;
+        let right_child = {
+            let start = j;
+            let node = self.parse_layout_star_6_ll1(start)?;
+            let end = self.sppf_node(node).right_extent();
+            j = end;
+            if let Some(error_kind) = self.post_conditions(SlotId(227), start, end) {
+                self.add_parse_error(end, SlotId(227), None, || error_kind);
+                return None;
             }
-            _ => None,
-        }
+            node
+        };
+        let left_extent = self.sppf_node(right_child).left_extent();
+        let mut current = right_child;
+        return Some(self.get_or_create_nonterminal_node(
+            NonterminalId(15),
+            SlotId(227),
+            left_extent,
+            j,
+            current,
+            false,
+        ));
     }
     fn parse_grammar_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_GRAMMAR_OPT_0, i)?;
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_GRAMMAR_OPT_0, i) else {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(16),
+                SlotId(230),
+                i,
+                i,
+                epsilon_node_id,
+                false,
+            ));
+        };
         match matched {
             TerminalId(11) => {
                 let mut j = i;
@@ -9139,19 +9192,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            TerminalId(19) | TerminalId(18) | TerminalId(14) | TerminalId(38) | TerminalId(1)
-            | TerminalId(15) | TerminalId(9) | TerminalId(7) => {
-                let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(16),
-                    SlotId(230),
-                    i,
-                    i,
-                    epsilon_node_id,
-                    false,
-                ));
-            }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_syntax_rule_plus_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -9216,7 +9257,17 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_syntax_rule_opt_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_SYNTAX_RULE_OPT_2, i)?;
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_SYNTAX_RULE_OPT_2, i) else {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(21),
+                SlotId(250),
+                i,
+                i,
+                epsilon_node_id,
+                false,
+            ));
+        };
         match matched {
             TerminalId(15) | TerminalId(18) | TerminalId(14) => {
                 let mut j = i;
@@ -9238,48 +9289,28 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            TerminalId(38) | TerminalId(1) | TerminalId(9) | TerminalId(7) => {
-                let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(21),
-                    SlotId(250),
-                    i,
-                    i,
-                    epsilon_node_id,
-                    false,
-                ));
-            }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_syntax_rule_star_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self
-            .scanner
-            .longest_match(FIRST_SET_SYNTAX_RULE_STAR_1, i)?;
-        match matched {
-            TerminalId(7) | TerminalId(18) | TerminalId(1) | TerminalId(14) | TerminalId(15)
-            | TerminalId(9) | TerminalId(38) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let node = self.parse_syntax_rule_opt_2_ll1(start)?;
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(22),
-                    SlotId(252),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
-            }
-            _ => None,
-        }
+        let mut j = i;
+        let right_child = {
+            let start = j;
+            let node = self.parse_syntax_rule_opt_2_ll1(start)?;
+            let end = self.sppf_node(node).right_extent();
+            j = end;
+            node
+        };
+        let left_extent = self.sppf_node(right_child).left_extent();
+        let mut current = right_child;
+        return Some(self.get_or_create_nonterminal_node(
+            NonterminalId(22),
+            SlotId(252),
+            left_extent,
+            j,
+            current,
+            false,
+        ));
     }
     fn parse_regex_rule_plus_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
@@ -9343,7 +9374,17 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_regex_rule_opt_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_REGEX_RULE_OPT_5, i)?;
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_REGEX_RULE_OPT_5, i) else {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(30),
+                SlotId(291),
+                i,
+                i,
+                epsilon_node_id,
+                false,
+            ));
+        };
         match matched {
             TerminalId(22) | TerminalId(23) => {
                 let mut j = i;
@@ -9365,52 +9406,44 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            TerminalId(19) | TerminalId(18) | TerminalId(14) | TerminalId(38) | TerminalId(1)
-            | TerminalId(15) | TerminalId(9) | TerminalId(7) => {
-                let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(30),
-                    SlotId(291),
-                    i,
-                    i,
-                    epsilon_node_id,
-                    false,
-                ));
-            }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_regex_rule_star_3_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_REGEX_RULE_STAR_3, i)?;
-        match matched {
-            TerminalId(19) | TerminalId(18) | TerminalId(14) | TerminalId(38) | TerminalId(22)
-            | TerminalId(1) | TerminalId(15) | TerminalId(23) | TerminalId(9) | TerminalId(7) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let node = self.parse_regex_rule_opt_5_ll1(start)?;
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(31),
-                    SlotId(293),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
-            }
-            _ => None,
-        }
+        let mut j = i;
+        let right_child = {
+            let start = j;
+            let node = self.parse_regex_rule_opt_5_ll1(start)?;
+            let end = self.sppf_node(node).right_extent();
+            j = end;
+            node
+        };
+        let left_extent = self.sppf_node(right_child).left_extent();
+        let mut current = right_child;
+        return Some(self.get_or_create_nonterminal_node(
+            NonterminalId(31),
+            SlotId(293),
+            left_extent,
+            j,
+            current,
+            false,
+        ));
     }
     fn parse_priority_level_opt_6_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self
+        let Some(matched) = self
             .scanner
-            .longest_match(FIRST_SET_PRIORITY_LEVEL_OPT_6, i)?;
+            .longest_match(FIRST_SET_PRIORITY_LEVEL_OPT_6, i)
+        else {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(32),
+                SlotId(296),
+                i,
+                i,
+                epsilon_node_id,
+                false,
+            ));
+        };
         match matched {
             TerminalId(24) | TerminalId(25) | TerminalId(26) => {
                 let mut j = i;
@@ -9432,24 +9465,21 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            TerminalId(13) | TerminalId(18) | TerminalId(19) | TerminalId(2) | TerminalId(14)
-            | TerminalId(6) | TerminalId(20) | TerminalId(38) | TerminalId(27) | TerminalId(1)
-            | TerminalId(16) | TerminalId(15) | TerminalId(9) | TerminalId(7) => {
-                let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(32),
-                    SlotId(296),
-                    i,
-                    i,
-                    epsilon_node_id,
-                    false,
-                ));
-            }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_alternative_opt_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_ALTERNATIVE_OPT_9, i)?;
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_ALTERNATIVE_OPT_9, i) else {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(39),
+                SlotId(323),
+                i,
+                i,
+                epsilon_node_id,
+                false,
+            ));
+        };
         match matched {
             TerminalId(6) => {
                 let mut j = i;
@@ -9471,19 +9501,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            TerminalId(13) | TerminalId(19) | TerminalId(18) | TerminalId(14) | TerminalId(20)
-            | TerminalId(38) | TerminalId(1) | TerminalId(15) | TerminalId(9) | TerminalId(7) => {
-                let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(39),
-                    SlotId(323),
-                    i,
-                    i,
-                    epsilon_node_id,
-                    false,
-                ));
-            }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_symbol_group_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -9543,7 +9561,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_symbol_plus_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -9664,7 +9682,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_symbol_plus_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -9785,7 +9803,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_symbol_plus_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -9850,7 +9868,17 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_char_class_opt_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_CHAR_CLASS_OPT_10, i)?;
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_CHAR_CLASS_OPT_10, i) else {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(50),
+                SlotId(376),
+                i,
+                i,
+                epsilon_node_id,
+                false,
+            ));
+        };
         match matched {
             TerminalId(32) => {
                 let mut j = i;
@@ -9872,18 +9900,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            TerminalId(34) | TerminalId(7) | TerminalId(9) | TerminalId(38) => {
-                let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(50),
-                    SlotId(376),
-                    i,
-                    i,
-                    epsilon_node_id,
-                    false,
-                ));
-            }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_layout_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -9934,7 +9951,7 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_layout_plus_14_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
@@ -9983,7 +10000,17 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_layout_opt_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_OPT_11, i)?;
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_LAYOUT_OPT_11, i) else {
+            let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
+            return Some(self.get_or_create_nonterminal_node(
+                NonterminalId(54),
+                SlotId(394),
+                i,
+                i,
+                epsilon_node_id,
+                false,
+            ));
+        };
         match matched {
             TerminalId(9) | TerminalId(7) => {
                 let mut j = i;
@@ -10005,58 +10032,28 @@ impl<'i> IggyParser<'i> {
                     false,
                 ));
             }
-            TerminalId(24) | TerminalId(18) | TerminalId(34) | TerminalId(31) | TerminalId(33)
-            | TerminalId(6) | TerminalId(22) | TerminalId(1) | TerminalId(32) | TerminalId(21)
-            | TerminalId(23) | TerminalId(25) | TerminalId(19) | TerminalId(3) | TerminalId(14)
-            | TerminalId(20) | TerminalId(36) | TerminalId(28) | TerminalId(26)
-            | TerminalId(35) | TerminalId(12) | TerminalId(29) | TerminalId(5) | TerminalId(38)
-            | TerminalId(16) | TerminalId(15) | TerminalId(17) | TerminalId(11) | TerminalId(2)
-            | TerminalId(27) | TerminalId(30) | TerminalId(10) | TerminalId(13) => {
-                let epsilon_node_id = self.get_or_create_terminal_node(TerminalId(37), i, i);
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(54),
-                    SlotId(394),
-                    i,
-                    i,
-                    epsilon_node_id,
-                    false,
-                ));
-            }
-            _ => None,
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     fn parse_layout_star_6_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_STAR_6, i)?;
-        match matched {
-            TerminalId(24) | TerminalId(18) | TerminalId(34) | TerminalId(31) | TerminalId(33)
-            | TerminalId(6) | TerminalId(22) | TerminalId(1) | TerminalId(32) | TerminalId(21)
-            | TerminalId(23) | TerminalId(25) | TerminalId(19) | TerminalId(3) | TerminalId(14)
-            | TerminalId(20) | TerminalId(36) | TerminalId(28) | TerminalId(9) | TerminalId(26)
-            | TerminalId(35) | TerminalId(7) | TerminalId(12) | TerminalId(29) | TerminalId(5)
-            | TerminalId(38) | TerminalId(16) | TerminalId(15) | TerminalId(17)
-            | TerminalId(11) | TerminalId(2) | TerminalId(27) | TerminalId(30) | TerminalId(10)
-            | TerminalId(13) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let node = self.parse_layout_opt_11_ll1(start)?;
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(55),
-                    SlotId(396),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
-            }
-            _ => None,
-        }
+        let mut j = i;
+        let right_child = {
+            let start = j;
+            let node = self.parse_layout_opt_11_ll1(start)?;
+            let end = self.sppf_node(node).right_extent();
+            j = end;
+            node
+        };
+        let left_extent = self.sppf_node(right_child).left_extent();
+        let mut current = right_child;
+        return Some(self.get_or_create_nonterminal_node(
+            NonterminalId(55),
+            SlotId(396),
+            left_extent,
+            j,
+            current,
+            false,
+        ));
     }
     fn get_gss_node_symbol(&self, input_index: u32, p: i32) -> Option<GssNodeId> {
         self.gss_nodes_index_symbol
