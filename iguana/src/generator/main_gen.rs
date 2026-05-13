@@ -122,6 +122,31 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             #[arg(long, value_name = "FILE", default_value = "flamegraph.svg")]
             profile_output: PathBuf,
 
+            /// Benchmark mode: run the parser many times and report timing
+            /// statistics (min, mean, median, p90, max, stddev). In-process,
+            /// per-iteration sampling — same shape as criterion.
+            #[arg(long)]
+            benchmark: bool,
+
+            /// Number of measured iterations for --benchmark (default 100).
+            #[arg(long, value_name = "N", default_value_t = 100)]
+            bench_iters: u32,
+
+            /// Number of warmup iterations before measurement (default 10).
+            #[arg(long, value_name = "N", default_value_t = 10)]
+            bench_warmup: u32,
+
+            /// Save benchmark samples to a JSON file. Pairs with --baseline
+            /// for A/B comparison across runs.
+            #[arg(long, value_name = "FILE")]
+            bench_save: Option<PathBuf>,
+
+            /// Compare benchmark results against a saved baseline JSON.
+            /// Reports the mean delta with a 95% CI on the difference;
+            /// flags the run as improved/regressed/no-change.
+            #[arg(long, value_name = "FILE")]
+            bench_baseline: Option<PathBuf>,
+
             /// Write parser stats (counters + histograms) as JSON.
             /// Requires the "instrument" feature.
             #[arg(long, value_name = "FILE")]
@@ -211,6 +236,32 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     io::ErrorKind::InvalidInput,
                     format!("Unknown nonterminal: '{}'", start_nonterminal_name)
                 ))?;
+
+            // Benchmark mode: in-process measurement loop, lives in iguana-runtime.
+            // Per-iter setup (ParseContext) and the parse + tree construction
+            // happen inside the closure; the runtime times each call.
+            if args.benchmark {
+                let config = cli::BenchConfig {
+                    iters: args.bench_iters as usize,
+                    warmup: args.bench_warmup as usize,
+                    save: args.bench_save.clone(),
+                    baseline: args.bench_baseline.clone(),
+                };
+                return cli::run_benchmark(config, || {
+                    let ctx = ParseContext::new();
+                    let mut parser = #parser::new(&input, start_nonterminal_id);
+                    if let ParseResult::Success(success) = parser.run() {
+                        let parse_tree_builder = #parse_tree_builder::new(&ctx);
+                        let tree = create_parse_tree(
+                            success.sppf_node_id,
+                            start_nonterminal_id,
+                            &parser,
+                            &parse_tree_builder,
+                        );
+                        std::hint::black_box(tree);
+                    }
+                });
+            }
 
             // Profiling mode: run the parser N times under a sampling profiler
             // and write a flamegraph SVG. Short-circuits all other output.
