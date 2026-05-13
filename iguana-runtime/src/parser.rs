@@ -496,7 +496,7 @@ pub trait Parser<'i> {
                 right_extent,
                 left_child_id,
                 right_child_id,
-                true,
+                false,
             )
         } else {
             Some(right_child_id)
@@ -586,18 +586,17 @@ pub trait Parser<'i> {
         self.add_nonterminal_node(nonterminal_node)
     }
 
-    /// Looks up the intermediate node identified by `slot_id` and the span
-    /// (`left_extent`, `right_extent`). If no such node exists, it is created and
-    /// added to the index; see `add_intermediate_node`.
+    /// Looks up or creates the intermediate node identified by `slot_id` and
+    /// the span (`left_extent`, `right_extent`). `is_ll1` selects the path:
     ///
-    /// If the node already exists and `attach_ambiguity` is true (GLL path),
-    /// `(left_child, right_child)` is added to its list of children and returns
-    /// None. This only occurs when there is an ambiguity.
-    ///
-    /// If `attach_ambiguity` is false (LL1 path), the existing node is returned
-    /// as-is. LL1 nonterminals can be called multiple times from GLL with the
-    /// same input position, producing identical children, so attaching would
-    /// create false ambiguities.
+    /// - `false` (GLL): look up the node; if it exists, attach
+    ///   `(left_child, right_child)` to its children (recording ambiguity) and
+    ///   return `None`. Otherwise build it and insert into
+    ///   `intermediate_nodes_index`.
+    /// - `true` (LL(1)): skip the lookup and the index insert. Build the node
+    ///   and push it onto `sppf_nodes`. LL(1) intermediate nodes are never
+    ///   queried — the deterministic LL(1) parse cannot re-enter the same
+    ///   `(slot_id, span)`, and GLL never reads them.
     fn get_or_create_intermediate_node(
         &mut self,
         slot_id: SlotId,
@@ -605,22 +604,8 @@ pub trait Parser<'i> {
         right_extent: u32,
         left_child: SPPFNodeId,
         right_child: SPPFNodeId,
-        attach_ambiguity: bool,
+        is_ll1: bool,
     ) -> Option<SPPFNodeId> {
-        if let Some(existing_node_id) =
-            self.lookup_intermediate_node(slot_id, left_extent, right_extent)
-        {
-            if attach_ambiguity {
-                record!(self, IntermediateNodeFound, existing_node_id);
-                let SPPFNode::Intermediate(node) = self.sppf_node_mut(existing_node_id) else {
-                    unreachable!("It's a nonterminal node");
-                };
-                node.ambiguous = true;
-                self.add_intermediate_node_child(existing_node_id, left_child, right_child);
-                return None;
-            }
-            return Some(existing_node_id);
-        }
         let intermediate_node = IntermediateNode {
             slot_id,
             span: Span {
@@ -630,7 +615,23 @@ pub trait Parser<'i> {
             child: (left_child, right_child),
             ambiguous: false,
         };
-        Some(self.add_intermediate_node(intermediate_node))
+
+        if is_ll1 {
+            return Some(self.add_intermediate_node(intermediate_node, false));
+        }
+
+        if let Some(existing_node_id) =
+            self.lookup_intermediate_node(slot_id, left_extent, right_extent)
+        {
+            record!(self, IntermediateNodeFound, existing_node_id);
+            let SPPFNode::Intermediate(node) = self.sppf_node_mut(existing_node_id) else {
+                unreachable!("It's a nonterminal node");
+            };
+            node.ambiguous = true;
+            self.add_intermediate_node_child(existing_node_id, left_child, right_child);
+            return None;
+        }
+        Some(self.add_intermediate_node(intermediate_node, true))
     }
 
     /// Combines the left child (result from previous slots) and a right child into
@@ -652,7 +653,7 @@ pub trait Parser<'i> {
             right_extent,
             left_child_id,
             right_child_id,
-            true,
+            false,
         )
         .map(|new_node| (right_extent, new_node))
     }
@@ -704,7 +705,11 @@ pub trait Parser<'i> {
 
     fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId;
 
-    fn add_intermediate_node(&mut self, intermediate_node: IntermediateNode) -> SPPFNodeId;
+    fn add_intermediate_node(
+        &mut self,
+        intermediate_node: IntermediateNode,
+        add_to_index: bool,
+    ) -> SPPFNodeId;
 
     fn add_terminal_node(&mut self, node: TerminalNode) -> SPPFNodeId;
 

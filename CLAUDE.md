@@ -114,7 +114,7 @@ Don't rush to the first solution. When a change touches shared infrastructure (g
 # Tool Use
 
 - Don't write scripts with sed/awk for code refactoring or fixing a failed bootstrap. Only use those tools when you're sure they won't mess things up. Otherwise, fix things manually.
-- `cargo xtask bootstrap` and `cargo xtask test-gen-all` regenerate many committed files. Don't run them on your own — ask the user first, even when the source changes look ready. The user wants to review the source diff before regeneration.
+- `cargo xtask bootstrap` and `cargo xtask test-gen-all` regenerate many committed files. When a generator change makes them necessary, ask before running. Don't skip the step or report the task as done without it — the source diff is only half the work. The user wants to review the source diff first, then approve regeneration.
 - Start a new conversation before hitting 20% context usage.
 
 # Git

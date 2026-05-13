@@ -255,10 +255,16 @@ impl<'i> Parser<'i> for LongestMatchParser<'i> {
             .push(SPPFNode::Nonterminal(nonterminal_node));
         nonterminal_node_id
     }
-    fn add_intermediate_node(&mut self, intermediate_node: IntermediateNode) -> SPPFNodeId {
+    fn add_intermediate_node(
+        &mut self,
+        intermediate_node: IntermediateNode,
+        add_to_index: bool,
+    ) -> SPPFNodeId {
         let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.intermediate_nodes_index[intermediate_node.slot_id.index()]
-            .insert(intermediate_node.span, intermediate_node_id);
+        if add_to_index {
+            self.intermediate_nodes_index[intermediate_node.slot_id.index()]
+                .insert(intermediate_node.span, intermediate_node_id);
+        }
         record!(
             self,
             IntermediateNodeCreated,
@@ -600,7 +606,7 @@ impl<'i> LongestMatchParser<'i> {
                         j,
                         current,
                         right_child,
-                        false,
+                        true,
                     )
                     .unwrap();
                 return Some(self.get_or_create_nonterminal_node(

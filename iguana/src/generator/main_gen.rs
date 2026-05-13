@@ -237,9 +237,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     format!("Unknown nonterminal: '{}'", start_nonterminal_name)
                 ))?;
 
-            // Benchmark mode: in-process measurement loop, lives in iguana-runtime.
-            // Per-iter setup (ParseContext) and the parse + tree construction
-            // happen inside the closure; the runtime times each call.
+            // A fresh ParseContext per iter keeps the bump arena from growing
+            // unboundedly across samples, so each measurement is comparable.
             if args.benchmark {
                 let config = cli::BenchConfig {
                     iters: args.bench_iters as usize,

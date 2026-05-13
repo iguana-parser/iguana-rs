@@ -1389,7 +1389,7 @@ impl<'a> ParserGen<'a> {
             let next_slot_id = self.slot_ids.get_id(&next_slot);
             build_nodes.push(quote! {
                 current = self.get_or_create_intermediate_node(
-                    #next_slot_id, left_extent, #pos_var, current, #node_var, false,
+                    #next_slot_id, left_extent, #pos_var, current, #node_var, true,
                 ).unwrap();
             });
         }
@@ -1561,7 +1561,7 @@ impl<'a> ParserGen<'a> {
             } else {
                 body.push(quote! {
                     current = self.get_or_create_intermediate_node(
-                        #next_slot_id, left_extent, j, current, right_child, false,
+                        #next_slot_id, left_extent, j, current, right_child, true,
                     ).unwrap();
                 });
             }
@@ -1796,10 +1796,16 @@ impl<'a> ParserGen<'a> {
 
     fn gen_add_intermediate_node_method() -> TokenStream {
         quote! {
-            fn add_intermediate_node(&mut self, intermediate_node: IntermediateNode) -> SPPFNodeId {
+            fn add_intermediate_node(
+                &mut self,
+                intermediate_node: IntermediateNode,
+                add_to_index: bool,
+            ) -> SPPFNodeId {
                 let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-                self.intermediate_nodes_index[intermediate_node.slot_id.index()]
-                    .insert(intermediate_node.span, intermediate_node_id);
+                if add_to_index {
+                    self.intermediate_nodes_index[intermediate_node.slot_id.index()]
+                        .insert(intermediate_node.span, intermediate_node_id);
+                }
                 record!(
                     self,
                     IntermediateNodeCreated,
