@@ -321,26 +321,16 @@ pub trait Parser<'i> {
     ) {
         let existing_gss_node = self.gss_node(existing_gss_node_id);
         let left_extent = existing_gss_node.index;
-        let nonterminal_id = existing_gss_node.nonterminal_id;
         let popped_elements = std::mem::take(
             self.gss_node_mut(existing_gss_node_id)
                 .popped_elements_mut(),
         );
 
-        // For each popped element of the current GSS node add a descriptor with the return label.
+        // Each popped_element already passed follow_set_check inside pop() before being
+        // added to popped_elements; re-checking here would be redundant.
         for popped_element in popped_elements.iter() {
             let popped_node = self.sppf_node(popped_element.nonterminal_node_id);
             let right_extent = popped_node.right_extent();
-            if !self.follow_set_check(nonterminal_id, right_extent) {
-                let expected = self.follow_set_terminals(nonterminal_id);
-                self.add_parse_error(
-                    right_extent,
-                    return_slot,
-                    Some(existing_gss_node_id),
-                    || ParseErrorKind::UnexpectedToken { expected },
-                );
-                continue;
-            }
             if let Some(error_kind) = self.post_conditions(return_slot, left_extent, right_extent) {
                 self.add_parse_error(
                     right_extent,
