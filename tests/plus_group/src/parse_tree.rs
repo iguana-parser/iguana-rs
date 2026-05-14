@@ -35,9 +35,9 @@ pub enum ParseTree<'a> {
     B(&'a B),
     C(&'a C),
     // (A B C)
-    SGroup0(&'a SGroup0<'a>),
+    Group0(&'a Group0<'a>),
     // (A B C)+
-    SPlus0(&'a SPlus0<'a>),
+    Plus0(&'a Plus0<'a>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -47,10 +47,10 @@ impl<'a> ParseTree<'a> {
             ParseTree::A(a) => (0..a.child_count()).filter_map(|i| a.child(i)).collect(),
             ParseTree::B(b) => (0..b.child_count()).filter_map(|i| b.child(i)).collect(),
             ParseTree::C(c) => (0..c.child_count()).filter_map(|i| c.child(i)).collect(),
-            ParseTree::SGroup0(s_group_0) => (0..s_group_0.child_count())
-                .filter_map(|i| s_group_0.child(i))
+            ParseTree::Group0(group_0) => (0..group_0.child_count())
+                .filter_map(|i| group_0.child(i))
                 .collect(),
-            ParseTree::SPlus0(s_plus_0) => s_plus_0.iter().collect(),
+            ParseTree::Plus0(plus_0) => plus_0.iter().collect(),
             ParseTree::Token(_) => vec![],
         }
     }
@@ -60,8 +60,8 @@ impl<'a> ParseTree<'a> {
             ParseTree::A(_) => "A",
             ParseTree::B(_) => "B",
             ParseTree::C(_) => "C",
-            ParseTree::SGroup0(_) => "(A B C)",
-            ParseTree::SPlus0(_) => "(A B C)+",
+            ParseTree::Group0(_) => "(A B C)",
+            ParseTree::Plus0(_) => "(A B C)+",
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -71,8 +71,8 @@ impl<'a> ParseTree<'a> {
             ParseTree::A(a) => a.child_count(),
             ParseTree::B(b) => b.child_count(),
             ParseTree::C(c) => c.child_count(),
-            ParseTree::SGroup0(s_group_0) => s_group_0.child_count(),
-            ParseTree::SPlus0(s_plus_0) => s_plus_0.child_count(),
+            ParseTree::Group0(group_0) => group_0.child_count(),
+            ParseTree::Plus0(plus_0) => plus_0.child_count(),
             ParseTree::Token(_) => 0,
         }
     }
@@ -82,8 +82,8 @@ impl<'a> ParseTree<'a> {
             ParseTree::A(a) => a.span(),
             ParseTree::B(b) => b.span(),
             ParseTree::C(c) => c.span(),
-            ParseTree::SGroup0(s_group_0) => s_group_0.span(),
-            ParseTree::SPlus0(s_plus_0) => s_plus_0.span(),
+            ParseTree::Group0(group_0) => group_0.span(),
+            ParseTree::Plus0(plus_0) => plus_0.span(),
             ParseTree::Token(token) => token.span(),
         }
     }
@@ -111,15 +111,15 @@ impl<'a> ParseTree<'a> {
             _ => panic!(),
         }
     }
-    fn unwrap_s_group_0(self) -> &'a SGroup0<'a> {
+    fn unwrap_group_0(self) -> &'a Group0<'a> {
         match self {
-            ParseTree::SGroup0(s_group_0) => s_group_0,
+            ParseTree::Group0(group_0) => group_0,
             _ => panic!(),
         }
     }
-    fn unwrap_s_plus_0(self) -> &'a SPlus0<'a> {
+    fn unwrap_plus_0(self) -> &'a Plus0<'a> {
         match self {
-            ParseTree::SPlus0(s_plus_0) => s_plus_0,
+            ParseTree::Plus0(plus_0) => plus_0,
             _ => panic!(),
         }
     }
@@ -140,7 +140,7 @@ pub trait OptNode {
 // S = (A B C)+
 #[derive(Debug)]
 pub struct S<'a> {
-    pub s_plus_0: &'a SPlus0<'a>,
+    pub plus_0: &'a Plus0<'a>,
     pub span: Span,
 }
 // A = "a"
@@ -163,7 +163,7 @@ pub struct C {
 }
 // (A B C)
 #[derive(Debug)]
-pub struct SGroup0<'a> {
+pub struct Group0<'a> {
     pub a: &'a A,
     pub b: &'a B,
     pub c: &'a C,
@@ -171,19 +171,19 @@ pub struct SGroup0<'a> {
 }
 // (A B C)+
 #[derive(Debug)]
-pub enum SPlus0<'a> {
+pub enum Plus0<'a> {
     // (A B C)+ (A B C)
     Alt0 {
-        s_plus_0: &'a SPlus0<'a>,
-        s_group_0: &'a SGroup0<'a>,
+        plus_0: &'a Plus0<'a>,
+        group_0: &'a Group0<'a>,
         span: Span,
     },
     // (A B C)
     Alt1 {
-        s_group_0: &'a SGroup0<'a>,
+        group_0: &'a Group0<'a>,
         span: Span,
     },
-    Amb(&'a [&'a SPlus0<'a>]),
+    Amb(&'a [&'a Plus0<'a>]),
 }
 impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -192,8 +192,8 @@ impl<'a> S<'a> {
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some({
-                let s_plus_0 = &self.s_plus_0;
-                ParseTree::SPlus0(s_plus_0)
+                let plus_0 = &self.plus_0;
+                ParseTree::Plus0(plus_0)
             }),
             _ => None,
         }
@@ -265,9 +265,9 @@ impl<'a> C {
         self.span
     }
 }
-impl<'a> SGroup0<'a> {
+impl<'a> Group0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
-        ParseTree::SGroup0(self)
+        ParseTree::Group0(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
@@ -293,71 +293,67 @@ impl<'a> SGroup0<'a> {
         self.span
     }
 }
-impl<'a> SPlus0<'a> {
+impl<'a> Plus0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
-        ParseTree::SPlus0(self)
+        ParseTree::Plus0(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            SPlus0::Alt0 {
-                s_plus_0,
-                s_group_0,
-                ..
+            Plus0::Alt0 {
+                plus_0, group_0, ..
             } => match index {
-                0 => Some(ParseTree::SPlus0(s_plus_0)),
-                1 => Some(ParseTree::SGroup0(s_group_0)),
+                0 => Some(ParseTree::Plus0(plus_0)),
+                1 => Some(ParseTree::Group0(group_0)),
                 _ => None,
             },
-            SPlus0::Alt1 { s_group_0, .. } => match index {
-                0 => Some(ParseTree::SGroup0(s_group_0)),
+            Plus0::Alt1 { group_0, .. } => match index {
+                0 => Some(ParseTree::Group0(group_0)),
                 _ => None,
             },
-            SPlus0::Amb(_) => None,
+            Plus0::Amb(_) => None,
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
-            SPlus0::Alt0 { .. } => 2usize,
-            SPlus0::Alt1 { .. } => 1usize,
-            SPlus0::Amb(alts) => alts.len(),
+            Plus0::Alt0 { .. } => 2usize,
+            Plus0::Alt1 { .. } => 1usize,
+            Plus0::Amb(alts) => alts.len(),
         }
     }
     pub fn span(&self) -> Span {
         match self {
-            SPlus0::Alt0 { span, .. } => *span,
-            SPlus0::Alt1 { span, .. } => *span,
-            SPlus0::Amb(alts) => alts[0].span(),
+            Plus0::Alt0 { span, .. } => *span,
+            Plus0::Alt1 { span, .. } => *span,
+            Plus0::Amb(alts) => alts[0].span(),
         }
     }
 }
-impl<'a> ListNode<'a> for SPlus0<'a> {
+impl<'a> ListNode<'a> for Plus0<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
         let mut items = vec![];
         let mut current = self;
         loop {
             match current {
-                SPlus0::Alt0 {
-                    s_plus_0: rest,
-                    s_group_0: item,
+                Plus0::Alt0 {
+                    plus_0: rest,
+                    group_0: item,
                     ..
                 } => {
                     items.push(item.as_parse_tree());
                     current = rest;
                 }
-                SPlus0::Alt1 {
-                    s_group_0: item, ..
-                } => {
+                Plus0::Alt1 { group_0: item, .. } => {
                     items.push(item.as_parse_tree());
                     break;
                 }
-                SPlus0::Amb(_) => panic!("unexpected ambiguity in list node"),
+                Plus0::Amb(_) => panic!("unexpected ambiguity in list node"),
             }
         }
         items.reverse();
         items.into_iter()
     }
 }
-impl<'a> ListNode<'a> for SGroup0<'a> {
+impl<'a> ListNode<'a> for Group0<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
         let mut items = vec![];
         items.push(self.a.as_parse_tree());
@@ -409,9 +405,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusGroupParseTreeBuilder<'a> {
             NonterminalId(0) => match nonterminal_node.return_slot {
                 // S : (A B C)+.
                 SlotId(1) => {
-                    let [s_plus_0] = children.into_array::<1usize>();
+                    let [plus_0] = children.into_array::<1usize>();
                     ParseTree::S(self.bump.alloc(S {
-                        s_plus_0: s_plus_0.unwrap_s_plus_0(),
+                        plus_0: plus_0.unwrap_plus_0(),
                         span: nonterminal_node.span,
                     }))
                 }
@@ -453,12 +449,12 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusGroupParseTreeBuilder<'a> {
                 }
                 _ => unreachable!(),
             },
-            // S_Group_0
+            // Group_0
             NonterminalId(4) => match nonterminal_node.return_slot {
                 // (A B C) : A B C.
                 SlotId(11) => {
                     let [a, b, c] = children.into_array::<3usize>();
-                    ParseTree::SGroup0(self.bump.alloc(SGroup0 {
+                    ParseTree::Group0(self.bump.alloc(Group0 {
                         a: a.unwrap_a(),
                         b: b.unwrap_b(),
                         c: c.unwrap_c(),
@@ -467,22 +463,22 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusGroupParseTreeBuilder<'a> {
                 }
                 _ => unreachable!(),
             },
-            // S_Plus_0
+            // Plus_0
             NonterminalId(5) => match nonterminal_node.return_slot {
                 // (A B C)+ : (A B C)+ (A B C).
                 SlotId(14) => {
-                    let [s_plus_0, s_group_0] = children.into_array::<2usize>();
-                    ParseTree::SPlus0(self.bump.alloc(SPlus0::Alt0 {
-                        s_plus_0: s_plus_0.unwrap_s_plus_0(),
-                        s_group_0: s_group_0.unwrap_s_group_0(),
+                    let [plus_0, group_0] = children.into_array::<2usize>();
+                    ParseTree::Plus0(self.bump.alloc(Plus0::Alt0 {
+                        plus_0: plus_0.unwrap_plus_0(),
+                        group_0: group_0.unwrap_group_0(),
                         span: nonterminal_node.span,
                     }))
                 }
                 // (A B C)+ : (A B C).
                 SlotId(16) => {
-                    let [s_group_0] = children.into_array::<1usize>();
-                    ParseTree::SPlus0(self.bump.alloc(SPlus0::Alt1 {
-                        s_group_0: s_group_0.unwrap_s_group_0(),
+                    let [group_0] = children.into_array::<1usize>();
+                    ParseTree::Plus0(self.bump.alloc(Plus0::Alt1 {
+                        group_0: group_0.unwrap_group_0(),
                         span: nonterminal_node.span,
                     }))
                 }
@@ -509,11 +505,11 @@ pub fn create_parse_tree<'a>(
         crate::grammar_data::A => ParseTree::A(create_parse_tree_a(root_id, parser, builder)),
         crate::grammar_data::B => ParseTree::B(create_parse_tree_b(root_id, parser, builder)),
         crate::grammar_data::C => ParseTree::C(create_parse_tree_c(root_id, parser, builder)),
-        crate::grammar_data::S_GROUP_0 => {
-            ParseTree::SGroup0(create_parse_tree_s_group_0(root_id, parser, builder))
+        crate::grammar_data::GROUP_0 => {
+            ParseTree::Group0(create_parse_tree_group_0(root_id, parser, builder))
         }
-        crate::grammar_data::S_PLUS_0 => {
-            ParseTree::SPlus0(create_parse_tree_s_plus_0(root_id, parser, builder))
+        crate::grammar_data::PLUS_0 => {
+            ParseTree::Plus0(create_parse_tree_plus_0(root_id, parser, builder))
         }
         _ => panic!(),
     }
@@ -550,25 +546,25 @@ pub fn create_parse_tree_c<'a>(
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_c()
 }
-pub fn create_parse_tree_s_group_0<'a>(
+pub fn create_parse_tree_group_0<'a>(
     root_id: SPPFNodeId,
     parser: &PlusGroupParser,
     builder: &PlusGroupParseTreeBuilder<'a>,
-) -> &'a SGroup0<'a> {
+) -> &'a Group0<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_s_group_0()
+        .unwrap_group_0()
 }
-pub fn create_parse_tree_s_plus_0<'a>(
+pub fn create_parse_tree_plus_0<'a>(
     root_id: SPPFNodeId,
     parser: &PlusGroupParser,
     builder: &PlusGroupParseTreeBuilder<'a>,
-) -> &'a SPlus0<'a> {
+) -> &'a Plus0<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_s_plus_0()
+        .unwrap_plus_0()
 }
 pub fn to_sexpr(node: ParseTree<'_>) -> String {
     let mut s = String::new();

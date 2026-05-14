@@ -6,22 +6,22 @@
 //   = "x"
 //
 // Layout
-//   = Layout_Star_0
+//   = Star_0
 //
-// Layout_Alt_0
+// Alt_0
 //   = WhiteSpace
 //   | Comment
 //
-// Layout_Plus_0
-//   = Layout_Plus_0 Layout_Alt_0
-//   | Layout_Alt_0
+// Plus_0
+//   = Plus_0 Alt_0
+//   | Alt_0
 //
-// Layout_Opt_0
-//   = Layout_Plus_0
+// Opt_0
+//   = Plus_0
 //   |
 //
-// Layout_Star_0
-//   = Layout_Opt_0
+// Star_0
+//   = Opt_0
 //
 // StartS
 //   = Layout start:S Layout
@@ -98,21 +98,21 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
                     self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
                 self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
-            // Layout : . Layout_Star_0
+            // Layout : . Star_0
             SlotId(2) => {
-                if let Some(right_child) = self.parse_layout_star_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_star_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Layout : Layout_Star_0.
+                    // Layout : Star_0.
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
             }
-            // Layout : Layout_Star_0.
+            // Layout : Star_0.
             SlotId(3) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(1), SlotId(3));
                 self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
             }
-            // Layout_Alt_0 : . WhiteSpace
+            // Alt_0 : . WhiteSpace
             SlotId(4) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -121,17 +121,17 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
                     Some(gss_node_id),
                     "WhiteSpace",
                 ) {
-                    // Layout_Alt_0 : WhiteSpace.
+                    // Alt_0 : WhiteSpace.
                     self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
             }
-            // Layout_Alt_0 : WhiteSpace.
+            // Alt_0 : WhiteSpace.
             SlotId(5) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(5));
                 self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
-            // Layout_Alt_0 : . Comment
+            // Alt_0 : . Comment
             SlotId(6) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(1),
@@ -140,70 +140,70 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
                     Some(gss_node_id),
                     "Comment",
                 ) {
-                    // Layout_Alt_0 : Comment.
+                    // Alt_0 : Comment.
                     self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
                 }
             }
-            // Layout_Alt_0 : Comment.
+            // Alt_0 : Comment.
             SlotId(7) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(7));
                 self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
             }
-            // Layout_Plus_0 : . Layout_Plus_0 Layout_Alt_0
+            // Plus_0 : . Plus_0 Alt_0
             SlotId(8) => {
-                if let Some(right_child) = self.parse_layout_plus_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Layout_Plus_0 : Layout_Plus_0 . Layout_Alt_0
+                    // Plus_0 : Plus_0 . Alt_0
                     self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }
             }
-            // Layout_Plus_0 : Layout_Plus_0 . Layout_Alt_0
+            // Plus_0 : Plus_0 . Alt_0
             SlotId(9) => {
-                if let Some(right_child) = self.parse_layout_alt_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_alt_0_ll1(input_index) {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(10))
                     {
-                        // Layout_Plus_0 : Layout_Plus_0 Layout_Alt_0.
+                        // Plus_0 : Plus_0 Alt_0.
                         self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // Layout_Plus_0 : Layout_Plus_0 Layout_Alt_0.
+            // Plus_0 : Plus_0 Alt_0.
             SlotId(10) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(3), SlotId(10));
                 self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
             }
-            // Layout_Plus_0 : . Layout_Alt_0
+            // Plus_0 : . Alt_0
             SlotId(11) => {
-                if let Some(right_child) = self.parse_layout_alt_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_alt_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Layout_Plus_0 : Layout_Alt_0.
+                    // Plus_0 : Alt_0.
                     self.execute(j, SlotId(12), Some(right_child), gss_node_id, env);
                 }
             }
-            // Layout_Plus_0 : Layout_Alt_0.
+            // Plus_0 : Alt_0.
             SlotId(12) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(3), SlotId(12));
                 self.pop(gss_node_id, SlotId(12), nonterminal_node_id, None);
             }
-            // Layout_Opt_0 : . Layout_Plus_0
+            // Opt_0 : . Plus_0
             SlotId(13) => {
-                if let Some(right_child) = self.parse_layout_plus_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Layout_Opt_0 : Layout_Plus_0.
+                    // Opt_0 : Plus_0.
                     self.execute(j, SlotId(14), Some(right_child), gss_node_id, env);
                 }
             }
-            // Layout_Opt_0 : Layout_Plus_0.
+            // Opt_0 : Plus_0.
             SlotId(14) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(4), SlotId(14));
                 self.pop(gss_node_id, SlotId(14), nonterminal_node_id, None);
             }
-            // Layout_Opt_0 : .
+            // Opt_0 : .
             SlotId(15) => {
                 let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
@@ -216,15 +216,15 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
                 );
                 self.pop(gss_node_id, SlotId(15), nonterminal_node_id, None);
             }
-            // Layout_Star_0 : . Layout_Opt_0
+            // Star_0 : . Opt_0
             SlotId(16) => {
-                if let Some(right_child) = self.parse_layout_opt_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_opt_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Layout_Star_0 : Layout_Opt_0.
+                    // Star_0 : Opt_0.
                     self.execute(j, SlotId(17), Some(right_child), gss_node_id, env);
                 }
             }
-            // Layout_Star_0 : Layout_Opt_0.
+            // Star_0 : Opt_0.
             SlotId(17) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(5), SlotId(17));
@@ -283,80 +283,63 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
             NonterminalId(0) => {
                 self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
-            // Layout : . Layout_Star_0
+            // Layout : . Star_0
             NonterminalId(1) => {
                 self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
             }
-            // Layout_Alt_0
+            // Alt_0
             NonterminalId(2) => {
                 let mut matched = false;
-                // Layout_Alt_0 : . WhiteSpace
-                if self
-                    .scanner
-                    .match_any(FIRST_SET_LAYOUT_ALT_0_ALT0, input_index)
-                {
+                // Alt_0 : . WhiteSpace
+                if self.scanner.match_any(FIRST_SET_ALT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
-                // Layout_Alt_0 : . Comment
-                if self
-                    .scanner
-                    .match_any(FIRST_SET_LAYOUT_ALT_0_ALT1, input_index)
-                {
+                // Alt_0 : . Comment
+                if self.scanner.match_any(FIRST_SET_ALT_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 if !matched {
                     self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_LAYOUT_ALT_0.to_vec(),
+                            expected: FIRST_SET_ALT_0.to_vec(),
                         }
                     });
                 }
             }
-            // Layout_Plus_0
+            // Plus_0
             NonterminalId(3) => {
                 let mut matched = false;
-                // Layout_Plus_0 : . Layout_Plus_0 Layout_Alt_0
-                if self
-                    .scanner
-                    .match_any(FIRST_SET_LAYOUT_PLUS_0_ALT0, input_index)
-                {
+                // Plus_0 : . Plus_0 Alt_0
+                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
-                // Layout_Plus_0 : . Layout_Alt_0
-                if self
-                    .scanner
-                    .match_any(FIRST_SET_LAYOUT_PLUS_0_ALT1, input_index)
-                {
+                // Plus_0 : . Alt_0
+                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
                 if !matched {
                     self.add_parse_error(input_index, SlotId(8), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_LAYOUT_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.to_vec(),
                         }
                     });
                 }
             }
-            // Layout_Opt_0
+            // Opt_0
             NonterminalId(4) => {
                 let mut matched = false;
-                // Layout_Opt_0 : . Layout_Plus_0
-                if self
-                    .scanner
-                    .match_any(FIRST_SET_LAYOUT_OPT_0_ALT0, input_index)
-                {
+                // Opt_0 : . Plus_0
+                if self.scanner.match_any(FIRST_SET_OPT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
                 }
-                // Layout_Opt_0 : .
-                if self
-                    .scanner
-                    .match_any(FIRST_SET_LAYOUT_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_LAYOUT_OPT_0, input_index)
+                // Opt_0 : .
+                if self.scanner.match_any(FIRST_SET_OPT_0_ALT1, input_index)
+                    || self.scanner.match_any(FOLLOW_SET_OPT_0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
@@ -365,15 +348,15 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
                     self.add_parse_error(input_index, SlotId(13), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_LAYOUT_OPT_0.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_LAYOUT_OPT_0);
+                                let mut expected = FIRST_SET_OPT_0.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_OPT_0);
                                 expected
                             },
                         }
                     });
                 }
             }
-            // Layout_Star_0 : . Layout_Opt_0
+            // Star_0 : . Opt_0
             NonterminalId(5) => {
                 self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
             }
@@ -692,14 +675,10 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
             NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_LAYOUT, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_LAYOUT_ALT_0, input_index),
-            NonterminalId(3) => self
-                .scanner
-                .match_any(FOLLOW_SET_LAYOUT_PLUS_0, input_index),
-            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_LAYOUT_OPT_0, input_index),
-            NonterminalId(5) => self
-                .scanner
-                .match_any(FOLLOW_SET_LAYOUT_STAR_0, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_ALT_0, input_index),
+            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_PLUS_0, input_index),
+            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_OPT_0, input_index),
+            NonterminalId(5) => self.scanner.match_any(FOLLOW_SET_STAR_0, input_index),
             NonterminalId(6) => self.scanner.match_any(FOLLOW_SET_START_S, input_index),
             _ => true,
         }
@@ -708,10 +687,10 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_S.to_vec(),
             NonterminalId(1) => FOLLOW_SET_LAYOUT.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_LAYOUT_ALT_0.to_vec(),
-            NonterminalId(3) => FOLLOW_SET_LAYOUT_PLUS_0.to_vec(),
-            NonterminalId(4) => FOLLOW_SET_LAYOUT_OPT_0.to_vec(),
-            NonterminalId(5) => FOLLOW_SET_LAYOUT_STAR_0.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_ALT_0.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_PLUS_0.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_OPT_0.to_vec(),
+            NonterminalId(5) => FOLLOW_SET_STAR_0.to_vec(),
             NonterminalId(6) => FOLLOW_SET_START_S.to_vec(),
             _ => vec![],
         }
@@ -840,7 +819,7 @@ impl<'i> LayoutNonterminalParser<'i> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let node = self.parse_layout_star_0_ll1(start)?;
+                let node = self.parse_star_0_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
                 node
@@ -861,8 +840,8 @@ impl<'i> LayoutNonterminalParser<'i> {
         }
         result
     }
-    fn parse_layout_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_ALT_0, i)?;
+    fn parse_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        let matched = self.scanner.longest_match(FIRST_SET_ALT_0, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -907,9 +886,9 @@ impl<'i> LayoutNonterminalParser<'i> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_layout_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+    fn parse_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
-        let (body_node, body_end) = (self.parse_layout_alt_0_ll1(j).map(|node| {
+        let (body_node, body_end) = (self.parse_alt_0_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();
             (node, end)
         }))?;
@@ -924,7 +903,7 @@ impl<'i> LayoutNonterminalParser<'i> {
             false,
         );
         loop {
-            let Some((node_0, pos_0)) = self.parse_layout_alt_0_ll1(j).map(|node| {
+            let Some((node_0, pos_0)) = self.parse_alt_0_ll1(j).map(|node| {
                 let end = self.sppf_node(node).right_extent();
                 (node, end)
             }) else {
@@ -952,8 +931,8 @@ impl<'i> LayoutNonterminalParser<'i> {
         }
         Some(current)
     }
-    fn parse_layout_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_LAYOUT_OPT_0, i) else {
+    fn parse_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_0, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(4),
@@ -969,7 +948,7 @@ impl<'i> LayoutNonterminalParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_layout_plus_0_ll1(start)?;
+                    let node = self.parse_plus_0_ll1(start)?;
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -988,11 +967,11 @@ impl<'i> LayoutNonterminalParser<'i> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_layout_star_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+    fn parse_star_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
         let right_child = {
             let start = j;
-            let node = self.parse_layout_opt_0_ll1(start)?;
+            let node = self.parse_opt_0_ll1(start)?;
             let end = self.sppf_node(node).right_extent();
             j = end;
             node

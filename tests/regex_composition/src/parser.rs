@@ -6,18 +6,18 @@
 //   = Id
 //
 // Id
-//   = Letter Id_Star_0
+//   = Letter Star_0
 //
-// Id_Plus_0
-//   = Id_Plus_0 LetterOrDigit
+// Plus_0
+//   = Plus_0 LetterOrDigit
 //   | LetterOrDigit
 //
-// Id_Opt_0
-//   = Id_Plus_0
+// Opt_0
+//   = Plus_0
 //   |
 //
-// Id_Star_0
-//   = Id_Opt_0
+// Star_0
+//   = Opt_0
 //
 // Digit = ([0-9])
 // Letter = ([a-z A-Z _])
@@ -87,7 +87,7 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
                 self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
-            // Id : . Letter Id_Star_0
+            // Id : . Letter Star_0
             SlotId(2) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(1),
@@ -96,36 +96,36 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     Some(gss_node_id),
                     "Letter",
                 ) {
-                    // Id : Letter . Id_Star_0
+                    // Id : Letter . Star_0
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
             }
-            // Id : Letter . Id_Star_0
+            // Id : Letter . Star_0
             SlotId(3) => {
-                if let Some(right_child) = self.parse_id_star_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_star_0_ll1(input_index) {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(4))
                     {
-                        // Id : Letter Id_Star_0.
+                        // Id : Letter Star_0.
                         self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // Id : Letter Id_Star_0.
+            // Id : Letter Star_0.
             SlotId(4) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(1), SlotId(4));
                 self.pop(gss_node_id, SlotId(4), nonterminal_node_id, None);
             }
-            // Id_Plus_0 : . Id_Plus_0 LetterOrDigit
+            // Plus_0 : . Plus_0 LetterOrDigit
             SlotId(5) => {
-                if let Some(right_child) = self.parse_id_plus_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Id_Plus_0 : Id_Plus_0 . LetterOrDigit
+                    // Plus_0 : Plus_0 . LetterOrDigit
                     self.execute(j, SlotId(6), Some(right_child), gss_node_id, env);
                 }
             }
-            // Id_Plus_0 : Id_Plus_0 . LetterOrDigit
+            // Plus_0 : Plus_0 . LetterOrDigit
             SlotId(6) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(2),
@@ -137,18 +137,18 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(7))
                     {
-                        // Id_Plus_0 : Id_Plus_0 LetterOrDigit.
+                        // Plus_0 : Plus_0 LetterOrDigit.
                         self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // Id_Plus_0 : Id_Plus_0 LetterOrDigit.
+            // Plus_0 : Plus_0 LetterOrDigit.
             SlotId(7) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(7));
                 self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
             }
-            // Id_Plus_0 : . LetterOrDigit
+            // Plus_0 : . LetterOrDigit
             SlotId(8) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(2),
@@ -157,31 +157,31 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     Some(gss_node_id),
                     "LetterOrDigit",
                 ) {
-                    // Id_Plus_0 : LetterOrDigit.
+                    // Plus_0 : LetterOrDigit.
                     self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }
             }
-            // Id_Plus_0 : LetterOrDigit.
+            // Plus_0 : LetterOrDigit.
             SlotId(9) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(9));
                 self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
             }
-            // Id_Opt_0 : . Id_Plus_0
+            // Opt_0 : . Plus_0
             SlotId(10) => {
-                if let Some(right_child) = self.parse_id_plus_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Id_Opt_0 : Id_Plus_0.
+                    // Opt_0 : Plus_0.
                     self.execute(j, SlotId(11), Some(right_child), gss_node_id, env);
                 }
             }
-            // Id_Opt_0 : Id_Plus_0.
+            // Opt_0 : Plus_0.
             SlotId(11) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(3), SlotId(11));
                 self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
             }
-            // Id_Opt_0 : .
+            // Opt_0 : .
             SlotId(12) => {
                 let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
@@ -194,15 +194,15 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                 );
                 self.pop(gss_node_id, SlotId(12), nonterminal_node_id, None);
             }
-            // Id_Star_0 : . Id_Opt_0
+            // Star_0 : . Opt_0
             SlotId(13) => {
-                if let Some(right_child) = self.parse_id_opt_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_opt_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Id_Star_0 : Id_Opt_0.
+                    // Star_0 : Opt_0.
                     self.execute(j, SlotId(14), Some(right_child), gss_node_id, env);
                 }
             }
-            // Id_Star_0 : Id_Opt_0.
+            // Star_0 : Opt_0.
             SlotId(14) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(4), SlotId(14));
@@ -225,48 +225,42 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             NonterminalId(0) => {
                 self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
-            // Id : . Letter Id_Star_0
+            // Id : . Letter Star_0
             NonterminalId(1) => {
                 self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
             }
-            // Id_Plus_0
+            // Plus_0
             NonterminalId(2) => {
                 let mut matched = false;
-                // Id_Plus_0 : . Id_Plus_0 LetterOrDigit
-                if self
-                    .scanner
-                    .match_any(FIRST_SET_ID_PLUS_0_ALT0, input_index)
-                {
+                // Plus_0 : . Plus_0 LetterOrDigit
+                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
                 }
-                // Id_Plus_0 : . LetterOrDigit
-                if self
-                    .scanner
-                    .match_any(FIRST_SET_ID_PLUS_0_ALT1, input_index)
-                {
+                // Plus_0 : . LetterOrDigit
+                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
                 if !matched {
                     self.add_parse_error(input_index, SlotId(5), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ID_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.to_vec(),
                         }
                     });
                 }
             }
-            // Id_Opt_0
+            // Opt_0
             NonterminalId(3) => {
                 let mut matched = false;
-                // Id_Opt_0 : . Id_Plus_0
-                if self.scanner.match_any(FIRST_SET_ID_OPT_0_ALT0, input_index) {
+                // Opt_0 : . Plus_0
+                if self.scanner.match_any(FIRST_SET_OPT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
-                // Id_Opt_0 : .
-                if self.scanner.match_any(FIRST_SET_ID_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_ID_OPT_0, input_index)
+                // Opt_0 : .
+                if self.scanner.match_any(FIRST_SET_OPT_0_ALT1, input_index)
+                    || self.scanner.match_any(FOLLOW_SET_OPT_0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
@@ -275,15 +269,15 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     self.add_parse_error(input_index, SlotId(10), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_ID_OPT_0.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_ID_OPT_0);
+                                let mut expected = FIRST_SET_OPT_0.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_OPT_0);
                                 expected
                             },
                         }
                     });
                 }
             }
-            // Id_Star_0 : . Id_Opt_0
+            // Star_0 : . Opt_0
             NonterminalId(4) => {
                 self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
             }
@@ -598,9 +592,9 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
             NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_ID, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_ID_PLUS_0, input_index),
-            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_ID_OPT_0, input_index),
-            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_ID_STAR_0, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_PLUS_0, input_index),
+            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_OPT_0, input_index),
+            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_STAR_0, input_index),
             _ => true,
         }
     }
@@ -608,9 +602,9 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_S.to_vec(),
             NonterminalId(1) => FOLLOW_SET_ID.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_ID_PLUS_0.to_vec(),
-            NonterminalId(3) => FOLLOW_SET_ID_OPT_0.to_vec(),
-            NonterminalId(4) => FOLLOW_SET_ID_STAR_0.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_PLUS_0.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_OPT_0.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_STAR_0.to_vec(),
             _ => vec![],
         }
     }
@@ -744,7 +738,7 @@ impl<'i> RegexCompositionParser<'i> {
                 let mut current = right_child;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_id_star_0_ll1(start)?;
+                    let node = self.parse_star_0_ll1(start)?;
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -771,7 +765,7 @@ impl<'i> RegexCompositionParser<'i> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_id_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+    fn parse_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
         let (body_node, body_end) = (self
             .match_terminal(TerminalId(2), j, SlotId(8), None, "LetterOrDigit")
@@ -815,8 +809,8 @@ impl<'i> RegexCompositionParser<'i> {
         }
         Some(current)
     }
-    fn parse_id_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_ID_OPT_0, i) else {
+    fn parse_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_0, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(3),
@@ -832,7 +826,7 @@ impl<'i> RegexCompositionParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_id_plus_0_ll1(start)?;
+                    let node = self.parse_plus_0_ll1(start)?;
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -851,11 +845,11 @@ impl<'i> RegexCompositionParser<'i> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_id_star_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+    fn parse_star_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
         let right_child = {
             let start = j;
-            let node = self.parse_id_opt_0_ll1(start)?;
+            let node = self.parse_opt_0_ll1(start)?;
             let end = self.sppf_node(node).right_extent();
             j = end;
             node

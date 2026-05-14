@@ -3,7 +3,7 @@
 // grammar SimpleAlt
 //
 // A
-//   = B A_Alt_0
+//   = B Alt_0
 //
 // B
 //   = "b"
@@ -14,7 +14,7 @@
 // D
 //   = "d"
 //
-// A_Alt_0
+// Alt_0
 //   = C
 //   | D
 //
@@ -71,26 +71,26 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             gss_node_id
         );
         match slot_id {
-            // A : . B A_Alt_0
+            // A : . B Alt_0
             SlotId(0) => {
                 if let Some(right_child) = self.parse_b_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // A : B . A_Alt_0
+                    // A : B . Alt_0
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
-            // A : B . A_Alt_0
+            // A : B . Alt_0
             SlotId(1) => {
-                if let Some(right_child) = self.parse_a_alt_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_alt_0_ll1(input_index) {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(2))
                     {
-                        // A : B A_Alt_0.
+                        // A : B Alt_0.
                         self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // A : B A_Alt_0.
+            // A : B Alt_0.
             SlotId(2) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(0), SlotId(2));
@@ -153,29 +153,29 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
                     self.create_nonterminal_node(result, NonterminalId(3), SlotId(8));
                 self.pop(gss_node_id, SlotId(8), nonterminal_node_id, None);
             }
-            // A_Alt_0 : . C
+            // Alt_0 : . C
             SlotId(9) => {
                 if let Some(right_child) = self.parse_c_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // A_Alt_0 : C.
+                    // Alt_0 : C.
                     self.execute(j, SlotId(10), Some(right_child), gss_node_id, env);
                 }
             }
-            // A_Alt_0 : C.
+            // Alt_0 : C.
             SlotId(10) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(4), SlotId(10));
                 self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
             }
-            // A_Alt_0 : . D
+            // Alt_0 : . D
             SlotId(11) => {
                 if let Some(right_child) = self.parse_d_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // A_Alt_0 : D.
+                    // Alt_0 : D.
                     self.execute(j, SlotId(12), Some(right_child), gss_node_id, env);
                 }
             }
-            // A_Alt_0 : D.
+            // Alt_0 : D.
             SlotId(12) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(4), SlotId(12));
@@ -194,7 +194,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
         env: Option<EnvId>,
     ) {
         match nonterminal_id {
-            // A : . B A_Alt_0
+            // A : . B Alt_0
             NonterminalId(0) => {
                 self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
@@ -210,23 +210,23 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             NonterminalId(3) => {
                 self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
             }
-            // A_Alt_0
+            // Alt_0
             NonterminalId(4) => {
                 let mut matched = false;
-                // A_Alt_0 : . C
-                if self.scanner.match_any(FIRST_SET_A_ALT_0_ALT0, input_index) {
+                // Alt_0 : . C
+                if self.scanner.match_any(FIRST_SET_ALT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
                 }
-                // A_Alt_0 : . D
-                if self.scanner.match_any(FIRST_SET_A_ALT_0_ALT1, input_index) {
+                // Alt_0 : . D
+                if self.scanner.match_any(FIRST_SET_ALT_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
                 if !matched {
                     self.add_parse_error(input_index, SlotId(9), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_A_ALT_0.to_vec(),
+                            expected: FIRST_SET_ALT_0.to_vec(),
                         }
                     });
                 }
@@ -544,7 +544,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_B, input_index),
             NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_C, input_index),
             NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_D, input_index),
-            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_A_ALT_0, input_index),
+            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_ALT_0, input_index),
             _ => true,
         }
     }
@@ -554,7 +554,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             NonterminalId(1) => FOLLOW_SET_B.to_vec(),
             NonterminalId(2) => FOLLOW_SET_C.to_vec(),
             NonterminalId(3) => FOLLOW_SET_D.to_vec(),
-            NonterminalId(4) => FOLLOW_SET_A_ALT_0.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_ALT_0.to_vec(),
             _ => vec![],
         }
     }
@@ -662,7 +662,7 @@ impl<'i> SimpleAltParser<'i> {
                 let mut current = right_child;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_a_alt_0_ll1(start)?;
+                    let node = self.parse_alt_0_ll1(start)?;
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -767,8 +767,8 @@ impl<'i> SimpleAltParser<'i> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_a_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let matched = self.scanner.longest_match(FIRST_SET_A_ALT_0, i)?;
+    fn parse_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        let matched = self.scanner.longest_match(FIRST_SET_ALT_0, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;

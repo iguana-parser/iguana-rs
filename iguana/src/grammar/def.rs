@@ -31,7 +31,7 @@ pub enum Associativity {
 /// inserting whitespace between individual characters. These character-level definitions correspond
 /// to lexical definitions in scannerless parsers like Rascal or SDF. A custom layout can also be
 /// specified per rule to use a different layout than the grammar default.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub enum LayoutStrategy {
     #[default]
     Default,
@@ -774,7 +774,7 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
     let lexical_rules = inline_regex_refs(lexical_rules);
-    let (syntax_rules, mut ebnf_symbols) = ebnf_to_bnf::transform(syntax_rules);
+    let syntax_rules = ebnf_to_bnf::transform(syntax_rules);
     let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
@@ -787,10 +787,6 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
     // after precedence desugaring because desugaring may add parameters to
     // nonterminals (e.g., E becomes E(p)), and the definitions must reflect that.
     let (definitions, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
-    ebnf_symbols = ebnf_symbols
-        .into_iter()
-        .map(|(k, v)| (k, resolve_identifier(v, &symbol_table)))
-        .collect();
     let lexical_rules: Vec<LexicalRule> = lexical_rules
         .into_iter()
         .map(|mut r| {
@@ -872,7 +868,6 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
         productions,
         lexical_rules: lexical_rules_map,
         definitions,
-        ebnf_symbols,
         layout,
         symbol_table,
         start_nonterminals,
@@ -930,7 +925,6 @@ pub struct Grammar {
     productions: IndexMap<Nonterminal, Vec<Alternative>>,
     lexical_rules: IndexMap<Terminal, LexicalRule>,
     definitions: Vec<Definition>,
-    ebnf_symbols: FxHashMap<Symbol, Symbol>,
     pub symbol_table: SymbolTable,
     pub layout: Option<Symbol>,
     start_nonterminals: FxHashMap<String, String>,
@@ -987,9 +981,6 @@ impl Grammar {
             ident.definition.map(|d| self.definition(d)),
             Some(Definition::Terminal(_))
         )
-    }
-    pub fn ebnf_symbol(&self, symbol: &Symbol) -> Option<&Symbol> {
-        self.ebnf_symbols.get(symbol)
     }
 }
 

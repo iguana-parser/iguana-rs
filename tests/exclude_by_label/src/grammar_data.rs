@@ -9,17 +9,17 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
         derived: false,
     },
     Nonterminal {
-        name: "Expr_Plus_0",
+        name: "Plus_0",
         display: "{Expr !comma \",\"}+",
         derived: true,
     },
     Nonterminal {
-        name: "Expr_Opt_0",
+        name: "Opt_0",
         display: "{Expr !comma \",\"}+?",
         derived: true,
     },
     Nonterminal {
-        name: "Expr_Star_0",
+        name: "Star_0",
         display: "{Expr !comma \",\"}*",
         derived: true,
     },
@@ -32,16 +32,16 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 1] = ["Expr"];
 pub const EXPR: NonterminalId = NonterminalId(0);
-pub const EXPR_PLUS_0: NonterminalId = NonterminalId(1);
-pub const EXPR_OPT_0: NonterminalId = NonterminalId(2);
-pub const EXPR_STAR_0: NonterminalId = NonterminalId(3);
+pub const PLUS_0: NonterminalId = NonterminalId(1);
+pub const OPT_0: NonterminalId = NonterminalId(2);
+pub const STAR_0: NonterminalId = NonterminalId(3);
 pub const EXPR_EXCEPT_COMMA: NonterminalId = NonterminalId(4);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "Expr" => Some(EXPR),
-        "Expr_Plus_0" => Some(EXPR_PLUS_0),
-        "Expr_Opt_0" => Some(EXPR_OPT_0),
-        "Expr_Star_0" => Some(EXPR_STAR_0),
+        "Plus_0" => Some(PLUS_0),
+        "Opt_0" => Some(OPT_0),
+        "Star_0" => Some(STAR_0),
         "Expr_except_comma" => Some(EXPR_EXCEPT_COMMA),
         _ => None,
     }
@@ -149,32 +149,32 @@ pub static FOLLOW_SET_EXPR: &[TerminalId] = &[TerminalId(2), TerminalId(1), Term
 pub static FIRST_SET_EXPR: &[TerminalId] = &[TerminalId(0)];
 // Expr : . Id { Id }
 pub static FIRST_SET_EXPR_ALT0: &[TerminalId] = &[TerminalId(0)];
-// Expr : . Expr "(" Expr_Star_0 ")" { Id }
+// Expr : . Expr "(" Star_0 ")" { Id }
 pub static FIRST_SET_EXPR_ALT1: &[TerminalId] = &[TerminalId(0)];
 // Expr : . Expr "," Expr { Id }
 pub static FIRST_SET_EXPR_ALT2: &[TerminalId] = &[TerminalId(0)];
-// Expr_Plus_0 { ",", ")", EOF }
-pub static FOLLOW_SET_EXPR_PLUS_0: &[TerminalId] = &[TerminalId(2), TerminalId(3), TerminalId(5)];
-// Expr_Plus_0 { Id }
-pub static FIRST_SET_EXPR_PLUS_0: &[TerminalId] = &[TerminalId(0)];
-// Expr_Plus_0 : . Expr_Plus_0 "," Expr_except_comma { Id }
-pub static FIRST_SET_EXPR_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
-// Expr_Plus_0 : . Expr_except_comma { Id }
-pub static FIRST_SET_EXPR_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
-// Expr_Opt_0 { ")", EOF }
-pub static FOLLOW_SET_EXPR_OPT_0: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
-// Expr_Opt_0 { Id }
-pub static FIRST_SET_EXPR_OPT_0: &[TerminalId] = &[TerminalId(0)];
-// Expr_Opt_0 : . Expr_Plus_0 { Id }
-pub static FIRST_SET_EXPR_OPT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
-// Expr_Opt_0 : . {  }
-pub static FIRST_SET_EXPR_OPT_0_ALT1: &[TerminalId] = &[];
-// Expr_Star_0 { ")", EOF }
-pub static FOLLOW_SET_EXPR_STAR_0: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
-// Expr_Star_0 { Id }
-pub static FIRST_SET_EXPR_STAR_0: &[TerminalId] = &[TerminalId(0)];
-// Expr_Star_0 : . Expr_Opt_0 { Id }
-pub static FIRST_SET_EXPR_STAR_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+// Plus_0 { ",", ")", EOF }
+pub static FOLLOW_SET_PLUS_0: &[TerminalId] = &[TerminalId(2), TerminalId(3), TerminalId(5)];
+// Plus_0 { Id }
+pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(0)];
+// Plus_0 : . Plus_0 "," Expr_except_comma { Id }
+pub static FIRST_SET_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+// Plus_0 : . Expr_except_comma { Id }
+pub static FIRST_SET_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
+// Opt_0 { ")", EOF }
+pub static FOLLOW_SET_OPT_0: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
+// Opt_0 { Id }
+pub static FIRST_SET_OPT_0: &[TerminalId] = &[TerminalId(0)];
+// Opt_0 : . Plus_0 { Id }
+pub static FIRST_SET_OPT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+// Opt_0 : . {  }
+pub static FIRST_SET_OPT_0_ALT1: &[TerminalId] = &[];
+// Star_0 { ")", EOF }
+pub static FOLLOW_SET_STAR_0: &[TerminalId] = &[TerminalId(3), TerminalId(5)];
+// Star_0 { Id }
+pub static FIRST_SET_STAR_0: &[TerminalId] = &[TerminalId(0)];
+// Star_0 : . Opt_0 { Id }
+pub static FIRST_SET_STAR_0_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Expr_except_comma { ",", ")", EOF }
 pub static FOLLOW_SET_EXPR_EXCEPT_COMMA: &[TerminalId] =
     &[TerminalId(2), TerminalId(3), TerminalId(5)];
@@ -182,5 +182,5 @@ pub static FOLLOW_SET_EXPR_EXCEPT_COMMA: &[TerminalId] =
 pub static FIRST_SET_EXPR_EXCEPT_COMMA: &[TerminalId] = &[TerminalId(0)];
 // Expr_except_comma : . Id { Id }
 pub static FIRST_SET_EXPR_EXCEPT_COMMA_ALT0: &[TerminalId] = &[TerminalId(0)];
-// Expr_except_comma : . Expr "(" Expr_Star_0 ")" { Id }
+// Expr_except_comma : . Expr "(" Star_0 ")" { Id }
 pub static FIRST_SET_EXPR_EXCEPT_COMMA_ALT1: &[TerminalId] = &[TerminalId(0)];

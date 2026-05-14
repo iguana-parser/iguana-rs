@@ -19,12 +19,12 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
         derived: false,
     },
     Nonterminal {
-        name: "S_Plus_0",
+        name: "Plus_0",
         display: "Id+",
         derived: true,
     },
     Nonterminal {
-        name: "Id_Plus_1",
+        name: "Plus_1",
         display: "Char+",
         derived: true,
     },
@@ -34,15 +34,15 @@ pub const NONTERMINAL_DISPLAY_ORDER: [&str; 3] = ["S", "T", "Id"];
 pub const S: NonterminalId = NonterminalId(0);
 pub const T: NonterminalId = NonterminalId(1);
 pub const ID: NonterminalId = NonterminalId(2);
-pub const S_PLUS_0: NonterminalId = NonterminalId(3);
-pub const ID_PLUS_1: NonterminalId = NonterminalId(4);
+pub const PLUS_0: NonterminalId = NonterminalId(3);
+pub const PLUS_1: NonterminalId = NonterminalId(4);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
         "T" => Some(T),
         "Id" => Some(ID),
-        "S_Plus_0" => Some(S_PLUS_0),
-        "Id_Plus_1" => Some(ID_PLUS_1),
+        "Plus_0" => Some(PLUS_0),
+        "Plus_1" => Some(PLUS_1),
         _ => None,
     }
 }
@@ -109,7 +109,7 @@ pub const SLOTS: [Slot; 17] = [
 pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3)];
 // S { Char }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
-// S : . S_Plus_0 { Char }
+// S : . Plus_0 { Char }
 pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
 // T { EOF }
 pub static FOLLOW_SET_T: &[TerminalId] = &[TerminalId(3)];
@@ -123,23 +123,23 @@ pub static FOLLOW_RESTRICTION_T_ALT0_POS0: &[TerminalId] = &[TerminalId(0)];
 pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(3), TerminalId(0), TerminalId(1)];
 // Id { Char }
 pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(0)];
-// Id : . Id_Plus_1 !>> Char { Char }
+// Id : . Plus_1 !>> Char { Char }
 pub static FIRST_SET_ID_ALT0: &[TerminalId] = &[TerminalId(0)];
-// Id : . Id_Plus_1 !>> Char !>> { Char }
+// Id : . Plus_1 !>> Char !>> { Char }
 pub static FOLLOW_RESTRICTION_ID_ALT0_POS0: &[TerminalId] = &[TerminalId(0)];
-// S_Plus_0 { EOF, Char, WS }
-pub static FOLLOW_SET_S_PLUS_0: &[TerminalId] = &[TerminalId(3), TerminalId(0), TerminalId(1)];
-// S_Plus_0 { Char }
-pub static FIRST_SET_S_PLUS_0: &[TerminalId] = &[TerminalId(0)];
-// S_Plus_0 : . S_Plus_0 WS Id { Char }
-pub static FIRST_SET_S_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
-// S_Plus_0 : . Id { Char }
-pub static FIRST_SET_S_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
-// Id_Plus_1 { WS, EOF }
-pub static FOLLOW_SET_ID_PLUS_1: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
-// Id_Plus_1 { Char }
-pub static FIRST_SET_ID_PLUS_1: &[TerminalId] = &[TerminalId(0)];
-// Id_Plus_1 : . Id_Plus_1 Char { Char }
-pub static FIRST_SET_ID_PLUS_1_ALT0: &[TerminalId] = &[TerminalId(0)];
-// Id_Plus_1 : . Char { Char }
-pub static FIRST_SET_ID_PLUS_1_ALT1: &[TerminalId] = &[TerminalId(0)];
+// Plus_0 { EOF, Char, WS }
+pub static FOLLOW_SET_PLUS_0: &[TerminalId] = &[TerminalId(3), TerminalId(0), TerminalId(1)];
+// Plus_0 { Char }
+pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(0)];
+// Plus_0 : . Plus_0 WS Id { Char }
+pub static FIRST_SET_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+// Plus_0 : . Id { Char }
+pub static FIRST_SET_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
+// Plus_1 { WS, EOF }
+pub static FOLLOW_SET_PLUS_1: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
+// Plus_1 { Char }
+pub static FIRST_SET_PLUS_1: &[TerminalId] = &[TerminalId(0)];
+// Plus_1 : . Plus_1 Char { Char }
+pub static FIRST_SET_PLUS_1_ALT0: &[TerminalId] = &[TerminalId(0)];
+// Plus_1 : . Char { Char }
+pub static FIRST_SET_PLUS_1_ALT1: &[TerminalId] = &[TerminalId(0)];

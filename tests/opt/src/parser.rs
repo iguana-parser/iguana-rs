@@ -3,12 +3,12 @@
 // grammar Opt
 //
 // S
-//   = S_Opt_0
+//   = Opt_0
 //
 // A
 //   = "a"
 //
-// S_Opt_0
+// Opt_0
 //   = A
 //   |
 //
@@ -63,15 +63,15 @@ impl<'i> Parser<'i> for OptParser<'i> {
             gss_node_id
         );
         match slot_id {
-            // S : . S_Opt_0
+            // S : . Opt_0
             SlotId(0) => {
-                if let Some(right_child) = self.parse_s_opt_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_opt_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // S : S_Opt_0.
+                    // S : Opt_0.
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
-            // S : S_Opt_0.
+            // S : Opt_0.
             SlotId(1) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
@@ -96,21 +96,21 @@ impl<'i> Parser<'i> for OptParser<'i> {
                     self.create_nonterminal_node(result, NonterminalId(1), SlotId(3));
                 self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
             }
-            // S_Opt_0 : . A
+            // Opt_0 : . A
             SlotId(4) => {
                 if let Some(right_child) = self.parse_a_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // S_Opt_0 : A.
+                    // Opt_0 : A.
                     self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
             }
-            // S_Opt_0 : A.
+            // Opt_0 : A.
             SlotId(5) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(5));
                 self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
-            // S_Opt_0 : .
+            // Opt_0 : .
             SlotId(6) => {
                 let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
@@ -136,7 +136,7 @@ impl<'i> Parser<'i> for OptParser<'i> {
         env: Option<EnvId>,
     ) {
         match nonterminal_id {
-            // S : . S_Opt_0
+            // S : . Opt_0
             NonterminalId(0) => {
                 self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
@@ -144,17 +144,17 @@ impl<'i> Parser<'i> for OptParser<'i> {
             NonterminalId(1) => {
                 self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
             }
-            // S_Opt_0
+            // Opt_0
             NonterminalId(2) => {
                 let mut matched = false;
-                // S_Opt_0 : . A
-                if self.scanner.match_any(FIRST_SET_S_OPT_0_ALT0, input_index) {
+                // Opt_0 : . A
+                if self.scanner.match_any(FIRST_SET_OPT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
-                // S_Opt_0 : .
-                if self.scanner.match_any(FIRST_SET_S_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_S_OPT_0, input_index)
+                // Opt_0 : .
+                if self.scanner.match_any(FIRST_SET_OPT_0_ALT1, input_index)
+                    || self.scanner.match_any(FOLLOW_SET_OPT_0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
@@ -163,8 +163,8 @@ impl<'i> Parser<'i> for OptParser<'i> {
                     self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_S_OPT_0.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_S_OPT_0);
+                                let mut expected = FIRST_SET_OPT_0.to_vec();
+                                expected.extend_from_slice(FOLLOW_SET_OPT_0);
                                 expected
                             },
                         }
@@ -482,7 +482,7 @@ impl<'i> Parser<'i> for OptParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
             NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_A, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_S_OPT_0, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_OPT_0, input_index),
             _ => true,
         }
     }
@@ -490,7 +490,7 @@ impl<'i> Parser<'i> for OptParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_S.to_vec(),
             NonterminalId(1) => FOLLOW_SET_A.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_S_OPT_0.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_OPT_0.to_vec(),
             _ => vec![],
         }
     }
@@ -586,7 +586,7 @@ impl<'i> OptParser<'i> {
         let mut j = i;
         let right_child = {
             let start = j;
-            let node = self.parse_s_opt_0_ll1(start)?;
+            let node = self.parse_opt_0_ll1(start)?;
             let end = self.sppf_node(node).right_extent();
             j = end;
             node
@@ -628,8 +628,8 @@ impl<'i> OptParser<'i> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_s_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_S_OPT_0, i) else {
+    fn parse_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_0, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.get_or_create_nonterminal_node(
                 NonterminalId(2),

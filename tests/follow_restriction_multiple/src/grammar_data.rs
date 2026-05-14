@@ -14,17 +14,17 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
         derived: false,
     },
     Nonterminal {
-        name: "S_Plus_0",
+        name: "Plus_0",
         display: "Id+",
         derived: true,
     },
     Nonterminal {
-        name: "Id_Alt_0",
+        name: "Alt_0",
         display: "(Alpha | Digit)",
         derived: true,
     },
     Nonterminal {
-        name: "Id_Plus_1",
+        name: "Plus_1",
         display: "(Alpha | Digit)+",
         derived: true,
     },
@@ -33,16 +33,16 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 2] = ["S", "Id"];
 pub const S: NonterminalId = NonterminalId(0);
 pub const ID: NonterminalId = NonterminalId(1);
-pub const S_PLUS_0: NonterminalId = NonterminalId(2);
-pub const ID_ALT_0: NonterminalId = NonterminalId(3);
-pub const ID_PLUS_1: NonterminalId = NonterminalId(4);
+pub const PLUS_0: NonterminalId = NonterminalId(2);
+pub const ALT_0: NonterminalId = NonterminalId(3);
+pub const PLUS_1: NonterminalId = NonterminalId(4);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
         "Id" => Some(ID),
-        "S_Plus_0" => Some(S_PLUS_0),
-        "Id_Alt_0" => Some(ID_ALT_0),
-        "Id_Plus_1" => Some(ID_PLUS_1),
+        "Plus_0" => Some(PLUS_0),
+        "Alt_0" => Some(ALT_0),
+        "Plus_1" => Some(PLUS_1),
         _ => None,
     }
 }
@@ -112,37 +112,37 @@ pub const SLOTS: [Slot; 18] = [
 pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3)];
 // S { Digit, Alpha }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// S : . S_Plus_0 { Digit, Alpha }
+// S : . Plus_0 { Digit, Alpha }
 pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Id { Digit, Alpha, EOF }
 pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(1), TerminalId(0), TerminalId(3)];
 // Id { Digit, Alpha }
 pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Id : . Id_Plus_1 !>> Alpha !>> Digit { Digit, Alpha }
+// Id : . Plus_1 !>> Alpha !>> Digit { Digit, Alpha }
 pub static FIRST_SET_ID_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Id : . Id_Plus_1 !>> Alpha !>> Digit !>> { Alpha, Digit }
+// Id : . Plus_1 !>> Alpha !>> Digit !>> { Alpha, Digit }
 pub static FOLLOW_RESTRICTION_ID_ALT0_POS0: &[TerminalId] = &[TerminalId(0), TerminalId(1)];
-// S_Plus_0 { Digit, Alpha, EOF }
-pub static FOLLOW_SET_S_PLUS_0: &[TerminalId] = &[TerminalId(1), TerminalId(0), TerminalId(3)];
-// S_Plus_0 { Digit, Alpha }
-pub static FIRST_SET_S_PLUS_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// S_Plus_0 : . S_Plus_0 Id { Digit, Alpha }
-pub static FIRST_SET_S_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// S_Plus_0 : . Id { Digit, Alpha }
-pub static FIRST_SET_S_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Id_Alt_0 { EOF }
-pub static FOLLOW_SET_ID_ALT_0: &[TerminalId] = &[TerminalId(3)];
-// Id_Alt_0 { Digit, Alpha }
-pub static FIRST_SET_ID_ALT_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Id_Alt_0 : . Alpha { Alpha }
-pub static FIRST_SET_ID_ALT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
-// Id_Alt_0 : . Digit { Digit }
-pub static FIRST_SET_ID_ALT_0_ALT1: &[TerminalId] = &[TerminalId(1)];
-// Id_Plus_1 { EOF }
-pub static FOLLOW_SET_ID_PLUS_1: &[TerminalId] = &[TerminalId(3)];
-// Id_Plus_1 { Digit, Alpha }
-pub static FIRST_SET_ID_PLUS_1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Id_Plus_1 : . Id_Plus_1 Id_Alt_0 { Digit, Alpha }
-pub static FIRST_SET_ID_PLUS_1_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Id_Plus_1 : . Id_Alt_0 { Digit, Alpha }
-pub static FIRST_SET_ID_PLUS_1_ALT1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Plus_0 { Digit, Alpha, EOF }
+pub static FOLLOW_SET_PLUS_0: &[TerminalId] = &[TerminalId(1), TerminalId(0), TerminalId(3)];
+// Plus_0 { Digit, Alpha }
+pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Plus_0 : . Plus_0 Id { Digit, Alpha }
+pub static FIRST_SET_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Plus_0 : . Id { Digit, Alpha }
+pub static FIRST_SET_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Alt_0 { EOF }
+pub static FOLLOW_SET_ALT_0: &[TerminalId] = &[TerminalId(3)];
+// Alt_0 { Digit, Alpha }
+pub static FIRST_SET_ALT_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Alt_0 : . Alpha { Alpha }
+pub static FIRST_SET_ALT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+// Alt_0 : . Digit { Digit }
+pub static FIRST_SET_ALT_0_ALT1: &[TerminalId] = &[TerminalId(1)];
+// Plus_1 { EOF }
+pub static FOLLOW_SET_PLUS_1: &[TerminalId] = &[TerminalId(3)];
+// Plus_1 { Digit, Alpha }
+pub static FIRST_SET_PLUS_1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Plus_1 : . Plus_1 Alt_0 { Digit, Alpha }
+pub static FIRST_SET_PLUS_1_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Plus_1 : . Alt_0 { Digit, Alpha }
+pub static FIRST_SET_PLUS_1_ALT1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];

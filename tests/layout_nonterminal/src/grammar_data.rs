@@ -14,22 +14,22 @@ pub const NONTERMINALS: [Nonterminal; 7] = [
         derived: false,
     },
     Nonterminal {
-        name: "Layout_Alt_0",
+        name: "Alt_0",
         display: "(WhiteSpace | Comment)",
         derived: true,
     },
     Nonterminal {
-        name: "Layout_Plus_0",
+        name: "Plus_0",
         display: "(WhiteSpace | Comment)+",
         derived: true,
     },
     Nonterminal {
-        name: "Layout_Opt_0",
+        name: "Opt_0",
         display: "(WhiteSpace | Comment)+?",
         derived: true,
     },
     Nonterminal {
-        name: "Layout_Star_0",
+        name: "Star_0",
         display: "(WhiteSpace | Comment)*",
         derived: true,
     },
@@ -43,19 +43,19 @@ pub const NONTERMINALS: [Nonterminal; 7] = [
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 2] = ["S", "Layout"];
 pub const S: NonterminalId = NonterminalId(0);
 pub const LAYOUT: NonterminalId = NonterminalId(1);
-pub const LAYOUT_ALT_0: NonterminalId = NonterminalId(2);
-pub const LAYOUT_PLUS_0: NonterminalId = NonterminalId(3);
-pub const LAYOUT_OPT_0: NonterminalId = NonterminalId(4);
-pub const LAYOUT_STAR_0: NonterminalId = NonterminalId(5);
+pub const ALT_0: NonterminalId = NonterminalId(2);
+pub const PLUS_0: NonterminalId = NonterminalId(3);
+pub const OPT_0: NonterminalId = NonterminalId(4);
+pub const STAR_0: NonterminalId = NonterminalId(5);
 pub const START_S: NonterminalId = NonterminalId(6);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
         "Layout" => Some(LAYOUT),
-        "Layout_Alt_0" => Some(LAYOUT_ALT_0),
-        "Layout_Plus_0" => Some(LAYOUT_PLUS_0),
-        "Layout_Opt_0" => Some(LAYOUT_OPT_0),
-        "Layout_Star_0" => Some(LAYOUT_STAR_0),
+        "Alt_0" => Some(ALT_0),
+        "Plus_0" => Some(PLUS_0),
+        "Opt_0" => Some(OPT_0),
+        "Star_0" => Some(STAR_0),
         "StartS" => Some(START_S),
         _ => None,
     }
@@ -145,40 +145,40 @@ pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(2)];
 pub static FOLLOW_SET_LAYOUT: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
 // Layout { Comment, WhiteSpace }
 pub static FIRST_SET_LAYOUT: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Layout : . Layout_Star_0 { Comment, WhiteSpace }
+// Layout : . Star_0 { Comment, WhiteSpace }
 pub static FIRST_SET_LAYOUT_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Layout_Alt_0 { Comment, "x", WhiteSpace, EOF }
-pub static FOLLOW_SET_LAYOUT_ALT_0: &[TerminalId] =
+// Alt_0 { Comment, "x", WhiteSpace, EOF }
+pub static FOLLOW_SET_ALT_0: &[TerminalId] =
     &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
-// Layout_Alt_0 { Comment, WhiteSpace }
-pub static FIRST_SET_LAYOUT_ALT_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Layout_Alt_0 : . WhiteSpace { WhiteSpace }
-pub static FIRST_SET_LAYOUT_ALT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
-// Layout_Alt_0 : . Comment { Comment }
-pub static FIRST_SET_LAYOUT_ALT_0_ALT1: &[TerminalId] = &[TerminalId(1)];
-// Layout_Plus_0 { Comment, "x", WhiteSpace, EOF }
-pub static FOLLOW_SET_LAYOUT_PLUS_0: &[TerminalId] =
+// Alt_0 { Comment, WhiteSpace }
+pub static FIRST_SET_ALT_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Alt_0 : . WhiteSpace { WhiteSpace }
+pub static FIRST_SET_ALT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+// Alt_0 : . Comment { Comment }
+pub static FIRST_SET_ALT_0_ALT1: &[TerminalId] = &[TerminalId(1)];
+// Plus_0 { Comment, "x", WhiteSpace, EOF }
+pub static FOLLOW_SET_PLUS_0: &[TerminalId] =
     &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
-// Layout_Plus_0 { Comment, WhiteSpace }
-pub static FIRST_SET_LAYOUT_PLUS_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Layout_Plus_0 : . Layout_Plus_0 Layout_Alt_0 { Comment, WhiteSpace }
-pub static FIRST_SET_LAYOUT_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Layout_Plus_0 : . Layout_Alt_0 { Comment, WhiteSpace }
-pub static FIRST_SET_LAYOUT_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Layout_Opt_0 { "x", EOF }
-pub static FOLLOW_SET_LAYOUT_OPT_0: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
-// Layout_Opt_0 { Comment, WhiteSpace }
-pub static FIRST_SET_LAYOUT_OPT_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Layout_Opt_0 : . Layout_Plus_0 { Comment, WhiteSpace }
-pub static FIRST_SET_LAYOUT_OPT_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Layout_Opt_0 : . {  }
-pub static FIRST_SET_LAYOUT_OPT_0_ALT1: &[TerminalId] = &[];
-// Layout_Star_0 { "x", EOF }
-pub static FOLLOW_SET_LAYOUT_STAR_0: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
-// Layout_Star_0 { Comment, WhiteSpace }
-pub static FIRST_SET_LAYOUT_STAR_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
-// Layout_Star_0 : . Layout_Opt_0 { Comment, WhiteSpace }
-pub static FIRST_SET_LAYOUT_STAR_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Plus_0 { Comment, WhiteSpace }
+pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Plus_0 : . Plus_0 Alt_0 { Comment, WhiteSpace }
+pub static FIRST_SET_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Plus_0 : . Alt_0 { Comment, WhiteSpace }
+pub static FIRST_SET_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Opt_0 { "x", EOF }
+pub static FOLLOW_SET_OPT_0: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
+// Opt_0 { Comment, WhiteSpace }
+pub static FIRST_SET_OPT_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Opt_0 : . Plus_0 { Comment, WhiteSpace }
+pub static FIRST_SET_OPT_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Opt_0 : . {  }
+pub static FIRST_SET_OPT_0_ALT1: &[TerminalId] = &[];
+// Star_0 { "x", EOF }
+pub static FOLLOW_SET_STAR_0: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
+// Star_0 { Comment, WhiteSpace }
+pub static FIRST_SET_STAR_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+// Star_0 : . Opt_0 { Comment, WhiteSpace }
+pub static FIRST_SET_STAR_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: &[TerminalId] = &[TerminalId(4)];
 // StartS { Comment, WhiteSpace, "x" }

@@ -7,10 +7,10 @@
 //   | "forall"
 //
 // Id
-//   = Char !<< Id_Plus_0
+//   = Char !<< Plus_0
 //
-// Id_Plus_0
-//   = Id_Plus_0 Char
+// Plus_0
+//   = Plus_0 Char
 //   | Char
 //
 // Char = ([a-z])
@@ -133,7 +133,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                     self.create_nonterminal_node(result, NonterminalId(0), SlotId(5));
                 self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
-            // Id : . Char !<< Id_Plus_0
+            // Id : . Char !<< Plus_0
             SlotId(6) => {
                 if !(input_index == 0
                     || self
@@ -143,27 +143,27 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                 {
                     return;
                 }
-                if let Some(right_child) = self.parse_id_plus_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Id : Char !<< Id_Plus_0.
+                    // Id : Char !<< Plus_0.
                     self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
                 }
             }
-            // Id : Char !<< Id_Plus_0.
+            // Id : Char !<< Plus_0.
             SlotId(7) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(1), SlotId(7));
                 self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
             }
-            // Id_Plus_0 : . Id_Plus_0 Char
+            // Plus_0 : . Plus_0 Char
             SlotId(8) => {
-                if let Some(right_child) = self.parse_id_plus_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Id_Plus_0 : Id_Plus_0 . Char
+                    // Plus_0 : Plus_0 . Char
                     self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }
             }
-            // Id_Plus_0 : Id_Plus_0 . Char
+            // Plus_0 : Plus_0 . Char
             SlotId(9) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -175,18 +175,18 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(10))
                     {
-                        // Id_Plus_0 : Id_Plus_0 Char.
+                        // Plus_0 : Plus_0 Char.
                         self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // Id_Plus_0 : Id_Plus_0 Char.
+            // Plus_0 : Plus_0 Char.
             SlotId(10) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(10));
                 self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
             }
-            // Id_Plus_0 : . Char
+            // Plus_0 : . Char
             SlotId(11) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -195,11 +195,11 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                     Some(gss_node_id),
                     "Char",
                 ) {
-                    // Id_Plus_0 : Char.
+                    // Plus_0 : Char.
                     self.execute(j, SlotId(12), Some(right_child), gss_node_id, env);
                 }
             }
-            // Id_Plus_0 : Char.
+            // Plus_0 : Char.
             SlotId(12) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(12));
@@ -239,33 +239,27 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
                     });
                 }
             }
-            // Id : . Char !<< Id_Plus_0
+            // Id : . Char !<< Plus_0
             NonterminalId(1) => {
                 self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
             }
-            // Id_Plus_0
+            // Plus_0
             NonterminalId(2) => {
                 let mut matched = false;
-                // Id_Plus_0 : . Id_Plus_0 Char
-                if self
-                    .scanner
-                    .match_any(FIRST_SET_ID_PLUS_0_ALT0, input_index)
-                {
+                // Plus_0 : . Plus_0 Char
+                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
-                // Id_Plus_0 : . Char
-                if self
-                    .scanner
-                    .match_any(FIRST_SET_ID_PLUS_0_ALT1, input_index)
-                {
+                // Plus_0 : . Char
+                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
                 if !matched {
                     self.add_parse_error(input_index, SlotId(8), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ID_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.to_vec(),
                         }
                     });
                 }
@@ -581,7 +575,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
             NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_ID, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_ID_PLUS_0, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_PLUS_0, input_index),
             _ => true,
         }
     }
@@ -589,7 +583,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_S.to_vec(),
             NonterminalId(1) => FOLLOW_SET_ID.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_ID_PLUS_0.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_PLUS_0.to_vec(),
             _ => vec![],
         }
     }
@@ -771,7 +765,7 @@ impl<'i> PrecedeRestrictionParser<'i> {
                 }
                 let right_child = {
                     let start = j;
-                    let node = self.parse_id_plus_0_ll1(start)?;
+                    let node = self.parse_plus_0_ll1(start)?;
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -790,7 +784,7 @@ impl<'i> PrecedeRestrictionParser<'i> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_id_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+    fn parse_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
         let (body_node, body_end) = (self
             .match_terminal(TerminalId(0), j, SlotId(11), None, "Char")

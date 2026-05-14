@@ -35,11 +35,11 @@ impl TokenKind {
 pub enum ParseTree<'a> {
     Expr(&'a Expr<'a>),
     // {Expr !comma ","}+
-    ExprPlus0(&'a ExprPlus0<'a>),
+    Plus0(&'a Plus0<'a>),
     // {Expr !comma ","}+?
-    ExprOpt0(&'a ExprOpt0<'a>),
+    Opt0(&'a Opt0<'a>),
     // {Expr !comma ","}*
-    ExprStar0(&'a ExprStar0<'a>),
+    Star0(&'a Star0<'a>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -48,38 +48,38 @@ impl<'a> ParseTree<'a> {
             ParseTree::Expr(expr) => (0..expr.child_count())
                 .filter_map(|i| expr.child(i))
                 .collect(),
-            ParseTree::ExprPlus0(expr_plus_0) => expr_plus_0.iter().collect(),
-            ParseTree::ExprOpt0(expr_opt_0) => (0..expr_opt_0.child_count())
-                .filter_map(|i| expr_opt_0.child(i))
+            ParseTree::Plus0(plus_0) => plus_0.iter().collect(),
+            ParseTree::Opt0(opt_0) => (0..opt_0.child_count())
+                .filter_map(|i| opt_0.child(i))
                 .collect(),
-            ParseTree::ExprStar0(expr_star_0) => expr_star_0.iter().collect(),
+            ParseTree::Star0(star_0) => star_0.iter().collect(),
             ParseTree::Token(_) => vec![],
         }
     }
     pub fn display_name(&self) -> &'static str {
         match self {
             ParseTree::Expr(_) => "Expr",
-            ParseTree::ExprPlus0(_) => "{Expr !comma \",\"}+",
-            ParseTree::ExprOpt0(_) => "{Expr !comma \",\"}+?",
-            ParseTree::ExprStar0(_) => "{Expr !comma \",\"}*",
+            ParseTree::Plus0(_) => "{Expr !comma \",\"}+",
+            ParseTree::Opt0(_) => "{Expr !comma \",\"}+?",
+            ParseTree::Star0(_) => "{Expr !comma \",\"}*",
             ParseTree::Token(token) => token.kind.name(),
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
             ParseTree::Expr(expr) => expr.child_count(),
-            ParseTree::ExprPlus0(expr_plus_0) => expr_plus_0.child_count(),
-            ParseTree::ExprOpt0(expr_opt_0) => expr_opt_0.child_count(),
-            ParseTree::ExprStar0(expr_star_0) => expr_star_0.child_count(),
+            ParseTree::Plus0(plus_0) => plus_0.child_count(),
+            ParseTree::Opt0(opt_0) => opt_0.child_count(),
+            ParseTree::Star0(star_0) => star_0.child_count(),
             ParseTree::Token(_) => 0,
         }
     }
     pub fn span(&self) -> Span {
         match self {
             ParseTree::Expr(expr) => expr.span(),
-            ParseTree::ExprPlus0(expr_plus_0) => expr_plus_0.span(),
-            ParseTree::ExprOpt0(expr_opt_0) => expr_opt_0.span(),
-            ParseTree::ExprStar0(expr_star_0) => expr_star_0.span(),
+            ParseTree::Plus0(plus_0) => plus_0.span(),
+            ParseTree::Opt0(opt_0) => opt_0.span(),
+            ParseTree::Star0(star_0) => star_0.span(),
             ParseTree::Token(token) => token.span(),
         }
     }
@@ -89,21 +89,21 @@ impl<'a> ParseTree<'a> {
             _ => panic!(),
         }
     }
-    fn unwrap_expr_plus_0(self) -> &'a ExprPlus0<'a> {
+    fn unwrap_plus_0(self) -> &'a Plus0<'a> {
         match self {
-            ParseTree::ExprPlus0(expr_plus_0) => expr_plus_0,
+            ParseTree::Plus0(plus_0) => plus_0,
             _ => panic!(),
         }
     }
-    fn unwrap_expr_opt_0(self) -> &'a ExprOpt0<'a> {
+    fn unwrap_opt_0(self) -> &'a Opt0<'a> {
         match self {
-            ParseTree::ExprOpt0(expr_opt_0) => expr_opt_0,
+            ParseTree::Opt0(opt_0) => opt_0,
             _ => panic!(),
         }
     }
-    fn unwrap_expr_star_0(self) -> &'a ExprStar0<'a> {
+    fn unwrap_star_0(self) -> &'a Star0<'a> {
         match self {
-            ParseTree::ExprStar0(expr_star_0) => expr_star_0,
+            ParseTree::Star0(star_0) => star_0,
             _ => panic!(),
         }
     }
@@ -132,7 +132,7 @@ pub enum Expr<'a> {
     Call {
         expr: &'a Expr<'a>,
         lit_1: Token,
-        expr_star_0: &'a ExprStar0<'a>,
+        star_0: &'a Star0<'a>,
         lit_3: Token,
         span: Span,
     },
@@ -147,10 +147,10 @@ pub enum Expr<'a> {
 }
 // {Expr !comma ","}+
 #[derive(Debug)]
-pub enum ExprPlus0<'a> {
+pub enum Plus0<'a> {
     // {Expr !comma ","}+ "," Expr !comma
     Alt0 {
-        expr_plus_0: &'a ExprPlus0<'a>,
+        plus_0: &'a Plus0<'a>,
         lit_1: Token,
         expr: &'a Expr<'a>,
         span: Span,
@@ -160,26 +160,21 @@ pub enum ExprPlus0<'a> {
         expr: &'a Expr<'a>,
         span: Span,
     },
-    Amb(&'a [&'a ExprPlus0<'a>]),
+    Amb(&'a [&'a Plus0<'a>]),
 }
 // {Expr !comma ","}+?
 #[derive(Debug)]
-pub enum ExprOpt0<'a> {
+pub enum Opt0<'a> {
     // {Expr !comma ","}+
-    Alt0 {
-        expr_plus_0: &'a ExprPlus0<'a>,
-        span: Span,
-    },
+    Alt0 { plus_0: &'a Plus0<'a>, span: Span },
     //
-    Alt1 {
-        span: Span,
-    },
-    Amb(&'a [&'a ExprOpt0<'a>]),
+    Alt1 { span: Span },
+    Amb(&'a [&'a Opt0<'a>]),
 }
 // {Expr !comma ","}*
 #[derive(Debug)]
-pub struct ExprStar0<'a> {
-    pub expr_opt_0: &'a ExprOpt0<'a>,
+pub struct Star0<'a> {
+    pub opt_0: &'a Opt0<'a>,
     pub span: Span,
 }
 impl<'a> Expr<'a> {
@@ -195,13 +190,13 @@ impl<'a> Expr<'a> {
             Expr::Call {
                 expr,
                 lit_1,
-                expr_star_0,
+                star_0,
                 lit_3,
                 ..
             } => match index {
                 0 => Some(ParseTree::Expr(expr)),
                 1 => Some(ParseTree::Token(*lit_1)),
-                2 => Some(ParseTree::ExprStar0(expr_star_0)),
+                2 => Some(ParseTree::Star0(star_0)),
                 3 => Some(ParseTree::Token(*lit_3)),
                 _ => None,
             },
@@ -236,85 +231,85 @@ impl<'a> Expr<'a> {
         }
     }
 }
-impl<'a> ExprPlus0<'a> {
+impl<'a> Plus0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
-        ParseTree::ExprPlus0(self)
+        ParseTree::Plus0(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            ExprPlus0::Alt0 {
-                expr_plus_0,
+            Plus0::Alt0 {
+                plus_0,
                 lit_1,
                 expr,
                 ..
             } => match index {
-                0 => Some(ParseTree::ExprPlus0(expr_plus_0)),
+                0 => Some(ParseTree::Plus0(plus_0)),
                 1 => Some(ParseTree::Token(*lit_1)),
                 2 => Some(ParseTree::Expr(expr)),
                 _ => None,
             },
-            ExprPlus0::Alt1 { expr, .. } => match index {
+            Plus0::Alt1 { expr, .. } => match index {
                 0 => Some(ParseTree::Expr(expr)),
                 _ => None,
             },
-            ExprPlus0::Amb(_) => None,
+            Plus0::Amb(_) => None,
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
-            ExprPlus0::Alt0 { .. } => 3usize,
-            ExprPlus0::Alt1 { .. } => 1usize,
-            ExprPlus0::Amb(alts) => alts.len(),
+            Plus0::Alt0 { .. } => 3usize,
+            Plus0::Alt1 { .. } => 1usize,
+            Plus0::Amb(alts) => alts.len(),
         }
     }
     pub fn span(&self) -> Span {
         match self {
-            ExprPlus0::Alt0 { span, .. } => *span,
-            ExprPlus0::Alt1 { span, .. } => *span,
-            ExprPlus0::Amb(alts) => alts[0].span(),
+            Plus0::Alt0 { span, .. } => *span,
+            Plus0::Alt1 { span, .. } => *span,
+            Plus0::Amb(alts) => alts[0].span(),
         }
     }
 }
-impl<'a> ExprOpt0<'a> {
+impl<'a> Opt0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
-        ParseTree::ExprOpt0(self)
+        ParseTree::Opt0(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            ExprOpt0::Alt0 { expr_plus_0, .. } => match index {
-                0 => Some(ParseTree::ExprPlus0(expr_plus_0)),
+            Opt0::Alt0 { plus_0, .. } => match index {
+                0 => Some(ParseTree::Plus0(plus_0)),
                 _ => None,
             },
-            ExprOpt0::Alt1 { .. } => match index {
+            Opt0::Alt1 { .. } => match index {
                 _ => None,
             },
-            ExprOpt0::Amb(_) => None,
+            Opt0::Amb(_) => None,
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
-            ExprOpt0::Alt0 { .. } => 1usize,
-            ExprOpt0::Alt1 { .. } => 0usize,
-            ExprOpt0::Amb(alts) => alts.len(),
+            Opt0::Alt0 { .. } => 1usize,
+            Opt0::Alt1 { .. } => 0usize,
+            Opt0::Amb(alts) => alts.len(),
         }
     }
     pub fn span(&self) -> Span {
         match self {
-            ExprOpt0::Alt0 { span, .. } => *span,
-            ExprOpt0::Alt1 { span, .. } => *span,
-            ExprOpt0::Amb(alts) => alts[0].span(),
+            Opt0::Alt0 { span, .. } => *span,
+            Opt0::Alt1 { span, .. } => *span,
+            Opt0::Amb(alts) => alts[0].span(),
         }
     }
 }
-impl<'a> ExprStar0<'a> {
+impl<'a> Star0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
-        ParseTree::ExprStar0(self)
+        ParseTree::Star0(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some({
-                let expr_opt_0 = &self.expr_opt_0;
-                ParseTree::ExprOpt0(expr_opt_0)
+                let opt_0 = &self.opt_0;
+                ParseTree::Opt0(opt_0)
             }),
             _ => None,
         }
@@ -326,14 +321,14 @@ impl<'a> ExprStar0<'a> {
         self.span
     }
 }
-impl<'a> ListNode<'a> for ExprPlus0<'a> {
+impl<'a> ListNode<'a> for Plus0<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
         let mut items = vec![];
         let mut current = self;
         loop {
             match current {
-                ExprPlus0::Alt0 {
-                    expr_plus_0: rest,
+                Plus0::Alt0 {
+                    plus_0: rest,
                     lit_1: sep,
                     expr: item,
                     ..
@@ -342,36 +337,33 @@ impl<'a> ListNode<'a> for ExprPlus0<'a> {
                     items.push(sep.as_parse_tree());
                     current = rest;
                 }
-                ExprPlus0::Alt1 { expr: item, .. } => {
+                Plus0::Alt1 { expr: item, .. } => {
                     items.push(item.as_parse_tree());
                     break;
                 }
-                ExprPlus0::Amb(_) => panic!("unexpected ambiguity in list node"),
+                Plus0::Amb(_) => panic!("unexpected ambiguity in list node"),
             }
         }
         items.reverse();
         items.into_iter()
     }
 }
-impl<'a> ListNode<'a> for ExprStar0<'a> {
+impl<'a> ListNode<'a> for Star0<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
-        match self.expr_opt_0 {
-            ExprOpt0::Alt0 {
-                expr_plus_0: expr_opt_0,
-                ..
-            } => expr_opt_0.iter(),
-            ExprOpt0::Alt1 { .. } => vec![].into_iter(),
-            ExprOpt0::Amb(_) => panic!("unexpected ambiguity in list node"),
+        match self.opt_0 {
+            Opt0::Alt0 { plus_0: opt_0, .. } => opt_0.iter(),
+            Opt0::Alt1 { .. } => vec![].into_iter(),
+            Opt0::Amb(_) => panic!("unexpected ambiguity in list node"),
         }
     }
 }
-impl<'a> OptNode for ExprOpt0<'a> {
-    type Inner = ExprPlus0<'a>;
+impl<'a> OptNode for Opt0<'a> {
+    type Inner = Plus0<'a>;
     fn value(&self) -> Option<&Self::Inner> {
         match self {
-            ExprOpt0::Alt0 { expr_plus_0, .. } => Some(expr_plus_0),
-            ExprOpt0::Alt1 { .. } => None,
-            ExprOpt0::Amb(_) => panic!("unexpected ambiguity in optional node"),
+            Opt0::Alt0 { plus_0, .. } => Some(plus_0),
+            Opt0::Alt1 { .. } => None,
+            Opt0::Amb(_) => panic!("unexpected ambiguity in optional node"),
         }
     }
 }
@@ -428,11 +420,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }
                 // Expr : Expr "(" {Expr !comma ","}* ")".
                 SlotId(6) => {
-                    let [expr, lit_1, expr_star_0, lit_3] = children.into_array::<4usize>();
+                    let [expr, lit_1, star_0, lit_3] = children.into_array::<4usize>();
                     ParseTree::Expr(self.bump.alloc(Expr::Call {
                         expr: expr.unwrap_expr(),
                         lit_1: lit_1.unwrap_token(),
-                        expr_star_0: expr_star_0.unwrap_expr_star_0(),
+                        star_0: star_0.unwrap_star_0(),
                         lit_3: lit_3.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -449,13 +441,13 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }
                 _ => unreachable!(),
             },
-            // Expr_Plus_0
+            // Plus_0
             NonterminalId(1) => match nonterminal_node.return_slot {
                 // {Expr !comma ","}+ : {Expr !comma ","}+ "," Expr !comma.
                 SlotId(14) => {
-                    let [expr_plus_0, lit_1, expr] = children.into_array::<3usize>();
-                    ParseTree::ExprPlus0(self.bump.alloc(ExprPlus0::Alt0 {
-                        expr_plus_0: expr_plus_0.unwrap_expr_plus_0(),
+                    let [plus_0, lit_1, expr] = children.into_array::<3usize>();
+                    ParseTree::Plus0(self.bump.alloc(Plus0::Alt0 {
+                        plus_0: plus_0.unwrap_plus_0(),
                         lit_1: lit_1.unwrap_token(),
                         expr: expr.unwrap_expr(),
                         span: nonterminal_node.span,
@@ -464,39 +456,39 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 // {Expr !comma ","}+ : Expr !comma.
                 SlotId(16) => {
                     let [expr] = children.into_array::<1usize>();
-                    ParseTree::ExprPlus0(self.bump.alloc(ExprPlus0::Alt1 {
+                    ParseTree::Plus0(self.bump.alloc(Plus0::Alt1 {
                         expr: expr.unwrap_expr(),
                         span: nonterminal_node.span,
                     }))
                 }
                 _ => unreachable!(),
             },
-            // Expr_Opt_0
+            // Opt_0
             NonterminalId(2) => match nonterminal_node.return_slot {
                 // {Expr !comma ","}+? : {Expr !comma ","}+.
                 SlotId(18) => {
-                    let [expr_plus_0] = children.into_array::<1usize>();
-                    ParseTree::ExprOpt0(self.bump.alloc(ExprOpt0::Alt0 {
-                        expr_plus_0: expr_plus_0.unwrap_expr_plus_0(),
+                    let [plus_0] = children.into_array::<1usize>();
+                    ParseTree::Opt0(self.bump.alloc(Opt0::Alt0 {
+                        plus_0: plus_0.unwrap_plus_0(),
                         span: nonterminal_node.span,
                     }))
                 }
                 // {Expr !comma ","}+? : .
                 SlotId(19) => {
                     let [] = children.into_array::<0usize>();
-                    ParseTree::ExprOpt0(self.bump.alloc(ExprOpt0::Alt1 {
+                    ParseTree::Opt0(self.bump.alloc(Opt0::Alt1 {
                         span: nonterminal_node.span,
                     }))
                 }
                 _ => unreachable!(),
             },
-            // Expr_Star_0
+            // Star_0
             NonterminalId(3) => match nonterminal_node.return_slot {
                 // {Expr !comma ","}* : {Expr !comma ","}+?.
                 SlotId(21) => {
-                    let [expr_opt_0] = children.into_array::<1usize>();
-                    ParseTree::ExprStar0(self.bump.alloc(ExprStar0 {
-                        expr_opt_0: expr_opt_0.unwrap_expr_opt_0(),
+                    let [opt_0] = children.into_array::<1usize>();
+                    ParseTree::Star0(self.bump.alloc(Star0 {
+                        opt_0: opt_0.unwrap_opt_0(),
                         span: nonterminal_node.span,
                     }))
                 }
@@ -514,11 +506,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }
                 // Expr !comma : Expr "(" {Expr !comma ","}* ")".
                 SlotId(28) => {
-                    let [expr, lit_1, expr_star_0, lit_3] = children.into_array::<4usize>();
+                    let [expr, lit_1, star_0, lit_3] = children.into_array::<4usize>();
                     ParseTree::Expr(self.bump.alloc(Expr::Call {
                         expr: expr.unwrap_expr(),
                         lit_1: lit_1.unwrap_token(),
-                        expr_star_0: expr_star_0.unwrap_expr_star_0(),
+                        star_0: star_0.unwrap_star_0(),
                         lit_3: lit_3.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -545,14 +537,14 @@ pub fn create_parse_tree<'a>(
         crate::grammar_data::EXPR => {
             ParseTree::Expr(create_parse_tree_expr(root_id, parser, builder))
         }
-        crate::grammar_data::EXPR_PLUS_0 => {
-            ParseTree::ExprPlus0(create_parse_tree_expr_plus_0(root_id, parser, builder))
+        crate::grammar_data::PLUS_0 => {
+            ParseTree::Plus0(create_parse_tree_plus_0(root_id, parser, builder))
         }
-        crate::grammar_data::EXPR_OPT_0 => {
-            ParseTree::ExprOpt0(create_parse_tree_expr_opt_0(root_id, parser, builder))
+        crate::grammar_data::OPT_0 => {
+            ParseTree::Opt0(create_parse_tree_opt_0(root_id, parser, builder))
         }
-        crate::grammar_data::EXPR_STAR_0 => {
-            ParseTree::ExprStar0(create_parse_tree_expr_star_0(root_id, parser, builder))
+        crate::grammar_data::STAR_0 => {
+            ParseTree::Star0(create_parse_tree_star_0(root_id, parser, builder))
         }
         _ => panic!(),
     }
@@ -565,35 +557,35 @@ pub fn create_parse_tree_expr<'a>(
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_expr()
 }
-pub fn create_parse_tree_expr_plus_0<'a>(
+pub fn create_parse_tree_plus_0<'a>(
     root_id: SPPFNodeId,
     parser: &ExcludeByLabelParser,
     builder: &ExcludeByLabelParseTreeBuilder<'a>,
-) -> &'a ExprPlus0<'a> {
+) -> &'a Plus0<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_expr_plus_0()
+        .unwrap_plus_0()
 }
-pub fn create_parse_tree_expr_opt_0<'a>(
+pub fn create_parse_tree_opt_0<'a>(
     root_id: SPPFNodeId,
     parser: &ExcludeByLabelParser,
     builder: &ExcludeByLabelParseTreeBuilder<'a>,
-) -> &'a ExprOpt0<'a> {
+) -> &'a Opt0<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_expr_opt_0()
+        .unwrap_opt_0()
 }
-pub fn create_parse_tree_expr_star_0<'a>(
+pub fn create_parse_tree_star_0<'a>(
     root_id: SPPFNodeId,
     parser: &ExcludeByLabelParser,
     builder: &ExcludeByLabelParseTreeBuilder<'a>,
-) -> &'a ExprStar0<'a> {
+) -> &'a Star0<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_expr_star_0()
+        .unwrap_star_0()
 }
 pub fn to_sexpr(node: ParseTree<'_>) -> String {
     let mut s = String::new();

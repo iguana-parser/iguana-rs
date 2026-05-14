@@ -3,14 +3,14 @@
 // grammar FollowRestrictionLexical
 //
 // S
-//   = S_Plus_0
+//   = Plus_0
 //
 // Element
 //   = Num
 //   | Id
 //
-// S_Plus_0
-//   = S_Plus_0 WS Element
+// Plus_0
+//   = Plus_0 WS Element
 //   | Element
 //
 // Num = ([0-9]+) !>> Alpha
@@ -67,15 +67,15 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
             gss_node_id
         );
         match slot_id {
-            // S : . S_Plus_0
+            // S : . Plus_0
             SlotId(0) => {
-                if let Some(right_child) = self.parse_s_plus_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // S : S_Plus_0.
+                    // S : Plus_0.
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
-            // S : S_Plus_0.
+            // S : Plus_0.
             SlotId(1) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
@@ -119,15 +119,15 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
                     self.create_nonterminal_node(result, NonterminalId(1), SlotId(5));
                 self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
-            // S_Plus_0 : . S_Plus_0 WS Element
+            // Plus_0 : . Plus_0 WS Element
             SlotId(6) => {
-                if let Some(right_child) = self.parse_s_plus_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // S_Plus_0 : S_Plus_0 . WS Element
+                    // Plus_0 : Plus_0 . WS Element
                     self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
                 }
             }
-            // S_Plus_0 : S_Plus_0 . WS Element
+            // Plus_0 : Plus_0 . WS Element
             SlotId(7) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(3),
@@ -139,37 +139,37 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(8))
                     {
-                        // S_Plus_0 : S_Plus_0 WS . Element
+                        // Plus_0 : Plus_0 WS . Element
                         self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // S_Plus_0 : S_Plus_0 WS . Element
+            // Plus_0 : Plus_0 WS . Element
             SlotId(8) => {
                 if let Some(right_child) = self.parse_element_ll1(input_index) {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(9))
                     {
-                        // S_Plus_0 : S_Plus_0 WS Element.
+                        // Plus_0 : Plus_0 WS Element.
                         self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // S_Plus_0 : S_Plus_0 WS Element.
+            // Plus_0 : Plus_0 WS Element.
             SlotId(9) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(9));
                 self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
             }
-            // S_Plus_0 : . Element
+            // Plus_0 : . Element
             SlotId(10) => {
                 if let Some(right_child) = self.parse_element_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // S_Plus_0 : Element.
+                    // Plus_0 : Element.
                     self.execute(j, SlotId(11), Some(right_child), gss_node_id, env);
                 }
             }
-            // S_Plus_0 : Element.
+            // Plus_0 : Element.
             SlotId(11) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(11));
@@ -188,7 +188,7 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
         env: Option<EnvId>,
     ) {
         match nonterminal_id {
-            // S : . S_Plus_0
+            // S : . Plus_0
             NonterminalId(0) => {
                 self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
@@ -213,23 +213,23 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
                     });
                 }
             }
-            // S_Plus_0
+            // Plus_0
             NonterminalId(2) => {
                 let mut matched = false;
-                // S_Plus_0 : . S_Plus_0 WS Element
-                if self.scanner.match_any(FIRST_SET_S_PLUS_0_ALT0, input_index) {
+                // Plus_0 : . Plus_0 WS Element
+                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
-                // S_Plus_0 : . Element
-                if self.scanner.match_any(FIRST_SET_S_PLUS_0_ALT1, input_index) {
+                // Plus_0 : . Element
+                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
                 if !matched {
                     self.add_parse_error(input_index, SlotId(6), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_S_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.to_vec(),
                         }
                     });
                 }
@@ -545,7 +545,7 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
             NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_ELEMENT, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_S_PLUS_0, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_PLUS_0, input_index),
             _ => true,
         }
     }
@@ -553,7 +553,7 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_S.to_vec(),
             NonterminalId(1) => FOLLOW_SET_ELEMENT.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_S_PLUS_0.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_PLUS_0.to_vec(),
             _ => vec![],
         }
     }
@@ -652,7 +652,7 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_s_plus_0_ll1(start)?;
+                    let node = self.parse_plus_0_ll1(start)?;
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -717,7 +717,7 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_s_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+    fn parse_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
         let (body_node, body_end) = (self.parse_element_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();

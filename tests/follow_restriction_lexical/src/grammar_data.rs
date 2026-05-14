@@ -14,7 +14,7 @@ pub const NONTERMINALS: [Nonterminal; 3] = [
         derived: false,
     },
     Nonterminal {
-        name: "S_Plus_0",
+        name: "Plus_0",
         display: "Element+",
         derived: true,
     },
@@ -23,12 +23,12 @@ pub const NONTERMINALS: [Nonterminal; 3] = [
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 2] = ["S", "Element"];
 pub const S: NonterminalId = NonterminalId(0);
 pub const ELEMENT: NonterminalId = NonterminalId(1);
-pub const S_PLUS_0: NonterminalId = NonterminalId(2);
+pub const PLUS_0: NonterminalId = NonterminalId(2);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
         "Element" => Some(ELEMENT),
-        "S_Plus_0" => Some(S_PLUS_0),
+        "Plus_0" => Some(PLUS_0),
         _ => None,
     }
 }
@@ -82,7 +82,7 @@ pub const SLOTS: [Slot; 12] = [
 pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(5)];
 // S { Num, Id }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
-// S : . S_Plus_0 { Num, Id }
+// S : . Plus_0 { Num, Id }
 pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 // Element { WS, Num, Id, EOF }
 pub static FOLLOW_SET_ELEMENT: &[TerminalId] =
@@ -93,12 +93,12 @@ pub static FIRST_SET_ELEMENT: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 pub static FIRST_SET_ELEMENT_ALT0: &[TerminalId] = &[TerminalId(0)];
 // Element : . Id { Id }
 pub static FIRST_SET_ELEMENT_ALT1: &[TerminalId] = &[TerminalId(2)];
-// S_Plus_0 { EOF, Num, Id, WS }
-pub static FOLLOW_SET_S_PLUS_0: &[TerminalId] =
+// Plus_0 { EOF, Num, Id, WS }
+pub static FOLLOW_SET_PLUS_0: &[TerminalId] =
     &[TerminalId(5), TerminalId(0), TerminalId(2), TerminalId(3)];
-// S_Plus_0 { Num, Id }
-pub static FIRST_SET_S_PLUS_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
-// S_Plus_0 : . S_Plus_0 WS Element { Num, Id }
-pub static FIRST_SET_S_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
-// S_Plus_0 : . Element { Num, Id }
-pub static FIRST_SET_S_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+// Plus_0 { Num, Id }
+pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+// Plus_0 : . Plus_0 WS Element { Num, Id }
+pub static FIRST_SET_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+// Plus_0 : . Element { Num, Id }
+pub static FIRST_SET_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0), TerminalId(2)];

@@ -84,202 +84,202 @@ pub const NONTERMINALS: [Nonterminal; 60] = [
         derived: false,
     },
     Nonterminal {
-        name: "Grammar_Opt_0",
+        name: "Opt_0",
         display: "LayoutDef?",
         derived: true,
     },
     Nonterminal {
-        name: "Grammar_Plus_0",
+        name: "Plus_0",
         display: "Rule+",
         derived: true,
     },
     Nonterminal {
-        name: "Grammar_Opt_1",
+        name: "Opt_1",
         display: "Rule+?",
         derived: true,
     },
     Nonterminal {
-        name: "Grammar_Star_0",
+        name: "Star_0",
         display: "Rule*",
         derived: true,
     },
     Nonterminal {
-        name: "SyntaxRule_Plus_1",
+        name: "Plus_1",
         display: "Annotation+",
         derived: true,
     },
     Nonterminal {
-        name: "SyntaxRule_Opt_2",
+        name: "Opt_2",
         display: "Annotation+?",
         derived: true,
     },
     Nonterminal {
-        name: "SyntaxRule_Star_1",
+        name: "Star_1",
         display: "Annotation*",
         derived: true,
     },
     Nonterminal {
-        name: "SyntaxRule_Plus_2",
+        name: "Plus_2",
         display: "{PriorityLevel \">\"}+",
         derived: true,
     },
     Nonterminal {
-        name: "SyntaxRule_Opt_3",
+        name: "Opt_3",
         display: "{PriorityLevel \">\"}+?",
         derived: true,
     },
     Nonterminal {
-        name: "SyntaxRule_Star_2",
+        name: "Star_2",
         display: "{PriorityLevel \">\"}*",
         derived: true,
     },
     Nonterminal {
-        name: "RegexRule_Opt_4",
+        name: "Opt_4",
         display: "PreCondition?",
         derived: true,
     },
     Nonterminal {
-        name: "RegexRule_Plus_4",
+        name: "Plus_4",
         display: "Regex+",
         derived: true,
     },
     Nonterminal {
-        name: "RegexRule_Plus_3",
+        name: "Plus_3",
         display: "{Regex+ \"|\"}+",
         derived: true,
     },
     Nonterminal {
-        name: "RegexRule_Plus_5",
+        name: "Plus_5",
         display: "PostCondition+",
         derived: true,
     },
     Nonterminal {
-        name: "RegexRule_Opt_5",
+        name: "Opt_5",
         display: "PostCondition+?",
         derived: true,
     },
     Nonterminal {
-        name: "RegexRule_Star_3",
+        name: "Star_3",
         display: "PostCondition*",
         derived: true,
     },
     Nonterminal {
-        name: "PriorityLevel_Opt_6",
+        name: "Opt_6",
         display: "Associativity?",
         derived: true,
     },
     Nonterminal {
-        name: "PriorityLevel_Plus_6",
+        name: "Plus_6",
         display: "{Alternative \"|\"}+",
         derived: true,
     },
     Nonterminal {
-        name: "PriorityLevel_Opt_7",
+        name: "Opt_7",
         display: "{Alternative \"|\"}+?",
         derived: true,
     },
     Nonterminal {
-        name: "PriorityLevel_Star_4",
+        name: "Star_4",
         display: "{Alternative \"|\"}*",
         derived: true,
     },
     Nonterminal {
-        name: "Alternative_Plus_7",
+        name: "Plus_7",
         display: "Symbol+",
         derived: true,
     },
     Nonterminal {
-        name: "Alternative_Opt_8",
+        name: "Opt_8",
         display: "Symbol+?",
         derived: true,
     },
     Nonterminal {
-        name: "Alternative_Star_5",
+        name: "Star_5",
         display: "Symbol*",
         derived: true,
     },
     Nonterminal {
-        name: "Alternative_Opt_9",
+        name: "Opt_9",
         display: "Label?",
         derived: true,
     },
     Nonterminal {
-        name: "Symbol_Group_0",
+        name: "Group_0",
         display: "(\"|\" Symbol)",
         derived: true,
     },
     Nonterminal {
-        name: "Symbol_Plus_8",
+        name: "Plus_8",
         display: "(\"|\" Symbol)+",
         derived: true,
     },
     Nonterminal {
-        name: "Symbol_Group_1",
+        name: "Group_1",
         display: "(\"\\\" Identifier)",
         derived: true,
     },
     Nonterminal {
-        name: "Symbol_Plus_9",
+        name: "Plus_9",
         display: "(\"\\\" Identifier)+",
         derived: true,
     },
     Nonterminal {
-        name: "Symbol_Group_2",
+        name: "Group_2",
         display: "(\"!>>\" Identifier)",
         derived: true,
     },
     Nonterminal {
-        name: "Symbol_Plus_10",
+        name: "Plus_10",
         display: "(\"!>>\" Identifier)+",
         derived: true,
     },
     Nonterminal {
-        name: "Symbol_Group_3",
+        name: "Group_3",
         display: "(\"!\" Identifier)",
         derived: true,
     },
     Nonterminal {
-        name: "Symbol_Plus_11",
+        name: "Plus_11",
         display: "(\"!\" Identifier)+",
         derived: true,
     },
     Nonterminal {
-        name: "Regex_Group_4",
+        name: "Group_4",
         display: "(\"|\" Regex)",
         derived: true,
     },
     Nonterminal {
-        name: "Regex_Plus_12",
+        name: "Plus_12",
         display: "(\"|\" Regex)+",
         derived: true,
     },
     Nonterminal {
-        name: "CharClass_Opt_10",
+        name: "Opt_10",
         display: "\"!\"?",
         derived: true,
     },
     Nonterminal {
-        name: "CharClass_Plus_13",
+        name: "Plus_13",
         display: "RangeElement+",
         derived: true,
     },
     Nonterminal {
-        name: "Layout_Alt_0",
+        name: "Alt_0",
         display: "(WS | LineComment)",
         derived: true,
     },
     Nonterminal {
-        name: "Layout_Plus_14",
+        name: "Plus_14",
         display: "(WS | LineComment)+",
         derived: true,
     },
     Nonterminal {
-        name: "Layout_Opt_11",
+        name: "Opt_11",
         display: "(WS | LineComment)+?",
         derived: true,
     },
     Nonterminal {
-        name: "Layout_Star_6",
+        name: "Star_6",
         display: "(WS | LineComment)*",
         derived: true,
     },
@@ -340,46 +340,46 @@ pub const CHAR_CLASS: NonterminalId = NonterminalId(12);
 pub const RANGE_ELEMENT: NonterminalId = NonterminalId(13);
 pub const RANGE: NonterminalId = NonterminalId(14);
 pub const LAYOUT: NonterminalId = NonterminalId(15);
-pub const GRAMMAR_OPT_0: NonterminalId = NonterminalId(16);
-pub const GRAMMAR_PLUS_0: NonterminalId = NonterminalId(17);
-pub const GRAMMAR_OPT_1: NonterminalId = NonterminalId(18);
-pub const GRAMMAR_STAR_0: NonterminalId = NonterminalId(19);
-pub const SYNTAX_RULE_PLUS_1: NonterminalId = NonterminalId(20);
-pub const SYNTAX_RULE_OPT_2: NonterminalId = NonterminalId(21);
-pub const SYNTAX_RULE_STAR_1: NonterminalId = NonterminalId(22);
-pub const SYNTAX_RULE_PLUS_2: NonterminalId = NonterminalId(23);
-pub const SYNTAX_RULE_OPT_3: NonterminalId = NonterminalId(24);
-pub const SYNTAX_RULE_STAR_2: NonterminalId = NonterminalId(25);
-pub const REGEX_RULE_OPT_4: NonterminalId = NonterminalId(26);
-pub const REGEX_RULE_PLUS_4: NonterminalId = NonterminalId(27);
-pub const REGEX_RULE_PLUS_3: NonterminalId = NonterminalId(28);
-pub const REGEX_RULE_PLUS_5: NonterminalId = NonterminalId(29);
-pub const REGEX_RULE_OPT_5: NonterminalId = NonterminalId(30);
-pub const REGEX_RULE_STAR_3: NonterminalId = NonterminalId(31);
-pub const PRIORITY_LEVEL_OPT_6: NonterminalId = NonterminalId(32);
-pub const PRIORITY_LEVEL_PLUS_6: NonterminalId = NonterminalId(33);
-pub const PRIORITY_LEVEL_OPT_7: NonterminalId = NonterminalId(34);
-pub const PRIORITY_LEVEL_STAR_4: NonterminalId = NonterminalId(35);
-pub const ALTERNATIVE_PLUS_7: NonterminalId = NonterminalId(36);
-pub const ALTERNATIVE_OPT_8: NonterminalId = NonterminalId(37);
-pub const ALTERNATIVE_STAR_5: NonterminalId = NonterminalId(38);
-pub const ALTERNATIVE_OPT_9: NonterminalId = NonterminalId(39);
-pub const SYMBOL_GROUP_0: NonterminalId = NonterminalId(40);
-pub const SYMBOL_PLUS_8: NonterminalId = NonterminalId(41);
-pub const SYMBOL_GROUP_1: NonterminalId = NonterminalId(42);
-pub const SYMBOL_PLUS_9: NonterminalId = NonterminalId(43);
-pub const SYMBOL_GROUP_2: NonterminalId = NonterminalId(44);
-pub const SYMBOL_PLUS_10: NonterminalId = NonterminalId(45);
-pub const SYMBOL_GROUP_3: NonterminalId = NonterminalId(46);
-pub const SYMBOL_PLUS_11: NonterminalId = NonterminalId(47);
-pub const REGEX_GROUP_4: NonterminalId = NonterminalId(48);
-pub const REGEX_PLUS_12: NonterminalId = NonterminalId(49);
-pub const CHAR_CLASS_OPT_10: NonterminalId = NonterminalId(50);
-pub const CHAR_CLASS_PLUS_13: NonterminalId = NonterminalId(51);
-pub const LAYOUT_ALT_0: NonterminalId = NonterminalId(52);
-pub const LAYOUT_PLUS_14: NonterminalId = NonterminalId(53);
-pub const LAYOUT_OPT_11: NonterminalId = NonterminalId(54);
-pub const LAYOUT_STAR_6: NonterminalId = NonterminalId(55);
+pub const OPT_0: NonterminalId = NonterminalId(16);
+pub const PLUS_0: NonterminalId = NonterminalId(17);
+pub const OPT_1: NonterminalId = NonterminalId(18);
+pub const STAR_0: NonterminalId = NonterminalId(19);
+pub const PLUS_1: NonterminalId = NonterminalId(20);
+pub const OPT_2: NonterminalId = NonterminalId(21);
+pub const STAR_1: NonterminalId = NonterminalId(22);
+pub const PLUS_2: NonterminalId = NonterminalId(23);
+pub const OPT_3: NonterminalId = NonterminalId(24);
+pub const STAR_2: NonterminalId = NonterminalId(25);
+pub const OPT_4: NonterminalId = NonterminalId(26);
+pub const PLUS_4: NonterminalId = NonterminalId(27);
+pub const PLUS_3: NonterminalId = NonterminalId(28);
+pub const PLUS_5: NonterminalId = NonterminalId(29);
+pub const OPT_5: NonterminalId = NonterminalId(30);
+pub const STAR_3: NonterminalId = NonterminalId(31);
+pub const OPT_6: NonterminalId = NonterminalId(32);
+pub const PLUS_6: NonterminalId = NonterminalId(33);
+pub const OPT_7: NonterminalId = NonterminalId(34);
+pub const STAR_4: NonterminalId = NonterminalId(35);
+pub const PLUS_7: NonterminalId = NonterminalId(36);
+pub const OPT_8: NonterminalId = NonterminalId(37);
+pub const STAR_5: NonterminalId = NonterminalId(38);
+pub const OPT_9: NonterminalId = NonterminalId(39);
+pub const GROUP_0: NonterminalId = NonterminalId(40);
+pub const PLUS_8: NonterminalId = NonterminalId(41);
+pub const GROUP_1: NonterminalId = NonterminalId(42);
+pub const PLUS_9: NonterminalId = NonterminalId(43);
+pub const GROUP_2: NonterminalId = NonterminalId(44);
+pub const PLUS_10: NonterminalId = NonterminalId(45);
+pub const GROUP_3: NonterminalId = NonterminalId(46);
+pub const PLUS_11: NonterminalId = NonterminalId(47);
+pub const GROUP_4: NonterminalId = NonterminalId(48);
+pub const PLUS_12: NonterminalId = NonterminalId(49);
+pub const OPT_10: NonterminalId = NonterminalId(50);
+pub const PLUS_13: NonterminalId = NonterminalId(51);
+pub const ALT_0: NonterminalId = NonterminalId(52);
+pub const PLUS_14: NonterminalId = NonterminalId(53);
+pub const OPT_11: NonterminalId = NonterminalId(54);
+pub const STAR_6: NonterminalId = NonterminalId(55);
 pub const START_GRAMMAR: NonterminalId = NonterminalId(56);
 pub const SYMBOL: NonterminalId = NonterminalId(57);
 pub const SYMBOL_EXCEPT_EXCEPT: NonterminalId = NonterminalId(58);
@@ -402,46 +402,46 @@ pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         "RangeElement" => Some(RANGE_ELEMENT),
         "Range" => Some(RANGE),
         "Layout" => Some(LAYOUT),
-        "Grammar_Opt_0" => Some(GRAMMAR_OPT_0),
-        "Grammar_Plus_0" => Some(GRAMMAR_PLUS_0),
-        "Grammar_Opt_1" => Some(GRAMMAR_OPT_1),
-        "Grammar_Star_0" => Some(GRAMMAR_STAR_0),
-        "SyntaxRule_Plus_1" => Some(SYNTAX_RULE_PLUS_1),
-        "SyntaxRule_Opt_2" => Some(SYNTAX_RULE_OPT_2),
-        "SyntaxRule_Star_1" => Some(SYNTAX_RULE_STAR_1),
-        "SyntaxRule_Plus_2" => Some(SYNTAX_RULE_PLUS_2),
-        "SyntaxRule_Opt_3" => Some(SYNTAX_RULE_OPT_3),
-        "SyntaxRule_Star_2" => Some(SYNTAX_RULE_STAR_2),
-        "RegexRule_Opt_4" => Some(REGEX_RULE_OPT_4),
-        "RegexRule_Plus_4" => Some(REGEX_RULE_PLUS_4),
-        "RegexRule_Plus_3" => Some(REGEX_RULE_PLUS_3),
-        "RegexRule_Plus_5" => Some(REGEX_RULE_PLUS_5),
-        "RegexRule_Opt_5" => Some(REGEX_RULE_OPT_5),
-        "RegexRule_Star_3" => Some(REGEX_RULE_STAR_3),
-        "PriorityLevel_Opt_6" => Some(PRIORITY_LEVEL_OPT_6),
-        "PriorityLevel_Plus_6" => Some(PRIORITY_LEVEL_PLUS_6),
-        "PriorityLevel_Opt_7" => Some(PRIORITY_LEVEL_OPT_7),
-        "PriorityLevel_Star_4" => Some(PRIORITY_LEVEL_STAR_4),
-        "Alternative_Plus_7" => Some(ALTERNATIVE_PLUS_7),
-        "Alternative_Opt_8" => Some(ALTERNATIVE_OPT_8),
-        "Alternative_Star_5" => Some(ALTERNATIVE_STAR_5),
-        "Alternative_Opt_9" => Some(ALTERNATIVE_OPT_9),
-        "Symbol_Group_0" => Some(SYMBOL_GROUP_0),
-        "Symbol_Plus_8" => Some(SYMBOL_PLUS_8),
-        "Symbol_Group_1" => Some(SYMBOL_GROUP_1),
-        "Symbol_Plus_9" => Some(SYMBOL_PLUS_9),
-        "Symbol_Group_2" => Some(SYMBOL_GROUP_2),
-        "Symbol_Plus_10" => Some(SYMBOL_PLUS_10),
-        "Symbol_Group_3" => Some(SYMBOL_GROUP_3),
-        "Symbol_Plus_11" => Some(SYMBOL_PLUS_11),
-        "Regex_Group_4" => Some(REGEX_GROUP_4),
-        "Regex_Plus_12" => Some(REGEX_PLUS_12),
-        "CharClass_Opt_10" => Some(CHAR_CLASS_OPT_10),
-        "CharClass_Plus_13" => Some(CHAR_CLASS_PLUS_13),
-        "Layout_Alt_0" => Some(LAYOUT_ALT_0),
-        "Layout_Plus_14" => Some(LAYOUT_PLUS_14),
-        "Layout_Opt_11" => Some(LAYOUT_OPT_11),
-        "Layout_Star_6" => Some(LAYOUT_STAR_6),
+        "Opt_0" => Some(OPT_0),
+        "Plus_0" => Some(PLUS_0),
+        "Opt_1" => Some(OPT_1),
+        "Star_0" => Some(STAR_0),
+        "Plus_1" => Some(PLUS_1),
+        "Opt_2" => Some(OPT_2),
+        "Star_1" => Some(STAR_1),
+        "Plus_2" => Some(PLUS_2),
+        "Opt_3" => Some(OPT_3),
+        "Star_2" => Some(STAR_2),
+        "Opt_4" => Some(OPT_4),
+        "Plus_4" => Some(PLUS_4),
+        "Plus_3" => Some(PLUS_3),
+        "Plus_5" => Some(PLUS_5),
+        "Opt_5" => Some(OPT_5),
+        "Star_3" => Some(STAR_3),
+        "Opt_6" => Some(OPT_6),
+        "Plus_6" => Some(PLUS_6),
+        "Opt_7" => Some(OPT_7),
+        "Star_4" => Some(STAR_4),
+        "Plus_7" => Some(PLUS_7),
+        "Opt_8" => Some(OPT_8),
+        "Star_5" => Some(STAR_5),
+        "Opt_9" => Some(OPT_9),
+        "Group_0" => Some(GROUP_0),
+        "Plus_8" => Some(PLUS_8),
+        "Group_1" => Some(GROUP_1),
+        "Plus_9" => Some(PLUS_9),
+        "Group_2" => Some(GROUP_2),
+        "Plus_10" => Some(PLUS_10),
+        "Group_3" => Some(GROUP_3),
+        "Plus_11" => Some(PLUS_11),
+        "Group_4" => Some(GROUP_4),
+        "Plus_12" => Some(PLUS_12),
+        "Opt_10" => Some(OPT_10),
+        "Plus_13" => Some(PLUS_13),
+        "Alt_0" => Some(ALT_0),
+        "Plus_14" => Some(PLUS_14),
+        "Opt_11" => Some(OPT_11),
+        "Star_6" => Some(STAR_6),
         "StartGrammar" => Some(START_GRAMMAR),
         "Symbol" => Some(SYMBOL),
         "Symbol_except_Except" => Some(SYMBOL_EXCEPT_EXCEPT),
@@ -2265,7 +2265,7 @@ pub const SLOTS: [Slot; 587] = [
 pub static FOLLOW_SET_GRAMMAR: &[TerminalId] = &[TerminalId(38), TerminalId(9), TerminalId(7)];
 // Grammar { "grammar" }
 pub static FIRST_SET_GRAMMAR: &[TerminalId] = &[TerminalId(10)];
-// Grammar : . "grammar" Layout name:Identifier Layout Grammar_Opt_0 Layout Grammar_Star_0 { "grammar" }
+// Grammar : . "grammar" Layout name:Identifier Layout Opt_0 Layout Star_0 { "grammar" }
 pub static FIRST_SET_GRAMMAR_ALT0: &[TerminalId] = &[TerminalId(10)];
 // LayoutDef { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
 pub static FOLLOW_SET_LAYOUT_DEF: &[TerminalId] = &[
@@ -2334,7 +2334,7 @@ pub static FIRST_SET_SYNTAX_RULE: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// SyntaxRule : . SyntaxRule_Star_1 Layout head:Identifier Layout "=" Layout SyntaxRule_Star_2 { "@Start", Identifier, "@NoLayout", "@Layout", LineComment, WS }
+// SyntaxRule : . Star_1 Layout head:Identifier Layout "=" Layout Star_2 { "@Start", Identifier, "@NoLayout", "@Layout", LineComment, WS }
 pub static FIRST_SET_SYNTAX_RULE_ALT0: &[TerminalId] = &[
     TerminalId(18),
     TerminalId(1),
@@ -2374,7 +2374,7 @@ pub static FOLLOW_SET_REGEX_RULE: &[TerminalId] = &[
 ];
 // RegexRule { "@regex" }
 pub static FIRST_SET_REGEX_RULE: &[TerminalId] = &[TerminalId(19)];
-// RegexRule : . "@regex" Layout Identifier Layout "=" Layout RegexRule_Opt_4 Layout body:RegexRule_Plus_3 Layout RegexRule_Star_3 { "@regex" }
+// RegexRule : . "@regex" Layout Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3 { "@regex" }
 pub static FIRST_SET_REGEX_RULE_ALT0: &[TerminalId] = &[TerminalId(19)];
 // PreCondition { "[", Char, String, EOF, Identifier, "(", "!", LineComment, WS }
 pub static FOLLOW_SET_PRE_CONDITION: &[TerminalId] = &[
@@ -2437,7 +2437,7 @@ pub static FIRST_SET_PRIORITY_LEVEL: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// PriorityLevel : . PriorityLevel_Opt_6 Layout PriorityLevel_Star_4 { "left", WS, "right", String, "|", Label, "{", Identifier, "(", LineComment, "none" }
+// PriorityLevel : . Opt_6 Layout Star_4 { "left", WS, "right", String, "|", Label, "{", Identifier, "(", LineComment, "none" }
 pub static FIRST_SET_PRIORITY_LEVEL_ALT0: &[TerminalId] = &[
     TerminalId(24),
     TerminalId(7),
@@ -2500,7 +2500,7 @@ pub static FIRST_SET_ALTERNATIVE: &[TerminalId] = &[
     TerminalId(6),
     TerminalId(7),
 ];
-// Alternative : . Alternative_Star_5 Layout Alternative_Opt_9 { WS, Identifier, "(", String, LineComment, Label, "{" }
+// Alternative : . Star_5 Layout Opt_9 { WS, Identifier, "(", String, LineComment, Label, "{" }
 pub static FIRST_SET_ALTERNATIVE_ALT0: &[TerminalId] = &[
     TerminalId(7),
     TerminalId(1),
@@ -2540,9 +2540,9 @@ pub static FIRST_SET_SYMBOL: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
 // Symbol(p: i32) : . Identifier return 0 { Identifier }
 pub static FIRST_SET_SYMBOL_ALT0: &[TerminalId] = &[TerminalId(1)];
-// Symbol(p: i32) : . "(" Layout Alternative_Plus_7 Layout ")" return 0 { "(" }
+// Symbol(p: i32) : . "(" Layout Plus_7 Layout ")" return 0 { "(" }
 pub static FIRST_SET_SYMBOL_ALT1: &[TerminalId] = &[TerminalId(16)];
-// Symbol(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0 { "(" }
+// Symbol(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Plus_8 Layout ")" return 0 { "(" }
 pub static FIRST_SET_SYMBOL_ALT2: &[TerminalId] = &[TerminalId(16)];
 // Symbol(p: i32) : . String return 0 { String }
 pub static FIRST_SET_SYMBOL_ALT3: &[TerminalId] = &[TerminalId(2)];
@@ -2559,13 +2559,13 @@ pub static FIRST_SET_SYMBOL_ALT7: &[TerminalId] =
 // Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_ALT8: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Symbol(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_9 return 0 { Identifier, "(", String, "{" }
+// Symbol(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Plus_9 return 0 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_ALT9: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Symbol(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_10 return 0 { Identifier, "(", String, "{" }
+// Symbol(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Plus_10 return 0 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_ALT10: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_11 return 0 { Identifier, "(", String, "{" }
+// Symbol(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Plus_11 return 0 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_ALT11: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
 // Symbol(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2) { Identifier }
@@ -2639,9 +2639,9 @@ pub static FIRST_SET_REGEX_ALT2: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Regex : . "(" Layout first:Regex Layout rest:Regex_Plus_12 Layout ")" { "(" }
+// Regex : . "(" Layout first:Regex Layout rest:Plus_12 Layout ")" { "(" }
 pub static FIRST_SET_REGEX_ALT3: &[TerminalId] = &[TerminalId(16)];
-// Regex : . "(" Layout RegexRule_Plus_4 Layout ")" { "(" }
+// Regex : . "(" Layout Plus_4 Layout ")" { "(" }
 pub static FIRST_SET_REGEX_ALT4: &[TerminalId] = &[TerminalId(16)];
 // Regex : . CharClass { "[", "!", LineComment, WS }
 pub static FIRST_SET_REGEX_ALT5: &[TerminalId] =
@@ -2678,7 +2678,7 @@ pub static FOLLOW_SET_CHAR_CLASS: &[TerminalId] = &[
 // CharClass { "[", "!", LineComment, WS }
 pub static FIRST_SET_CHAR_CLASS: &[TerminalId] =
     &[TerminalId(34), TerminalId(32), TerminalId(9), TerminalId(7)];
-// CharClass : . neg:CharClass_Opt_10 Layout "[" Layout CharClass_Plus_13 Layout "]" { "[", "!", LineComment, WS }
+// CharClass : . neg:Opt_10 Layout "[" Layout Plus_13 Layout "]" { "[", "!", LineComment, WS }
 pub static FIRST_SET_CHAR_CLASS_ALT0: &[TerminalId] =
     &[TerminalId(34), TerminalId(32), TerminalId(9), TerminalId(7)];
 // RangeElement { "]", WS, RangeChar, LineComment, EOF }
@@ -2747,12 +2747,12 @@ pub static FOLLOW_SET_LAYOUT: &[TerminalId] = &[
 ];
 // Layout { LineComment, WS }
 pub static FIRST_SET_LAYOUT: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
-// Layout : . Layout_Star_6 !>> WS !>> LineComment { LineComment, WS }
+// Layout : . Star_6 !>> WS !>> LineComment { LineComment, WS }
 pub static FIRST_SET_LAYOUT_ALT0: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
-// Layout : . Layout_Star_6 !>> WS !>> LineComment !>> { WS, LineComment }
+// Layout : . Star_6 !>> WS !>> LineComment !>> { WS, LineComment }
 pub static FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0: &[TerminalId] = &[TerminalId(7), TerminalId(9)];
-// Grammar_Opt_0 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
-pub static FOLLOW_SET_GRAMMAR_OPT_0: &[TerminalId] = &[
+// Opt_0 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
+pub static FOLLOW_SET_OPT_0: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -2762,14 +2762,14 @@ pub static FOLLOW_SET_GRAMMAR_OPT_0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Grammar_Opt_0 { "layout" }
-pub static FIRST_SET_GRAMMAR_OPT_0: &[TerminalId] = &[TerminalId(11)];
-// Grammar_Opt_0 : . LayoutDef { "layout" }
-pub static FIRST_SET_GRAMMAR_OPT_0_ALT0: &[TerminalId] = &[TerminalId(11)];
-// Grammar_Opt_0 : . {  }
-pub static FIRST_SET_GRAMMAR_OPT_0_ALT1: &[TerminalId] = &[];
-// Grammar_Plus_0 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
-pub static FOLLOW_SET_GRAMMAR_PLUS_0: &[TerminalId] = &[
+// Opt_0 { "layout" }
+pub static FIRST_SET_OPT_0: &[TerminalId] = &[TerminalId(11)];
+// Opt_0 : . LayoutDef { "layout" }
+pub static FIRST_SET_OPT_0_ALT0: &[TerminalId] = &[TerminalId(11)];
+// Opt_0 : . {  }
+pub static FIRST_SET_OPT_0_ALT1: &[TerminalId] = &[];
+// Plus_0 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
+pub static FOLLOW_SET_PLUS_0: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -2779,8 +2779,8 @@ pub static FOLLOW_SET_GRAMMAR_PLUS_0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Grammar_Plus_0 { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
-pub static FIRST_SET_GRAMMAR_PLUS_0: &[TerminalId] = &[
+// Plus_0 { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
+pub static FIRST_SET_PLUS_0: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -2789,8 +2789,8 @@ pub static FIRST_SET_GRAMMAR_PLUS_0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Grammar_Plus_0 : . Grammar_Plus_0 Layout Rule { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
-pub static FIRST_SET_GRAMMAR_PLUS_0_ALT0: &[TerminalId] = &[
+// Plus_0 : . Plus_0 Layout Rule { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
+pub static FIRST_SET_PLUS_0_ALT0: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -2799,8 +2799,8 @@ pub static FIRST_SET_GRAMMAR_PLUS_0_ALT0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Grammar_Plus_0 : . Rule { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
-pub static FIRST_SET_GRAMMAR_PLUS_0_ALT1: &[TerminalId] = &[
+// Plus_0 : . Rule { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
+pub static FIRST_SET_PLUS_0_ALT1: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -2809,11 +2809,10 @@ pub static FIRST_SET_GRAMMAR_PLUS_0_ALT1: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Grammar_Opt_1 { EOF, LineComment, WS }
-pub static FOLLOW_SET_GRAMMAR_OPT_1: &[TerminalId] =
-    &[TerminalId(38), TerminalId(9), TerminalId(7)];
-// Grammar_Opt_1 { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
-pub static FIRST_SET_GRAMMAR_OPT_1: &[TerminalId] = &[
+// Opt_1 { EOF, LineComment, WS }
+pub static FOLLOW_SET_OPT_1: &[TerminalId] = &[TerminalId(38), TerminalId(9), TerminalId(7)];
+// Opt_1 { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
+pub static FIRST_SET_OPT_1: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -2822,8 +2821,8 @@ pub static FIRST_SET_GRAMMAR_OPT_1: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Grammar_Opt_1 : . Grammar_Plus_0 { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
-pub static FIRST_SET_GRAMMAR_OPT_1_ALT0: &[TerminalId] = &[
+// Opt_1 : . Plus_0 { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
+pub static FIRST_SET_OPT_1_ALT0: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -2832,13 +2831,12 @@ pub static FIRST_SET_GRAMMAR_OPT_1_ALT0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Grammar_Opt_1 : . {  }
-pub static FIRST_SET_GRAMMAR_OPT_1_ALT1: &[TerminalId] = &[];
-// Grammar_Star_0 { EOF, LineComment, WS }
-pub static FOLLOW_SET_GRAMMAR_STAR_0: &[TerminalId] =
-    &[TerminalId(38), TerminalId(9), TerminalId(7)];
-// Grammar_Star_0 { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
-pub static FIRST_SET_GRAMMAR_STAR_0: &[TerminalId] = &[
+// Opt_1 : . {  }
+pub static FIRST_SET_OPT_1_ALT1: &[TerminalId] = &[];
+// Star_0 { EOF, LineComment, WS }
+pub static FOLLOW_SET_STAR_0: &[TerminalId] = &[TerminalId(38), TerminalId(9), TerminalId(7)];
+// Star_0 { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
+pub static FIRST_SET_STAR_0: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -2847,8 +2845,8 @@ pub static FIRST_SET_GRAMMAR_STAR_0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Grammar_Star_0 : . Grammar_Opt_1 { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
-pub static FIRST_SET_GRAMMAR_STAR_0_ALT0: &[TerminalId] = &[
+// Star_0 : . Opt_1 { "@regex", "@Start", "@NoLayout", Identifier, "@Layout", LineComment, WS }
+pub static FIRST_SET_STAR_0_ALT0: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -2857,8 +2855,8 @@ pub static FIRST_SET_GRAMMAR_STAR_0_ALT0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// SyntaxRule_Plus_1 { "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
-pub static FOLLOW_SET_SYNTAX_RULE_PLUS_1: &[TerminalId] = &[
+// Plus_1 { "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
+pub static FOLLOW_SET_PLUS_1: &[TerminalId] = &[
     TerminalId(18),
     TerminalId(14),
     TerminalId(38),
@@ -2867,37 +2865,30 @@ pub static FOLLOW_SET_SYNTAX_RULE_PLUS_1: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// SyntaxRule_Plus_1 { "@Start", "@NoLayout", "@Layout" }
-pub static FIRST_SET_SYNTAX_RULE_PLUS_1: &[TerminalId] =
-    &[TerminalId(18), TerminalId(14), TerminalId(15)];
-// SyntaxRule_Plus_1 : . SyntaxRule_Plus_1 Layout Annotation { "@Layout", "@Start", "@NoLayout" }
-pub static FIRST_SET_SYNTAX_RULE_PLUS_1_ALT0: &[TerminalId] =
-    &[TerminalId(15), TerminalId(18), TerminalId(14)];
-// SyntaxRule_Plus_1 : . Annotation { "@Layout", "@Start", "@NoLayout" }
-pub static FIRST_SET_SYNTAX_RULE_PLUS_1_ALT1: &[TerminalId] =
-    &[TerminalId(15), TerminalId(18), TerminalId(14)];
-// SyntaxRule_Opt_2 { WS, Identifier, LineComment, EOF }
-pub static FOLLOW_SET_SYNTAX_RULE_OPT_2: &[TerminalId] =
+// Plus_1 { "@Start", "@NoLayout", "@Layout" }
+pub static FIRST_SET_PLUS_1: &[TerminalId] = &[TerminalId(18), TerminalId(14), TerminalId(15)];
+// Plus_1 : . Plus_1 Layout Annotation { "@Layout", "@Start", "@NoLayout" }
+pub static FIRST_SET_PLUS_1_ALT0: &[TerminalId] = &[TerminalId(15), TerminalId(18), TerminalId(14)];
+// Plus_1 : . Annotation { "@Layout", "@Start", "@NoLayout" }
+pub static FIRST_SET_PLUS_1_ALT1: &[TerminalId] = &[TerminalId(15), TerminalId(18), TerminalId(14)];
+// Opt_2 { WS, Identifier, LineComment, EOF }
+pub static FOLLOW_SET_OPT_2: &[TerminalId] =
     &[TerminalId(7), TerminalId(1), TerminalId(9), TerminalId(38)];
-// SyntaxRule_Opt_2 { "@Layout", "@Start", "@NoLayout" }
-pub static FIRST_SET_SYNTAX_RULE_OPT_2: &[TerminalId] =
-    &[TerminalId(15), TerminalId(18), TerminalId(14)];
-// SyntaxRule_Opt_2 : . SyntaxRule_Plus_1 { "@Layout", "@Start", "@NoLayout" }
-pub static FIRST_SET_SYNTAX_RULE_OPT_2_ALT0: &[TerminalId] =
-    &[TerminalId(15), TerminalId(18), TerminalId(14)];
-// SyntaxRule_Opt_2 : . {  }
-pub static FIRST_SET_SYNTAX_RULE_OPT_2_ALT1: &[TerminalId] = &[];
-// SyntaxRule_Star_1 { EOF, Identifier, LineComment, WS }
-pub static FOLLOW_SET_SYNTAX_RULE_STAR_1: &[TerminalId] =
+// Opt_2 { "@Layout", "@Start", "@NoLayout" }
+pub static FIRST_SET_OPT_2: &[TerminalId] = &[TerminalId(15), TerminalId(18), TerminalId(14)];
+// Opt_2 : . Plus_1 { "@Layout", "@Start", "@NoLayout" }
+pub static FIRST_SET_OPT_2_ALT0: &[TerminalId] = &[TerminalId(15), TerminalId(18), TerminalId(14)];
+// Opt_2 : . {  }
+pub static FIRST_SET_OPT_2_ALT1: &[TerminalId] = &[];
+// Star_1 { EOF, Identifier, LineComment, WS }
+pub static FOLLOW_SET_STAR_1: &[TerminalId] =
     &[TerminalId(38), TerminalId(1), TerminalId(9), TerminalId(7)];
-// SyntaxRule_Star_1 { "@Layout", "@Start", "@NoLayout" }
-pub static FIRST_SET_SYNTAX_RULE_STAR_1: &[TerminalId] =
-    &[TerminalId(15), TerminalId(18), TerminalId(14)];
-// SyntaxRule_Star_1 : . SyntaxRule_Opt_2 { "@Layout", "@Start", "@NoLayout" }
-pub static FIRST_SET_SYNTAX_RULE_STAR_1_ALT0: &[TerminalId] =
-    &[TerminalId(15), TerminalId(18), TerminalId(14)];
-// SyntaxRule_Plus_2 { WS, "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, ">" }
-pub static FOLLOW_SET_SYNTAX_RULE_PLUS_2: &[TerminalId] = &[
+// Star_1 { "@Layout", "@Start", "@NoLayout" }
+pub static FIRST_SET_STAR_1: &[TerminalId] = &[TerminalId(15), TerminalId(18), TerminalId(14)];
+// Star_1 : . Opt_2 { "@Layout", "@Start", "@NoLayout" }
+pub static FIRST_SET_STAR_1_ALT0: &[TerminalId] = &[TerminalId(15), TerminalId(18), TerminalId(14)];
+// Plus_2 { WS, "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, ">" }
+pub static FOLLOW_SET_PLUS_2: &[TerminalId] = &[
     TerminalId(7),
     TerminalId(19),
     TerminalId(18),
@@ -2908,8 +2899,8 @@ pub static FOLLOW_SET_SYNTAX_RULE_PLUS_2: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(13),
 ];
-// SyntaxRule_Plus_2 { "left", WS, String, "right", ">", Label, "|", "{", Identifier, "(", LineComment, "none" }
-pub static FIRST_SET_SYNTAX_RULE_PLUS_2: &[TerminalId] = &[
+// Plus_2 { "left", WS, String, "right", ">", Label, "|", "{", Identifier, "(", LineComment, "none" }
+pub static FIRST_SET_PLUS_2: &[TerminalId] = &[
     TerminalId(24),
     TerminalId(7),
     TerminalId(2),
@@ -2923,8 +2914,8 @@ pub static FIRST_SET_SYNTAX_RULE_PLUS_2: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(26),
 ];
-// SyntaxRule_Plus_2 : . SyntaxRule_Plus_2 Layout ">" Layout PriorityLevel { "left", "right", String, "none", WS, Label, "|", "{", Identifier, "(", LineComment, ">" }
-pub static FIRST_SET_SYNTAX_RULE_PLUS_2_ALT0: &[TerminalId] = &[
+// Plus_2 : . Plus_2 Layout ">" Layout PriorityLevel { "left", "right", String, "none", WS, Label, "|", "{", Identifier, "(", LineComment, ">" }
+pub static FIRST_SET_PLUS_2_ALT0: &[TerminalId] = &[
     TerminalId(24),
     TerminalId(25),
     TerminalId(2),
@@ -2938,8 +2929,8 @@ pub static FIRST_SET_SYNTAX_RULE_PLUS_2_ALT0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(13),
 ];
-// SyntaxRule_Plus_2 : . PriorityLevel { "left", WS, String, "none", Label, "|", "{", Identifier, "(", LineComment, "right" }
-pub static FIRST_SET_SYNTAX_RULE_PLUS_2_ALT1: &[TerminalId] = &[
+// Plus_2 : . PriorityLevel { "left", WS, String, "none", Label, "|", "{", Identifier, "(", LineComment, "right" }
+pub static FIRST_SET_PLUS_2_ALT1: &[TerminalId] = &[
     TerminalId(24),
     TerminalId(7),
     TerminalId(2),
@@ -2952,8 +2943,8 @@ pub static FIRST_SET_SYNTAX_RULE_PLUS_2_ALT1: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(25),
 ];
-// SyntaxRule_Opt_3 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
-pub static FOLLOW_SET_SYNTAX_RULE_OPT_3: &[TerminalId] = &[
+// Opt_3 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
+pub static FOLLOW_SET_OPT_3: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -2963,8 +2954,8 @@ pub static FOLLOW_SET_SYNTAX_RULE_OPT_3: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// SyntaxRule_Opt_3 { "left", WS, String, "right", ">", Label, "|", "{", Identifier, "(", LineComment, "none" }
-pub static FIRST_SET_SYNTAX_RULE_OPT_3: &[TerminalId] = &[
+// Opt_3 { "left", WS, String, "right", ">", Label, "|", "{", Identifier, "(", LineComment, "none" }
+pub static FIRST_SET_OPT_3: &[TerminalId] = &[
     TerminalId(24),
     TerminalId(7),
     TerminalId(2),
@@ -2978,8 +2969,8 @@ pub static FIRST_SET_SYNTAX_RULE_OPT_3: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(26),
 ];
-// SyntaxRule_Opt_3 : . SyntaxRule_Plus_2 { "left", "right", String, "none", WS, Label, "|", "{", Identifier, "(", LineComment, ">" }
-pub static FIRST_SET_SYNTAX_RULE_OPT_3_ALT0: &[TerminalId] = &[
+// Opt_3 : . Plus_2 { "left", "right", String, "none", WS, Label, "|", "{", Identifier, "(", LineComment, ">" }
+pub static FIRST_SET_OPT_3_ALT0: &[TerminalId] = &[
     TerminalId(24),
     TerminalId(25),
     TerminalId(2),
@@ -2993,10 +2984,10 @@ pub static FIRST_SET_SYNTAX_RULE_OPT_3_ALT0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(13),
 ];
-// SyntaxRule_Opt_3 : . {  }
-pub static FIRST_SET_SYNTAX_RULE_OPT_3_ALT1: &[TerminalId] = &[];
-// SyntaxRule_Star_2 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
-pub static FOLLOW_SET_SYNTAX_RULE_STAR_2: &[TerminalId] = &[
+// Opt_3 : . {  }
+pub static FIRST_SET_OPT_3_ALT1: &[TerminalId] = &[];
+// Star_2 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
+pub static FOLLOW_SET_STAR_2: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -3006,8 +2997,8 @@ pub static FOLLOW_SET_SYNTAX_RULE_STAR_2: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// SyntaxRule_Star_2 { "left", ">", String, "right", "none", Label, "|", "{", Identifier, "(", LineComment, WS }
-pub static FIRST_SET_SYNTAX_RULE_STAR_2: &[TerminalId] = &[
+// Star_2 { "left", ">", String, "right", "none", Label, "|", "{", Identifier, "(", LineComment, WS }
+pub static FIRST_SET_STAR_2: &[TerminalId] = &[
     TerminalId(24),
     TerminalId(13),
     TerminalId(2),
@@ -3021,8 +3012,8 @@ pub static FIRST_SET_SYNTAX_RULE_STAR_2: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// SyntaxRule_Star_2 : . SyntaxRule_Opt_3 { "left", "right", String, WS, ">", Label, "|", "{", Identifier, "(", LineComment, "none" }
-pub static FIRST_SET_SYNTAX_RULE_STAR_2_ALT0: &[TerminalId] = &[
+// Star_2 : . Opt_3 { "left", "right", String, WS, ">", Label, "|", "{", Identifier, "(", LineComment, "none" }
+pub static FIRST_SET_STAR_2_ALT0: &[TerminalId] = &[
     TerminalId(24),
     TerminalId(25),
     TerminalId(2),
@@ -3036,8 +3027,8 @@ pub static FIRST_SET_SYNTAX_RULE_STAR_2_ALT0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(26),
 ];
-// RegexRule_Opt_4 { "[", Char, String, EOF, Identifier, "(", "!", LineComment, WS }
-pub static FOLLOW_SET_REGEX_RULE_OPT_4: &[TerminalId] = &[
+// Opt_4 { "[", Char, String, EOF, Identifier, "(", "!", LineComment, WS }
+pub static FOLLOW_SET_OPT_4: &[TerminalId] = &[
     TerminalId(34),
     TerminalId(3),
     TerminalId(2),
@@ -3048,14 +3039,14 @@ pub static FOLLOW_SET_REGEX_RULE_OPT_4: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// RegexRule_Opt_4 { Identifier }
-pub static FIRST_SET_REGEX_RULE_OPT_4: &[TerminalId] = &[TerminalId(1)];
-// RegexRule_Opt_4 : . PreCondition { Identifier }
-pub static FIRST_SET_REGEX_RULE_OPT_4_ALT0: &[TerminalId] = &[TerminalId(1)];
-// RegexRule_Opt_4 : . {  }
-pub static FIRST_SET_REGEX_RULE_OPT_4_ALT1: &[TerminalId] = &[];
-// RegexRule_Plus_4 { "[", "@Start", EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", Char, String, "@regex", "@NoLayout", "|", LineComment, WS }
-pub static FOLLOW_SET_REGEX_RULE_PLUS_4: &[TerminalId] = &[
+// Opt_4 { Identifier }
+pub static FIRST_SET_OPT_4: &[TerminalId] = &[TerminalId(1)];
+// Opt_4 : . PreCondition { Identifier }
+pub static FIRST_SET_OPT_4_ALT0: &[TerminalId] = &[TerminalId(1)];
+// Opt_4 : . {  }
+pub static FIRST_SET_OPT_4_ALT1: &[TerminalId] = &[];
+// Plus_4 { "[", "@Start", EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", Char, String, "@regex", "@NoLayout", "|", LineComment, WS }
+pub static FOLLOW_SET_PLUS_4: &[TerminalId] = &[
     TerminalId(34),
     TerminalId(18),
     TerminalId(38),
@@ -3074,8 +3065,8 @@ pub static FOLLOW_SET_REGEX_RULE_PLUS_4: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// RegexRule_Plus_4 { "[", Char, String, Identifier, "(", "!", LineComment, WS }
-pub static FIRST_SET_REGEX_RULE_PLUS_4: &[TerminalId] = &[
+// Plus_4 { "[", Char, String, Identifier, "(", "!", LineComment, WS }
+pub static FIRST_SET_PLUS_4: &[TerminalId] = &[
     TerminalId(34),
     TerminalId(3),
     TerminalId(2),
@@ -3085,8 +3076,8 @@ pub static FIRST_SET_REGEX_RULE_PLUS_4: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// RegexRule_Plus_4 : . RegexRule_Plus_4 Layout Regex { "[", Char, String, Identifier, "(", "!", LineComment, WS }
-pub static FIRST_SET_REGEX_RULE_PLUS_4_ALT0: &[TerminalId] = &[
+// Plus_4 : . Plus_4 Layout Regex { "[", Char, String, Identifier, "(", "!", LineComment, WS }
+pub static FIRST_SET_PLUS_4_ALT0: &[TerminalId] = &[
     TerminalId(34),
     TerminalId(3),
     TerminalId(2),
@@ -3096,8 +3087,8 @@ pub static FIRST_SET_REGEX_RULE_PLUS_4_ALT0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// RegexRule_Plus_4 : . Regex { "[", Char, String, Identifier, "(", "!", LineComment, WS }
-pub static FIRST_SET_REGEX_RULE_PLUS_4_ALT1: &[TerminalId] = &[
+// Plus_4 : . Regex { "[", Char, String, Identifier, "(", "!", LineComment, WS }
+pub static FIRST_SET_PLUS_4_ALT1: &[TerminalId] = &[
     TerminalId(34),
     TerminalId(3),
     TerminalId(2),
@@ -3107,8 +3098,8 @@ pub static FIRST_SET_REGEX_RULE_PLUS_4_ALT1: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// RegexRule_Plus_3 { "@regex", "@Start", "@NoLayout", "|", EOF, "\", Identifier, "@Layout", LineComment, "!>>", WS }
-pub static FOLLOW_SET_REGEX_RULE_PLUS_3: &[TerminalId] = &[
+// Plus_3 { "@regex", "@Start", "@NoLayout", "|", EOF, "\", Identifier, "@Layout", LineComment, "!>>", WS }
+pub static FOLLOW_SET_PLUS_3: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -3121,8 +3112,8 @@ pub static FOLLOW_SET_REGEX_RULE_PLUS_3: &[TerminalId] = &[
     TerminalId(23),
     TerminalId(7),
 ];
-// RegexRule_Plus_3 { "[", Char, String, Identifier, "(", "!", LineComment, WS }
-pub static FIRST_SET_REGEX_RULE_PLUS_3: &[TerminalId] = &[
+// Plus_3 { "[", Char, String, Identifier, "(", "!", LineComment, WS }
+pub static FIRST_SET_PLUS_3: &[TerminalId] = &[
     TerminalId(34),
     TerminalId(3),
     TerminalId(2),
@@ -3132,8 +3123,8 @@ pub static FIRST_SET_REGEX_RULE_PLUS_3: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// RegexRule_Plus_3 : . RegexRule_Plus_3 Layout "|" Layout RegexRule_Plus_4 { "[", Char, String, Identifier, "(", "!", LineComment, WS }
-pub static FIRST_SET_REGEX_RULE_PLUS_3_ALT0: &[TerminalId] = &[
+// Plus_3 : . Plus_3 Layout "|" Layout Plus_4 { "[", Char, String, Identifier, "(", "!", LineComment, WS }
+pub static FIRST_SET_PLUS_3_ALT0: &[TerminalId] = &[
     TerminalId(34),
     TerminalId(3),
     TerminalId(2),
@@ -3143,8 +3134,8 @@ pub static FIRST_SET_REGEX_RULE_PLUS_3_ALT0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// RegexRule_Plus_3 : . RegexRule_Plus_4 { "[", Char, String, Identifier, "(", "!", LineComment, WS }
-pub static FIRST_SET_REGEX_RULE_PLUS_3_ALT1: &[TerminalId] = &[
+// Plus_3 : . Plus_4 { "[", Char, String, Identifier, "(", "!", LineComment, WS }
+pub static FIRST_SET_PLUS_3_ALT1: &[TerminalId] = &[
     TerminalId(34),
     TerminalId(3),
     TerminalId(2),
@@ -3154,8 +3145,8 @@ pub static FIRST_SET_REGEX_RULE_PLUS_3_ALT1: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// RegexRule_Plus_5 { "@regex", "@Start", "@NoLayout", EOF, "\", Identifier, "@Layout", LineComment, "!>>", WS }
-pub static FOLLOW_SET_REGEX_RULE_PLUS_5: &[TerminalId] = &[
+// Plus_5 { "@regex", "@Start", "@NoLayout", EOF, "\", Identifier, "@Layout", LineComment, "!>>", WS }
+pub static FOLLOW_SET_PLUS_5: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -3167,14 +3158,14 @@ pub static FOLLOW_SET_REGEX_RULE_PLUS_5: &[TerminalId] = &[
     TerminalId(23),
     TerminalId(7),
 ];
-// RegexRule_Plus_5 { "\", "!>>" }
-pub static FIRST_SET_REGEX_RULE_PLUS_5: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
-// RegexRule_Plus_5 : . RegexRule_Plus_5 Layout PostCondition { "\", "!>>" }
-pub static FIRST_SET_REGEX_RULE_PLUS_5_ALT0: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
-// RegexRule_Plus_5 : . PostCondition { "\", "!>>" }
-pub static FIRST_SET_REGEX_RULE_PLUS_5_ALT1: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
-// RegexRule_Opt_5 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
-pub static FOLLOW_SET_REGEX_RULE_OPT_5: &[TerminalId] = &[
+// Plus_5 { "\", "!>>" }
+pub static FIRST_SET_PLUS_5: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
+// Plus_5 : . Plus_5 Layout PostCondition { "\", "!>>" }
+pub static FIRST_SET_PLUS_5_ALT0: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
+// Plus_5 : . PostCondition { "\", "!>>" }
+pub static FIRST_SET_PLUS_5_ALT1: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
+// Opt_5 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
+pub static FOLLOW_SET_OPT_5: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -3184,14 +3175,14 @@ pub static FOLLOW_SET_REGEX_RULE_OPT_5: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// RegexRule_Opt_5 { "\", "!>>" }
-pub static FIRST_SET_REGEX_RULE_OPT_5: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
-// RegexRule_Opt_5 : . RegexRule_Plus_5 { "\", "!>>" }
-pub static FIRST_SET_REGEX_RULE_OPT_5_ALT0: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
-// RegexRule_Opt_5 : . {  }
-pub static FIRST_SET_REGEX_RULE_OPT_5_ALT1: &[TerminalId] = &[];
-// RegexRule_Star_3 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
-pub static FOLLOW_SET_REGEX_RULE_STAR_3: &[TerminalId] = &[
+// Opt_5 { "\", "!>>" }
+pub static FIRST_SET_OPT_5: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
+// Opt_5 : . Plus_5 { "\", "!>>" }
+pub static FIRST_SET_OPT_5_ALT0: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
+// Opt_5 : . {  }
+pub static FIRST_SET_OPT_5_ALT1: &[TerminalId] = &[];
+// Star_3 { "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
+pub static FOLLOW_SET_STAR_3: &[TerminalId] = &[
     TerminalId(19),
     TerminalId(18),
     TerminalId(14),
@@ -3201,12 +3192,12 @@ pub static FOLLOW_SET_REGEX_RULE_STAR_3: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// RegexRule_Star_3 { "\", "!>>" }
-pub static FIRST_SET_REGEX_RULE_STAR_3: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
-// RegexRule_Star_3 : . RegexRule_Opt_5 { "\", "!>>" }
-pub static FIRST_SET_REGEX_RULE_STAR_3_ALT0: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
-// PriorityLevel_Opt_6 { WS, "@Start", Label, EOF, Identifier, "(", "@Layout", "@regex", String, "@NoLayout", "|", "{", LineComment, ">" }
-pub static FOLLOW_SET_PRIORITY_LEVEL_OPT_6: &[TerminalId] = &[
+// Star_3 { "\", "!>>" }
+pub static FIRST_SET_STAR_3: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
+// Star_3 : . Opt_5 { "\", "!>>" }
+pub static FIRST_SET_STAR_3_ALT0: &[TerminalId] = &[TerminalId(22), TerminalId(23)];
+// Opt_6 { WS, "@Start", Label, EOF, Identifier, "(", "@Layout", "@regex", String, "@NoLayout", "|", "{", LineComment, ">" }
+pub static FOLLOW_SET_OPT_6: &[TerminalId] = &[
     TerminalId(7),
     TerminalId(18),
     TerminalId(6),
@@ -3222,16 +3213,14 @@ pub static FOLLOW_SET_PRIORITY_LEVEL_OPT_6: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(13),
 ];
-// PriorityLevel_Opt_6 { "left", "none", "right" }
-pub static FIRST_SET_PRIORITY_LEVEL_OPT_6: &[TerminalId] =
-    &[TerminalId(24), TerminalId(26), TerminalId(25)];
-// PriorityLevel_Opt_6 : . Associativity { "left", "right", "none" }
-pub static FIRST_SET_PRIORITY_LEVEL_OPT_6_ALT0: &[TerminalId] =
-    &[TerminalId(24), TerminalId(25), TerminalId(26)];
-// PriorityLevel_Opt_6 : . {  }
-pub static FIRST_SET_PRIORITY_LEVEL_OPT_6_ALT1: &[TerminalId] = &[];
-// PriorityLevel_Plus_6 { WS, "@regex", "@Start", "@NoLayout", "|", EOF, Identifier, "@Layout", LineComment, ">" }
-pub static FOLLOW_SET_PRIORITY_LEVEL_PLUS_6: &[TerminalId] = &[
+// Opt_6 { "left", "none", "right" }
+pub static FIRST_SET_OPT_6: &[TerminalId] = &[TerminalId(24), TerminalId(26), TerminalId(25)];
+// Opt_6 : . Associativity { "left", "right", "none" }
+pub static FIRST_SET_OPT_6_ALT0: &[TerminalId] = &[TerminalId(24), TerminalId(25), TerminalId(26)];
+// Opt_6 : . {  }
+pub static FIRST_SET_OPT_6_ALT1: &[TerminalId] = &[];
+// Plus_6 { WS, "@regex", "@Start", "@NoLayout", "|", EOF, Identifier, "@Layout", LineComment, ">" }
+pub static FOLLOW_SET_PLUS_6: &[TerminalId] = &[
     TerminalId(7),
     TerminalId(19),
     TerminalId(18),
@@ -3243,8 +3232,8 @@ pub static FOLLOW_SET_PRIORITY_LEVEL_PLUS_6: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(13),
 ];
-// PriorityLevel_Plus_6 { String, Label, "|", "{", Identifier, "(", LineComment, WS }
-pub static FIRST_SET_PRIORITY_LEVEL_PLUS_6: &[TerminalId] = &[
+// Plus_6 { String, Label, "|", "{", Identifier, "(", LineComment, WS }
+pub static FIRST_SET_PLUS_6: &[TerminalId] = &[
     TerminalId(2),
     TerminalId(6),
     TerminalId(20),
@@ -3254,8 +3243,8 @@ pub static FIRST_SET_PRIORITY_LEVEL_PLUS_6: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// PriorityLevel_Plus_6 : . PriorityLevel_Plus_6 Layout "|" Layout Alternative { String, Label, "|", "{", Identifier, "(", LineComment, WS }
-pub static FIRST_SET_PRIORITY_LEVEL_PLUS_6_ALT0: &[TerminalId] = &[
+// Plus_6 : . Plus_6 Layout "|" Layout Alternative { String, Label, "|", "{", Identifier, "(", LineComment, WS }
+pub static FIRST_SET_PLUS_6_ALT0: &[TerminalId] = &[
     TerminalId(2),
     TerminalId(6),
     TerminalId(20),
@@ -3265,8 +3254,8 @@ pub static FIRST_SET_PRIORITY_LEVEL_PLUS_6_ALT0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// PriorityLevel_Plus_6 : . Alternative { "{", Identifier, String, "(", Label, LineComment, WS }
-pub static FIRST_SET_PRIORITY_LEVEL_PLUS_6_ALT1: &[TerminalId] = &[
+// Plus_6 : . Alternative { "{", Identifier, String, "(", Label, LineComment, WS }
+pub static FIRST_SET_PLUS_6_ALT1: &[TerminalId] = &[
     TerminalId(27),
     TerminalId(1),
     TerminalId(2),
@@ -3275,8 +3264,8 @@ pub static FIRST_SET_PRIORITY_LEVEL_PLUS_6_ALT1: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// PriorityLevel_Opt_7 { ">", "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
-pub static FOLLOW_SET_PRIORITY_LEVEL_OPT_7: &[TerminalId] = &[
+// Opt_7 { ">", "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, WS }
+pub static FOLLOW_SET_OPT_7: &[TerminalId] = &[
     TerminalId(13),
     TerminalId(19),
     TerminalId(18),
@@ -3287,8 +3276,8 @@ pub static FOLLOW_SET_PRIORITY_LEVEL_OPT_7: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// PriorityLevel_Opt_7 { String, Label, "|", "{", Identifier, "(", LineComment, WS }
-pub static FIRST_SET_PRIORITY_LEVEL_OPT_7: &[TerminalId] = &[
+// Opt_7 { String, Label, "|", "{", Identifier, "(", LineComment, WS }
+pub static FIRST_SET_OPT_7: &[TerminalId] = &[
     TerminalId(2),
     TerminalId(6),
     TerminalId(20),
@@ -3298,8 +3287,8 @@ pub static FIRST_SET_PRIORITY_LEVEL_OPT_7: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// PriorityLevel_Opt_7 : . PriorityLevel_Plus_6 { String, Label, "|", "{", Identifier, "(", LineComment, WS }
-pub static FIRST_SET_PRIORITY_LEVEL_OPT_7_ALT0: &[TerminalId] = &[
+// Opt_7 : . Plus_6 { String, Label, "|", "{", Identifier, "(", LineComment, WS }
+pub static FIRST_SET_OPT_7_ALT0: &[TerminalId] = &[
     TerminalId(2),
     TerminalId(6),
     TerminalId(20),
@@ -3309,10 +3298,10 @@ pub static FIRST_SET_PRIORITY_LEVEL_OPT_7_ALT0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// PriorityLevel_Opt_7 : . {  }
-pub static FIRST_SET_PRIORITY_LEVEL_OPT_7_ALT1: &[TerminalId] = &[];
-// PriorityLevel_Star_4 { WS, "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, ">" }
-pub static FOLLOW_SET_PRIORITY_LEVEL_STAR_4: &[TerminalId] = &[
+// Opt_7 : . {  }
+pub static FIRST_SET_OPT_7_ALT1: &[TerminalId] = &[];
+// Star_4 { WS, "@regex", "@Start", "@NoLayout", EOF, Identifier, "@Layout", LineComment, ">" }
+pub static FOLLOW_SET_STAR_4: &[TerminalId] = &[
     TerminalId(7),
     TerminalId(19),
     TerminalId(18),
@@ -3323,8 +3312,8 @@ pub static FOLLOW_SET_PRIORITY_LEVEL_STAR_4: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(13),
 ];
-// PriorityLevel_Star_4 { String, "|", Label, "{", Identifier, "(", LineComment, WS }
-pub static FIRST_SET_PRIORITY_LEVEL_STAR_4: &[TerminalId] = &[
+// Star_4 { String, "|", Label, "{", Identifier, "(", LineComment, WS }
+pub static FIRST_SET_STAR_4: &[TerminalId] = &[
     TerminalId(2),
     TerminalId(20),
     TerminalId(6),
@@ -3334,8 +3323,8 @@ pub static FIRST_SET_PRIORITY_LEVEL_STAR_4: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// PriorityLevel_Star_4 : . PriorityLevel_Opt_7 { String, "|", Label, "{", Identifier, "(", LineComment, WS }
-pub static FIRST_SET_PRIORITY_LEVEL_STAR_4_ALT0: &[TerminalId] = &[
+// Star_4 : . Opt_7 { String, "|", Label, "{", Identifier, "(", LineComment, WS }
+pub static FIRST_SET_STAR_4_ALT0: &[TerminalId] = &[
     TerminalId(2),
     TerminalId(20),
     TerminalId(6),
@@ -3345,8 +3334,8 @@ pub static FIRST_SET_PRIORITY_LEVEL_STAR_4_ALT0: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Alternative_Plus_7 { WS, "@Start", Label, EOF, Identifier, "(", ")", "@Layout", "@regex", String, "@NoLayout", "|", "{", LineComment, ">" }
-pub static FOLLOW_SET_ALTERNATIVE_PLUS_7: &[TerminalId] = &[
+// Plus_7 { WS, "@Start", Label, EOF, Identifier, "(", ")", "@Layout", "@regex", String, "@NoLayout", "|", "{", LineComment, ">" }
+pub static FOLLOW_SET_PLUS_7: &[TerminalId] = &[
     TerminalId(7),
     TerminalId(18),
     TerminalId(6),
@@ -3363,17 +3352,17 @@ pub static FOLLOW_SET_ALTERNATIVE_PLUS_7: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(13),
 ];
-// Alternative_Plus_7 { Identifier, "(", String, "{" }
-pub static FIRST_SET_ALTERNATIVE_PLUS_7: &[TerminalId] =
+// Plus_7 { Identifier, "(", String, "{" }
+pub static FIRST_SET_PLUS_7: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Alternative_Plus_7 : . Alternative_Plus_7 Layout Symbol(0) { Identifier, "(", String, "{" }
-pub static FIRST_SET_ALTERNATIVE_PLUS_7_ALT0: &[TerminalId] =
+// Plus_7 : . Plus_7 Layout Symbol(0) { Identifier, "(", String, "{" }
+pub static FIRST_SET_PLUS_7_ALT0: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Alternative_Plus_7 : . Symbol(0) { Identifier, "(", String, "{" }
-pub static FIRST_SET_ALTERNATIVE_PLUS_7_ALT1: &[TerminalId] =
+// Plus_7 : . Symbol(0) { Identifier, "(", String, "{" }
+pub static FIRST_SET_PLUS_7_ALT1: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Alternative_Opt_8 { ">", "@regex", "@Start", "@NoLayout", "|", Label, EOF, Identifier, "@Layout", LineComment, WS }
-pub static FOLLOW_SET_ALTERNATIVE_OPT_8: &[TerminalId] = &[
+// Opt_8 { ">", "@regex", "@Start", "@NoLayout", "|", Label, EOF, Identifier, "@Layout", LineComment, WS }
+pub static FOLLOW_SET_OPT_8: &[TerminalId] = &[
     TerminalId(13),
     TerminalId(19),
     TerminalId(18),
@@ -3386,16 +3375,16 @@ pub static FOLLOW_SET_ALTERNATIVE_OPT_8: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Alternative_Opt_8 { Identifier, "(", String, "{" }
-pub static FIRST_SET_ALTERNATIVE_OPT_8: &[TerminalId] =
+// Opt_8 { Identifier, "(", String, "{" }
+pub static FIRST_SET_OPT_8: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Alternative_Opt_8 : . Alternative_Plus_7 { Identifier, "(", String, "{" }
-pub static FIRST_SET_ALTERNATIVE_OPT_8_ALT0: &[TerminalId] =
+// Opt_8 : . Plus_7 { Identifier, "(", String, "{" }
+pub static FIRST_SET_OPT_8_ALT0: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Alternative_Opt_8 : . {  }
-pub static FIRST_SET_ALTERNATIVE_OPT_8_ALT1: &[TerminalId] = &[];
-// Alternative_Star_5 { WS, "@regex", "@Start", "@NoLayout", "|", Label, EOF, Identifier, "@Layout", LineComment, ">" }
-pub static FOLLOW_SET_ALTERNATIVE_STAR_5: &[TerminalId] = &[
+// Opt_8 : . {  }
+pub static FIRST_SET_OPT_8_ALT1: &[TerminalId] = &[];
+// Star_5 { WS, "@regex", "@Start", "@NoLayout", "|", Label, EOF, Identifier, "@Layout", LineComment, ">" }
+pub static FOLLOW_SET_STAR_5: &[TerminalId] = &[
     TerminalId(7),
     TerminalId(19),
     TerminalId(18),
@@ -3408,14 +3397,14 @@ pub static FOLLOW_SET_ALTERNATIVE_STAR_5: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(13),
 ];
-// Alternative_Star_5 { Identifier, "(", String, "{" }
-pub static FIRST_SET_ALTERNATIVE_STAR_5: &[TerminalId] =
+// Star_5 { Identifier, "(", String, "{" }
+pub static FIRST_SET_STAR_5: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Alternative_Star_5 : . Alternative_Opt_8 { Identifier, "(", String, "{" }
-pub static FIRST_SET_ALTERNATIVE_STAR_5_ALT0: &[TerminalId] =
+// Star_5 : . Opt_8 { Identifier, "(", String, "{" }
+pub static FIRST_SET_STAR_5_ALT0: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Alternative_Opt_9 { WS, "@regex", "@Start", "@NoLayout", "|", EOF, Identifier, "@Layout", LineComment, ">" }
-pub static FOLLOW_SET_ALTERNATIVE_OPT_9: &[TerminalId] = &[
+// Opt_9 { WS, "@regex", "@Start", "@NoLayout", "|", EOF, Identifier, "@Layout", LineComment, ">" }
+pub static FOLLOW_SET_OPT_9: &[TerminalId] = &[
     TerminalId(7),
     TerminalId(19),
     TerminalId(18),
@@ -3427,40 +3416,40 @@ pub static FOLLOW_SET_ALTERNATIVE_OPT_9: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(13),
 ];
-// Alternative_Opt_9 { Label }
-pub static FIRST_SET_ALTERNATIVE_OPT_9: &[TerminalId] = &[TerminalId(6)];
-// Alternative_Opt_9 : . Label { Label }
-pub static FIRST_SET_ALTERNATIVE_OPT_9_ALT0: &[TerminalId] = &[TerminalId(6)];
-// Alternative_Opt_9 : . {  }
-pub static FIRST_SET_ALTERNATIVE_OPT_9_ALT1: &[TerminalId] = &[];
-// Symbol_Group_0 { WS, ")", LineComment, "|", EOF }
-pub static FOLLOW_SET_SYMBOL_GROUP_0: &[TerminalId] = &[
+// Opt_9 { Label }
+pub static FIRST_SET_OPT_9: &[TerminalId] = &[TerminalId(6)];
+// Opt_9 : . Label { Label }
+pub static FIRST_SET_OPT_9_ALT0: &[TerminalId] = &[TerminalId(6)];
+// Opt_9 : . {  }
+pub static FIRST_SET_OPT_9_ALT1: &[TerminalId] = &[];
+// Group_0 { WS, ")", LineComment, "|", EOF }
+pub static FOLLOW_SET_GROUP_0: &[TerminalId] = &[
     TerminalId(7),
     TerminalId(17),
     TerminalId(9),
     TerminalId(20),
     TerminalId(38),
 ];
-// Symbol_Group_0 { "|" }
-pub static FIRST_SET_SYMBOL_GROUP_0: &[TerminalId] = &[TerminalId(20)];
-// Symbol_Group_0 : . "|" Layout Symbol(0) { "|" }
-pub static FIRST_SET_SYMBOL_GROUP_0_ALT0: &[TerminalId] = &[TerminalId(20)];
-// Symbol_Plus_8 { EOF, ")", LineComment, "|", WS }
-pub static FOLLOW_SET_SYMBOL_PLUS_8: &[TerminalId] = &[
+// Group_0 { "|" }
+pub static FIRST_SET_GROUP_0: &[TerminalId] = &[TerminalId(20)];
+// Group_0 : . "|" Layout Symbol(0) { "|" }
+pub static FIRST_SET_GROUP_0_ALT0: &[TerminalId] = &[TerminalId(20)];
+// Plus_8 { EOF, ")", LineComment, "|", WS }
+pub static FOLLOW_SET_PLUS_8: &[TerminalId] = &[
     TerminalId(38),
     TerminalId(17),
     TerminalId(9),
     TerminalId(20),
     TerminalId(7),
 ];
-// Symbol_Plus_8 { "|" }
-pub static FIRST_SET_SYMBOL_PLUS_8: &[TerminalId] = &[TerminalId(20)];
-// Symbol_Plus_8 : . Symbol_Plus_8 Layout Symbol_Group_0 { "|" }
-pub static FIRST_SET_SYMBOL_PLUS_8_ALT0: &[TerminalId] = &[TerminalId(20)];
-// Symbol_Plus_8 : . Symbol_Group_0 { "|" }
-pub static FIRST_SET_SYMBOL_PLUS_8_ALT1: &[TerminalId] = &[TerminalId(20)];
-// Symbol_Group_1 { "?", ">", "@Start", "*", Label, EOF, "\", "!", Identifier, "(", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
-pub static FOLLOW_SET_SYMBOL_GROUP_1: &[TerminalId] = &[
+// Plus_8 { "|" }
+pub static FIRST_SET_PLUS_8: &[TerminalId] = &[TerminalId(20)];
+// Plus_8 : . Plus_8 Layout Group_0 { "|" }
+pub static FIRST_SET_PLUS_8_ALT0: &[TerminalId] = &[TerminalId(20)];
+// Plus_8 : . Group_0 { "|" }
+pub static FIRST_SET_PLUS_8_ALT1: &[TerminalId] = &[TerminalId(20)];
+// Group_1 { "?", ">", "@Start", "*", Label, EOF, "\", "!", Identifier, "(", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
+pub static FOLLOW_SET_GROUP_1: &[TerminalId] = &[
     TerminalId(31),
     TerminalId(13),
     TerminalId(18),
@@ -3484,12 +3473,12 @@ pub static FOLLOW_SET_SYMBOL_GROUP_1: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Symbol_Group_1 { "\" }
-pub static FIRST_SET_SYMBOL_GROUP_1: &[TerminalId] = &[TerminalId(22)];
-// Symbol_Group_1 : . "\" Layout Identifier { "\" }
-pub static FIRST_SET_SYMBOL_GROUP_1_ALT0: &[TerminalId] = &[TerminalId(22)];
-// Symbol_Plus_9 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
-pub static FOLLOW_SET_SYMBOL_PLUS_9: &[TerminalId] = &[
+// Group_1 { "\" }
+pub static FIRST_SET_GROUP_1: &[TerminalId] = &[TerminalId(22)];
+// Group_1 : . "\" Layout Identifier { "\" }
+pub static FIRST_SET_GROUP_1_ALT0: &[TerminalId] = &[TerminalId(22)];
+// Plus_9 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
+pub static FOLLOW_SET_PLUS_9: &[TerminalId] = &[
     TerminalId(31),
     TerminalId(13),
     TerminalId(18),
@@ -3513,14 +3502,14 @@ pub static FOLLOW_SET_SYMBOL_PLUS_9: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Symbol_Plus_9 { "\" }
-pub static FIRST_SET_SYMBOL_PLUS_9: &[TerminalId] = &[TerminalId(22)];
-// Symbol_Plus_9 : . Symbol_Plus_9 Layout Symbol_Group_1 { "\" }
-pub static FIRST_SET_SYMBOL_PLUS_9_ALT0: &[TerminalId] = &[TerminalId(22)];
-// Symbol_Plus_9 : . Symbol_Group_1 { "\" }
-pub static FIRST_SET_SYMBOL_PLUS_9_ALT1: &[TerminalId] = &[TerminalId(22)];
-// Symbol_Group_2 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
-pub static FOLLOW_SET_SYMBOL_GROUP_2: &[TerminalId] = &[
+// Plus_9 { "\" }
+pub static FIRST_SET_PLUS_9: &[TerminalId] = &[TerminalId(22)];
+// Plus_9 : . Plus_9 Layout Group_1 { "\" }
+pub static FIRST_SET_PLUS_9_ALT0: &[TerminalId] = &[TerminalId(22)];
+// Plus_9 : . Group_1 { "\" }
+pub static FIRST_SET_PLUS_9_ALT1: &[TerminalId] = &[TerminalId(22)];
+// Group_2 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
+pub static FOLLOW_SET_GROUP_2: &[TerminalId] = &[
     TerminalId(31),
     TerminalId(13),
     TerminalId(18),
@@ -3544,12 +3533,12 @@ pub static FOLLOW_SET_SYMBOL_GROUP_2: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Symbol_Group_2 { "!>>" }
-pub static FIRST_SET_SYMBOL_GROUP_2: &[TerminalId] = &[TerminalId(23)];
-// Symbol_Group_2 : . "!>>" Layout Identifier { "!>>" }
-pub static FIRST_SET_SYMBOL_GROUP_2_ALT0: &[TerminalId] = &[TerminalId(23)];
-// Symbol_Plus_10 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
-pub static FOLLOW_SET_SYMBOL_PLUS_10: &[TerminalId] = &[
+// Group_2 { "!>>" }
+pub static FIRST_SET_GROUP_2: &[TerminalId] = &[TerminalId(23)];
+// Group_2 : . "!>>" Layout Identifier { "!>>" }
+pub static FIRST_SET_GROUP_2_ALT0: &[TerminalId] = &[TerminalId(23)];
+// Plus_10 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
+pub static FOLLOW_SET_PLUS_10: &[TerminalId] = &[
     TerminalId(31),
     TerminalId(13),
     TerminalId(18),
@@ -3573,14 +3562,14 @@ pub static FOLLOW_SET_SYMBOL_PLUS_10: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Symbol_Plus_10 { "!>>" }
-pub static FIRST_SET_SYMBOL_PLUS_10: &[TerminalId] = &[TerminalId(23)];
-// Symbol_Plus_10 : . Symbol_Plus_10 Layout Symbol_Group_2 { "!>>" }
-pub static FIRST_SET_SYMBOL_PLUS_10_ALT0: &[TerminalId] = &[TerminalId(23)];
-// Symbol_Plus_10 : . Symbol_Group_2 { "!>>" }
-pub static FIRST_SET_SYMBOL_PLUS_10_ALT1: &[TerminalId] = &[TerminalId(23)];
-// Symbol_Group_3 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
-pub static FOLLOW_SET_SYMBOL_GROUP_3: &[TerminalId] = &[
+// Plus_10 { "!>>" }
+pub static FIRST_SET_PLUS_10: &[TerminalId] = &[TerminalId(23)];
+// Plus_10 : . Plus_10 Layout Group_2 { "!>>" }
+pub static FIRST_SET_PLUS_10_ALT0: &[TerminalId] = &[TerminalId(23)];
+// Plus_10 : . Group_2 { "!>>" }
+pub static FIRST_SET_PLUS_10_ALT1: &[TerminalId] = &[TerminalId(23)];
+// Group_3 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
+pub static FOLLOW_SET_GROUP_3: &[TerminalId] = &[
     TerminalId(31),
     TerminalId(13),
     TerminalId(18),
@@ -3604,12 +3593,12 @@ pub static FOLLOW_SET_SYMBOL_GROUP_3: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Symbol_Group_3 { "!" }
-pub static FIRST_SET_SYMBOL_GROUP_3: &[TerminalId] = &[TerminalId(32)];
-// Symbol_Group_3 : . "!" Layout Identifier { "!" }
-pub static FIRST_SET_SYMBOL_GROUP_3_ALT0: &[TerminalId] = &[TerminalId(32)];
-// Symbol_Plus_11 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
-pub static FOLLOW_SET_SYMBOL_PLUS_11: &[TerminalId] = &[
+// Group_3 { "!" }
+pub static FIRST_SET_GROUP_3: &[TerminalId] = &[TerminalId(32)];
+// Group_3 : . "!" Layout Identifier { "!" }
+pub static FIRST_SET_GROUP_3_ALT0: &[TerminalId] = &[TerminalId(32)];
+// Plus_11 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Layout", "@regex", String, "@NoLayout", "|", "{", "+", "}", LineComment, WS }
+pub static FOLLOW_SET_PLUS_11: &[TerminalId] = &[
     TerminalId(31),
     TerminalId(13),
     TerminalId(18),
@@ -3633,107 +3622,63 @@ pub static FOLLOW_SET_SYMBOL_PLUS_11: &[TerminalId] = &[
     TerminalId(9),
     TerminalId(7),
 ];
-// Symbol_Plus_11 { "!" }
-pub static FIRST_SET_SYMBOL_PLUS_11: &[TerminalId] = &[TerminalId(32)];
-// Symbol_Plus_11 : . Symbol_Plus_11 Layout Symbol_Group_3 { "!" }
-pub static FIRST_SET_SYMBOL_PLUS_11_ALT0: &[TerminalId] = &[TerminalId(32)];
-// Symbol_Plus_11 : . Symbol_Group_3 { "!" }
-pub static FIRST_SET_SYMBOL_PLUS_11_ALT1: &[TerminalId] = &[TerminalId(32)];
-// Regex_Group_4 { WS, ")", LineComment, "|", EOF }
-pub static FOLLOW_SET_REGEX_GROUP_4: &[TerminalId] = &[
+// Plus_11 { "!" }
+pub static FIRST_SET_PLUS_11: &[TerminalId] = &[TerminalId(32)];
+// Plus_11 : . Plus_11 Layout Group_3 { "!" }
+pub static FIRST_SET_PLUS_11_ALT0: &[TerminalId] = &[TerminalId(32)];
+// Plus_11 : . Group_3 { "!" }
+pub static FIRST_SET_PLUS_11_ALT1: &[TerminalId] = &[TerminalId(32)];
+// Group_4 { WS, ")", LineComment, "|", EOF }
+pub static FOLLOW_SET_GROUP_4: &[TerminalId] = &[
     TerminalId(7),
     TerminalId(17),
     TerminalId(9),
     TerminalId(20),
     TerminalId(38),
 ];
-// Regex_Group_4 { "|" }
-pub static FIRST_SET_REGEX_GROUP_4: &[TerminalId] = &[TerminalId(20)];
-// Regex_Group_4 : . "|" Layout Regex { "|" }
-pub static FIRST_SET_REGEX_GROUP_4_ALT0: &[TerminalId] = &[TerminalId(20)];
-// Regex_Plus_12 { EOF, ")", LineComment, "|", WS }
-pub static FOLLOW_SET_REGEX_PLUS_12: &[TerminalId] = &[
+// Group_4 { "|" }
+pub static FIRST_SET_GROUP_4: &[TerminalId] = &[TerminalId(20)];
+// Group_4 : . "|" Layout Regex { "|" }
+pub static FIRST_SET_GROUP_4_ALT0: &[TerminalId] = &[TerminalId(20)];
+// Plus_12 { EOF, ")", LineComment, "|", WS }
+pub static FOLLOW_SET_PLUS_12: &[TerminalId] = &[
     TerminalId(38),
     TerminalId(17),
     TerminalId(9),
     TerminalId(20),
     TerminalId(7),
 ];
-// Regex_Plus_12 { "|" }
-pub static FIRST_SET_REGEX_PLUS_12: &[TerminalId] = &[TerminalId(20)];
-// Regex_Plus_12 : . Regex_Plus_12 Layout Regex_Group_4 { "|" }
-pub static FIRST_SET_REGEX_PLUS_12_ALT0: &[TerminalId] = &[TerminalId(20)];
-// Regex_Plus_12 : . Regex_Group_4 { "|" }
-pub static FIRST_SET_REGEX_PLUS_12_ALT1: &[TerminalId] = &[TerminalId(20)];
-// CharClass_Opt_10 { EOF, "[", LineComment, WS }
-pub static FOLLOW_SET_CHAR_CLASS_OPT_10: &[TerminalId] =
+// Plus_12 { "|" }
+pub static FIRST_SET_PLUS_12: &[TerminalId] = &[TerminalId(20)];
+// Plus_12 : . Plus_12 Layout Group_4 { "|" }
+pub static FIRST_SET_PLUS_12_ALT0: &[TerminalId] = &[TerminalId(20)];
+// Plus_12 : . Group_4 { "|" }
+pub static FIRST_SET_PLUS_12_ALT1: &[TerminalId] = &[TerminalId(20)];
+// Opt_10 { EOF, "[", LineComment, WS }
+pub static FOLLOW_SET_OPT_10: &[TerminalId] =
     &[TerminalId(38), TerminalId(34), TerminalId(9), TerminalId(7)];
-// CharClass_Opt_10 { "!" }
-pub static FIRST_SET_CHAR_CLASS_OPT_10: &[TerminalId] = &[TerminalId(32)];
-// CharClass_Opt_10 : . "!" { "!" }
-pub static FIRST_SET_CHAR_CLASS_OPT_10_ALT0: &[TerminalId] = &[TerminalId(32)];
-// CharClass_Opt_10 : . {  }
-pub static FIRST_SET_CHAR_CLASS_OPT_10_ALT1: &[TerminalId] = &[];
-// CharClass_Plus_13 { EOF, "]", RangeChar, LineComment, WS }
-pub static FOLLOW_SET_CHAR_CLASS_PLUS_13: &[TerminalId] = &[
+// Opt_10 { "!" }
+pub static FIRST_SET_OPT_10: &[TerminalId] = &[TerminalId(32)];
+// Opt_10 : . "!" { "!" }
+pub static FIRST_SET_OPT_10_ALT0: &[TerminalId] = &[TerminalId(32)];
+// Opt_10 : . {  }
+pub static FIRST_SET_OPT_10_ALT1: &[TerminalId] = &[];
+// Plus_13 { EOF, "]", RangeChar, LineComment, WS }
+pub static FOLLOW_SET_PLUS_13: &[TerminalId] = &[
     TerminalId(38),
     TerminalId(35),
     TerminalId(5),
     TerminalId(9),
     TerminalId(7),
 ];
-// CharClass_Plus_13 { RangeChar }
-pub static FIRST_SET_CHAR_CLASS_PLUS_13: &[TerminalId] = &[TerminalId(5)];
-// CharClass_Plus_13 : . CharClass_Plus_13 Layout RangeElement { RangeChar }
-pub static FIRST_SET_CHAR_CLASS_PLUS_13_ALT0: &[TerminalId] = &[TerminalId(5)];
-// CharClass_Plus_13 : . RangeElement { RangeChar }
-pub static FIRST_SET_CHAR_CLASS_PLUS_13_ALT1: &[TerminalId] = &[TerminalId(5)];
-// Layout_Alt_0 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", "@regex", Char, "@NoLayout", "|", "-", "}", LineComment, "none", "]", WS, "=", "*", RangeChar, EOF, "(", "@Layout", ")", "layout", String, "{", "+", "grammar", ">" }
-pub static FOLLOW_SET_LAYOUT_ALT_0: &[TerminalId] = &[
-    TerminalId(24),
-    TerminalId(18),
-    TerminalId(34),
-    TerminalId(31),
-    TerminalId(33),
-    TerminalId(6),
-    TerminalId(22),
-    TerminalId(1),
-    TerminalId(32),
-    TerminalId(21),
-    TerminalId(23),
-    TerminalId(25),
-    TerminalId(19),
-    TerminalId(3),
-    TerminalId(14),
-    TerminalId(20),
-    TerminalId(36),
-    TerminalId(28),
-    TerminalId(9),
-    TerminalId(26),
-    TerminalId(35),
-    TerminalId(7),
-    TerminalId(12),
-    TerminalId(29),
-    TerminalId(5),
-    TerminalId(38),
-    TerminalId(16),
-    TerminalId(15),
-    TerminalId(17),
-    TerminalId(11),
-    TerminalId(2),
-    TerminalId(27),
-    TerminalId(30),
-    TerminalId(10),
-    TerminalId(13),
-];
-// Layout_Alt_0 { LineComment, WS }
-pub static FIRST_SET_LAYOUT_ALT_0: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
-// Layout_Alt_0 : . WS { WS }
-pub static FIRST_SET_LAYOUT_ALT_0_ALT0: &[TerminalId] = &[TerminalId(7)];
-// Layout_Alt_0 : . LineComment { LineComment }
-pub static FIRST_SET_LAYOUT_ALT_0_ALT1: &[TerminalId] = &[TerminalId(9)];
-// Layout_Plus_14 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", "@regex", Char, "@NoLayout", "|", "-", "}", LineComment, "none", "]", WS, "=", "*", RangeChar, EOF, "(", "@Layout", ")", "layout", String, "{", "+", "grammar", ">" }
-pub static FOLLOW_SET_LAYOUT_PLUS_14: &[TerminalId] = &[
+// Plus_13 { RangeChar }
+pub static FIRST_SET_PLUS_13: &[TerminalId] = &[TerminalId(5)];
+// Plus_13 : . Plus_13 Layout RangeElement { RangeChar }
+pub static FIRST_SET_PLUS_13_ALT0: &[TerminalId] = &[TerminalId(5)];
+// Plus_13 : . RangeElement { RangeChar }
+pub static FIRST_SET_PLUS_13_ALT1: &[TerminalId] = &[TerminalId(5)];
+// Alt_0 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", "@regex", Char, "@NoLayout", "|", "-", "}", LineComment, "none", "]", WS, "=", "*", RangeChar, EOF, "(", "@Layout", ")", "layout", String, "{", "+", "grammar", ">" }
+pub static FOLLOW_SET_ALT_0: &[TerminalId] = &[
     TerminalId(24),
     TerminalId(18),
     TerminalId(34),
@@ -3770,14 +3715,58 @@ pub static FOLLOW_SET_LAYOUT_PLUS_14: &[TerminalId] = &[
     TerminalId(10),
     TerminalId(13),
 ];
-// Layout_Plus_14 { LineComment, WS }
-pub static FIRST_SET_LAYOUT_PLUS_14: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
-// Layout_Plus_14 : . Layout_Plus_14 Layout_Alt_0 { LineComment, WS }
-pub static FIRST_SET_LAYOUT_PLUS_14_ALT0: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
-// Layout_Plus_14 : . Layout_Alt_0 { LineComment, WS }
-pub static FIRST_SET_LAYOUT_PLUS_14_ALT1: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
-// Layout_Opt_11 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", "@regex", Char, "@NoLayout", "|", "-", "}", "none", "]", "=", "*", RangeChar, EOF, "(", "@Layout", ")", "layout", String, "{", "+", "grammar", ">" }
-pub static FOLLOW_SET_LAYOUT_OPT_11: &[TerminalId] = &[
+// Alt_0 { LineComment, WS }
+pub static FIRST_SET_ALT_0: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
+// Alt_0 : . WS { WS }
+pub static FIRST_SET_ALT_0_ALT0: &[TerminalId] = &[TerminalId(7)];
+// Alt_0 : . LineComment { LineComment }
+pub static FIRST_SET_ALT_0_ALT1: &[TerminalId] = &[TerminalId(9)];
+// Plus_14 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", "@regex", Char, "@NoLayout", "|", "-", "}", LineComment, "none", "]", WS, "=", "*", RangeChar, EOF, "(", "@Layout", ")", "layout", String, "{", "+", "grammar", ">" }
+pub static FOLLOW_SET_PLUS_14: &[TerminalId] = &[
+    TerminalId(24),
+    TerminalId(18),
+    TerminalId(34),
+    TerminalId(31),
+    TerminalId(33),
+    TerminalId(6),
+    TerminalId(22),
+    TerminalId(1),
+    TerminalId(32),
+    TerminalId(21),
+    TerminalId(23),
+    TerminalId(25),
+    TerminalId(19),
+    TerminalId(3),
+    TerminalId(14),
+    TerminalId(20),
+    TerminalId(36),
+    TerminalId(28),
+    TerminalId(9),
+    TerminalId(26),
+    TerminalId(35),
+    TerminalId(7),
+    TerminalId(12),
+    TerminalId(29),
+    TerminalId(5),
+    TerminalId(38),
+    TerminalId(16),
+    TerminalId(15),
+    TerminalId(17),
+    TerminalId(11),
+    TerminalId(2),
+    TerminalId(27),
+    TerminalId(30),
+    TerminalId(10),
+    TerminalId(13),
+];
+// Plus_14 { LineComment, WS }
+pub static FIRST_SET_PLUS_14: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
+// Plus_14 : . Plus_14 Alt_0 { LineComment, WS }
+pub static FIRST_SET_PLUS_14_ALT0: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
+// Plus_14 : . Alt_0 { LineComment, WS }
+pub static FIRST_SET_PLUS_14_ALT1: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
+// Opt_11 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", "@regex", Char, "@NoLayout", "|", "-", "}", "none", "]", "=", "*", RangeChar, EOF, "(", "@Layout", ")", "layout", String, "{", "+", "grammar", ">" }
+pub static FOLLOW_SET_OPT_11: &[TerminalId] = &[
     TerminalId(24),
     TerminalId(18),
     TerminalId(34),
@@ -3812,14 +3801,14 @@ pub static FOLLOW_SET_LAYOUT_OPT_11: &[TerminalId] = &[
     TerminalId(10),
     TerminalId(13),
 ];
-// Layout_Opt_11 { LineComment, WS }
-pub static FIRST_SET_LAYOUT_OPT_11: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
-// Layout_Opt_11 : . Layout_Plus_14 { LineComment, WS }
-pub static FIRST_SET_LAYOUT_OPT_11_ALT0: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
-// Layout_Opt_11 : . {  }
-pub static FIRST_SET_LAYOUT_OPT_11_ALT1: &[TerminalId] = &[];
-// Layout_Star_6 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", "@regex", Char, "@NoLayout", "|", "-", "}", "none", "]", "=", "*", RangeChar, EOF, "(", "@Layout", ")", "layout", String, "{", "+", "grammar", ">" }
-pub static FOLLOW_SET_LAYOUT_STAR_6: &[TerminalId] = &[
+// Opt_11 { LineComment, WS }
+pub static FIRST_SET_OPT_11: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
+// Opt_11 : . Plus_14 { LineComment, WS }
+pub static FIRST_SET_OPT_11_ALT0: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
+// Opt_11 : . {  }
+pub static FIRST_SET_OPT_11_ALT1: &[TerminalId] = &[];
+// Star_6 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", "@regex", Char, "@NoLayout", "|", "-", "}", "none", "]", "=", "*", RangeChar, EOF, "(", "@Layout", ")", "layout", String, "{", "+", "grammar", ">" }
+pub static FOLLOW_SET_STAR_6: &[TerminalId] = &[
     TerminalId(24),
     TerminalId(18),
     TerminalId(34),
@@ -3854,10 +3843,10 @@ pub static FOLLOW_SET_LAYOUT_STAR_6: &[TerminalId] = &[
     TerminalId(10),
     TerminalId(13),
 ];
-// Layout_Star_6 { LineComment, WS }
-pub static FIRST_SET_LAYOUT_STAR_6: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
-// Layout_Star_6 : . Layout_Opt_11 { LineComment, WS }
-pub static FIRST_SET_LAYOUT_STAR_6_ALT0: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
+// Star_6 { LineComment, WS }
+pub static FIRST_SET_STAR_6: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
+// Star_6 : . Opt_11 { LineComment, WS }
+pub static FIRST_SET_STAR_6_ALT0: &[TerminalId] = &[TerminalId(9), TerminalId(7)];
 // Symbol_except_Except { EOF, "\", LineComment, WS }
 pub static FOLLOW_SET_SYMBOL_EXCEPT_EXCEPT: &[TerminalId] =
     &[TerminalId(38), TerminalId(22), TerminalId(9), TerminalId(7)];
@@ -3866,9 +3855,9 @@ pub static FIRST_SET_SYMBOL_EXCEPT_EXCEPT: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
 // Symbol_except_Except(p: i32) : . Identifier return 0 { Identifier }
 pub static FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT0: &[TerminalId] = &[TerminalId(1)];
-// Symbol_except_Except(p: i32) : . "(" Layout Alternative_Plus_7 Layout ")" return 0 { "(" }
+// Symbol_except_Except(p: i32) : . "(" Layout Plus_7 Layout ")" return 0 { "(" }
 pub static FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT1: &[TerminalId] = &[TerminalId(16)];
-// Symbol_except_Except(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0 { "(" }
+// Symbol_except_Except(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Plus_8 Layout ")" return 0 { "(" }
 pub static FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT2: &[TerminalId] = &[TerminalId(16)];
 // Symbol_except_Except(p: i32) : . String return 0 { String }
 pub static FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT3: &[TerminalId] = &[TerminalId(2)];
@@ -3885,10 +3874,10 @@ pub static FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT7: &[TerminalId] =
 // Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT8: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Symbol_Plus_10 return 0 { Identifier, "(", String, "{" }
+// Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol_except_FollowRestriction(p) [l == 0 || l >= 3] Layout restrictions:Plus_10 return 0 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT9: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_11 return 0 { Identifier, "(", String, "{" }
+// Symbol_except_Except(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Plus_11 return 0 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_EXCEPT_EXCEPT_ALT10: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
 // Symbol_except_Except(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2) { Identifier }
@@ -3903,9 +3892,9 @@ pub static FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
 // Symbol_except_FollowRestriction(p: i32) : . Identifier return 0 { Identifier }
 pub static FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT0: &[TerminalId] = &[TerminalId(1)];
-// Symbol_except_FollowRestriction(p: i32) : . "(" Layout Alternative_Plus_7 Layout ")" return 0 { "(" }
+// Symbol_except_FollowRestriction(p: i32) : . "(" Layout Plus_7 Layout ")" return 0 { "(" }
 pub static FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT1: &[TerminalId] = &[TerminalId(16)];
-// Symbol_except_FollowRestriction(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Symbol_Plus_8 Layout ")" return 0 { "(" }
+// Symbol_except_FollowRestriction(p: i32) : . "(" Layout first:Symbol(0) Layout rest:Plus_8 Layout ")" return 0 { "(" }
 pub static FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT2: &[TerminalId] = &[TerminalId(16)];
 // Symbol_except_FollowRestriction(p: i32) : . String return 0 { String }
 pub static FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT3: &[TerminalId] = &[TerminalId(2)];
@@ -3922,10 +3911,10 @@ pub static FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT7: &[TerminalId] =
 // Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout "?" return 0 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT8: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Symbol_Plus_9 return 0 { Identifier, "(", String, "{" }
+// Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol_except_Except(p) [l == 0 || l >= 3] Layout excepts:Plus_9 return 0 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT9: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
-// Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Symbol_Plus_11 return 0 { Identifier, "(", String, "{" }
+// Symbol_except_FollowRestriction(p: i32) : . [3 >= p] l=Symbol(p) [l == 0 || l >= 3] Layout labels:Plus_11 return 0 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_EXCEPT_FOLLOW_RESTRICTION_ALT10: &[TerminalId] =
     &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)];
 // Symbol_except_FollowRestriction(p: i32) : . Identifier Layout "!<<" Layout r=Symbol(2) return r == 0 ? 2 : min(r, 2) { Identifier }

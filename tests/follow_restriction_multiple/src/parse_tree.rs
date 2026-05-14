@@ -30,11 +30,11 @@ pub enum ParseTree<'a> {
     S(&'a S<'a>),
     Id(&'a Id<'a>),
     // Id+
-    SPlus0(&'a SPlus0<'a>),
+    Plus0(&'a Plus0<'a>),
     // (Alpha | Digit)
-    IdAlt0(&'a IdAlt0<'a>),
+    Alt0(&'a Alt0<'a>),
     // (Alpha | Digit)+
-    IdPlus1(&'a IdPlus1<'a>),
+    Plus1(&'a Plus1<'a>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -42,11 +42,11 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::S(s) => (0..s.child_count()).filter_map(|i| s.child(i)).collect(),
             ParseTree::Id(id) => (0..id.child_count()).filter_map(|i| id.child(i)).collect(),
-            ParseTree::SPlus0(s_plus_0) => s_plus_0.iter().collect(),
-            ParseTree::IdAlt0(id_alt_0) => (0..id_alt_0.child_count())
-                .filter_map(|i| id_alt_0.child(i))
+            ParseTree::Plus0(plus_0) => plus_0.iter().collect(),
+            ParseTree::Alt0(alt_0) => (0..alt_0.child_count())
+                .filter_map(|i| alt_0.child(i))
                 .collect(),
-            ParseTree::IdPlus1(id_plus_1) => id_plus_1.iter().collect(),
+            ParseTree::Plus1(plus_1) => plus_1.iter().collect(),
             ParseTree::Token(_) => vec![],
         }
     }
@@ -54,9 +54,9 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::S(_) => "S",
             ParseTree::Id(_) => "Id",
-            ParseTree::SPlus0(_) => "Id+",
-            ParseTree::IdAlt0(_) => "(Alpha | Digit)",
-            ParseTree::IdPlus1(_) => "(Alpha | Digit)+",
+            ParseTree::Plus0(_) => "Id+",
+            ParseTree::Alt0(_) => "(Alpha | Digit)",
+            ParseTree::Plus1(_) => "(Alpha | Digit)+",
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -64,9 +64,9 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::S(s) => s.child_count(),
             ParseTree::Id(id) => id.child_count(),
-            ParseTree::SPlus0(s_plus_0) => s_plus_0.child_count(),
-            ParseTree::IdAlt0(id_alt_0) => id_alt_0.child_count(),
-            ParseTree::IdPlus1(id_plus_1) => id_plus_1.child_count(),
+            ParseTree::Plus0(plus_0) => plus_0.child_count(),
+            ParseTree::Alt0(alt_0) => alt_0.child_count(),
+            ParseTree::Plus1(plus_1) => plus_1.child_count(),
             ParseTree::Token(_) => 0,
         }
     }
@@ -74,9 +74,9 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::S(s) => s.span(),
             ParseTree::Id(id) => id.span(),
-            ParseTree::SPlus0(s_plus_0) => s_plus_0.span(),
-            ParseTree::IdAlt0(id_alt_0) => id_alt_0.span(),
-            ParseTree::IdPlus1(id_plus_1) => id_plus_1.span(),
+            ParseTree::Plus0(plus_0) => plus_0.span(),
+            ParseTree::Alt0(alt_0) => alt_0.span(),
+            ParseTree::Plus1(plus_1) => plus_1.span(),
             ParseTree::Token(token) => token.span(),
         }
     }
@@ -92,21 +92,21 @@ impl<'a> ParseTree<'a> {
             _ => panic!(),
         }
     }
-    fn unwrap_s_plus_0(self) -> &'a SPlus0<'a> {
+    fn unwrap_plus_0(self) -> &'a Plus0<'a> {
         match self {
-            ParseTree::SPlus0(s_plus_0) => s_plus_0,
+            ParseTree::Plus0(plus_0) => plus_0,
             _ => panic!(),
         }
     }
-    fn unwrap_id_alt_0(self) -> &'a IdAlt0<'a> {
+    fn unwrap_alt_0(self) -> &'a Alt0<'a> {
         match self {
-            ParseTree::IdAlt0(id_alt_0) => id_alt_0,
+            ParseTree::Alt0(alt_0) => alt_0,
             _ => panic!(),
         }
     }
-    fn unwrap_id_plus_1(self) -> &'a IdPlus1<'a> {
+    fn unwrap_plus_1(self) -> &'a Plus1<'a> {
         match self {
-            ParseTree::IdPlus1(id_plus_1) => id_plus_1,
+            ParseTree::Plus1(plus_1) => plus_1,
             _ => panic!(),
         }
     }
@@ -127,21 +127,21 @@ pub trait OptNode {
 // S = Id+
 #[derive(Debug)]
 pub struct S<'a> {
-    pub ids: &'a SPlus0<'a>,
+    pub ids: &'a Plus0<'a>,
     pub span: Span,
 }
 // Id = (Alpha | Digit)+ !>> Alpha !>> Digit
 #[derive(Debug)]
 pub struct Id<'a> {
-    pub id_plus_1: &'a IdPlus1<'a>,
+    pub plus_1: &'a Plus1<'a>,
     pub span: Span,
 }
 // Id+
 #[derive(Debug)]
-pub enum SPlus0<'a> {
+pub enum Plus0<'a> {
     // Id+ Id
     Alt0 {
-        ids: &'a SPlus0<'a>,
+        ids: &'a Plus0<'a>,
         id_1: &'a Id<'a>,
         span: Span,
     },
@@ -150,32 +150,32 @@ pub enum SPlus0<'a> {
         id: &'a Id<'a>,
         span: Span,
     },
-    Amb(&'a [&'a SPlus0<'a>]),
+    Amb(&'a [&'a Plus0<'a>]),
 }
 // (Alpha | Digit)
 #[derive(Debug)]
-pub enum IdAlt0<'a> {
+pub enum Alt0<'a> {
     // Alpha
     Alt0 { alpha: Token, span: Span },
     // Digit
     Alt1 { digit: Token, span: Span },
-    Amb(&'a [&'a IdAlt0<'a>]),
+    Amb(&'a [&'a Alt0<'a>]),
 }
 // (Alpha | Digit)+
 #[derive(Debug)]
-pub enum IdPlus1<'a> {
+pub enum Plus1<'a> {
     // (Alpha | Digit)+ (Alpha | Digit)
     Alt0 {
-        id_plus_1: &'a IdPlus1<'a>,
-        id_alt_0: &'a IdAlt0<'a>,
+        plus_1: &'a Plus1<'a>,
+        alt_0: &'a Alt0<'a>,
         span: Span,
     },
     // (Alpha | Digit)
     Alt1 {
-        id_alt_0: &'a IdAlt0<'a>,
+        alt_0: &'a Alt0<'a>,
         span: Span,
     },
-    Amb(&'a [&'a IdPlus1<'a>]),
+    Amb(&'a [&'a Plus1<'a>]),
 }
 impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -185,7 +185,7 @@ impl<'a> S<'a> {
         match index {
             0 => Some({
                 let ids = &self.ids;
-                ParseTree::SPlus0(ids)
+                ParseTree::Plus0(ids)
             }),
             _ => None,
         }
@@ -207,8 +207,8 @@ impl<'a> Id<'a> {
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some({
-                let id_plus_1 = &self.id_plus_1;
-                ParseTree::IdPlus1(id_plus_1)
+                let plus_1 = &self.plus_1;
+                ParseTree::Plus1(plus_1)
             }),
             _ => None,
         }
@@ -220,42 +220,42 @@ impl<'a> Id<'a> {
         self.span
     }
     pub fn alphas(&self) -> impl Iterator<Item = Token> {
-        self.id_plus_1.alphas()
+        self.plus_1.alphas()
     }
     pub fn digits(&self) -> impl Iterator<Item = Token> {
-        self.id_plus_1.digits()
+        self.plus_1.digits()
     }
 }
-impl<'a> SPlus0<'a> {
+impl<'a> Plus0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
-        ParseTree::SPlus0(self)
+        ParseTree::Plus0(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            SPlus0::Alt0 { ids, id_1, .. } => match index {
-                0 => Some(ParseTree::SPlus0(ids)),
+            Plus0::Alt0 { ids, id_1, .. } => match index {
+                0 => Some(ParseTree::Plus0(ids)),
                 1 => Some(ParseTree::Id(id_1)),
                 _ => None,
             },
-            SPlus0::Alt1 { id, .. } => match index {
+            Plus0::Alt1 { id, .. } => match index {
                 0 => Some(ParseTree::Id(id)),
                 _ => None,
             },
-            SPlus0::Amb(_) => None,
+            Plus0::Amb(_) => None,
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
-            SPlus0::Alt0 { .. } => 2usize,
-            SPlus0::Alt1 { .. } => 1usize,
-            SPlus0::Amb(alts) => alts.len(),
+            Plus0::Alt0 { .. } => 2usize,
+            Plus0::Alt1 { .. } => 1usize,
+            Plus0::Amb(alts) => alts.len(),
         }
     }
     pub fn span(&self) -> Span {
         match self {
-            SPlus0::Alt0 { span, .. } => *span,
-            SPlus0::Alt1 { span, .. } => *span,
-            SPlus0::Amb(alts) => alts[0].span(),
+            Plus0::Alt0 { span, .. } => *span,
+            Plus0::Alt1 { span, .. } => *span,
+            Plus0::Amb(alts) => alts[0].span(),
         }
     }
     pub fn ids(&'a self) -> impl Iterator<Item = &'a Id<'a>> {
@@ -265,94 +265,90 @@ impl<'a> SPlus0<'a> {
         })
     }
 }
-impl<'a> IdAlt0<'a> {
+impl<'a> Alt0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
-        ParseTree::IdAlt0(self)
+        ParseTree::Alt0(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            IdAlt0::Alt0 { alpha, .. } => match index {
+            Alt0::Alt0 { alpha, .. } => match index {
                 0 => Some(ParseTree::Token(*alpha)),
                 _ => None,
             },
-            IdAlt0::Alt1 { digit, .. } => match index {
+            Alt0::Alt1 { digit, .. } => match index {
                 0 => Some(ParseTree::Token(*digit)),
                 _ => None,
             },
-            IdAlt0::Amb(_) => None,
+            Alt0::Amb(_) => None,
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
-            IdAlt0::Alt0 { .. } => 1usize,
-            IdAlt0::Alt1 { .. } => 1usize,
-            IdAlt0::Amb(alts) => alts.len(),
+            Alt0::Alt0 { .. } => 1usize,
+            Alt0::Alt1 { .. } => 1usize,
+            Alt0::Amb(alts) => alts.len(),
         }
     }
     pub fn span(&self) -> Span {
         match self {
-            IdAlt0::Alt0 { span, .. } => *span,
-            IdAlt0::Alt1 { span, .. } => *span,
-            IdAlt0::Amb(alts) => alts[0].span(),
+            Alt0::Alt0 { span, .. } => *span,
+            Alt0::Alt1 { span, .. } => *span,
+            Alt0::Amb(alts) => alts[0].span(),
         }
     }
 }
-impl<'a> IdPlus1<'a> {
+impl<'a> Plus1<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
-        ParseTree::IdPlus1(self)
+        ParseTree::Plus1(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            IdPlus1::Alt0 {
-                id_plus_1,
-                id_alt_0,
-                ..
-            } => match index {
-                0 => Some(ParseTree::IdPlus1(id_plus_1)),
-                1 => Some(ParseTree::IdAlt0(id_alt_0)),
+            Plus1::Alt0 { plus_1, alt_0, .. } => match index {
+                0 => Some(ParseTree::Plus1(plus_1)),
+                1 => Some(ParseTree::Alt0(alt_0)),
                 _ => None,
             },
-            IdPlus1::Alt1 { id_alt_0, .. } => match index {
-                0 => Some(ParseTree::IdAlt0(id_alt_0)),
+            Plus1::Alt1 { alt_0, .. } => match index {
+                0 => Some(ParseTree::Alt0(alt_0)),
                 _ => None,
             },
-            IdPlus1::Amb(_) => None,
+            Plus1::Amb(_) => None,
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
-            IdPlus1::Alt0 { .. } => 2usize,
-            IdPlus1::Alt1 { .. } => 1usize,
-            IdPlus1::Amb(alts) => alts.len(),
+            Plus1::Alt0 { .. } => 2usize,
+            Plus1::Alt1 { .. } => 1usize,
+            Plus1::Amb(alts) => alts.len(),
         }
     }
     pub fn span(&self) -> Span {
         match self {
-            IdPlus1::Alt0 { span, .. } => *span,
-            IdPlus1::Alt1 { span, .. } => *span,
-            IdPlus1::Amb(alts) => alts[0].span(),
+            Plus1::Alt0 { span, .. } => *span,
+            Plus1::Alt1 { span, .. } => *span,
+            Plus1::Amb(alts) => alts[0].span(),
         }
     }
     pub fn alphas(&'a self) -> impl Iterator<Item = Token> {
         self.iter().filter_map(|node| match node {
-            ParseTree::IdAlt0(IdAlt0::Alt0 { alpha, .. }) => Some(*alpha),
+            ParseTree::Alt0(Alt0::Alt0 { alpha, .. }) => Some(*alpha),
             _ => None,
         })
     }
     pub fn digits(&'a self) -> impl Iterator<Item = Token> {
         self.iter().filter_map(|node| match node {
-            ParseTree::IdAlt0(IdAlt0::Alt1 { digit, .. }) => Some(*digit),
+            ParseTree::Alt0(Alt0::Alt1 { digit, .. }) => Some(*digit),
             _ => None,
         })
     }
 }
-impl<'a> ListNode<'a> for SPlus0<'a> {
+impl<'a> ListNode<'a> for Plus0<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
         let mut items = vec![];
         let mut current = self;
         loop {
             match current {
-                SPlus0::Alt0 {
+                Plus0::Alt0 {
                     ids: rest,
                     id_1: item,
                     ..
@@ -360,52 +356,52 @@ impl<'a> ListNode<'a> for SPlus0<'a> {
                     items.push(item.as_parse_tree());
                     current = rest;
                 }
-                SPlus0::Alt1 { id: item, .. } => {
+                Plus0::Alt1 { id: item, .. } => {
                     items.push(item.as_parse_tree());
                     break;
                 }
-                SPlus0::Amb(_) => panic!("unexpected ambiguity in list node"),
+                Plus0::Amb(_) => panic!("unexpected ambiguity in list node"),
             }
         }
         items.reverse();
         items.into_iter()
     }
 }
-impl<'a> ListNode<'a> for IdPlus1<'a> {
+impl<'a> ListNode<'a> for Plus1<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
         let mut items = vec![];
         let mut current = self;
         loop {
             match current {
-                IdPlus1::Alt0 {
-                    id_plus_1: rest,
-                    id_alt_0: item,
+                Plus1::Alt0 {
+                    plus_1: rest,
+                    alt_0: item,
                     ..
                 } => {
                     items.push(item.as_parse_tree());
                     current = rest;
                 }
-                IdPlus1::Alt1 { id_alt_0: item, .. } => {
+                Plus1::Alt1 { alt_0: item, .. } => {
                     items.push(item.as_parse_tree());
                     break;
                 }
-                IdPlus1::Amb(_) => panic!("unexpected ambiguity in list node"),
+                Plus1::Amb(_) => panic!("unexpected ambiguity in list node"),
             }
         }
         items.reverse();
         items.into_iter()
     }
 }
-impl<'a> IdAlt0<'a> {
+impl<'a> Alt0<'a> {
     pub fn as_alpha(&self) -> Option<&Token> {
         match self {
-            IdAlt0::Alt0 { alpha, .. } => Some(alpha),
+            Alt0::Alt0 { alpha, .. } => Some(alpha),
             _ => None,
         }
     }
     pub fn as_digit(&self) -> Option<&Token> {
         match self {
-            IdAlt0::Alt1 { digit, .. } => Some(digit),
+            Alt0::Alt1 { digit, .. } => Some(digit),
             _ => None,
         }
     }
@@ -453,7 +449,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
                 SlotId(1) => {
                     let [ids] = children.into_array::<1usize>();
                     ParseTree::S(self.bump.alloc(S {
-                        ids: ids.unwrap_s_plus_0(),
+                        ids: ids.unwrap_plus_0(),
                         span: nonterminal_node.span,
                     }))
                 }
@@ -463,21 +459,21 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
             NonterminalId(1) => match nonterminal_node.return_slot {
                 // Id : (Alpha | Digit)+ !>> Alpha !>> Digit.
                 SlotId(3) => {
-                    let [id_plus_1] = children.into_array::<1usize>();
+                    let [plus_1] = children.into_array::<1usize>();
                     ParseTree::Id(self.bump.alloc(Id {
-                        id_plus_1: id_plus_1.unwrap_id_plus_1(),
+                        plus_1: plus_1.unwrap_plus_1(),
                         span: nonterminal_node.span,
                     }))
                 }
                 _ => unreachable!(),
             },
-            // S_Plus_0
+            // Plus_0
             NonterminalId(2) => match nonterminal_node.return_slot {
                 // Id+ : Id+ Id.
                 SlotId(6) => {
                     let [ids, id_1] = children.into_array::<2usize>();
-                    ParseTree::SPlus0(self.bump.alloc(SPlus0::Alt0 {
-                        ids: ids.unwrap_s_plus_0(),
+                    ParseTree::Plus0(self.bump.alloc(Plus0::Alt0 {
+                        ids: ids.unwrap_plus_0(),
                         id_1: id_1.unwrap_id(),
                         span: nonterminal_node.span,
                     }))
@@ -485,19 +481,19 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
                 // Id+ : Id.
                 SlotId(8) => {
                     let [id] = children.into_array::<1usize>();
-                    ParseTree::SPlus0(self.bump.alloc(SPlus0::Alt1 {
+                    ParseTree::Plus0(self.bump.alloc(Plus0::Alt1 {
                         id: id.unwrap_id(),
                         span: nonterminal_node.span,
                     }))
                 }
                 _ => unreachable!(),
             },
-            // Id_Alt_0
+            // Alt_0
             NonterminalId(3) => match nonterminal_node.return_slot {
                 // (Alpha | Digit) : Alpha.
                 SlotId(10) => {
                     let [alpha] = children.into_array::<1usize>();
-                    ParseTree::IdAlt0(self.bump.alloc(IdAlt0::Alt0 {
+                    ParseTree::Alt0(self.bump.alloc(Alt0::Alt0 {
                         alpha: alpha.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -505,29 +501,29 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
                 // (Alpha | Digit) : Digit.
                 SlotId(12) => {
                     let [digit] = children.into_array::<1usize>();
-                    ParseTree::IdAlt0(self.bump.alloc(IdAlt0::Alt1 {
+                    ParseTree::Alt0(self.bump.alloc(Alt0::Alt1 {
                         digit: digit.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
                 }
                 _ => unreachable!(),
             },
-            // Id_Plus_1
+            // Plus_1
             NonterminalId(4) => match nonterminal_node.return_slot {
                 // (Alpha | Digit)+ : (Alpha | Digit)+ (Alpha | Digit).
                 SlotId(15) => {
-                    let [id_plus_1, id_alt_0] = children.into_array::<2usize>();
-                    ParseTree::IdPlus1(self.bump.alloc(IdPlus1::Alt0 {
-                        id_plus_1: id_plus_1.unwrap_id_plus_1(),
-                        id_alt_0: id_alt_0.unwrap_id_alt_0(),
+                    let [plus_1, alt_0] = children.into_array::<2usize>();
+                    ParseTree::Plus1(self.bump.alloc(Plus1::Alt0 {
+                        plus_1: plus_1.unwrap_plus_1(),
+                        alt_0: alt_0.unwrap_alt_0(),
                         span: nonterminal_node.span,
                     }))
                 }
                 // (Alpha | Digit)+ : (Alpha | Digit).
                 SlotId(17) => {
-                    let [id_alt_0] = children.into_array::<1usize>();
-                    ParseTree::IdPlus1(self.bump.alloc(IdPlus1::Alt1 {
-                        id_alt_0: id_alt_0.unwrap_id_alt_0(),
+                    let [alt_0] = children.into_array::<1usize>();
+                    ParseTree::Plus1(self.bump.alloc(Plus1::Alt1 {
+                        alt_0: alt_0.unwrap_alt_0(),
                         span: nonterminal_node.span,
                     }))
                 }
@@ -552,14 +548,14 @@ pub fn create_parse_tree<'a>(
     match nonterminal_id {
         crate::grammar_data::S => ParseTree::S(create_parse_tree_s(root_id, parser, builder)),
         crate::grammar_data::ID => ParseTree::Id(create_parse_tree_id(root_id, parser, builder)),
-        crate::grammar_data::S_PLUS_0 => {
-            ParseTree::SPlus0(create_parse_tree_s_plus_0(root_id, parser, builder))
+        crate::grammar_data::PLUS_0 => {
+            ParseTree::Plus0(create_parse_tree_plus_0(root_id, parser, builder))
         }
-        crate::grammar_data::ID_ALT_0 => {
-            ParseTree::IdAlt0(create_parse_tree_id_alt_0(root_id, parser, builder))
+        crate::grammar_data::ALT_0 => {
+            ParseTree::Alt0(create_parse_tree_alt_0(root_id, parser, builder))
         }
-        crate::grammar_data::ID_PLUS_1 => {
-            ParseTree::IdPlus1(create_parse_tree_id_plus_1(root_id, parser, builder))
+        crate::grammar_data::PLUS_1 => {
+            ParseTree::Plus1(create_parse_tree_plus_1(root_id, parser, builder))
         }
         _ => panic!(),
     }
@@ -580,35 +576,35 @@ pub fn create_parse_tree_id<'a>(
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder).unwrap_one().unwrap_id()
 }
-pub fn create_parse_tree_s_plus_0<'a>(
+pub fn create_parse_tree_plus_0<'a>(
     root_id: SPPFNodeId,
     parser: &FollowRestrictionMultipleParser,
     builder: &FollowRestrictionMultipleParseTreeBuilder<'a>,
-) -> &'a SPlus0<'a> {
+) -> &'a Plus0<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_s_plus_0()
+        .unwrap_plus_0()
 }
-pub fn create_parse_tree_id_alt_0<'a>(
+pub fn create_parse_tree_alt_0<'a>(
     root_id: SPPFNodeId,
     parser: &FollowRestrictionMultipleParser,
     builder: &FollowRestrictionMultipleParseTreeBuilder<'a>,
-) -> &'a IdAlt0<'a> {
+) -> &'a Alt0<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_id_alt_0()
+        .unwrap_alt_0()
 }
-pub fn create_parse_tree_id_plus_1<'a>(
+pub fn create_parse_tree_plus_1<'a>(
     root_id: SPPFNodeId,
     parser: &FollowRestrictionMultipleParser,
     builder: &FollowRestrictionMultipleParseTreeBuilder<'a>,
-) -> &'a IdPlus1<'a> {
+) -> &'a Plus1<'a> {
     let node = parser.sppf_node(root_id);
     visit_sppf(node, parser, builder)
         .unwrap_one()
-        .unwrap_id_plus_1()
+        .unwrap_plus_1()
 }
 pub fn to_sexpr(node: ParseTree<'_>) -> String {
     let mut s = String::new();

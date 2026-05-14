@@ -24,7 +24,7 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
         derived: false,
     },
     Nonterminal {
-        name: "A_Alt_0",
+        name: "Alt_0",
         display: "(C | D)",
         derived: true,
     },
@@ -35,14 +35,14 @@ pub const A: NonterminalId = NonterminalId(0);
 pub const B: NonterminalId = NonterminalId(1);
 pub const C: NonterminalId = NonterminalId(2);
 pub const D: NonterminalId = NonterminalId(3);
-pub const A_ALT_0: NonterminalId = NonterminalId(4);
+pub const ALT_0: NonterminalId = NonterminalId(4);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "A" => Some(A),
         "B" => Some(B),
         "C" => Some(C),
         "D" => Some(D),
-        "A_Alt_0" => Some(A_ALT_0),
+        "Alt_0" => Some(ALT_0),
         _ => None,
     }
 }
@@ -98,7 +98,7 @@ pub const SLOTS: [Slot; 13] = [
 pub static FOLLOW_SET_A: &[TerminalId] = &[TerminalId(4)];
 // A { "b" }
 pub static FIRST_SET_A: &[TerminalId] = &[TerminalId(0)];
-// A : . B A_Alt_0 { "b" }
+// A : . B Alt_0 { "b" }
 pub static FIRST_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
 // B { "c", "d", EOF }
 pub static FOLLOW_SET_B: &[TerminalId] = &[TerminalId(1), TerminalId(2), TerminalId(4)];
@@ -118,11 +118,11 @@ pub static FOLLOW_SET_D: &[TerminalId] = &[TerminalId(4)];
 pub static FIRST_SET_D: &[TerminalId] = &[TerminalId(2)];
 // D : . "d" { "d" }
 pub static FIRST_SET_D_ALT0: &[TerminalId] = &[TerminalId(2)];
-// A_Alt_0 { EOF }
-pub static FOLLOW_SET_A_ALT_0: &[TerminalId] = &[TerminalId(4)];
-// A_Alt_0 { "c", "d" }
-pub static FIRST_SET_A_ALT_0: &[TerminalId] = &[TerminalId(1), TerminalId(2)];
-// A_Alt_0 : . C { "c" }
-pub static FIRST_SET_A_ALT_0_ALT0: &[TerminalId] = &[TerminalId(1)];
-// A_Alt_0 : . D { "d" }
-pub static FIRST_SET_A_ALT_0_ALT1: &[TerminalId] = &[TerminalId(2)];
+// Alt_0 { EOF }
+pub static FOLLOW_SET_ALT_0: &[TerminalId] = &[TerminalId(4)];
+// Alt_0 { "c", "d" }
+pub static FIRST_SET_ALT_0: &[TerminalId] = &[TerminalId(1), TerminalId(2)];
+// Alt_0 : . C { "c" }
+pub static FIRST_SET_ALT_0_ALT0: &[TerminalId] = &[TerminalId(1)];
+// Alt_0 : . D { "d" }
+pub static FIRST_SET_ALT_0_ALT1: &[TerminalId] = &[TerminalId(2)];

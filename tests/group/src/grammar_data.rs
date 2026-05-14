@@ -24,7 +24,7 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
         derived: false,
     },
     Nonterminal {
-        name: "A_Group_0",
+        name: "Group_0",
         display: "(B C D)",
         derived: true,
     },
@@ -35,14 +35,14 @@ pub const A: NonterminalId = NonterminalId(0);
 pub const B: NonterminalId = NonterminalId(1);
 pub const C: NonterminalId = NonterminalId(2);
 pub const D: NonterminalId = NonterminalId(3);
-pub const A_GROUP_0: NonterminalId = NonterminalId(4);
+pub const GROUP_0: NonterminalId = NonterminalId(4);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "A" => Some(A),
         "B" => Some(B),
         "C" => Some(C),
         "D" => Some(D),
-        "A_Group_0" => Some(A_GROUP_0),
+        "Group_0" => Some(GROUP_0),
         _ => None,
     }
 }
@@ -95,7 +95,7 @@ pub const SLOTS: [Slot; 12] = [
 pub static FOLLOW_SET_A: &[TerminalId] = &[TerminalId(4)];
 // A { "b" }
 pub static FIRST_SET_A: &[TerminalId] = &[TerminalId(0)];
-// A : . A_Group_0 { "b" }
+// A : . Group_0 { "b" }
 pub static FIRST_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
 // B { "c", EOF }
 pub static FOLLOW_SET_B: &[TerminalId] = &[TerminalId(1), TerminalId(4)];
@@ -115,9 +115,9 @@ pub static FOLLOW_SET_D: &[TerminalId] = &[TerminalId(4)];
 pub static FIRST_SET_D: &[TerminalId] = &[TerminalId(2)];
 // D : . "d" { "d" }
 pub static FIRST_SET_D_ALT0: &[TerminalId] = &[TerminalId(2)];
-// A_Group_0 { EOF }
-pub static FOLLOW_SET_A_GROUP_0: &[TerminalId] = &[TerminalId(4)];
-// A_Group_0 { "b" }
-pub static FIRST_SET_A_GROUP_0: &[TerminalId] = &[TerminalId(0)];
-// A_Group_0 : . B C D { "b" }
-pub static FIRST_SET_A_GROUP_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+// Group_0 { EOF }
+pub static FOLLOW_SET_GROUP_0: &[TerminalId] = &[TerminalId(4)];
+// Group_0 { "b" }
+pub static FIRST_SET_GROUP_0: &[TerminalId] = &[TerminalId(0)];
+// Group_0 : . B C D { "b" }
+pub static FIRST_SET_GROUP_0_ALT0: &[TerminalId] = &[TerminalId(0)];

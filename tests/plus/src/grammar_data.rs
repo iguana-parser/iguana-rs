@@ -14,7 +14,7 @@ pub const NONTERMINALS: [Nonterminal; 3] = [
         derived: false,
     },
     Nonterminal {
-        name: "S_Plus_0",
+        name: "Plus_0",
         display: "A+",
         derived: true,
     },
@@ -23,12 +23,12 @@ pub const NONTERMINALS: [Nonterminal; 3] = [
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 2] = ["S", "A"];
 pub const S: NonterminalId = NonterminalId(0);
 pub const A: NonterminalId = NonterminalId(1);
-pub const S_PLUS_0: NonterminalId = NonterminalId(2);
+pub const PLUS_0: NonterminalId = NonterminalId(2);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
         "A" => Some(A),
-        "S_Plus_0" => Some(S_PLUS_0),
+        "Plus_0" => Some(PLUS_0),
         _ => None,
     }
 }
@@ -70,7 +70,7 @@ pub const SLOTS: [Slot; 9] = [
 pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(2)];
 // S { "a" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
-// S : . S_Plus_0 { "a" }
+// S : . Plus_0 { "a" }
 pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
 // A { "a", EOF }
 pub static FOLLOW_SET_A: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
@@ -78,11 +78,11 @@ pub static FOLLOW_SET_A: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
 pub static FIRST_SET_A: &[TerminalId] = &[TerminalId(0)];
 // A : . "a" { "a" }
 pub static FIRST_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
-// S_Plus_0 { "a", EOF }
-pub static FOLLOW_SET_S_PLUS_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
-// S_Plus_0 { "a" }
-pub static FIRST_SET_S_PLUS_0: &[TerminalId] = &[TerminalId(0)];
-// S_Plus_0 : . S_Plus_0 A { "a" }
-pub static FIRST_SET_S_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
-// S_Plus_0 : . A { "a" }
-pub static FIRST_SET_S_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
+// Plus_0 { "a", EOF }
+pub static FOLLOW_SET_PLUS_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+// Plus_0 { "a" }
+pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(0)];
+// Plus_0 : . Plus_0 A { "a" }
+pub static FIRST_SET_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+// Plus_0 : . A { "a" }
+pub static FIRST_SET_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];

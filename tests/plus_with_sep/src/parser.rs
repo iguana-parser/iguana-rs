@@ -3,13 +3,13 @@
 // grammar PlusWithSep
 //
 // S
-//   = S_Plus_0
+//   = Plus_0
 //
 // A
 //   = "a"
 //
-// S_Plus_0
-//   = S_Plus_0 "," A
+// Plus_0
+//   = Plus_0 "," A
 //   | A
 //
 // "," = ,
@@ -64,15 +64,15 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             gss_node_id
         );
         match slot_id {
-            // S : . S_Plus_0
+            // S : . Plus_0
             SlotId(0) => {
-                if let Some(right_child) = self.parse_s_plus_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // S : S_Plus_0.
+                    // S : Plus_0.
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
-            // S : S_Plus_0.
+            // S : Plus_0.
             SlotId(1) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
@@ -97,15 +97,15 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
                     self.create_nonterminal_node(result, NonterminalId(1), SlotId(3));
                 self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
             }
-            // S_Plus_0 : . S_Plus_0 "," A
+            // Plus_0 : . Plus_0 "," A
             SlotId(4) => {
-                if let Some(right_child) = self.parse_s_plus_0_ll1(input_index) {
+                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // S_Plus_0 : S_Plus_0 . "," A
+                    // Plus_0 : Plus_0 . "," A
                     self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
             }
-            // S_Plus_0 : S_Plus_0 . "," A
+            // Plus_0 : Plus_0 . "," A
             SlotId(5) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -117,37 +117,37 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(6))
                     {
-                        // S_Plus_0 : S_Plus_0 "," . A
+                        // Plus_0 : Plus_0 "," . A
                         self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // S_Plus_0 : S_Plus_0 "," . A
+            // Plus_0 : Plus_0 "," . A
             SlotId(6) => {
                 if let Some(right_child) = self.parse_a_ll1(input_index) {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(7))
                     {
-                        // S_Plus_0 : S_Plus_0 "," A.
+                        // Plus_0 : Plus_0 "," A.
                         self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // S_Plus_0 : S_Plus_0 "," A.
+            // Plus_0 : Plus_0 "," A.
             SlotId(7) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(7));
                 self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
             }
-            // S_Plus_0 : . A
+            // Plus_0 : . A
             SlotId(8) => {
                 if let Some(right_child) = self.parse_a_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // S_Plus_0 : A.
+                    // Plus_0 : A.
                     self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }
             }
-            // S_Plus_0 : A.
+            // Plus_0 : A.
             SlotId(9) => {
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(9));
@@ -166,7 +166,7 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
         env: Option<EnvId>,
     ) {
         match nonterminal_id {
-            // S : . S_Plus_0
+            // S : . Plus_0
             NonterminalId(0) => {
                 self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
             }
@@ -174,23 +174,23 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             NonterminalId(1) => {
                 self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
             }
-            // S_Plus_0
+            // Plus_0
             NonterminalId(2) => {
                 let mut matched = false;
-                // S_Plus_0 : . S_Plus_0 "," A
-                if self.scanner.match_any(FIRST_SET_S_PLUS_0_ALT0, input_index) {
+                // Plus_0 : . Plus_0 "," A
+                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
-                // S_Plus_0 : . A
-                if self.scanner.match_any(FIRST_SET_S_PLUS_0_ALT1, input_index) {
+                // Plus_0 : . A
+                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
                 if !matched {
                     self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_S_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.to_vec(),
                         }
                     });
                 }
@@ -506,7 +506,7 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
             NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_A, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_S_PLUS_0, input_index),
+            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_PLUS_0, input_index),
             _ => true,
         }
     }
@@ -514,7 +514,7 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_S.to_vec(),
             NonterminalId(1) => FOLLOW_SET_A.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_S_PLUS_0.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_PLUS_0.to_vec(),
             _ => vec![],
         }
     }
@@ -613,7 +613,7 @@ impl<'i> PlusWithSepParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_s_plus_0_ll1(start)?;
+                    let node = self.parse_plus_0_ll1(start)?;
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -658,7 +658,7 @@ impl<'i> PlusWithSepParser<'i> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_s_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+    fn parse_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         let mut j = i;
         let (body_node, body_end) = (self.parse_a_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();
