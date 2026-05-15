@@ -16,6 +16,12 @@ use crate::{
 #[cfg(feature = "debug-trace")]
 use crate::trace::TraceEvent;
 
+/// Initial-capacity multipliers for the SPPF/GSS accumulators in generated
+/// parsers, applied to `input.len()` in `Parser::new` to avoid `Vec` growth
+/// on the hot path.
+pub const SPPF_CAPACITY_MULTIPLIER: usize = 8;
+pub const GSS_CAPACITY_MULTIPLIER: usize = 2;
+
 pub enum ParseResult {
     Success(ParseSuccess),
     Failure(ParseError),
