@@ -8135,7 +8135,7 @@ impl<'i> IggyParser<'i> {
             gss_nodes_index_symbol: vec![],
             gss_nodes_index_symbol_except_except: vec![],
             gss_nodes_index_symbol_except_follow_restriction: vec![],
-            descriptors: vec![],
+            descriptors: Vec::with_capacity(1024),
             gss_nodes: vec![],
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 60],

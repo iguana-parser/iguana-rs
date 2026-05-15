@@ -784,7 +784,7 @@ impl<'i> BinaryExpressionPriorityParser<'i> {
             scanner: BinaryExpressionPriorityScanner::new(input),
             gss_nodes_index: [const { vec![] }; 2],
             gss_nodes_index_e: vec![],
-            descriptors: vec![],
+            descriptors: Vec::with_capacity(1024),
             gss_nodes: vec![],
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 2],

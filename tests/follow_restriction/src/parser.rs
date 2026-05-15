@@ -719,7 +719,7 @@ impl<'i> FollowRestrictionParser<'i> {
             start_nonterminal,
             scanner: FollowRestrictionScanner::new(input),
             gss_nodes_index: [const { vec![] }; 5],
-            descriptors: vec![],
+            descriptors: Vec::with_capacity(1024),
             gss_nodes: vec![],
             sppf_nodes: vec![],
             nonterminal_nodes_index: [const { InlineMap::Empty }; 5],

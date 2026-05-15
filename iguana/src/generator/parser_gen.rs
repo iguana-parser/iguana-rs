@@ -1062,7 +1062,7 @@ impl<'a> ParserGen<'a> {
                     scanner: #name_ident::new(input),
                     #gss_nodes_index_field,
                     #(#gss_nodes_index_fields,)*
-                    descriptors: vec![],
+                    descriptors: Vec::with_capacity(1024),
                     gss_nodes: vec![],
                     sppf_nodes: vec![],
                     #nonterminal_nodes_index_field,
