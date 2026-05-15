@@ -59,6 +59,13 @@ Tests use s-expression golden file comparison via `check_golden_file`. The gener
 
 The generator is parameterized by `GenConfig.cli` (default `true`). `iguana generate --cli=true|false` switches between a standalone CLI parser crate (Cargo.toml with `iguana-runtime = { git = ... }`, full deps, `src/main.rs`) and a minimal lib-only crate (`workspace = true` deps, no main.rs). xtask `test-gen` always uses `cli=false`. Terrarium relies on `cli=true` (the default) because it shells out to per-grammar parser binaries.
 
+# Benchmarking
+
+- For each perf claim, re-measure the baseline from master immediately before the change. Don't compare against baseline JSONs from earlier in the session.
+- Workflow: stash the changes → build → bench → save as baseline → unstash → build → bench against that baseline.
+- Internal profile shifts (flamegraph share, sample counts) are not wall-clock improvements. State them separately. A frame share dropping from 47% to 43% can coexist with unchanged total wall time.
+- `--bench-save` / `--bench-baseline` in generated parsers compute a Welch CI on the delta. Treat the CI as the noise floor of that single comparison, not proof that wall time moved across sessions.
+
 # Terrarium
 
 ## Architecture
