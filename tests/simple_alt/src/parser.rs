@@ -96,7 +96,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             // A : B Alt_0.
             SlotId(2) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(2));
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(2), gss_node_id);
                 self.pop(gss_node_id, SlotId(2), nonterminal_node_id, None);
             }
             // B : . "b"
@@ -115,7 +115,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             // B : "b".
             SlotId(4) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(4));
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(4), gss_node_id);
                 self.pop(gss_node_id, SlotId(4), nonterminal_node_id, None);
             }
             // C : . "c"
@@ -134,7 +134,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             // C : "c".
             SlotId(6) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(6));
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(6), gss_node_id);
                 self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
             }
             // D : . "d"
@@ -153,7 +153,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             // D : "d".
             SlotId(8) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(8));
+                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(8), gss_node_id);
                 self.pop(gss_node_id, SlotId(8), nonterminal_node_id, None);
             }
             // Alt_0 : . C
@@ -167,7 +167,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             // Alt_0 : C.
             SlotId(10) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(10));
+                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(10), gss_node_id);
                 self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
             }
             // Alt_0 : . D
@@ -181,7 +181,7 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             // Alt_0 : D.
             SlotId(12) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(12));
+                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(12), gss_node_id);
                 self.pop(gss_node_id, SlotId(12), nonterminal_node_id, None);
             }
             _ => {
@@ -307,8 +307,6 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
     }
     fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
         let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
-            .insert(nonterminal_node.span, nonterminal_node_id);
         record!(
             self,
             NonterminalNodeCreated,
@@ -396,15 +394,6 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             })
             .count()
     }
-    fn lookup_nonterminal_node(
-        &self,
-        nonterminal_id: NonterminalId,
-        left_extent: u32,
-        right_extent: u32,
-    ) -> Option<SPPFNodeId> {
-        let map = &self.nonterminal_nodes_index[nonterminal_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
-    }
     fn lookup_intermediate_node(
         &self,
         slot_id: SlotId,
@@ -471,8 +460,16 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
     fn start_env(&mut self) -> Option<EnvId> {
         None
     }
-    fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
-        self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent)
+    fn lookup_start_nonterminal_node(
+        &self,
+        right_extent: u32,
+        start_gss_node_id: GssNodeId,
+    ) -> Option<SPPFNodeId> {
+        self.gss_node(start_gss_node_id)
+            .popped_elements()
+            .iter()
+            .find(|((right, _), _)| *right == right_extent)
+            .map(|(_, id)| *id)
     }
     fn add_start_gss_node(
         &mut self,
@@ -513,15 +510,12 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
         for node in self.gss_nodes() {
             stats.record("GssNode::edges: InlineVec", node.edges().len());
             stats.record(
-                "GssNode::popped_elements: InlineSet",
+                "GssNode::popped_elements: InlineMap",
                 node.popped_elements().len(),
             );
         }
         for env in self.envs() {
             stats.record("Env::bindings: InlineVec", env.bindings.len());
-        }
-        for m in self.nonterminal_nodes_index.iter() {
-            stats.record("Parser::nonterminal_nodes_index: InlineMap", m.len());
         }
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
@@ -609,7 +603,6 @@ pub struct SimpleAltParser<'i> {
     sppf_nodes: Vec<SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 13],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
@@ -633,7 +626,6 @@ impl<'i> SimpleAltParser<'i> {
             descriptors: Vec::with_capacity(1024),
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 5],
             intermediate_nodes_index: [const { InlineMap::Empty }; 13],
             terminal_nodes_index: [const { InlineMap::Empty }; 5],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
@@ -680,14 +672,16 @@ impl<'i> SimpleAltParser<'i> {
                         true,
                     )
                     .unwrap();
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(0),
-                    SlotId(2),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
+                return Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(0),
+                    return_slot: SlotId(2),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }));
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -706,14 +700,16 @@ impl<'i> SimpleAltParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(1),
-                    SlotId(4),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
+                return Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(1),
+                    return_slot: SlotId(4),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }));
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -732,14 +728,16 @@ impl<'i> SimpleAltParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(2),
-                    SlotId(6),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
+                return Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(2),
+                    return_slot: SlotId(6),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }));
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -758,14 +756,16 @@ impl<'i> SimpleAltParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(8),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
+                return Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(3),
+                    return_slot: SlotId(8),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }));
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -784,14 +784,16 @@ impl<'i> SimpleAltParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(4),
-                    SlotId(10),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
+                return Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(4),
+                    return_slot: SlotId(10),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }));
             }
             TerminalId(2) => {
                 let mut j = i;
@@ -804,14 +806,16 @@ impl<'i> SimpleAltParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(4),
-                    SlotId(12),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
+                return Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(4),
+                    return_slot: SlotId(12),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }));
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }

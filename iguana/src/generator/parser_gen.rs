@@ -86,7 +86,6 @@ impl<'a> ParserGen<'a> {
         let sppf_nodes_method = Self::gen_sppf_nodes_method();
         let increment_descriptor_count_method = Self::gen_increment_descriptor_count_method();
         let count_methods = Self::gen_count_methods();
-        let lookup_nonterminal_node_method = Self::gen_lookup_nonterminal_node_method();
         let lookup_intermediate_node_method = Self::gen_lookup_intermediate_node_method();
         let lookup_terminal_node_method = Self::gen_lookup_terminal_node_method();
         let gss_nodes_method = Self::gen_gss_nodes_method();
@@ -136,7 +135,6 @@ impl<'a> ParserGen<'a> {
                 #sppf_nodes_method
                 #increment_descriptor_count_method
                 #count_methods
-                #lookup_nonterminal_node_method
                 #lookup_intermediate_node_method
                 #lookup_terminal_node_method
                 #gss_nodes_method
@@ -246,7 +244,7 @@ impl<'a> ParserGen<'a> {
                                 input_index,
                                 input_index,
                                 epsilon_node_id,
-                                true,
+                                gss_node_id,
                             );
                             self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, None);
                         }
@@ -272,13 +270,14 @@ impl<'a> ParserGen<'a> {
                                 node.right_extent(),
                                 result,
                                 return_value,
+                                gss_node_id,
                             );
                             self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, Some(return_value));
                         }
                     } else {
                         quote! {
                             let nonterminal_node_id = self.create_nonterminal_node(
-                                result, #nonterminal_id, #end_slot_id,
+                                result, #nonterminal_id, #end_slot_id, gss_node_id,
                             );
                             self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, None);
                         }
@@ -977,16 +976,6 @@ impl<'a> ParserGen<'a> {
             .dd_nonterminals()
             .map(Self::gen_add_gss_node_method_with_parameters)
             .collect();
-        let specialized_lookup_nonterminal_node_methods: Vec<_> = self
-            .nonterminal_ids
-            .dd_nonterminals()
-            .map(Self::gen_specialized_lookup_nonterminal_node_method)
-            .collect();
-        let specialized_add_nonterminal_node_methods: Vec<_> = self
-            .nonterminal_ids
-            .dd_nonterminals()
-            .map(Self::gen_specialized_add_nonterminal_node_method)
-            .collect();
         let create_nonterminal_node_or_attach_children_methods: Vec<_> = self
             .nonterminal_ids
             .dd_nonterminals()
@@ -1000,8 +989,6 @@ impl<'a> ParserGen<'a> {
                 #(#ll1_parse_methods)*
                 #(#get_gss_node_methods)*
                 #(#add_gss_node_methods)*
-                #(#specialized_lookup_nonterminal_node_methods)*
-                #(#specialized_add_nonterminal_node_methods)*
                 #(#create_nonterminal_node_or_attach_children_methods)*
                 #get_or_create_epsilon_node_method
             }
@@ -1037,12 +1024,6 @@ impl<'a> ParserGen<'a> {
             .dd_nonterminals()
             .map(Self::gen_gss_nodes_index_field_init)
             .collect();
-        let return_value_fields: Vec<_> = self
-            .nonterminal_ids
-            .dd_nonterminals()
-            .map(Self::gen_specialized_nonterminal_nodes_index_field_init)
-            .collect();
-        let nonterminal_nodes_index_field = self.gen_nonterminal_nodes_index_field();
         let intermediate_nodes_index_field = self.gen_intermediate_nodes_index_field();
         let terminal_nodes_index_field = self.gen_terminal_nodes_index_field();
         let layout_memo_init = if self
@@ -1065,7 +1046,6 @@ impl<'a> ParserGen<'a> {
                     descriptors: Vec::with_capacity(1024),
                     gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
                     sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-                    #nonterminal_nodes_index_field,
                     #intermediate_nodes_index_field,
                     #terminal_nodes_index_field,
                     epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
@@ -1075,7 +1055,6 @@ impl<'a> ParserGen<'a> {
                     intermediate_nodes_children_map: OnceCell::new(),
                     nonterminal_nodes_children: vec![],
                     nonterminal_nodes_children_map: OnceCell::new(),
-                    #(#return_value_fields,)*
                     envs: vec![],
                     parse_errors: InlineVec::Empty,
                     #layout_memo_init
@@ -1094,11 +1073,6 @@ impl<'a> ParserGen<'a> {
             .nonterminal_ids
             .dd_nonterminals()
             .map(Self::gen_gss_nodes_index_field_for_data_dependent_nt)
-            .collect();
-        let specialized_nonterminal_nodes_index_fields: Vec<_> = self
-            .nonterminal_ids
-            .dd_nonterminals()
-            .map(Self::gen_specialized_nonterminal_nodes_index_field)
             .collect();
         let slot_ids_len = Literal::usize_unsuffixed(self.slot_ids.len());
         let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
@@ -1124,7 +1098,6 @@ impl<'a> ParserGen<'a> {
                 sppf_nodes: Vec<SPPFNode>,
                 #[cfg(feature = "instrument")]
                 descriptors_count: usize,
-                nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #nonterminal_ids_len],
                 intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #slot_ids_len],
                 terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
                 #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
@@ -1133,7 +1106,6 @@ impl<'a> ParserGen<'a> {
                 intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
                 nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
                 nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
-                #(#specialized_nonterminal_nodes_index_fields,)*
                 envs: Vec<Env>,
                 parse_errors: InlineVec<ParseError, 8>,
                 #layout_memo_field
@@ -1147,13 +1119,6 @@ impl<'a> ParserGen<'a> {
         let nonterminal_ids_len = Literal::usize_unsuffixed(self.nonterminal_ids.len());
         quote! {
             gss_nodes_index: [const { vec![] }; #nonterminal_ids_len]
-        }
-    }
-
-    fn gen_nonterminal_nodes_index_field(&self) -> TokenStream {
-        let nonterminal_ids_len = Literal::usize_unsuffixed(self.nonterminal_ids.len());
-        quote! {
-            nonterminal_nodes_index: [const { InlineMap::Empty }; #nonterminal_ids_len]
         }
     }
 
@@ -1275,9 +1240,13 @@ impl<'a> ParserGen<'a> {
         if alternative.symbols.is_empty() {
             quote! {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
-                return Some(self.get_or_create_nonterminal_node(
-                    #nonterminal_id, #end_slot_id, i, i, epsilon_node_id, false,
-                ));
+                return Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: #nonterminal_id,
+                    return_slot: #end_slot_id,
+                    span: Span { left_extent: i, right_extent: i },
+                    child: epsilon_node_id,
+                    ambiguous: false,
+                }));
             }
         } else {
             self.gen_parse_alternative_ll1(nonterminal, alternative, nonterminal_id, end_slot_id)
@@ -1400,15 +1369,23 @@ impl<'a> ParserGen<'a> {
                 let (body_node, body_end) = (#base_parse)?;
                 j = body_end;
                 let left_extent = i;
-                let mut current = self.get_or_create_nonterminal_node(
-                    #nonterminal_id, #base_end_slot_id, left_extent, j, body_node, false,
-                );
+                let mut current = self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: #nonterminal_id,
+                    return_slot: #base_end_slot_id,
+                    span: Span { left_extent, right_extent: j },
+                    child: body_node,
+                    ambiguous: false,
+                });
                 loop {
                     #(#parses)*
                     #(#build_nodes)*
-                    current = self.get_or_create_nonterminal_node(
-                        #nonterminal_id, #recursive_end_slot_id, left_extent, j, current, false,
-                    );
+                    current = self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: #nonterminal_id,
+                        return_slot: #recursive_end_slot_id,
+                        span: Span { left_extent, right_extent: j },
+                        child: current,
+                        ambiguous: false,
+                    });
                 }
                 Some(current)
             }
@@ -1568,9 +1545,13 @@ impl<'a> ParserGen<'a> {
         }
 
         body.push(quote! {
-            return Some(self.get_or_create_nonterminal_node(
-                #nonterminal_id, #end_slot_id, left_extent, j, current, false,
-            ));
+            return Some(self.add_nonterminal_node(NonterminalNode {
+                nonterminal_id: #nonterminal_id,
+                return_slot: #end_slot_id,
+                span: Span { left_extent, right_extent: j },
+                child: current,
+                ambiguous: false,
+            }));
         });
 
         quote! { #(#body)* }
@@ -1779,8 +1760,6 @@ impl<'a> ParserGen<'a> {
         quote! {
             fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
                 let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-                self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
-                    .insert(nonterminal_node.span, nonterminal_node_id);
                 record!(
                     self,
                     NonterminalNodeCreated,
@@ -1884,20 +1863,6 @@ impl<'a> ParserGen<'a> {
                     SPPFNode::Intermediate(in_) => in_.ambiguous,
                     SPPFNode::Terminal(_) => false,
                 }).count()
-            }
-        }
-    }
-
-    fn gen_lookup_nonterminal_node_method() -> TokenStream {
-        quote! {
-            fn lookup_nonterminal_node(
-                &self,
-                nonterminal_id: NonterminalId,
-                left_extent: u32,
-                right_extent: u32,
-            ) -> Option<SPPFNodeId> {
-                let map = &self.nonterminal_nodes_index[nonterminal_id.index()];
-                map.get(&Span::new(left_extent, right_extent)).copied()
             }
         }
     }
@@ -2068,60 +2033,11 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_specialized_lookup_nonterminal_node_method(nt: &Nonterminal) -> TokenStream {
-        let create_method_name =
-            format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
-        let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
-        quote! {
-            fn #create_method_name(
-                &self,
-                left_extent: u32,
-                right_extent: u32,
-                return_value: i32
-            ) -> Option<SPPFNodeId> {
-                let span = Span::new(left_extent, right_extent);
-                self.#field_name
-                    .get(&span)
-                    .and_then(|entries| {
-                        entries.iter()
-                            .find(|(rv, _)| *rv == return_value)
-                            .map(|(_, id)| *id)
-                    })
-            }
-        }
-    }
-
-    fn gen_specialized_add_nonterminal_node_method(nt: &Nonterminal) -> TokenStream {
-        let method_name = format_ident!("add_nonterminal_node_{}", to_snake_case(&nt.name));
-        let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
-        quote! {
-            fn #method_name(&mut self, nonterminal_node: NonterminalNode, return_value: i32) -> SPPFNodeId {
-                let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-                self.#field_name
-                    .entry(nonterminal_node.span)
-                    .or_default()
-                .push((return_value, nonterminal_node_id));
-                record!(
-                    self,
-                    NonterminalNodeCreated,
-                    nonterminal_node.nonterminal_id,
-                    nonterminal_node.span,
-                    nonterminal_node.child
-                );
-                self.sppf_nodes.push(SPPFNode::Nonterminal(nonterminal_node));
-                nonterminal_node_id
-            }
-        }
-    }
-
     fn gen_create_nonterminal_node_or_attach_children(nt: &Nonterminal) -> TokenStream {
         let method_name = format_ident!(
             "create_nonterminal_node_or_attach_children_{}",
             to_snake_case(&nt.name)
         );
-        let lookup_method_name =
-            format_ident!("lookup_nonterminal_node_{}", to_snake_case(&nt.name));
-        let add_method_name = format_ident!("add_nonterminal_node_{}", to_snake_case(&nt.name));
         quote! {
             fn #method_name(
                 &mut self,
@@ -2131,9 +2047,11 @@ impl<'a> ParserGen<'a> {
                 right_extent: u32,
                 child: SPPFNodeId,
                 return_value: i32,
+                gss_node_id: GssNodeId,
             ) -> SPPFNodeId {
-                if let Some(existing_node_id) =
-                    self.#lookup_method_name(left_extent, right_extent, return_value)
+                if let Some(existing_node_id) = self
+                    .gss_node(gss_node_id)
+                    .find_popped_element(right_extent, Some(return_value))
                 {
                     record!(self, NonterminalNodeFound, existing_node_id);
                     let node = self.sppf_node_mut(existing_node_id);
@@ -2154,7 +2072,7 @@ impl<'a> ParserGen<'a> {
                     child,
                     ambiguous: false,
                 };
-                self.#add_method_name(nonterminal_node, return_value)
+                self.add_nonterminal_node(nonterminal_node)
             }
         }
     }
@@ -2169,24 +2087,10 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_specialized_nonterminal_nodes_index_field(nt: &Nonterminal) -> TokenStream {
-        let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
-        quote! {
-            #field_name: FxHashMap<Span, InlineVec<(i32, SPPFNodeId)>>
-        }
-    }
-
     fn gen_gss_nodes_index_field_init(nt: &Nonterminal) -> TokenStream {
         let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
         quote! {
             #field_name: vec![]
-        }
-    }
-
-    fn gen_specialized_nonterminal_nodes_index_field_init(nt: &Nonterminal) -> TokenStream {
-        let field_name = format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
-        quote! {
-            #field_name: FxHashMap::default()
         }
     }
 
@@ -2242,40 +2146,22 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    // Resolves the SPPF root for a data-dependent start nonterminal by reading from
-    // its per-nonterminal index. Multiple entries at the same span (different return
-    // values) all represent valid parses; we pick the first.
+    // Resolves the SPPF root for the start nonterminal by reading the start GSS
+    // node's popped-elements map. Each successful pop of the start nonterminal
+    // inserts an entry keyed by `(right_extent, return_value)`; we return the
+    // first entry whose right extent reaches the full input.
     fn gen_lookup_start_nonterminal_node_method(&self) -> TokenStream {
-        let arms: Vec<_> = self
-            .nonterminal_ids
-            .dd_nonterminals()
-            .map(|nt| {
-                let id = self.nonterminal_ids.get_id(nt);
-                let field_name =
-                    format_ident!("nonterminal_nodes_index_{}", to_snake_case(&nt.name));
-                quote! {
-                    #id => {
-                        let span = Span::new(0, right_extent);
-                        self.#field_name
-                            .get(&span)
-                            .and_then(|entries| entries.first().map(|(_, id)| *id))
-                    }
-                }
-            })
-            .collect();
-        let body = if arms.is_empty() {
-            quote! { self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent) }
-        } else {
-            quote! {
-                match self.start_nonterminal {
-                    #(#arms)*
-                    _ => self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent),
-                }
-            }
-        };
         quote! {
-            fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
-                #body
+            fn lookup_start_nonterminal_node(
+                &self,
+                right_extent: u32,
+                start_gss_node_id: GssNodeId,
+            ) -> Option<SPPFNodeId> {
+                self.gss_node(start_gss_node_id)
+                    .popped_elements()
+                    .iter()
+                    .find(|((right, _), _)| *right == right_extent)
+                    .map(|(_, id)| *id)
             }
         }
     }
@@ -2376,13 +2262,10 @@ impl<'a> ParserGen<'a> {
                 // Histograms
                 for node in self.gss_nodes() {
                     stats.record("GssNode::edges: InlineVec", node.edges().len());
-                    stats.record("GssNode::popped_elements: InlineSet", node.popped_elements().len());
+                    stats.record("GssNode::popped_elements: InlineMap", node.popped_elements().len());
                 }
                 for env in self.envs() {
                     stats.record("Env::bindings: InlineVec", env.bindings.len());
-                }
-                for m in self.nonterminal_nodes_index.iter() {
-                    stats.record("Parser::nonterminal_nodes_index: InlineMap", m.len());
                 }
                 for m in self.intermediate_nodes_index.iter() {
                     stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());

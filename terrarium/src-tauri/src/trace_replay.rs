@@ -595,14 +595,14 @@ impl TraceReplay {
                 // Track the current SPPF node from the descriptor
                 self.current_sppf_node_id = sppf_node_id.map(|id| id.0);
             }
-            TraceEvent::Pop(gss_node_id, slot_id, popped_element) => {
+            TraceEvent::Pop(gss_node_id, slot_id, nonterminal_node_id, _) => {
                 self.current_action = Some(DebugAction::Pop {
                     slot_id: *slot_id,
                     gss_node_id: *gss_node_id,
-                    sppf_node_id: popped_element.nonterminal_node_id,
+                    sppf_node_id: *nonterminal_node_id,
                 });
                 // Track the SPPF node from the Pop
-                self.current_sppf_node_id = Some(popped_element.nonterminal_node_id.0);
+                self.current_sppf_node_id = Some(nonterminal_node_id.0);
             }
             TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 self.descriptor_set.push(Descriptor {
@@ -950,16 +950,16 @@ impl TraceReplay {
                 format!("SPPF intermediate node {} found", sppf_node_id.0),
                 "sppf".to_string(),
             ),
-            TraceEvent::Pop(gss_node_id, slot_id, popped_element) => {
+            TraceEvent::Pop(gss_node_id, slot_id, nonterminal_node_id, _) => {
                 let gss_node = self.format_gss_node(*gss_node_id);
                 let slot_name = self.symbols.slot(*slot_id);
                 (
-                    format!("Pop {} [{}] with SPPF {}", gss_node, slot_name, popped_element.nonterminal_node_id.0),
+                    format!("Pop {} [{}] with SPPF {}", gss_node, slot_name, nonterminal_node_id.0),
                     "pop".to_string(),
                 )
             }
-            TraceEvent::AddToPoppedElements(gss_node_id, popped_element) => (
-                format!("Add SPPF {} to popped elements of GSS {}", popped_element.nonterminal_node_id.0, gss_node_id.0),
+            TraceEvent::AddToPoppedElements(gss_node_id, nonterminal_node_id, _) => (
+                format!("Add SPPF {} to popped elements of GSS {}", nonterminal_node_id.0, gss_node_id.0),
                 "pop".to_string(),
             ),
             TraceEvent::NodeAlreadyInPoppedElements => (

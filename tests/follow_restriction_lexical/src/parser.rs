@@ -81,7 +81,7 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
             // S : Plus_0.
             SlotId(1) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1), gss_node_id);
                 self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
             // Element : . Num
@@ -100,7 +100,7 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
             // Element : Num.
             SlotId(3) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3));
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3), gss_node_id);
                 self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
             }
             // Element : . Id
@@ -119,7 +119,7 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
             // Element : Id.
             SlotId(5) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(5));
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(5), gss_node_id);
                 self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
             // Plus_0 : . Plus_0 WS Element
@@ -161,7 +161,7 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
             // Plus_0 : Plus_0 WS Element.
             SlotId(9) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(9));
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(9), gss_node_id);
                 self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
             }
             // Plus_0 : . Element
@@ -175,7 +175,7 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
             // Plus_0 : Element.
             SlotId(11) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(11));
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(11), gss_node_id);
                 self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
             }
             _ => {
@@ -310,8 +310,6 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
     }
     fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
         let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
-            .insert(nonterminal_node.span, nonterminal_node_id);
         record!(
             self,
             NonterminalNodeCreated,
@@ -399,15 +397,6 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
             })
             .count()
     }
-    fn lookup_nonterminal_node(
-        &self,
-        nonterminal_id: NonterminalId,
-        left_extent: u32,
-        right_extent: u32,
-    ) -> Option<SPPFNodeId> {
-        let map = &self.nonterminal_nodes_index[nonterminal_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
-    }
     fn lookup_intermediate_node(
         &self,
         slot_id: SlotId,
@@ -474,8 +463,16 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
     fn start_env(&mut self) -> Option<EnvId> {
         None
     }
-    fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
-        self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent)
+    fn lookup_start_nonterminal_node(
+        &self,
+        right_extent: u32,
+        start_gss_node_id: GssNodeId,
+    ) -> Option<SPPFNodeId> {
+        self.gss_node(start_gss_node_id)
+            .popped_elements()
+            .iter()
+            .find(|((right, _), _)| *right == right_extent)
+            .map(|(_, id)| *id)
     }
     fn add_start_gss_node(
         &mut self,
@@ -516,15 +513,12 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
         for node in self.gss_nodes() {
             stats.record("GssNode::edges: InlineVec", node.edges().len());
             stats.record(
-                "GssNode::popped_elements: InlineSet",
+                "GssNode::popped_elements: InlineMap",
                 node.popped_elements().len(),
             );
         }
         for env in self.envs() {
             stats.record("Env::bindings: InlineVec", env.bindings.len());
-        }
-        for m in self.nonterminal_nodes_index.iter() {
-            stats.record("Parser::nonterminal_nodes_index: InlineMap", m.len());
         }
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
@@ -608,7 +602,6 @@ pub struct FollowRestrictionLexicalParser<'i> {
     sppf_nodes: Vec<SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 3],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 12],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
@@ -632,7 +625,6 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
             descriptors: Vec::with_capacity(1024),
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 3],
             intermediate_nodes_index: [const { InlineMap::Empty }; 12],
             terminal_nodes_index: [const { InlineMap::Empty }; 6],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
@@ -662,14 +654,16 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(0),
-                    SlotId(1),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
+                return Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(0),
+                    return_slot: SlotId(1),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }));
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -688,14 +682,16 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(1),
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
+                return Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(1),
+                    return_slot: SlotId(3),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }));
             }
             TerminalId(2) => {
                 let mut j = i;
@@ -708,14 +704,16 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let mut current = right_child;
-                return Some(self.get_or_create_nonterminal_node(
-                    NonterminalId(1),
-                    SlotId(5),
-                    left_extent,
-                    j,
-                    current,
-                    false,
-                ));
+                return Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(1),
+                    return_slot: SlotId(5),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }));
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -728,14 +726,16 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
         }))?;
         j = body_end;
         let left_extent = i;
-        let mut current = self.get_or_create_nonterminal_node(
-            NonterminalId(2),
-            SlotId(11),
-            left_extent,
-            j,
-            body_node,
-            false,
-        );
+        let mut current = self.add_nonterminal_node(NonterminalNode {
+            nonterminal_id: NonterminalId(2),
+            return_slot: SlotId(11),
+            span: Span {
+                left_extent,
+                right_extent: j,
+            },
+            child: body_node,
+            ambiguous: false,
+        });
         loop {
             let Some((node_0, pos_0)) = self
                 .match_terminal(TerminalId(3), j, SlotId(7), None, "WS")
@@ -770,14 +770,16 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
                     true,
                 )
                 .unwrap();
-            current = self.get_or_create_nonterminal_node(
-                NonterminalId(2),
-                SlotId(9),
-                left_extent,
-                j,
-                current,
-                false,
-            );
+            current = self.add_nonterminal_node(NonterminalNode {
+                nonterminal_id: NonterminalId(2),
+                return_slot: SlotId(9),
+                span: Span {
+                    left_extent,
+                    right_extent: j,
+                },
+                child: current,
+                ambiguous: false,
+            });
         }
         Some(current)
     }

@@ -1,25 +1,44 @@
-use std::{collections::hash_map, hash::Hash, iter};
+use std::{array, collections::hash_map, hash::Hash, iter};
 
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxBuildHasher, FxHashMap};
+
+/// Capacity hint for the spilled `FxHashMap`. Hashbrown sizes the table by
+/// rounding up to a power of two at the 7/8 load factor, so 7 lands at the
+/// 8-bucket size class (room for 7 entries before rehash). 8 would jump to
+/// 16 buckets and double the memory footprint.
+const SPILL_CAPACITY: usize = 7;
 
 #[derive(Debug, Default)]
 pub enum InlineMap<K: Clone + Eq + Hash, V: Clone> {
     #[default]
     Empty,
     Single((K, V)),
+    Pair((K, V), (K, V)),
     Multiple(FxHashMap<K, V>),
 }
 
 impl<K: Clone + Eq + Hash, V: Clone> InlineMap<K, V> {
+    /// Insert `(key, value)`. The caller is responsible for ensuring `key` is
+    /// not already present. Inserting a duplicate key promotes the map
+    /// prematurely and the lookup behavior for that key is unspecified.
     pub fn insert(&mut self, key: K, value: V) {
         match self {
             InlineMap::Empty => *self = InlineMap::Single((key, value)),
-            InlineMap::Single((k, v)) => {
-                let mut map = FxHashMap::default();
-                map.insert(k.clone(), v.clone());
-                map.insert(key, value);
-                *self = InlineMap::Multiple(map)
-            }
+            InlineMap::Single(_) => match std::mem::take(self) {
+                InlineMap::Single(p0) => *self = InlineMap::Pair(p0, (key, value)),
+                _ => unreachable!(),
+            },
+            InlineMap::Pair(_, _) => match std::mem::take(self) {
+                InlineMap::Pair(p0, p1) => {
+                    let mut map =
+                        FxHashMap::with_capacity_and_hasher(SPILL_CAPACITY, FxBuildHasher);
+                    map.insert(p0.0, p0.1);
+                    map.insert(p1.0, p1.1);
+                    map.insert(key, value);
+                    *self = InlineMap::Multiple(map);
+                }
+                _ => unreachable!(),
+            },
             InlineMap::Multiple(items) => {
                 items.insert(key, value);
             }
@@ -29,9 +48,12 @@ impl<K: Clone + Eq + Hash, V: Clone> InlineMap<K, V> {
     pub fn get(&self, key: &K) -> Option<&V> {
         match self {
             InlineMap::Empty => None,
-            InlineMap::Single((k, v)) => {
-                if k == key {
-                    Some(v)
+            InlineMap::Single((k, v)) => (k == key).then_some(v),
+            InlineMap::Pair((k0, v0), (k1, v1)) => {
+                if k0 == key {
+                    Some(v0)
+                } else if k1 == key {
+                    Some(v1)
                 } else {
                     None
                 }
@@ -44,6 +66,7 @@ impl<K: Clone + Eq + Hash, V: Clone> InlineMap<K, V> {
         match self {
             InlineMap::Empty => 0,
             InlineMap::Single(_) => 1,
+            InlineMap::Pair(_, _) => 2,
             InlineMap::Multiple(v) => v.len(),
         }
     }
@@ -60,6 +83,7 @@ impl<K: Clone + Eq + Hash, V: Clone> InlineMap<K, V> {
 pub enum Iter<'a, K, V> {
     Empty(iter::Empty<(&'a K, &'a V)>),
     Single(iter::Once<(&'a K, &'a V)>),
+    Pair(array::IntoIter<(&'a K, &'a V), 2>),
     Multiple(hash_map::Iter<'a, K, V>),
 }
 
@@ -70,6 +94,7 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
         match self {
             Iter::Empty(empty) => empty.next(),
             Iter::Single(once) => once.next(),
+            Iter::Pair(iter) => iter.next(),
             Iter::Multiple(iter) => iter.next(),
         }
     }
@@ -83,6 +108,7 @@ impl<'a, K: Clone + Eq + Hash, V: Clone> IntoIterator for &'a InlineMap<K, V> {
         match self {
             InlineMap::Empty => Iter::Empty(iter::empty()),
             InlineMap::Single(x) => Iter::Single(iter::once((&x.0, &x.1))),
+            InlineMap::Pair(a, b) => Iter::Pair([(&a.0, &a.1), (&b.0, &b.1)].into_iter()),
             InlineMap::Multiple(v) => Iter::Multiple(v.iter()),
         }
     }
@@ -110,12 +136,30 @@ mod tests {
     }
 
     #[test]
+    fn test_grows_through_pair() {
+        let mut map: InlineMap<usize, usize> = InlineMap::default();
+        map.insert(1, 10);
+        assert!(matches!(map, InlineMap::Single(_)));
+        map.insert(2, 20);
+        assert!(matches!(map, InlineMap::Pair(_, _)));
+        map.insert(3, 30);
+        assert!(matches!(map, InlineMap::Multiple(_)));
+        let collected: HashMap<&usize, &usize> = map.iter().collect();
+        assert_eq!(collected, HashMap::from([(&1, &10), (&2, &20), (&3, &30)]));
+    }
+
+    #[test]
     fn test_add_to_single() {
         let mut l = InlineMap::Single((1, 2));
         l.insert(2, 3);
         l.insert(3, 4);
-        assert_eq!(l.len(), 3);
+        l.insert(4, 5);
+        l.insert(5, 6);
+        assert_eq!(l.len(), 5);
         let elements: HashMap<&usize, &usize> = l.into_iter().collect();
-        assert_eq!(elements, HashMap::from([(&1, &2), (&2, &3), (&3, &4)]));
+        assert_eq!(
+            elements,
+            HashMap::from([(&1, &2), (&2, &3), (&3, &4), (&4, &5), (&5, &6)])
+        );
     }
 }

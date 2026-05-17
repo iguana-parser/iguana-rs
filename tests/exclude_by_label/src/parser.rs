@@ -95,7 +95,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             // Expr : Id.
             SlotId(1) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1), gss_node_id);
                 self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
             // Expr : . Expr "(" Star_0 ")"
@@ -143,7 +143,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             // Expr : Expr "(" Star_0 ")".
             SlotId(6) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(6));
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(6), gss_node_id);
                 self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
             }
             // Expr : . Expr "," Expr
@@ -174,7 +174,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             // Expr : Expr "," Expr.
             SlotId(10) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(10));
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(10), gss_node_id);
                 self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
             }
             // Plus_0 : . Plus_0 "," Expr_except_comma
@@ -205,7 +205,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             // Plus_0 : Plus_0 "," Expr_except_comma.
             SlotId(14) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(14));
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(14), gss_node_id);
                 self.pop(gss_node_id, SlotId(14), nonterminal_node_id, None);
             }
             // Plus_0 : . Expr_except_comma
@@ -215,7 +215,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             // Plus_0 : Expr_except_comma.
             SlotId(16) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(16));
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(16), gss_node_id);
                 self.pop(gss_node_id, SlotId(16), nonterminal_node_id, None);
             }
             // Opt_0 : . Plus_0
@@ -225,7 +225,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             // Opt_0 : Plus_0.
             SlotId(18) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(18));
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(18), gss_node_id);
                 self.pop(gss_node_id, SlotId(18), nonterminal_node_id, None);
             }
             // Opt_0 : .
@@ -237,7 +237,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     input_index,
                     input_index,
                     epsilon_node_id,
-                    true,
+                    gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(19), nonterminal_node_id, None);
             }
@@ -248,7 +248,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             // Star_0 : Opt_0.
             SlotId(21) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(21));
+                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(21), gss_node_id);
                 self.pop(gss_node_id, SlotId(21), nonterminal_node_id, None);
             }
             // Expr_except_comma : . Id
@@ -267,7 +267,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             // Expr_except_comma : Id.
             SlotId(23) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(23));
+                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(23), gss_node_id);
                 self.pop(gss_node_id, SlotId(23), nonterminal_node_id, None);
             }
             // Expr_except_comma : . Expr "(" Star_0 ")"
@@ -315,7 +315,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             // Expr_except_comma : Expr "(" Star_0 ")".
             SlotId(28) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(28));
+                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(28), gss_node_id);
                 self.pop(gss_node_id, SlotId(28), nonterminal_node_id, None);
             }
             _ => {
@@ -509,8 +509,6 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
     }
     fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
         let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
-            .insert(nonterminal_node.span, nonterminal_node_id);
         record!(
             self,
             NonterminalNodeCreated,
@@ -598,15 +596,6 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             })
             .count()
     }
-    fn lookup_nonterminal_node(
-        &self,
-        nonterminal_id: NonterminalId,
-        left_extent: u32,
-        right_extent: u32,
-    ) -> Option<SPPFNodeId> {
-        let map = &self.nonterminal_nodes_index[nonterminal_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
-    }
     fn lookup_intermediate_node(
         &self,
         slot_id: SlotId,
@@ -673,8 +662,16 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
     fn start_env(&mut self) -> Option<EnvId> {
         None
     }
-    fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
-        self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent)
+    fn lookup_start_nonterminal_node(
+        &self,
+        right_extent: u32,
+        start_gss_node_id: GssNodeId,
+    ) -> Option<SPPFNodeId> {
+        self.gss_node(start_gss_node_id)
+            .popped_elements()
+            .iter()
+            .find(|((right, _), _)| *right == right_extent)
+            .map(|(_, id)| *id)
     }
     fn add_start_gss_node(
         &mut self,
@@ -715,15 +712,12 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         for node in self.gss_nodes() {
             stats.record("GssNode::edges: InlineVec", node.edges().len());
             stats.record(
-                "GssNode::popped_elements: InlineSet",
+                "GssNode::popped_elements: InlineMap",
                 node.popped_elements().len(),
             );
         }
         for env in self.envs() {
             stats.record("Env::bindings: InlineVec", env.bindings.len());
-        }
-        for m in self.nonterminal_nodes_index.iter() {
-            stats.record("Parser::nonterminal_nodes_index: InlineMap", m.len());
         }
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
@@ -813,7 +807,6 @@ pub struct ExcludeByLabelParser<'i> {
     sppf_nodes: Vec<SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 29],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
@@ -837,7 +830,6 @@ impl<'i> ExcludeByLabelParser<'i> {
             descriptors: Vec::with_capacity(1024),
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 5],
             intermediate_nodes_index: [const { InlineMap::Empty }; 29],
             terminal_nodes_index: [const { InlineMap::Empty }; 6],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],

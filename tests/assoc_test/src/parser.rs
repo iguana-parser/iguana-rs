@@ -77,7 +77,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             // S : E(0).
             SlotId(1) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1));
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1), gss_node_id);
                 self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
             // E(p: i32) : . [3 >= p] l=E(p) [l == 0 || l >= 3] "+" E(4) return 3
@@ -142,6 +142,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     node.right_extent(),
                     result,
                     return_value,
+                    gss_node_id,
                 );
                 self.pop(
                     gss_node_id,
@@ -212,6 +213,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     node.right_extent(),
                     result,
                     return_value,
+                    gss_node_id,
                 );
                 self.pop(
                     gss_node_id,
@@ -282,6 +284,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     node.right_extent(),
                     result,
                     return_value,
+                    gss_node_id,
                 );
                 self.pop(
                     gss_node_id,
@@ -352,6 +355,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     node.right_extent(),
                     result,
                     return_value,
+                    gss_node_id,
                 );
                 self.pop(
                     gss_node_id,
@@ -391,6 +395,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     node.right_extent(),
                     result,
                     return_value,
+                    gss_node_id,
                 );
                 self.pop(
                     gss_node_id,
@@ -525,8 +530,6 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
     }
     fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
         let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
-            .insert(nonterminal_node.span, nonterminal_node_id);
         record!(
             self,
             NonterminalNodeCreated,
@@ -614,15 +617,6 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             })
             .count()
     }
-    fn lookup_nonterminal_node(
-        &self,
-        nonterminal_id: NonterminalId,
-        left_extent: u32,
-        right_extent: u32,
-    ) -> Option<SPPFNodeId> {
-        let map = &self.nonterminal_nodes_index[nonterminal_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
-    }
     fn lookup_intermediate_node(
         &self,
         slot_id: SlotId,
@@ -696,16 +690,16 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             _ => None,
         }
     }
-    fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
-        match self.start_nonterminal {
-            NonterminalId(1) => {
-                let span = Span::new(0, right_extent);
-                self.nonterminal_nodes_index_e
-                    .get(&span)
-                    .and_then(|entries| entries.first().map(|(_, id)| *id))
-            }
-            _ => self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent),
-        }
+    fn lookup_start_nonterminal_node(
+        &self,
+        right_extent: u32,
+        start_gss_node_id: GssNodeId,
+    ) -> Option<SPPFNodeId> {
+        self.gss_node(start_gss_node_id)
+            .popped_elements()
+            .iter()
+            .find(|((right, _), _)| *right == right_extent)
+            .map(|(_, id)| *id)
     }
     fn add_start_gss_node(
         &mut self,
@@ -749,15 +743,12 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
         for node in self.gss_nodes() {
             stats.record("GssNode::edges: InlineVec", node.edges().len());
             stats.record(
-                "GssNode::popped_elements: InlineSet",
+                "GssNode::popped_elements: InlineMap",
                 node.popped_elements().len(),
             );
         }
         for env in self.envs() {
             stats.record("Env::bindings: InlineVec", env.bindings.len());
-        }
-        for m in self.nonterminal_nodes_index.iter() {
-            stats.record("Parser::nonterminal_nodes_index: InlineMap", m.len());
         }
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
@@ -841,7 +832,6 @@ pub struct AssocTestParser<'i> {
     sppf_nodes: Vec<SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 33],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 7],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
@@ -850,7 +840,6 @@ pub struct AssocTestParser<'i> {
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
-    nonterminal_nodes_index_e: FxHashMap<Span, InlineVec<(i32, SPPFNodeId)>>,
     envs: Vec<Env>,
     parse_errors: InlineVec<ParseError, 8>,
     #[cfg(feature = "debug-trace")]
@@ -867,7 +856,6 @@ impl<'i> AssocTestParser<'i> {
             descriptors: Vec::with_capacity(1024),
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 2],
             intermediate_nodes_index: [const { InlineMap::Empty }; 33],
             terminal_nodes_index: [const { InlineMap::Empty }; 7],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
@@ -877,7 +865,6 @@ impl<'i> AssocTestParser<'i> {
             intermediate_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_children: vec![],
             nonterminal_nodes_children_map: OnceCell::new(),
-            nonterminal_nodes_index_e: FxHashMap::default(),
             envs: vec![],
             parse_errors: InlineVec::Empty,
             #[cfg(feature = "debug-trace")]
@@ -940,43 +927,6 @@ impl<'i> AssocTestParser<'i> {
     fn add_gss_node_e(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
         self.gss_nodes_index_e.push((input_index, p, gss_node_id));
     }
-    fn lookup_nonterminal_node_e(
-        &self,
-        left_extent: u32,
-        right_extent: u32,
-        return_value: i32,
-    ) -> Option<SPPFNodeId> {
-        let span = Span::new(left_extent, right_extent);
-        self.nonterminal_nodes_index_e
-            .get(&span)
-            .and_then(|entries| {
-                entries
-                    .iter()
-                    .find(|(rv, _)| *rv == return_value)
-                    .map(|(_, id)| *id)
-            })
-    }
-    fn add_nonterminal_node_e(
-        &mut self,
-        nonterminal_node: NonterminalNode,
-        return_value: i32,
-    ) -> SPPFNodeId {
-        let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.nonterminal_nodes_index_e
-            .entry(nonterminal_node.span)
-            .or_default()
-            .push((return_value, nonterminal_node_id));
-        record!(
-            self,
-            NonterminalNodeCreated,
-            nonterminal_node.nonterminal_id,
-            nonterminal_node.span,
-            nonterminal_node.child
-        );
-        self.sppf_nodes
-            .push(SPPFNode::Nonterminal(nonterminal_node));
-        nonterminal_node_id
-    }
     fn create_nonterminal_node_or_attach_children_e(
         &mut self,
         nonterminal_id: NonterminalId,
@@ -985,9 +935,11 @@ impl<'i> AssocTestParser<'i> {
         right_extent: u32,
         child: SPPFNodeId,
         return_value: i32,
+        gss_node_id: GssNodeId,
     ) -> SPPFNodeId {
-        if let Some(existing_node_id) =
-            self.lookup_nonterminal_node_e(left_extent, right_extent, return_value)
+        if let Some(existing_node_id) = self
+            .gss_node(gss_node_id)
+            .find_popped_element(right_extent, Some(return_value))
         {
             record!(self, NonterminalNodeFound, existing_node_id);
             let node = self.sppf_node_mut(existing_node_id);
@@ -1008,7 +960,7 @@ impl<'i> AssocTestParser<'i> {
             child,
             ambiguous: false,
         };
-        self.add_nonterminal_node_e(nonterminal_node, return_value)
+        self.add_nonterminal_node(nonterminal_node)
     }
     fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
         let existing = self.epsilon_nodes[i as usize];

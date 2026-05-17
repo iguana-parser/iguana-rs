@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     descriptor::Descriptor,
     env::{Env, EnvId},
-    gss::{GSSEdge, GSSNode, PoppedElement},
+    gss::{GSSEdge, GSSNode},
     ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     record,
@@ -73,7 +73,11 @@ pub trait Parser<'i> {
     );
     fn start_nonterminal(&self) -> NonterminalId;
     fn start_env(&mut self) -> Option<EnvId>;
-    fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId>;
+    fn lookup_start_nonterminal_node(
+        &self,
+        right_extent: u32,
+        start_gss_node_id: GssNodeId,
+    ) -> Option<SPPFNodeId>;
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId>;
     fn add_gss_node(
         &mut self,
@@ -138,15 +142,6 @@ pub trait Parser<'i> {
         child1: SPPFNodeId,
         child2: SPPFNodeId,
     );
-
-    /// Looks up an existing nonterminal node for the specified nonterminal_id and span (left_extent, right_extent).
-    /// Returns None if no such node exists.
-    fn lookup_nonterminal_node(
-        &self,
-        nonterminal_id: NonterminalId,
-        left_extent: u32,
-        right_extent: u32,
-    ) -> Option<SPPFNodeId>;
 
     /// Looks up an existing intermediate node for the specified slot_id and span (left_extent, right_extent).
     /// Returns None if no such node exists.
@@ -332,11 +327,7 @@ pub trait Parser<'i> {
                 .popped_elements_mut(),
         );
 
-        // Each popped_element already passed follow_set_check inside pop() before being
-        // added to popped_elements; re-checking here would be redundant.
-        for popped_element in popped_elements.iter() {
-            let popped_node = self.sppf_node(popped_element.nonterminal_node_id);
-            let right_extent = popped_node.right_extent();
+        for (&(right_extent, return_value), &nonterminal_node_id) in popped_elements.iter() {
             if let Some(error_kind) = self.post_conditions(return_slot, left_extent, right_extent) {
                 self.add_parse_error(
                     right_extent,
@@ -346,11 +337,11 @@ pub trait Parser<'i> {
                 );
                 continue;
             }
-            let right_child = (popped_element.nonterminal_node_id, right_extent);
+            let right_child = (nonterminal_node_id, right_extent);
             if let Some(new_node) = self.merge(left_child, right_child, return_slot) {
                 // Restore the caller's env from the edge and extend it with the
                 // callee's return value bound to the variable name, if present.
-                let env = match (env, binding, popped_element.return_value) {
+                let env = match (env, binding, return_value) {
                     (Some(env_id), Some(name), Some(return_value)) => {
                         let (new_env_id, new_env) = self.clone_env(env_id);
                         new_env.bind(name, return_value);
@@ -416,20 +407,22 @@ pub trait Parser<'i> {
         nonterminal_node_id: SPPFNodeId,
         return_value: Option<i32>,
     ) {
-        let popped_element = PoppedElement {
+        let right_extent = self.sppf_node(nonterminal_node_id).right_extent();
+        record!(
+            self,
+            Pop,
+            gss_node_id,
+            slot_id,
             nonterminal_node_id,
-            return_value,
-        };
-        record!(self, Pop, gss_node_id, slot_id, popped_element);
+            return_value
+        );
         let gss = self.gss_node(gss_node_id);
         let nonterminal_id = gss.nonterminal_id;
-        if gss.contains_popped_element(&popped_element) {
+        if gss.contains_popped_element(right_extent, return_value) {
             record!(self, NodeAlreadyInPoppedElements);
             return;
         }
         let left_extent = gss.index;
-        let node = self.sppf_node(popped_element.nonterminal_node_id);
-        let right_extent = node.right_extent();
         if !self.follow_set_check(nonterminal_id, right_extent) {
             let expected = self.follow_set_terminals(nonterminal_id);
             self.add_parse_error(right_extent, slot_id, Some(gss_node_id), || {
@@ -437,10 +430,16 @@ pub trait Parser<'i> {
             });
             return;
         }
-        let right_child = (popped_element.nonterminal_node_id, right_extent);
-        record!(self, AddToPoppedElements, gss_node_id, popped_element);
+        let right_child = (nonterminal_node_id, right_extent);
+        record!(
+            self,
+            AddToPoppedElements,
+            gss_node_id,
+            nonterminal_node_id,
+            return_value
+        );
         let gss = self.gss_node_mut(gss_node_id);
-        gss.add_to_popped_elements(popped_element);
+        gss.insert_popped_element(right_extent, return_value, nonterminal_node_id);
         let edge_count = gss.edges().len();
         for i in 0..edge_count {
             let edge = self.gss_node(gss_node_id).edges().get(i).unwrap().clone();
@@ -456,7 +455,7 @@ pub trait Parser<'i> {
                 .sppf_node_id
                 .map(|id| (id, self.sppf_node(id).left_extent()));
             if let Some(new_node_id) = self.merge(left_child, right_child, edge.return_slot) {
-                let env = match (edge.env, edge.binding, popped_element.return_value) {
+                let env = match (edge.env, edge.binding, return_value) {
                     (Some(env_id), Some(name), Some(rv)) => {
                         let (new_env_id, env) = self.clone_env(env_id);
                         env.bind(name, rv);
@@ -535,17 +534,14 @@ pub trait Parser<'i> {
         }
     }
 
-    /// Looks up the nonterminal node identified by `nonterminal_id` and the span
-    /// (`left_extent`, `right_extent`). If no such node exists, it is created and
-    /// added to the index; see `add_nonterminal_node`.
+    /// Looks up the nonterminal node identified by `nonterminal_id` and the
+    /// span `(left_extent, right_extent)` in the current GSS node's
+    /// popped-elements map. On hit, marks the existing node ambiguous and
+    /// attaches `child`. On miss, creates a fresh node.
     ///
-    /// If the node already exists and `attach_ambiguity` is true (GLL path),
-    /// `child` is added to its list of children as ambiguity.
-    ///
-    /// If `attach_ambiguity` is false (LL1 path), the existing node is returned
-    /// as-is. LL1 nonterminals can be called multiple times from GLL with the
-    /// same input position, producing identical children, so attaching would
-    /// create false ambiguities.
+    /// Only called in the GLL path. LL(1) parses do not call this function
+    /// because an LL(1) nonterminal is unambiguous by definition, so the
+    /// ambiguity-attach branch is unreachable.
     fn get_or_create_nonterminal_node(
         &mut self,
         nonterminal_id: NonterminalId,
@@ -553,20 +549,19 @@ pub trait Parser<'i> {
         left_extent: u32,
         right_extent: u32,
         child: SPPFNodeId,
-        attach_ambiguity: bool,
+        gss_node_id: GssNodeId,
     ) -> SPPFNodeId {
-        if let Some(existing_node_id) =
-            self.lookup_nonterminal_node(nonterminal_id, left_extent, right_extent)
+        if let Some(existing_node_id) = self
+            .gss_node(gss_node_id)
+            .find_popped_element(right_extent, None)
         {
-            if attach_ambiguity {
-                record!(self, NonterminalNodeFound, existing_node_id);
-                let node = self.sppf_node_mut(existing_node_id);
-                let SPPFNode::Nonterminal(node) = node else {
-                    unreachable!("Expects a nonterminal node");
-                };
-                node.ambiguous = true;
-                self.add_nonterminal_node_child(existing_node_id, child);
-            }
+            record!(self, NonterminalNodeFound, existing_node_id);
+            let node = self.sppf_node_mut(existing_node_id);
+            let SPPFNode::Nonterminal(node) = node else {
+                unreachable!("Expects a nonterminal node");
+            };
+            node.ambiguous = true;
+            self.add_nonterminal_node_child(existing_node_id, child);
             return existing_node_id;
         }
         let nonterminal_node = NonterminalNode {
@@ -655,13 +650,14 @@ pub trait Parser<'i> {
     }
 
     /// Extracts extents from the result node and creates the nonterminal SPPF
-    /// node, handling ambiguity.
+    /// node via the GLL get-or-create path.
     #[inline]
     fn create_nonterminal_node(
         &mut self,
         result: Option<SPPFNodeId>,
         nonterminal_id: NonterminalId,
         end_slot_id: SlotId,
+        gss_node_id: GssNodeId,
     ) -> SPPFNodeId {
         let result = result.expect("Result should not be None.");
         let node = self.sppf_node(result);
@@ -673,7 +669,7 @@ pub trait Parser<'i> {
             left_extent,
             right_extent,
             result,
-            true,
+            gss_node_id,
         )
     }
 
@@ -733,7 +729,9 @@ pub trait Parser<'i> {
         }
         let duration = start.elapsed();
         let right_extent = self.input().len();
-        if let Some(sppf_node_id) = self.lookup_start_nonterminal_node(right_extent) {
+        if let Some(sppf_node_id) =
+            self.lookup_start_nonterminal_node(right_extent, start_gss_node_id)
+        {
             ParseResult::Success(ParseSuccess {
                 sppf_node_id,
                 duration,
@@ -747,7 +745,7 @@ pub trait Parser<'i> {
             let farthest = start_gss
                 .popped_elements()
                 .iter()
-                .map(|pe| self.sppf_node(pe.nonterminal_node_id).right_extent())
+                .map(|((right_extent, _), _)| *right_extent)
                 .max()
                 .unwrap_or(0);
             ParseResult::Failure(ParseError {

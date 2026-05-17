@@ -132,7 +132,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             // Expr : Expr Layout "+" Layout Expr.
             SlotId(5) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(5));
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(5), gss_node_id);
                 self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
             // Expr : . Expr Layout "*" Layout Expr
@@ -197,7 +197,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             // Expr : Expr Layout "*" Layout Expr.
             SlotId(11) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(11));
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(11), gss_node_id);
                 self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
             }
             // Expr : . "x"
@@ -216,7 +216,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             // Expr : "x".
             SlotId(13) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(13));
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(13), gss_node_id);
                 self.pop(gss_node_id, SlotId(13), nonterminal_node_id, None);
             }
             // StartExpr : . Layout start:Expr Layout
@@ -256,7 +256,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             // StartExpr : Layout start:Expr Layout.
             SlotId(17) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(17));
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(17), gss_node_id);
                 self.pop(gss_node_id, SlotId(17), nonterminal_node_id, None);
             }
             _ => {
@@ -375,8 +375,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
     }
     fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
         let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.nonterminal_nodes_index[nonterminal_node.nonterminal_id.index()]
-            .insert(nonterminal_node.span, nonterminal_node_id);
         record!(
             self,
             NonterminalNodeCreated,
@@ -464,15 +462,6 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             })
             .count()
     }
-    fn lookup_nonterminal_node(
-        &self,
-        nonterminal_id: NonterminalId,
-        left_extent: u32,
-        right_extent: u32,
-    ) -> Option<SPPFNodeId> {
-        let map = &self.nonterminal_nodes_index[nonterminal_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
-    }
     fn lookup_intermediate_node(
         &self,
         slot_id: SlotId,
@@ -539,8 +528,16 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
     fn start_env(&mut self) -> Option<EnvId> {
         None
     }
-    fn lookup_start_nonterminal_node(&self, right_extent: u32) -> Option<SPPFNodeId> {
-        self.lookup_nonterminal_node(self.start_nonterminal, 0, right_extent)
+    fn lookup_start_nonterminal_node(
+        &self,
+        right_extent: u32,
+        start_gss_node_id: GssNodeId,
+    ) -> Option<SPPFNodeId> {
+        self.gss_node(start_gss_node_id)
+            .popped_elements()
+            .iter()
+            .find(|((right, _), _)| *right == right_extent)
+            .map(|(_, id)| *id)
     }
     fn add_start_gss_node(
         &mut self,
@@ -581,15 +578,12 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
         for node in self.gss_nodes() {
             stats.record("GssNode::edges: InlineVec", node.edges().len());
             stats.record(
-                "GssNode::popped_elements: InlineSet",
+                "GssNode::popped_elements: InlineMap",
                 node.popped_elements().len(),
             );
         }
         for env in self.envs() {
             stats.record("Env::bindings: InlineVec", env.bindings.len());
-        }
-        for m in self.nonterminal_nodes_index.iter() {
-            stats.record("Parser::nonterminal_nodes_index: InlineMap", m.len());
         }
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
@@ -671,7 +665,6 @@ pub struct CommentsParser<'i> {
     sppf_nodes: Vec<SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
-    nonterminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 18],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 9],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
@@ -695,7 +688,6 @@ impl<'i> CommentsParser<'i> {
             descriptors: Vec::with_capacity(1024),
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            nonterminal_nodes_index: [const { InlineMap::Empty }; 2],
             intermediate_nodes_index: [const { InlineMap::Empty }; 18],
             terminal_nodes_index: [const { InlineMap::Empty }; 9],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],

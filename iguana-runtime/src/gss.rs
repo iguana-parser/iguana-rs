@@ -5,8 +5,14 @@ use crate::{
     env::EnvId,
     ids::{GssNodeId, NonterminalId, SlotId},
     sppf::SPPFNodeId,
-    utils::{inline_set::InlineSet, inline_vec::InlineVec},
+    utils::{inline_map::InlineMap, inline_vec::InlineVec},
 };
+
+/// Key for the per-GSS popped-elements map. Two pops at the same
+/// `(right_extent, return_value)` produce the same nonterminal SPPF node;
+/// different parameter contexts live in different GSS nodes and therefore
+/// in different maps.
+pub type PoppedElementKey = (u32, Option<i32>);
 
 #[derive(Debug, Serialize, Deserialize, Type)]
 pub struct GSSNode {
@@ -18,13 +24,7 @@ pub struct GSSNode {
     edges: InlineVec<GSSEdge, 16>,
     #[serde(skip)]
     #[specta(skip)]
-    popped_elements: InlineSet<PoppedElement>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
-pub struct PoppedElement {
-    pub nonterminal_node_id: SPPFNodeId,
-    pub return_value: Option<i32>,
+    popped_elements: InlineMap<PoppedElementKey, SPPFNodeId>,
 }
 
 impl GSSNode {
@@ -34,7 +34,7 @@ impl GSSNode {
             nonterminal_id,
             index,
             edges: InlineVec::default(),
-            popped_elements: InlineSet::default(),
+            popped_elements: InlineMap::default(),
         }
     }
 
@@ -42,19 +42,36 @@ impl GSSNode {
         self.edges.push(gss_edge);
     }
 
-    pub fn add_to_popped_elements(&mut self, element: PoppedElement) {
-        self.popped_elements.push(element);
+    pub fn insert_popped_element(
+        &mut self,
+        right_extent: u32,
+        return_value: Option<i32>,
+        nonterminal_node_id: SPPFNodeId,
+    ) {
+        self.popped_elements
+            .insert((right_extent, return_value), nonterminal_node_id);
     }
 
-    pub fn contains_popped_element(&self, element: &PoppedElement) -> bool {
-        self.popped_elements.contains(element)
+    pub fn find_popped_element(
+        &self,
+        right_extent: u32,
+        return_value: Option<i32>,
+    ) -> Option<SPPFNodeId> {
+        self.popped_elements
+            .get(&(right_extent, return_value))
+            .copied()
     }
 
-    pub fn popped_elements(&self) -> &InlineSet<PoppedElement> {
+    pub fn contains_popped_element(&self, right_extent: u32, return_value: Option<i32>) -> bool {
+        self.find_popped_element(right_extent, return_value)
+            .is_some()
+    }
+
+    pub fn popped_elements(&self) -> &InlineMap<PoppedElementKey, SPPFNodeId> {
         &self.popped_elements
     }
 
-    pub fn popped_elements_mut(&mut self) -> &mut InlineSet<PoppedElement> {
+    pub fn popped_elements_mut(&mut self) -> &mut InlineMap<PoppedElementKey, SPPFNodeId> {
         &mut self.popped_elements
     }
 
