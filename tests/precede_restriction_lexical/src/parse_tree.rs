@@ -86,14 +86,14 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum S<'a> {
-    // "for" WS Id
+    // S = "for" WS Id
     Alt0 {
         lit_0: Token,
         ws: Token,
         id: Token,
         span: Span,
     },
-    // "forall"
+    // S = "forall"
     Alt1 {
         lit_0: Token,
         span: Span,

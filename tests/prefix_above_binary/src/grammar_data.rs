@@ -65,31 +65,31 @@ pub const SLOTS: [Slot; 19] = [
         display_name: "E : \"-\" WS E(2) return 2.",
     },
     Slot {
-        display_name: "E : . [1 >= p] l=E(p) [l == 0 || l >= 1] WS \"+\" WS E(1) return 1",
+        display_name: "E : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS \"+\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] . l=E(p) [l == 0 || l >= 1] WS \"+\" WS E(1) return 1",
+        display_name: "E : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] WS \"+\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) . [l == 0 || l >= 1] WS \"+\" WS E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] WS \"+\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] . WS \"+\" WS E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . WS \"+\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS . \"+\" WS E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS . \"+\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS \"+\" . WS E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS \"+\" . WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS \"+\" WS . E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS \"+\" WS . E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS \"+\" WS E(1) . return 1",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS \"+\" WS E(1) . return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS \"+\" WS E(1) return 1.",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS \"+\" WS E(1) return 1.",
     },
 ];
 // S { EOF }
@@ -106,5 +106,5 @@ pub static FIRST_SET_E: &[TerminalId] = &[TerminalId(1), TerminalId(2)];
 pub static FIRST_SET_E_ALT0: &[TerminalId] = &[TerminalId(1)];
 // E(p: i32) : . "-" WS E(2) return 2 { "-" }
 pub static FIRST_SET_E_ALT1: &[TerminalId] = &[TerminalId(2)];
-// E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS E(1) return 1 { "a", "-" }
+// E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" WS E(1) return 1 { "a", "-" }
 pub static FIRST_SET_E_ALT2: &[TerminalId] = &[TerminalId(1), TerminalId(2)];

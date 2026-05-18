@@ -103,35 +103,35 @@ pub struct S<'a> {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // [3 >= p] l=E(p) [l == 0 || l >= 3] "+" E(4) return 3
+    // E(p) = [3 >= p] l=E(p) [(l == 0) || (l >= 3)] "+" E(4) return 3
     Alt0 {
         e_0: &'a E<'a>,
         lit_1: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // [3 >= p] l=E(p) [l == 0 || l >= 3] "-" E(4) return 3
+    // E(p) = [3 >= p] l=E(p) [(l == 0) || (l >= 3)] "-" E(4) return 3
     Alt1 {
         e_0: &'a E<'a>,
         lit_1: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // [2 >= p] l=E(p) [l == 0 || l >= 3] ";" E(2) return 2
+    // E(p) = [2 >= p] l=E(p) [(l == 0) || (l >= 3)] ";" E(2) return 2
     Alt2 {
         e_0: &'a E<'a>,
         lit_1: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // [1 >= p] l=E(p) [l == 0 || l >= 2] "<" E(2) return 1
+    // E(p) = [1 >= p] l=E(p) [(l == 0) || (l >= 2)] "<" E(2) return 1
     Alt3 {
         e_0: &'a E<'a>,
         lit_1: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // "a" return 0
+    // E(p) = "a" return 0
     Alt4 {
         lit_0: Token,
         span: Span,
@@ -281,7 +281,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocTestParseTreeBuilder<'a> {
             },
             // E
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // E : [3 >= p] l=E(p) [l == 0 || l >= 3] "+" E(4) return 3.
+                // E : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] "+" E(4) return 3.
                 SlotId(8) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.bump.alloc(E::Alt0 {
@@ -291,7 +291,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocTestParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [3 >= p] l=E(p) [l == 0 || l >= 3] "-" E(4) return 3.
+                // E : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] "-" E(4) return 3.
                 SlotId(15) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.bump.alloc(E::Alt1 {
@@ -301,7 +301,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocTestParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [2 >= p] l=E(p) [l == 0 || l >= 3] ";" E(2) return 2.
+                // E : [2 >= p] l=E(p) [(l == 0) || (l >= 3)] ";" E(2) return 2.
                 SlotId(22) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.bump.alloc(E::Alt2 {
@@ -311,7 +311,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocTestParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [1 >= p] l=E(p) [l == 0 || l >= 2] "<" E(2) return 1.
+                // E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] "<" E(2) return 1.
                 SlotId(29) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.bump.alloc(E::Alt3 {

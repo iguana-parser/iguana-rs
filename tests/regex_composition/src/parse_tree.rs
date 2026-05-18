@@ -146,13 +146,13 @@ pub struct Id<'a> {
 // LetterOrDigit+
 #[derive(Debug)]
 pub enum Plus0<'a> {
-    // LetterOrDigit+ LetterOrDigit
+    // Plus_0 = LetterOrDigit+ LetterOrDigit
     Alt0 {
         letter_or_digits: &'a Plus0<'a>,
         letter_or_digit_1: Token,
         span: Span,
     },
-    // LetterOrDigit
+    // Plus_0 = LetterOrDigit
     Alt1 {
         letter_or_digit: Token,
         span: Span,
@@ -162,12 +162,12 @@ pub enum Plus0<'a> {
 // LetterOrDigit+?
 #[derive(Debug)]
 pub enum Opt0<'a> {
-    // LetterOrDigit+
+    // Opt_0 = LetterOrDigit+
     Alt0 {
         letter_or_digits: &'a Plus0<'a>,
         span: Span,
     },
-    //
+    // Opt_0 =
     Alt1 {
         span: Span,
     },

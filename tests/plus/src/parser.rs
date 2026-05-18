@@ -110,12 +110,10 @@ impl<'i> Parser<'i> for PlusParser<'i> {
             // Plus_0 : Plus_0 . A
             SlotId(5) => {
                 if let Some(right_child) = self.parse_a_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(6))
-                    {
-                        // Plus_0 : Plus_0 A.
-                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(6));
+                    // Plus_0 : Plus_0 A.
+                    self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                 }
             }
             // Plus_0 : Plus_0 A.
@@ -665,16 +663,14 @@ impl<'i> PlusParser<'i> {
                 break;
             };
             j = pos_0;
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(6),
-                    left_extent,
-                    pos_0,
-                    current,
-                    node_0,
-                    true,
-                )
-                .unwrap();
+            current = self.get_or_create_intermediate_node(
+                SlotId(6),
+                left_extent,
+                pos_0,
+                current,
+                node_0,
+                true,
+            );
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(2),
                 return_slot: SlotId(6),

@@ -76,12 +76,10 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                     Some(gss_node_id),
                     "\"*\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(2))
-                    {
-                        // E : E "*" . E
-                        self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(2));
+                    // E : E "*" . E
+                    self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                 }
             }
             // E : E "*" . E
@@ -107,12 +105,10 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
                     Some(gss_node_id),
                     "\"+\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(6))
-                    {
-                        // E : E "+" . E
-                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(6));
+                    // E : E "+" . E
+                    self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                 }
             }
             // E : E "+" . E

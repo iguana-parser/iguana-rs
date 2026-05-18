@@ -179,22 +179,22 @@ pub struct Layout<'a> {
 // (WhiteSpace | Comment)
 #[derive(Debug)]
 pub enum Alt0<'a> {
-    // WhiteSpace
+    // Alt_0 = WhiteSpace
     Alt0 { white_space: Token, span: Span },
-    // Comment
+    // Alt_0 = Comment
     Alt1 { comment: Token, span: Span },
     Amb(&'a [&'a Alt0<'a>]),
 }
 // (WhiteSpace | Comment)+
 #[derive(Debug)]
 pub enum Plus0<'a> {
-    // (WhiteSpace | Comment)+ (WhiteSpace | Comment)
+    // Plus_0 = (WhiteSpace | Comment)+ (WhiteSpace | Comment)
     Alt0 {
         plus_0: &'a Plus0<'a>,
         alt_0: &'a Alt0<'a>,
         span: Span,
     },
-    // (WhiteSpace | Comment)
+    // Plus_0 = (WhiteSpace | Comment)
     Alt1 {
         alt_0: &'a Alt0<'a>,
         span: Span,
@@ -204,9 +204,9 @@ pub enum Plus0<'a> {
 // (WhiteSpace | Comment)+?
 #[derive(Debug)]
 pub enum Opt0<'a> {
-    // (WhiteSpace | Comment)+
+    // Opt_0 = (WhiteSpace | Comment)+
     Alt0 { plus_0: &'a Plus0<'a>, span: Span },
-    //
+    // Opt_0 =
     Alt1 { span: Span },
     Amb(&'a [&'a Opt0<'a>]),
 }

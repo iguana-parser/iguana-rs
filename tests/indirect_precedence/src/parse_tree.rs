@@ -122,20 +122,20 @@ pub struct S<'a> {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // "-" E(2) return 2
+    // E(p) = "-" E(2) return 2
     Alt0 {
         lit_0: Token,
         e: &'a E<'a>,
         span: Span,
     },
-    // [1 >= p] l=E(p) [l == 0 || l >= 1] "*" F return 0
+    // E(p) = [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F return 0
     Alt1 {
         e: &'a E<'a>,
         lit_1: Token,
         f: &'a F<'a>,
         span: Span,
     },
-    // "a" return 0
+    // E(p) = "a" return 0
     Alt2 {
         lit_0: Token,
         span: Span,
@@ -355,7 +355,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [1 >= p] l=E(p) [l == 0 || l >= 1] "*" F return 0.
+                // E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F return 0.
                 SlotId(12) => {
                     let [e, lit_1, f] = children.into_array::<3usize>();
                     ParseTree::E(self.bump.alloc(E::Alt1 {

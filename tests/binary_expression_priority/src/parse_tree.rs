@@ -100,26 +100,26 @@ pub struct S<'a> {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // "a" return 0
+    // E(p) = "a" return 0
     Alt0 {
         lit_0: Token,
         span: Span,
     },
-    // [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
+    // E(p) = [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2
     Alt1 {
         e_0: &'a E<'a>,
         lit_1: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
+    // E(p) = [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1
     Alt2 {
         e_0: &'a E<'a>,
         lit_1: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // [1 >= p] l=E(p) [l == 0 || l >= 1] "-" E(1) return 1
+    // E(p) = [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" E(1) return 1
     Alt3 {
         e_0: &'a E<'a>,
         lit_1: Token,
@@ -267,7 +267,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2.
+                // E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2.
                 SlotId(11) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.bump.alloc(E::Alt1 {
@@ -277,7 +277,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1.
+                // E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1.
                 SlotId(18) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.bump.alloc(E::Alt2 {
@@ -287,7 +287,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [1 >= p] l=E(p) [l == 0 || l >= 1] "-" E(1) return 1.
+                // E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" E(1) return 1.
                 SlotId(25) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.bump.alloc(E::Alt3 {

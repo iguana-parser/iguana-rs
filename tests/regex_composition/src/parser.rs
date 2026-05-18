@@ -106,12 +106,10 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             // Id : Letter . Star_0
             SlotId(3) => {
                 if let Some(right_child) = self.parse_star_0_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(4))
-                    {
-                        // Id : Letter Star_0.
-                        self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(4));
+                    // Id : Letter Star_0.
+                    self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
                 }
             }
             // Id : Letter Star_0.
@@ -137,12 +135,10 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     Some(gss_node_id),
                     "LetterOrDigit",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(7))
-                    {
-                        // Plus_0 : Plus_0 LetterOrDigit.
-                        self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(7));
+                    // Plus_0 : Plus_0 LetterOrDigit.
+                    self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
                 }
             }
             // Plus_0 : Plus_0 LetterOrDigit.
@@ -740,16 +736,14 @@ impl<'i> RegexCompositionParser<'i> {
                     j = end;
                     node
                 };
-                current = self
-                    .get_or_create_intermediate_node(
-                        SlotId(4),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                        true,
-                    )
-                    .unwrap();
+                current = self.get_or_create_intermediate_node(
+                    SlotId(4),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                    true,
+                );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(1),
                     return_slot: SlotId(4),
@@ -789,16 +783,14 @@ impl<'i> RegexCompositionParser<'i> {
                 break;
             };
             j = pos_0;
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(7),
-                    left_extent,
-                    pos_0,
-                    current,
-                    node_0,
-                    true,
-                )
-                .unwrap();
+            current = self.get_or_create_intermediate_node(
+                SlotId(7),
+                left_extent,
+                pos_0,
+                current,
+                node_0,
+                true,
+            );
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(2),
                 return_slot: SlotId(7),

@@ -136,13 +136,13 @@ pub struct A {
 // A+
 #[derive(Debug)]
 pub enum Plus0<'a> {
-    // A+ A
+    // Plus_0 = A+ A
     Alt0 {
         r#as: &'a Plus0<'a>,
         a_1: &'a A,
         span: Span,
     },
-    // A
+    // Plus_0 = A
     Alt1 {
         a: &'a A,
         span: Span,
@@ -152,9 +152,9 @@ pub enum Plus0<'a> {
 // A+?
 #[derive(Debug)]
 pub enum Opt0<'a> {
-    // A+
+    // Opt_0 = A+
     Alt0 { r#as: &'a Plus0<'a>, span: Span },
-    //
+    // Opt_0 =
     Alt1 { span: Span },
     Amb(&'a [&'a Opt0<'a>]),
 }

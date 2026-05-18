@@ -98,9 +98,9 @@ pub struct S<'a> {
 }
 #[derive(Debug)]
 pub enum X<'a> {
-    // "<"
+    // X = "<"
     Alt0 { lit_0: Token, span: Span },
-    // "<="
+    // X = "<="
     Alt1 { lit_0: Token, span: Span },
     Amb(&'a [&'a X<'a>]),
 }

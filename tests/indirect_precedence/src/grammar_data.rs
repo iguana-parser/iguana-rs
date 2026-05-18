@@ -67,25 +67,25 @@ pub const SLOTS: [Slot; 22] = [
         display_name: "E : \"-\" E(2) return 2.",
     },
     Slot {
-        display_name: "E : . [1 >= p] l=E(p) [l == 0 || l >= 1] \"*\" F return 0",
+        display_name: "E : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] \"*\" F return 0",
     },
     Slot {
-        display_name: "E : [1 >= p] . l=E(p) [l == 0 || l >= 1] \"*\" F return 0",
+        display_name: "E : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] \"*\" F return 0",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) . [l == 0 || l >= 1] \"*\" F return 0",
+        display_name: "E : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] \"*\" F return 0",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] . \"*\" F return 0",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . \"*\" F return 0",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] \"*\" . F return 0",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] \"*\" . F return 0",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] \"*\" F . return 0",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] \"*\" F . return 0",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 1] \"*\" F return 0.",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] \"*\" F return 0.",
     },
     Slot {
         display_name: "E : . \"a\" return 0",
@@ -127,7 +127,7 @@ pub static FOLLOW_SET_E: &[TerminalId] = &[TerminalId(1), TerminalId(3), Termina
 pub static FIRST_SET_E: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
 // E(p: i32) : . "-" E(2) return 2 { "-" }
 pub static FIRST_SET_E_ALT0: &[TerminalId] = &[TerminalId(0)];
-// E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "*" F return 0 { "a", "-" }
+// E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F return 0 { "a", "-" }
 pub static FIRST_SET_E_ALT1: &[TerminalId] = &[TerminalId(2), TerminalId(0)];
 // E(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_E_ALT2: &[TerminalId] = &[TerminalId(2)];

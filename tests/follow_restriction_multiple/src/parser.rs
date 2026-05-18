@@ -118,12 +118,10 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             // Plus_0 : Plus_0 . Id
             SlotId(5) => {
                 if let Some(right_child) = self.parse_id_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(6))
-                    {
-                        // Plus_0 : Plus_0 Id.
-                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(6));
+                    // Plus_0 : Plus_0 Id.
+                    self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                 }
             }
             // Plus_0 : Plus_0 Id.
@@ -195,12 +193,10 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             // Plus_1 : Plus_1 . Alt_0
             SlotId(14) => {
                 if let Some(right_child) = self.parse_alt_0_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(15))
-                    {
-                        // Plus_1 : Plus_1 Alt_0.
-                        self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(15));
+                    // Plus_1 : Plus_1 Alt_0.
+                    self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
                 }
             }
             // Plus_1 : Plus_1 Alt_0.
@@ -812,16 +808,14 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 break;
             };
             j = pos_0;
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(6),
-                    left_extent,
-                    pos_0,
-                    current,
-                    node_0,
-                    true,
-                )
-                .unwrap();
+            current = self.get_or_create_intermediate_node(
+                SlotId(6),
+                left_extent,
+                pos_0,
+                current,
+                node_0,
+                true,
+            );
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(2),
                 return_slot: SlotId(6),
@@ -911,16 +905,14 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 break;
             };
             j = pos_0;
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(15),
-                    left_extent,
-                    pos_0,
-                    current,
-                    node_0,
-                    true,
-                )
-                .unwrap();
+            current = self.get_or_create_intermediate_node(
+                SlotId(15),
+                left_extent,
+                pos_0,
+                current,
+                node_0,
+                true,
+            );
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(4),
                 return_slot: SlotId(15),

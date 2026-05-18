@@ -172,13 +172,13 @@ pub struct Group0<'a> {
 // (A B C)+
 #[derive(Debug)]
 pub enum Plus0<'a> {
-    // (A B C)+ (A B C)
+    // Plus_0 = (A B C)+ (A B C)
     Alt0 {
         plus_0: &'a Plus0<'a>,
         group_0: &'a Group0<'a>,
         span: Span,
     },
-    // (A B C)
+    // Plus_0 = (A B C)
     Alt1 {
         group_0: &'a Group0<'a>,
         span: Span,

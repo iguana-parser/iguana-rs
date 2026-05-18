@@ -164,12 +164,10 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
             // Plus_0 : Plus_0 . Alt_0
             SlotId(9) => {
                 if let Some(right_child) = self.parse_alt_0_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(10))
-                    {
-                        // Plus_0 : Plus_0 Alt_0.
-                        self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(10));
+                    // Plus_0 : Plus_0 Alt_0.
+                    self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
                 }
             }
             // Plus_0 : Plus_0 Alt_0.
@@ -244,23 +242,19 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
             // StartS : Layout . start:S Layout
             SlotId(19) => {
                 if let Some(right_child) = self.parse_s_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(20))
-                    {
-                        // StartS : Layout start:S . Layout
-                        self.execute(j, SlotId(20), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(20));
+                    // StartS : Layout start:S . Layout
+                    self.execute(j, SlotId(20), Some(new_node), gss_node_id, env);
                 }
             }
             // StartS : Layout start:S . Layout
             SlotId(20) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(21))
-                    {
-                        // StartS : Layout start:S Layout.
-                        self.execute(j, SlotId(21), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(21));
+                    // StartS : Layout start:S Layout.
+                    self.execute(j, SlotId(21), Some(new_node), gss_node_id, env);
                 }
             }
             // StartS : Layout start:S Layout.
@@ -915,16 +909,14 @@ impl<'i> LayoutNonterminalParser<'i> {
                 break;
             };
             j = pos_0;
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(10),
-                    left_extent,
-                    pos_0,
-                    current,
-                    node_0,
-                    true,
-                )
-                .unwrap();
+            current = self.get_or_create_intermediate_node(
+                SlotId(10),
+                left_extent,
+                pos_0,
+                current,
+                node_0,
+                true,
+            );
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(3),
                 return_slot: SlotId(10),
@@ -1021,16 +1013,14 @@ impl<'i> LayoutNonterminalParser<'i> {
                     j = end;
                     node
                 };
-                current = self
-                    .get_or_create_intermediate_node(
-                        SlotId(20),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                        true,
-                    )
-                    .unwrap();
+                current = self.get_or_create_intermediate_node(
+                    SlotId(20),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                    true,
+                );
                 let right_child = {
                     let start = j;
                     let node = self.parse_layout_ll1(start)?;
@@ -1038,16 +1028,14 @@ impl<'i> LayoutNonterminalParser<'i> {
                     j = end;
                     node
                 };
-                current = self
-                    .get_or_create_intermediate_node(
-                        SlotId(21),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                        true,
-                    )
-                    .unwrap();
+                current = self.get_or_create_intermediate_node(
+                    SlotId(21),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                    true,
+                );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(6),
                     return_slot: SlotId(21),

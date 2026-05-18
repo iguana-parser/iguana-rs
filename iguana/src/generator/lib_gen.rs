@@ -14,7 +14,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
     let parse_methods: Vec<TokenStream> = grammar
         .nonterminals()
-        .filter(|nt| !nt.is_derived() && nt.parameters.is_empty())
+        .filter(|nt| !nt.is_derived())
         .map(|nt| {
             let start_nt = grammar.start_nonterminal(nt);
             gen_parse_method(grammar, nt, start_nt, &parser, &parse_tree_builder)

@@ -146,23 +146,19 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(8))
-                    {
-                        // Plus_0 : Plus_0 WS . Id
-                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(8));
+                    // Plus_0 : Plus_0 WS . Id
+                    self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
                 }
             }
             // Plus_0 : Plus_0 WS . Id
             SlotId(8) => {
                 if let Some(right_child) = self.parse_id_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(9))
-                    {
-                        // Plus_0 : Plus_0 WS Id.
-                        self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(9));
+                    // Plus_0 : Plus_0 WS Id.
+                    self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                 }
             }
             // Plus_0 : Plus_0 WS Id.
@@ -202,12 +198,10 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                     Some(gss_node_id),
                     "Char",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(14))
-                    {
-                        // Plus_1 : Plus_1 Char.
-                        self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(14));
+                    // Plus_1 : Plus_1 Char.
+                    self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
                 }
             }
             // Plus_1 : Plus_1 Char.
@@ -857,26 +851,22 @@ impl<'i> FollowRestrictionParser<'i> {
                 break;
             };
             j = pos_1;
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(8),
-                    left_extent,
-                    pos_0,
-                    current,
-                    node_0,
-                    true,
-                )
-                .unwrap();
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(9),
-                    left_extent,
-                    pos_1,
-                    current,
-                    node_1,
-                    true,
-                )
-                .unwrap();
+            current = self.get_or_create_intermediate_node(
+                SlotId(8),
+                left_extent,
+                pos_0,
+                current,
+                node_0,
+                true,
+            );
+            current = self.get_or_create_intermediate_node(
+                SlotId(9),
+                left_extent,
+                pos_1,
+                current,
+                node_1,
+                true,
+            );
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(3),
                 return_slot: SlotId(9),
@@ -915,16 +905,14 @@ impl<'i> FollowRestrictionParser<'i> {
                 break;
             };
             j = pos_0;
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(14),
-                    left_extent,
-                    pos_0,
-                    current,
-                    node_0,
-                    true,
-                )
-                .unwrap();
+            current = self.get_or_create_intermediate_node(
+                SlotId(14),
+                left_extent,
+                pos_0,
+                current,
+                node_0,
+                true,
+            );
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(4),
                 return_slot: SlotId(14),

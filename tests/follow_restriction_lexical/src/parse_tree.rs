@@ -114,23 +114,23 @@ pub struct S<'a> {
 }
 #[derive(Debug)]
 pub enum Element<'a> {
-    // Num
+    // Element = Num
     Alt0 { num: Token, span: Span },
-    // Id
+    // Element = Id
     Alt1 { id: Token, span: Span },
     Amb(&'a [&'a Element<'a>]),
 }
 // Element+
 #[derive(Debug)]
 pub enum Plus0<'a> {
-    // Element+ WS Element
+    // Plus_0 = Element+ WS Element
     Alt0 {
         elements: &'a Plus0<'a>,
         ws: Token,
         element_2: &'a Element<'a>,
         span: Span,
     },
-    // Element
+    // Plus_0 = Element
     Alt1 {
         element: &'a Element<'a>,
         span: Span,

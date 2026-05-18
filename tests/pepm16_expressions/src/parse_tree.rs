@@ -127,7 +127,7 @@ pub struct S<'a> {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
+    // E(p) = [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" return 0
     Alt0 {
         e: &'a E<'a>,
         ws_1: Token,
@@ -136,14 +136,14 @@ pub enum E<'a> {
         lit_4: Token,
         span: Span,
     },
-    // [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
+    // E(p) = [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6)
     Alt1 {
         e_0: &'a E<'a>,
         ws: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
+    // E(p) = [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
     Alt2 {
         e_0: &'a E<'a>,
         ws_1: Token,
@@ -152,7 +152,7 @@ pub enum E<'a> {
         e_4: &'a E<'a>,
         span: Span,
     },
-    // [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+    // E(p) = [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
     Alt3 {
         e_0: &'a E<'a>,
         ws_1: Token,
@@ -161,7 +161,7 @@ pub enum E<'a> {
         e_4: &'a E<'a>,
         span: Span,
     },
-    // [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+    // E(p) = [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
     Alt4 {
         e_0: &'a E<'a>,
         ws_1: Token,
@@ -170,14 +170,14 @@ pub enum E<'a> {
         e_4: &'a E<'a>,
         span: Span,
     },
-    // "-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
+    // E(p) = "-" WS r=E(3) return (r == 0) ? 3 : min(r, 3)
     Alt5 {
         lit_0: Token,
         ws: Token,
         e: &'a E<'a>,
         span: Span,
     },
-    // "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
+    // E(p) = "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
     Alt6 {
         lit_0: Token,
         ws_1: Token,
@@ -192,7 +192,7 @@ pub enum E<'a> {
         e_10: &'a E<'a>,
         span: Span,
     },
-    // [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
+    // E(p) = [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1
     Alt7 {
         e_0: &'a E<'a>,
         ws_1: Token,
@@ -201,7 +201,7 @@ pub enum E<'a> {
         e_4: &'a E<'a>,
         span: Span,
     },
-    // "(" WS E(0) WS ")" return 0
+    // E(p) = "(" WS E(0) WS ")" return 0
     Alt8 {
         lit_0: Token,
         ws_1: Token,
@@ -210,7 +210,7 @@ pub enum E<'a> {
         lit_4: Token,
         span: Span,
     },
-    // "a" return 0
+    // E(p) = "a" return 0
     Alt9 {
         lit_0: Token,
         span: Span,
@@ -483,7 +483,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Pepm16ExpressionsParseTreeBuilder<'
             },
             // E
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0.
+                // E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" return 0.
                 SlotId(10) => {
                     let [e, ws_1, lit_2, ws_3, lit_4] = children.into_array::<5usize>();
                     ParseTree::E(self.bump.alloc(E::Alt0 {
@@ -495,7 +495,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Pepm16ExpressionsParseTreeBuilder<'
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6).
+                // E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6).
                 SlotId(17) => {
                     let [e_0, ws, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.bump.alloc(E::Alt1 {
@@ -505,7 +505,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Pepm16ExpressionsParseTreeBuilder<'
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5).
+                // E : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5).
                 SlotId(26) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.bump.alloc(E::Alt2 {
@@ -517,7 +517,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Pepm16ExpressionsParseTreeBuilder<'
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4).
+                // E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4).
                 SlotId(35) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.bump.alloc(E::Alt3 {
@@ -529,7 +529,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Pepm16ExpressionsParseTreeBuilder<'
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4).
+                // E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4).
                 SlotId(44) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.bump.alloc(E::Alt4 {
@@ -541,7 +541,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Pepm16ExpressionsParseTreeBuilder<'
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : "-" WS r=E(3) return r == 0 ? 3 : min(r, 3).
+                // E : "-" WS r=E(3) return (r == 0) ? 3 : min(r, 3).
                 SlotId(49) => {
                     let [lit_0, ws, e] = children.into_array::<3usize>();
                     ParseTree::E(self.bump.alloc(E::Alt5 {
@@ -581,7 +581,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Pepm16ExpressionsParseTreeBuilder<'
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1.
+                // E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1.
                 SlotId(71) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.bump.alloc(E::Alt7 {

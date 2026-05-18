@@ -113,13 +113,13 @@ pub struct Id<'a> {
 // Char+
 #[derive(Debug)]
 pub enum Plus0<'a> {
-    // Char+ Char
+    // Plus_0 = Char+ Char
     Alt0 {
         chars: &'a Plus0<'a>,
         char_1: Token,
         span: Span,
     },
-    // Char
+    // Plus_0 = Char
     Alt1 {
         char: Token,
         span: Span,

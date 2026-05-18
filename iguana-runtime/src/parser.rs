@@ -338,26 +338,25 @@ pub trait Parser<'i> {
                 continue;
             }
             let right_child = (nonterminal_node_id, right_extent);
-            if let Some(new_node) = self.merge(left_child, right_child, return_slot) {
-                // Restore the caller's env from the edge and extend it with the
-                // callee's return value bound to the variable name, if present.
-                let env = match (env, binding, return_value) {
-                    (Some(env_id), Some(name), Some(return_value)) => {
-                        let (new_env_id, new_env) = self.clone_env(env_id);
-                        new_env.bind(name, return_value);
-                        Some(new_env_id)
-                    }
-                    (Some(env_id), _, _) => Some(env_id),
-                    _ => None,
-                };
-                self.add_descriptor(Descriptor {
-                    input_index: right_extent,
-                    slot_id: return_slot,
-                    sppf_node_id: Some(new_node),
-                    gss_node_id,
-                    env,
-                });
-            }
+            let new_node = self.merge(left_child, right_child, return_slot);
+            // Restore the caller's env from the edge and extend it with the
+            // callee's return value bound to the variable name, if present.
+            let env = match (env, binding, return_value) {
+                (Some(env_id), Some(name), Some(return_value)) => {
+                    let (new_env_id, new_env) = self.clone_env(env_id);
+                    new_env.bind(name, return_value);
+                    Some(new_env_id)
+                }
+                (Some(env_id), _, _) => Some(env_id),
+                _ => None,
+            };
+            self.add_descriptor(Descriptor {
+                input_index: right_extent,
+                slot_id: return_slot,
+                sppf_node_id: Some(new_node),
+                gss_node_id,
+                env,
+            });
         }
         *self
             .gss_node_mut(existing_gss_node_id)
@@ -454,35 +453,33 @@ pub trait Parser<'i> {
             let left_child = edge
                 .sppf_node_id
                 .map(|id| (id, self.sppf_node(id).left_extent()));
-            if let Some(new_node_id) = self.merge(left_child, right_child, edge.return_slot) {
-                let env = match (edge.env, edge.binding, return_value) {
-                    (Some(env_id), Some(name), Some(rv)) => {
-                        let (new_env_id, env) = self.clone_env(env_id);
-                        env.bind(name, rv);
-                        Some(new_env_id)
-                    }
-                    (Some(env_id), _, _) => Some(env_id),
-                    _ => None,
-                };
-                self.add_descriptor(Descriptor {
-                    input_index: right_extent,
-                    slot_id: edge.return_slot,
-                    sppf_node_id: Some(new_node_id),
-                    gss_node_id: edge.dest_id,
-                    env,
-                });
-            }
+            let new_node_id = self.merge(left_child, right_child, edge.return_slot);
+            let env = match (edge.env, edge.binding, return_value) {
+                (Some(env_id), Some(name), Some(rv)) => {
+                    let (new_env_id, env) = self.clone_env(env_id);
+                    env.bind(name, rv);
+                    Some(new_env_id)
+                }
+                (Some(env_id), _, _) => Some(env_id),
+                _ => None,
+            };
+            self.add_descriptor(Descriptor {
+                input_index: right_extent,
+                slot_id: edge.return_slot,
+                sppf_node_id: Some(new_node_id),
+                gss_node_id: edge.dest_id,
+                env,
+            });
         }
     }
 
-    /// Returns None if the intermediate node already exists.
-    /// A new descriptor should only be added when merge returns Some(n).
+    /// Returns the node id to drive the caller's continuation with.
     fn merge(
         &mut self,
         left_child: Option<(SPPFNodeId, u32)>,
         right_child: (SPPFNodeId, u32),
         slot_id: SlotId,
-    ) -> Option<SPPFNodeId> {
+    ) -> SPPFNodeId {
         let (right_child_id, right_extent) = right_child;
         if let Some((left_child_id, left_extent)) = left_child {
             self.get_or_create_intermediate_node(
@@ -494,7 +491,7 @@ pub trait Parser<'i> {
                 false,
             )
         } else {
-            Some(right_child_id)
+            right_child_id
         }
     }
 
@@ -580,14 +577,20 @@ pub trait Parser<'i> {
     /// Looks up or creates the intermediate node identified by `slot_id` and
     /// the span (`left_extent`, `right_extent`). `is_ll1` selects the path:
     ///
-    /// - `false` (GLL): look up the node; if it exists, attach
-    ///   `(left_child, right_child)` to its children (recording ambiguity) and
-    ///   return `None`. Otherwise build it and insert into
-    ///   `intermediate_nodes_index`.
-    /// - `true` (LL(1)): skip the lookup and the index insert. Build the node
-    ///   and push it onto `sppf_nodes`. LL(1) intermediate nodes are never
-    ///   queried — the deterministic LL(1) parse cannot re-enter the same
-    ///   `(slot_id, span)`, and GLL never reads them.
+    /// - `false` (GLL): look up the node. If it exists, return the existing
+    ///   id and do nothing else: no child attachment, no ambiguity flagging,
+    ///   no equality check. Two GSS contexts arriving at the same
+    ///   `(slot, span)` under the unified parameterized form produce the
+    ///   same packed child pair, so attaching a duplicate or marking the
+    ///   node ambiguous would be spurious work that breaks parse tree
+    ///   extraction. The new caller's continuation still fires in its own
+    ///   GSS context because the descriptor queue tracks per-caller state.
+    ///   See `docs/operator_precedence_desugaring.md` section 10. If no
+    ///   node exists, build it and insert into `intermediate_nodes_index`.
+    /// - `true` (LL(1)): skip the lookup and the index insert. Build the
+    ///   node and push it onto `sppf_nodes`. LL(1) intermediate nodes are
+    ///   never queried: the deterministic LL(1) parse cannot re-enter the
+    ///   same `(slot_id, span)`, and GLL never reads them.
     fn get_or_create_intermediate_node(
         &mut self,
         slot_id: SlotId,
@@ -596,7 +599,7 @@ pub trait Parser<'i> {
         left_child: SPPFNodeId,
         right_child: SPPFNodeId,
         is_ll1: bool,
-    ) -> Option<SPPFNodeId> {
+    ) -> SPPFNodeId {
         let intermediate_node = IntermediateNode {
             slot_id,
             span: Span {
@@ -608,45 +611,39 @@ pub trait Parser<'i> {
         };
 
         if is_ll1 {
-            return Some(self.add_intermediate_node(intermediate_node, false));
+            return self.add_intermediate_node(intermediate_node, false);
         }
 
         if let Some(existing_node_id) =
             self.lookup_intermediate_node(slot_id, left_extent, right_extent)
         {
             record!(self, IntermediateNodeFound, existing_node_id);
-            let SPPFNode::Intermediate(node) = self.sppf_node_mut(existing_node_id) else {
-                unreachable!("It's a nonterminal node");
-            };
-            node.ambiguous = true;
-            self.add_intermediate_node_child(existing_node_id, left_child, right_child);
-            return None;
+            return existing_node_id;
         }
-        Some(self.add_intermediate_node(intermediate_node, true))
+        self.add_intermediate_node(intermediate_node, true)
     }
 
     /// Combines the left child (result from previous slots) and a right child into
-    /// an intermediate node. Returns the right extent and new node id, or None if
-    /// the node already existed and ambiguity was recorded.
+    /// an intermediate node. Returns the right extent and the node id.
     #[inline]
     fn create_intermediate_node(
         &mut self,
         result: Option<SPPFNodeId>,
         right_child_id: SPPFNodeId,
         next_slot_id: SlotId,
-    ) -> Option<(u32, SPPFNodeId)> {
+    ) -> (u32, SPPFNodeId) {
         let right_extent = self.sppf_node(right_child_id).right_extent();
         let left_child_id = result.expect("Result should not be None.");
         let left_extent = self.sppf_node(left_child_id).left_extent();
-        self.get_or_create_intermediate_node(
+        let new_node = self.get_or_create_intermediate_node(
             next_slot_id,
             left_extent,
             right_extent,
             left_child_id,
             right_child_id,
             false,
-        )
-        .map(|new_node| (right_extent, new_node))
+        );
+        (right_extent, new_node)
     }
 
     /// Extracts extents from the result node and creates the nonterminal SPPF

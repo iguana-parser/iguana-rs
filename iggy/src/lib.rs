@@ -388,6 +388,38 @@ pub fn parse_alternative<'a>(
         }
     }
 }
+pub fn parse_symbol<'a>(
+    input: &Input,
+    ctx: &'a ParseContext,
+) -> std::result::Result<ParseSuccess<&'a Symbol<'a>>, ParseError> {
+    let mut parser = IggyParser::new(input, grammar_data::SYMBOL);
+    match parser.run() {
+        ParseResult::Success(success) => {
+            let parse_duration = success.duration;
+            let tree_start = std::time::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
+            let tree = parse_tree::create_parse_tree_symbol(
+                success.sppf_node_id,
+                &parser,
+                &parse_tree_builder,
+            );
+            let tree_construction_duration = tree_start.elapsed();
+            Ok(ParseSuccess {
+                tree,
+                parse_duration,
+                tree_construction_duration,
+            })
+        }
+        ParseResult::Failure(error) => {
+            let (line, column, message) = parser.format_error(&error);
+            Err(ParseError {
+                line,
+                column,
+                message,
+            })
+        }
+    }
+}
 pub fn parse_regex<'a>(
     input: &Input,
     ctx: &'a ParseContext,

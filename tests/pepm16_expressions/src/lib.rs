@@ -65,3 +65,32 @@ pub fn parse_s<'a>(
         }
     }
 }
+pub fn parse_e<'a>(
+    input: &Input,
+    ctx: &'a ParseContext,
+) -> std::result::Result<ParseSuccess<&'a E<'a>>, ParseError> {
+    let mut parser = Pepm16ExpressionsParser::new(input, grammar_data::E);
+    match parser.run() {
+        ParseResult::Success(success) => {
+            let parse_duration = success.duration;
+            let tree_start = std::time::Instant::now();
+            let parse_tree_builder = Pepm16ExpressionsParseTreeBuilder::new(ctx);
+            let tree =
+                parse_tree::create_parse_tree_e(success.sppf_node_id, &parser, &parse_tree_builder);
+            let tree_construction_duration = tree_start.elapsed();
+            Ok(ParseSuccess {
+                tree,
+                parse_duration,
+                tree_construction_duration,
+            })
+        }
+        ParseResult::Failure(error) => {
+            let (line, column, message) = parser.format_error(&error);
+            Err(ParseError {
+                line,
+                column,
+                message,
+            })
+        }
+    }
+}

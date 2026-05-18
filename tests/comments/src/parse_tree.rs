@@ -115,7 +115,7 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum Expr<'a> {
-    // Expr Layout "+" Layout Expr
+    // Expr = Expr Layout "+" Layout Expr
     Alt0 {
         expr_0: &'a Expr<'a>,
         layout_1: Token,
@@ -124,7 +124,7 @@ pub enum Expr<'a> {
         expr_4: &'a Expr<'a>,
         span: Span,
     },
-    // Expr Layout "*" Layout Expr
+    // Expr = Expr Layout "*" Layout Expr
     Alt1 {
         expr_0: &'a Expr<'a>,
         layout_1: Token,
@@ -133,7 +133,7 @@ pub enum Expr<'a> {
         expr_4: &'a Expr<'a>,
         span: Span,
     },
-    // "x"
+    // Expr = "x"
     Alt2 {
         lit_0: Token,
         span: Span,

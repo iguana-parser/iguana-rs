@@ -106,12 +106,12 @@ pub struct S<'a> {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // "a" return 0
+    // E(p) = "a" return 0
     Alt0 {
         lit_0: Token,
         span: Span,
     },
-    // [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" WS r=E(2) return r == 0 ? 2 : min(r, 2)
+    // E(p) = [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2 : min(r, 2)
     Alt1 {
         e_0: &'a E<'a>,
         ws_1: Token,
@@ -120,7 +120,7 @@ pub enum E<'a> {
         e_4: &'a E<'a>,
         span: Span,
     },
-    // "if" WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
+    // E(p) = "if" WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
     Alt2 {
         lit_0: Token,
         ws_1: Token,
@@ -296,7 +296,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DeepPriorityParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [2 >= p] l=E(p) [l == 0 || l >= 2] WS "+" WS r=E(2) return r == 0 ? 2 : min(r, 2).
+                // E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2 : min(r, 2).
                 SlotId(13) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.bump.alloc(E::Alt1 {

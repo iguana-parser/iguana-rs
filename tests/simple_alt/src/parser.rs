@@ -85,12 +85,10 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             // A : B . Alt_0
             SlotId(1) => {
                 if let Some(right_child) = self.parse_alt_0_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(2))
-                    {
-                        // A : B Alt_0.
-                        self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(2));
+                    // A : B Alt_0.
+                    self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                 }
             }
             // A : B Alt_0.
@@ -662,16 +660,14 @@ impl<'i> SimpleAltParser<'i> {
                     j = end;
                     node
                 };
-                current = self
-                    .get_or_create_intermediate_node(
-                        SlotId(2),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                        true,
-                    )
-                    .unwrap();
+                current = self.get_or_create_intermediate_node(
+                    SlotId(2),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                    true,
+                );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(0),
                     return_slot: SlotId(2),

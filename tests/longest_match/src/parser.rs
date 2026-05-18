@@ -82,12 +82,10 @@ impl<'i> Parser<'i> for LongestMatchParser<'i> {
                     Some(gss_node_id),
                     "\"x\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(2))
-                    {
-                        // S : X "x".
-                        self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(2));
+                    // S : X "x".
+                    self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                 }
             }
             // S : X "x".
@@ -594,16 +592,14 @@ impl<'i> LongestMatchParser<'i> {
                     j = end;
                     node
                 };
-                current = self
-                    .get_or_create_intermediate_node(
-                        SlotId(2),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                        true,
-                    )
-                    .unwrap();
+                current = self.get_or_create_intermediate_node(
+                    SlotId(2),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                    true,
+                );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(0),
                     return_slot: SlotId(2),

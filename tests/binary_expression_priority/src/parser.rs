@@ -7,9 +7,9 @@
 //
 // E(p: i32)
 //   = "a" return 0
-//   | [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
-//   | [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
-//   | [1 >= p] l=E(p) [l == 0 || l >= 1] "-" E(1) return 1
+//   | [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2
+//   | [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1
+//   | [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" E(1) return 1
 //
 // "a" = a
 // "*" = *
@@ -118,13 +118,13 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
+            // E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2
             SlotId(5) => {
                 if 2 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(6), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [2 >= p] . l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
+            // E(p: i32) : [2 >= p] . l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2
             SlotId(6) => {
                 self.create_e(
                     result,
@@ -135,13 +135,13 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [2 >= p] l=E(p) . [l == 0 || l >= 2] "*" E(2) return 2
+            // E(p: i32) : [2 >= p] l=E(p) . [(l == 0) || (l >= 2)] "*" E(2) return 2
             SlotId(7) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 2) {
                     self.execute(input_index, SlotId(8), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] . "*" E(2) return 2
+            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] . "*" E(2) return 2
             SlotId(8) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(1),
@@ -150,23 +150,21 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     Some(gss_node_id),
                     "\"*\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(9))
-                    {
-                        // E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" . E(2) return 2
-                        self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(9));
+                    // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" . E(2) return 2
+                    self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" . E(2) return 2
+            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" . E(2) return 2
             SlotId(9) => {
                 self.create_e(result, gss_node_id, SlotId(10), env, None, 2);
             }
-            // E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) . return 2
+            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) . return 2
             SlotId(10) => {
                 self.execute(input_index, SlotId(11), result, gss_node_id, env);
             }
-            // E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2.
+            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2.
             SlotId(11) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -189,13 +187,13 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
+            // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1
             SlotId(12) => {
                 if 1 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(13), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] . l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
+            // E(p: i32) : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1
             SlotId(13) => {
                 self.create_e(
                     result,
@@ -206,13 +204,13 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [1 >= p] l=E(p) . [l == 0 || l >= 1] "+" E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] "+" E(1) return 1
             SlotId(14) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 1) {
                     self.execute(input_index, SlotId(15), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] . "+" E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . "+" E(1) return 1
             SlotId(15) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(2),
@@ -221,23 +219,21 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     Some(gss_node_id),
                     "\"+\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(16))
-                    {
-                        // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" . E(1) return 1
-                        self.execute(j, SlotId(16), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(16));
+                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" . E(1) return 1
+                    self.execute(j, SlotId(16), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" . E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" . E(1) return 1
             SlotId(16) => {
                 self.create_e(result, gss_node_id, SlotId(17), env, None, 1);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) . return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) . return 1
             SlotId(17) => {
                 self.execute(input_index, SlotId(18), result, gss_node_id, env);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1.
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1.
             SlotId(18) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -260,13 +256,13 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "-" E(1) return 1
+            // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" E(1) return 1
             SlotId(19) => {
                 if 1 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(20), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] . l=E(p) [l == 0 || l >= 1] "-" E(1) return 1
+            // E(p: i32) : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] "-" E(1) return 1
             SlotId(20) => {
                 self.create_e(
                     result,
@@ -277,13 +273,13 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [1 >= p] l=E(p) . [l == 0 || l >= 1] "-" E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] "-" E(1) return 1
             SlotId(21) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 1) {
                     self.execute(input_index, SlotId(22), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] . "-" E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . "-" E(1) return 1
             SlotId(22) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(3),
@@ -292,23 +288,21 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     Some(gss_node_id),
                     "\"-\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(23))
-                    {
-                        // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "-" . E(1) return 1
-                        self.execute(j, SlotId(23), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(23));
+                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" . E(1) return 1
+                    self.execute(j, SlotId(23), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "-" . E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" . E(1) return 1
             SlotId(23) => {
                 self.create_e(result, gss_node_id, SlotId(24), env, None, 1);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "-" E(1) . return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" E(1) . return 1
             SlotId(24) => {
                 self.execute(input_index, SlotId(25), result, gss_node_id, env);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "-" E(1) return 1.
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" E(1) return 1.
             SlotId(25) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -356,17 +350,17 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     matched = true;
                     self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
+                // E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2
                 if self.scanner.match_any(FIRST_SET_E_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
+                // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1
                 if self.scanner.match_any(FIRST_SET_E_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "-" E(1) return 1
+                // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" E(1) return 1
                 if self.scanner.match_any(FIRST_SET_E_ALT3, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);

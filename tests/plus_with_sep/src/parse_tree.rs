@@ -113,14 +113,14 @@ pub struct A {
 // {A ","}+
 #[derive(Debug)]
 pub enum Plus0<'a> {
-    // {A ","}+ "," A
+    // Plus_0 = {A ","}+ "," A
     Alt0 {
         r#as: &'a Plus0<'a>,
         lit_1: Token,
         a_2: &'a A,
         span: Span,
     },
-    // A
+    // Plus_0 = A
     Alt1 {
         a: &'a A,
         span: Span,

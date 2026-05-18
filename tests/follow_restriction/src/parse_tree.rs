@@ -142,14 +142,14 @@ pub struct Id<'a> {
 // Id+
 #[derive(Debug)]
 pub enum Plus0<'a> {
-    // Id+ WS Id
+    // Plus_0 = Id+ WS Id
     Alt0 {
         ids: &'a Plus0<'a>,
         ws: Token,
         id_2: &'a Id<'a>,
         span: Span,
     },
-    // Id
+    // Plus_0 = Id
     Alt1 {
         id: &'a Id<'a>,
         span: Span,
@@ -159,13 +159,13 @@ pub enum Plus0<'a> {
 // Char+
 #[derive(Debug)]
 pub enum Plus1<'a> {
-    // Char+ Char
+    // Plus_1 = Char+ Char
     Alt0 {
         chars: &'a Plus1<'a>,
         char_1: Token,
         span: Span,
     },
-    // Char
+    // Plus_1 = Char
     Alt1 {
         char: Token,
         span: Span,

@@ -50,148 +50,148 @@ pub const SLOTS: [Slot; 82] = [
         display_name: "S : E(0).",
     },
     Slot {
-        display_name: "E : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS \".\" WS \"f\" return 0",
+        display_name: "E : . [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS \".\" WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] . l=E(p) [l == 0 || l >= 6] WS \".\" WS \"f\" return 0",
+        display_name: "E : [6 >= p] . l=E(p) [(l == 0) || (l >= 6)] WS \".\" WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) . [l == 0 || l >= 6] WS \".\" WS \"f\" return 0",
+        display_name: "E : [6 >= p] l=E(p) . [(l == 0) || (l >= 6)] WS \".\" WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS \".\" WS \"f\" return 0",
+        display_name: "E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] . WS \".\" WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . \".\" WS \"f\" return 0",
+        display_name: "E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS . \".\" WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS \".\" . WS \"f\" return 0",
+        display_name: "E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS \".\" . WS \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS \".\" WS . \"f\" return 0",
+        display_name: "E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS \".\" WS . \"f\" return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS \".\" WS \"f\" . return 0",
+        display_name: "E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS \".\" WS \"f\" . return 0",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS \".\" WS \"f\" return 0.",
+        display_name: "E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS \".\" WS \"f\" return 0.",
     },
     Slot {
-        display_name: "E : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : . [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] . l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : [6 >= p] . l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) . [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : [6 >= p] l=E(p) . [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS r=E(6) return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] . WS r=E(6) return (r == 0) ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . r=E(6) return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS . r=E(6) return (r == 0) ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) . return r == 0 ? 6 : min(r, 6)",
+        display_name: "E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) . return (r == 0) ? 6 : min(r, 6)",
     },
     Slot {
-        display_name: "E : [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6).",
+        display_name: "E : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6).",
     },
     Slot {
-        display_name: "E : . [5 >= p] l=E(p) [l == 0 || l >= 5] WS \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : . [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS \"*\" WS r=E(6) return (r == 0) ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] . l=E(p) [l == 0 || l >= 5] WS \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] . l=E(p) [(l == 0) || (l >= 5)] WS \"*\" WS r=E(6) return (r == 0) ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) . [l == 0 || l >= 5] WS \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) . [(l == 0) || (l >= 5)] WS \"*\" WS r=E(6) return (r == 0) ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] . WS \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] . WS \"*\" WS r=E(6) return (r == 0) ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS . \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS . \"*\" WS r=E(6) return (r == 0) ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS \"*\" . WS r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS \"*\" . WS r=E(6) return (r == 0) ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS \"*\" WS . r=E(6) return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS \"*\" WS . r=E(6) return (r == 0) ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS \"*\" WS r=E(6) . return r == 0 ? 5 : min(r, 5)",
+        display_name: "E : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS \"*\" WS r=E(6) . return (r == 0) ? 5 : min(r, 5)",
     },
     Slot {
-        display_name: "E : [5 >= p] l=E(p) [l == 0 || l >= 5] WS \"*\" WS r=E(6) return r == 0 ? 5 : min(r, 5).",
+        display_name: "E : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS \"*\" WS r=E(6) return (r == 0) ? 5 : min(r, 5).",
     },
     Slot {
-        display_name: "E : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS \"+\" WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] . l=E(p) [l == 0 || l >= 4] WS \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] . l=E(p) [(l == 0) || (l >= 4)] WS \"+\" WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) . [l == 0 || l >= 4] WS \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) . [(l == 0) || (l >= 4)] WS \"+\" WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] . WS \"+\" WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS . \"+\" WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"+\" . WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS \"+\" . WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"+\" WS . r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS \"+\" WS . r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"+\" WS r=E(5) . return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS \"+\" WS r=E(5) . return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"+\" WS r=E(5) return r == 0 ? 4 : min(r, 4).",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS \"+\" WS r=E(5) return (r == 0) ? 4 : min(r, 4).",
     },
     Slot {
-        display_name: "E : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS \"-\" WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] . l=E(p) [l == 0 || l >= 4] WS \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] . l=E(p) [(l == 0) || (l >= 4)] WS \"-\" WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) . [l == 0 || l >= 4] WS \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) . [(l == 0) || (l >= 4)] WS \"-\" WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] . WS \"-\" WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS . \"-\" WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"-\" . WS r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS \"-\" . WS r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"-\" WS . r=E(5) return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS \"-\" WS . r=E(5) return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"-\" WS r=E(5) . return r == 0 ? 4 : min(r, 4)",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS \"-\" WS r=E(5) . return (r == 0) ? 4 : min(r, 4)",
     },
     Slot {
-        display_name: "E : [4 >= p] l=E(p) [l == 0 || l >= 4] WS \"-\" WS r=E(5) return r == 0 ? 4 : min(r, 4).",
+        display_name: "E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS \"-\" WS r=E(5) return (r == 0) ? 4 : min(r, 4).",
     },
     Slot {
-        display_name: "E : . \"-\" WS r=E(3) return r == 0 ? 3 : min(r, 3)",
+        display_name: "E : . \"-\" WS r=E(3) return (r == 0) ? 3 : min(r, 3)",
     },
     Slot {
-        display_name: "E : \"-\" . WS r=E(3) return r == 0 ? 3 : min(r, 3)",
+        display_name: "E : \"-\" . WS r=E(3) return (r == 0) ? 3 : min(r, 3)",
     },
     Slot {
-        display_name: "E : \"-\" WS . r=E(3) return r == 0 ? 3 : min(r, 3)",
+        display_name: "E : \"-\" WS . r=E(3) return (r == 0) ? 3 : min(r, 3)",
     },
     Slot {
-        display_name: "E : \"-\" WS r=E(3) . return r == 0 ? 3 : min(r, 3)",
+        display_name: "E : \"-\" WS r=E(3) . return (r == 0) ? 3 : min(r, 3)",
     },
     Slot {
-        display_name: "E : \"-\" WS r=E(3) return r == 0 ? 3 : min(r, 3).",
+        display_name: "E : \"-\" WS r=E(3) return (r == 0) ? 3 : min(r, 3).",
     },
     Slot {
         display_name: "E : . \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(2) return 2",
@@ -233,31 +233,31 @@ pub const SLOTS: [Slot; 82] = [
         display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(2) return 2.",
     },
     Slot {
-        display_name: "E : . [1 >= p] l=E(p) [l == 0 || l >= 2] WS \";\" WS E(1) return 1",
+        display_name: "E : . [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \";\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] . l=E(p) [l == 0 || l >= 2] WS \";\" WS E(1) return 1",
+        display_name: "E : [1 >= p] . l=E(p) [(l == 0) || (l >= 2)] WS \";\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) . [l == 0 || l >= 2] WS \";\" WS E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) . [(l == 0) || (l >= 2)] WS \";\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] . WS \";\" WS E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] . WS \";\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS . \";\" WS E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . \";\" WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS \";\" . WS E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \";\" . WS E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS \";\" WS . E(1) return 1",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \";\" WS . E(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS \";\" WS E(1) . return 1",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \";\" WS E(1) . return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [l == 0 || l >= 2] WS \";\" WS E(1) return 1.",
+        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \";\" WS E(1) return 1.",
     },
     Slot {
         display_name: "E : . \"(\" WS E(0) WS \")\" return 0",
@@ -317,26 +317,26 @@ pub static FOLLOW_SET_E: &[TerminalId] = &[
 // E { "(", "if", "a", "-" }
 pub static FIRST_SET_E: &[TerminalId] =
     &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
-// E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0 { "(", "if", "a", "-" }
+// E(p: i32) : . [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" return 0 { "(", "if", "a", "-" }
 pub static FIRST_SET_E_ALT0: &[TerminalId] =
     &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
-// E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6) { "(", "if", "a", "-" }
+// E(p: i32) : . [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6) { "(", "if", "a", "-" }
 pub static FIRST_SET_E_ALT1: &[TerminalId] =
     &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
-// E(p: i32) : . [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5) { "(", "if", "a", "-" }
+// E(p: i32) : . [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5) { "(", "if", "a", "-" }
 pub static FIRST_SET_E_ALT2: &[TerminalId] =
     &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
-// E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4) { "(", "if", "a", "-" }
+// E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4) { "(", "if", "a", "-" }
 pub static FIRST_SET_E_ALT3: &[TerminalId] =
     &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
-// E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4) { "(", "if", "a", "-" }
+// E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4) { "(", "if", "a", "-" }
 pub static FIRST_SET_E_ALT4: &[TerminalId] =
     &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
-// E(p: i32) : . "-" WS r=E(3) return r == 0 ? 3 : min(r, 3) { "-" }
+// E(p: i32) : . "-" WS r=E(3) return (r == 0) ? 3 : min(r, 3) { "-" }
 pub static FIRST_SET_E_ALT5: &[TerminalId] = &[TerminalId(5)];
 // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2 { "if" }
 pub static FIRST_SET_E_ALT6: &[TerminalId] = &[TerminalId(6)];
-// E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1 { "(", "if", "a", "-" }
+// E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1 { "(", "if", "a", "-" }
 pub static FIRST_SET_E_ALT7: &[TerminalId] =
     &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
 // E(p: i32) : . "(" WS E(0) WS ")" return 0 { "(" }

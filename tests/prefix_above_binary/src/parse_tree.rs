@@ -100,19 +100,19 @@ pub struct S<'a> {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // "a" return 0
+    // E(p) = "a" return 0
     Alt0 {
         lit_0: Token,
         span: Span,
     },
-    // "-" WS E(2) return 2
+    // E(p) = "-" WS E(2) return 2
     Alt1 {
         lit_0: Token,
         ws: Token,
         e: &'a E<'a>,
         span: Span,
     },
-    // [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS E(1) return 1
+    // E(p) = [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" WS E(1) return 1
     Alt2 {
         e_0: &'a E<'a>,
         ws_1: Token,
@@ -267,7 +267,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PrefixAboveBinaryParseTreeBuilder<'
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS E(1) return 1.
+                // E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" WS E(1) return 1.
                 SlotId(18) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.bump.alloc(E::Alt2 {

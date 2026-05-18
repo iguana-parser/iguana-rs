@@ -517,12 +517,11 @@ impl<'a> ParserGen<'a> {
             }
         } else {
             quote! {
-                if let Some((j, new_node)) = self.create_intermediate_node(
+                let (j, new_node) = self.create_intermediate_node(
                     result, right_child, #next_slot_id,
-                ) {
-                    #[comment = #next_slot_name]
-                    self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
-                }
+                );
+                #[comment = #next_slot_name]
+                self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
             }
         };
         let new_node = if post_conditions.is_empty() {
@@ -881,12 +880,11 @@ impl<'a> ParserGen<'a> {
                         if let Some(right_child) = self.#method_name(input_index) {
                             #compute_j
                             #post_condition_check
-                            if let Some((j, new_node)) = self.create_intermediate_node(
+                            let (j, new_node) = self.create_intermediate_node(
                                 result, right_child, #next_slot_id,
-                            ) {
-                                #[comment = #next_slot_name]
-                                self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
-                            }
+                            );
+                            #[comment = #next_slot_name]
+                            self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
                         }
                     }
                 }
@@ -1359,7 +1357,7 @@ impl<'a> ParserGen<'a> {
             build_nodes.push(quote! {
                 current = self.get_or_create_intermediate_node(
                     #next_slot_id, left_extent, #pos_var, current, #node_var, true,
-                ).unwrap();
+                );
             });
         }
 
@@ -1539,7 +1537,7 @@ impl<'a> ParserGen<'a> {
                 body.push(quote! {
                     current = self.get_or_create_intermediate_node(
                         #next_slot_id, left_extent, j, current, right_child, true,
-                    ).unwrap();
+                    );
                 });
             }
         }
@@ -2300,6 +2298,26 @@ impl<'a> ParserGen<'a> {
                 let left = Self::gen_expr(left);
                 let right = Self::gen_expr(right);
                 quote! { (#left) || (#right) }
+            }
+            Expr::BitAnd(left, right) => {
+                let left = Self::gen_expr(left);
+                let right = Self::gen_expr(right);
+                quote! { (#left) & (#right) }
+            }
+            Expr::BitOr(left, right) => {
+                let left = Self::gen_expr(left);
+                let right = Self::gen_expr(right);
+                quote! { (#left) | (#right) }
+            }
+            Expr::Shl(left, right) => {
+                let left = Self::gen_expr(left);
+                let right = Self::gen_expr(right);
+                quote! { (#left) << (#right) }
+            }
+            Expr::Shr(left, right) => {
+                let left = Self::gen_expr(left);
+                let right = Self::gen_expr(right);
+                quote! { (#left) >> (#right) }
             }
             Expr::Min(left, right) => {
                 let left = Self::gen_expr(left);

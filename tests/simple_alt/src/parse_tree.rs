@@ -153,9 +153,9 @@ pub struct D {
 // (C | D)
 #[derive(Debug)]
 pub enum Alt0<'a> {
-    // C
+    // Alt_0 = C
     Alt0 { c: &'a C, span: Span },
-    // D
+    // Alt_0 = D
     Alt1 { d: &'a D, span: Span },
     Amb(&'a [&'a Alt0<'a>]),
 }

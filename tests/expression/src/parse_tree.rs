@@ -80,21 +80,21 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // E "*" E #Mul
+    // E = E "*" E #Mul
     Mul {
         e_0: &'a E<'a>,
         lit_1: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // E "+" E #Add
+    // E = E "+" E #Add
     Add {
         e_0: &'a E<'a>,
         lit_1: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // "a" #Lit
+    // E = "a" #Lit
     Lit {
         lit_0: Token,
         span: Span,

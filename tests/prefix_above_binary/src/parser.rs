@@ -8,7 +8,7 @@
 // E(p: i32)
 //   = "a" return 0
 //   | "-" WS E(2) return 2
-//   | [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS E(1) return 1
+//   | [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" WS E(1) return 1
 //
 // WS = ([ ]*)
 // "a" = a
@@ -139,12 +139,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(7))
-                    {
-                        // E(p: i32) : "-" WS . E(2) return 2
-                        self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(7));
+                    // E(p: i32) : "-" WS . E(2) return 2
+                    self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
                 }
             }
             // E(p: i32) : "-" WS . E(2) return 2
@@ -178,13 +176,13 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS E(1) return 1
+            // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" WS E(1) return 1
             SlotId(10) => {
                 if 1 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(11), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] . l=E(p) [l == 0 || l >= 1] WS "+" WS E(1) return 1
+            // E(p: i32) : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] WS "+" WS E(1) return 1
             SlotId(11) => {
                 self.create_e(
                     result,
@@ -195,13 +193,13 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [1 >= p] l=E(p) . [l == 0 || l >= 1] WS "+" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] WS "+" WS E(1) return 1
             SlotId(12) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 1) {
                     self.execute(input_index, SlotId(13), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] . WS "+" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . WS "+" WS E(1) return 1
             SlotId(13) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -210,15 +208,13 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(14))
-                    {
-                        // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] WS . "+" WS E(1) return 1
-                        self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(14));
+                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS . "+" WS E(1) return 1
+                    self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] WS . "+" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS . "+" WS E(1) return 1
             SlotId(14) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(3),
@@ -227,15 +223,13 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                     Some(gss_node_id),
                     "\"+\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(15))
-                    {
-                        // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" . WS E(1) return 1
-                        self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(15));
+                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" . WS E(1) return 1
+                    self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" . WS E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" . WS E(1) return 1
             SlotId(15) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -244,23 +238,21 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(16))
-                    {
-                        // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS . E(1) return 1
-                        self.execute(j, SlotId(16), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(16));
+                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" WS . E(1) return 1
+                    self.execute(j, SlotId(16), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS . E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" WS . E(1) return 1
             SlotId(16) => {
                 self.create_e(result, gss_node_id, SlotId(17), env, None, 1);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS E(1) . return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" WS E(1) . return 1
             SlotId(17) => {
                 self.execute(input_index, SlotId(18), result, gss_node_id, env);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS E(1) return 1.
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" WS E(1) return 1.
             SlotId(18) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -313,7 +305,7 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
                     matched = true;
                     self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] WS "+" WS E(1) return 1
+                // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "+" WS E(1) return 1
                 if self.scanner.match_any(FIRST_SET_E_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);

@@ -112,9 +112,9 @@ pub struct A {
 // A?
 #[derive(Debug)]
 pub enum Opt0<'a> {
-    // A
+    // Opt_0 = A
     Alt0 { a: &'a A, span: Span },
-    //
+    // Opt_0 =
     Alt1 { span: Span },
     Amb(&'a [&'a Opt0<'a>]),
 }

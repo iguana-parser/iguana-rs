@@ -106,14 +106,14 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum S<'a> {
-    // "for" WS Id
+    // S = "for" WS Id
     Alt0 {
         lit_0: Token,
         ws: Token,
         id: &'a Id<'a>,
         span: Span,
     },
-    // "forall"
+    // S = "forall"
     Alt1 {
         lit_0: Token,
         span: Span,
@@ -129,13 +129,13 @@ pub struct Id<'a> {
 // Char+
 #[derive(Debug)]
 pub enum Plus0<'a> {
-    // Char+ Char
+    // Plus_0 = Char+ Char
     Alt0 {
         chars: &'a Plus0<'a>,
         char_1: Token,
         span: Span,
     },
-    // Char
+    // Plus_0 = Char
     Alt1 {
         char: Token,
         span: Span,

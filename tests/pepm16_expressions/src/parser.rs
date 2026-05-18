@@ -6,14 +6,14 @@
 //   = E(0)
 //
 // E(p: i32)
-//   = [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
-//   | [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
-//   | [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
-//   | [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
-//   | [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
-//   | "-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
+//   = [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" return 0
+//   | [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6)
+//   | [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
+//   | [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
+//   | [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
+//   | "-" WS r=E(3) return (r == 0) ? 3 : min(r, 3)
 //   | "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-//   | [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
+//   | [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1
 //   | "(" WS E(0) WS ")" return 0
 //   | "a" return 0
 //
@@ -93,13 +93,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.create_nonterminal_node(result, NonterminalId(0), SlotId(1), gss_node_id);
                 self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
-            // E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
+            // E(p: i32) : . [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" return 0
             SlotId(2) => {
                 if 6 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(3), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [6 >= p] . l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
+            // E(p: i32) : [6 >= p] . l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" return 0
             SlotId(3) => {
                 self.create_e(
                     result,
@@ -110,13 +110,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [6 >= p] l=E(p) . [l == 0 || l >= 6] WS "." WS "f" return 0
+            // E(p: i32) : [6 >= p] l=E(p) . [(l == 0) || (l >= 6)] WS "." WS "f" return 0
             SlotId(4) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 6) {
                     self.execute(input_index, SlotId(5), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS "." WS "f" return 0
+            // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] . WS "." WS "f" return 0
             SlotId(5) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -125,15 +125,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(6))
-                    {
-                        // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . "." WS "f" return 0
-                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(6));
+                    // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS . "." WS "f" return 0
+                    self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . "." WS "f" return 0
+            // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS . "." WS "f" return 0
             SlotId(6) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(1),
@@ -142,15 +140,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "\".\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(7))
-                    {
-                        // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." . WS "f" return 0
-                        self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(7));
+                    // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." . WS "f" return 0
+                    self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." . WS "f" return 0
+            // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." . WS "f" return 0
             SlotId(7) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -159,15 +155,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(8))
-                    {
-                        // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS . "f" return 0
-                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(8));
+                    // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS . "f" return 0
+                    self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS . "f" return 0
+            // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS . "f" return 0
             SlotId(8) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(2),
@@ -176,19 +170,17 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "\"f\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(9))
-                    {
-                        // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" . return 0
-                        self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(9));
+                    // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" . return 0
+                    self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" . return 0
+            // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" . return 0
             SlotId(9) => {
                 self.execute(input_index, SlotId(10), result, gss_node_id, env);
             }
-            // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0.
+            // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" return 0.
             SlotId(10) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -211,13 +203,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
+            // E(p: i32) : . [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6)
             SlotId(11) => {
                 if 6 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(12), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [6 >= p] . l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
+            // E(p: i32) : [6 >= p] . l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6)
             SlotId(12) => {
                 self.create_e(
                     result,
@@ -228,13 +220,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [6 >= p] l=E(p) . [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
+            // E(p: i32) : [6 >= p] l=E(p) . [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6)
             SlotId(13) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 6) {
                     self.execute(input_index, SlotId(14), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] . WS r=E(6) return r == 0 ? 6 : min(r, 6)
+            // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] . WS r=E(6) return (r == 0) ? 6 : min(r, 6)
             SlotId(14) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -243,23 +235,21 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(15))
-                    {
-                        // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . r=E(6) return r == 0 ? 6 : min(r, 6)
-                        self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(15));
+                    // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS . r=E(6) return (r == 0) ? 6 : min(r, 6)
+                    self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS . r=E(6) return r == 0 ? 6 : min(r, 6)
+            // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS . r=E(6) return (r == 0) ? 6 : min(r, 6)
             SlotId(15) => {
                 self.create_e(result, gss_node_id, SlotId(16), env, Some("r"), 6);
             }
-            // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) . return r == 0 ? 6 : min(r, 6)
+            // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) . return (r == 0) ? 6 : min(r, 6)
             SlotId(16) => {
                 self.execute(input_index, SlotId(17), result, gss_node_id, env);
             }
-            // E(p: i32) : [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6).
+            // E(p: i32) : [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6).
             SlotId(17) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -286,13 +276,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
+            // E(p: i32) : . [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
             SlotId(18) => {
                 if 5 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(19), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [5 >= p] . l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
+            // E(p: i32) : [5 >= p] . l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
             SlotId(19) => {
                 self.create_e(
                     result,
@@ -303,13 +293,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [5 >= p] l=E(p) . [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
+            // E(p: i32) : [5 >= p] l=E(p) . [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
             SlotId(20) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 5) {
                     self.execute(input_index, SlotId(21), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] . WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
+            // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] . WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
             SlotId(21) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -318,15 +308,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(22))
-                    {
-                        // E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS . "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
-                        self.execute(j, SlotId(22), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(22));
+                    // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS . "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
+                    self.execute(j, SlotId(22), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS . "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
+            // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS . "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
             SlotId(22) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(3),
@@ -335,15 +323,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "\"*\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(23))
-                    {
-                        // E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" . WS r=E(6) return r == 0 ? 5 : min(r, 5)
-                        self.execute(j, SlotId(23), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(23));
+                    // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" . WS r=E(6) return (r == 0) ? 5 : min(r, 5)
+                    self.execute(j, SlotId(23), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" . WS r=E(6) return r == 0 ? 5 : min(r, 5)
+            // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" . WS r=E(6) return (r == 0) ? 5 : min(r, 5)
             SlotId(23) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -352,23 +338,21 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(24))
-                    {
-                        // E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS . r=E(6) return r == 0 ? 5 : min(r, 5)
-                        self.execute(j, SlotId(24), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(24));
+                    // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS . r=E(6) return (r == 0) ? 5 : min(r, 5)
+                    self.execute(j, SlotId(24), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS . r=E(6) return r == 0 ? 5 : min(r, 5)
+            // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS . r=E(6) return (r == 0) ? 5 : min(r, 5)
             SlotId(24) => {
                 self.create_e(result, gss_node_id, SlotId(25), env, Some("r"), 6);
             }
-            // E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) . return r == 0 ? 5 : min(r, 5)
+            // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) . return (r == 0) ? 5 : min(r, 5)
             SlotId(25) => {
                 self.execute(input_index, SlotId(26), result, gss_node_id, env);
             }
-            // E(p: i32) : [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5).
+            // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5).
             SlotId(26) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -395,13 +379,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(27) => {
                 if 4 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(28), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] . l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] . l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(28) => {
                 self.create_e(
                     result,
@@ -412,13 +396,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [4 >= p] l=E(p) . [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) . [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(29) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 4) {
                     self.execute(input_index, SlotId(30), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] . WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(30) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -427,15 +411,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(31))
-                    {
-                        // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
-                        self.execute(j, SlotId(31), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(31));
+                    // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS . "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
+                    self.execute(j, SlotId(31), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS . "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(31) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(4),
@@ -444,15 +426,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "\"+\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(32))
-                    {
-                        // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
-                        self.execute(j, SlotId(32), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(32));
+                    // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" . WS r=E(5) return (r == 0) ? 4 : min(r, 4)
+                    self.execute(j, SlotId(32), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" . WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(32) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -461,23 +441,21 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(33))
-                    {
-                        // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
-                        self.execute(j, SlotId(33), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(33));
+                    // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS . r=E(5) return (r == 0) ? 4 : min(r, 4)
+                    self.execute(j, SlotId(33), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS . r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(33) => {
                 self.create_e(result, gss_node_id, SlotId(34), env, Some("r"), 5);
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) . return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) . return (r == 0) ? 4 : min(r, 4)
             SlotId(34) => {
                 self.execute(input_index, SlotId(35), result, gss_node_id, env);
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4).
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4).
             SlotId(35) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -504,13 +482,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(36) => {
                 if 4 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(37), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] . l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] . l=E(p) [(l == 0) || (l >= 4)] WS "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(37) => {
                 self.create_e(
                     result,
@@ -521,13 +499,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [4 >= p] l=E(p) . [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) . [(l == 0) || (l >= 4)] WS "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(38) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 4) {
                     self.execute(input_index, SlotId(39), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] . WS "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(39) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -536,15 +514,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(40))
-                    {
-                        // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
-                        self.execute(j, SlotId(40), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(40));
+                    // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS . "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
+                    self.execute(j, SlotId(40), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS . "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS . "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(40) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(5),
@@ -553,15 +529,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "\"-\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(41))
-                    {
-                        // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
-                        self.execute(j, SlotId(41), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(41));
+                    // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" . WS r=E(5) return (r == 0) ? 4 : min(r, 4)
+                    self.execute(j, SlotId(41), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" . WS r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" . WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(41) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -570,23 +544,21 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(42))
-                    {
-                        // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
-                        self.execute(j, SlotId(42), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(42));
+                    // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" WS . r=E(5) return (r == 0) ? 4 : min(r, 4)
+                    self.execute(j, SlotId(42), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS . r=E(5) return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" WS . r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(42) => {
                 self.create_e(result, gss_node_id, SlotId(43), env, Some("r"), 5);
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) . return r == 0 ? 4 : min(r, 4)
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" WS r=E(5) . return (r == 0) ? 4 : min(r, 4)
             SlotId(43) => {
                 self.execute(input_index, SlotId(44), result, gss_node_id, env);
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4).
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4).
             SlotId(44) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -613,7 +585,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . "-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
+            // E(p: i32) : . "-" WS r=E(3) return (r == 0) ? 3 : min(r, 3)
             SlotId(45) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(5),
@@ -622,11 +594,11 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "\"-\"",
                 ) {
-                    // E(p: i32) : "-" . WS r=E(3) return r == 0 ? 3 : min(r, 3)
+                    // E(p: i32) : "-" . WS r=E(3) return (r == 0) ? 3 : min(r, 3)
                     self.execute(j, SlotId(46), Some(right_child), gss_node_id, env);
                 }
             }
-            // E(p: i32) : "-" . WS r=E(3) return r == 0 ? 3 : min(r, 3)
+            // E(p: i32) : "-" . WS r=E(3) return (r == 0) ? 3 : min(r, 3)
             SlotId(46) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -635,23 +607,21 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(47))
-                    {
-                        // E(p: i32) : "-" WS . r=E(3) return r == 0 ? 3 : min(r, 3)
-                        self.execute(j, SlotId(47), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(47));
+                    // E(p: i32) : "-" WS . r=E(3) return (r == 0) ? 3 : min(r, 3)
+                    self.execute(j, SlotId(47), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : "-" WS . r=E(3) return r == 0 ? 3 : min(r, 3)
+            // E(p: i32) : "-" WS . r=E(3) return (r == 0) ? 3 : min(r, 3)
             SlotId(47) => {
                 self.create_e(result, gss_node_id, SlotId(48), env, Some("r"), 3);
             }
-            // E(p: i32) : "-" WS r=E(3) . return r == 0 ? 3 : min(r, 3)
+            // E(p: i32) : "-" WS r=E(3) . return (r == 0) ? 3 : min(r, 3)
             SlotId(48) => {
                 self.execute(input_index, SlotId(49), result, gss_node_id, env);
             }
-            // E(p: i32) : "-" WS r=E(3) return r == 0 ? 3 : min(r, 3).
+            // E(p: i32) : "-" WS r=E(3) return (r == 0) ? 3 : min(r, 3).
             SlotId(49) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -700,12 +670,10 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(52))
-                    {
-                        // E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-                        self.execute(j, SlotId(52), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(52));
+                    // E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
+                    self.execute(j, SlotId(52), Some(new_node), gss_node_id, env);
                 }
             }
             // E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
@@ -721,12 +689,10 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(54))
-                    {
-                        // E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
-                        self.execute(j, SlotId(54), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(54));
+                    // E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
+                    self.execute(j, SlotId(54), Some(new_node), gss_node_id, env);
                 }
             }
             // E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
@@ -738,12 +704,10 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "\"then\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(55))
-                    {
-                        // E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
-                        self.execute(j, SlotId(55), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(55));
+                    // E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
+                    self.execute(j, SlotId(55), Some(new_node), gss_node_id, env);
                 }
             }
             // E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
@@ -755,12 +719,10 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(56))
-                    {
-                        // E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
-                        self.execute(j, SlotId(56), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(56));
+                    // E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
+                    self.execute(j, SlotId(56), Some(new_node), gss_node_id, env);
                 }
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
@@ -776,12 +738,10 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(58))
-                    {
-                        // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
-                        self.execute(j, SlotId(58), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(58));
+                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
+                    self.execute(j, SlotId(58), Some(new_node), gss_node_id, env);
                 }
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
@@ -793,12 +753,10 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "\"else\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(59))
-                    {
-                        // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
-                        self.execute(j, SlotId(59), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(59));
+                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
+                    self.execute(j, SlotId(59), Some(new_node), gss_node_id, env);
                 }
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
@@ -810,12 +768,10 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(60))
-                    {
-                        // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
-                        self.execute(j, SlotId(60), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(60));
+                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
+                    self.execute(j, SlotId(60), Some(new_node), gss_node_id, env);
                 }
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
@@ -849,13 +805,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
+            // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1
             SlotId(63) => {
                 if 1 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(64), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] . l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
+            // E(p: i32) : [1 >= p] . l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1
             SlotId(64) => {
                 self.create_e(
                     result,
@@ -866,13 +822,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [1 >= p] l=E(p) . [l == 0 || l >= 2] WS ";" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1
             SlotId(65) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 2) {
                     self.execute(input_index, SlotId(66), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] . WS ";" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] . WS ";" WS E(1) return 1
             SlotId(66) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -881,15 +837,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(67))
-                    {
-                        // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS . ";" WS E(1) return 1
-                        self.execute(j, SlotId(67), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(67));
+                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . ";" WS E(1) return 1
+                    self.execute(j, SlotId(67), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS . ";" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . ";" WS E(1) return 1
             SlotId(67) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(9),
@@ -898,15 +852,13 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "\";\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(68))
-                    {
-                        // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" . WS E(1) return 1
-                        self.execute(j, SlotId(68), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(68));
+                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" . WS E(1) return 1
+                    self.execute(j, SlotId(68), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" . WS E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" . WS E(1) return 1
             SlotId(68) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(0),
@@ -915,23 +867,21 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(69))
-                    {
-                        // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS . E(1) return 1
-                        self.execute(j, SlotId(69), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(69));
+                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS . E(1) return 1
+                    self.execute(j, SlotId(69), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS . E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS . E(1) return 1
             SlotId(69) => {
                 self.create_e(result, gss_node_id, SlotId(70), env, None, 1);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) . return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) . return 1
             SlotId(70) => {
                 self.execute(input_index, SlotId(71), result, gss_node_id, env);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1.
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1.
             SlotId(71) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -976,12 +926,10 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(74))
-                    {
-                        // E(p: i32) : "(" WS . E(0) WS ")" return 0
-                        self.execute(j, SlotId(74), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(74));
+                    // E(p: i32) : "(" WS . E(0) WS ")" return 0
+                    self.execute(j, SlotId(74), Some(new_node), gss_node_id, env);
                 }
             }
             // E(p: i32) : "(" WS . E(0) WS ")" return 0
@@ -997,12 +945,10 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(76))
-                    {
-                        // E(p: i32) : "(" WS E(0) WS . ")" return 0
-                        self.execute(j, SlotId(76), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(76));
+                    // E(p: i32) : "(" WS E(0) WS . ")" return 0
+                    self.execute(j, SlotId(76), Some(new_node), gss_node_id, env);
                 }
             }
             // E(p: i32) : "(" WS E(0) WS . ")" return 0
@@ -1014,12 +960,10 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     Some(gss_node_id),
                     "\")\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(77))
-                    {
-                        // E(p: i32) : "(" WS E(0) WS ")" . return 0
-                        self.execute(j, SlotId(77), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(77));
+                    // E(p: i32) : "(" WS E(0) WS ")" . return 0
+                    self.execute(j, SlotId(77), Some(new_node), gss_node_id, env);
                 }
             }
             // E(p: i32) : "(" WS E(0) WS ")" . return 0
@@ -1109,32 +1053,32 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
             // E
             NonterminalId(1) => {
                 let mut matched = false;
-                // E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS "." WS "f" return 0
+                // E(p: i32) : . [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" return 0
                 if self.scanner.match_any(FIRST_SET_E_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [6 >= p] l=E(p) [l == 0 || l >= 6] WS r=E(6) return r == 0 ? 6 : min(r, 6)
+                // E(p: i32) : . [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6)
                 if self.scanner.match_any(FIRST_SET_E_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [5 >= p] l=E(p) [l == 0 || l >= 5] WS "*" WS r=E(6) return r == 0 ? 5 : min(r, 5)
+                // E(p: i32) : . [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
                 if self.scanner.match_any(FIRST_SET_E_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "+" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+                // E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
                 if self.scanner.match_any(FIRST_SET_E_ALT3, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(27), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] WS "-" WS r=E(5) return r == 0 ? 4 : min(r, 4)
+                // E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
                 if self.scanner.match_any(FIRST_SET_E_ALT4, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . "-" WS r=E(3) return r == 0 ? 3 : min(r, 3)
+                // E(p: i32) : . "-" WS r=E(3) return (r == 0) ? 3 : min(r, 3)
                 if self.scanner.match_any(FIRST_SET_E_ALT5, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(45), input_index, gss_node_id, env);
@@ -1144,7 +1088,7 @@ impl<'i> Parser<'i> for Pepm16ExpressionsParser<'i> {
                     matched = true;
                     self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 2] WS ";" WS E(1) return 1
+                // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1
                 if self.scanner.match_any(FIRST_SET_E_ALT7, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(63), input_index, gss_node_id, env);

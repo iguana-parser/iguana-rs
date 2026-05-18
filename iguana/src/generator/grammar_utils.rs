@@ -4,7 +4,7 @@ use syn::Ident;
 
 use crate::grammar::{
     def::Grammar,
-    symbols::{Definition, DefinitionId, Nonterminal, Symbol},
+    symbols::{Definition, DefinitionId, Nonterminal},
 };
 
 use crate::utils::to_pascal_case;
@@ -58,36 +58,13 @@ pub fn nonterminal_type(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenSt
 
 /// Returns the type of a symbol as it appears in parse tree fields:
 /// `Token` for terminals (inline, Copy), `&'a T<'a>` for nonterminals (by reference).
-/// Exclude-derived nonterminals are resolved to their original type.
 pub fn symbol_type(grammar: &Grammar, def_id: DefinitionId) -> TokenStream {
     match grammar.definition(def_id) {
         Definition::Terminal(_) => quote! { Token },
         Definition::Nonterminal(nt) => {
-            let resolved = unwrap_exclude(grammar, nt);
-            let ty = nonterminal_type(grammar, resolved);
+            let ty = nonterminal_type(grammar, nt);
             quote! { &'a #ty }
         }
-    }
-}
-
-/// If the nonterminal is Exclude-derived, returns the original nonterminal
-/// it was derived from. Otherwise returns the nonterminal itself.
-pub fn unwrap_exclude<'a>(grammar: &'a Grammar, nt: &'a Nonterminal) -> &'a Nonterminal {
-    if nt.is_exclude() {
-        let name = match &nt.origin {
-            Some(Symbol::Exclude { symbol, .. }) => {
-                &symbol
-                    .as_identifier()
-                    .expect("Exclude origin should wrap an Identifier")
-                    .name
-            }
-            _ => unreachable!("is_exclude() returned true but origin is not Exclude"),
-        };
-        grammar
-            .nonterminal(name)
-            .expect("Original nonterminal not found for Exclude")
-    } else {
-        nt
     }
 }
 
@@ -96,12 +73,7 @@ pub fn nt_ident(name: &str) -> Ident {
     format_ident!("{}", to_pascal_case(name))
 }
 
-/// Returns the PascalCase type name for a nonterminal, mapping exclude-derived
-/// nonterminals back to their original nonterminal's type.
-pub fn nonterminal_type_name(grammar: &Grammar, name: &str) -> String {
-    let resolved_name = match grammar.nonterminal(name) {
-        Some(nt) => &unwrap_exclude(grammar, nt).name,
-        _ => name,
-    };
-    to_pascal_case(resolved_name)
+/// Returns the PascalCase type name for a nonterminal name.
+pub fn nonterminal_type_name(name: &str) -> String {
+    to_pascal_case(name)
 }

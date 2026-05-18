@@ -73,12 +73,10 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                     Some(gss_node_id),
                     "\"a\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(2))
-                    {
-                        // A : A "a".
-                        self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(2));
+                    // A : A "a".
+                    self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                 }
             }
             // A : A "a".

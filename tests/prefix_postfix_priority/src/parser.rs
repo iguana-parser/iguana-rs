@@ -7,10 +7,10 @@
 //
 // E(p: i32)
 //   = "a" return 0
-//   | [4 >= p] l=E(p) [l == 0 || l >= 4] "!" return 0
+//   | [4 >= p] l=E(p) [(l == 0) || (l >= 4)] "!" return 0
 //   | "-" E(3) return 3
-//   | [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
-//   | [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
+//   | [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2
+//   | [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1
 //
 // "a" = a
 // "!" = !
@@ -120,13 +120,13 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] "!" return 0
+            // E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] "!" return 0
             SlotId(5) => {
                 if 4 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(6), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] . l=E(p) [l == 0 || l >= 4] "!" return 0
+            // E(p: i32) : [4 >= p] . l=E(p) [(l == 0) || (l >= 4)] "!" return 0
             SlotId(6) => {
                 self.create_e(
                     result,
@@ -137,13 +137,13 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [4 >= p] l=E(p) . [l == 0 || l >= 4] "!" return 0
+            // E(p: i32) : [4 >= p] l=E(p) . [(l == 0) || (l >= 4)] "!" return 0
             SlotId(7) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 4) {
                     self.execute(input_index, SlotId(8), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] . "!" return 0
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] . "!" return 0
             SlotId(8) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(1),
@@ -152,19 +152,17 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     Some(gss_node_id),
                     "\"!\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(9))
-                    {
-                        // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] "!" . return 0
-                        self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(9));
+                    // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] "!" . return 0
+                    self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] "!" . return 0
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] "!" . return 0
             SlotId(9) => {
                 self.execute(input_index, SlotId(10), result, gss_node_id, env);
             }
-            // E(p: i32) : [4 >= p] l=E(p) [l == 0 || l >= 4] "!" return 0.
+            // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] "!" return 0.
             SlotId(10) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -231,13 +229,13 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
+            // E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2
             SlotId(15) => {
                 if 2 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(16), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [2 >= p] . l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
+            // E(p: i32) : [2 >= p] . l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2
             SlotId(16) => {
                 self.create_e(
                     result,
@@ -248,13 +246,13 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [2 >= p] l=E(p) . [l == 0 || l >= 2] "*" E(2) return 2
+            // E(p: i32) : [2 >= p] l=E(p) . [(l == 0) || (l >= 2)] "*" E(2) return 2
             SlotId(17) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 2) {
                     self.execute(input_index, SlotId(18), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] . "*" E(2) return 2
+            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] . "*" E(2) return 2
             SlotId(18) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(3),
@@ -263,23 +261,21 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     Some(gss_node_id),
                     "\"*\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(19))
-                    {
-                        // E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" . E(2) return 2
-                        self.execute(j, SlotId(19), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(19));
+                    // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" . E(2) return 2
+                    self.execute(j, SlotId(19), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" . E(2) return 2
+            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" . E(2) return 2
             SlotId(19) => {
                 self.create_e(result, gss_node_id, SlotId(20), env, None, 2);
             }
-            // E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) . return 2
+            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) . return 2
             SlotId(20) => {
                 self.execute(input_index, SlotId(21), result, gss_node_id, env);
             }
-            // E(p: i32) : [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2.
+            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2.
             SlotId(21) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -302,13 +298,13 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
+            // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1
             SlotId(22) => {
                 if 1 >= self.lookup("p", env.unwrap()) {
                     self.execute(input_index, SlotId(23), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] . l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
+            // E(p: i32) : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1
             SlotId(23) => {
                 self.create_e(
                     result,
@@ -319,13 +315,13 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     self.lookup("p", env.unwrap()),
                 );
             }
-            // E(p: i32) : [1 >= p] l=E(p) . [l == 0 || l >= 1] "+" E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] "+" E(1) return 1
             SlotId(24) => {
                 if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 1) {
                     self.execute(input_index, SlotId(25), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] . "+" E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . "+" E(1) return 1
             SlotId(25) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(4),
@@ -334,23 +330,21 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     Some(gss_node_id),
                     "\"+\"",
                 ) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(26))
-                    {
-                        // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" . E(1) return 1
-                        self.execute(j, SlotId(26), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(26));
+                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" . E(1) return 1
+                    self.execute(j, SlotId(26), Some(new_node), gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" . E(1) return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" . E(1) return 1
             SlotId(26) => {
                 self.create_e(result, gss_node_id, SlotId(27), env, None, 1);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) . return 1
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) . return 1
             SlotId(27) => {
                 self.execute(input_index, SlotId(28), result, gss_node_id, env);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1.
+            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1.
             SlotId(28) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -398,7 +392,7 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     matched = true;
                     self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [4 >= p] l=E(p) [l == 0 || l >= 4] "!" return 0
+                // E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] "!" return 0
                 if self.scanner.match_any(FIRST_SET_E_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
@@ -408,12 +402,12 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
                     matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [2 >= p] l=E(p) [l == 0 || l >= 2] "*" E(2) return 2
+                // E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2
                 if self.scanner.match_any(FIRST_SET_E_ALT3, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [1 >= p] l=E(p) [l == 0 || l >= 1] "+" E(1) return 1
+                // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1
                 if self.scanner.match_any(FIRST_SET_E_ALT4, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(22), input_index, gss_node_id, env);

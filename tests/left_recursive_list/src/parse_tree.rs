@@ -74,13 +74,13 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum A<'a> {
-    // A "a"
+    // A = A "a"
     Alt0 {
         a: &'a A<'a>,
         lit_1: Token,
         span: Span,
     },
-    // "a"
+    // A = "a"
     Alt1 {
         lit_0: Token,
         span: Span,

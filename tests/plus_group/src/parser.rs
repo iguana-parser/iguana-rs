@@ -159,23 +159,19 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             // Group_0 : A . B C
             SlotId(9) => {
                 if let Some(right_child) = self.parse_b_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(10))
-                    {
-                        // Group_0 : A B . C
-                        self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(10));
+                    // Group_0 : A B . C
+                    self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
                 }
             }
             // Group_0 : A B . C
             SlotId(10) => {
                 if let Some(right_child) = self.parse_c_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(11))
-                    {
-                        // Group_0 : A B C.
-                        self.execute(j, SlotId(11), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(11));
+                    // Group_0 : A B C.
+                    self.execute(j, SlotId(11), Some(new_node), gss_node_id, env);
                 }
             }
             // Group_0 : A B C.
@@ -195,12 +191,10 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
             // Plus_0 : Plus_0 . Group_0
             SlotId(13) => {
                 if let Some(right_child) = self.parse_group_0_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(14))
-                    {
-                        // Plus_0 : Plus_0 Group_0.
-                        self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
-                    }
+                    let (j, new_node) =
+                        self.create_intermediate_node(result, right_child, SlotId(14));
+                    // Plus_0 : Plus_0 Group_0.
+                    self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
                 }
             }
             // Plus_0 : Plus_0 Group_0.
@@ -819,16 +813,14 @@ impl<'i> PlusGroupParser<'i> {
                     j = end;
                     node
                 };
-                current = self
-                    .get_or_create_intermediate_node(
-                        SlotId(10),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                        true,
-                    )
-                    .unwrap();
+                current = self.get_or_create_intermediate_node(
+                    SlotId(10),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                    true,
+                );
                 let right_child = {
                     let start = j;
                     let node = self.parse_c_ll1(start)?;
@@ -836,16 +828,14 @@ impl<'i> PlusGroupParser<'i> {
                     j = end;
                     node
                 };
-                current = self
-                    .get_or_create_intermediate_node(
-                        SlotId(11),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                        true,
-                    )
-                    .unwrap();
+                current = self.get_or_create_intermediate_node(
+                    SlotId(11),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                    true,
+                );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(4),
                     return_slot: SlotId(11),
@@ -886,16 +876,14 @@ impl<'i> PlusGroupParser<'i> {
                 break;
             };
             j = pos_0;
-            current = self
-                .get_or_create_intermediate_node(
-                    SlotId(14),
-                    left_extent,
-                    pos_0,
-                    current,
-                    node_0,
-                    true,
-                )
-                .unwrap();
+            current = self.get_or_create_intermediate_node(
+                SlotId(14),
+                left_extent,
+                pos_0,
+                current,
+                node_0,
+                true,
+            );
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(5),
                 return_slot: SlotId(14),
