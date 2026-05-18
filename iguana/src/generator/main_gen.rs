@@ -246,18 +246,59 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     save: args.bench_save.clone(),
                     baseline: args.bench_baseline.clone(),
                 };
-                return cli::run_benchmark(config, || {
+                // Re-load Input each iteration so `input` phase is measured.
+                // The `file` path is captured by the closure.
+                let file_path = file.clone();
+                return cli::run_benchmark(config, move || {
+                    let input_start = Instant::now();
+                    let input = Input::try_from(file_path.as_path())
+                        .expect("failed to load input");
+                    let input_time = input_start.elapsed();
+                    let bytes = input.len() as u64;
+
+                    let init_start = Instant::now();
                     let ctx = ParseContext::new();
+                    let parse_tree_builder = #parse_tree_builder::new(&ctx);
                     let mut parser = #parser::new(&input, start_nonterminal_id);
-                    if let ParseResult::Success(success) = parser.run() {
-                        let parse_tree_builder = #parse_tree_builder::new(&ctx);
-                        let tree = create_parse_tree(
-                            success.sppf_node_id,
-                            start_nonterminal_id,
-                            &parser,
-                            &parse_tree_builder,
-                        );
-                        std::hint::black_box(tree);
+                    let init = init_start.elapsed();
+
+                    let (parse, tree) = match parser.run() {
+                        ParseResult::Success(success) => {
+                            let parse = success.duration;
+                            let tree_start = Instant::now();
+                            {
+                                let tree = create_parse_tree(
+                                    success.sppf_node_id,
+                                    start_nonterminal_id,
+                                    &parser,
+                                    &parse_tree_builder,
+                                );
+                                std::hint::black_box(tree);
+                            }
+                            (parse, tree_start.elapsed())
+                        }
+                        ParseResult::Failure(error) => {
+                            let (line, column, message) = parser.format_error(&error);
+                            panic!(
+                                "Parse failed at line {line} column {column}: {message}"
+                            );
+                        }
+                    };
+
+                    let drop_start = Instant::now();
+                    drop(parser);
+                    drop(parse_tree_builder);
+                    drop(ctx);
+                    drop(input);
+                    let drop = drop_start.elapsed();
+
+                    cli::PhaseTimings {
+                        input: input_time,
+                        init,
+                        parse,
+                        tree,
+                        drop,
+                        bytes,
                     }
                 });
             }
@@ -456,62 +497,100 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             collect_files(dir, ext, &mut files)?;
             files.sort();
 
-            println!("{:<6}  {:<26}  {:<36}  {}", "STATUS", "TIME (parse, tree)", "REASON", "PATH");
+            println!("{:<6}  {:<42}  {:<36}  {}",
+                "STATUS", "TIME (input, init, parse, tree, drop)", "REASON", "PATH");
 
             let mut ok = 0usize;
             let mut failed = 0usize;
             let mut errs = 0usize;
-            let mut total_parse_ms: u128 = 0;
-            let mut total_tree_ms: u128 = 0;
-            let mut max_total_ms: u128 = 0;
+            let mut total_input_ms: f64 = 0.0;
+            let mut total_init_ms: f64 = 0.0;
+            let mut total_parse_ms: f64 = 0.0;
+            let mut total_tree_ms: f64 = 0.0;
+            let mut total_drop_ms: f64 = 0.0;
+            let mut max_total_ms: f64 = 0.0;
+            let mut total_bytes: u64 = 0;
 
             for path in &files {
                 let rel = path.strip_prefix(dir).unwrap_or(path.as_path());
+                let input_start = Instant::now();
                 let input = match Input::try_from(path.as_path()) {
                     Ok(input) => input,
                     Err(e) => {
                         errs += 1;
                         let reason = format!("IO Error: {}", e);
-                        println!("{}{:<6}{}  {:<26}  {:<36}  {}",
+                        println!("{}{:<6}{}  {:<42}  {:<36}  {}",
                             red, "ERR", reset, "-", reason, rel.display());
                         continue;
                     }
                 };
+                let input_ms = input_start.elapsed().as_secs_f64() * 1000.0;
+                let bytes = input.len() as u64;
+
+                let init_start = Instant::now();
                 let ctx = ParseContext::new();
                 let parse_tree_builder = #parse_tree_builder::new(&ctx);
                 let mut parser = #parser::new(&input, start_nonterminal_id);
+                let init_ms = init_start.elapsed().as_secs_f64() * 1000.0;
+
                 match parser.run() {
                     ParseResult::Success(success) => {
-                        let parse_ms = success.duration.as_millis();
+                        let parse_ms = success.duration.as_secs_f64() * 1000.0;
                         let tc_start = Instant::now();
-                        create_parse_tree(success.sppf_node_id, start_nonterminal_id, &parser, &parse_tree_builder);
-                        let tree_ms = tc_start.elapsed().as_millis();
-                        let total_ms = parse_ms + tree_ms;
+                        {
+                            let tree = create_parse_tree(
+                                success.sppf_node_id,
+                                start_nonterminal_id,
+                                &parser,
+                                &parse_tree_builder,
+                            );
+                            std::hint::black_box(tree);
+                        }
+                        let tree_ms = tc_start.elapsed().as_secs_f64() * 1000.0;
+                        let drop_start = Instant::now();
+                        drop(parser);
+                        drop(parse_tree_builder);
+                        drop(ctx);
+                        drop(input);
+                        let drop_ms = drop_start.elapsed().as_secs_f64() * 1000.0;
+                        let total_ms = input_ms + init_ms + parse_ms + tree_ms + drop_ms;
                         ok += 1;
+                        total_input_ms += input_ms;
+                        total_init_ms += init_ms;
                         total_parse_ms += parse_ms;
                         total_tree_ms += tree_ms;
+                        total_drop_ms += drop_ms;
+                        total_bytes += bytes;
                         if total_ms > max_total_ms { max_total_ms = total_ms; }
-                        let time = format!("{} ms ({} ms, {} ms)", total_ms, parse_ms, tree_ms);
-                        println!("{}{:<6}{}  {:<26}  {:<36}  {}",
+                        let time = format!("{} ms ({} ms, {} ms, {} ms, {} ms, {} ms)",
+                            total_ms as u128, input_ms as u128, init_ms as u128,
+                            parse_ms as u128, tree_ms as u128, drop_ms as u128);
+                        println!("{}{:<6}{}  {:<42}  {:<36}  {}",
                             green, "OK", reset, time, "-", rel.display());
                     }
                     ParseResult::Failure(error) => {
                         let (line, column, _) = parser.format_error(&error);
                         failed += 1;
                         let reason = format!("Parse Error at line {}, col {}", line, column);
-                        println!("{}{:<6}{}  {:<26}  {:<36}  {}",
+                        println!("{}{:<6}{}  {:<42}  {:<36}  {}",
                             red, "FAIL", reset, "-", reason, rel.display());
                     }
                 }
             }
 
-            let total_ms = total_parse_ms + total_tree_ms;
-            let avg_ms = if ok > 0 { total_ms / ok as u128 } else { 0 };
+            let total_ms = total_input_ms + total_init_ms + total_parse_ms
+                + total_tree_ms + total_drop_ms;
+            let avg_ms = if ok > 0 { total_ms / ok as f64 } else { 0.0 };
+            let throughput = cli::mb_per_s(total_bytes, total_parse_ms);
+            let throughput_total = cli::mb_per_s(total_bytes, total_ms);
             println!();
             println!("Parsed {} files: {} OK, {} failed, {} errors",
                 files.len(), ok, failed, errs);
-            println!("Total {} ms (parse {} ms, tree {} ms); avg {} ms, max {} ms",
-                total_ms, total_parse_ms, total_tree_ms, avg_ms, max_total_ms);
+            println!("Total {:.0} ms (input {:.0}, init {:.0}, parse {:.0}, tree {:.0}, drop {:.0}); avg {:.1} ms, max {:.0} ms",
+                total_ms, total_input_ms, total_init_ms, total_parse_ms, total_tree_ms,
+                total_drop_ms, avg_ms, max_total_ms);
+            println!("Throughput on {} successful parses ({} bytes): {:.2} MB/s parse only, {:.2} MB/s total",
+                ok, total_bytes, throughput, throughput_total);
             Ok(())
         }
 
