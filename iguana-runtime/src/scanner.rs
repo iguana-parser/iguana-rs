@@ -1,4 +1,4 @@
-use crate::{ids::TerminalId, utils::inline_map::InlineMap};
+use crate::{dfa::Dfa, ids::TerminalId, utils::inline_map::InlineMap};
 
 pub struct Token {
     pub token_type: TerminalId,
@@ -112,21 +112,29 @@ pub trait Scanner {
         terminal_id
     }
     fn char_at(&self, i: u32) -> Option<char>;
-    fn match_char(&self, i: u32, c: char) -> Option<u32> {
-        let ch = self.char_at(i)?;
-        if ch == c { Some(i + 1) } else { None }
-    }
-    fn match_char_range(&self, i: u32, s: char, e: char) -> Option<u32> {
-        let ch = self.char_at(i)?;
-        if ch < s || ch > e { None } else { Some(i + 1) }
-    }
-    fn match_char_class(&self, i: u32, ranges: &[(char, char)], negated: bool) -> Option<u32> {
-        let ch = self.char_at(i)?;
-        let in_range = ranges.iter().any(|(s, e)| ch >= *s && ch <= *e);
-        if negated ^ in_range {
-            Some(i + 1)
-        } else {
-            None
+    /// Runs `dfa` from `start`, returning the end position of the longest
+    /// match, or `None` if no prefix at `start` is accepted.
+    fn scan(&self, dfa: &Dfa, start: u32) -> Option<u32> {
+        let mut state = dfa.start as usize;
+        let mut position = start;
+        let mut last_accept = None;
+        loop {
+            if dfa.states[state].accept.is_some() {
+                last_accept = Some(position);
+            }
+            let Some(ch) = self.char_at(position) else {
+                break;
+            };
+            let Some(&(_, _, next)) = dfa.states[state]
+                .transitions
+                .iter()
+                .find(|(s, e, _)| ch >= *s && ch <= *e)
+            else {
+                break;
+            };
+            state = next as usize;
+            position += 1;
         }
+        last_accept
     }
 }

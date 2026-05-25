@@ -2,13 +2,10 @@ use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote};
 
 use crate::{
-    generator::{
-        GenConfig,
-        id::{CharClassIds, TerminalIds, collect_char_classes},
-    },
+    dfa::{Dfa, Nfa},
+    generator::{GenConfig, id::TerminalIds},
     grammar::{
         def::Grammar,
-        regex::{CharClass, CharRange, Regex},
         symbols::{Definition, Terminal},
     },
 };
@@ -16,24 +13,16 @@ use crate::{
 pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStream {
     let grammar_name = &grammar.name;
 
-    // Collect all character classes from lexical rules
-    let mut char_class_ids = CharClassIds::default();
-    for terminal in grammar.terminals() {
-        if let Some(rule) = grammar.lexical_rule(terminal) {
-            collect_char_classes(&rule.regex, &mut char_class_ids);
-        }
-    }
-
     let imports = gen_imports(config);
     let memo_words = gen_memo_words_const(terminal_ids, config);
-    let char_class_consts = gen_char_class_consts(&char_class_ids);
+    let dfa_statics = gen_dfa_statics(grammar, terminal_ids);
     let scanner_struct = gen_scanner_struct(grammar_name, config);
-    let scanner_impl = gen_scanner_imp(grammar, terminal_ids, &char_class_ids, config);
-    let scanner_trait_impl = gen_scanner_trait_impl(grammar, terminal_ids, &char_class_ids, config);
+    let scanner_impl = gen_scanner_imp(grammar, terminal_ids, config);
+    let scanner_trait_impl = gen_scanner_trait_impl(grammar, terminal_ids, config);
     quote! {
         #imports
         #memo_words
-        #char_class_consts
+        #dfa_statics
         #scanner_struct
         #scanner_impl
         #scanner_trait_impl
@@ -44,6 +33,7 @@ fn gen_imports(config: &GenConfig) -> TokenStream {
     if config.match_memo {
         quote! {
             use iguana_runtime::{
+                dfa::{Dfa, State},
                 ids::TerminalId,
                 input::Input,
                 scanner::{Lookup, MatchMemo, Scanner},
@@ -52,6 +42,7 @@ fn gen_imports(config: &GenConfig) -> TokenStream {
     } else {
         quote! {
             use iguana_runtime::{
+                dfa::{Dfa, State},
                 ids::TerminalId,
                 input::Input,
                 scanner::Scanner,
@@ -64,8 +55,6 @@ fn gen_memo_words_const(terminal_ids: &TerminalIds, config: &GenConfig) -> Token
     if !config.match_memo {
         return quote! {};
     }
-    // Bitset words to cover terminal IDs 0..N+1. Regular terminals are 0..N;
-    // EPSILON is N (never matches via the scanner) and EOF is N+1.
     let words = (terminal_ids.len() + 2).div_ceil(64);
     let words_lit = Literal::usize_unsuffixed(words);
     quote! {
@@ -91,45 +80,71 @@ fn gen_scanner_struct(grammar_name: &str, config: &GenConfig) -> TokenStream {
     }
 }
 
-fn gen_char_class_consts(char_class_ids: &CharClassIds) -> TokenStream {
-    let consts: Vec<_> = char_class_ids
-        .ids()
-        .map(|id| {
-            let char_class = char_class_ids.get(id);
-            let const_name = format_ident!("CHAR_CLASS_{}", id.index());
-            let len = char_class.ranges.len();
-            let range_tuples: Vec<_> = char_class
-                .ranges
+fn gen_dfa_statics(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
+    let statics: Vec<_> = terminal_ids
+        .terminals()
+        .enumerate()
+        .map(|(id, terminal)| {
+            let rule = grammar
+                .lexical_rule(terminal)
+                .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
+            let nfa = Nfa::from_regex(&rule.regex, terminal_ids.get_id(terminal));
+            let dfa = Dfa::from_nfa(&nfa);
+            gen_dfa_static(id as u16, &dfa)
+        })
+        .collect();
+    quote! {
+        #(#statics)*
+    }
+}
+
+fn gen_dfa_static(id: u16, dfa: &Dfa) -> TokenStream {
+    assert_eq!(
+        dfa.start, 0,
+        "subset construction always emits start state 0"
+    );
+    let const_name = format_ident!("DFA_{}", id);
+    let states: Vec<TokenStream> = dfa
+        .states
+        .iter()
+        .map(|state| {
+            let transitions: Vec<TokenStream> = state
+                .transitions
                 .iter()
-                .map(|r| {
-                    let start = r.start;
-                    let end = r.end;
-                    quote! { (#start, #end) }
+                .map(|(range, target)| {
+                    let start = range.start;
+                    let end = range.end;
+                    let target_lit = Literal::u32_unsuffixed(*target as u32);
+                    quote! { (#start, #end, #target_lit) }
                 })
                 .collect();
+            let accept = match state.accept {
+                Some(t) => {
+                    let id_lit = Literal::u16_unsuffixed(t.0);
+                    quote! { Some(TerminalId(#id_lit)) }
+                }
+                None => quote! { None },
+            };
             quote! {
-                const #const_name: [(char, char); #len] = [#(#range_tuples),*];
+                State::new(&[#(#transitions),*], #accept)
             }
         })
         .collect();
     quote! {
-        #(#consts)*
+        static #const_name: Dfa = Dfa::new(&[#(#states),*]);
     }
 }
 
 fn gen_scanner_imp(
     grammar: &Grammar,
     terminal_ids: &TerminalIds,
-    char_class_ids: &CharClassIds,
     config: &GenConfig,
 ) -> TokenStream {
     let name_ident = syn::Ident::new(&format!("{}{}", grammar.name, "Scanner"), Span::call_site());
     let match_terminals: Vec<_> = terminal_ids
         .terminals()
         .enumerate()
-        .map(|(id, terminal)| {
-            gen_match_terminal_method(id as u16, terminal, char_class_ids, grammar, terminal_ids)
-        })
+        .map(|(id, terminal)| gen_match_terminal_method(id as u16, terminal, grammar, terminal_ids))
         .collect();
     let new_body = if config.match_memo {
         quote! {
@@ -154,7 +169,6 @@ fn gen_scanner_imp(
 fn gen_scanner_trait_impl(
     grammar: &Grammar,
     terminal_ids: &TerminalIds,
-    _char_class_ids: &CharClassIds,
     config: &GenConfig,
 ) -> TokenStream {
     let match_token_method = gen_match_token(terminal_ids, config);
@@ -233,15 +247,14 @@ fn gen_match_token(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStrea
 fn gen_match_terminal_method(
     id: u16,
     terminal: &Terminal,
-    char_class_ids: &CharClassIds,
     grammar: &Grammar,
     terminal_ids: &TerminalIds,
 ) -> TokenStream {
     let fn_name = format_ident!("match_terminal_{}", id);
+    let dfa_name = format_ident!("DFA_{}", id);
     let rule = grammar
         .lexical_rule(terminal)
         .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
-    let match_regex = match_regex(&rule.regex, char_class_ids);
 
     let except_checks: Vec<_> = rule
         .except
@@ -296,7 +309,7 @@ fn gen_match_terminal_method(
         let restriction_id = terminal_ids.get_id(restriction_terminal);
         let restriction_fn = format_ident!("match_terminal_{}", restriction_id.index());
         quote! {
-            if i > 0 && self.#restriction_fn(i - 1).is_some() {
+            if input_index > 0 && self.#restriction_fn(input_index - 1).is_some() {
                 return None;
             }
         }
@@ -306,127 +319,10 @@ fn gen_match_terminal_method(
     quote! {
         #[comment = #comment]
         pub fn #fn_name(&self, input_index: u32) -> Option<u32> {
-            let i = input_index;
             #precede_restriction_check
-            #match_regex
+            self.scan(&#dfa_name, input_index)
             #(#except_checks)*
             #follow_restriction_check
         }
     }
-}
-
-fn match_regex(regex: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
-    match regex {
-        Regex::Char(c) => match_char(*c),
-        Regex::CharRange(range) => match_char_range(*range),
-        Regex::CharClass(cc) => match_char_class(cc, char_class_ids),
-        Regex::Seq(rs) => match_seq(rs, char_class_ids),
-        Regex::Alt(rs) => match_alt(rs, char_class_ids),
-        Regex::Star(r) => match_star(r, char_class_ids),
-        Regex::Opt(r) => match_opt(r, char_class_ids),
-        Regex::Plus(r) => match_plus(r, char_class_ids),
-        Regex::Epsilon => match_epsilon(),
-        Regex::Identifier(_) => {
-            unreachable!("Regex::Identifier should be inlined before code generation")
-        }
-    }
-}
-
-fn match_char(c: char) -> TokenStream {
-    quote! {
-        self.match_char(i, #c)
-    }
-}
-
-fn match_char_range(range: CharRange) -> TokenStream {
-    let start = range.start;
-    let end = range.end;
-    quote! {
-        self.match_char_range(i, #start, #end)
-    }
-}
-
-fn match_char_class(cc: &CharClass, char_class_ids: &CharClassIds) -> TokenStream {
-    let id = char_class_ids
-        .get_id(cc)
-        .expect("CharClass should have been collected");
-    let char_class_name = format_ident!("CHAR_CLASS_{}", id.index());
-    let negated = cc.negated;
-    quote! {
-        self.match_char_class(i, &#char_class_name, #negated)
-    }
-}
-
-fn match_seq(rs: &[Regex], char_class_ids: &CharClassIds) -> TokenStream {
-    if let Some((first, rest)) = rs.split_first() {
-        let match_first = match_regex(first, char_class_ids);
-        let rest: Vec<_> = rest
-            .iter()
-            .map(|r| {
-                let match_r = match_regex(r, char_class_ids);
-                quote! {
-                    .and_then(|i| { #match_r })
-                }
-            })
-            .collect();
-        quote! {
-            #match_first
-            #(#rest)*
-        }
-    } else {
-        // there should be at least one seq
-        unreachable!()
-    }
-}
-
-fn match_alt(rs: &[Regex], char_class_ids: &CharClassIds) -> TokenStream {
-    if let Some((first, rest)) = rs.split_first() {
-        let match_first = match_regex(first, char_class_ids);
-        let rest: Vec<_> = rest
-            .iter()
-            .map(|r| {
-                let match_r = match_regex(r, char_class_ids);
-                quote! {
-                    .or_else(|| { #match_r })
-                }
-            })
-            .collect();
-        quote! {
-            (|i| { #match_first })(i)
-            #(#rest)*
-        }
-    } else {
-        unreachable!()
-    }
-}
-
-fn match_star(r: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
-    let match_r = match_regex(r, char_class_ids);
-    quote! {
-        let mut j = i;
-        while let Some(k) = (|i| { #match_r })(j) {
-            j = k;
-        }
-        Some(j)
-    }
-}
-
-fn match_plus(r: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
-    let match_r = match_regex(r, char_class_ids);
-    let match_star = match_star(r, char_class_ids);
-    quote! {
-        let i = (|i| { #match_r })(i)?;
-        #match_star
-    }
-}
-
-fn match_opt(r: &Regex, char_class_ids: &CharClassIds) -> TokenStream {
-    let match_r = match_regex(r, char_class_ids);
-    quote! {
-        (|i| { #match_r })(i).or(Some(i))
-    }
-}
-
-fn match_epsilon() -> TokenStream {
-    quote! { Some(i) }
 }

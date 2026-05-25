@@ -81,19 +81,6 @@ impl quote::ToTokens for TerminalId {
     }
 }
 
-/// A unique identifier for a character class in the scanner.
-///
-/// This is a type-safe wrapper around an index into the scanner's character class list.
-/// Uses `u16` since real-world grammars rarely exceed a few hundred character classes.
-#[derive(Debug, Clone, Copy)]
-pub struct CharClassId(pub u16);
-
-impl CharClassId {
-    pub fn index(&self) -> usize {
-        self.0 as usize
-    }
-}
-
 /// A unique identifier for a GSS node.
 ///
 /// This is a type-safe wrapper around an index into the parser's GSS node list.

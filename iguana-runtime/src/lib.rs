@@ -1,5 +1,6 @@
 pub mod cli;
 pub mod descriptor;
+pub mod dfa;
 pub mod env;
 pub mod gss;
 pub mod ids;
