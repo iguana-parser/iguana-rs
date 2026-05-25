@@ -1,6 +1,10 @@
-use iguana_runtime::ids::TerminalId;
+use std::collections::VecDeque;
 
-use crate::grammar::regex::CharRange;
+use iguana_runtime::ids::TerminalId;
+use rustc_hash::FxHashMap;
+
+use super::nfa::{self, Nfa};
+use crate::grammar::regex::{CharClass, CharRange};
 
 pub type StateId = usize;
 
@@ -19,6 +23,10 @@ pub struct Dfa {
 impl Dfa {
     pub fn num_states(&self) -> usize {
         self.states.len()
+    }
+
+    pub fn from_nfa(nfa: &Nfa) -> Dfa {
+        DfaBuilder::new(nfa).build()
     }
 }
 
@@ -87,7 +95,7 @@ fn to_non_overlapping(ranges: &[CharRange]) -> Vec<CharRange> {
                 end: char::from_u32(pos - 1).unwrap(),
             });
         }
-        // Apply every delta at this position before stepping — adjacent ranges
+        // Apply every delta at this position before stepping: adjacent ranges
         // meet at the same `pos` and must collapse to one boundary.
         while i < events.len() && events[i].0 == pos {
             counter += events[i].1;
@@ -99,12 +107,154 @@ fn to_non_overlapping(ranges: &[CharRange]) -> Vec<CharRange> {
     result
 }
 
+/// Epsilon-closure of `seeds` in `nfa`: every state reachable from a seed by
+/// following zero or more epsilon transitions. The result is sorted, so it
+/// can be used directly as a hash-map key during subset construction.
+fn epsilon_closure(nfa: &Nfa, seeds: impl IntoIterator<Item = nfa::StateId>) -> Vec<nfa::StateId> {
+    let mut in_closure = vec![false; nfa.num_states()];
+    let mut stack: Vec<nfa::StateId> = Vec::new();
+    for s in seeds {
+        if !in_closure[s] {
+            in_closure[s] = true;
+            stack.push(s);
+        }
+    }
+    while let Some(s) = stack.pop() {
+        for &t in &nfa.states[s].epsilon_transitions {
+            if !in_closure[t] {
+                in_closure[t] = true;
+                stack.push(t);
+            }
+        }
+    }
+    (0..nfa.num_states()).filter(|&i| in_closure[i]).collect()
+}
+
+/// `CharRange`s matched by `class`, with the negation flag applied: negated
+/// classes are flipped via `complement`, non-negated ones return their ranges
+/// unchanged.
+fn to_char_ranges(class: &CharClass) -> Vec<CharRange> {
+    if class.negated {
+        complement(&class.ranges)
+    } else {
+        class.ranges.clone()
+    }
+}
+
+struct DfaBuilder<'a> {
+    nfa: &'a Nfa,
+    states: Vec<State>,
+    state_ids: FxHashMap<Vec<nfa::StateId>, StateId>,
+    worklist: VecDeque<(StateId, Vec<nfa::StateId>)>,
+}
+
+impl<'a> DfaBuilder<'a> {
+    fn new(nfa: &'a Nfa) -> Self {
+        Self {
+            nfa,
+            states: Vec::new(),
+            state_ids: FxHashMap::default(),
+            worklist: VecDeque::new(),
+        }
+    }
+
+    fn build(mut self) -> Dfa {
+        let start_set = epsilon_closure(self.nfa, [self.nfa.start]);
+        let start = self.get_or_create_state(start_set);
+        while let Some((dfa_id, nfa_set)) = self.worklist.pop_front() {
+            self.process(dfa_id, &nfa_set);
+        }
+        Dfa {
+            states: self.states,
+            start,
+        }
+    }
+
+    /// Returns the DFA state id for `nfa_set`, creating it (and queueing it
+    /// for processing) the first time the set is seen.
+    fn get_or_create_state(&mut self, nfa_set: Vec<nfa::StateId>) -> StateId {
+        if let Some(&id) = self.state_ids.get(&nfa_set) {
+            return id;
+        }
+        let accept = accept_of(self.nfa, &nfa_set);
+        let id = self.states.len();
+        self.states.push(State {
+            transitions: Vec::new(),
+            accept,
+        });
+        self.state_ids.insert(nfa_set.clone(), id);
+        self.worklist.push_back((id, nfa_set));
+        id
+    }
+
+    fn process(&mut self, dfa_id: StateId, nfa_set: &[nfa::StateId]) {
+        // Expand each outgoing class once: this list is reused below for the
+        // alphabet partition and for the per-atom coverage check.
+        let outgoing: Vec<(Vec<CharRange>, nfa::StateId)> = nfa_set
+            .iter()
+            .flat_map(|&s| self.nfa.states[s].transitions.iter())
+            .map(|(class, t)| (to_char_ranges(class), *t))
+            .collect();
+        let all_ranges: Vec<CharRange> = outgoing
+            .iter()
+            .flat_map(|(ranges, _)| ranges.iter().copied())
+            .collect();
+        // Atoms are sorted and disjoint, so transitions emitted in atom order
+        // produce a sorted `transitions` vector for free.
+        let atoms = to_non_overlapping(&all_ranges);
+        for atom in atoms {
+            let targets: Vec<nfa::StateId> = outgoing
+                .iter()
+                .filter(|(ranges, _)| {
+                    ranges
+                        .iter()
+                        .any(|r| r.start <= atom.start && atom.end <= r.end)
+                })
+                .map(|(_, t)| *t)
+                .collect();
+            let next_set = epsilon_closure(self.nfa, targets);
+            let next_id = self.get_or_create_state(next_set);
+            self.states[dfa_id].transitions.push((atom, next_id));
+        }
+    }
+}
+
+/// First `TerminalId` in `nfa.accepts` whose state appears in `nfa_set`.
+/// Declaration order in `nfa.accepts` is the tie-break: earlier-registered
+/// terminals win when one DFA state would accept multiple terminals.
+fn accept_of(nfa: &Nfa, nfa_set: &[nfa::StateId]) -> Option<TerminalId> {
+    nfa.accepts
+        .iter()
+        .find(|(s, _)| nfa_set.binary_search(s).is_ok())
+        .map(|(_, t)| *t)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::grammar::regex::Regex;
 
     fn cr(start: char, end: char) -> CharRange {
         CharRange { start, end }
+    }
+
+    fn t(id: u16) -> TerminalId {
+        TerminalId(id)
+    }
+
+    fn nfa_with(states: Vec<nfa::State>) -> Nfa {
+        Nfa {
+            states,
+            start: 0,
+            accepts: vec![],
+        }
+    }
+
+    fn eps(targets: Vec<nfa::StateId>) -> nfa::State {
+        nfa::State {
+            epsilon_transitions: targets,
+            transitions: vec![],
+        }
     }
 
     #[test]
@@ -162,5 +312,123 @@ mod tests {
     #[test]
     fn to_non_overlapping_returns_empty_for_empty_input() {
         assert_eq!(to_non_overlapping(&[]), Vec::<CharRange>::new());
+    }
+
+    #[test]
+    fn epsilon_closure_of_a_state_with_no_outgoing_epsilons_is_just_the_seed() {
+        let nfa = nfa_with(vec![nfa::State::default()]);
+        assert_eq!(epsilon_closure(&nfa, [0]), vec![0]);
+    }
+
+    #[test]
+    fn epsilon_closure_follows_a_chain_transitively() {
+        let nfa = nfa_with(vec![eps(vec![1]), eps(vec![2]), nfa::State::default()]);
+        assert_eq!(epsilon_closure(&nfa, [0]), vec![0, 1, 2]);
+    }
+
+    #[test]
+    fn epsilon_closure_terminates_on_cycles() {
+        let nfa = nfa_with(vec![eps(vec![1]), eps(vec![0])]);
+        assert_eq!(epsilon_closure(&nfa, [0]), vec![0, 1]);
+    }
+
+    #[test]
+    fn epsilon_closure_unions_reachability_from_multiple_seeds() {
+        let nfa = nfa_with(vec![
+            eps(vec![1]),
+            nfa::State::default(),
+            eps(vec![3]),
+            nfa::State::default(),
+        ]);
+        assert_eq!(epsilon_closure(&nfa, [0, 2]), vec![0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn to_char_ranges_passes_non_negated_ranges_through() {
+        let class = CharClass {
+            ranges: vec![cr('a', 'c'), cr('x', 'z')],
+            negated: false,
+        };
+        assert_eq!(to_char_ranges(&class), vec![cr('a', 'c'), cr('x', 'z')]);
+    }
+
+    #[test]
+    fn to_char_ranges_complements_negated_ranges() {
+        let class = CharClass {
+            ranges: vec![cr('a', 'c')],
+            negated: true,
+        };
+        assert_eq!(
+            to_char_ranges(&class),
+            vec![
+                cr('\0', '`'),
+                cr('d', '\u{D7FF}'),
+                cr('\u{E000}', char::MAX),
+            ],
+        );
+    }
+
+    #[test]
+    fn overlapping_classes_split_into_disjoint_atoms() {
+        let dfa = Dfa::from_nfa(&Nfa::from_regex(
+            &Regex::alt(vec![
+                Regex::CharClass(CharClass {
+                    ranges: vec![cr('a', 'c')],
+                    negated: false,
+                }),
+                Regex::CharClass(CharClass {
+                    ranges: vec![cr('b', 'd')],
+                    negated: false,
+                }),
+            ]),
+            t(0),
+        ));
+        // Outgoing alphabet covers a..=d, split at the overlap boundary into
+        // three atoms; every atom must lead to an accepting state.
+        let start_state = &dfa.states[dfa.start];
+        let start_ranges: Vec<CharRange> =
+            start_state.transitions.iter().map(|(r, _)| *r).collect();
+        assert_eq!(start_ranges, vec![cr('a', 'a'), cr('b', 'c'), cr('d', 'd')]);
+        for (_, target) in &start_state.transitions {
+            assert_eq!(dfa.states[*target].accept, Some(t(0)));
+        }
+    }
+
+    #[test]
+    fn earlier_accept_wins_when_a_dfa_state_covers_two_nfa_accepts() {
+        // Both branches accept 'a'; declaration order should pick terminal 0.
+        let mut nfa = Nfa::from_regex(&Regex::char('a'), t(0));
+        let second = Nfa::from_regex(&Regex::char('a'), t(1));
+        let offset = nfa.num_states();
+        for state in &second.states {
+            nfa.states.push(nfa::State {
+                epsilon_transitions: state
+                    .epsilon_transitions
+                    .iter()
+                    .map(|s| s + offset)
+                    .collect(),
+                transitions: state
+                    .transitions
+                    .iter()
+                    .map(|(c, s)| (c.clone(), s + offset))
+                    .collect(),
+            });
+        }
+        let new_start = nfa.states.len();
+        nfa.states.push(nfa::State {
+            epsilon_transitions: vec![nfa.start, second.start + offset],
+            transitions: vec![],
+        });
+        nfa.start = new_start;
+        nfa.accepts
+            .extend(second.accepts.iter().map(|(s, t)| (s + offset, *t)));
+        let dfa = Dfa::from_nfa(&nfa);
+        let start = &dfa.states[dfa.start];
+        let (_, target) = start
+            .transitions
+            .iter()
+            .find(|(r, _)| r.start <= 'a' && 'a' <= r.end)
+            .unwrap();
+        assert_eq!(dfa.states[*target].accept, Some(t(0)));
     }
 }
