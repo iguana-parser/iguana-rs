@@ -104,13 +104,13 @@ pub trait Parser<'i> {
         gss_node_id: GssNodeId,
         env: Option<EnvId>,
     ) {
-        self.add_descriptor(Descriptor {
+        self.add_descriptor(Descriptor::new(
             input_index,
             slot_id,
-            sppf_node_id: None,
+            None,
             gss_node_id,
             env,
-        });
+        ));
     }
     fn next_descriptor(&mut self) -> Option<Descriptor>;
     fn input(&self) -> &'i Input;
@@ -350,13 +350,13 @@ pub trait Parser<'i> {
                 (Some(env_id), _, _) => Some(env_id),
                 _ => None,
             };
-            self.add_descriptor(Descriptor {
-                input_index: right_extent,
-                slot_id: return_slot,
-                sppf_node_id: Some(new_node),
+            self.add_descriptor(Descriptor::new(
+                right_extent,
+                return_slot,
+                Some(new_node),
                 gss_node_id,
                 env,
-            });
+            ));
         }
         *self
             .gss_node_mut(existing_gss_node_id)
@@ -457,13 +457,13 @@ pub trait Parser<'i> {
                 (Some(env_id), _, _) => Some(env_id),
                 _ => None,
             };
-            self.add_descriptor(Descriptor {
-                input_index: right_extent,
-                slot_id: edge.return_slot,
-                sppf_node_id: Some(new_node_id),
-                gss_node_id: edge.dest_id,
+            self.add_descriptor(Descriptor::new(
+                right_extent,
+                edge.return_slot,
+                Some(new_node_id),
+                edge.dest_id,
                 env,
-            });
+            ));
         }
     }
 
@@ -713,9 +713,9 @@ pub trait Parser<'i> {
             self.execute(
                 descriptor.input_index,
                 descriptor.slot_id,
-                descriptor.sppf_node_id,
+                descriptor.sppf_node_id(),
                 descriptor.gss_node_id,
-                descriptor.env,
+                descriptor.env_id(),
             );
         }
         let duration = start.elapsed();

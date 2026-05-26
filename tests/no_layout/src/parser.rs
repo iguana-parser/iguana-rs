@@ -233,7 +233,7 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
             DescriptorAdded,
             descriptor.input_index,
             descriptor.slot_id,
-            descriptor.sppf_node_id,
+            descriptor.sppf_node_id(),
             descriptor.gss_node_id
         );
         #[cfg(feature = "instrument")]
