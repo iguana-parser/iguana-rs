@@ -3,10 +3,13 @@ use specta::Type;
 
 use crate::{ids::BindingId, utils::inline_vec::InlineVec};
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, Type)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct EnvId(pub u32);
 
 impl EnvId {
+    /// Sentinel for an absent env id. Real ids must be < u32::MAX.
+    pub const NONE: Self = Self(u32::MAX);
+
     pub fn index(&self) -> usize {
         self.0 as usize
     }

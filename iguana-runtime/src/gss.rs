@@ -82,16 +82,62 @@ impl GSSNode {
 
 #[derive(Clone, Debug)]
 pub struct GSSEdge {
-    pub sppf_node_id: Option<SPPFNodeId>,
+    sppf_node_id: SPPFNodeId,
     pub return_slot: SlotId,
     pub dest_id: GssNodeId,
     // The caller's env at the time of the call, saved during `create`.
     // During `pop`, when iterating over edges, this env is restored and
     // extended with the callee's return value (if a binding is present).
-    pub env: Option<EnvId>,
+    env_id: EnvId,
     // When a call symbol has a binding (e.g., `b=B(0)` in `A := b=B(0) C`),
     // the variable name is stored on the edge during `create`. During `pop`,
     // when iterating over edges, the callee's return value is bound to this
     // name in the restored env.
-    pub binding: Option<BindingId>,
+    binding_id: BindingId,
+}
+
+impl GSSEdge {
+    #[inline]
+    pub fn new(
+        sppf_node_id: Option<SPPFNodeId>,
+        return_slot: SlotId,
+        dest_id: GssNodeId,
+        env_id: Option<EnvId>,
+        binding_id: Option<BindingId>,
+    ) -> Self {
+        Self {
+            sppf_node_id: sppf_node_id.unwrap_or(SPPFNodeId::NONE),
+            return_slot,
+            dest_id,
+            env_id: env_id.unwrap_or(EnvId::NONE),
+            binding_id: binding_id.unwrap_or(BindingId::NONE),
+        }
+    }
+
+    #[inline]
+    pub fn sppf_node_id(&self) -> Option<SPPFNodeId> {
+        if self.sppf_node_id == SPPFNodeId::NONE {
+            None
+        } else {
+            Some(self.sppf_node_id)
+        }
+    }
+
+    #[inline]
+    pub fn env_id(&self) -> Option<EnvId> {
+        if self.env_id == EnvId::NONE {
+            None
+        } else {
+            Some(self.env_id)
+        }
+    }
+
+    #[inline]
+    pub fn binding_id(&self) -> Option<BindingId> {
+        if self.binding_id == BindingId::NONE {
+            None
+        } else {
+            Some(self.binding_id)
+        }
+    }
 }

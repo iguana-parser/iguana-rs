@@ -86,6 +86,9 @@ impl quote::ToTokens for TerminalId {
 pub struct BindingId(pub u8);
 
 impl BindingId {
+    /// Sentinel for an absent binding id. Real ids must be < u8::MAX.
+    pub const NONE: Self = Self(u8::MAX);
+
     pub fn index(&self) -> usize {
         self.0 as usize
     }

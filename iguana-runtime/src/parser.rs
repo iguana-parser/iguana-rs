@@ -382,13 +382,7 @@ pub trait Parser<'i> {
         binding: Option<BindingId>,
     ) {
         let origin = self.gss_node_mut(origin_gss_node_id);
-        let gss_edge = GSSEdge {
-            sppf_node_id: result,
-            return_slot,
-            dest_id: dest_gss_node_id,
-            env,
-            binding,
-        };
+        let gss_edge = GSSEdge::new(result, return_slot, dest_gss_node_id, env, binding);
         origin.add_edge(gss_edge);
         record!(
             self,
@@ -451,10 +445,10 @@ pub trait Parser<'i> {
                 continue;
             }
             let left_child = edge
-                .sppf_node_id
+                .sppf_node_id()
                 .map(|id| (id, self.sppf_node(id).left_extent()));
             let new_node_id = self.merge(left_child, right_child, edge.return_slot);
-            let env = match (edge.env, edge.binding, return_value) {
+            let env = match (edge.env_id(), edge.binding_id(), return_value) {
                 (Some(env_id), Some(name), Some(rv)) => {
                     let (new_env_id, env) = self.clone_env(env_id);
                     env.bind(name, rv);
