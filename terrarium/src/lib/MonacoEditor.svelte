@@ -354,6 +354,12 @@
       { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.BracketRight, command: "-editor.action.indentLines" },
       { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.BracketLeft, command: "cursorUndo" },
       { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.BracketRight, command: "cursorRedo" },
+      // Cmd+.: Jump to next error/warning marker (unbind Quick Fix default)
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.Period, command: "-editor.action.quickFix" },
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.Period, command: "editor.action.marker.next" },
+      // Cmd+L: Go to line (unbind expand-line-selection default)
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL, command: "-expandLineSelection" },
+      { keybinding: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL, command: "editor.action.gotoLine" },
     ]);
 
     editor.onDidChangeModelContent(() => {

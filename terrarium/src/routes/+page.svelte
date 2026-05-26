@@ -3636,7 +3636,7 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
             </div>
           </div>
           <div class="shortcuts-section">
-            <h4>Editor</h4>
+            <h4>Grammar Editor (Design Mode)</h4>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>O</kbd></span>
               <span class="shortcut-desc">Show symbols in file</span>
@@ -3668,6 +3668,29 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
             <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>D</kbd></span>
               <span class="shortcut-desc">Delete line</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>.</kbd></span>
+              <span class="shortcut-desc">Jump to next error marker</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>L</kbd></span>
+              <span class="shortcut-desc">Go to line</span>
+            </div>
+          </div>
+          <div class="shortcuts-section">
+            <h4>Input Editor (Parse / Debug Mode)</h4>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>.</kbd></span>
+              <span class="shortcut-desc">Jump to next error marker</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>L</kbd></span>
+              <span class="shortcut-desc">Go to line</span>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>Esc</kbd></span>
+              <span class="shortcut-desc">Clear parse-tree highlight</span>
             </div>
           </div>
           <div class="shortcuts-section">

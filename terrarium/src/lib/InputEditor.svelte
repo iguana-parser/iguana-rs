@@ -82,6 +82,13 @@
         onescape?.();
       }
     });
+
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Period, () => {
+      editor.trigger("keyboard", "editor.action.marker.next", null);
+    });
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL, () => {
+      editor.trigger("keyboard", "editor.action.gotoLine", null);
+    });
   });
 
   onDestroy(() => {
