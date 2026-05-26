@@ -1073,6 +1073,8 @@ impl<'a> ParserGen<'a> {
                     descriptors_count: 0,
                     #[cfg(feature = "instrument")]
                     descriptors_peak: 0,
+                    #[cfg(feature = "instrument")]
+                    ll1_call_log: vec![],
                     intermediate_nodes_children: vec![],
                     intermediate_nodes_children_map: OnceCell::new(),
                     nonterminal_nodes_children: vec![],
@@ -1122,6 +1124,8 @@ impl<'a> ParserGen<'a> {
                 descriptors_count: usize,
                 #[cfg(feature = "instrument")]
                 descriptors_peak: usize,
+                #[cfg(feature = "instrument")]
+                ll1_call_log: Vec<(NonterminalId, u32)>,
                 intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #slot_ids_len],
                 terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
                 #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
@@ -1175,9 +1179,15 @@ impl<'a> ParserGen<'a> {
         }
         let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
         let body_tokens = self.gen_parse_body_ll1(nonterminal);
+        let nt_id = self.nonterminal_ids.get_id(nonterminal);
+        let instrument_entry = quote! {
+            #[cfg(feature = "instrument")]
+            self.ll1_call_log.push((#nt_id, i));
+        };
         if memoize {
             quote! {
                 fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
+                    #instrument_entry
                     if let Some(memo) = self.layout_memo[i as usize] {
                         return Some(memo);
                     }
@@ -1193,6 +1203,7 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {
                 fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
+                    #instrument_entry
                     #body_tokens
                 }
             }
@@ -1389,6 +1400,8 @@ impl<'a> ParserGen<'a> {
 
         quote! {
             fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
+                #[cfg(feature = "instrument")]
+                self.ll1_call_log.push((#nonterminal_id, i));
                 let mut j = i;
                 let (body_node, body_end) = (#base_parse)?;
                 j = body_end;
@@ -2304,6 +2317,10 @@ impl<'a> ParserGen<'a> {
                 }
                 for m in self.terminal_nodes_index.iter() {
                     stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
+                }
+                for (nt_id, pos) in &self.ll1_call_log {
+                    let name = NONTERMINALS[nt_id.index()].display;
+                    stats.record_ll1_call(name, *pos);
                 }
                 stats
             }

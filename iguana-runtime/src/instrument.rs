@@ -35,6 +35,9 @@ mod imp {
         pub ambiguous_nodes_count: usize,
 
         pub histograms: BTreeMap<&'static str, Vec<usize>>,
+        /// Per-LL(1)-NT log of input positions at every call.
+        /// Used to measure duplicate-call rate for memoization decisions.
+        pub ll1_calls: BTreeMap<&'static str, Vec<u32>>,
     }
 
     impl Stats {
@@ -48,6 +51,10 @@ mod imp {
 
         pub fn record(&mut self, name: &'static str, len: usize) {
             self.histograms.entry(name).or_default().push(len);
+        }
+
+        pub fn record_ll1_call(&mut self, nt: &'static str, pos: u32) {
+            self.ll1_calls.entry(nt).or_default().push(pos);
         }
 
         /// Folds `other` into `self`. Counters that represent totals are
@@ -66,6 +73,9 @@ mod imp {
             self.ambiguous_nodes_count += other.ambiguous_nodes_count;
             for (name, values) in other.histograms {
                 self.histograms.entry(name).or_default().extend(values);
+            }
+            for (name, values) in other.ll1_calls {
+                self.ll1_calls.entry(name).or_default().extend(values);
             }
         }
     }
@@ -125,6 +135,42 @@ mod imp {
                             width = BAR_WIDTH
                         )?;
                     }
+                }
+            }
+
+            if !self.ll1_calls.is_empty() {
+                writeln!(f)?;
+                writeln!(f, "[stats] LL(1) call rate per nonterminal:")?;
+                writeln!(
+                    f,
+                    "  {:<40} {:>10} {:>10} {:>10} {:>8}",
+                    "nonterminal", "total", "distinct", "duplicates", "dup %"
+                )?;
+                let mut rows: Vec<(&&'static str, usize, usize, usize)> = self
+                    .ll1_calls
+                    .iter()
+                    .map(|(name, positions)| {
+                        let total = positions.len();
+                        let mut sorted = positions.clone();
+                        sorted.sort_unstable();
+                        sorted.dedup();
+                        let distinct = sorted.len();
+                        let duplicates = total - distinct;
+                        (name, total, distinct, duplicates)
+                    })
+                    .collect();
+                rows.sort_by(|a, b| b.3.cmp(&a.3));
+                for (name, total, distinct, duplicates) in rows.iter().take(40) {
+                    let dup_pct = if *total > 0 {
+                        (*duplicates as f64) * 100.0 / (*total as f64)
+                    } else {
+                        0.0
+                    };
+                    writeln!(
+                        f,
+                        "  {:<40} {:>10} {:>10} {:>10} {:>7.1}%",
+                        name, total, distinct, duplicates, dup_pct
+                    )?;
                 }
             }
             Ok(())
