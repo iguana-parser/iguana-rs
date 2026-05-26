@@ -5637,6 +5637,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
+        for (nt_id, pos) in &self.ll1_call_log {
+            let name = NONTERMINALS[nt_id.index()].display;
+            stats.record_ll1_call(name, *pos);
+        }
         stats
     }
     fn post_conditions(
@@ -5851,6 +5855,8 @@ pub struct IggyParser<'i> {
     descriptors_count: usize,
     #[cfg(feature = "instrument")]
     descriptors_peak: usize,
+    #[cfg(feature = "instrument")]
+    ll1_call_log: Vec<(NonterminalId, u32)>,
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 417],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 39],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
@@ -5883,6 +5889,8 @@ impl<'i> IggyParser<'i> {
             descriptors_count: 0,
             #[cfg(feature = "instrument")]
             descriptors_peak: 0,
+            #[cfg(feature = "instrument")]
+            ll1_call_log: vec![],
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_children: vec![],
@@ -5944,6 +5952,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_layout_def_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(1), i));
         let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_DEF, i)?;
         match matched {
             TerminalId(11) => {
@@ -6002,6 +6012,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_annotation_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(4), i));
         let matched = self.scanner.longest_match(FIRST_SET_ANNOTATION, i)?;
         match matched {
             TerminalId(14) => {
@@ -6174,6 +6186,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_pre_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(6), i));
         let matched = self.scanner.longest_match(FIRST_SET_PRE_CONDITION, i)?;
         match matched {
             TerminalId(1) => {
@@ -6232,6 +6246,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_post_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(7), i));
         let matched = self.scanner.longest_match(FIRST_SET_POST_CONDITION, i)?;
         match matched {
             TerminalId(22) => {
@@ -6342,6 +6358,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_associativity_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(9), i));
         let matched = self.scanner.longest_match(FIRST_SET_ASSOCIATIVITY, i)?;
         match matched {
             TerminalId(24) => {
@@ -6414,6 +6432,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_range_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(14), i));
         let matched = self.scanner.longest_match(FIRST_SET_RANGE, i)?;
         match matched {
             TerminalId(5) => {
@@ -6502,6 +6522,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_layout_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(15), i));
         if let Some(memo) = self.layout_memo[i as usize] {
             return Some(memo);
         }
@@ -6537,6 +6559,8 @@ impl<'i> IggyParser<'i> {
         result
     }
     fn parse_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(16), i));
         let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_0, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
@@ -6577,6 +6601,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_plus_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(20), i));
         let mut j = i;
         let (body_node, body_end) = (self.parse_annotation_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();
@@ -6638,6 +6664,8 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_opt_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(21), i));
         let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_2, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
@@ -6678,6 +6706,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_star_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(22), i));
         let mut j = i;
         let right_child = {
             let start = j;
@@ -6700,6 +6730,8 @@ impl<'i> IggyParser<'i> {
         }));
     }
     fn parse_plus_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(29), i));
         let mut j = i;
         let (body_node, body_end) = (self.parse_post_condition_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();
@@ -6761,6 +6793,8 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_opt_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(30), i));
         let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_5, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
@@ -6801,6 +6835,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_star_3_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(31), i));
         let mut j = i;
         let right_child = {
             let start = j;
@@ -6823,6 +6859,8 @@ impl<'i> IggyParser<'i> {
         }));
     }
     fn parse_opt_6_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(32), i));
         let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_6, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
@@ -6863,6 +6901,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_opt_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(39), i));
         let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_9, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
@@ -6903,6 +6943,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_group_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(42), i));
         let matched = self.scanner.longest_match(FIRST_SET_GROUP_1, i)?;
         match matched {
             TerminalId(22) => {
@@ -6961,6 +7003,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_plus_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(43), i));
         let mut j = i;
         let (body_node, body_end) = (self.parse_group_1_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();
@@ -7022,6 +7066,8 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_group_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(44), i));
         let matched = self.scanner.longest_match(FIRST_SET_GROUP_2, i)?;
         match matched {
             TerminalId(23) => {
@@ -7080,6 +7126,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_plus_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(45), i));
         let mut j = i;
         let (body_node, body_end) = (self.parse_group_2_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();
@@ -7141,6 +7189,8 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_group_3_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(46), i));
         let matched = self.scanner.longest_match(FIRST_SET_GROUP_3, i)?;
         match matched {
             TerminalId(32) => {
@@ -7199,6 +7249,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_plus_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(47), i));
         let mut j = i;
         let (body_node, body_end) = (self.parse_group_3_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();
@@ -7260,6 +7312,8 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_opt_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(50), i));
         let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_10, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
@@ -7300,6 +7354,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(52), i));
         let matched = self.scanner.longest_match(FIRST_SET_ALT_0, i)?;
         match matched {
             TerminalId(7) => {
@@ -7355,6 +7411,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_plus_14_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(53), i));
         let mut j = i;
         let (body_node, body_end) = (self.parse_alt_0_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();
@@ -7402,6 +7460,8 @@ impl<'i> IggyParser<'i> {
         Some(current)
     }
     fn parse_opt_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(54), i));
         let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_11, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
@@ -7442,6 +7502,8 @@ impl<'i> IggyParser<'i> {
         }
     }
     fn parse_star_6_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(55), i));
         let mut j = i;
         let right_child = {
             let start = j;

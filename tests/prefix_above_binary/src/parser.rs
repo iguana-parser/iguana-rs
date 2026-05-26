@@ -629,6 +629,10 @@ impl<'i> Parser<'i> for PrefixAboveBinaryParser<'i> {
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
+        for (nt_id, pos) in &self.ll1_call_log {
+            let name = NONTERMINALS[nt_id.index()].display;
+            stats.record_ll1_call(name, *pos);
+        }
         stats
     }
     fn post_conditions(
@@ -707,6 +711,8 @@ pub struct PrefixAboveBinaryParser<'i> {
     descriptors_count: usize,
     #[cfg(feature = "instrument")]
     descriptors_peak: usize,
+    #[cfg(feature = "instrument")]
+    ll1_call_log: Vec<(NonterminalId, u32)>,
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 19],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
@@ -738,6 +744,8 @@ impl<'i> PrefixAboveBinaryParser<'i> {
             descriptors_count: 0,
             #[cfg(feature = "instrument")]
             descriptors_peak: 0,
+            #[cfg(feature = "instrument")]
+            ll1_call_log: vec![],
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_children: vec![],

@@ -568,6 +568,10 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
+        for (nt_id, pos) in &self.ll1_call_log {
+            let name = NONTERMINALS[nt_id.index()].display;
+            stats.record_ll1_call(name, *pos);
+        }
         stats
     }
     fn post_conditions(
@@ -652,6 +656,8 @@ pub struct PlusGroupParser<'i> {
     descriptors_count: usize,
     #[cfg(feature = "instrument")]
     descriptors_peak: usize,
+    #[cfg(feature = "instrument")]
+    ll1_call_log: Vec<(NonterminalId, u32)>,
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 17],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
@@ -682,6 +688,8 @@ impl<'i> PlusGroupParser<'i> {
             descriptors_count: 0,
             #[cfg(feature = "instrument")]
             descriptors_peak: 0,
+            #[cfg(feature = "instrument")]
+            ll1_call_log: vec![],
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_children: vec![],
@@ -693,6 +701,8 @@ impl<'i> PlusGroupParser<'i> {
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(0), i));
         let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
         match matched {
             TerminalId(0) => {
@@ -721,6 +731,8 @@ impl<'i> PlusGroupParser<'i> {
         }
     }
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(1), i));
         let matched = self.scanner.longest_match(FIRST_SET_A, i)?;
         match matched {
             TerminalId(0) => {
@@ -749,6 +761,8 @@ impl<'i> PlusGroupParser<'i> {
         }
     }
     fn parse_b_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(2), i));
         let matched = self.scanner.longest_match(FIRST_SET_B, i)?;
         match matched {
             TerminalId(1) => {
@@ -777,6 +791,8 @@ impl<'i> PlusGroupParser<'i> {
         }
     }
     fn parse_c_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(3), i));
         let matched = self.scanner.longest_match(FIRST_SET_C, i)?;
         match matched {
             TerminalId(2) => {
@@ -805,6 +821,8 @@ impl<'i> PlusGroupParser<'i> {
         }
     }
     fn parse_group_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(4), i));
         let matched = self.scanner.longest_match(FIRST_SET_GROUP_0, i)?;
         match matched {
             TerminalId(0) => {
@@ -863,6 +881,8 @@ impl<'i> PlusGroupParser<'i> {
         }
     }
     fn parse_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(5), i));
         let mut j = i;
         let (body_node, body_end) = (self.parse_group_0_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();

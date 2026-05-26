@@ -483,6 +483,7 @@ fn run_batch(
     let mut total_drop_ms: f64 = 0.0;
     let mut max_total_ms: f64 = 0.0;
     let mut total_bytes: u64 = 0;
+    let mut per_file: Vec<(u64, f64)> = Vec::new();
     #[cfg(feature = "instrument")]
     let mut corpus_stats = iguana_runtime::instrument::Stats::new();
     for path in &files {
@@ -544,6 +545,7 @@ fn run_batch(
                 total_tree_ms += tree_ms;
                 total_drop_ms += drop_ms;
                 total_bytes += bytes;
+                per_file.push((bytes, parse_ms));
                 if total_ms > max_total_ms {
                     max_total_ms = total_ms;
                 }
@@ -614,6 +616,43 @@ fn run_batch(
             "Throughput on {} successful parses ({} bytes): {:.2} MB/s parse only, {:.2} MB/s total",
             ok, total_bytes, throughput, throughput_total
         );
+        if !per_file.is_empty() {
+            let buckets: &[(&str, u64, u64)] = &[
+                ("< 1 KB", 0, 1024),
+                ("1-4 KB", 1024, 4 * 1024),
+                ("4-16 KB", 4 * 1024, 16 * 1024),
+                ("16-64 KB", 16 * 1024, 64 * 1024),
+                ("64-256 KB", 64 * 1024, 256 * 1024),
+                ("> 256 KB", 256 * 1024, u64::MAX),
+            ];
+            println!();
+            println!("[throughput by file size]");
+            println!(
+                "  {:<12} {:>6} {:>12} {:>12} {:>8} {:>12} {:>10}",
+                "size class", "files", "bytes", "parse ms", "MB/s", "median ms", "p90 ms"
+            );
+            for (label, lo, hi) in buckets {
+                let mut bucket: Vec<&(u64, f64)> = per_file
+                    .iter()
+                    .filter(|(b, _)| *b >= *lo && *b < *hi)
+                    .collect();
+                if bucket.is_empty() {
+                    continue;
+                }
+                let count = bucket.len();
+                let bucket_bytes: u64 = bucket.iter().map(|(b, _)| *b).sum();
+                let bucket_ms: f64 = bucket.iter().map(|(_, ms)| *ms).sum();
+                let bucket_mbs = cli::mb_per_s(bucket_bytes, bucket_ms);
+                bucket.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+                let median_ms = bucket[count / 2].1;
+                let p90_idx = (((count as f64) * 0.9) as usize).min(count - 1);
+                let p90_ms = bucket[p90_idx].1;
+                println!(
+                    "  {:<12} {:>6} {:>12} {:>12.1} {:>8.2} {:>12.3} {:>10.3}",
+                    label, count, bucket_bytes, bucket_ms, bucket_mbs, median_ms, p90_ms
+                );
+            }
+        }
     }
     #[cfg(feature = "instrument")]
     {

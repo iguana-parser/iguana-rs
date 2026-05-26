@@ -600,6 +600,10 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
+        for (nt_id, pos) in &self.ll1_call_log {
+            let name = NONTERMINALS[nt_id.index()].display;
+            stats.record_ll1_call(name, *pos);
+        }
         stats
     }
     fn post_conditions(
@@ -694,6 +698,8 @@ pub struct FollowRestrictionMultipleParser<'i> {
     descriptors_count: usize,
     #[cfg(feature = "instrument")]
     descriptors_peak: usize,
+    #[cfg(feature = "instrument")]
+    ll1_call_log: Vec<(NonterminalId, u32)>,
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 18],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
@@ -724,6 +730,8 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             descriptors_count: 0,
             #[cfg(feature = "instrument")]
             descriptors_peak: 0,
+            #[cfg(feature = "instrument")]
+            ll1_call_log: vec![],
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_children: vec![],
@@ -735,6 +743,8 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(0), i));
         let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
         match matched {
             TerminalId(1) | TerminalId(0) => {
@@ -763,6 +773,8 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
         }
     }
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(1), i));
         let matched = self.scanner.longest_match(FIRST_SET_ID, i)?;
         match matched {
             TerminalId(1) | TerminalId(0) => {
@@ -795,6 +807,8 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
         }
     }
     fn parse_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(2), i));
         let mut j = i;
         let (body_node, body_end) = (self.parse_id_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();
@@ -842,6 +856,8 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
         Some(current)
     }
     fn parse_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(3), i));
         let matched = self.scanner.longest_match(FIRST_SET_ALT_0, i)?;
         match matched {
             TerminalId(0) => {
@@ -892,6 +908,8 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
         }
     }
     fn parse_plus_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(4), i));
         let mut j = i;
         let (body_node, body_end) = (self.parse_alt_0_ll1(j).map(|node| {
             let end = self.sppf_node(node).right_extent();

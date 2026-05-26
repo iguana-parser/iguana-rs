@@ -577,6 +577,10 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
+        for (nt_id, pos) in &self.ll1_call_log {
+            let name = NONTERMINALS[nt_id.index()].display;
+            stats.record_ll1_call(name, *pos);
+        }
         stats
     }
     fn post_conditions(
@@ -659,6 +663,8 @@ pub struct RegexCompositionParser<'i> {
     descriptors_count: usize,
     #[cfg(feature = "instrument")]
     descriptors_peak: usize,
+    #[cfg(feature = "instrument")]
+    ll1_call_log: Vec<(NonterminalId, u32)>,
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 15],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
@@ -689,6 +695,8 @@ impl<'i> RegexCompositionParser<'i> {
             descriptors_count: 0,
             #[cfg(feature = "instrument")]
             descriptors_peak: 0,
+            #[cfg(feature = "instrument")]
+            ll1_call_log: vec![],
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_children: vec![],
@@ -700,6 +708,8 @@ impl<'i> RegexCompositionParser<'i> {
         }
     }
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(0), i));
         let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
         match matched {
             TerminalId(1) => {
@@ -728,6 +738,8 @@ impl<'i> RegexCompositionParser<'i> {
         }
     }
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(1), i));
         let matched = self.scanner.longest_match(FIRST_SET_ID, i)?;
         match matched {
             TerminalId(1) => {
@@ -771,6 +783,8 @@ impl<'i> RegexCompositionParser<'i> {
         }
     }
     fn parse_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(2), i));
         let mut j = i;
         let (body_node, body_end) = (self
             .match_terminal(TerminalId(2), j, SlotId(8), None, "LetterOrDigit")
@@ -817,6 +831,8 @@ impl<'i> RegexCompositionParser<'i> {
         Some(current)
     }
     fn parse_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(3), i));
         let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_0, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
@@ -857,6 +873,8 @@ impl<'i> RegexCompositionParser<'i> {
         }
     }
     fn parse_star_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(4), i));
         let mut j = i;
         let right_child = {
             let start = j;
