@@ -379,7 +379,7 @@ impl TraceReplay {
     fn format_descriptor_compact(&self, desc: &Descriptor) -> String {
         let slot_name = self.symbols.slot(desc.slot_id);
         let gss_node = self.format_gss_node(desc.gss_node_id);
-        let sppf_node = match desc.sppf_node_id {
+        let sppf_node = match desc.sppf_node_id() {
             Some(id) => self.format_sppf_node(id.0),
             None => "$".to_string(),
         };
@@ -393,7 +393,7 @@ impl TraceReplay {
     fn format_descriptor(&self, desc: &Descriptor) -> String {
         let slot_name = self.symbols.slot(desc.slot_id);
         let gss_node = self.format_gss_node(desc.gss_node_id);
-        let sppf_node = match desc.sppf_node_id {
+        let sppf_node = match desc.sppf_node_id() {
             Some(id) => self.format_sppf_node(id.0),
             None => "$".to_string(),
         };
@@ -578,13 +578,13 @@ impl TraceReplay {
     fn apply_event(&mut self, index: usize) {
         match &self.events[index] {
             TraceEvent::ProcessingDescriptor(slot_id, input_index, gss_node_id, sppf_node_id) => {
-                let desc = Descriptor {
-                    slot_id: *slot_id,
-                    input_index: *input_index,
-                    gss_node_id: *gss_node_id,
-                    sppf_node_id: *sppf_node_id,
-                    env: None,
-                };
+                let desc = Descriptor::new(
+                    *input_index,
+                    *slot_id,
+                    *sppf_node_id,
+                    *gss_node_id,
+                    None,
+                );
                 // Remove from pending set (if present)
                 self.descriptor_set.retain(|d| {
                     !(d.slot_id == *slot_id
@@ -605,13 +605,13 @@ impl TraceReplay {
                 self.current_sppf_node_id = Some(nonterminal_node_id.0);
             }
             TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, sppf_node_id) => {
-                self.descriptor_set.push(Descriptor {
-                    slot_id: *slot_id,
-                    input_index: *input_index,
-                    gss_node_id: *gss_node_id,
-                    sppf_node_id: *sppf_node_id,
-                    env: None,
-                });
+                self.descriptor_set.push(Descriptor::new(
+                    *input_index,
+                    *slot_id,
+                    *sppf_node_id,
+                    *gss_node_id,
+                    None,
+                ));
             }
             TraceEvent::GSSNodeCreated(nonterminal_id, input_index) => {
                 let id = GssNodeId(self.gss_nodes.len() as u32);
@@ -620,13 +620,13 @@ impl TraceReplay {
             }
             TraceEvent::GSSNodeAdded(src_id, dest_id, return_slot) => {
                 if let Some(node) = self.gss_nodes.get_mut(src_id.index()) {
-                    node.add_edge(GSSEdge {
-                        sppf_node_id: None,
-                        return_slot: *return_slot,
-                        dest_id: *dest_id,
-                        env: None,
-                        binding: None,
-                    });
+                    node.add_edge(GSSEdge::new(
+                        None,
+                        *return_slot,
+                        *dest_id,
+                        None,
+                        None,
+                    ));
                 }
             }
             TraceEvent::TerminalNodeCreated(terminal_id, span) => {
