@@ -59,6 +59,10 @@ Tests use s-expression golden file comparison via `check_golden_file`. The gener
 
 The generator is parameterized by `GenConfig.cli` (default `true`). `iguana generate --cli=true|false` switches between a standalone CLI parser crate (Cargo.toml with `iguana-runtime = { git = ... }`, full deps, `src/main.rs`) and a minimal lib-only crate (`workspace = true` deps, no main.rs). xtask `test-gen` always uses `cli=false`. Terrarium relies on `cli=true` (the default) because it shells out to per-grammar parser binaries.
 
+The scaffold step (Cargo.toml + main.rs when cli=true) writes each file only if it does not already exist, so local edits survive regeneration. `iguana generate --force` overwrites them — use this when a generator template change (e.g. `main_gen.rs` flag additions) needs to land in an already-scaffolded crate like `/Users/afroozeh/Workspace/java`.
+
+`cargo xtask bootstrap` regenerates iggy with `cli=true` + `force=true`, so iggy's `main.rs` always reflects the current `main_gen.rs` template. iggy's Cargo.toml is adapted to its workspace membership by `xtask::patch_iggy_cargo_toml`, which applies three text substitutions (workspace dep for `iguana-runtime`, add license, strip `[profile.release]`). Each patch asserts it applied; if a `cargo_toml_gen.rs` template change breaks a pattern, bootstrap fails loudly. `cargo xtask test-gen` and `test-gen-all` do not pass `--force`; test grammars' Cargo.toml is first-write-only by design.
+
 # Benchmarking
 
 - For each perf claim, re-measure the baseline from master immediately before the change. Don't compare against baseline JSONs from earlier in the session.

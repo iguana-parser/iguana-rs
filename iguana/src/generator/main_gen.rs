@@ -130,22 +130,22 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             /// Number of measured iterations for --benchmark (default 100).
             #[arg(long, value_name = "N", default_value_t = 100)]
-            bench_iters: u32,
+            iters: u32,
 
             /// Number of warmup iterations before measurement (default 10).
             #[arg(long, value_name = "N", default_value_t = 10)]
-            bench_warmup: u32,
+            warmup: u32,
 
             /// Save benchmark samples to a JSON file. Pairs with --baseline
             /// for A/B comparison across runs.
             #[arg(long, value_name = "FILE")]
-            bench_save: Option<PathBuf>,
+            save: Option<PathBuf>,
 
             /// Compare benchmark results against a saved baseline JSON.
             /// Reports the mean delta with a 95% CI on the difference;
             /// flags the run as improved/regressed/no-change.
             #[arg(long, value_name = "FILE")]
-            bench_baseline: Option<PathBuf>,
+            baseline: Option<PathBuf>,
 
             /// Write parser stats (counters + histograms) as JSON.
             /// Requires the "instrument" feature.
@@ -162,6 +162,13 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             /// to silence them too.
             #[arg(short, long)]
             quiet: bool,
+
+            /// Print only the parser stats histogram and exit. Suppresses
+            /// the parse-tree dump, the "Parse success" line, and (with
+            /// `--dir`) the per-file timing lines and the aggregate
+            /// timing summary. Requires the `instrument` feature.
+            #[arg(long)]
+            hist: bool,
         }
 
         #[cfg(feature = "dhat-heap")]
@@ -173,6 +180,12 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             let _profiler = dhat::Profiler::new_heap();
 
             let args = Cli::parse();
+
+            #[cfg(not(feature = "instrument"))]
+            if args.hist {
+                eprintln!("Error: --hist requires the `instrument` feature. Recompile with --features instrument.");
+                std::process::exit(1);
+            }
 
             // Handle --list-nonterminals: print user-declared nonterminals in grammar source order.
             // The list is pre-computed at codegen time (filtering and sorting happen there).
@@ -208,7 +221,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         io::ErrorKind::InvalidInput,
                         format!("Unknown nonterminal: '{}'", start_nonterminal_name)
                     ))?;
-                return run_batch(dir, args.ext.as_deref(), start_nonterminal_id);
+                return run_batch(dir, args.ext.as_deref(), start_nonterminal_id, args.hist);
             }
 
             // For parsing, file and start_nonterminal are required
@@ -241,10 +254,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             // unboundedly across samples, so each measurement is comparable.
             if args.benchmark {
                 let config = cli::BenchConfig {
-                    iters: args.bench_iters as usize,
-                    warmup: args.bench_warmup as usize,
-                    save: args.bench_save.clone(),
-                    baseline: args.bench_baseline.clone(),
+                    iters: args.iters as usize,
+                    warmup: args.warmup as usize,
+                    save: args.save.clone(),
+                    baseline: args.baseline.clone(),
                 };
                 // Re-load Input each iteration so `input` phase is measured.
                 // The `file` path is captured by the closure.
@@ -433,13 +446,16 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         None => {}
                     }
 
-                    eprintln!("Parse success in {}ms", parse_success.duration.as_millis());
+                    if !args.hist {
+                        eprintln!("Parse success in {}ms", parse_success.duration.as_millis());
+                    }
 
                     // Print the parse tree on stdout unless the user opted out
-                    // (`--quiet`), already wrote it elsewhere (`--write-parse-tree`),
+                    // (`--quiet` / `--hist`), already wrote it elsewhere (`--write-parse-tree`),
                     // or selected another output mode (`--write-sppf`, `--write-gss`,
                     // `--vis`, `--trace`).
                     if !args.quiet
+                        && !args.hist
                         && args.write_parse_tree.is_none()
                         && args.write_sppf.is_none()
                         && args.write_gss.is_none()
@@ -487,7 +503,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             Ok(())
         }
 
-        fn run_batch(dir: &Path, ext: Option<&str>, start_nonterminal_id: NonterminalId) -> io::Result<()> {
+        fn run_batch(dir: &Path, ext: Option<&str>, start_nonterminal_id: NonterminalId, hist_only: bool) -> io::Result<()> {
             let use_color = io::stdout().is_terminal();
             let green = if use_color { "\x1b[32m" } else { "" };
             let red = if use_color { "\x1b[31m" } else { "" };
@@ -497,8 +513,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             collect_files(dir, ext, &mut files)?;
             files.sort();
 
-            println!("{:<6}  {:<42}  {:<36}  {}",
-                "STATUS", "TIME (input, init, parse, tree, drop)", "REASON", "PATH");
+            if !hist_only {
+                println!("{:<6}  {:<42}  {:<36}  {}",
+                    "STATUS", "TIME (input, init, parse, tree, drop)", "REASON", "PATH");
+            }
 
             let mut ok = 0usize;
             let mut failed = 0usize;
@@ -511,6 +529,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             let mut max_total_ms: f64 = 0.0;
             let mut total_bytes: u64 = 0;
 
+            #[cfg(feature = "instrument")]
+            let mut corpus_stats = iguana_runtime::instrument::Stats::new();
+
             for path in &files {
                 let rel = path.strip_prefix(dir).unwrap_or(path.as_path());
                 let input_start = Instant::now();
@@ -518,9 +539,11 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     Ok(input) => input,
                     Err(e) => {
                         errs += 1;
-                        let reason = format!("IO Error: {}", e);
-                        println!("{}{:<6}{}  {:<42}  {:<36}  {}",
-                            red, "ERR", reset, "-", reason, rel.display());
+                        if !hist_only {
+                            let reason = format!("IO Error: {}", e);
+                            println!("{}{:<6}{}  {:<42}  {:<36}  {}",
+                                red, "ERR", reset, "-", reason, rel.display());
+                        }
                         continue;
                     }
                 };
@@ -547,6 +570,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                             std::hint::black_box(tree);
                         }
                         let tree_ms = tc_start.elapsed().as_secs_f64() * 1000.0;
+                        #[cfg(feature = "instrument")]
+                        corpus_stats.merge(parser.record_stats());
                         let drop_start = Instant::now();
                         drop(parser);
                         drop(parse_tree_builder);
@@ -562,18 +587,22 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         total_drop_ms += drop_ms;
                         total_bytes += bytes;
                         if total_ms > max_total_ms { max_total_ms = total_ms; }
-                        let time = format!("{} ms ({} ms, {} ms, {} ms, {} ms, {} ms)",
-                            total_ms as u128, input_ms as u128, init_ms as u128,
-                            parse_ms as u128, tree_ms as u128, drop_ms as u128);
-                        println!("{}{:<6}{}  {:<42}  {:<36}  {}",
-                            green, "OK", reset, time, "-", rel.display());
+                        if !hist_only {
+                            let time = format!("{} ms ({} ms, {} ms, {} ms, {} ms, {} ms)",
+                                total_ms as u128, input_ms as u128, init_ms as u128,
+                                parse_ms as u128, tree_ms as u128, drop_ms as u128);
+                            println!("{}{:<6}{}  {:<42}  {:<36}  {}",
+                                green, "OK", reset, time, "-", rel.display());
+                        }
                     }
                     ParseResult::Failure(error) => {
                         let (line, column, _) = parser.format_error(&error);
                         failed += 1;
-                        let reason = format!("Parse Error at line {}, col {}", line, column);
-                        println!("{}{:<6}{}  {:<42}  {:<36}  {}",
-                            red, "FAIL", reset, "-", reason, rel.display());
+                        if !hist_only {
+                            let reason = format!("Parse Error at line {}, col {}", line, column);
+                            println!("{}{:<6}{}  {:<42}  {:<36}  {}",
+                                red, "FAIL", reset, "-", reason, rel.display());
+                        }
                     }
                 }
             }
@@ -583,14 +612,24 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             let avg_ms = if ok > 0 { total_ms / ok as f64 } else { 0.0 };
             let throughput = cli::mb_per_s(total_bytes, total_parse_ms);
             let throughput_total = cli::mb_per_s(total_bytes, total_ms);
-            println!();
-            println!("Parsed {} files: {} OK, {} failed, {} errors",
-                files.len(), ok, failed, errs);
-            println!("Total {:.0} ms (input {:.0}, init {:.0}, parse {:.0}, tree {:.0}, drop {:.0}); avg {:.1} ms, max {:.0} ms",
-                total_ms, total_input_ms, total_init_ms, total_parse_ms, total_tree_ms,
-                total_drop_ms, avg_ms, max_total_ms);
-            println!("Throughput on {} successful parses ({} bytes): {:.2} MB/s parse only, {:.2} MB/s total",
-                ok, total_bytes, throughput, throughput_total);
+            if !hist_only {
+                println!();
+                println!("Parsed {} files: {} OK, {} failed, {} errors",
+                    files.len(), ok, failed, errs);
+                println!("Total {:.0} ms (input {:.0}, init {:.0}, parse {:.0}, tree {:.0}, drop {:.0}); avg {:.1} ms, max {:.0} ms",
+                    total_ms, total_input_ms, total_init_ms, total_parse_ms, total_tree_ms,
+                    total_drop_ms, avg_ms, max_total_ms);
+                println!("Throughput on {} successful parses ({} bytes): {:.2} MB/s parse only, {:.2} MB/s total",
+                    ok, total_bytes, throughput, throughput_total);
+            }
+            #[cfg(feature = "instrument")]
+            {
+                if !hist_only {
+                    println!();
+                }
+                println!("[stats] aggregated across {} successful parses", ok);
+                println!("{}", corpus_stats);
+            }
             Ok(())
         }
 

@@ -1071,6 +1071,8 @@ impl<'a> ParserGen<'a> {
                     epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
                     #[cfg(feature = "instrument")]
                     descriptors_count: 0,
+                    #[cfg(feature = "instrument")]
+                    descriptors_peak: 0,
                     intermediate_nodes_children: vec![],
                     intermediate_nodes_children_map: OnceCell::new(),
                     nonterminal_nodes_children: vec![],
@@ -1118,6 +1120,8 @@ impl<'a> ParserGen<'a> {
                 sppf_nodes: Vec<SPPFNode>,
                 #[cfg(feature = "instrument")]
                 descriptors_count: usize,
+                #[cfg(feature = "instrument")]
+                descriptors_peak: usize,
                 intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #slot_ids_len],
                 terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
                 #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
@@ -1751,6 +1755,12 @@ impl<'a> ParserGen<'a> {
                 #[cfg(feature = "instrument")]
                 self.increment_descriptor_count();
                 self.descriptors.push(descriptor);
+                #[cfg(feature = "instrument")]
+                {
+                    if self.descriptors.len() > self.descriptors_peak {
+                        self.descriptors_peak = self.descriptors.len();
+                    }
+                }
             }
         }
     }
@@ -2272,6 +2282,8 @@ impl<'a> ParserGen<'a> {
 
                 // Counters
                 stats.descriptors_count = self.count_descriptors();
+                stats.descriptors_peak = self.descriptors_peak;
+                stats.envs_count = self.envs.len();
                 stats.gss_nodes_count = self.count_gss_nodes();
                 stats.gss_edges_count = self.count_gss_edges();
                 stats.nonterminal_nodes_count = self.count_nonterminal_nodes();

@@ -210,13 +210,15 @@ pub fn generate_sources(
 /// when false, the Cargo.toml is a minimal lib-only shape that assumes a
 /// workspace context, and `src/main.rs` is not written.
 ///
-/// Idempotent: each file is written only if it does not already exist.
-/// The user owns these files after first creation; subsequent grammar
-/// changes do not regenerate them.
+/// By default each file is written only if it does not already exist, so the
+/// user owns them after first creation. When `force` is true, the scaffold
+/// step overwrites existing files (useful when the generator's CLI or
+/// Cargo.toml template has changed and you want to pick the new shape up).
 pub fn generate_scaffold(
     grammar: &Grammar,
     output_dir: &Path,
     config: GenConfig,
+    force: bool,
 ) -> io::Result<()> {
     if !output_dir.exists() {
         fs::create_dir_all(output_dir)?;
@@ -227,13 +229,13 @@ pub fn generate_scaffold(
     }
 
     let cargo_toml = output_dir.join("Cargo.toml");
-    if !cargo_toml.exists() {
+    if force || !cargo_toml.exists() {
         write_plain_file(cargo_toml_gen::generate(grammar, config.cli), &cargo_toml)?;
     }
 
     if config.cli {
         let main_rs = src_dir.join("main.rs");
-        if !main_rs.exists() {
+        if force || !main_rs.exists() {
             let main_code = main_gen::generate(grammar);
             write_plain_file(post_process(&main_code.to_string()), &main_rs)?;
         }

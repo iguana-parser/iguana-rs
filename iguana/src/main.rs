@@ -58,6 +58,12 @@ enum Commands {
         /// caller owns Cargo.toml and no CLI binary is emitted.
         #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
         cli: bool,
+
+        /// Overwrite scaffolded files (Cargo.toml, src/main.rs) even if they
+        /// already exist. Without this, the scaffold step is skipped on
+        /// regeneration so local edits are preserved.
+        #[arg(long)]
+        force: bool,
     },
 }
 
@@ -72,6 +78,7 @@ fn main() -> std::io::Result<()> {
             ll1,
             match_memo,
             cli,
+            force,
         } => {
             let resolved_path;
             let path = match grammar.as_deref() {
@@ -91,7 +98,7 @@ fn main() -> std::io::Result<()> {
             let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
                 std::io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
             })?;
-            generate_scaffold(&grammar, &output, config)?;
+            generate_scaffold(&grammar, &output, config, force)?;
             let result = generate_sources(&grammar, &output, config)?;
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
@@ -163,7 +170,7 @@ fn find_iggy_file(directory: &Path) -> std::io::Result<PathBuf> {
 fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> io::Result<()> {
     let grammar = load_grammar(grammar_path, output)?;
     let config = GenConfig::default();
-    generate_scaffold(&grammar, output, config)?;
+    generate_scaffold(&grammar, output, config, false)?;
     generate_sources(&grammar, output, config)?;
     Ok(())
 }

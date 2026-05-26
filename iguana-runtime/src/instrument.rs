@@ -25,6 +25,8 @@ mod imp {
     #[derive(Debug, Default, Clone, Serialize)]
     pub struct Stats {
         pub descriptors_count: usize,
+        pub descriptors_peak: usize,
+        pub envs_count: usize,
         pub gss_nodes_count: usize,
         pub gss_edges_count: usize,
         pub nonterminal_nodes_count: usize,
@@ -47,12 +49,33 @@ mod imp {
         pub fn record(&mut self, name: &'static str, len: usize) {
             self.histograms.entry(name).or_default().push(len);
         }
+
+        /// Folds `other` into `self`. Counters that represent totals are
+        /// summed; `descriptors_peak` is taken as the max (it's a per-parse
+        /// peak, not a total). Histograms are concatenated, treating all
+        /// per-parse observations as one combined sample.
+        pub fn merge(&mut self, other: Stats) {
+            self.descriptors_count += other.descriptors_count;
+            self.descriptors_peak = self.descriptors_peak.max(other.descriptors_peak);
+            self.envs_count += other.envs_count;
+            self.gss_nodes_count += other.gss_nodes_count;
+            self.gss_edges_count += other.gss_edges_count;
+            self.nonterminal_nodes_count += other.nonterminal_nodes_count;
+            self.intermediate_nodes_count += other.intermediate_nodes_count;
+            self.terminal_nodes_count += other.terminal_nodes_count;
+            self.ambiguous_nodes_count += other.ambiguous_nodes_count;
+            for (name, values) in other.histograms {
+                self.histograms.entry(name).or_default().extend(values);
+            }
+        }
     }
 
     impl fmt::Display for Stats {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             writeln!(f, "[stats] counters:")?;
             writeln!(f, "  descriptors:         {}", self.descriptors_count)?;
+            writeln!(f, "  descriptors_peak:    {}", self.descriptors_peak)?;
+            writeln!(f, "  envs:                {}", self.envs_count)?;
             writeln!(f, "  gss_nodes:           {}", self.gss_nodes_count)?;
             writeln!(f, "  gss_edges:           {}", self.gss_edges_count)?;
             writeln!(f, "  nonterminal_nodes:   {}", self.nonterminal_nodes_count)?;

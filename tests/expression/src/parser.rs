@@ -233,6 +233,12 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
         #[cfg(feature = "instrument")]
         self.increment_descriptor_count();
         self.descriptors.push(descriptor);
+        #[cfg(feature = "instrument")]
+        {
+            if self.descriptors.len() > self.descriptors_peak {
+                self.descriptors_peak = self.descriptors.len();
+            }
+        }
     }
     fn next_descriptor(&mut self) -> Option<Descriptor> {
         self.descriptors.pop()
@@ -446,6 +452,8 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
     fn record_stats(&self) -> iguana_runtime::instrument::Stats {
         let mut stats = iguana_runtime::instrument::Stats::new();
         stats.descriptors_count = self.count_descriptors();
+        stats.descriptors_peak = self.descriptors_peak;
+        stats.envs_count = self.envs.len();
         stats.gss_nodes_count = self.count_gss_nodes();
         stats.gss_edges_count = self.count_gss_edges();
         stats.nonterminal_nodes_count = self.count_nonterminal_nodes();
@@ -540,6 +548,8 @@ pub struct ExpressionParser<'i> {
     sppf_nodes: Vec<SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
+    #[cfg(feature = "instrument")]
+    descriptors_peak: usize,
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 10],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
@@ -568,6 +578,8 @@ impl<'i> ExpressionParser<'i> {
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
+            #[cfg(feature = "instrument")]
+            descriptors_peak: 0,
             intermediate_nodes_children: vec![],
             intermediate_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_children: vec![],

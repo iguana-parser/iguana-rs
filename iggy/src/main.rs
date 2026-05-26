@@ -98,6 +98,31 @@ struct Cli {
     /// Output path for the flamegraph SVG (used with --profile).
     #[arg(long, value_name = "FILE", default_value = "flamegraph.svg")]
     profile_output: PathBuf,
+    /// Benchmark mode: run the parser many times and report timing
+
+    /// statistics (min, mean, median, p90, max, stddev). In-process,
+
+    /// per-iteration sampling — same shape as criterion.
+    #[arg(long)]
+    benchmark: bool,
+    /// Number of measured iterations for --benchmark (default 100).
+    #[arg(long, value_name = "N", default_value_t = 100)]
+    iters: u32,
+    /// Number of warmup iterations before measurement (default 10).
+    #[arg(long, value_name = "N", default_value_t = 10)]
+    warmup: u32,
+    /// Save benchmark samples to a JSON file. Pairs with --baseline
+
+    /// for A/B comparison across runs.
+    #[arg(long, value_name = "FILE")]
+    save: Option<PathBuf>,
+    /// Compare benchmark results against a saved baseline JSON.
+
+    /// Reports the mean delta with a 95% CI on the difference;
+
+    /// flags the run as improved/regressed/no-change.
+    #[arg(long, value_name = "FILE")]
+    baseline: Option<PathBuf>,
     /// Write parser stats (counters + histograms) as JSON.
 
     /// Requires the "instrument" feature.
@@ -115,6 +140,15 @@ struct Cli {
     /// to silence them too.
     #[arg(short, long)]
     quiet: bool,
+    /// Print only the parser stats histogram and exit. Suppresses
+
+    /// the parse-tree dump, the "Parse success" line, and (with
+
+    /// `--dir`) the per-file timing lines and the aggregate
+
+    /// timing summary. Requires the `instrument` feature.
+    #[arg(long)]
+    hist: bool,
 }
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
@@ -123,6 +157,13 @@ fn main() -> Result<(), io::Error> {
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
     let args = Cli::parse();
+    #[cfg(not(feature = "instrument"))]
+    if args.hist {
+        eprintln!(
+            "Error: --hist requires the `instrument` feature. Recompile with --features instrument."
+        );
+        std::process::exit(1);
+    }
     if args.list_nonterminals {
         for name in NONTERMINAL_DISPLAY_ORDER.iter() {
             println!("{}", name);
@@ -162,7 +203,7 @@ fn main() -> Result<(), io::Error> {
                     format!("Unknown nonterminal: '{}'", start_nonterminal_name),
                 )
             })?;
-        return run_batch(dir, args.ext.as_deref(), start_nonterminal_id);
+        return run_batch(dir, args.ext.as_deref(), start_nonterminal_id, args.hist);
     }
     let file = args.file.ok_or_else(|| {
         io::Error::new(
@@ -191,6 +232,60 @@ fn main() -> Result<(), io::Error> {
                 format!("Unknown nonterminal: '{}'", start_nonterminal_name),
             )
         })?;
+    if args.benchmark {
+        let config = cli::BenchConfig {
+            iters: args.iters as usize,
+            warmup: args.warmup as usize,
+            save: args.save.clone(),
+            baseline: args.baseline.clone(),
+        };
+        let file_path = file.clone();
+        return cli::run_benchmark(config, move || {
+            let input_start = Instant::now();
+            let input = Input::try_from(file_path.as_path()).expect("failed to load input");
+            let input_time = input_start.elapsed();
+            let bytes = input.len() as u64;
+            let init_start = Instant::now();
+            let ctx = ParseContext::new();
+            let parse_tree_builder = IggyParseTreeBuilder::new(&ctx);
+            let mut parser = IggyParser::new(&input, start_nonterminal_id);
+            let init = init_start.elapsed();
+            let (parse, tree) = match parser.run() {
+                ParseResult::Success(success) => {
+                    let parse = success.duration;
+                    let tree_start = Instant::now();
+                    {
+                        let tree = create_parse_tree(
+                            success.sppf_node_id,
+                            start_nonterminal_id,
+                            &parser,
+                            &parse_tree_builder,
+                        );
+                        std::hint::black_box(tree);
+                    }
+                    (parse, tree_start.elapsed())
+                }
+                ParseResult::Failure(error) => {
+                    let (line, column, message) = parser.format_error(&error);
+                    panic!("Parse failed at line {line} column {column}: {message}");
+                }
+            };
+            let drop_start = Instant::now();
+            drop(parser);
+            drop(parse_tree_builder);
+            drop(ctx);
+            drop(input);
+            let drop = drop_start.elapsed();
+            cli::PhaseTimings {
+                input: input_time,
+                init,
+                parse,
+                tree,
+                drop,
+                bytes,
+            }
+        });
+    }
     #[cfg(feature = "profile")]
     if let Some(iterations) = args.profile {
         let guard = ProfilerGuardBuilder::default()
@@ -308,8 +403,11 @@ fn main() -> Result<(), io::Error> {
                 }
                 None => {}
             }
-            eprintln!("Parse success in {}ms", parse_success.duration.as_millis());
+            if !args.hist {
+                eprintln!("Parse success in {}ms", parse_success.duration.as_millis());
+            }
             if !args.quiet
+                && !args.hist
                 && args.write_parse_tree.is_none()
                 && args.write_sppf.is_none()
                 && args.write_gss.is_none()
@@ -356,7 +454,12 @@ fn main() -> Result<(), io::Error> {
     }
     Ok(())
 }
-fn run_batch(dir: &Path, ext: Option<&str>, start_nonterminal_id: NonterminalId) -> io::Result<()> {
+fn run_batch(
+    dir: &Path,
+    ext: Option<&str>,
+    start_nonterminal_id: NonterminalId,
+    hist_only: bool,
+) -> io::Result<()> {
     let use_color = io::stdout().is_terminal();
     let green = if use_color { "\x1b[32m" } else { "" };
     let red = if use_color { "\x1b[31m" } else { "" };
@@ -364,97 +467,162 @@ fn run_batch(dir: &Path, ext: Option<&str>, start_nonterminal_id: NonterminalId)
     let mut files = Vec::new();
     collect_files(dir, ext, &mut files)?;
     files.sort();
-    println!(
-        "{:<6}  {:<26}  {:<36}  {}",
-        "STATUS", "TIME (parse, tree)", "REASON", "PATH"
-    );
+    if !hist_only {
+        println!(
+            "{:<6}  {:<42}  {:<36}  {}",
+            "STATUS", "TIME (input, init, parse, tree, drop)", "REASON", "PATH"
+        );
+    }
     let mut ok = 0usize;
     let mut failed = 0usize;
     let mut errs = 0usize;
-    let mut total_parse_ms: u128 = 0;
-    let mut total_tree_ms: u128 = 0;
-    let mut max_total_ms: u128 = 0;
+    let mut total_input_ms: f64 = 0.0;
+    let mut total_init_ms: f64 = 0.0;
+    let mut total_parse_ms: f64 = 0.0;
+    let mut total_tree_ms: f64 = 0.0;
+    let mut total_drop_ms: f64 = 0.0;
+    let mut max_total_ms: f64 = 0.0;
+    let mut total_bytes: u64 = 0;
+    #[cfg(feature = "instrument")]
+    let mut corpus_stats = iguana_runtime::instrument::Stats::new();
     for path in &files {
         let rel = path.strip_prefix(dir).unwrap_or(path.as_path());
+        let input_start = Instant::now();
         let input = match Input::try_from(path.as_path()) {
             Ok(input) => input,
             Err(e) => {
                 errs += 1;
-                let reason = format!("IO Error: {}", e);
-                println!(
-                    "{}{:<6}{}  {:<26}  {:<36}  {}",
-                    red,
-                    "ERR",
-                    reset,
-                    "-",
-                    reason,
-                    rel.display()
-                );
+                if !hist_only {
+                    let reason = format!("IO Error: {}", e);
+                    println!(
+                        "{}{:<6}{}  {:<42}  {:<36}  {}",
+                        red,
+                        "ERR",
+                        reset,
+                        "-",
+                        reason,
+                        rel.display()
+                    );
+                }
                 continue;
             }
         };
+        let input_ms = input_start.elapsed().as_secs_f64() * 1000.0;
+        let bytes = input.len() as u64;
+        let init_start = Instant::now();
         let ctx = ParseContext::new();
         let parse_tree_builder = IggyParseTreeBuilder::new(&ctx);
         let mut parser = IggyParser::new(&input, start_nonterminal_id);
+        let init_ms = init_start.elapsed().as_secs_f64() * 1000.0;
         match parser.run() {
             ParseResult::Success(success) => {
-                let parse_ms = success.duration.as_millis();
+                let parse_ms = success.duration.as_secs_f64() * 1000.0;
                 let tc_start = Instant::now();
-                create_parse_tree(
-                    success.sppf_node_id,
-                    start_nonterminal_id,
-                    &parser,
-                    &parse_tree_builder,
-                );
-                let tree_ms = tc_start.elapsed().as_millis();
-                let total_ms = parse_ms + tree_ms;
+                {
+                    let tree = create_parse_tree(
+                        success.sppf_node_id,
+                        start_nonterminal_id,
+                        &parser,
+                        &parse_tree_builder,
+                    );
+                    std::hint::black_box(tree);
+                }
+                let tree_ms = tc_start.elapsed().as_secs_f64() * 1000.0;
+                #[cfg(feature = "instrument")]
+                corpus_stats.merge(parser.record_stats());
+                let drop_start = Instant::now();
+                drop(parser);
+                drop(parse_tree_builder);
+                drop(ctx);
+                drop(input);
+                let drop_ms = drop_start.elapsed().as_secs_f64() * 1000.0;
+                let total_ms = input_ms + init_ms + parse_ms + tree_ms + drop_ms;
                 ok += 1;
+                total_input_ms += input_ms;
+                total_init_ms += init_ms;
                 total_parse_ms += parse_ms;
                 total_tree_ms += tree_ms;
+                total_drop_ms += drop_ms;
+                total_bytes += bytes;
                 if total_ms > max_total_ms {
                     max_total_ms = total_ms;
                 }
-                let time = format!("{} ms ({} ms, {} ms)", total_ms, parse_ms, tree_ms);
-                println!(
-                    "{}{:<6}{}  {:<26}  {:<36}  {}",
-                    green,
-                    "OK",
-                    reset,
-                    time,
-                    "-",
-                    rel.display()
-                );
+                if !hist_only {
+                    let time = format!(
+                        "{} ms ({} ms, {} ms, {} ms, {} ms, {} ms)",
+                        total_ms as u128,
+                        input_ms as u128,
+                        init_ms as u128,
+                        parse_ms as u128,
+                        tree_ms as u128,
+                        drop_ms as u128
+                    );
+                    println!(
+                        "{}{:<6}{}  {:<42}  {:<36}  {}",
+                        green,
+                        "OK",
+                        reset,
+                        time,
+                        "-",
+                        rel.display()
+                    );
+                }
             }
             ParseResult::Failure(error) => {
                 let (line, column, _) = parser.format_error(&error);
                 failed += 1;
-                let reason = format!("Parse Error at line {}, col {}", line, column);
-                println!(
-                    "{}{:<6}{}  {:<26}  {:<36}  {}",
-                    red,
-                    "FAIL",
-                    reset,
-                    "-",
-                    reason,
-                    rel.display()
-                );
+                if !hist_only {
+                    let reason = format!("Parse Error at line {}, col {}", line, column);
+                    println!(
+                        "{}{:<6}{}  {:<42}  {:<36}  {}",
+                        red,
+                        "FAIL",
+                        reset,
+                        "-",
+                        reason,
+                        rel.display()
+                    );
+                }
             }
         }
     }
-    let total_ms = total_parse_ms + total_tree_ms;
-    let avg_ms = if ok > 0 { total_ms / ok as u128 } else { 0 };
-    println!();
-    println!(
-        "Parsed {} files: {} OK, {} failed, {} errors",
-        files.len(),
-        ok,
-        failed,
-        errs
-    );
-    println!(
-        "Total {} ms (parse {} ms, tree {} ms); avg {} ms, max {} ms",
-        total_ms, total_parse_ms, total_tree_ms, avg_ms, max_total_ms
-    );
+    let total_ms = total_input_ms + total_init_ms + total_parse_ms + total_tree_ms + total_drop_ms;
+    let avg_ms = if ok > 0 { total_ms / ok as f64 } else { 0.0 };
+    let throughput = cli::mb_per_s(total_bytes, total_parse_ms);
+    let throughput_total = cli::mb_per_s(total_bytes, total_ms);
+    if !hist_only {
+        println!();
+        println!(
+            "Parsed {} files: {} OK, {} failed, {} errors",
+            files.len(),
+            ok,
+            failed,
+            errs
+        );
+        println!(
+            "Total {:.0} ms (input {:.0}, init {:.0}, parse {:.0}, tree {:.0}, drop {:.0}); avg {:.1} ms, max {:.0} ms",
+            total_ms,
+            total_input_ms,
+            total_init_ms,
+            total_parse_ms,
+            total_tree_ms,
+            total_drop_ms,
+            avg_ms,
+            max_total_ms
+        );
+        println!(
+            "Throughput on {} successful parses ({} bytes): {:.2} MB/s parse only, {:.2} MB/s total",
+            ok, total_bytes, throughput, throughput_total
+        );
+    }
+    #[cfg(feature = "instrument")]
+    {
+        if !hist_only {
+            println!();
+        }
+        println!("[stats] aggregated across {} successful parses", ok);
+        println!("{}", corpus_stats);
+    }
     Ok(())
 }
 fn collect_files(dir: &Path, ext: Option<&str>, out: &mut Vec<PathBuf>) -> io::Result<()> {

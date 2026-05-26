@@ -72,9 +72,61 @@ fn main() -> io::Result<()> {
 fn bootstrap() -> io::Result<()> {
     let iggy_dir = workspace_root().join("iggy");
     let grammar_file = iggy_dir.join("iggy.iggy");
-    let (result, _) = regenerate(&grammar_file, &iggy_dir)?;
+    let config = GenConfig {
+        cli: true,
+        ..GenConfig::default()
+    };
+    let (result, _) = regenerate_with(&grammar_file, &iggy_dir, config, true)?;
+    patch_iggy_cargo_toml(&iggy_dir.join("Cargo.toml"))?;
     println!("Generated iggy grammar in {} ms", result.total_duration_ms);
     Ok(())
+}
+
+/// Adapt iggy's regenerated Cargo.toml to its workspace membership.
+///
+/// `iguana generate --cli=true` produces a standalone-parser Cargo.toml
+/// (git dep on iguana-runtime, per-crate `[profile.release]`). iggy is a
+/// member of the iguana-rs workspace, so it needs `iguana-runtime.workspace
+/// = true` and must not declare a per-crate release profile (Cargo warns).
+/// We also add iggy's MIT/Apache license metadata.
+///
+/// Each substitution asserts it actually fired; if a template change breaks
+/// a pattern, bootstrap fails loudly instead of silently leaving iggy in a
+/// broken state.
+fn patch_iggy_cargo_toml(path: &Path) -> io::Result<()> {
+    let original = fs::read_to_string(path)?;
+
+    let replaced = original.replace(
+        "iguana-runtime = { git = \"https://github.com/iguana-parser/iguana-rs\" }",
+        "iguana-runtime.workspace = true",
+    );
+    if replaced == original {
+        return Err(io::Error::other(
+            "iggy Cargo.toml: `iguana-runtime = { git = ... }` pattern not found; \
+             cargo_toml_gen template may have changed and this patch needs updating",
+        ));
+    }
+
+    let with_license = replaced.replace(
+        "edition = \"2024\"\n",
+        "edition = \"2024\"\nlicense = \"MIT OR Apache-2.0\"\n",
+    );
+    if with_license == replaced {
+        return Err(io::Error::other(
+            "iggy Cargo.toml: `edition = \"2024\"` line not found; \
+             cargo_toml_gen template may have changed and this patch needs updating",
+        ));
+    }
+
+    let without_profile = with_license.replace("\n[profile.release]\ndebug = true\n", "\n");
+    if without_profile == with_license {
+        return Err(io::Error::other(
+            "iggy Cargo.toml: `[profile.release]` block not found; \
+             cargo_toml_gen template may have changed and this patch needs updating",
+        ));
+    }
+
+    fs::write(path, without_profile)
 }
 
 fn test_new(name: &str) -> io::Result<()> {
@@ -336,6 +388,19 @@ fn test_gen_all() -> io::Result<()> {
 }
 
 fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<(GenerateResult, Vec<String>)> {
+    let config = GenConfig {
+        cli: false,
+        ..GenConfig::default()
+    };
+    regenerate_with(grammar_path, output, config, false)
+}
+
+fn regenerate_with(
+    grammar_path: &Path,
+    output: &Path,
+    config: GenConfig,
+    force: bool,
+) -> io::Result<(GenerateResult, Vec<String>)> {
     let source = fs::read_to_string(grammar_path)?;
     let grammar_def = parse_grammar(&source).map_err(io::Error::other)?;
     let starts: Vec<String> = grammar_def
@@ -347,11 +412,7 @@ fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<(GenerateResult,
     let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
         io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
     })?;
-    let config = GenConfig {
-        cli: false,
-        ..GenConfig::default()
-    };
-    generate_scaffold(&grammar, output, config)?;
+    generate_scaffold(&grammar, output, config, force)?;
     let result = generate_sources(&grammar, output, config)?;
     format_sources(output)?;
     Ok((result, starts))
