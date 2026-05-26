@@ -23,14 +23,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Initialize a new iggy project
-    Init {
-        /// Grammar name
-        name: String,
-
-        /// Directory to initialize (defaults to current directory)
-        #[arg(short, long, default_value = ".")]
-        output: PathBuf,
+    /// Create a new iggy project in the given directory
+    New {
+        /// Path of the new project directory. Must not already exist.
+        path: PathBuf,
     },
     /// Generate a parser crate from an iggy grammar
     Generate {
@@ -70,7 +66,7 @@ enum Commands {
 fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
     match cli.command {
-        Commands::Init { name, output } => init_project(&output, &name)?,
+        Commands::New { path } => new_project(&path)?,
         Commands::Generate {
             grammar,
             output,
@@ -113,35 +109,41 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-fn init_project(output: &Path, name: &str) -> std::io::Result<()> {
-    use std::io::Write;
-    let grammar_name = to_pascal_case(name);
-    let grammar_file = output.join(format!("{}.iggy", name));
+fn new_project(path: &Path) -> io::Result<()> {
+    use io::Write;
 
-    // Create directory if needed
-    if !output.exists() {
-        std::fs::create_dir_all(output)?;
-        println!("Created directory: {}", output.display());
+    if path.exists() {
+        return Err(io::Error::new(
+            io::ErrorKind::AlreadyExists,
+            format!("destination `{}` already exists", path.display()),
+        ));
     }
 
-    // Create grammar file if it doesn't exist
-    if !grammar_file.exists() {
-        std::fs::write(&grammar_file, format!("grammar {grammar_name}\n"))?;
-        println!("Created grammar: {}", grammar_file.display());
-    }
+    let name = path
+        .file_name()
+        .and_then(|s| s.to_str())
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("could not derive a project name from `{}`", path.display()),
+            )
+        })?
+        .to_owned();
+    let grammar_name = to_pascal_case(&name);
 
-    // Create .gitignore if it doesn't exist
-    let gitignore = output.join(".gitignore");
-    if !gitignore.exists() {
-        std::fs::write(&gitignore, "/target\n")?;
-    }
+    std::fs::create_dir_all(path)?;
+
+    let grammar_file = path.join(format!("{name}.iggy"));
+    std::fs::write(&grammar_file, format!("grammar {grammar_name}\n"))?;
+
+    std::fs::write(path.join(".gitignore"), "/target\n")?;
 
     print!("Generating parser... ");
-    std::io::stdout().flush()?;
-    generate_parser(Some(&grammar_file), output)?;
+    io::stdout().flush()?;
+    generate_parser(Some(&grammar_file), path)?;
     println!("done");
 
-    println!("Initialized iggy project at {}", output.display());
+    println!("Created iggy project at {}", path.display());
     Ok(())
 }
 
