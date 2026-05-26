@@ -169,6 +169,32 @@ export class GraphCollapseManager {
   }
 
   /**
+   * Uncollapse every ancestor of the given node so it becomes visible.
+   */
+  expandAncestors(nodeId: string) {
+    if (!this.cy) return;
+
+    let changed = false;
+    let currentId: string | null = nodeId;
+    while (currentId !== null) {
+      const current = this.cy.getElementById(currentId);
+      if (current.length === 0) break;
+      const parents = current.incomers('node');
+      if (parents.length === 0) break;
+      const parent = parents.first();
+      const parentId = parent.id();
+      if (this.collapsedNodes.has(parentId)) {
+        this.collapsedNodes.delete(parentId);
+        parent.removeClass('collapsed');
+        changed = true;
+      }
+      currentId = parentId;
+    }
+
+    if (changed) this.updateVisibility();
+  }
+
+  /**
    * Focus on a subtree rooted at the given node.
    * Only the node and its descendants will be visible.
    */

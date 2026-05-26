@@ -22,6 +22,8 @@
     currentIndex?: number | null;
     placeholder?: string;
     onchange?: (value: string) => void;
+    onclick?: (offset: number) => void;
+    onescape?: () => void;
   }
 
   let {
@@ -33,6 +35,8 @@
     currentIndex = null,
     placeholder = "",
     onchange,
+    onclick,
+    onescape,
   }: Props = $props();
 
   let container: HTMLDivElement;
@@ -63,6 +67,20 @@
       const newValue = editor.getValue();
       value = newValue;
       onchange?.(newValue);
+    });
+
+    editor.onMouseDown((e) => {
+      if (!onclick) return;
+      const pos = e.target.position;
+      const model = editor.getModel();
+      if (!pos || !model) return;
+      onclick(model.getOffsetAt(pos));
+    });
+
+    editor.onKeyDown((e) => {
+      if (e.keyCode === monaco.KeyCode.Escape) {
+        onescape?.();
+      }
     });
   });
 

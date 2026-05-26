@@ -628,6 +628,8 @@
 
   // Parse Tree data
   let parseTree = $state<ParseTree | null>(null);
+  // child node id → parent node id, rebuilt whenever parseTree is fetched
+  let parseTreeParentMap = new Map<number, number>();
   // svelte-ignore non_reactive_update
   let parseTreeContainer: HTMLDivElement;
   let parseTreeCy: cytoscape.Core | null = null;
@@ -1540,6 +1542,10 @@
     if (result.status === "ok") {
       try {
         parseTree = JSON.parse(result.data) as ParseTree;
+        parseTreeParentMap = new Map();
+        for (const edge of parseTree.edges) {
+          parseTreeParentMap.set(edge.dest, edge.src);
+        }
         // Build hierarchical tree for tree view
         treeRoot = buildTree(parseTree);
         // Expand root by default
@@ -1694,6 +1700,95 @@
         }
       }
     });
+  }
+
+  // Smallest-span parse tree node whose half-open range [start, end) covers
+  // the offset, i.e. the deepest enclosing node.
+  function findDeepestParseTreeNodeAt(offset: number): ParseTreeNode | null {
+    if (!parseTree) return null;
+    let best: ParseTreeNode | null = null;
+    for (const node of parseTree.nodes) {
+      if (node.start <= offset && offset < node.end) {
+        if (!best || node.end - node.start < best.end - best.start) {
+          best = node;
+        }
+      }
+    }
+    return best;
+  }
+
+  function parseTreeAncestorsOf(nodeId: number): number[] {
+    const ancestors: number[] = [];
+    let cur = parseTreeParentMap.get(nodeId);
+    while (cur !== undefined) {
+      ancestors.push(cur);
+      cur = parseTreeParentMap.get(cur);
+    }
+    return ancestors;
+  }
+
+  // Reveal the given parse tree node in both views: expand collapsed ancestors,
+  // set selection, scroll the tree row into view, pan the graph node into view.
+  function revealParseTreeNode(node: ParseTreeNode) {
+    const ancestors = parseTreeAncestorsOf(node.id);
+
+    // Tree view: ensure every ancestor is expanded so the row is visible.
+    if (ancestors.length > 0) {
+      const next = new Set(expandedNodes);
+      for (const id of ancestors) next.add(id);
+      expandedNodes = next;
+    }
+
+    const cyNodeId = `n${node.id}`;
+    if (parseTreeCy && parseTreeSelectedNodeId) {
+      parseTreeCy.getElementById(parseTreeSelectedNodeId).removeClass('selected');
+    }
+    parseTreeSelectedSpan = { start: node.start, end: node.end };
+    parseTreeSelectedNodeId = cyNodeId;
+
+    // Scroll the tree row into view once the expanded-state update has rendered.
+    tick().then(() => {
+      if (treeContainerEl) {
+        const selectedEl = treeContainerEl.querySelector('.tree-item.selected');
+        if (selectedEl) selectedEl.scrollIntoView({ block: 'nearest' });
+      }
+    });
+
+    // Graph view (only when currently rendered).
+    if (parseTreeCy) {
+      parseTreeCollapseManager.expandAncestors(cyNodeId);
+      clearEdgeHighlights(parseTreeCy);
+      const cyNode = parseTreeCy.getElementById(cyNodeId);
+      if (cyNode.length > 0) {
+        cyNode.addClass('selected');
+        highlightOutgoingEdges(parseTreeCy, cyNodeId);
+        parseTreeCy.animate({ center: { eles: cyNode } }, { duration: 200 });
+      }
+    }
+  }
+
+  function onParseInputClick(offset: number) {
+    const node = findDeepestParseTreeNodeAt(offset);
+    if (node) revealParseTreeNode(node);
+  }
+
+  // Drop any input-side highlight driven by a tree, SPPF, or graph selection.
+  // Triggered when the user edits the input or presses Esc, so stale highlights
+  // do not linger across content changes.
+  function clearParseModeInputSelection() {
+    if (parseTreeSelectedNodeId && parseTreeCy) {
+      parseTreeCy.getElementById(parseTreeSelectedNodeId).removeClass('selected');
+    }
+    parseTreeSelectedSpan = null;
+    parseTreeSelectedNodeId = null;
+    if (parseTreeCy) clearEdgeHighlights(parseTreeCy);
+
+    if (sppfSelectedNodeId && cy) {
+      cy.getElementById(sppfSelectedNodeId).removeClass('selected');
+    }
+    sppfSelectedSpan = null;
+    sppfSelectedNodeId = null;
+    if (cy) clearEdgeHighlights(cy);
   }
 
   // Get visible nodes in display order (for keyboard navigation)
@@ -2763,6 +2858,9 @@
           : sppfSelectedSpan !== null
             ? { start: sppfSelectedSpan.left, end: sppfSelectedSpan.right }
             : null}
+        onclick={onParseInputClick}
+        onchange={clearParseModeInputSelection}
+        onescape={clearParseModeInputSelection}
         placeholder="Enter code to parse..."
       />
     </div>
