@@ -107,7 +107,7 @@ pub fn generate(
 
     let to_sexpr_function = gen_to_sexpr_function();
     let node_to_sexpr_function = gen_node_to_sexpr_function();
-    let to_json_function = gen_to_json_function();
+    let to_json_function = gen_to_json_function(grammar);
 
     quote! {
         #imports
@@ -1906,7 +1906,15 @@ fn gen_node_to_sexpr_function() -> TokenStream {
     }
 }
 
-fn gen_to_json_function() -> TokenStream {
+fn gen_to_json_function(grammar: &Grammar) -> TokenStream {
+    let layout_name = grammar
+        .layout
+        .as_ref()
+        .and_then(|s| s.as_identifier())
+        .map(|i| i.name.as_str())
+        .map(|s| quote! { Some(#s) })
+        .unwrap_or_else(|| quote! { None::<&str> });
+
     quote! {
         /// Converts a parse tree to JSON format for visualization.
         /// Returns a JSON string with nodes and edges arrays.
@@ -1917,6 +1925,7 @@ fn gen_to_json_function() -> TokenStream {
             build_json_graph(node, &mut nodes, &mut edges, &mut next_id);
 
             let result = serde_json::json!({
+                "layout_name": #layout_name,
                 "nodes": nodes,
                 "edges": edges
             });

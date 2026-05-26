@@ -394,7 +394,7 @@ pub fn to_json(node: ParseTree<'_>) -> String {
     let mut edges = Vec::new();
     let mut next_id = 0u32;
     build_json_graph(node, &mut nodes, &mut edges, &mut next_id);
-    let result = serde_json :: json ! ({ "nodes" : nodes , "edges" : edges });
+    let result = serde_json :: json ! ({ "layout_name" : None :: < & str > , "nodes" : nodes , "edges" : edges });
     result.to_string()
 }
 fn build_json_graph(

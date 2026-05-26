@@ -6,7 +6,7 @@
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { createMaximizeToggle } from "$lib/window-utils";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Cog, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List } from "lucide-svelte";
+  import { FolderOpen, Cog, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List, Eye, EyeOff } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
   import {
@@ -43,6 +43,7 @@
     dest: number;
   }
   interface ParseTree {
+    layout_name?: string | null;
     nodes: ParseTreeNode[];
     edges: ParseTreeEdge[];
   }
@@ -57,8 +58,9 @@
     children: TreeNode[];
   }
 
-  // Convert flat parse tree to hierarchical structure
-  function buildTree(parseTree: ParseTree): TreeNode | null {
+  // Convert flat parse tree to hierarchical structure, skipping any node id
+  // in `hidden` (and therefore any subtree rooted at one).
+  function buildTree(parseTree: ParseTree, hidden: Set<number>): TreeNode | null {
     if (parseTree.nodes.length === 0) return null;
 
     // Build adjacency list from edges
@@ -66,13 +68,14 @@
     const hasParent = new Set<number>();
 
     for (const edge of parseTree.edges) {
+      if (hidden.has(edge.src) || hidden.has(edge.dest)) continue;
       if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
       childrenMap.get(edge.src)!.push(edge.dest);
       hasParent.add(edge.dest);
     }
 
     // Find root (node with no parent)
-    const rootNode = parseTree.nodes.find(n => !hasParent.has(n.id));
+    const rootNode = parseTree.nodes.find(n => !hidden.has(n.id) && !hasParent.has(n.id));
     if (!rootNode) return null;
 
     // Build node lookup for efficient access
@@ -93,6 +96,34 @@
     }
 
     return buildSubtree(rootNode.id);
+  }
+
+  // Layout nonterminal (per parseTree.layout_name) and every descendant.
+  // Returns an empty set when hide is false or the grammar has no layout rule.
+  function computeHiddenLayoutNodes(parseTree: ParseTree, hide: boolean): Set<number> {
+    const hidden = new Set<number>();
+    if (!hide || !parseTree.layout_name) return hidden;
+    const layoutName = parseTree.layout_name;
+
+    const childrenMap = new Map<number, number[]>();
+    for (const edge of parseTree.edges) {
+      if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
+      childrenMap.get(edge.src)!.push(edge.dest);
+    }
+
+    for (const node of parseTree.nodes) {
+      if (node.kind !== "Nonterminal" || node.label !== layoutName) continue;
+      if (hidden.has(node.id)) continue;
+      const queue = [node.id];
+      while (queue.length > 0) {
+        const id = queue.shift()!;
+        if (hidden.has(id)) continue;
+        hidden.add(id);
+        const children = childrenMap.get(id);
+        if (children) queue.push(...children);
+      }
+    }
+    return hidden;
   }
 
   cytoscape.use(dagre);
@@ -630,6 +661,9 @@
   let parseTree = $state<ParseTree | null>(null);
   // child node id → parent node id, rebuilt whenever parseTree is fetched
   let parseTreeParentMap = new Map<number, number>();
+  // Layout nonterminal and its descendants, hidden when hideLayout is on.
+  let hiddenLayoutNodes = $state(new Set<number>());
+  let hideLayout = $state(false);
   // svelte-ignore non_reactive_update
   let parseTreeContainer: HTMLDivElement;
   let parseTreeCy: cytoscape.Core | null = null;
@@ -953,34 +987,38 @@
     }
 
     const elements: cytoscape.ElementDefinition[] = [
-      ...parseTree.nodes.map((node) => {
-        const maxLen = LABEL_MAX_LENGTH;
-        // Optionally add span to label: "label\n(start, end)"
-        const span = `(${node.start}, ${node.end})`;
-        const displayLabel = showSpans
-          ? `${truncateLabel(node.label, maxLen)}\n${span}`
-          : truncateLabel(node.label, maxLen);
-        const fullLabel = showSpans
-          ? `${node.label}\n${span}`
-          : node.label;
-        return {
+      ...parseTree.nodes
+        .filter((node) => !hiddenLayoutNodes.has(node.id))
+        .map((node) => {
+          const maxLen = LABEL_MAX_LENGTH;
+          // Optionally add span to label: "label\n(start, end)"
+          const span = `(${node.start}, ${node.end})`;
+          const displayLabel = showSpans
+            ? `${truncateLabel(node.label, maxLen)}\n${span}`
+            : truncateLabel(node.label, maxLen);
+          const fullLabel = showSpans
+            ? `${node.label}\n${span}`
+            : node.label;
+          return {
+            data: {
+              id: `n${node.id}`,
+              label: displayLabel,
+              fullLabel: fullLabel,
+              start: node.start,
+              end: node.end,
+            },
+            classes: node.kind.toLowerCase(),
+          };
+        }),
+      ...parseTree.edges
+        .filter((edge) => !hiddenLayoutNodes.has(edge.src) && !hiddenLayoutNodes.has(edge.dest))
+        .map((edge, i) => ({
           data: {
-            id: `n${node.id}`,
-            label: displayLabel,
-            fullLabel: fullLabel,
-            start: node.start,
-            end: node.end,
+            id: `e${i}`,
+            source: `n${edge.src}`,
+            target: `n${edge.dest}`,
           },
-          classes: node.kind.toLowerCase(),
-        };
-      }),
-      ...parseTree.edges.map((edge, i) => ({
-        data: {
-          id: `e${i}`,
-          source: `n${edge.src}`,
-          target: `n${edge.dest}`,
-        },
-      })),
+        })),
     ];
 
     // Save viewport before destroying
@@ -1542,12 +1580,7 @@
     if (result.status === "ok") {
       try {
         parseTree = JSON.parse(result.data) as ParseTree;
-        parseTreeParentMap = new Map();
-        for (const edge of parseTree.edges) {
-          parseTreeParentMap.set(edge.dest, edge.src);
-        }
-        // Build hierarchical tree for tree view
-        treeRoot = buildTree(parseTree);
+        rebuildLayoutDerivedState();
         // Expand root by default
         if (treeRoot) {
           expandedNodes = new Set([treeRoot.id]);
@@ -1557,6 +1590,19 @@
       }
     } else {
     }
+  }
+
+  // Re-derive everything that depends on (parseTree, hideLayout):
+  // hidden-node set, parent map for the reveal walk, and treeRoot.
+  function rebuildLayoutDerivedState() {
+    if (!parseTree) return;
+    hiddenLayoutNodes = computeHiddenLayoutNodes(parseTree, hideLayout);
+    parseTreeParentMap = new Map();
+    for (const edge of parseTree.edges) {
+      if (hiddenLayoutNodes.has(edge.src) || hiddenLayoutNodes.has(edge.dest)) continue;
+      parseTreeParentMap.set(edge.dest, edge.src);
+    }
+    treeRoot = buildTree(parseTree, hiddenLayoutNodes);
   }
 
   // Graph controls (work with active graph)
@@ -1608,6 +1654,16 @@
     const graph = getActiveGraph();
     const filename = activeTab === "parse-tree" ? "parse-tree" : activeTab;
     exportGraphPng(graph, filename);
+  }
+
+  function toggleHideLayout() {
+    hideLayout = !hideLayout;
+    rebuildLayoutDerivedState();
+    // Selection may have pointed at a now-hidden node; drop it.
+    clearParseModeInputSelection();
+    if (parseTree && parseTreeViewMode === "graph") {
+      tick().then(() => renderParseTree());
+    }
   }
 
   function toggleSpans() {
@@ -1703,16 +1759,35 @@
   }
 
   // Smallest-span parse tree node whose half-open range [start, end) covers
-  // the offset, i.e. the deepest enclosing node.
+  // the offset, i.e. the deepest enclosing node. When the click lands inside
+  // a hidden layout subtree, fall back to the nearest visible token instead
+  // of returning the wide enclosing parent.
   function findDeepestParseTreeNodeAt(offset: number): ParseTreeNode | null {
     if (!parseTree) return null;
     let best: ParseTreeNode | null = null;
+    let clickInsideHidden = false;
     for (const node of parseTree.nodes) {
-      if (node.start <= offset && offset < node.end) {
-        if (!best || node.end - node.start < best.end - best.start) {
-          best = node;
+      const contains = node.start <= offset && offset < node.end;
+      if (hiddenLayoutNodes.has(node.id)) {
+        if (contains) clickInsideHidden = true;
+        continue;
+      }
+      if (contains && (!best || node.end - node.start < best.end - best.start)) {
+        best = node;
+      }
+    }
+    if (clickInsideHidden) {
+      let nearestToken: ParseTreeNode | null = null;
+      let nearestDistance = Infinity;
+      for (const node of parseTree.nodes) {
+        if (node.kind !== "Token" || hiddenLayoutNodes.has(node.id)) continue;
+        const distance = offset < node.start ? node.start - offset : offset - node.end;
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestToken = node;
         }
       }
+      if (nearestToken) return nearestToken;
     }
     return best;
   }
@@ -2906,6 +2981,21 @@
               onclick={() => parseTreeViewMode = "tree"}
             >Tree</button>
           </div>
+          {#if parseTree?.layout_name}
+            <button
+              class="layout-toggle"
+              class:active={hideLayout}
+              onclick={toggleHideLayout}
+              title={hideLayout ? `Show ${parseTree.layout_name} nodes` : `Hide ${parseTree.layout_name} nodes`}
+            >
+              {#if hideLayout}
+                <EyeOff size={14} />
+              {:else}
+                <Eye size={14} />
+              {/if}
+              <span>{parseTree.layout_name}</span>
+            </button>
+          {/if}
         </div>
       {/if}
       <div class="graph-container">
@@ -4648,6 +4738,8 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
   /* View toggle row (Graph/Tree) */
   .view-toggle-row {
     display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 6px 8px;
     background: #252526;
     border-bottom: 1px solid #3c3c3c;
@@ -4655,6 +4747,30 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
 
   .view-toggle {
     display: flex;
+  }
+
+  .layout-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: #2d2d2d;
+    color: #888;
+    border: 1px solid #3c3c3c;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+  }
+
+  .layout-toggle.active {
+    background: #3c3c3c;
+    color: #fff;
+    border-color: #555;
+  }
+
+  .layout-toggle:hover:not(.active) {
+    background: #3c3c3c;
+    color: #d4d4d4;
   }
 
   .view-toggle button {
