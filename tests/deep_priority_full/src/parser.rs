@@ -29,7 +29,7 @@ use iguana_runtime::{
     descriptor::Descriptor,
     env::{Env, EnvId},
     gss::GSSNode,
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     parser::{
         GSS_CAPACITY_MULTIPLIER, ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER,
@@ -42,6 +42,9 @@ use iguana_runtime::{
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
+const BINDING_P: BindingId = BindingId(0);
+const BINDING_L: BindingId = BindingId(1);
+const BINDING_R: BindingId = BindingId(2);
 impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -87,7 +90,7 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : . [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
             SlotId(2) => {
-                if 5 >= self.lookup("p", env.unwrap()) {
+                if 5 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(3), result, gss_node_id, env);
                 }
             }
@@ -98,13 +101,15 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     gss_node_id,
                     SlotId(4),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [5 >= p] l=E(p) . [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
             SlotId(4) => {
-                if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 5) {
+                if (self.lookup(BINDING_L, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L, env.unwrap()) >= 5)
+                {
                     self.execute(input_index, SlotId(5), result, gss_node_id, env);
                 }
             }
@@ -155,7 +160,7 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS . r=E(6) return (r == 0) ? 5 : min(r, 5)
             SlotId(8) => {
-                self.create_e(result, gss_node_id, SlotId(9), env, Some("r"), 6);
+                self.create_e(result, gss_node_id, SlotId(9), env, Some(BINDING_R), 6);
             }
             // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) . return (r == 0) ? 5 : min(r, 5)
             SlotId(9) => {
@@ -167,10 +172,10 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let return_value = if self.lookup("r", env.unwrap()) == 0 {
+                let return_value = if self.lookup(BINDING_R, env.unwrap()) == 0 {
                     5
                 } else {
-                    std::cmp::min(self.lookup("r", env.unwrap()), 5)
+                    std::cmp::min(self.lookup(BINDING_R, env.unwrap()), 5)
                 };
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
                     NonterminalId(1),
@@ -190,7 +195,7 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(11) => {
-                if 4 >= self.lookup("p", env.unwrap()) {
+                if 4 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(12), result, gss_node_id, env);
                 }
             }
@@ -201,13 +206,15 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     gss_node_id,
                     SlotId(13),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [4 >= p] l=E(p) . [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(13) => {
-                if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 4) {
+                if (self.lookup(BINDING_L, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L, env.unwrap()) >= 4)
+                {
                     self.execute(input_index, SlotId(14), result, gss_node_id, env);
                 }
             }
@@ -258,7 +265,7 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS . r=E(5) return (r == 0) ? 4 : min(r, 4)
             SlotId(17) => {
-                self.create_e(result, gss_node_id, SlotId(18), env, Some("r"), 5);
+                self.create_e(result, gss_node_id, SlotId(18), env, Some(BINDING_R), 5);
             }
             // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) . return (r == 0) ? 4 : min(r, 4)
             SlotId(18) => {
@@ -270,10 +277,10 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let return_value = if self.lookup("r", env.unwrap()) == 0 {
+                let return_value = if self.lookup(BINDING_R, env.unwrap()) == 0 {
                     4
                 } else {
-                    std::cmp::min(self.lookup("r", env.unwrap()), 4)
+                    std::cmp::min(self.lookup(BINDING_R, env.unwrap()), 4)
                 };
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
                     NonterminalId(1),
@@ -321,7 +328,7 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : "-" WS . r=E(3) return (r == 0) ? 3 : min(r, 3)
             SlotId(22) => {
-                self.create_e(result, gss_node_id, SlotId(23), env, Some("r"), 3);
+                self.create_e(result, gss_node_id, SlotId(23), env, Some(BINDING_R), 3);
             }
             // E(p: i32) : "-" WS r=E(3) . return (r == 0) ? 3 : min(r, 3)
             SlotId(23) => {
@@ -333,10 +340,10 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let return_value = if self.lookup("r", env.unwrap()) == 0 {
+                let return_value = if self.lookup(BINDING_R, env.unwrap()) == 0 {
                     3
                 } else {
-                    std::cmp::min(self.lookup("r", env.unwrap()), 3)
+                    std::cmp::min(self.lookup(BINDING_R, env.unwrap()), 3)
                 };
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
                     NonterminalId(1),
@@ -513,7 +520,7 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1
             SlotId(38) => {
-                if 1 >= self.lookup("p", env.unwrap()) {
+                if 1 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(39), result, gss_node_id, env);
                 }
             }
@@ -524,13 +531,15 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     gss_node_id,
                     SlotId(40),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1
             SlotId(40) => {
-                if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 2) {
+                if (self.lookup(BINDING_L, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L, env.unwrap()) >= 2)
+                {
                     self.execute(input_index, SlotId(41), result, gss_node_id, env);
                 }
             }
@@ -935,7 +944,7 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
         match self.start_nonterminal {
             NonterminalId(1) => {
                 let (env_id, env) = self.new_env();
-                env.bind("p", 0);
+                env.bind(BINDING_P, 0);
                 Some(env_id)
             }
             _ => None,
@@ -968,7 +977,7 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
         self.envs.push(Env::default());
         (id, &mut self.envs[id.index()])
     }
-    fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
+    fn lookup(&self, name: BindingId, env_id: EnvId) -> i32 {
         let env = &self.envs[env_id.index()];
         env.get(name)
     }
@@ -1128,7 +1137,7 @@ impl<'i> DeepPriorityFullParser<'i> {
         gss_node_id: GssNodeId,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<&'static str>,
+        binding: Option<BindingId>,
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
@@ -1164,7 +1173,7 @@ impl<'i> DeepPriorityFullParser<'i> {
                 binding,
             );
             let (env_id, env) = self.new_env();
-            env.bind("p", p);
+            env.bind(BINDING_P, p);
             self.add_first_descriptors(NonterminalId(1), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_e(i, p, new_gss_node_id);
         }

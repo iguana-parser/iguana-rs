@@ -29,7 +29,7 @@ use iguana_runtime::{
     descriptor::Descriptor,
     env::{Env, EnvId},
     gss::GSSNode,
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     parser::{
         GSS_CAPACITY_MULTIPLIER, ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER,
@@ -42,6 +42,7 @@ use iguana_runtime::{
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
+const BINDING_E: BindingId = BindingId(0);
 impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -77,7 +78,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         match slot_id {
             // Expr(e: i32) : . [1 & e == 0] Id return 0
             SlotId(0) => {
-                if (1) & (self.lookup("e", env.unwrap())) == 0 {
+                if (1) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(1), result, gss_node_id, env);
                 }
             }
@@ -123,7 +124,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             // Expr(e: i32) : . [2 & e == 0] Expr(0) "(" Star_0 ")" return 1
             SlotId(4) => {
-                if (2) & (self.lookup("e", env.unwrap())) == 0 {
+                if (2) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(5), result, gss_node_id, env);
                 }
             }
@@ -194,7 +195,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             // Expr(e: i32) : . [4 & e == 0] Expr(0) "," Expr(0) return 2
             SlotId(11) => {
-                if (4) & (self.lookup("e", env.unwrap())) == 0 {
+                if (4) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(12), result, gss_node_id, env);
                 }
             }
@@ -638,7 +639,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         match self.start_nonterminal {
             NonterminalId(3) => {
                 let (env_id, env) = self.new_env();
-                env.bind("e", 0);
+                env.bind(BINDING_E, 0);
                 Some(env_id)
             }
             _ => None,
@@ -671,7 +672,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         self.envs.push(Env::default());
         (id, &mut self.envs[id.index()])
     }
-    fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
+    fn lookup(&self, name: BindingId, env_id: EnvId) -> i32 {
         let env = &self.envs[env_id.index()];
         env.get(name)
     }
@@ -835,7 +836,7 @@ impl<'i> ExcludeByLabelParser<'i> {
         gss_node_id: GssNodeId,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<&'static str>,
+        binding: Option<BindingId>,
         e: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
@@ -871,7 +872,7 @@ impl<'i> ExcludeByLabelParser<'i> {
                 binding,
             );
             let (env_id, env) = self.new_env();
-            env.bind("e", e);
+            env.bind(BINDING_E, e);
             self.add_first_descriptors(NonterminalId(3), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_expr(i, e, new_gss_node_id);
         }

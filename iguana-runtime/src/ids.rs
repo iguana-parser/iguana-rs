@@ -81,6 +81,29 @@ impl quote::ToTokens for TerminalId {
     }
 }
 
+/// A unique identifier for a binding name in the grammar.
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct BindingId(pub u8);
+
+impl BindingId {
+    pub fn index(&self) -> usize {
+        self.0 as usize
+    }
+}
+
+impl std::fmt::Display for BindingId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl quote::ToTokens for BindingId {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let id = Literal::u8_unsuffixed(self.0);
+        tokens.extend(quote::quote! { BindingId(#id) });
+    }
+}
+
 /// A unique identifier for a GSS node.
 ///
 /// This is a type-safe wrapper around an index into the parser's GSS node list.

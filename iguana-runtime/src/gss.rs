@@ -3,7 +3,7 @@ use specta::Type;
 
 use crate::{
     env::EnvId,
-    ids::{GssNodeId, NonterminalId, SlotId},
+    ids::{BindingId, GssNodeId, NonterminalId, SlotId},
     sppf::SPPFNodeId,
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
 };
@@ -93,5 +93,5 @@ pub struct GSSEdge {
     // the variable name is stored on the edge during `create`. During `pop`,
     // when iterating over edges, the callee's return value is bound to this
     // name in the restored env.
-    pub binding: Option<&'static str>,
+    pub binding: Option<BindingId>,
 }

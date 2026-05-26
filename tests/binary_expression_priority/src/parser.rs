@@ -22,7 +22,7 @@ use iguana_runtime::{
     descriptor::Descriptor,
     env::{Env, EnvId},
     gss::GSSNode,
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     parser::{
         GSS_CAPACITY_MULTIPLIER, ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER,
@@ -35,6 +35,8 @@ use iguana_runtime::{
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
+const BINDING_P: BindingId = BindingId(0);
+const BINDING_L: BindingId = BindingId(1);
 impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -120,7 +122,7 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
             }
             // E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2
             SlotId(5) => {
-                if 2 >= self.lookup("p", env.unwrap()) {
+                if 2 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(6), result, gss_node_id, env);
                 }
             }
@@ -131,13 +133,15 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     gss_node_id,
                     SlotId(7),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [2 >= p] l=E(p) . [(l == 0) || (l >= 2)] "*" E(2) return 2
             SlotId(7) => {
-                if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 2) {
+                if (self.lookup(BINDING_L, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L, env.unwrap()) >= 2)
+                {
                     self.execute(input_index, SlotId(8), result, gss_node_id, env);
                 }
             }
@@ -189,7 +193,7 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
             }
             // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1
             SlotId(12) => {
-                if 1 >= self.lookup("p", env.unwrap()) {
+                if 1 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(13), result, gss_node_id, env);
                 }
             }
@@ -200,13 +204,15 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     gss_node_id,
                     SlotId(14),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] "+" E(1) return 1
             SlotId(14) => {
-                if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 1) {
+                if (self.lookup(BINDING_L, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L, env.unwrap()) >= 1)
+                {
                     self.execute(input_index, SlotId(15), result, gss_node_id, env);
                 }
             }
@@ -258,7 +264,7 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
             }
             // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" E(1) return 1
             SlotId(19) => {
-                if 1 >= self.lookup("p", env.unwrap()) {
+                if 1 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(20), result, gss_node_id, env);
                 }
             }
@@ -269,13 +275,15 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
                     gss_node_id,
                     SlotId(21),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] "-" E(1) return 1
             SlotId(21) => {
-                if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 1) {
+                if (self.lookup(BINDING_L, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L, env.unwrap()) >= 1)
+                {
                     self.execute(input_index, SlotId(22), result, gss_node_id, env);
                 }
             }
@@ -600,7 +608,7 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
         match self.start_nonterminal {
             NonterminalId(1) => {
                 let (env_id, env) = self.new_env();
-                env.bind("p", 0);
+                env.bind(BINDING_P, 0);
                 Some(env_id)
             }
             _ => None,
@@ -633,7 +641,7 @@ impl<'i> Parser<'i> for BinaryExpressionPriorityParser<'i> {
         self.envs.push(Env::default());
         (id, &mut self.envs[id.index()])
     }
-    fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
+    fn lookup(&self, name: BindingId, env_id: EnvId) -> i32 {
         let env = &self.envs[env_id.index()];
         env.get(name)
     }
@@ -793,7 +801,7 @@ impl<'i> BinaryExpressionPriorityParser<'i> {
         gss_node_id: GssNodeId,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<&'static str>,
+        binding: Option<BindingId>,
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
@@ -829,7 +837,7 @@ impl<'i> BinaryExpressionPriorityParser<'i> {
                 binding,
             );
             let (env_id, env) = self.new_env();
-            env.bind("p", p);
+            env.bind(BINDING_P, p);
             self.add_first_descriptors(NonterminalId(1), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_e(i, p, new_gss_node_id);
         }

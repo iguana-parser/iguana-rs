@@ -9,7 +9,7 @@ use crate::{
         slot::Slot,
         symbols::{Nonterminal, Terminal},
     },
-    ids::{NonterminalId, SlotId, TerminalId},
+    ids::{BindingId, NonterminalId, SlotId, TerminalId},
 };
 
 #[derive(Debug)]
@@ -115,6 +115,34 @@ impl<'a> SlotIds<'a> {
     }
     pub fn slots(&self) -> impl Iterator<Item = &Slot<'a>> {
         self.slots.iter()
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct BindingIds {
+    names: IndexSet<String>,
+}
+
+impl BindingIds {
+    pub fn insert(&mut self, name: String) -> BindingId {
+        let (id, _) = self.names.insert_full(name);
+        BindingId(id as u8)
+    }
+
+    pub fn get_id(&self, name: &str) -> BindingId {
+        let id = self
+            .names
+            .get_index_of(name)
+            .unwrap_or_else(|| panic!("unknown binding name: {name}"));
+        BindingId(id as u8)
+    }
+
+    pub fn len(&self) -> usize {
+        self.names.len()
+    }
+
+    pub fn names(&self) -> impl Iterator<Item = &String> {
+        self.names.iter()
     }
 }
 

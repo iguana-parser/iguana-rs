@@ -27,7 +27,7 @@ use iguana_runtime::{
     descriptor::Descriptor,
     env::{Env, EnvId},
     gss::GSSNode,
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     parser::{
         GSS_CAPACITY_MULTIPLIER, ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER,
@@ -40,6 +40,8 @@ use iguana_runtime::{
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
+const BINDING_P: BindingId = BindingId(0);
+const BINDING_L: BindingId = BindingId(1);
 impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -129,7 +131,7 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
             }
             // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F return 0
             SlotId(6) => {
-                if 1 >= self.lookup("p", env.unwrap()) {
+                if 1 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(7), result, gss_node_id, env);
                 }
             }
@@ -140,13 +142,15 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                     gss_node_id,
                     SlotId(8),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] "*" F return 0
             SlotId(8) => {
-                if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 1) {
+                if (self.lookup(BINDING_L, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L, env.unwrap()) >= 1)
+                {
                     self.execute(input_index, SlotId(9), result, gss_node_id, env);
                 }
             }
@@ -553,7 +557,7 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
         match self.start_nonterminal {
             NonterminalId(3) => {
                 let (env_id, env) = self.new_env();
-                env.bind("p", 0);
+                env.bind(BINDING_P, 0);
                 Some(env_id)
             }
             _ => None,
@@ -586,7 +590,7 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
         self.envs.push(Env::default());
         (id, &mut self.envs[id.index()])
     }
-    fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
+    fn lookup(&self, name: BindingId, env_id: EnvId) -> i32 {
         let env = &self.envs[env_id.index()];
         env.get(name)
     }
@@ -750,7 +754,7 @@ impl<'i> IndirectPrecedenceParser<'i> {
         gss_node_id: GssNodeId,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<&'static str>,
+        binding: Option<BindingId>,
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
@@ -786,7 +790,7 @@ impl<'i> IndirectPrecedenceParser<'i> {
                 binding,
             );
             let (env_id, env) = self.new_env();
-            env.bind("p", p);
+            env.bind(BINDING_P, p);
             self.add_first_descriptors(NonterminalId(3), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_e(i, p, new_gss_node_id);
         }

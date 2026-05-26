@@ -7,7 +7,7 @@ use crate::{
     descriptor::Descriptor,
     env::{Env, EnvId},
     gss::{GSSEdge, GSSNode},
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     record,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
@@ -318,7 +318,7 @@ pub trait Parser<'i> {
         left_child: Option<(SPPFNodeId, u32)>,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<&'static str>,
+        binding: Option<BindingId>,
     ) {
         let existing_gss_node = self.gss_node(existing_gss_node_id);
         let left_extent = existing_gss_node.index;
@@ -379,7 +379,7 @@ pub trait Parser<'i> {
         result: Option<SPPFNodeId>,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<&'static str>,
+        binding: Option<BindingId>,
     ) {
         let origin = self.gss_node_mut(origin_gss_node_id);
         let gss_edge = GSSEdge {
@@ -765,7 +765,7 @@ pub trait Parser<'i> {
 
     fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env);
 
-    fn lookup(&self, name: &str, env_id: EnvId) -> i32;
+    fn lookup(&self, name: BindingId, env_id: EnvId) -> i32;
 
     fn envs(&self) -> &[Env];
 

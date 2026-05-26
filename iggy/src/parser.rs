@@ -276,7 +276,7 @@ use iguana_runtime::{
     descriptor::Descriptor,
     env::{Env, EnvId},
     gss::GSSNode,
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     parser::{
         GSS_CAPACITY_MULTIPLIER, ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER,
@@ -289,6 +289,10 @@ use iguana_runtime::{
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
+const BINDING_P: BindingId = BindingId(0);
+const BINDING_E: BindingId = BindingId(1);
+const BINDING_L: BindingId = BindingId(2);
+const BINDING_R: BindingId = BindingId(3);
 impl<'i> Parser<'i> for IggyParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -1021,7 +1025,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [1 & e == 0] Identifier return 0
             SlotId(74) => {
-                if (1) & (self.lookup("e", env.unwrap())) == 0 {
+                if (1) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(75), result, gss_node_id, env);
                 }
             }
@@ -1067,7 +1071,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [2 & e == 0] "(" Layout Plus_7 Layout ")" return 1
             SlotId(78) => {
-                if (2) & (self.lookup("e", env.unwrap())) == 0 {
+                if (2) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(79), result, gss_node_id, env);
                 }
             }
@@ -1150,7 +1154,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" return 2
             SlotId(86) => {
-                if (4) & (self.lookup("e", env.unwrap())) == 0 {
+                if (4) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(87), result, gss_node_id, env);
                 }
             }
@@ -1246,7 +1250,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [8 & e == 0] String return 3
             SlotId(96) => {
-                if (8) & (self.lookup("e", env.unwrap())) == 0 {
+                if (8) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(97), result, gss_node_id, env);
                 }
             }
@@ -1292,7 +1296,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4
             SlotId(100) => {
-                if (16) & (self.lookup("e", env.unwrap())) == 0 {
+                if (16) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(101), result, gss_node_id, env);
                 }
             }
@@ -1412,7 +1416,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5
             SlotId(112) => {
-                if (32) & (self.lookup("e", env.unwrap())) == 0 {
+                if (32) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(113), result, gss_node_id, env);
                 }
             }
@@ -1532,13 +1536,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6
             SlotId(124) => {
-                if (64) & (self.lookup("e", env.unwrap())) == 0 {
+                if (64) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(125), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [64 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6
             SlotId(125) => {
-                if 3 >= self.lookup("p", env.unwrap()) {
+                if 3 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(126), result, gss_node_id, env);
                 }
             }
@@ -1549,15 +1553,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                     SlotId(127),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                     0,
                 );
             }
             // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6
             SlotId(127) => {
-                if ((self.lookup("l", env.unwrap())) >> (16) == 0)
-                    || ((self.lookup("l", env.unwrap())) >> (16) >= 3)
+                if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
+                    || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
                     self.execute(input_index, SlotId(128), result, gss_node_id, env);
                 }
@@ -1615,13 +1619,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7
             SlotId(132) => {
-                if (128) & (self.lookup("e", env.unwrap())) == 0 {
+                if (128) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(133), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [128 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7
             SlotId(133) => {
-                if 3 >= self.lookup("p", env.unwrap()) {
+                if 3 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(134), result, gss_node_id, env);
                 }
             }
@@ -1632,15 +1636,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                     SlotId(135),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                     0,
                 );
             }
             // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7
             SlotId(135) => {
-                if ((self.lookup("l", env.unwrap())) >> (16) == 0)
-                    || ((self.lookup("l", env.unwrap())) >> (16) >= 3)
+                if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
+                    || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
                     self.execute(input_index, SlotId(136), result, gss_node_id, env);
                 }
@@ -1698,13 +1702,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8
             SlotId(140) => {
-                if (256) & (self.lookup("e", env.unwrap())) == 0 {
+                if (256) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(141), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [256 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8
             SlotId(141) => {
-                if 3 >= self.lookup("p", env.unwrap()) {
+                if 3 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(142), result, gss_node_id, env);
                 }
             }
@@ -1715,15 +1719,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                     SlotId(143),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                     0,
                 );
             }
             // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8
             SlotId(143) => {
-                if ((self.lookup("l", env.unwrap())) >> (16) == 0)
-                    || ((self.lookup("l", env.unwrap())) >> (16) >= 3)
+                if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
+                    || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
                     self.execute(input_index, SlotId(144), result, gss_node_id, env);
                 }
@@ -1781,13 +1785,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9
             SlotId(148) => {
-                if (512) & (self.lookup("e", env.unwrap())) == 0 {
+                if (512) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(149), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9
             SlotId(149) => {
-                if 3 >= self.lookup("p", env.unwrap()) {
+                if 3 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(150), result, gss_node_id, env);
                 }
             }
@@ -1798,23 +1802,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                     SlotId(151),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                     0,
                 );
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9
             SlotId(151) => {
-                if ((self.lookup("l", env.unwrap())) >> (16) == 0)
-                    || ((self.lookup("l", env.unwrap())) >> (16) >= 3)
+                if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
+                    || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
                     self.execute(input_index, SlotId(152), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] . [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9
             SlotId(152) => {
-                if ((self.lookup("l", env.unwrap())) & (65535) == 65535)
-                    || (((512) >> ((self.lookup("l", env.unwrap())) & (65535))) & (1) == 0)
+                if ((self.lookup(BINDING_L, env.unwrap())) & (65535) == 65535)
+                    || (((512) >> ((self.lookup(BINDING_L, env.unwrap())) & (65535))) & (1) == 0)
                 {
                     self.execute(input_index, SlotId(153), result, gss_node_id, env);
                 }
@@ -1866,13 +1870,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10
             SlotId(157) => {
-                if (1024) & (self.lookup("e", env.unwrap())) == 0 {
+                if (1024) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(158), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10
             SlotId(158) => {
-                if 3 >= self.lookup("p", env.unwrap()) {
+                if 3 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(159), result, gss_node_id, env);
                 }
             }
@@ -1883,23 +1887,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                     SlotId(160),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                     0,
                 );
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10
             SlotId(160) => {
-                if ((self.lookup("l", env.unwrap())) >> (16) == 0)
-                    || ((self.lookup("l", env.unwrap())) >> (16) >= 3)
+                if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
+                    || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
                     self.execute(input_index, SlotId(161), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] . [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10
             SlotId(161) => {
-                if ((self.lookup("l", env.unwrap())) & (65535) == 65535)
-                    || (((1024) >> ((self.lookup("l", env.unwrap())) & (65535))) & (1) == 0)
+                if ((self.lookup(BINDING_L, env.unwrap())) & (65535) == 65535)
+                    || (((1024) >> ((self.lookup(BINDING_L, env.unwrap())) & (65535))) & (1) == 0)
                 {
                     self.execute(input_index, SlotId(162), result, gss_node_id, env);
                 }
@@ -1951,13 +1955,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 return 11
             SlotId(166) => {
-                if (2048) & (self.lookup("e", env.unwrap())) == 0 {
+                if (2048) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(167), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [2048 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 return 11
             SlotId(167) => {
-                if 3 >= self.lookup("p", env.unwrap()) {
+                if 3 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(168), result, gss_node_id, env);
                 }
             }
@@ -1968,15 +1972,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     gss_node_id,
                     SlotId(169),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                     0,
                 );
             }
             // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 return 11
             SlotId(169) => {
-                if ((self.lookup("l", env.unwrap())) >> (16) == 0)
-                    || ((self.lookup("l", env.unwrap())) >> (16) >= 3)
+                if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
+                    || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
                     self.execute(input_index, SlotId(170), result, gss_node_id, env);
                 }
@@ -2028,7 +2032,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
             SlotId(174) => {
-                if (4096) & (self.lookup("e", env.unwrap())) == 0 {
+                if (4096) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(175), result, gss_node_id, env);
                 }
             }
@@ -2080,7 +2084,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout "!<<" Layout . r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
             SlotId(179) => {
-                self.create_symbol(result, gss_node_id, SlotId(180), env, Some("r"), 2, 0);
+                self.create_symbol(result, gss_node_id, SlotId(180), env, Some(BINDING_R), 2, 0);
             }
             // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) . return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
             SlotId(180) => {
@@ -2092,10 +2096,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let return_value = ((if (self.lookup("r", env.unwrap())) >> (16) == 0 {
+                let return_value = ((if (self.lookup(BINDING_R, env.unwrap())) >> (16) == 0 {
                     2
                 } else {
-                    std::cmp::min((self.lookup("r", env.unwrap())) >> (16), 2)
+                    std::cmp::min((self.lookup(BINDING_R, env.unwrap())) >> (16), 2)
                 }) << (16))
                     | (12);
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
@@ -2116,7 +2120,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : . [8192 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) return 65549
             SlotId(182) => {
-                if (8192) & (self.lookup("e", env.unwrap())) == 0 {
+                if (8192) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
                     self.execute(input_index, SlotId(183), result, gss_node_id, env);
                 }
             }
@@ -5552,8 +5556,8 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         match self.start_nonterminal {
             NonterminalId(57) => {
                 let (env_id, env) = self.new_env();
-                env.bind("p", 0);
-                env.bind("e", 0);
+                env.bind(BINDING_P, 0);
+                env.bind(BINDING_E, 0);
                 Some(env_id)
             }
             _ => None,
@@ -5586,7 +5590,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         self.envs.push(Env::default());
         (id, &mut self.envs[id.index()])
     }
-    fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
+    fn lookup(&self, name: BindingId, env_id: EnvId) -> i32 {
         let env = &self.envs[env_id.index()];
         env.get(name)
     }
@@ -5884,7 +5888,7 @@ impl<'i> IggyParser<'i> {
         gss_node_id: GssNodeId,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<&'static str>,
+        binding: Option<BindingId>,
         p: i32,
         e: i32,
     ) {
@@ -5921,8 +5925,8 @@ impl<'i> IggyParser<'i> {
                 binding,
             );
             let (env_id, env) = self.new_env();
-            env.bind("p", p);
-            env.bind("e", e);
+            env.bind(BINDING_P, p);
+            env.bind(BINDING_E, e);
             self.add_first_descriptors(NonterminalId(57), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_symbol(i, p, e, new_gss_node_id);
         }

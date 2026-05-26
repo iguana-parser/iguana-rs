@@ -7,11 +7,42 @@ use std::{
 
 use crate::{
     generator::{
-        id::{EndSlot, NonterminalIds, SlotIds, TerminalIds},
+        id::{BindingIds, EndSlot, NonterminalIds, SlotIds, TerminalIds},
         parser_gen::ParserGen,
     },
-    grammar::{def::Grammar, slot::Slot},
+    grammar::{def::Grammar, slot::Slot, symbols::Symbol},
 };
+
+fn collect_binding_names(symbol: &Symbol, binding_ids: &mut BindingIds) {
+    if let Symbol::Binding { name, .. } = symbol {
+        binding_ids.insert(name.clone());
+    }
+    match symbol {
+        Symbol::Labeled { symbol, .. }
+        | Symbol::Binding { symbol, .. }
+        | Symbol::Except { symbol, .. }
+        | Symbol::FollowRestriction { symbol, .. }
+        | Symbol::PrecedeRestriction { symbol, .. }
+        | Symbol::Exclude { symbol, .. }
+        | Symbol::Opt(symbol) => collect_binding_names(symbol, binding_ids),
+        Symbol::Group(symbols) | Symbol::Alt(symbols) => {
+            for s in symbols {
+                collect_binding_names(s, binding_ids);
+            }
+        }
+        Symbol::Star(symbol, sep) | Symbol::Plus(symbol, sep) => {
+            collect_binding_names(symbol, binding_ids);
+            if let Some(sep) = sep {
+                collect_binding_names(sep, binding_ids);
+            }
+        }
+        Symbol::Identifier(_)
+        | Symbol::Literal(_)
+        | Symbol::Call { .. }
+        | Symbol::Condition(_)
+        | Symbol::Return(_) => {}
+    }
+}
 
 #[derive(Clone, Copy)]
 pub struct GenConfig {
@@ -69,6 +100,17 @@ pub fn generate_sources(
     for terminal in grammar.terminals() {
         terminal_ids.insert(terminal.clone());
     }
+    let mut binding_ids = BindingIds::default();
+    for nt in grammar.nonterminals() {
+        for param in &nt.parameters {
+            binding_ids.insert(param.name.clone());
+        }
+        for alternative in grammar.alternatives(nt) {
+            for symbol in &alternative.symbols {
+                collect_binding_names(symbol, &mut binding_ids);
+            }
+        }
+    }
     let mut slot_ids = SlotIds::new(grammar);
     for nonterminal in grammar.nonterminals() {
         let alternatives = grammar.alternatives(nonterminal);
@@ -109,8 +151,14 @@ pub fn generate_sources(
         &lib_path,
     )?;
 
-    let mut parser_gen =
-        ParserGen::new(grammar, &nonterminal_ids, &terminal_ids, &slot_ids, config);
+    let mut parser_gen = ParserGen::new(
+        grammar,
+        &nonterminal_ids,
+        &terminal_ids,
+        &slot_ids,
+        &binding_ids,
+        config,
+    );
     let parser_code = parser_gen.generate();
     let grammar_comment = grammar
         .to_string()

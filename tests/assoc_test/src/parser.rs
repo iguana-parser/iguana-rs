@@ -24,7 +24,7 @@ use iguana_runtime::{
     descriptor::Descriptor,
     env::{Env, EnvId},
     gss::GSSNode,
-    ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+    ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     parser::{
         GSS_CAPACITY_MULTIPLIER, ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER,
@@ -37,6 +37,8 @@ use iguana_runtime::{
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
+const BINDING_P: BindingId = BindingId(0);
+const BINDING_L: BindingId = BindingId(1);
 impl<'i> Parser<'i> for AssocTestParser<'i> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -82,7 +84,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             // E(p: i32) : . [3 >= p] l=E(p) [(l == 0) || (l >= 3)] "+" E(4) return 3
             SlotId(2) => {
-                if 3 >= self.lookup("p", env.unwrap()) {
+                if 3 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(3), result, gss_node_id, env);
                 }
             }
@@ -93,13 +95,15 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     gss_node_id,
                     SlotId(4),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [3 >= p] l=E(p) . [(l == 0) || (l >= 3)] "+" E(4) return 3
             SlotId(4) => {
-                if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 3) {
+                if (self.lookup(BINDING_L, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L, env.unwrap()) >= 3)
+                {
                     self.execute(input_index, SlotId(5), result, gss_node_id, env);
                 }
             }
@@ -151,7 +155,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             // E(p: i32) : . [3 >= p] l=E(p) [(l == 0) || (l >= 3)] "-" E(4) return 3
             SlotId(9) => {
-                if 3 >= self.lookup("p", env.unwrap()) {
+                if 3 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(10), result, gss_node_id, env);
                 }
             }
@@ -162,13 +166,15 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     gss_node_id,
                     SlotId(11),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [3 >= p] l=E(p) . [(l == 0) || (l >= 3)] "-" E(4) return 3
             SlotId(11) => {
-                if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 3) {
+                if (self.lookup(BINDING_L, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L, env.unwrap()) >= 3)
+                {
                     self.execute(input_index, SlotId(12), result, gss_node_id, env);
                 }
             }
@@ -220,7 +226,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             // E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 3)] ";" E(2) return 2
             SlotId(16) => {
-                if 2 >= self.lookup("p", env.unwrap()) {
+                if 2 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(17), result, gss_node_id, env);
                 }
             }
@@ -231,13 +237,15 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     gss_node_id,
                     SlotId(18),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [2 >= p] l=E(p) . [(l == 0) || (l >= 3)] ";" E(2) return 2
             SlotId(18) => {
-                if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 3) {
+                if (self.lookup(BINDING_L, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L, env.unwrap()) >= 3)
+                {
                     self.execute(input_index, SlotId(19), result, gss_node_id, env);
                 }
             }
@@ -289,7 +297,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 2)] "<" E(2) return 1
             SlotId(23) => {
-                if 1 >= self.lookup("p", env.unwrap()) {
+                if 1 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(24), result, gss_node_id, env);
                 }
             }
@@ -300,13 +308,15 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
                     gss_node_id,
                     SlotId(25),
                     env,
-                    Some("l"),
-                    self.lookup("p", env.unwrap()),
+                    Some(BINDING_L),
+                    self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 2)] "<" E(2) return 1
             SlotId(25) => {
-                if (self.lookup("l", env.unwrap()) == 0) || (self.lookup("l", env.unwrap()) >= 2) {
+                if (self.lookup(BINDING_L, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L, env.unwrap()) >= 2)
+                {
                     self.execute(input_index, SlotId(26), result, gss_node_id, env);
                 }
             }
@@ -676,7 +686,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
         match self.start_nonterminal {
             NonterminalId(1) => {
                 let (env_id, env) = self.new_env();
-                env.bind("p", 0);
+                env.bind(BINDING_P, 0);
                 Some(env_id)
             }
             _ => None,
@@ -709,7 +719,7 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
         self.envs.push(Env::default());
         (id, &mut self.envs[id.index()])
     }
-    fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
+    fn lookup(&self, name: BindingId, env_id: EnvId) -> i32 {
         let env = &self.envs[env_id.index()];
         env.get(name)
     }
@@ -869,7 +879,7 @@ impl<'i> AssocTestParser<'i> {
         gss_node_id: GssNodeId,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<&'static str>,
+        binding: Option<BindingId>,
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
@@ -905,7 +915,7 @@ impl<'i> AssocTestParser<'i> {
                 binding,
             );
             let (env_id, env) = self.new_env();
-            env.bind("p", p);
+            env.bind(BINDING_P, p);
             self.add_first_descriptors(NonterminalId(1), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_e(i, p, new_gss_node_id);
         }

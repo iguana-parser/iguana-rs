@@ -4,6 +4,7 @@ use quote::format_ident;
 use quote::quote;
 
 use crate::generator::GenConfig;
+use crate::generator::id::BindingIds;
 use crate::generator::id::NonterminalIds;
 use crate::generator::id::SlotIds;
 use crate::generator::id::TerminalIds;
@@ -19,6 +20,7 @@ use crate::grammar::symbols::Nonterminal;
 use crate::grammar::symbols::Parameter;
 use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
+use crate::ids::BindingId;
 use crate::ids::NonterminalId;
 use crate::ids::SlotId;
 use crate::utils::to_first_uppercase;
@@ -29,6 +31,7 @@ pub struct ParserGen<'a> {
     nonterminal_ids: &'a NonterminalIds,
     terminal_ids: &'a TerminalIds,
     slot_ids: &'a SlotIds<'a>,
+    binding_ids: &'a BindingIds,
     ff: FirstFollowSets<'a>,
     config: GenConfig,
 }
@@ -39,6 +42,7 @@ impl<'a> ParserGen<'a> {
         nonterminal_ids: &'a NonterminalIds,
         terminal_ids: &'a TerminalIds,
         slot_ids: &'a SlotIds<'a>,
+        binding_ids: &'a BindingIds,
         config: GenConfig,
     ) -> Self {
         Self {
@@ -46,6 +50,7 @@ impl<'a> ParserGen<'a> {
             nonterminal_ids,
             terminal_ids,
             slot_ids,
+            binding_ids,
             ff: FirstFollowSets::new(grammar),
             config,
         }
@@ -63,6 +68,7 @@ impl<'a> ParserGen<'a> {
     pub fn generate(&mut self) -> TokenStream {
         let grammar_name = &self.grammar.name;
         let imports = self.gen_imports();
+        let binding_consts = self.gen_binding_consts();
         let execute_method = self.gen_execute_method();
         let first_descriptors = self.gen_add_first_descriptors_method();
         let nonterminal_display_name_method = Self::gen_nonterminal_display_name_method();
@@ -111,6 +117,7 @@ impl<'a> ParserGen<'a> {
         let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
         quote! {
             #imports
+            #binding_consts
             impl<'i> Parser<'i> for #grammar_name_ident<'i> {
                 #nonterminal_display_name_method
                 #terminal_name_method
@@ -194,6 +201,20 @@ impl<'a> ParserGen<'a> {
         }
     }
 
+    fn gen_binding_consts(&self) -> TokenStream {
+        let consts: Vec<_> = self
+            .binding_ids
+            .names()
+            .enumerate()
+            .map(|(id, name)| {
+                let const_name = binding_const_ident(name);
+                let id_lit = Literal::u8_unsuffixed(id as u8);
+                quote! { const #const_name: BindingId = BindingId(#id_lit); }
+            })
+            .collect();
+        quote! { #(#consts)* }
+    }
+
     fn gen_imports(&self) -> TokenStream {
         let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&self.grammar.name));
         quote! {
@@ -203,7 +224,7 @@ impl<'a> ParserGen<'a> {
                 descriptor::Descriptor,
                 env::{Env, EnvId},
                 gss::GSSNode,
-                ids::{GssNodeId, NonterminalId, SlotId, TerminalId},
+                ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
                 input::Input,
                 parser::{Parser, ParseError, ParseErrorKind, init_logger, GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
@@ -902,7 +923,8 @@ impl<'a> ParserGen<'a> {
             let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
             let arguments: Vec<_> = arguments.iter().map(Self::gen_expr).collect();
             let bindings = if let Some(Symbol::Binding { name, .. }) = slot.symbol() {
-                quote! { Some(#name) }
+                let const_name = binding_const_ident(name);
+                quote! { Some(#const_name) }
             } else {
                 quote! { None }
             };
@@ -1981,10 +2003,10 @@ impl<'a> ParserGen<'a> {
             .parameters
             .iter()
             .map(|p| {
-                let key = &p.name;
+                let const_name = binding_const_ident(&p.name);
                 let value = format_ident!("{}", p.name);
                 quote! {
-                    env.bind(#key, #value);
+                    env.bind(#const_name, #value);
                 }
             })
             .collect();
@@ -2000,7 +2022,7 @@ impl<'a> ParserGen<'a> {
                 gss_node_id: GssNodeId,
                 return_slot: SlotId,
                 env: Option<EnvId>,
-                binding: Option<&'static str>,
+                binding: Option<BindingId>,
                 #(#parameters,)*
             ) {
                 record!(self, Call, sppf_node_id, gss_node_id, return_slot);
@@ -2114,8 +2136,8 @@ impl<'a> ParserGen<'a> {
                     .parameters
                     .iter()
                     .map(|p| {
-                        let key = &p.name;
-                        quote! { env.bind(#key, 0); }
+                        let const_name = binding_const_ident(&p.name);
+                        quote! { env.bind(#const_name, 0); }
                     })
                     .collect();
                 quote! {
@@ -2216,7 +2238,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_lookup_method() -> TokenStream {
         quote! {
-            fn lookup(&self, name: &str, env_id: EnvId) -> i32 {
+            fn lookup(&self, name: BindingId, env_id: EnvId) -> i32 {
                 let env = &self.envs[env_id.index()];
                 env.get(name)
             }
@@ -2283,7 +2305,8 @@ impl<'a> ParserGen<'a> {
                 quote! { #val }
             }
             Expr::Ref(name) => {
-                quote! { self.lookup(#name, env.unwrap()) }
+                let const_name = binding_const_ident(name);
+                quote! { self.lookup(#const_name, env.unwrap()) }
             }
             Expr::Cond(cond) => {
                 let left = Self::gen_expr(&cond.left);
@@ -2338,4 +2361,12 @@ impl<'a> ParserGen<'a> {
             }
         }
     }
+}
+
+fn binding_const_ident(name: &str) -> proc_macro2::Ident {
+    let sanitized: String = name
+        .chars()
+        .map(|c| if c.is_alphanumeric() { c } else { '_' })
+        .collect();
+    format_ident!("BINDING_{}", sanitized.to_uppercase())
 }

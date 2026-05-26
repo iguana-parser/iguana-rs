@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
-use crate::utils::inline_vec::InlineVec;
+use crate::{ids::BindingId, utils::inline_vec::InlineVec};
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Type)]
 pub struct EnvId(pub u32);
@@ -14,15 +14,15 @@ impl EnvId {
 
 #[derive(Clone, Debug, Default)]
 pub struct Env {
-    pub bindings: InlineVec<(&'static str, i32)>,
+    pub bindings: InlineVec<(BindingId, i32)>,
 }
 
 impl Env {
-    pub fn bind(&mut self, name: &'static str, value: i32) {
+    pub fn bind(&mut self, name: BindingId, value: i32) {
         self.bindings.push((name, value));
     }
 
-    pub fn get(&self, name: &str) -> i32 {
+    pub fn get(&self, name: BindingId) -> i32 {
         for (n, v) in self.bindings.iter() {
             if *n == name {
                 return *v;
