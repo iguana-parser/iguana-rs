@@ -86,28 +86,28 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
             // E(p: i32) : . "-" E(2) return 2
-            SlotId(2) => {
+            SlotId(8) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(0),
                     input_index,
-                    SlotId(2),
+                    SlotId(8),
                     Some(gss_node_id),
                     "\"-\"",
                 ) {
                     // E(p: i32) : "-" . E(2) return 2
-                    self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }
             }
             // E(p: i32) : "-" . E(2) return 2
-            SlotId(3) => {
-                self.create_e(result, gss_node_id, SlotId(4), env, None, 2);
+            SlotId(9) => {
+                self.create_e(result, gss_node_id, SlotId(10), env, None, 2);
             }
             // E(p: i32) : "-" E(2) . return 2
-            SlotId(4) => {
-                self.execute(input_index, SlotId(5), result, gss_node_id, env);
+            SlotId(10) => {
+                self.execute(input_index, SlotId(11), result, gss_node_id, env);
             }
             // E(p: i32) : "-" E(2) return 2.
-            SlotId(5) => {
+            SlotId(11) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -115,7 +115,7 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 let return_value = 2;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
                     NonterminalId(3),
-                    SlotId(5),
+                    SlotId(11),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -124,61 +124,63 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(5),
+                    SlotId(11),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F return 0
-            SlotId(6) => {
+            SlotId(12) => {
                 if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(7), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(13), result, gss_node_id, env);
                 }
             }
             // E(p: i32) : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] "*" F return 0
-            SlotId(7) => {
+            SlotId(13) => {
                 self.create_e(
                     result,
                     gss_node_id,
-                    SlotId(8),
+                    SlotId(14),
                     env,
                     Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] "*" F return 0
-            SlotId(8) => {
+            SlotId(14) => {
                 if (self.lookup(BINDING_L, env.unwrap()) == 0)
                     || (self.lookup(BINDING_L, env.unwrap()) >= 1)
                 {
-                    self.execute(input_index, SlotId(9), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(15), result, gss_node_id, env);
                 }
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . "*" F return 0
-            SlotId(9) => {
+            SlotId(15) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(1),
                     input_index,
-                    SlotId(9),
+                    SlotId(15),
                     Some(gss_node_id),
                     "\"*\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(10));
-                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" . F return 0
-                    self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(16), env)
+                    {
+                        // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" . F return 0
+                        self.execute(j, SlotId(16), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" . F return 0
-            SlotId(10) => {
-                self.create(NonterminalId(1), result, gss_node_id, SlotId(11), env);
+            SlotId(16) => {
+                self.create(NonterminalId(1), result, gss_node_id, SlotId(17), env);
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F . return 0
-            SlotId(11) => {
-                self.execute(input_index, SlotId(12), result, gss_node_id, env);
+            SlotId(17) => {
+                self.execute(input_index, SlotId(18), result, gss_node_id, env);
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F return 0.
-            SlotId(12) => {
+            SlotId(18) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -186,7 +188,7 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 let return_value = 0;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
                     NonterminalId(3),
-                    SlotId(12),
+                    SlotId(18),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -195,30 +197,30 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(12),
+                    SlotId(18),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // E(p: i32) : . "a" return 0
-            SlotId(13) => {
+            SlotId(19) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(2),
                     input_index,
-                    SlotId(13),
+                    SlotId(19),
                     Some(gss_node_id),
                     "\"a\"",
                 ) {
                     // E(p: i32) : "a" . return 0
-                    self.execute(j, SlotId(14), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(20), Some(right_child), gss_node_id, env);
                 }
             }
             // E(p: i32) : "a" . return 0
-            SlotId(14) => {
-                self.execute(input_index, SlotId(15), result, gss_node_id, env);
+            SlotId(20) => {
+                self.execute(input_index, SlotId(21), result, gss_node_id, env);
             }
             // E(p: i32) : "a" return 0.
-            SlotId(15) => {
+            SlotId(21) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -226,7 +228,7 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 let return_value = 0;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
                     NonterminalId(3),
-                    SlotId(15),
+                    SlotId(21),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -235,49 +237,51 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(15),
+                    SlotId(21),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // F : . E(0) "/" K
-            SlotId(16) => {
-                self.create_e(result, gss_node_id, SlotId(17), env, None, 0);
+            SlotId(2) => {
+                self.create_e(result, gss_node_id, SlotId(3), env, None, 0);
             }
             // F : E(0) . "/" K
-            SlotId(17) => {
+            SlotId(3) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(3),
                     input_index,
-                    SlotId(17),
+                    SlotId(3),
                     Some(gss_node_id),
                     "\"/\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(18));
-                    // F : E(0) "/" . K
-                    self.execute(j, SlotId(18), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(4), env)
+                    {
+                        // F : E(0) "/" . K
+                        self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // F : E(0) "/" . K
-            SlotId(18) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(19), env);
+            SlotId(4) => {
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(5), env);
             }
             // F : E(0) "/" K.
-            SlotId(19) => {
+            SlotId(5) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(19), gss_node_id);
-                self.pop(gss_node_id, SlotId(19), nonterminal_node_id, None);
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(5), gss_node_id);
+                self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
             // K : . E(0)
-            SlotId(20) => {
-                self.create_e(result, gss_node_id, SlotId(21), env, None, 0);
+            SlotId(6) => {
+                self.create_e(result, gss_node_id, SlotId(7), env, None, 0);
             }
             // K : E(0).
-            SlotId(21) => {
+            SlotId(7) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(21), gss_node_id);
-                self.pop(gss_node_id, SlotId(21), nonterminal_node_id, None);
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(7), gss_node_id);
+                self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -302,20 +306,20 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
                 // E(p: i32) : . "-" E(2) return 2
                 if self.scanner.match_any(FIRST_SET_E_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F return 0
                 if self.scanner.match_any(FIRST_SET_E_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . "a" return 0
                 if self.scanner.match_any(FIRST_SET_E_ALT2, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(2), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(8), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_E.to_vec(),
                         }
@@ -324,11 +328,11 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
             }
             // F : . E(0) "/" K
             NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
             }
             // K : . E(0)
             NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(20), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -423,12 +427,20 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
     fn add_intermediate_node(
         &mut self,
         intermediate_node: IntermediateNode,
+        env: Option<EnvId>,
         add_to_index: bool,
     ) -> SPPFNodeId {
         let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
         if add_to_index {
-            self.intermediate_nodes_index[intermediate_node.slot_id.index()]
-                .insert(intermediate_node.span, intermediate_node_id);
+            let slot_idx = intermediate_node.slot_id.index();
+            if slot_idx < 8 {
+                self.intermediate_nodes_index[slot_idx]
+                    .insert(intermediate_node.span, intermediate_node_id);
+            } else {
+                let idx = slot_idx - 8;
+                self.dd_intermediate_nodes_index[idx]
+                    .insert((intermediate_node.span, env), intermediate_node_id);
+            }
         }
         record!(
             self,
@@ -501,9 +513,18 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
         slot_id: SlotId,
         left_extent: u32,
         right_extent: u32,
+        env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
-        let map = &self.intermediate_nodes_index[slot_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
+        let slot_idx = slot_id.index();
+        let span = Span::new(left_extent, right_extent);
+        if slot_idx < 8 {
+            self.intermediate_nodes_index[slot_idx].get(&span).copied()
+        } else {
+            let idx = slot_idx - 8;
+            self.dd_intermediate_nodes_index[idx]
+                .get(&(span, env))
+                .copied()
+        }
     }
     fn lookup_terminal_node(
         &self,
@@ -634,6 +655,9 @@ impl<'i> Parser<'i> for IndirectPrecedenceParser<'i> {
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
         }
+        for m in self.dd_intermediate_nodes_index.iter() {
+            stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
+        }
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
@@ -725,7 +749,10 @@ pub struct IndirectPrecedenceParser<'i> {
     descriptors_peak: usize,
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 22],
+    // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 8],
+    // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized nonterminals; env separates calls made with different parameter values.
+    dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; 14],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
     epsilon_nodes: Vec<SPPFNodeId>,
@@ -749,7 +776,8 @@ impl<'i> IndirectPrecedenceParser<'i> {
             descriptors: Vec::with_capacity(1024),
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 22],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 8],
+            dd_intermediate_nodes_index: [const { InlineMap::Empty }; 14],
             terminal_nodes_index: [const { InlineMap::Empty }; 6],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]

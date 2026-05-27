@@ -87,12 +87,12 @@ impl<'a> ParserGen<'a> {
         let next_descriptor_method = Self::gen_next_descriptor_method();
         let new_terminal_node_method = Self::gen_add_terminal_node_method();
         let new_nonterminal_node_method = Self::gen_add_nonterminal_node_method();
-        let new_intermediate_node_method = Self::gen_add_intermediate_node_method();
+        let new_intermediate_node_method = self.gen_add_intermediate_node_method();
         let input_len_method = Self::gen_input_method();
         let sppf_nodes_method = Self::gen_sppf_nodes_method();
         let increment_descriptor_count_method = Self::gen_increment_descriptor_count_method();
         let count_methods = Self::gen_count_methods();
-        let lookup_intermediate_node_method = Self::gen_lookup_intermediate_node_method();
+        let lookup_intermediate_node_method = self.gen_lookup_intermediate_node_method();
         let lookup_terminal_node_method = Self::gen_lookup_terminal_node_method();
         let gss_nodes_method = Self::gen_gss_nodes_method();
         let add_nonterminal_node_child_method = Self::gen_add_nonterminal_node_child_method();
@@ -538,11 +538,12 @@ impl<'a> ParserGen<'a> {
             }
         } else {
             quote! {
-                let (j, new_node) = self.create_intermediate_node(
-                    result, right_child, #next_slot_id,
-                );
-                #[comment = #next_slot_name]
-                self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
+                if let Some((j, new_node)) = self.create_intermediate_node(
+                    result, right_child, #next_slot_id, env,
+                ) {
+                    #[comment = #next_slot_name]
+                    self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
+                }
             }
         };
         let new_node = if post_conditions.is_empty() {
@@ -901,11 +902,12 @@ impl<'a> ParserGen<'a> {
                         if let Some(right_child) = self.#method_name(input_index) {
                             #compute_j
                             #post_condition_check
-                            let (j, new_node) = self.create_intermediate_node(
-                                result, right_child, #next_slot_id,
-                            );
-                            #[comment = #next_slot_name]
-                            self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
+                            if let Some((j, new_node)) = self.create_intermediate_node(
+                                result, right_child, #next_slot_id, env,
+                            ) {
+                                #[comment = #next_slot_name]
+                                self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
+                            }
                         }
                     }
                 }
@@ -1098,7 +1100,9 @@ impl<'a> ParserGen<'a> {
             .dd_nonterminals()
             .map(Self::gen_gss_nodes_index_field_for_data_dependent_nt)
             .collect();
-        let slot_ids_len = Literal::usize_unsuffixed(self.slot_ids.len());
+        let dd_slot_start = self.slot_ids.dd_slot_start();
+        let dd_slot_start_lit = Literal::usize_unsuffixed(dd_slot_start);
+        let param_slot_count_lit = Literal::usize_unsuffixed(self.slot_ids.len() - dd_slot_start);
         let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
         let scanner_name_ident = format_ident!("{}{}", grammar_name, "Scanner");
         let layout_memo_field = if self
@@ -1126,7 +1130,10 @@ impl<'a> ParserGen<'a> {
                 descriptors_peak: usize,
                 #[cfg(feature = "instrument")]
                 ll1_call_log: Vec<(NonterminalId, u32)>,
-                intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #slot_ids_len],
+                #[comment = "Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals."]
+                intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #dd_slot_start_lit],
+                #[comment = "Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized nonterminals; env separates calls made with different parameter values."]
+                dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; #param_slot_count_lit],
                 terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
                 #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
                 epsilon_nodes: Vec<SPPFNodeId>,
@@ -1151,9 +1158,12 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_intermediate_nodes_index_field(&self) -> TokenStream {
-        let intermediate_ids_len = Literal::usize_unsuffixed(self.slot_ids.len());
+        let dd_slot_start = self.slot_ids.dd_slot_start();
+        let dd_slot_start_lit = Literal::usize_unsuffixed(dd_slot_start);
+        let param_slot_count_lit = Literal::usize_unsuffixed(self.slot_ids.len() - dd_slot_start);
         quote! {
-            intermediate_nodes_index: [const { InlineMap::Empty }; #intermediate_ids_len]
+            intermediate_nodes_index: [const { InlineMap::Empty }; #dd_slot_start_lit],
+            dd_intermediate_nodes_index: [const { InlineMap::Empty }; #param_slot_count_lit]
         }
     }
 
@@ -1816,17 +1826,26 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_add_intermediate_node_method() -> TokenStream {
+    fn gen_add_intermediate_node_method(&self) -> TokenStream {
+        let dd_slot_start_lit = Literal::usize_unsuffixed(self.slot_ids.dd_slot_start());
         quote! {
             fn add_intermediate_node(
                 &mut self,
                 intermediate_node: IntermediateNode,
+                env: Option<EnvId>,
                 add_to_index: bool,
             ) -> SPPFNodeId {
                 let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
                 if add_to_index {
-                    self.intermediate_nodes_index[intermediate_node.slot_id.index()]
-                        .insert(intermediate_node.span, intermediate_node_id);
+                    let slot_idx = intermediate_node.slot_id.index();
+                    if slot_idx < #dd_slot_start_lit {
+                        self.intermediate_nodes_index[slot_idx]
+                            .insert(intermediate_node.span, intermediate_node_id);
+                    } else {
+                        let idx = slot_idx - #dd_slot_start_lit;
+                        self.dd_intermediate_nodes_index[idx]
+                            .insert((intermediate_node.span, env), intermediate_node_id);
+                    }
                 }
                 record!(
                     self,
@@ -1910,16 +1929,24 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_lookup_intermediate_node_method() -> TokenStream {
+    fn gen_lookup_intermediate_node_method(&self) -> TokenStream {
+        let dd_slot_start_lit = Literal::usize_unsuffixed(self.slot_ids.dd_slot_start());
         quote! {
             fn lookup_intermediate_node(
                 &self,
                 slot_id: SlotId,
                 left_extent: u32,
                 right_extent: u32,
+                env: Option<EnvId>,
             ) -> Option<SPPFNodeId> {
-                let map = &self.intermediate_nodes_index[slot_id.index()];
-                map.get(&Span::new(left_extent, right_extent)).copied()
+                let slot_idx = slot_id.index();
+                let span = Span::new(left_extent, right_extent);
+                if slot_idx < #dd_slot_start_lit {
+                    self.intermediate_nodes_index[slot_idx].get(&span).copied()
+                } else {
+                    let idx = slot_idx - #dd_slot_start_lit;
+                    self.dd_intermediate_nodes_index[idx].get(&(span, env)).copied()
+                }
             }
         }
     }
@@ -2314,6 +2341,9 @@ impl<'a> ParserGen<'a> {
                 }
                 for m in self.intermediate_nodes_index.iter() {
                     stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
+                }
+                for m in self.dd_intermediate_nodes_index.iter() {
+                    stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
                 }
                 for m in self.terminal_nodes_index.iter() {
                     stats.record("Parser::terminal_nodes_index: InlineMap", m.len());

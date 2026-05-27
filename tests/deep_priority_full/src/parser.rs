@@ -122,10 +122,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(6));
-                    // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS . "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
-                    self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(6), env)
+                    {
+                        // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS . "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
+                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS . "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
@@ -137,10 +139,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "\"*\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(7));
-                    // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" . WS r=E(6) return (r == 0) ? 5 : min(r, 5)
-                    self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(7), env)
+                    {
+                        // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" . WS r=E(6) return (r == 0) ? 5 : min(r, 5)
+                        self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" . WS r=E(6) return (r == 0) ? 5 : min(r, 5)
@@ -152,10 +156,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(8));
-                    // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS . r=E(6) return (r == 0) ? 5 : min(r, 5)
-                    self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(8), env)
+                    {
+                        // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS . r=E(6) return (r == 0) ? 5 : min(r, 5)
+                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS . r=E(6) return (r == 0) ? 5 : min(r, 5)
@@ -227,10 +233,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(15));
-                    // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS . "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
-                    self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(15), env)
+                    {
+                        // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS . "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
+                        self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS . "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
@@ -242,10 +250,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "\"+\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(16));
-                    // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" . WS r=E(5) return (r == 0) ? 4 : min(r, 4)
-                    self.execute(j, SlotId(16), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(16), env)
+                    {
+                        // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" . WS r=E(5) return (r == 0) ? 4 : min(r, 4)
+                        self.execute(j, SlotId(16), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" . WS r=E(5) return (r == 0) ? 4 : min(r, 4)
@@ -257,10 +267,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(17));
-                    // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS . r=E(5) return (r == 0) ? 4 : min(r, 4)
-                    self.execute(j, SlotId(17), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(17), env)
+                    {
+                        // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS . r=E(5) return (r == 0) ? 4 : min(r, 4)
+                        self.execute(j, SlotId(17), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS . r=E(5) return (r == 0) ? 4 : min(r, 4)
@@ -320,10 +332,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(22));
-                    // E(p: i32) : "-" WS . r=E(3) return (r == 0) ? 3 : min(r, 3)
-                    self.execute(j, SlotId(22), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(22), env)
+                    {
+                        // E(p: i32) : "-" WS . r=E(3) return (r == 0) ? 3 : min(r, 3)
+                        self.execute(j, SlotId(22), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : "-" WS . r=E(3) return (r == 0) ? 3 : min(r, 3)
@@ -383,10 +397,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(27));
-                    // E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-                    self.execute(j, SlotId(27), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(27), env)
+                    {
+                        // E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
+                        self.execute(j, SlotId(27), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
@@ -402,10 +418,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(29));
-                    // E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
-                    self.execute(j, SlotId(29), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(29), env)
+                    {
+                        // E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
+                        self.execute(j, SlotId(29), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
@@ -417,10 +435,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "\"then\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(30));
-                    // E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
-                    self.execute(j, SlotId(30), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(30), env)
+                    {
+                        // E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
+                        self.execute(j, SlotId(30), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
@@ -432,10 +452,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(31));
-                    // E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
-                    self.execute(j, SlotId(31), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(31), env)
+                    {
+                        // E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
+                        self.execute(j, SlotId(31), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
@@ -451,10 +473,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(33));
-                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
-                    self.execute(j, SlotId(33), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(33), env)
+                    {
+                        // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
+                        self.execute(j, SlotId(33), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
@@ -466,10 +490,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "\"else\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(34));
-                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
-                    self.execute(j, SlotId(34), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(34), env)
+                    {
+                        // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
+                        self.execute(j, SlotId(34), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
@@ -481,10 +507,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(35));
-                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
-                    self.execute(j, SlotId(35), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(35), env)
+                    {
+                        // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
+                        self.execute(j, SlotId(35), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
@@ -552,10 +580,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(42));
-                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . ";" WS E(1) return 1
-                    self.execute(j, SlotId(42), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(42), env)
+                    {
+                        // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . ";" WS E(1) return 1
+                        self.execute(j, SlotId(42), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . ";" WS E(1) return 1
@@ -567,10 +597,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "\";\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(43));
-                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" . WS E(1) return 1
-                    self.execute(j, SlotId(43), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(43), env)
+                    {
+                        // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" . WS E(1) return 1
+                        self.execute(j, SlotId(43), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" . WS E(1) return 1
@@ -582,10 +614,12 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
                     Some(gss_node_id),
                     "WS",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(44));
-                    // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS . E(1) return 1
-                    self.execute(j, SlotId(44), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(44), env)
+                    {
+                        // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS . E(1) return 1
+                        self.execute(j, SlotId(44), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS . E(1) return 1
@@ -810,12 +844,20 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
     fn add_intermediate_node(
         &mut self,
         intermediate_node: IntermediateNode,
+        env: Option<EnvId>,
         add_to_index: bool,
     ) -> SPPFNodeId {
         let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
         if add_to_index {
-            self.intermediate_nodes_index[intermediate_node.slot_id.index()]
-                .insert(intermediate_node.span, intermediate_node_id);
+            let slot_idx = intermediate_node.slot_id.index();
+            if slot_idx < 2 {
+                self.intermediate_nodes_index[slot_idx]
+                    .insert(intermediate_node.span, intermediate_node_id);
+            } else {
+                let idx = slot_idx - 2;
+                self.dd_intermediate_nodes_index[idx]
+                    .insert((intermediate_node.span, env), intermediate_node_id);
+            }
         }
         record!(
             self,
@@ -888,9 +930,18 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
         slot_id: SlotId,
         left_extent: u32,
         right_extent: u32,
+        env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
-        let map = &self.intermediate_nodes_index[slot_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
+        let slot_idx = slot_id.index();
+        let span = Span::new(left_extent, right_extent);
+        if slot_idx < 2 {
+            self.intermediate_nodes_index[slot_idx].get(&span).copied()
+        } else {
+            let idx = slot_idx - 2;
+            self.dd_intermediate_nodes_index[idx]
+                .get(&(span, env))
+                .copied()
+        }
     }
     fn lookup_terminal_node(
         &self,
@@ -1021,6 +1072,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
         }
+        for m in self.dd_intermediate_nodes_index.iter() {
+            stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
+        }
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
@@ -1108,7 +1162,10 @@ pub struct DeepPriorityFullParser<'i> {
     descriptors_peak: usize,
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 50],
+    // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
+    // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized nonterminals; env separates calls made with different parameter values.
+    dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; 48],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 11],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
     epsilon_nodes: Vec<SPPFNodeId>,
@@ -1132,7 +1189,8 @@ impl<'i> DeepPriorityFullParser<'i> {
             descriptors: Vec::with_capacity(1024),
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 50],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 2],
+            dd_intermediate_nodes_index: [const { InlineMap::Empty }; 48],
             terminal_nodes_index: [const { InlineMap::Empty }; 11],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]

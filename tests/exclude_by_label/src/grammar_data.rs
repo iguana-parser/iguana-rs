@@ -49,6 +49,39 @@ pub const TERMINALS: [Terminal; 6] = [
 ];
 pub const SLOTS: [Slot; 28] = [
     Slot {
+        display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ \",\" Expr(4)",
+    },
+    Slot {
+        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ . \",\" Expr(4)",
+    },
+    Slot {
+        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" . Expr(4)",
+    },
+    Slot {
+        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" Expr(4).",
+    },
+    Slot {
+        display_name: "{Expr !comma \",\"}+ : . Expr(4)",
+    },
+    Slot {
+        display_name: "{Expr !comma \",\"}+ : Expr(4).",
+    },
+    Slot {
+        display_name: "{Expr !comma \",\"}+? : . {Expr !comma \",\"}+",
+    },
+    Slot {
+        display_name: "{Expr !comma \",\"}+? : {Expr !comma \",\"}+.",
+    },
+    Slot {
+        display_name: "{Expr !comma \",\"}+? : .",
+    },
+    Slot {
+        display_name: "{Expr !comma \",\"}* : . {Expr !comma \",\"}+?",
+    },
+    Slot {
+        display_name: "{Expr !comma \",\"}* : {Expr !comma \",\"}+?.",
+    },
+    Slot {
         display_name: "Expr : . [1 & e == 0] Id return 0",
     },
     Slot {
@@ -98,39 +131,6 @@ pub const SLOTS: [Slot; 28] = [
     },
     Slot {
         display_name: "Expr : [4 & e == 0] Expr(0) \",\" Expr(0) return 2.",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ \",\" Expr(4)",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ . \",\" Expr(4)",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" . Expr(4)",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" Expr(4).",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : . Expr(4)",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+ : Expr(4).",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+? : . {Expr !comma \",\"}+",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+? : {Expr !comma \",\"}+.",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}+? : .",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}* : . {Expr !comma \",\"}+?",
-    },
-    Slot {
-        display_name: "{Expr !comma \",\"}* : {Expr !comma \",\"}+?.",
     },
 ];
 // Expr { ",", "(", ")", EOF }

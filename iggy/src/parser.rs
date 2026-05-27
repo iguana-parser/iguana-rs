@@ -342,10 +342,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Grammar : "grammar" . Layout name:Identifier Layout Opt_0 Layout Star_0
             SlotId(1) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(2));
-                    // Grammar : "grammar" Layout . name:Identifier Layout Opt_0 Layout Star_0
-                    self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(2), env)
+                    {
+                        // Grammar : "grammar" Layout . name:Identifier Layout Opt_0 Layout Star_0
+                        self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Grammar : "grammar" Layout . name:Identifier Layout Opt_0 Layout Star_0
@@ -357,37 +359,45 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "Identifier",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(3));
-                    // Grammar : "grammar" Layout name:Identifier . Layout Opt_0 Layout Star_0
-                    self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(3), env)
+                    {
+                        // Grammar : "grammar" Layout name:Identifier . Layout Opt_0 Layout Star_0
+                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Grammar : "grammar" Layout name:Identifier . Layout Opt_0 Layout Star_0
             SlotId(3) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(4));
-                    // Grammar : "grammar" Layout name:Identifier Layout . Opt_0 Layout Star_0
-                    self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(4), env)
+                    {
+                        // Grammar : "grammar" Layout name:Identifier Layout . Opt_0 Layout Star_0
+                        self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Grammar : "grammar" Layout name:Identifier Layout . Opt_0 Layout Star_0
             SlotId(4) => {
                 if let Some(right_child) = self.parse_opt_0_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(5));
-                    // Grammar : "grammar" Layout name:Identifier Layout Opt_0 . Layout Star_0
-                    self.execute(j, SlotId(5), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(5), env)
+                    {
+                        // Grammar : "grammar" Layout name:Identifier Layout Opt_0 . Layout Star_0
+                        self.execute(j, SlotId(5), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Grammar : "grammar" Layout name:Identifier Layout Opt_0 . Layout Star_0
             SlotId(5) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(6));
-                    // Grammar : "grammar" Layout name:Identifier Layout Opt_0 Layout . Star_0
-                    self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(6), env)
+                    {
+                        // Grammar : "grammar" Layout name:Identifier Layout Opt_0 Layout . Star_0
+                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Grammar : "grammar" Layout name:Identifier Layout Opt_0 Layout . Star_0
@@ -416,10 +426,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // LayoutDef : "layout" . Layout Identifier
             SlotId(9) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(10));
-                    // LayoutDef : "layout" Layout . Identifier
-                    self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(10), env)
+                    {
+                        // LayoutDef : "layout" Layout . Identifier
+                        self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // LayoutDef : "layout" Layout . Identifier
@@ -431,10 +443,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "Identifier",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(11));
-                    // LayoutDef : "layout" Layout Identifier.
-                    self.execute(j, SlotId(11), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(11), env)
+                    {
+                        // LayoutDef : "layout" Layout Identifier.
+                        self.execute(j, SlotId(11), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // LayoutDef : "layout" Layout Identifier.
@@ -474,10 +488,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // SyntaxRule : Star_1 . Layout head:Identifier Layout "=" Layout Star_2
             SlotId(17) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(18));
-                    // SyntaxRule : Star_1 Layout . head:Identifier Layout "=" Layout Star_2
-                    self.execute(j, SlotId(18), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(18), env)
+                    {
+                        // SyntaxRule : Star_1 Layout . head:Identifier Layout "=" Layout Star_2
+                        self.execute(j, SlotId(18), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // SyntaxRule : Star_1 Layout . head:Identifier Layout "=" Layout Star_2
@@ -489,19 +505,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "Identifier",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(19));
-                    // SyntaxRule : Star_1 Layout head:Identifier . Layout "=" Layout Star_2
-                    self.execute(j, SlotId(19), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(19), env)
+                    {
+                        // SyntaxRule : Star_1 Layout head:Identifier . Layout "=" Layout Star_2
+                        self.execute(j, SlotId(19), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // SyntaxRule : Star_1 Layout head:Identifier . Layout "=" Layout Star_2
             SlotId(19) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(20));
-                    // SyntaxRule : Star_1 Layout head:Identifier Layout . "=" Layout Star_2
-                    self.execute(j, SlotId(20), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(20), env)
+                    {
+                        // SyntaxRule : Star_1 Layout head:Identifier Layout . "=" Layout Star_2
+                        self.execute(j, SlotId(20), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // SyntaxRule : Star_1 Layout head:Identifier Layout . "=" Layout Star_2
@@ -513,19 +533,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "\"=\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(21));
-                    // SyntaxRule : Star_1 Layout head:Identifier Layout "=" . Layout Star_2
-                    self.execute(j, SlotId(21), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(21), env)
+                    {
+                        // SyntaxRule : Star_1 Layout head:Identifier Layout "=" . Layout Star_2
+                        self.execute(j, SlotId(21), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // SyntaxRule : Star_1 Layout head:Identifier Layout "=" . Layout Star_2
             SlotId(21) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(22));
-                    // SyntaxRule : Star_1 Layout head:Identifier Layout "=" Layout . Star_2
-                    self.execute(j, SlotId(22), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(22), env)
+                    {
+                        // SyntaxRule : Star_1 Layout head:Identifier Layout "=" Layout . Star_2
+                        self.execute(j, SlotId(22), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // SyntaxRule : Star_1 Layout head:Identifier Layout "=" Layout . Star_2
@@ -573,10 +597,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Annotation : "@Layout" . Layout "(" Layout Identifier Layout ")"
             SlotId(27) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(28));
-                    // Annotation : "@Layout" Layout . "(" Layout Identifier Layout ")"
-                    self.execute(j, SlotId(28), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(28), env)
+                    {
+                        // Annotation : "@Layout" Layout . "(" Layout Identifier Layout ")"
+                        self.execute(j, SlotId(28), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Annotation : "@Layout" Layout . "(" Layout Identifier Layout ")"
@@ -588,19 +614,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "\"(\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(29));
-                    // Annotation : "@Layout" Layout "(" . Layout Identifier Layout ")"
-                    self.execute(j, SlotId(29), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(29), env)
+                    {
+                        // Annotation : "@Layout" Layout "(" . Layout Identifier Layout ")"
+                        self.execute(j, SlotId(29), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Annotation : "@Layout" Layout "(" . Layout Identifier Layout ")"
             SlotId(29) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(30));
-                    // Annotation : "@Layout" Layout "(" Layout . Identifier Layout ")"
-                    self.execute(j, SlotId(30), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(30), env)
+                    {
+                        // Annotation : "@Layout" Layout "(" Layout . Identifier Layout ")"
+                        self.execute(j, SlotId(30), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Annotation : "@Layout" Layout "(" Layout . Identifier Layout ")"
@@ -612,19 +642,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "Identifier",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(31));
-                    // Annotation : "@Layout" Layout "(" Layout Identifier . Layout ")"
-                    self.execute(j, SlotId(31), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(31), env)
+                    {
+                        // Annotation : "@Layout" Layout "(" Layout Identifier . Layout ")"
+                        self.execute(j, SlotId(31), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Annotation : "@Layout" Layout "(" Layout Identifier . Layout ")"
             SlotId(31) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(32));
-                    // Annotation : "@Layout" Layout "(" Layout Identifier Layout . ")"
-                    self.execute(j, SlotId(32), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(32), env)
+                    {
+                        // Annotation : "@Layout" Layout "(" Layout Identifier Layout . ")"
+                        self.execute(j, SlotId(32), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Annotation : "@Layout" Layout "(" Layout Identifier Layout . ")"
@@ -636,10 +670,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "\")\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(33));
-                    // Annotation : "@Layout" Layout "(" Layout Identifier Layout ")".
-                    self.execute(j, SlotId(33), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(33), env)
+                    {
+                        // Annotation : "@Layout" Layout "(" Layout Identifier Layout ")".
+                        self.execute(j, SlotId(33), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Annotation : "@Layout" Layout "(" Layout Identifier Layout ")".
@@ -683,10 +719,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // RegexRule : "@regex" . Layout Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3
             SlotId(37) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(38));
-                    // RegexRule : "@regex" Layout . Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3
-                    self.execute(j, SlotId(38), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(38), env)
+                    {
+                        // RegexRule : "@regex" Layout . Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3
+                        self.execute(j, SlotId(38), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // RegexRule : "@regex" Layout . Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3
@@ -698,19 +736,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "Identifier",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(39));
-                    // RegexRule : "@regex" Layout Identifier . Layout "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3
-                    self.execute(j, SlotId(39), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(39), env)
+                    {
+                        // RegexRule : "@regex" Layout Identifier . Layout "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3
+                        self.execute(j, SlotId(39), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // RegexRule : "@regex" Layout Identifier . Layout "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3
             SlotId(39) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(40));
-                    // RegexRule : "@regex" Layout Identifier Layout . "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3
-                    self.execute(j, SlotId(40), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(40), env)
+                    {
+                        // RegexRule : "@regex" Layout Identifier Layout . "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3
+                        self.execute(j, SlotId(40), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // RegexRule : "@regex" Layout Identifier Layout . "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3
@@ -722,19 +764,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "\"=\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(41));
-                    // RegexRule : "@regex" Layout Identifier Layout "=" . Layout Opt_4 Layout body:Plus_3 Layout Star_3
-                    self.execute(j, SlotId(41), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(41), env)
+                    {
+                        // RegexRule : "@regex" Layout Identifier Layout "=" . Layout Opt_4 Layout body:Plus_3 Layout Star_3
+                        self.execute(j, SlotId(41), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // RegexRule : "@regex" Layout Identifier Layout "=" . Layout Opt_4 Layout body:Plus_3 Layout Star_3
             SlotId(41) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(42));
-                    // RegexRule : "@regex" Layout Identifier Layout "=" Layout . Opt_4 Layout body:Plus_3 Layout Star_3
-                    self.execute(j, SlotId(42), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(42), env)
+                    {
+                        // RegexRule : "@regex" Layout Identifier Layout "=" Layout . Opt_4 Layout body:Plus_3 Layout Star_3
+                        self.execute(j, SlotId(42), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // RegexRule : "@regex" Layout Identifier Layout "=" Layout . Opt_4 Layout body:Plus_3 Layout Star_3
@@ -744,10 +790,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // RegexRule : "@regex" Layout Identifier Layout "=" Layout Opt_4 . Layout body:Plus_3 Layout Star_3
             SlotId(43) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(44));
-                    // RegexRule : "@regex" Layout Identifier Layout "=" Layout Opt_4 Layout . body:Plus_3 Layout Star_3
-                    self.execute(j, SlotId(44), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(44), env)
+                    {
+                        // RegexRule : "@regex" Layout Identifier Layout "=" Layout Opt_4 Layout . body:Plus_3 Layout Star_3
+                        self.execute(j, SlotId(44), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // RegexRule : "@regex" Layout Identifier Layout "=" Layout Opt_4 Layout . body:Plus_3 Layout Star_3
@@ -757,19 +805,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // RegexRule : "@regex" Layout Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 . Layout Star_3
             SlotId(45) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(46));
-                    // RegexRule : "@regex" Layout Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 Layout . Star_3
-                    self.execute(j, SlotId(46), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(46), env)
+                    {
+                        // RegexRule : "@regex" Layout Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 Layout . Star_3
+                        self.execute(j, SlotId(46), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // RegexRule : "@regex" Layout Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 Layout . Star_3
             SlotId(46) => {
                 if let Some(right_child) = self.parse_star_3_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(47));
-                    // RegexRule : "@regex" Layout Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3.
-                    self.execute(j, SlotId(47), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(47), env)
+                    {
+                        // RegexRule : "@regex" Layout Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3.
+                        self.execute(j, SlotId(47), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // RegexRule : "@regex" Layout Identifier Layout "=" Layout Opt_4 Layout body:Plus_3 Layout Star_3.
@@ -794,10 +846,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // PreCondition : Identifier . Layout "!<<"
             SlotId(49) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(50));
-                    // PreCondition : Identifier Layout . "!<<"
-                    self.execute(j, SlotId(50), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(50), env)
+                    {
+                        // PreCondition : Identifier Layout . "!<<"
+                        self.execute(j, SlotId(50), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // PreCondition : Identifier Layout . "!<<"
@@ -809,10 +863,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "\"!<<\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(51));
-                    // PreCondition : Identifier Layout "!<<".
-                    self.execute(j, SlotId(51), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(51), env)
+                    {
+                        // PreCondition : Identifier Layout "!<<".
+                        self.execute(j, SlotId(51), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // PreCondition : Identifier Layout "!<<".
@@ -837,10 +893,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // PostCondition : "\" . Layout Identifier
             SlotId(53) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(54));
-                    // PostCondition : "\" Layout . Identifier
-                    self.execute(j, SlotId(54), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(54), env)
+                    {
+                        // PostCondition : "\" Layout . Identifier
+                        self.execute(j, SlotId(54), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // PostCondition : "\" Layout . Identifier
@@ -852,10 +910,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "Identifier",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(55));
-                    // PostCondition : "\" Layout Identifier.
-                    self.execute(j, SlotId(55), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(55), env)
+                    {
+                        // PostCondition : "\" Layout Identifier.
+                        self.execute(j, SlotId(55), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // PostCondition : "\" Layout Identifier.
@@ -880,10 +940,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // PostCondition : "!>>" . Layout Identifier
             SlotId(57) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(58));
-                    // PostCondition : "!>>" Layout . Identifier
-                    self.execute(j, SlotId(58), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(58), env)
+                    {
+                        // PostCondition : "!>>" Layout . Identifier
+                        self.execute(j, SlotId(58), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // PostCondition : "!>>" Layout . Identifier
@@ -895,10 +957,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     Some(gss_node_id),
                     "Identifier",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(59));
-                    // PostCondition : "!>>" Layout Identifier.
-                    self.execute(j, SlotId(59), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(59), env)
+                    {
+                        // PostCondition : "!>>" Layout Identifier.
+                        self.execute(j, SlotId(59), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // PostCondition : "!>>" Layout Identifier.
@@ -918,10 +982,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // PriorityLevel : Opt_6 . Layout Star_4
             SlotId(61) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(62));
-                    // PriorityLevel : Opt_6 Layout . Star_4
-                    self.execute(j, SlotId(62), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(62), env)
+                    {
+                        // PriorityLevel : Opt_6 Layout . Star_4
+                        self.execute(j, SlotId(62), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // PriorityLevel : Opt_6 Layout . Star_4
@@ -998,19 +1064,23 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Alternative : Star_5 . Layout Opt_9
             SlotId(71) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(72));
-                    // Alternative : Star_5 Layout . Opt_9
-                    self.execute(j, SlotId(72), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(72), env)
+                    {
+                        // Alternative : Star_5 Layout . Opt_9
+                        self.execute(j, SlotId(72), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Alternative : Star_5 Layout . Opt_9
             SlotId(72) => {
                 if let Some(right_child) = self.parse_opt_9_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(73));
-                    // Alternative : Star_5 Layout Opt_9.
-                    self.execute(j, SlotId(73), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(73), env)
+                    {
+                        // Alternative : Star_5 Layout Opt_9.
+                        self.execute(j, SlotId(73), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Alternative : Star_5 Layout Opt_9.
@@ -1024,30 +1094,30 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 self.pop(gss_node_id, SlotId(73), nonterminal_node_id, None);
             }
             // Symbol(p: i32, e: i32) : . [1 & e == 0] Identifier return 0
-            SlotId(74) => {
+            SlotId(301) => {
                 if (1) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(75), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(302), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [1 & e == 0] . Identifier return 0
-            SlotId(75) => {
+            SlotId(302) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(1),
                     input_index,
-                    SlotId(75),
+                    SlotId(302),
                     Some(gss_node_id),
                     "Identifier",
                 ) {
                     // Symbol(p: i32, e: i32) : [1 & e == 0] Identifier . return 0
-                    self.execute(j, SlotId(76), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(303), Some(right_child), gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [1 & e == 0] Identifier . return 0
-            SlotId(76) => {
-                self.execute(input_index, SlotId(77), result, gss_node_id, env);
+            SlotId(303) => {
+                self.execute(input_index, SlotId(304), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [1 & e == 0] Identifier return 0.
-            SlotId(77) => {
+            SlotId(304) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1055,7 +1125,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 0;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(77),
+                    SlotId(304),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -1064,73 +1134,79 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(77),
+                    SlotId(304),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [2 & e == 0] "(" Layout Plus_7 Layout ")" return 1
-            SlotId(78) => {
+            SlotId(305) => {
                 if (2) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(79), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(306), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [2 & e == 0] . "(" Layout Plus_7 Layout ")" return 1
-            SlotId(79) => {
+            SlotId(306) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(16),
                     input_index,
-                    SlotId(79),
+                    SlotId(306),
                     Some(gss_node_id),
                     "\"(\"",
                 ) {
                     // Symbol(p: i32, e: i32) : [2 & e == 0] "(" . Layout Plus_7 Layout ")" return 1
-                    self.execute(j, SlotId(80), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(307), Some(right_child), gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [2 & e == 0] "(" . Layout Plus_7 Layout ")" return 1
-            SlotId(80) => {
+            SlotId(307) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(81));
-                    // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout . Plus_7 Layout ")" return 1
-                    self.execute(j, SlotId(81), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(308), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout . Plus_7 Layout ")" return 1
+                        self.execute(j, SlotId(308), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout . Plus_7 Layout ")" return 1
-            SlotId(81) => {
-                self.create(NonterminalId(36), result, gss_node_id, SlotId(82), env);
+            SlotId(308) => {
+                self.create(NonterminalId(36), result, gss_node_id, SlotId(309), env);
             }
             // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout Plus_7 . Layout ")" return 1
-            SlotId(82) => {
+            SlotId(309) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(83));
-                    // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout Plus_7 Layout . ")" return 1
-                    self.execute(j, SlotId(83), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(310), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout Plus_7 Layout . ")" return 1
+                        self.execute(j, SlotId(310), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout Plus_7 Layout . ")" return 1
-            SlotId(83) => {
+            SlotId(310) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(17),
                     input_index,
-                    SlotId(83),
+                    SlotId(310),
                     Some(gss_node_id),
                     "\")\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(84));
-                    // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout Plus_7 Layout ")" . return 1
-                    self.execute(j, SlotId(84), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(311), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout Plus_7 Layout ")" . return 1
+                        self.execute(j, SlotId(311), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout Plus_7 Layout ")" . return 1
-            SlotId(84) => {
-                self.execute(input_index, SlotId(85), result, gss_node_id, env);
+            SlotId(311) => {
+                self.execute(input_index, SlotId(312), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout Plus_7 Layout ")" return 1.
-            SlotId(85) => {
+            SlotId(312) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1138,7 +1214,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 1;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(85),
+                    SlotId(312),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -1147,86 +1223,94 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(85),
+                    SlotId(312),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" return 2
-            SlotId(86) => {
+            SlotId(313) => {
                 if (4) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(87), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(314), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [4 & e == 0] . "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" return 2
-            SlotId(87) => {
+            SlotId(314) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(16),
                     input_index,
-                    SlotId(87),
+                    SlotId(314),
                     Some(gss_node_id),
                     "\"(\"",
                 ) {
                     // Symbol(p: i32, e: i32) : [4 & e == 0] "(" . Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" return 2
-                    self.execute(j, SlotId(88), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(315), Some(right_child), gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [4 & e == 0] "(" . Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" return 2
-            SlotId(88) => {
+            SlotId(315) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(89));
-                    // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout . first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" return 2
-                    self.execute(j, SlotId(89), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(316), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout . first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" return 2
+                        self.execute(j, SlotId(316), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout . first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" return 2
-            SlotId(89) => {
-                self.create_symbol(result, gss_node_id, SlotId(90), env, None, 0, 0);
+            SlotId(316) => {
+                self.create_symbol(result, gss_node_id, SlotId(317), env, None, 0, 0);
             }
             // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) . Layout rest:Plus_8 Layout ")" return 2
-            SlotId(90) => {
+            SlotId(317) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(91));
-                    // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout . rest:Plus_8 Layout ")" return 2
-                    self.execute(j, SlotId(91), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(318), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout . rest:Plus_8 Layout ")" return 2
+                        self.execute(j, SlotId(318), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout . rest:Plus_8 Layout ")" return 2
-            SlotId(91) => {
-                self.create(NonterminalId(41), result, gss_node_id, SlotId(92), env);
+            SlotId(318) => {
+                self.create(NonterminalId(41), result, gss_node_id, SlotId(319), env);
             }
             // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 . Layout ")" return 2
-            SlotId(92) => {
+            SlotId(319) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(93));
-                    // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout . ")" return 2
-                    self.execute(j, SlotId(93), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(320), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout . ")" return 2
+                        self.execute(j, SlotId(320), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout . ")" return 2
-            SlotId(93) => {
+            SlotId(320) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(17),
                     input_index,
-                    SlotId(93),
+                    SlotId(320),
                     Some(gss_node_id),
                     "\")\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(94));
-                    // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" . return 2
-                    self.execute(j, SlotId(94), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(321), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" . return 2
+                        self.execute(j, SlotId(321), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" . return 2
-            SlotId(94) => {
-                self.execute(input_index, SlotId(95), result, gss_node_id, env);
+            SlotId(321) => {
+                self.execute(input_index, SlotId(322), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" return 2.
-            SlotId(95) => {
+            SlotId(322) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1234,7 +1318,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 2;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(95),
+                    SlotId(322),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -1243,36 +1327,36 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(95),
+                    SlotId(322),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [8 & e == 0] String return 3
-            SlotId(96) => {
+            SlotId(323) => {
                 if (8) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(97), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(324), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [8 & e == 0] . String return 3
-            SlotId(97) => {
+            SlotId(324) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(2),
                     input_index,
-                    SlotId(97),
+                    SlotId(324),
                     Some(gss_node_id),
                     "String",
                 ) {
                     // Symbol(p: i32, e: i32) : [8 & e == 0] String . return 3
-                    self.execute(j, SlotId(98), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(325), Some(right_child), gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [8 & e == 0] String . return 3
-            SlotId(98) => {
-                self.execute(input_index, SlotId(99), result, gss_node_id, env);
+            SlotId(325) => {
+                self.execute(input_index, SlotId(326), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [8 & e == 0] String return 3.
-            SlotId(99) => {
+            SlotId(326) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1280,7 +1364,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 3;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(99),
+                    SlotId(326),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -1289,110 +1373,122 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(99),
+                    SlotId(326),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4
-            SlotId(100) => {
+            SlotId(327) => {
                 if (16) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(101), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(328), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [16 & e == 0] . "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4
-            SlotId(101) => {
+            SlotId(328) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(27),
                     input_index,
-                    SlotId(101),
+                    SlotId(328),
                     Some(gss_node_id),
                     "\"{\"",
                 ) {
                     // Symbol(p: i32, e: i32) : [16 & e == 0] "{" . Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4
-                    self.execute(j, SlotId(102), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(329), Some(right_child), gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" . Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4
-            SlotId(102) => {
+            SlotId(329) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(103));
-                    // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout . symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4
-                    self.execute(j, SlotId(103), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(330), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout . symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4
+                        self.execute(j, SlotId(330), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout . symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4
-            SlotId(103) => {
-                self.create_symbol(result, gss_node_id, SlotId(104), env, None, 0, 0);
+            SlotId(330) => {
+                self.create_symbol(result, gss_node_id, SlotId(331), env, None, 0, 0);
             }
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) . Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4
-            SlotId(104) => {
+            SlotId(331) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(105));
-                    // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout . sep:Symbol(0, 0) Layout "}" Layout "*" return 4
-                    self.execute(j, SlotId(105), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(332), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout . sep:Symbol(0, 0) Layout "}" Layout "*" return 4
+                        self.execute(j, SlotId(332), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout . sep:Symbol(0, 0) Layout "}" Layout "*" return 4
-            SlotId(105) => {
-                self.create_symbol(result, gss_node_id, SlotId(106), env, None, 0, 0);
+            SlotId(332) => {
+                self.create_symbol(result, gss_node_id, SlotId(333), env, None, 0, 0);
             }
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) . Layout "}" Layout "*" return 4
-            SlotId(106) => {
+            SlotId(333) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(107));
-                    // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout . "}" Layout "*" return 4
-                    self.execute(j, SlotId(107), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(334), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout . "}" Layout "*" return 4
+                        self.execute(j, SlotId(334), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout . "}" Layout "*" return 4
-            SlotId(107) => {
+            SlotId(334) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(28),
                     input_index,
-                    SlotId(107),
+                    SlotId(334),
                     Some(gss_node_id),
                     "\"}\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(108));
-                    // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" . Layout "*" return 4
-                    self.execute(j, SlotId(108), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(335), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" . Layout "*" return 4
+                        self.execute(j, SlotId(335), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" . Layout "*" return 4
-            SlotId(108) => {
+            SlotId(335) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(109));
-                    // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout . "*" return 4
-                    self.execute(j, SlotId(109), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(336), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout . "*" return 4
+                        self.execute(j, SlotId(336), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout . "*" return 4
-            SlotId(109) => {
+            SlotId(336) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(29),
                     input_index,
-                    SlotId(109),
+                    SlotId(336),
                     Some(gss_node_id),
                     "\"*\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(110));
-                    // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" . return 4
-                    self.execute(j, SlotId(110), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(337), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" . return 4
+                        self.execute(j, SlotId(337), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" . return 4
-            SlotId(110) => {
-                self.execute(input_index, SlotId(111), result, gss_node_id, env);
+            SlotId(337) => {
+                self.execute(input_index, SlotId(338), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4.
-            SlotId(111) => {
+            SlotId(338) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1400,7 +1496,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 4;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(111),
+                    SlotId(338),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -1409,110 +1505,122 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(111),
+                    SlotId(338),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5
-            SlotId(112) => {
+            SlotId(339) => {
                 if (32) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(113), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(340), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [32 & e == 0] . "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5
-            SlotId(113) => {
+            SlotId(340) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(27),
                     input_index,
-                    SlotId(113),
+                    SlotId(340),
                     Some(gss_node_id),
                     "\"{\"",
                 ) {
                     // Symbol(p: i32, e: i32) : [32 & e == 0] "{" . Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5
-                    self.execute(j, SlotId(114), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(341), Some(right_child), gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" . Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5
-            SlotId(114) => {
+            SlotId(341) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(115));
-                    // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout . symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5
-                    self.execute(j, SlotId(115), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(342), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout . symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5
+                        self.execute(j, SlotId(342), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout . symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5
-            SlotId(115) => {
-                self.create_symbol(result, gss_node_id, SlotId(116), env, None, 0, 0);
+            SlotId(342) => {
+                self.create_symbol(result, gss_node_id, SlotId(343), env, None, 0, 0);
             }
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) . Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5
-            SlotId(116) => {
+            SlotId(343) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(117));
-                    // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout . sep:Symbol(0, 0) Layout "}" Layout "+" return 5
-                    self.execute(j, SlotId(117), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(344), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout . sep:Symbol(0, 0) Layout "}" Layout "+" return 5
+                        self.execute(j, SlotId(344), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout . sep:Symbol(0, 0) Layout "}" Layout "+" return 5
-            SlotId(117) => {
-                self.create_symbol(result, gss_node_id, SlotId(118), env, None, 0, 0);
+            SlotId(344) => {
+                self.create_symbol(result, gss_node_id, SlotId(345), env, None, 0, 0);
             }
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) . Layout "}" Layout "+" return 5
-            SlotId(118) => {
+            SlotId(345) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(119));
-                    // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout . "}" Layout "+" return 5
-                    self.execute(j, SlotId(119), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(346), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout . "}" Layout "+" return 5
+                        self.execute(j, SlotId(346), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout . "}" Layout "+" return 5
-            SlotId(119) => {
+            SlotId(346) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(28),
                     input_index,
-                    SlotId(119),
+                    SlotId(346),
                     Some(gss_node_id),
                     "\"}\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(120));
-                    // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" . Layout "+" return 5
-                    self.execute(j, SlotId(120), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(347), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" . Layout "+" return 5
+                        self.execute(j, SlotId(347), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" . Layout "+" return 5
-            SlotId(120) => {
+            SlotId(347) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(121));
-                    // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout . "+" return 5
-                    self.execute(j, SlotId(121), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(348), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout . "+" return 5
+                        self.execute(j, SlotId(348), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout . "+" return 5
-            SlotId(121) => {
+            SlotId(348) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(30),
                     input_index,
-                    SlotId(121),
+                    SlotId(348),
                     Some(gss_node_id),
                     "\"+\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(122));
-                    // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" . return 5
-                    self.execute(j, SlotId(122), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(349), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" . return 5
+                        self.execute(j, SlotId(349), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" . return 5
-            SlotId(122) => {
-                self.execute(input_index, SlotId(123), result, gss_node_id, env);
+            SlotId(349) => {
+                self.execute(input_index, SlotId(350), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5.
-            SlotId(123) => {
+            SlotId(350) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1520,7 +1628,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 5;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(123),
+                    SlotId(350),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -1529,29 +1637,29 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(123),
+                    SlotId(350),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6
-            SlotId(124) => {
+            SlotId(351) => {
                 if (64) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(125), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(352), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [64 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6
-            SlotId(125) => {
+            SlotId(352) => {
                 if 3 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(126), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(353), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] . l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6
-            SlotId(126) => {
+            SlotId(353) => {
                 self.create_symbol(
                     result,
                     gss_node_id,
-                    SlotId(127),
+                    SlotId(354),
                     env,
                     Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
@@ -1559,43 +1667,47 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
             }
             // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6
-            SlotId(127) => {
+            SlotId(354) => {
                 if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
                     || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
-                    self.execute(input_index, SlotId(128), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(355), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] . Layout "*" return 6
-            SlotId(128) => {
+            SlotId(355) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(129));
-                    // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . "*" return 6
-                    self.execute(j, SlotId(129), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(356), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . "*" return 6
+                        self.execute(j, SlotId(356), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . "*" return 6
-            SlotId(129) => {
+            SlotId(356) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(29),
                     input_index,
-                    SlotId(129),
+                    SlotId(356),
                     Some(gss_node_id),
                     "\"*\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(130));
-                    // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" . return 6
-                    self.execute(j, SlotId(130), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(357), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" . return 6
+                        self.execute(j, SlotId(357), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" . return 6
-            SlotId(130) => {
-                self.execute(input_index, SlotId(131), result, gss_node_id, env);
+            SlotId(357) => {
+                self.execute(input_index, SlotId(358), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6.
-            SlotId(131) => {
+            SlotId(358) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1603,7 +1715,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 6;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(131),
+                    SlotId(358),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -1612,29 +1724,29 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(131),
+                    SlotId(358),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7
-            SlotId(132) => {
+            SlotId(359) => {
                 if (128) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(133), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(360), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [128 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7
-            SlotId(133) => {
+            SlotId(360) => {
                 if 3 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(134), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(361), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] . l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7
-            SlotId(134) => {
+            SlotId(361) => {
                 self.create_symbol(
                     result,
                     gss_node_id,
-                    SlotId(135),
+                    SlotId(362),
                     env,
                     Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
@@ -1642,43 +1754,47 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
             }
             // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7
-            SlotId(135) => {
+            SlotId(362) => {
                 if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
                     || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
-                    self.execute(input_index, SlotId(136), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(363), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] . Layout "+" return 7
-            SlotId(136) => {
+            SlotId(363) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(137));
-                    // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . "+" return 7
-                    self.execute(j, SlotId(137), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(364), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . "+" return 7
+                        self.execute(j, SlotId(364), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . "+" return 7
-            SlotId(137) => {
+            SlotId(364) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(30),
                     input_index,
-                    SlotId(137),
+                    SlotId(364),
                     Some(gss_node_id),
                     "\"+\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(138));
-                    // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" . return 7
-                    self.execute(j, SlotId(138), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(365), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" . return 7
+                        self.execute(j, SlotId(365), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" . return 7
-            SlotId(138) => {
-                self.execute(input_index, SlotId(139), result, gss_node_id, env);
+            SlotId(365) => {
+                self.execute(input_index, SlotId(366), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7.
-            SlotId(139) => {
+            SlotId(366) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1686,7 +1802,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 7;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(139),
+                    SlotId(366),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -1695,29 +1811,29 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(139),
+                    SlotId(366),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8
-            SlotId(140) => {
+            SlotId(367) => {
                 if (256) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(141), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(368), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [256 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8
-            SlotId(141) => {
+            SlotId(368) => {
                 if 3 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(142), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(369), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] . l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8
-            SlotId(142) => {
+            SlotId(369) => {
                 self.create_symbol(
                     result,
                     gss_node_id,
-                    SlotId(143),
+                    SlotId(370),
                     env,
                     Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
@@ -1725,43 +1841,47 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
             }
             // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8
-            SlotId(143) => {
+            SlotId(370) => {
                 if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
                     || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
-                    self.execute(input_index, SlotId(144), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(371), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] . Layout "?" return 8
-            SlotId(144) => {
+            SlotId(371) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(145));
-                    // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . "?" return 8
-                    self.execute(j, SlotId(145), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(372), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . "?" return 8
+                        self.execute(j, SlotId(372), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . "?" return 8
-            SlotId(145) => {
+            SlotId(372) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(31),
                     input_index,
-                    SlotId(145),
+                    SlotId(372),
                     Some(gss_node_id),
                     "\"?\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(146));
-                    // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" . return 8
-                    self.execute(j, SlotId(146), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(373), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" . return 8
+                        self.execute(j, SlotId(373), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" . return 8
-            SlotId(146) => {
-                self.execute(input_index, SlotId(147), result, gss_node_id, env);
+            SlotId(373) => {
+                self.execute(input_index, SlotId(374), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8.
-            SlotId(147) => {
+            SlotId(374) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1769,7 +1889,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 8;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(147),
+                    SlotId(374),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -1778,29 +1898,29 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(147),
+                    SlotId(374),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9
-            SlotId(148) => {
+            SlotId(375) => {
                 if (512) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(149), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(376), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9
-            SlotId(149) => {
+            SlotId(376) => {
                 if 3 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(150), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(377), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] . l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9
-            SlotId(150) => {
+            SlotId(377) => {
                 self.create_symbol(
                     result,
                     gss_node_id,
-                    SlotId(151),
+                    SlotId(378),
                     env,
                     Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
@@ -1808,45 +1928,49 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9
-            SlotId(151) => {
+            SlotId(378) => {
                 if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
                     || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
-                    self.execute(input_index, SlotId(152), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(379), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] . [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9
-            SlotId(152) => {
+            SlotId(379) => {
                 if ((self.lookup(BINDING_L, env.unwrap())) & (65535) == 65535)
                     || (((512) >> ((self.lookup(BINDING_L, env.unwrap())) & (65535))) & (1) == 0)
                 {
-                    self.execute(input_index, SlotId(153), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(380), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] . Layout excepts:Plus_9 return 9
-            SlotId(153) => {
+            SlotId(380) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(154));
-                    // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout . excepts:Plus_9 return 9
-                    self.execute(j, SlotId(154), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(381), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout . excepts:Plus_9 return 9
+                        self.execute(j, SlotId(381), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout . excepts:Plus_9 return 9
-            SlotId(154) => {
+            SlotId(381) => {
                 if let Some(right_child) = self.parse_plus_9_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(155));
-                    // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 . return 9
-                    self.execute(j, SlotId(155), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(382), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 . return 9
+                        self.execute(j, SlotId(382), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 . return 9
-            SlotId(155) => {
-                self.execute(input_index, SlotId(156), result, gss_node_id, env);
+            SlotId(382) => {
+                self.execute(input_index, SlotId(383), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9.
-            SlotId(156) => {
+            SlotId(383) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1854,7 +1978,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 9;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(156),
+                    SlotId(383),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -1863,29 +1987,29 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(156),
+                    SlotId(383),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10
-            SlotId(157) => {
+            SlotId(384) => {
                 if (1024) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(158), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(385), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10
-            SlotId(158) => {
+            SlotId(385) => {
                 if 3 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(159), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(386), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] . l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10
-            SlotId(159) => {
+            SlotId(386) => {
                 self.create_symbol(
                     result,
                     gss_node_id,
-                    SlotId(160),
+                    SlotId(387),
                     env,
                     Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
@@ -1893,45 +2017,49 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10
-            SlotId(160) => {
+            SlotId(387) => {
                 if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
                     || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
-                    self.execute(input_index, SlotId(161), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(388), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] . [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10
-            SlotId(161) => {
+            SlotId(388) => {
                 if ((self.lookup(BINDING_L, env.unwrap())) & (65535) == 65535)
                     || (((1024) >> ((self.lookup(BINDING_L, env.unwrap())) & (65535))) & (1) == 0)
                 {
-                    self.execute(input_index, SlotId(162), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(389), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] . Layout restrictions:Plus_10 return 10
-            SlotId(162) => {
+            SlotId(389) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(163));
-                    // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout . restrictions:Plus_10 return 10
-                    self.execute(j, SlotId(163), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(390), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout . restrictions:Plus_10 return 10
+                        self.execute(j, SlotId(390), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout . restrictions:Plus_10 return 10
-            SlotId(163) => {
+            SlotId(390) => {
                 if let Some(right_child) = self.parse_plus_10_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(164));
-                    // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 . return 10
-                    self.execute(j, SlotId(164), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(391), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 . return 10
+                        self.execute(j, SlotId(391), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 . return 10
-            SlotId(164) => {
-                self.execute(input_index, SlotId(165), result, gss_node_id, env);
+            SlotId(391) => {
+                self.execute(input_index, SlotId(392), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10.
-            SlotId(165) => {
+            SlotId(392) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -1939,7 +2067,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 10;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(165),
+                    SlotId(392),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -1948,29 +2076,29 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(165),
+                    SlotId(392),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 return 11
-            SlotId(166) => {
+            SlotId(393) => {
                 if (2048) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(167), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(394), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [2048 & e == 0] . [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 return 11
-            SlotId(167) => {
+            SlotId(394) => {
                 if 3 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(168), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(395), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] . l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 return 11
-            SlotId(168) => {
+            SlotId(395) => {
                 self.create_symbol(
                     result,
                     gss_node_id,
-                    SlotId(169),
+                    SlotId(396),
                     env,
                     Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
@@ -1978,37 +2106,41 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
             }
             // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) . [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 return 11
-            SlotId(169) => {
+            SlotId(396) => {
                 if ((self.lookup(BINDING_L, env.unwrap())) >> (16) == 0)
                     || ((self.lookup(BINDING_L, env.unwrap())) >> (16) >= 3)
                 {
-                    self.execute(input_index, SlotId(170), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(397), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] . Layout labels:Plus_11 return 11
-            SlotId(170) => {
+            SlotId(397) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(171));
-                    // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . labels:Plus_11 return 11
-                    self.execute(j, SlotId(171), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(398), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . labels:Plus_11 return 11
+                        self.execute(j, SlotId(398), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . labels:Plus_11 return 11
-            SlotId(171) => {
+            SlotId(398) => {
                 if let Some(right_child) = self.parse_plus_11_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(172));
-                    // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 . return 11
-                    self.execute(j, SlotId(172), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(399), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 . return 11
+                        self.execute(j, SlotId(399), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 . return 11
-            SlotId(172) => {
-                self.execute(input_index, SlotId(173), result, gss_node_id, env);
+            SlotId(399) => {
+                self.execute(input_index, SlotId(400), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 return 11.
-            SlotId(173) => {
+            SlotId(400) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -2016,7 +2148,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 11;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(173),
+                    SlotId(400),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -2025,73 +2157,79 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(173),
+                    SlotId(400),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-            SlotId(174) => {
+            SlotId(401) => {
                 if (4096) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(175), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(402), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [4096 & e == 0] . Identifier Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-            SlotId(175) => {
+            SlotId(402) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(1),
                     input_index,
-                    SlotId(175),
+                    SlotId(402),
                     Some(gss_node_id),
                     "Identifier",
                 ) {
                     // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier . Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-                    self.execute(j, SlotId(176), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(403), Some(right_child), gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier . Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-            SlotId(176) => {
+            SlotId(403) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(177));
-                    // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout . "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-                    self.execute(j, SlotId(177), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(404), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout . "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
+                        self.execute(j, SlotId(404), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout . "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-            SlotId(177) => {
+            SlotId(404) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(21),
                     input_index,
-                    SlotId(177),
+                    SlotId(404),
                     Some(gss_node_id),
                     "\"!<<\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(178));
-                    // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout "!<<" . Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-                    self.execute(j, SlotId(178), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(405), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout "!<<" . Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
+                        self.execute(j, SlotId(405), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout "!<<" . Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-            SlotId(178) => {
+            SlotId(405) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(179));
-                    // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout "!<<" Layout . r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-                    self.execute(j, SlotId(179), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(406), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout "!<<" Layout . r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
+                        self.execute(j, SlotId(406), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout "!<<" Layout . r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-            SlotId(179) => {
-                self.create_symbol(result, gss_node_id, SlotId(180), env, Some(BINDING_R), 2, 0);
+            SlotId(406) => {
+                self.create_symbol(result, gss_node_id, SlotId(407), env, Some(BINDING_R), 2, 0);
             }
             // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) . return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-            SlotId(180) => {
-                self.execute(input_index, SlotId(181), result, gss_node_id, env);
+            SlotId(407) => {
+                self.execute(input_index, SlotId(408), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12.
-            SlotId(181) => {
+            SlotId(408) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -2104,7 +2242,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     | (12);
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(181),
+                    SlotId(408),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -2113,73 +2251,79 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(181),
+                    SlotId(408),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Symbol(p: i32, e: i32) : . [8192 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) return 65549
-            SlotId(182) => {
+            SlotId(409) => {
                 if (8192) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(183), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(410), result, gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [8192 & e == 0] . label:Identifier Layout ":" Layout Symbol(1, 0) return 65549
-            SlotId(183) => {
+            SlotId(410) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(1),
                     input_index,
-                    SlotId(183),
+                    SlotId(410),
                     Some(gss_node_id),
                     "Identifier",
                 ) {
                     // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier . Layout ":" Layout Symbol(1, 0) return 65549
-                    self.execute(j, SlotId(184), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(411), Some(right_child), gss_node_id, env);
                 }
             }
             // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier . Layout ":" Layout Symbol(1, 0) return 65549
-            SlotId(184) => {
+            SlotId(411) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(185));
-                    // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout . ":" Layout Symbol(1, 0) return 65549
-                    self.execute(j, SlotId(185), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(412), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout . ":" Layout Symbol(1, 0) return 65549
+                        self.execute(j, SlotId(412), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout . ":" Layout Symbol(1, 0) return 65549
-            SlotId(185) => {
+            SlotId(412) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(33),
                     input_index,
-                    SlotId(185),
+                    SlotId(412),
                     Some(gss_node_id),
                     "\":\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(186));
-                    // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout ":" . Layout Symbol(1, 0) return 65549
-                    self.execute(j, SlotId(186), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(413), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout ":" . Layout Symbol(1, 0) return 65549
+                        self.execute(j, SlotId(413), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout ":" . Layout Symbol(1, 0) return 65549
-            SlotId(186) => {
+            SlotId(413) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(187));
-                    // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout ":" Layout . Symbol(1, 0) return 65549
-                    self.execute(j, SlotId(187), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(414), env)
+                    {
+                        // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout ":" Layout . Symbol(1, 0) return 65549
+                        self.execute(j, SlotId(414), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout ":" Layout . Symbol(1, 0) return 65549
-            SlotId(187) => {
-                self.create_symbol(result, gss_node_id, SlotId(188), env, None, 1, 0);
+            SlotId(414) => {
+                self.create_symbol(result, gss_node_id, SlotId(415), env, None, 1, 0);
             }
             // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) . return 65549
-            SlotId(188) => {
-                self.execute(input_index, SlotId(189), result, gss_node_id, env);
+            SlotId(415) => {
+                self.execute(input_index, SlotId(416), result, gss_node_id, env);
             }
             // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) return 65549.
-            SlotId(189) => {
+            SlotId(416) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -2187,7 +2331,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 let return_value = 65549;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
                     NonterminalId(57),
-                    SlotId(189),
+                    SlotId(416),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -2196,2075 +2340,2189 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(189),
+                    SlotId(416),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Regex : . Regex Layout "+"
-            SlotId(190) => {
-                self.create(NonterminalId(11), result, gss_node_id, SlotId(191), env);
+            SlotId(74) => {
+                self.create(NonterminalId(11), result, gss_node_id, SlotId(75), env);
             }
             // Regex : Regex . Layout "+"
-            SlotId(191) => {
+            SlotId(75) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(192));
-                    // Regex : Regex Layout . "+"
-                    self.execute(j, SlotId(192), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(76), env)
+                    {
+                        // Regex : Regex Layout . "+"
+                        self.execute(j, SlotId(76), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Regex : Regex Layout . "+"
-            SlotId(192) => {
+            SlotId(76) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(30),
                     input_index,
-                    SlotId(192),
+                    SlotId(76),
                     Some(gss_node_id),
                     "\"+\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(193));
-                    // Regex : Regex Layout "+".
-                    self.execute(j, SlotId(193), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(77), env)
+                    {
+                        // Regex : Regex Layout "+".
+                        self.execute(j, SlotId(77), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Regex : Regex Layout "+".
-            SlotId(193) => {
+            SlotId(77) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
                     NonterminalId(11),
+                    SlotId(77),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(77), nonterminal_node_id, None);
+            }
+            // Regex : . Regex Layout "*"
+            SlotId(78) => {
+                self.create(NonterminalId(11), result, gss_node_id, SlotId(79), env);
+            }
+            // Regex : Regex . Layout "*"
+            SlotId(79) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(80), env)
+                    {
+                        // Regex : Regex Layout . "*"
+                        self.execute(j, SlotId(80), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Regex : Regex Layout . "*"
+            SlotId(80) => {
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(29),
+                    input_index,
+                    SlotId(80),
+                    Some(gss_node_id),
+                    "\"*\"",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(81), env)
+                    {
+                        // Regex : Regex Layout "*".
+                        self.execute(j, SlotId(81), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Regex : Regex Layout "*".
+            SlotId(81) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(11),
+                    SlotId(81),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(81), nonterminal_node_id, None);
+            }
+            // Regex : . Regex Layout "?"
+            SlotId(82) => {
+                self.create(NonterminalId(11), result, gss_node_id, SlotId(83), env);
+            }
+            // Regex : Regex . Layout "?"
+            SlotId(83) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(84), env)
+                    {
+                        // Regex : Regex Layout . "?"
+                        self.execute(j, SlotId(84), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Regex : Regex Layout . "?"
+            SlotId(84) => {
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(31),
+                    input_index,
+                    SlotId(84),
+                    Some(gss_node_id),
+                    "\"?\"",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(85), env)
+                    {
+                        // Regex : Regex Layout "?".
+                        self.execute(j, SlotId(85), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Regex : Regex Layout "?".
+            SlotId(85) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(11),
+                    SlotId(85),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(85), nonterminal_node_id, None);
+            }
+            // Regex : . "(" Layout first:Regex Layout rest:Plus_12 Layout ")"
+            SlotId(86) => {
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(16),
+                    input_index,
+                    SlotId(86),
+                    Some(gss_node_id),
+                    "\"(\"",
+                ) {
+                    // Regex : "(" . Layout first:Regex Layout rest:Plus_12 Layout ")"
+                    self.execute(j, SlotId(87), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Regex : "(" . Layout first:Regex Layout rest:Plus_12 Layout ")"
+            SlotId(87) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(88), env)
+                    {
+                        // Regex : "(" Layout . first:Regex Layout rest:Plus_12 Layout ")"
+                        self.execute(j, SlotId(88), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Regex : "(" Layout . first:Regex Layout rest:Plus_12 Layout ")"
+            SlotId(88) => {
+                self.create(NonterminalId(11), result, gss_node_id, SlotId(89), env);
+            }
+            // Regex : "(" Layout first:Regex . Layout rest:Plus_12 Layout ")"
+            SlotId(89) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(90), env)
+                    {
+                        // Regex : "(" Layout first:Regex Layout . rest:Plus_12 Layout ")"
+                        self.execute(j, SlotId(90), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Regex : "(" Layout first:Regex Layout . rest:Plus_12 Layout ")"
+            SlotId(90) => {
+                self.create(NonterminalId(49), result, gss_node_id, SlotId(91), env);
+            }
+            // Regex : "(" Layout first:Regex Layout rest:Plus_12 . Layout ")"
+            SlotId(91) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(92), env)
+                    {
+                        // Regex : "(" Layout first:Regex Layout rest:Plus_12 Layout . ")"
+                        self.execute(j, SlotId(92), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Regex : "(" Layout first:Regex Layout rest:Plus_12 Layout . ")"
+            SlotId(92) => {
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(17),
+                    input_index,
+                    SlotId(92),
+                    Some(gss_node_id),
+                    "\")\"",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(93), env)
+                    {
+                        // Regex : "(" Layout first:Regex Layout rest:Plus_12 Layout ")".
+                        self.execute(j, SlotId(93), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Regex : "(" Layout first:Regex Layout rest:Plus_12 Layout ")".
+            SlotId(93) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(11),
+                    SlotId(93),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(93), nonterminal_node_id, None);
+            }
+            // Regex : . "(" Layout Plus_4 Layout ")"
+            SlotId(94) => {
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(16),
+                    input_index,
+                    SlotId(94),
+                    Some(gss_node_id),
+                    "\"(\"",
+                ) {
+                    // Regex : "(" . Layout Plus_4 Layout ")"
+                    self.execute(j, SlotId(95), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Regex : "(" . Layout Plus_4 Layout ")"
+            SlotId(95) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(96), env)
+                    {
+                        // Regex : "(" Layout . Plus_4 Layout ")"
+                        self.execute(j, SlotId(96), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Regex : "(" Layout . Plus_4 Layout ")"
+            SlotId(96) => {
+                self.create(NonterminalId(27), result, gss_node_id, SlotId(97), env);
+            }
+            // Regex : "(" Layout Plus_4 . Layout ")"
+            SlotId(97) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(98), env)
+                    {
+                        // Regex : "(" Layout Plus_4 Layout . ")"
+                        self.execute(j, SlotId(98), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Regex : "(" Layout Plus_4 Layout . ")"
+            SlotId(98) => {
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(17),
+                    input_index,
+                    SlotId(98),
+                    Some(gss_node_id),
+                    "\")\"",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(99), env)
+                    {
+                        // Regex : "(" Layout Plus_4 Layout ")".
+                        self.execute(j, SlotId(99), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Regex : "(" Layout Plus_4 Layout ")".
+            SlotId(99) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(11),
+                    SlotId(99),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(99), nonterminal_node_id, None);
+            }
+            // Regex : . CharClass
+            SlotId(100) => {
+                self.create(NonterminalId(12), result, gss_node_id, SlotId(101), env);
+            }
+            // Regex : CharClass.
+            SlotId(101) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(11),
+                    SlotId(101),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(101), nonterminal_node_id, None);
+            }
+            // Regex : . Char
+            SlotId(102) => {
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(3),
+                    input_index,
+                    SlotId(102),
+                    Some(gss_node_id),
+                    "Char",
+                ) {
+                    // Regex : Char.
+                    self.execute(j, SlotId(103), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Regex : Char.
+            SlotId(103) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(11),
+                    SlotId(103),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(103), nonterminal_node_id, None);
+            }
+            // Regex : . String
+            SlotId(104) => {
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(2),
+                    input_index,
+                    SlotId(104),
+                    Some(gss_node_id),
+                    "String",
+                ) {
+                    // Regex : String.
+                    self.execute(j, SlotId(105), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Regex : String.
+            SlotId(105) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(11),
+                    SlotId(105),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(105), nonterminal_node_id, None);
+            }
+            // Regex : . Identifier
+            SlotId(106) => {
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(1),
+                    input_index,
+                    SlotId(106),
+                    Some(gss_node_id),
+                    "Identifier",
+                ) {
+                    // Regex : Identifier.
+                    self.execute(j, SlotId(107), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Regex : Identifier.
+            SlotId(107) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(11),
+                    SlotId(107),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(107), nonterminal_node_id, None);
+            }
+            // CharClass : . neg:Opt_10 Layout "[" Layout Plus_13 Layout "]"
+            SlotId(108) => {
+                if let Some(right_child) = self.parse_opt_10_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // CharClass : neg:Opt_10 . Layout "[" Layout Plus_13 Layout "]"
+                    self.execute(j, SlotId(109), Some(right_child), gss_node_id, env);
+                }
+            }
+            // CharClass : neg:Opt_10 . Layout "[" Layout Plus_13 Layout "]"
+            SlotId(109) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(110), env)
+                    {
+                        // CharClass : neg:Opt_10 Layout . "[" Layout Plus_13 Layout "]"
+                        self.execute(j, SlotId(110), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // CharClass : neg:Opt_10 Layout . "[" Layout Plus_13 Layout "]"
+            SlotId(110) => {
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(34),
+                    input_index,
+                    SlotId(110),
+                    Some(gss_node_id),
+                    "\"[\"",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(111), env)
+                    {
+                        // CharClass : neg:Opt_10 Layout "[" . Layout Plus_13 Layout "]"
+                        self.execute(j, SlotId(111), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // CharClass : neg:Opt_10 Layout "[" . Layout Plus_13 Layout "]"
+            SlotId(111) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(112), env)
+                    {
+                        // CharClass : neg:Opt_10 Layout "[" Layout . Plus_13 Layout "]"
+                        self.execute(j, SlotId(112), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // CharClass : neg:Opt_10 Layout "[" Layout . Plus_13 Layout "]"
+            SlotId(112) => {
+                self.create(NonterminalId(51), result, gss_node_id, SlotId(113), env);
+            }
+            // CharClass : neg:Opt_10 Layout "[" Layout Plus_13 . Layout "]"
+            SlotId(113) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(114), env)
+                    {
+                        // CharClass : neg:Opt_10 Layout "[" Layout Plus_13 Layout . "]"
+                        self.execute(j, SlotId(114), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // CharClass : neg:Opt_10 Layout "[" Layout Plus_13 Layout . "]"
+            SlotId(114) => {
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(35),
+                    input_index,
+                    SlotId(114),
+                    Some(gss_node_id),
+                    "\"]\"",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(115), env)
+                    {
+                        // CharClass : neg:Opt_10 Layout "[" Layout Plus_13 Layout "]".
+                        self.execute(j, SlotId(115), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // CharClass : neg:Opt_10 Layout "[" Layout Plus_13 Layout "]".
+            SlotId(115) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(12),
+                    SlotId(115),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(115), nonterminal_node_id, None);
+            }
+            // RangeElement : . Range
+            SlotId(116) => {
+                if let Some(right_child) = self.parse_range_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // RangeElement : Range.
+                    self.execute(j, SlotId(117), Some(right_child), gss_node_id, env);
+                }
+            }
+            // RangeElement : Range.
+            SlotId(117) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(13),
+                    SlotId(117),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(117), nonterminal_node_id, None);
+            }
+            // RangeElement : . RangeChar
+            SlotId(118) => {
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(5),
+                    input_index,
+                    SlotId(118),
+                    Some(gss_node_id),
+                    "RangeChar",
+                ) {
+                    // RangeElement : RangeChar.
+                    self.execute(j, SlotId(119), Some(right_child), gss_node_id, env);
+                }
+            }
+            // RangeElement : RangeChar.
+            SlotId(119) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(13),
+                    SlotId(119),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(119), nonterminal_node_id, None);
+            }
+            // Range : . start:RangeChar Layout "-" Layout end:RangeChar
+            SlotId(120) => {
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(5),
+                    input_index,
+                    SlotId(120),
+                    Some(gss_node_id),
+                    "RangeChar",
+                ) {
+                    // Range : start:RangeChar . Layout "-" Layout end:RangeChar
+                    self.execute(j, SlotId(121), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Range : start:RangeChar . Layout "-" Layout end:RangeChar
+            SlotId(121) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(122), env)
+                    {
+                        // Range : start:RangeChar Layout . "-" Layout end:RangeChar
+                        self.execute(j, SlotId(122), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Range : start:RangeChar Layout . "-" Layout end:RangeChar
+            SlotId(122) => {
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(36),
+                    input_index,
+                    SlotId(122),
+                    Some(gss_node_id),
+                    "\"-\"",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(123), env)
+                    {
+                        // Range : start:RangeChar Layout "-" . Layout end:RangeChar
+                        self.execute(j, SlotId(123), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Range : start:RangeChar Layout "-" . Layout end:RangeChar
+            SlotId(123) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(124), env)
+                    {
+                        // Range : start:RangeChar Layout "-" Layout . end:RangeChar
+                        self.execute(j, SlotId(124), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Range : start:RangeChar Layout "-" Layout . end:RangeChar
+            SlotId(124) => {
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(5),
+                    input_index,
+                    SlotId(124),
+                    Some(gss_node_id),
+                    "RangeChar",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(125), env)
+                    {
+                        // Range : start:RangeChar Layout "-" Layout end:RangeChar.
+                        self.execute(j, SlotId(125), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Range : start:RangeChar Layout "-" Layout end:RangeChar.
+            SlotId(125) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(14),
+                    SlotId(125),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(125), nonterminal_node_id, None);
+            }
+            // Layout : . Star_6 !>> WS !>> LineComment
+            SlotId(126) => {
+                if let Some(right_child) = self.parse_star_6_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    if let Some(error_kind) = self.post_conditions(SlotId(127), input_index, j) {
+                        self.add_parse_error(j, SlotId(127), Some(gss_node_id), || error_kind);
+                        return;
+                    }
+                    // Layout : Star_6 !>> WS !>> LineComment.
+                    self.execute(j, SlotId(127), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Layout : Star_6 !>> WS !>> LineComment.
+            SlotId(127) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(15),
+                    SlotId(127),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(127), nonterminal_node_id, None);
+            }
+            // Opt_0 : . LayoutDef
+            SlotId(128) => {
+                if let Some(right_child) = self.parse_layout_def_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Opt_0 : LayoutDef.
+                    self.execute(j, SlotId(129), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Opt_0 : LayoutDef.
+            SlotId(129) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(16),
+                    SlotId(129),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(129), nonterminal_node_id, None);
+            }
+            // Opt_0 : .
+            SlotId(130) => {
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                    NonterminalId(16),
+                    SlotId(130),
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(130), nonterminal_node_id, None);
+            }
+            // Plus_0 : . Plus_0 Layout Rule
+            SlotId(131) => {
+                self.create(NonterminalId(17), result, gss_node_id, SlotId(132), env);
+            }
+            // Plus_0 : Plus_0 . Layout Rule
+            SlotId(132) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(133), env)
+                    {
+                        // Plus_0 : Plus_0 Layout . Rule
+                        self.execute(j, SlotId(133), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_0 : Plus_0 Layout . Rule
+            SlotId(133) => {
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(134), env);
+            }
+            // Plus_0 : Plus_0 Layout Rule.
+            SlotId(134) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(17),
+                    SlotId(134),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(134), nonterminal_node_id, None);
+            }
+            // Plus_0 : . Rule
+            SlotId(135) => {
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(136), env);
+            }
+            // Plus_0 : Rule.
+            SlotId(136) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(17),
+                    SlotId(136),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(136), nonterminal_node_id, None);
+            }
+            // Opt_1 : . Plus_0
+            SlotId(137) => {
+                self.create(NonterminalId(17), result, gss_node_id, SlotId(138), env);
+            }
+            // Opt_1 : Plus_0.
+            SlotId(138) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(18),
+                    SlotId(138),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(138), nonterminal_node_id, None);
+            }
+            // Opt_1 : .
+            SlotId(139) => {
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                    NonterminalId(18),
+                    SlotId(139),
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(139), nonterminal_node_id, None);
+            }
+            // Star_0 : . Opt_1
+            SlotId(140) => {
+                self.create(NonterminalId(18), result, gss_node_id, SlotId(141), env);
+            }
+            // Star_0 : Opt_1.
+            SlotId(141) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(19),
+                    SlotId(141),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(141), nonterminal_node_id, None);
+            }
+            // Plus_1 : . Plus_1 Layout Annotation
+            SlotId(142) => {
+                if let Some(right_child) = self.parse_plus_1_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Plus_1 : Plus_1 . Layout Annotation
+                    self.execute(j, SlotId(143), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Plus_1 : Plus_1 . Layout Annotation
+            SlotId(143) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(144), env)
+                    {
+                        // Plus_1 : Plus_1 Layout . Annotation
+                        self.execute(j, SlotId(144), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_1 : Plus_1 Layout . Annotation
+            SlotId(144) => {
+                if let Some(right_child) = self.parse_annotation_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(145), env)
+                    {
+                        // Plus_1 : Plus_1 Layout Annotation.
+                        self.execute(j, SlotId(145), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_1 : Plus_1 Layout Annotation.
+            SlotId(145) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(20),
+                    SlotId(145),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(145), nonterminal_node_id, None);
+            }
+            // Plus_1 : . Annotation
+            SlotId(146) => {
+                if let Some(right_child) = self.parse_annotation_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Plus_1 : Annotation.
+                    self.execute(j, SlotId(147), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Plus_1 : Annotation.
+            SlotId(147) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(20),
+                    SlotId(147),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(147), nonterminal_node_id, None);
+            }
+            // Opt_2 : . Plus_1
+            SlotId(148) => {
+                if let Some(right_child) = self.parse_plus_1_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Opt_2 : Plus_1.
+                    self.execute(j, SlotId(149), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Opt_2 : Plus_1.
+            SlotId(149) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(21),
+                    SlotId(149),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(149), nonterminal_node_id, None);
+            }
+            // Opt_2 : .
+            SlotId(150) => {
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                    NonterminalId(21),
+                    SlotId(150),
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(150), nonterminal_node_id, None);
+            }
+            // Star_1 : . Opt_2
+            SlotId(151) => {
+                if let Some(right_child) = self.parse_opt_2_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Star_1 : Opt_2.
+                    self.execute(j, SlotId(152), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Star_1 : Opt_2.
+            SlotId(152) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(22),
+                    SlotId(152),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(152), nonterminal_node_id, None);
+            }
+            // Plus_2 : . Plus_2 Layout ">" Layout PriorityLevel
+            SlotId(153) => {
+                self.create(NonterminalId(23), result, gss_node_id, SlotId(154), env);
+            }
+            // Plus_2 : Plus_2 . Layout ">" Layout PriorityLevel
+            SlotId(154) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(155), env)
+                    {
+                        // Plus_2 : Plus_2 Layout . ">" Layout PriorityLevel
+                        self.execute(j, SlotId(155), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_2 : Plus_2 Layout . ">" Layout PriorityLevel
+            SlotId(155) => {
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(13),
+                    input_index,
+                    SlotId(155),
+                    Some(gss_node_id),
+                    "\">\"",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(156), env)
+                    {
+                        // Plus_2 : Plus_2 Layout ">" . Layout PriorityLevel
+                        self.execute(j, SlotId(156), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_2 : Plus_2 Layout ">" . Layout PriorityLevel
+            SlotId(156) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(157), env)
+                    {
+                        // Plus_2 : Plus_2 Layout ">" Layout . PriorityLevel
+                        self.execute(j, SlotId(157), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_2 : Plus_2 Layout ">" Layout . PriorityLevel
+            SlotId(157) => {
+                self.create(NonterminalId(8), result, gss_node_id, SlotId(158), env);
+            }
+            // Plus_2 : Plus_2 Layout ">" Layout PriorityLevel.
+            SlotId(158) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(23),
+                    SlotId(158),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(158), nonterminal_node_id, None);
+            }
+            // Plus_2 : . PriorityLevel
+            SlotId(159) => {
+                self.create(NonterminalId(8), result, gss_node_id, SlotId(160), env);
+            }
+            // Plus_2 : PriorityLevel.
+            SlotId(160) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(23),
+                    SlotId(160),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(160), nonterminal_node_id, None);
+            }
+            // Opt_3 : . Plus_2
+            SlotId(161) => {
+                self.create(NonterminalId(23), result, gss_node_id, SlotId(162), env);
+            }
+            // Opt_3 : Plus_2.
+            SlotId(162) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(24),
+                    SlotId(162),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(162), nonterminal_node_id, None);
+            }
+            // Opt_3 : .
+            SlotId(163) => {
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                    NonterminalId(24),
+                    SlotId(163),
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(163), nonterminal_node_id, None);
+            }
+            // Star_2 : . Opt_3
+            SlotId(164) => {
+                self.create(NonterminalId(24), result, gss_node_id, SlotId(165), env);
+            }
+            // Star_2 : Opt_3.
+            SlotId(165) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(25),
+                    SlotId(165),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(165), nonterminal_node_id, None);
+            }
+            // Opt_4 : . PreCondition
+            SlotId(166) => {
+                if let Some(right_child) = self.parse_pre_condition_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Opt_4 : PreCondition.
+                    self.execute(j, SlotId(167), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Opt_4 : PreCondition.
+            SlotId(167) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(26),
+                    SlotId(167),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(167), nonterminal_node_id, None);
+            }
+            // Opt_4 : .
+            SlotId(168) => {
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                    NonterminalId(26),
+                    SlotId(168),
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(168), nonterminal_node_id, None);
+            }
+            // Plus_4 : . Plus_4 Layout Regex
+            SlotId(169) => {
+                self.create(NonterminalId(27), result, gss_node_id, SlotId(170), env);
+            }
+            // Plus_4 : Plus_4 . Layout Regex
+            SlotId(170) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(171), env)
+                    {
+                        // Plus_4 : Plus_4 Layout . Regex
+                        self.execute(j, SlotId(171), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_4 : Plus_4 Layout . Regex
+            SlotId(171) => {
+                self.create(NonterminalId(11), result, gss_node_id, SlotId(172), env);
+            }
+            // Plus_4 : Plus_4 Layout Regex.
+            SlotId(172) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(27),
+                    SlotId(172),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(172), nonterminal_node_id, None);
+            }
+            // Plus_4 : . Regex
+            SlotId(173) => {
+                self.create(NonterminalId(11), result, gss_node_id, SlotId(174), env);
+            }
+            // Plus_4 : Regex.
+            SlotId(174) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(27),
+                    SlotId(174),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(174), nonterminal_node_id, None);
+            }
+            // Plus_3 : . Plus_3 Layout "|" Layout Plus_4
+            SlotId(175) => {
+                self.create(NonterminalId(28), result, gss_node_id, SlotId(176), env);
+            }
+            // Plus_3 : Plus_3 . Layout "|" Layout Plus_4
+            SlotId(176) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(177), env)
+                    {
+                        // Plus_3 : Plus_3 Layout . "|" Layout Plus_4
+                        self.execute(j, SlotId(177), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_3 : Plus_3 Layout . "|" Layout Plus_4
+            SlotId(177) => {
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(20),
+                    input_index,
+                    SlotId(177),
+                    Some(gss_node_id),
+                    "\"|\"",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(178), env)
+                    {
+                        // Plus_3 : Plus_3 Layout "|" . Layout Plus_4
+                        self.execute(j, SlotId(178), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_3 : Plus_3 Layout "|" . Layout Plus_4
+            SlotId(178) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(179), env)
+                    {
+                        // Plus_3 : Plus_3 Layout "|" Layout . Plus_4
+                        self.execute(j, SlotId(179), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_3 : Plus_3 Layout "|" Layout . Plus_4
+            SlotId(179) => {
+                self.create(NonterminalId(27), result, gss_node_id, SlotId(180), env);
+            }
+            // Plus_3 : Plus_3 Layout "|" Layout Plus_4.
+            SlotId(180) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(28),
+                    SlotId(180),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(180), nonterminal_node_id, None);
+            }
+            // Plus_3 : . Plus_4
+            SlotId(181) => {
+                self.create(NonterminalId(27), result, gss_node_id, SlotId(182), env);
+            }
+            // Plus_3 : Plus_4.
+            SlotId(182) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(28),
+                    SlotId(182),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(182), nonterminal_node_id, None);
+            }
+            // Plus_5 : . Plus_5 Layout PostCondition
+            SlotId(183) => {
+                if let Some(right_child) = self.parse_plus_5_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Plus_5 : Plus_5 . Layout PostCondition
+                    self.execute(j, SlotId(184), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Plus_5 : Plus_5 . Layout PostCondition
+            SlotId(184) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(185), env)
+                    {
+                        // Plus_5 : Plus_5 Layout . PostCondition
+                        self.execute(j, SlotId(185), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_5 : Plus_5 Layout . PostCondition
+            SlotId(185) => {
+                if let Some(right_child) = self.parse_post_condition_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(186), env)
+                    {
+                        // Plus_5 : Plus_5 Layout PostCondition.
+                        self.execute(j, SlotId(186), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_5 : Plus_5 Layout PostCondition.
+            SlotId(186) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(29),
+                    SlotId(186),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(186), nonterminal_node_id, None);
+            }
+            // Plus_5 : . PostCondition
+            SlotId(187) => {
+                if let Some(right_child) = self.parse_post_condition_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Plus_5 : PostCondition.
+                    self.execute(j, SlotId(188), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Plus_5 : PostCondition.
+            SlotId(188) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(29),
+                    SlotId(188),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(188), nonterminal_node_id, None);
+            }
+            // Opt_5 : . Plus_5
+            SlotId(189) => {
+                if let Some(right_child) = self.parse_plus_5_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Opt_5 : Plus_5.
+                    self.execute(j, SlotId(190), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Opt_5 : Plus_5.
+            SlotId(190) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(30),
+                    SlotId(190),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(190), nonterminal_node_id, None);
+            }
+            // Opt_5 : .
+            SlotId(191) => {
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                    NonterminalId(30),
+                    SlotId(191),
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(191), nonterminal_node_id, None);
+            }
+            // Star_3 : . Opt_5
+            SlotId(192) => {
+                if let Some(right_child) = self.parse_opt_5_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Star_3 : Opt_5.
+                    self.execute(j, SlotId(193), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Star_3 : Opt_5.
+            SlotId(193) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(31),
                     SlotId(193),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(193), nonterminal_node_id, None);
             }
-            // Regex : . Regex Layout "*"
+            // Opt_6 : . Associativity
             SlotId(194) => {
-                self.create(NonterminalId(11), result, gss_node_id, SlotId(195), env);
+                if let Some(right_child) = self.parse_associativity_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Opt_6 : Associativity.
+                    self.execute(j, SlotId(195), Some(right_child), gss_node_id, env);
+                }
             }
-            // Regex : Regex . Layout "*"
+            // Opt_6 : Associativity.
             SlotId(195) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(196));
-                    // Regex : Regex Layout . "*"
-                    self.execute(j, SlotId(196), Some(new_node), gss_node_id, env);
-                }
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(32),
+                    SlotId(195),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(195), nonterminal_node_id, None);
             }
-            // Regex : Regex Layout . "*"
+            // Opt_6 : .
             SlotId(196) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(29),
-                    input_index,
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                    NonterminalId(32),
                     SlotId(196),
-                    Some(gss_node_id),
-                    "\"*\"",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(197));
-                    // Regex : Regex Layout "*".
-                    self.execute(j, SlotId(197), Some(new_node), gss_node_id, env);
-                }
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(196), nonterminal_node_id, None);
             }
-            // Regex : Regex Layout "*".
+            // Plus_6 : . Plus_6 Layout "|" Layout Alternative
             SlotId(197) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(11),
-                    SlotId(197),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(197), nonterminal_node_id, None);
+                self.create(NonterminalId(33), result, gss_node_id, SlotId(198), env);
             }
-            // Regex : . Regex Layout "?"
+            // Plus_6 : Plus_6 . Layout "|" Layout Alternative
             SlotId(198) => {
-                self.create(NonterminalId(11), result, gss_node_id, SlotId(199), env);
-            }
-            // Regex : Regex . Layout "?"
-            SlotId(199) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(200));
-                    // Regex : Regex Layout . "?"
-                    self.execute(j, SlotId(200), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(199), env)
+                    {
+                        // Plus_6 : Plus_6 Layout . "|" Layout Alternative
+                        self.execute(j, SlotId(199), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // Regex : Regex Layout . "?"
-            SlotId(200) => {
+            // Plus_6 : Plus_6 Layout . "|" Layout Alternative
+            SlotId(199) => {
                 if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(31),
+                    TerminalId(20),
                     input_index,
-                    SlotId(200),
+                    SlotId(199),
                     Some(gss_node_id),
-                    "\"?\"",
+                    "\"|\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(201));
-                    // Regex : Regex Layout "?".
-                    self.execute(j, SlotId(201), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(200), env)
+                    {
+                        // Plus_6 : Plus_6 Layout "|" . Layout Alternative
+                        self.execute(j, SlotId(200), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // Regex : Regex Layout "?".
+            // Plus_6 : Plus_6 Layout "|" . Layout Alternative
+            SlotId(200) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(201), env)
+                    {
+                        // Plus_6 : Plus_6 Layout "|" Layout . Alternative
+                        self.execute(j, SlotId(201), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_6 : Plus_6 Layout "|" Layout . Alternative
             SlotId(201) => {
+                self.create(NonterminalId(10), result, gss_node_id, SlotId(202), env);
+            }
+            // Plus_6 : Plus_6 Layout "|" Layout Alternative.
+            SlotId(202) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(11),
-                    SlotId(201),
+                    NonterminalId(33),
+                    SlotId(202),
                     gss_node_id,
                 );
-                self.pop(gss_node_id, SlotId(201), nonterminal_node_id, None);
+                self.pop(gss_node_id, SlotId(202), nonterminal_node_id, None);
             }
-            // Regex : . "(" Layout first:Regex Layout rest:Plus_12 Layout ")"
-            SlotId(202) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(16),
-                    input_index,
-                    SlotId(202),
-                    Some(gss_node_id),
-                    "\"(\"",
-                ) {
-                    // Regex : "(" . Layout first:Regex Layout rest:Plus_12 Layout ")"
-                    self.execute(j, SlotId(203), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Regex : "(" . Layout first:Regex Layout rest:Plus_12 Layout ")"
+            // Plus_6 : . Alternative
             SlotId(203) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(204));
-                    // Regex : "(" Layout . first:Regex Layout rest:Plus_12 Layout ")"
-                    self.execute(j, SlotId(204), Some(new_node), gss_node_id, env);
-                }
+                self.create(NonterminalId(10), result, gss_node_id, SlotId(204), env);
             }
-            // Regex : "(" Layout . first:Regex Layout rest:Plus_12 Layout ")"
+            // Plus_6 : Alternative.
             SlotId(204) => {
-                self.create(NonterminalId(11), result, gss_node_id, SlotId(205), env);
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(33),
+                    SlotId(204),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(204), nonterminal_node_id, None);
             }
-            // Regex : "(" Layout first:Regex . Layout rest:Plus_12 Layout ")"
+            // Opt_7 : . Plus_6
             SlotId(205) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(206));
-                    // Regex : "(" Layout first:Regex Layout . rest:Plus_12 Layout ")"
-                    self.execute(j, SlotId(206), Some(new_node), gss_node_id, env);
-                }
+                self.create(NonterminalId(33), result, gss_node_id, SlotId(206), env);
             }
-            // Regex : "(" Layout first:Regex Layout . rest:Plus_12 Layout ")"
+            // Opt_7 : Plus_6.
             SlotId(206) => {
-                self.create(NonterminalId(49), result, gss_node_id, SlotId(207), env);
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(34),
+                    SlotId(206),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(206), nonterminal_node_id, None);
             }
-            // Regex : "(" Layout first:Regex Layout rest:Plus_12 . Layout ")"
+            // Opt_7 : .
             SlotId(207) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(208));
-                    // Regex : "(" Layout first:Regex Layout rest:Plus_12 Layout . ")"
-                    self.execute(j, SlotId(208), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Regex : "(" Layout first:Regex Layout rest:Plus_12 Layout . ")"
-            SlotId(208) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(17),
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                    NonterminalId(34),
+                    SlotId(207),
                     input_index,
-                    SlotId(208),
-                    Some(gss_node_id),
-                    "\")\"",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(209));
-                    // Regex : "(" Layout first:Regex Layout rest:Plus_12 Layout ")".
-                    self.execute(j, SlotId(209), Some(new_node), gss_node_id, env);
-                }
+                    input_index,
+                    epsilon_node_id,
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(207), nonterminal_node_id, None);
             }
-            // Regex : "(" Layout first:Regex Layout rest:Plus_12 Layout ")".
+            // Star_4 : . Opt_7
+            SlotId(208) => {
+                self.create(NonterminalId(34), result, gss_node_id, SlotId(209), env);
+            }
+            // Star_4 : Opt_7.
             SlotId(209) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(11),
+                    NonterminalId(35),
                     SlotId(209),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(209), nonterminal_node_id, None);
             }
-            // Regex : . "(" Layout Plus_4 Layout ")"
+            // Plus_7 : . Plus_7 Layout Symbol(0, 0)
             SlotId(210) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(16),
-                    input_index,
-                    SlotId(210),
-                    Some(gss_node_id),
-                    "\"(\"",
-                ) {
-                    // Regex : "(" . Layout Plus_4 Layout ")"
-                    self.execute(j, SlotId(211), Some(right_child), gss_node_id, env);
-                }
+                self.create(NonterminalId(36), result, gss_node_id, SlotId(211), env);
             }
-            // Regex : "(" . Layout Plus_4 Layout ")"
+            // Plus_7 : Plus_7 . Layout Symbol(0, 0)
             SlotId(211) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(212));
-                    // Regex : "(" Layout . Plus_4 Layout ")"
-                    self.execute(j, SlotId(212), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(212), env)
+                    {
+                        // Plus_7 : Plus_7 Layout . Symbol(0, 0)
+                        self.execute(j, SlotId(212), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // Regex : "(" Layout . Plus_4 Layout ")"
+            // Plus_7 : Plus_7 Layout . Symbol(0, 0)
             SlotId(212) => {
-                self.create(NonterminalId(27), result, gss_node_id, SlotId(213), env);
+                self.create_symbol(result, gss_node_id, SlotId(213), env, None, 0, 0);
             }
-            // Regex : "(" Layout Plus_4 . Layout ")"
+            // Plus_7 : Plus_7 Layout Symbol(0, 0).
             SlotId(213) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(214));
-                    // Regex : "(" Layout Plus_4 Layout . ")"
-                    self.execute(j, SlotId(214), Some(new_node), gss_node_id, env);
-                }
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(36),
+                    SlotId(213),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(213), nonterminal_node_id, None);
             }
-            // Regex : "(" Layout Plus_4 Layout . ")"
+            // Plus_7 : . Symbol(0, 0)
             SlotId(214) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(17),
-                    input_index,
-                    SlotId(214),
-                    Some(gss_node_id),
-                    "\")\"",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(215));
-                    // Regex : "(" Layout Plus_4 Layout ")".
-                    self.execute(j, SlotId(215), Some(new_node), gss_node_id, env);
-                }
+                self.create_symbol(result, gss_node_id, SlotId(215), env, None, 0, 0);
             }
-            // Regex : "(" Layout Plus_4 Layout ")".
+            // Plus_7 : Symbol(0, 0).
             SlotId(215) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(11),
+                    NonterminalId(36),
                     SlotId(215),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(215), nonterminal_node_id, None);
             }
-            // Regex : . CharClass
+            // Opt_8 : . Plus_7
             SlotId(216) => {
-                self.create(NonterminalId(12), result, gss_node_id, SlotId(217), env);
+                self.create(NonterminalId(36), result, gss_node_id, SlotId(217), env);
             }
-            // Regex : CharClass.
+            // Opt_8 : Plus_7.
             SlotId(217) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(11),
+                    NonterminalId(37),
                     SlotId(217),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(217), nonterminal_node_id, None);
             }
-            // Regex : . Char
+            // Opt_8 : .
             SlotId(218) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(3),
-                    input_index,
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                    NonterminalId(37),
                     SlotId(218),
-                    Some(gss_node_id),
-                    "Char",
-                ) {
-                    // Regex : Char.
-                    self.execute(j, SlotId(219), Some(right_child), gss_node_id, env);
-                }
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(218), nonterminal_node_id, None);
             }
-            // Regex : Char.
+            // Star_5 : . Opt_8
             SlotId(219) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(11),
-                    SlotId(219),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(219), nonterminal_node_id, None);
+                self.create(NonterminalId(37), result, gss_node_id, SlotId(220), env);
             }
-            // Regex : . String
+            // Star_5 : Opt_8.
             SlotId(220) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(220),
-                    Some(gss_node_id),
-                    "String",
-                ) {
-                    // Regex : String.
-                    self.execute(j, SlotId(221), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Regex : String.
-            SlotId(221) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(11),
-                    SlotId(221),
+                    NonterminalId(38),
+                    SlotId(220),
                     gss_node_id,
                 );
-                self.pop(gss_node_id, SlotId(221), nonterminal_node_id, None);
+                self.pop(gss_node_id, SlotId(220), nonterminal_node_id, None);
             }
-            // Regex : . Identifier
-            SlotId(222) => {
+            // Opt_9 : . Label
+            SlotId(221) => {
                 if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
+                    TerminalId(6),
                     input_index,
-                    SlotId(222),
+                    SlotId(221),
                     Some(gss_node_id),
-                    "Identifier",
+                    "Label",
                 ) {
-                    // Regex : Identifier.
-                    self.execute(j, SlotId(223), Some(right_child), gss_node_id, env);
+                    // Opt_9 : Label.
+                    self.execute(j, SlotId(222), Some(right_child), gss_node_id, env);
                 }
             }
-            // Regex : Identifier.
-            SlotId(223) => {
+            // Opt_9 : Label.
+            SlotId(222) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(11),
+                    NonterminalId(39),
+                    SlotId(222),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(222), nonterminal_node_id, None);
+            }
+            // Opt_9 : .
+            SlotId(223) => {
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                    NonterminalId(39),
                     SlotId(223),
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(223), nonterminal_node_id, None);
             }
-            // CharClass : . neg:Opt_10 Layout "[" Layout Plus_13 Layout "]"
+            // Group_0 : . "|" Layout Symbol(0, 0)
             SlotId(224) => {
-                if let Some(right_child) = self.parse_opt_10_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // CharClass : neg:Opt_10 . Layout "[" Layout Plus_13 Layout "]"
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(20),
+                    input_index,
+                    SlotId(224),
+                    Some(gss_node_id),
+                    "\"|\"",
+                ) {
+                    // Group_0 : "|" . Layout Symbol(0, 0)
                     self.execute(j, SlotId(225), Some(right_child), gss_node_id, env);
                 }
             }
-            // CharClass : neg:Opt_10 . Layout "[" Layout Plus_13 Layout "]"
+            // Group_0 : "|" . Layout Symbol(0, 0)
             SlotId(225) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(226));
-                    // CharClass : neg:Opt_10 Layout . "[" Layout Plus_13 Layout "]"
-                    self.execute(j, SlotId(226), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(226), env)
+                    {
+                        // Group_0 : "|" Layout . Symbol(0, 0)
+                        self.execute(j, SlotId(226), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // CharClass : neg:Opt_10 Layout . "[" Layout Plus_13 Layout "]"
+            // Group_0 : "|" Layout . Symbol(0, 0)
             SlotId(226) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(34),
-                    input_index,
-                    SlotId(226),
-                    Some(gss_node_id),
-                    "\"[\"",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(227));
-                    // CharClass : neg:Opt_10 Layout "[" . Layout Plus_13 Layout "]"
-                    self.execute(j, SlotId(227), Some(new_node), gss_node_id, env);
-                }
+                self.create_symbol(result, gss_node_id, SlotId(227), env, None, 0, 0);
             }
-            // CharClass : neg:Opt_10 Layout "[" . Layout Plus_13 Layout "]"
+            // Group_0 : "|" Layout Symbol(0, 0).
             SlotId(227) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(228));
-                    // CharClass : neg:Opt_10 Layout "[" Layout . Plus_13 Layout "]"
-                    self.execute(j, SlotId(228), Some(new_node), gss_node_id, env);
-                }
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(40),
+                    SlotId(227),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(227), nonterminal_node_id, None);
             }
-            // CharClass : neg:Opt_10 Layout "[" Layout . Plus_13 Layout "]"
+            // Plus_8 : . Plus_8 Layout Group_0
             SlotId(228) => {
-                self.create(NonterminalId(51), result, gss_node_id, SlotId(229), env);
+                self.create(NonterminalId(41), result, gss_node_id, SlotId(229), env);
             }
-            // CharClass : neg:Opt_10 Layout "[" Layout Plus_13 . Layout "]"
+            // Plus_8 : Plus_8 . Layout Group_0
             SlotId(229) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(230));
-                    // CharClass : neg:Opt_10 Layout "[" Layout Plus_13 Layout . "]"
-                    self.execute(j, SlotId(230), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(230), env)
+                    {
+                        // Plus_8 : Plus_8 Layout . Group_0
+                        self.execute(j, SlotId(230), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // CharClass : neg:Opt_10 Layout "[" Layout Plus_13 Layout . "]"
+            // Plus_8 : Plus_8 Layout . Group_0
             SlotId(230) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(35),
-                    input_index,
-                    SlotId(230),
-                    Some(gss_node_id),
-                    "\"]\"",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(231));
-                    // CharClass : neg:Opt_10 Layout "[" Layout Plus_13 Layout "]".
-                    self.execute(j, SlotId(231), Some(new_node), gss_node_id, env);
-                }
+                self.create(NonterminalId(40), result, gss_node_id, SlotId(231), env);
             }
-            // CharClass : neg:Opt_10 Layout "[" Layout Plus_13 Layout "]".
+            // Plus_8 : Plus_8 Layout Group_0.
             SlotId(231) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(12),
+                    NonterminalId(41),
                     SlotId(231),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(231), nonterminal_node_id, None);
             }
-            // RangeElement : . Range
+            // Plus_8 : . Group_0
             SlotId(232) => {
-                if let Some(right_child) = self.parse_range_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // RangeElement : Range.
-                    self.execute(j, SlotId(233), Some(right_child), gss_node_id, env);
-                }
+                self.create(NonterminalId(40), result, gss_node_id, SlotId(233), env);
             }
-            // RangeElement : Range.
+            // Plus_8 : Group_0.
             SlotId(233) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(13),
+                    NonterminalId(41),
                     SlotId(233),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(233), nonterminal_node_id, None);
             }
-            // RangeElement : . RangeChar
+            // Group_1 : . "\" Layout Identifier
             SlotId(234) => {
                 if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(5),
+                    TerminalId(22),
                     input_index,
                     SlotId(234),
                     Some(gss_node_id),
-                    "RangeChar",
+                    "\"\\\"",
                 ) {
-                    // RangeElement : RangeChar.
+                    // Group_1 : "\" . Layout Identifier
                     self.execute(j, SlotId(235), Some(right_child), gss_node_id, env);
                 }
             }
-            // RangeElement : RangeChar.
+            // Group_1 : "\" . Layout Identifier
             SlotId(235) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(13),
-                    SlotId(235),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(235), nonterminal_node_id, None);
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(236), env)
+                    {
+                        // Group_1 : "\" Layout . Identifier
+                        self.execute(j, SlotId(236), Some(new_node), gss_node_id, env);
+                    }
+                }
             }
-            // Range : . start:RangeChar Layout "-" Layout end:RangeChar
+            // Group_1 : "\" Layout . Identifier
             SlotId(236) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(5),
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(1),
                     input_index,
                     SlotId(236),
                     Some(gss_node_id),
-                    "RangeChar",
+                    "Identifier",
                 ) {
-                    // Range : start:RangeChar . Layout "-" Layout end:RangeChar
-                    self.execute(j, SlotId(237), Some(right_child), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(237), env)
+                    {
+                        // Group_1 : "\" Layout Identifier.
+                        self.execute(j, SlotId(237), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // Range : start:RangeChar . Layout "-" Layout end:RangeChar
+            // Group_1 : "\" Layout Identifier.
             SlotId(237) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(238));
-                    // Range : start:RangeChar Layout . "-" Layout end:RangeChar
-                    self.execute(j, SlotId(238), Some(new_node), gss_node_id, env);
-                }
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(42),
+                    SlotId(237),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(237), nonterminal_node_id, None);
             }
-            // Range : start:RangeChar Layout . "-" Layout end:RangeChar
+            // Plus_9 : . Plus_9 Layout Group_1
             SlotId(238) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(36),
-                    input_index,
-                    SlotId(238),
-                    Some(gss_node_id),
-                    "\"-\"",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(239));
-                    // Range : start:RangeChar Layout "-" . Layout end:RangeChar
-                    self.execute(j, SlotId(239), Some(new_node), gss_node_id, env);
+                if let Some(right_child) = self.parse_plus_9_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Plus_9 : Plus_9 . Layout Group_1
+                    self.execute(j, SlotId(239), Some(right_child), gss_node_id, env);
                 }
             }
-            // Range : start:RangeChar Layout "-" . Layout end:RangeChar
+            // Plus_9 : Plus_9 . Layout Group_1
             SlotId(239) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(240));
-                    // Range : start:RangeChar Layout "-" Layout . end:RangeChar
-                    self.execute(j, SlotId(240), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(240), env)
+                    {
+                        // Plus_9 : Plus_9 Layout . Group_1
+                        self.execute(j, SlotId(240), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // Range : start:RangeChar Layout "-" Layout . end:RangeChar
+            // Plus_9 : Plus_9 Layout . Group_1
             SlotId(240) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(5),
-                    input_index,
-                    SlotId(240),
-                    Some(gss_node_id),
-                    "RangeChar",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(241));
-                    // Range : start:RangeChar Layout "-" Layout end:RangeChar.
-                    self.execute(j, SlotId(241), Some(new_node), gss_node_id, env);
+                if let Some(right_child) = self.parse_group_1_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(241), env)
+                    {
+                        // Plus_9 : Plus_9 Layout Group_1.
+                        self.execute(j, SlotId(241), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // Range : start:RangeChar Layout "-" Layout end:RangeChar.
+            // Plus_9 : Plus_9 Layout Group_1.
             SlotId(241) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(14),
+                    NonterminalId(43),
                     SlotId(241),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(241), nonterminal_node_id, None);
             }
-            // Layout : . Star_6 !>> WS !>> LineComment
+            // Plus_9 : . Group_1
             SlotId(242) => {
-                if let Some(right_child) = self.parse_star_6_ll1(input_index) {
+                if let Some(right_child) = self.parse_group_1_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    if let Some(error_kind) = self.post_conditions(SlotId(243), input_index, j) {
-                        self.add_parse_error(j, SlotId(243), Some(gss_node_id), || error_kind);
-                        return;
-                    }
-                    // Layout : Star_6 !>> WS !>> LineComment.
+                    // Plus_9 : Group_1.
                     self.execute(j, SlotId(243), Some(right_child), gss_node_id, env);
                 }
             }
-            // Layout : Star_6 !>> WS !>> LineComment.
+            // Plus_9 : Group_1.
             SlotId(243) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(15),
+                    NonterminalId(43),
                     SlotId(243),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(243), nonterminal_node_id, None);
             }
-            // Opt_0 : . LayoutDef
+            // Group_2 : . "!>>" Layout Identifier
             SlotId(244) => {
-                if let Some(right_child) = self.parse_layout_def_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Opt_0 : LayoutDef.
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(23),
+                    input_index,
+                    SlotId(244),
+                    Some(gss_node_id),
+                    "\"!>>\"",
+                ) {
+                    // Group_2 : "!>>" . Layout Identifier
                     self.execute(j, SlotId(245), Some(right_child), gss_node_id, env);
                 }
             }
-            // Opt_0 : LayoutDef.
+            // Group_2 : "!>>" . Layout Identifier
             SlotId(245) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(16),
-                    SlotId(245),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(245), nonterminal_node_id, None);
-            }
-            // Opt_0 : .
-            SlotId(246) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(16),
-                    SlotId(246),
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(246), nonterminal_node_id, None);
-            }
-            // Plus_0 : . Plus_0 Layout Rule
-            SlotId(247) => {
-                self.create(NonterminalId(17), result, gss_node_id, SlotId(248), env);
-            }
-            // Plus_0 : Plus_0 . Layout Rule
-            SlotId(248) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(249));
-                    // Plus_0 : Plus_0 Layout . Rule
-                    self.execute(j, SlotId(249), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(246), env)
+                    {
+                        // Group_2 : "!>>" Layout . Identifier
+                        self.execute(j, SlotId(246), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // Plus_0 : Plus_0 Layout . Rule
+            // Group_2 : "!>>" Layout . Identifier
+            SlotId(246) => {
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(1),
+                    input_index,
+                    SlotId(246),
+                    Some(gss_node_id),
+                    "Identifier",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(247), env)
+                    {
+                        // Group_2 : "!>>" Layout Identifier.
+                        self.execute(j, SlotId(247), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Group_2 : "!>>" Layout Identifier.
+            SlotId(247) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(44),
+                    SlotId(247),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(247), nonterminal_node_id, None);
+            }
+            // Plus_10 : . Plus_10 Layout Group_2
+            SlotId(248) => {
+                if let Some(right_child) = self.parse_plus_10_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Plus_10 : Plus_10 . Layout Group_2
+                    self.execute(j, SlotId(249), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Plus_10 : Plus_10 . Layout Group_2
             SlotId(249) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(250), env);
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(250), env)
+                    {
+                        // Plus_10 : Plus_10 Layout . Group_2
+                        self.execute(j, SlotId(250), Some(new_node), gss_node_id, env);
+                    }
+                }
             }
-            // Plus_0 : Plus_0 Layout Rule.
+            // Plus_10 : Plus_10 Layout . Group_2
             SlotId(250) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(17),
-                    SlotId(250),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(250), nonterminal_node_id, None);
+                if let Some(right_child) = self.parse_group_2_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(251), env)
+                    {
+                        // Plus_10 : Plus_10 Layout Group_2.
+                        self.execute(j, SlotId(251), Some(new_node), gss_node_id, env);
+                    }
+                }
             }
-            // Plus_0 : . Rule
+            // Plus_10 : Plus_10 Layout Group_2.
             SlotId(251) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(252), env);
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(45),
+                    SlotId(251),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(251), nonterminal_node_id, None);
             }
-            // Plus_0 : Rule.
+            // Plus_10 : . Group_2
             SlotId(252) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(17),
-                    SlotId(252),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(252), nonterminal_node_id, None);
+                if let Some(right_child) = self.parse_group_2_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Plus_10 : Group_2.
+                    self.execute(j, SlotId(253), Some(right_child), gss_node_id, env);
+                }
             }
-            // Opt_1 : . Plus_0
+            // Plus_10 : Group_2.
             SlotId(253) => {
-                self.create(NonterminalId(17), result, gss_node_id, SlotId(254), env);
-            }
-            // Opt_1 : Plus_0.
-            SlotId(254) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(18),
+                    NonterminalId(45),
+                    SlotId(253),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(253), nonterminal_node_id, None);
+            }
+            // Group_3 : . "!" Layout Identifier
+            SlotId(254) => {
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(32),
+                    input_index,
                     SlotId(254),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(254), nonterminal_node_id, None);
+                    Some(gss_node_id),
+                    "\"!\"",
+                ) {
+                    // Group_3 : "!" . Layout Identifier
+                    self.execute(j, SlotId(255), Some(right_child), gss_node_id, env);
+                }
             }
-            // Opt_1 : .
+            // Group_3 : "!" . Layout Identifier
             SlotId(255) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(18),
-                    SlotId(255),
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(255), nonterminal_node_id, None);
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(256), env)
+                    {
+                        // Group_3 : "!" Layout . Identifier
+                        self.execute(j, SlotId(256), Some(new_node), gss_node_id, env);
+                    }
+                }
             }
-            // Star_0 : . Opt_1
+            // Group_3 : "!" Layout . Identifier
             SlotId(256) => {
-                self.create(NonterminalId(18), result, gss_node_id, SlotId(257), env);
+                if let Some((_, right_child)) = self.match_terminal(
+                    TerminalId(1),
+                    input_index,
+                    SlotId(256),
+                    Some(gss_node_id),
+                    "Identifier",
+                ) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(257), env)
+                    {
+                        // Group_3 : "!" Layout Identifier.
+                        self.execute(j, SlotId(257), Some(new_node), gss_node_id, env);
+                    }
+                }
             }
-            // Star_0 : Opt_1.
+            // Group_3 : "!" Layout Identifier.
             SlotId(257) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(19),
+                    NonterminalId(46),
                     SlotId(257),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(257), nonterminal_node_id, None);
             }
-            // Plus_1 : . Plus_1 Layout Annotation
+            // Plus_11 : . Plus_11 Layout Group_3
             SlotId(258) => {
-                if let Some(right_child) = self.parse_plus_1_ll1(input_index) {
+                if let Some(right_child) = self.parse_plus_11_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Plus_1 : Plus_1 . Layout Annotation
+                    // Plus_11 : Plus_11 . Layout Group_3
                     self.execute(j, SlotId(259), Some(right_child), gss_node_id, env);
                 }
             }
-            // Plus_1 : Plus_1 . Layout Annotation
+            // Plus_11 : Plus_11 . Layout Group_3
             SlotId(259) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(260));
-                    // Plus_1 : Plus_1 Layout . Annotation
-                    self.execute(j, SlotId(260), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(260), env)
+                    {
+                        // Plus_11 : Plus_11 Layout . Group_3
+                        self.execute(j, SlotId(260), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // Plus_1 : Plus_1 Layout . Annotation
+            // Plus_11 : Plus_11 Layout . Group_3
             SlotId(260) => {
-                if let Some(right_child) = self.parse_annotation_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(261));
-                    // Plus_1 : Plus_1 Layout Annotation.
-                    self.execute(j, SlotId(261), Some(new_node), gss_node_id, env);
+                if let Some(right_child) = self.parse_group_3_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(261), env)
+                    {
+                        // Plus_11 : Plus_11 Layout Group_3.
+                        self.execute(j, SlotId(261), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // Plus_1 : Plus_1 Layout Annotation.
+            // Plus_11 : Plus_11 Layout Group_3.
             SlotId(261) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(20),
+                    NonterminalId(47),
                     SlotId(261),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(261), nonterminal_node_id, None);
             }
-            // Plus_1 : . Annotation
+            // Plus_11 : . Group_3
             SlotId(262) => {
-                if let Some(right_child) = self.parse_annotation_ll1(input_index) {
+                if let Some(right_child) = self.parse_group_3_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
-                    // Plus_1 : Annotation.
+                    // Plus_11 : Group_3.
                     self.execute(j, SlotId(263), Some(right_child), gss_node_id, env);
                 }
             }
-            // Plus_1 : Annotation.
+            // Plus_11 : Group_3.
             SlotId(263) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(20),
+                    NonterminalId(47),
                     SlotId(263),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(263), nonterminal_node_id, None);
             }
-            // Opt_2 : . Plus_1
+            // Group_4 : . "|" Layout Regex
             SlotId(264) => {
-                if let Some(right_child) = self.parse_plus_1_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Opt_2 : Plus_1.
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(20),
+                    input_index,
+                    SlotId(264),
+                    Some(gss_node_id),
+                    "\"|\"",
+                ) {
+                    // Group_4 : "|" . Layout Regex
                     self.execute(j, SlotId(265), Some(right_child), gss_node_id, env);
                 }
             }
-            // Opt_2 : Plus_1.
+            // Group_4 : "|" . Layout Regex
             SlotId(265) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(266), env)
+                    {
+                        // Group_4 : "|" Layout . Regex
+                        self.execute(j, SlotId(266), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Group_4 : "|" Layout . Regex
+            SlotId(266) => {
+                self.create(NonterminalId(11), result, gss_node_id, SlotId(267), env);
+            }
+            // Group_4 : "|" Layout Regex.
+            SlotId(267) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(21),
-                    SlotId(265),
+                    NonterminalId(48),
+                    SlotId(267),
                     gss_node_id,
                 );
-                self.pop(gss_node_id, SlotId(265), nonterminal_node_id, None);
+                self.pop(gss_node_id, SlotId(267), nonterminal_node_id, None);
             }
-            // Opt_2 : .
-            SlotId(266) => {
+            // Plus_12 : . Plus_12 Layout Group_4
+            SlotId(268) => {
+                self.create(NonterminalId(49), result, gss_node_id, SlotId(269), env);
+            }
+            // Plus_12 : Plus_12 . Layout Group_4
+            SlotId(269) => {
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(270), env)
+                    {
+                        // Plus_12 : Plus_12 Layout . Group_4
+                        self.execute(j, SlotId(270), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_12 : Plus_12 Layout . Group_4
+            SlotId(270) => {
+                self.create(NonterminalId(48), result, gss_node_id, SlotId(271), env);
+            }
+            // Plus_12 : Plus_12 Layout Group_4.
+            SlotId(271) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(49),
+                    SlotId(271),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(271), nonterminal_node_id, None);
+            }
+            // Plus_12 : . Group_4
+            SlotId(272) => {
+                self.create(NonterminalId(48), result, gss_node_id, SlotId(273), env);
+            }
+            // Plus_12 : Group_4.
+            SlotId(273) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(49),
+                    SlotId(273),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(273), nonterminal_node_id, None);
+            }
+            // Opt_10 : . "!"
+            SlotId(274) => {
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(32),
+                    input_index,
+                    SlotId(274),
+                    Some(gss_node_id),
+                    "\"!\"",
+                ) {
+                    // Opt_10 : "!".
+                    self.execute(j, SlotId(275), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Opt_10 : "!".
+            SlotId(275) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(50),
+                    SlotId(275),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(275), nonterminal_node_id, None);
+            }
+            // Opt_10 : .
+            SlotId(276) => {
                 let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(21),
-                    SlotId(266),
+                    NonterminalId(50),
+                    SlotId(276),
                     input_index,
                     input_index,
                     epsilon_node_id,
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(266), nonterminal_node_id, None);
-            }
-            // Star_1 : . Opt_2
-            SlotId(267) => {
-                if let Some(right_child) = self.parse_opt_2_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Star_1 : Opt_2.
-                    self.execute(j, SlotId(268), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Star_1 : Opt_2.
-            SlotId(268) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(22),
-                    SlotId(268),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(268), nonterminal_node_id, None);
-            }
-            // Plus_2 : . Plus_2 Layout ">" Layout PriorityLevel
-            SlotId(269) => {
-                self.create(NonterminalId(23), result, gss_node_id, SlotId(270), env);
-            }
-            // Plus_2 : Plus_2 . Layout ">" Layout PriorityLevel
-            SlotId(270) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(271));
-                    // Plus_2 : Plus_2 Layout . ">" Layout PriorityLevel
-                    self.execute(j, SlotId(271), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_2 : Plus_2 Layout . ">" Layout PriorityLevel
-            SlotId(271) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(13),
-                    input_index,
-                    SlotId(271),
-                    Some(gss_node_id),
-                    "\">\"",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(272));
-                    // Plus_2 : Plus_2 Layout ">" . Layout PriorityLevel
-                    self.execute(j, SlotId(272), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_2 : Plus_2 Layout ">" . Layout PriorityLevel
-            SlotId(272) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(273));
-                    // Plus_2 : Plus_2 Layout ">" Layout . PriorityLevel
-                    self.execute(j, SlotId(273), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_2 : Plus_2 Layout ">" Layout . PriorityLevel
-            SlotId(273) => {
-                self.create(NonterminalId(8), result, gss_node_id, SlotId(274), env);
-            }
-            // Plus_2 : Plus_2 Layout ">" Layout PriorityLevel.
-            SlotId(274) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(23),
-                    SlotId(274),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(274), nonterminal_node_id, None);
-            }
-            // Plus_2 : . PriorityLevel
-            SlotId(275) => {
-                self.create(NonterminalId(8), result, gss_node_id, SlotId(276), env);
-            }
-            // Plus_2 : PriorityLevel.
-            SlotId(276) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(23),
-                    SlotId(276),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(276), nonterminal_node_id, None);
             }
-            // Opt_3 : . Plus_2
+            // Plus_13 : . Plus_13 Layout RangeElement
             SlotId(277) => {
-                self.create(NonterminalId(23), result, gss_node_id, SlotId(278), env);
+                self.create(NonterminalId(51), result, gss_node_id, SlotId(278), env);
             }
-            // Opt_3 : Plus_2.
+            // Plus_13 : Plus_13 . Layout RangeElement
             SlotId(278) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(24),
-                    SlotId(278),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(278), nonterminal_node_id, None);
-            }
-            // Opt_3 : .
-            SlotId(279) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(24),
-                    SlotId(279),
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(279), nonterminal_node_id, None);
-            }
-            // Star_2 : . Opt_3
-            SlotId(280) => {
-                self.create(NonterminalId(24), result, gss_node_id, SlotId(281), env);
-            }
-            // Star_2 : Opt_3.
-            SlotId(281) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(25),
-                    SlotId(281),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(281), nonterminal_node_id, None);
-            }
-            // Opt_4 : . PreCondition
-            SlotId(282) => {
-                if let Some(right_child) = self.parse_pre_condition_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Opt_4 : PreCondition.
-                    self.execute(j, SlotId(283), Some(right_child), gss_node_id, env);
+                if let Some(right_child) = self.parse_layout_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(279), env)
+                    {
+                        // Plus_13 : Plus_13 Layout . RangeElement
+                        self.execute(j, SlotId(279), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
-            // Opt_4 : PreCondition.
-            SlotId(283) => {
+            // Plus_13 : Plus_13 Layout . RangeElement
+            SlotId(279) => {
+                self.create(NonterminalId(13), result, gss_node_id, SlotId(280), env);
+            }
+            // Plus_13 : Plus_13 Layout RangeElement.
+            SlotId(280) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(26),
-                    SlotId(283),
+                    NonterminalId(51),
+                    SlotId(280),
                     gss_node_id,
                 );
-                self.pop(gss_node_id, SlotId(283), nonterminal_node_id, None);
+                self.pop(gss_node_id, SlotId(280), nonterminal_node_id, None);
             }
-            // Opt_4 : .
+            // Plus_13 : . RangeElement
+            SlotId(281) => {
+                self.create(NonterminalId(13), result, gss_node_id, SlotId(282), env);
+            }
+            // Plus_13 : RangeElement.
+            SlotId(282) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(51),
+                    SlotId(282),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(282), nonterminal_node_id, None);
+            }
+            // Alt_0 : . WS
+            SlotId(283) => {
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(7),
+                    input_index,
+                    SlotId(283),
+                    Some(gss_node_id),
+                    "WS",
+                ) {
+                    // Alt_0 : WS.
+                    self.execute(j, SlotId(284), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Alt_0 : WS.
             SlotId(284) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(26),
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(52),
                     SlotId(284),
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(284), nonterminal_node_id, None);
             }
-            // Plus_4 : . Plus_4 Layout Regex
+            // Alt_0 : . LineComment
             SlotId(285) => {
-                self.create(NonterminalId(27), result, gss_node_id, SlotId(286), env);
-            }
-            // Plus_4 : Plus_4 . Layout Regex
-            SlotId(286) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(287));
-                    // Plus_4 : Plus_4 Layout . Regex
-                    self.execute(j, SlotId(287), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_4 : Plus_4 Layout . Regex
-            SlotId(287) => {
-                self.create(NonterminalId(11), result, gss_node_id, SlotId(288), env);
-            }
-            // Plus_4 : Plus_4 Layout Regex.
-            SlotId(288) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(27),
-                    SlotId(288),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(288), nonterminal_node_id, None);
-            }
-            // Plus_4 : . Regex
-            SlotId(289) => {
-                self.create(NonterminalId(11), result, gss_node_id, SlotId(290), env);
-            }
-            // Plus_4 : Regex.
-            SlotId(290) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(27),
-                    SlotId(290),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(290), nonterminal_node_id, None);
-            }
-            // Plus_3 : . Plus_3 Layout "|" Layout Plus_4
-            SlotId(291) => {
-                self.create(NonterminalId(28), result, gss_node_id, SlotId(292), env);
-            }
-            // Plus_3 : Plus_3 . Layout "|" Layout Plus_4
-            SlotId(292) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(293));
-                    // Plus_3 : Plus_3 Layout . "|" Layout Plus_4
-                    self.execute(j, SlotId(293), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_3 : Plus_3 Layout . "|" Layout Plus_4
-            SlotId(293) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(20),
+                if let Some((j, right_child)) = self.match_terminal(
+                    TerminalId(9),
                     input_index,
-                    SlotId(293),
+                    SlotId(285),
                     Some(gss_node_id),
-                    "\"|\"",
+                    "LineComment",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(294));
-                    // Plus_3 : Plus_3 Layout "|" . Layout Plus_4
-                    self.execute(j, SlotId(294), Some(new_node), gss_node_id, env);
+                    // Alt_0 : LineComment.
+                    self.execute(j, SlotId(286), Some(right_child), gss_node_id, env);
                 }
             }
-            // Plus_3 : Plus_3 Layout "|" . Layout Plus_4
+            // Alt_0 : LineComment.
+            SlotId(286) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(52),
+                    SlotId(286),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(286), nonterminal_node_id, None);
+            }
+            // Plus_14 : . Plus_14 Alt_0
+            SlotId(287) => {
+                if let Some(right_child) = self.parse_plus_14_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Plus_14 : Plus_14 . Alt_0
+                    self.execute(j, SlotId(288), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Plus_14 : Plus_14 . Alt_0
+            SlotId(288) => {
+                if let Some(right_child) = self.parse_alt_0_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(289), env)
+                    {
+                        // Plus_14 : Plus_14 Alt_0.
+                        self.execute(j, SlotId(289), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // Plus_14 : Plus_14 Alt_0.
+            SlotId(289) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(53),
+                    SlotId(289),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(289), nonterminal_node_id, None);
+            }
+            // Plus_14 : . Alt_0
+            SlotId(290) => {
+                if let Some(right_child) = self.parse_alt_0_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Plus_14 : Alt_0.
+                    self.execute(j, SlotId(291), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Plus_14 : Alt_0.
+            SlotId(291) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(53),
+                    SlotId(291),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(291), nonterminal_node_id, None);
+            }
+            // Opt_11 : . Plus_14
+            SlotId(292) => {
+                if let Some(right_child) = self.parse_plus_14_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Opt_11 : Plus_14.
+                    self.execute(j, SlotId(293), Some(right_child), gss_node_id, env);
+                }
+            }
+            // Opt_11 : Plus_14.
+            SlotId(293) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(54),
+                    SlotId(293),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(293), nonterminal_node_id, None);
+            }
+            // Opt_11 : .
             SlotId(294) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(295));
-                    // Plus_3 : Plus_3 Layout "|" Layout . Plus_4
-                    self.execute(j, SlotId(295), Some(new_node), gss_node_id, env);
+                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                    NonterminalId(54),
+                    SlotId(294),
+                    input_index,
+                    input_index,
+                    epsilon_node_id,
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(294), nonterminal_node_id, None);
+            }
+            // Star_6 : . Opt_11
+            SlotId(295) => {
+                if let Some(right_child) = self.parse_opt_11_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // Star_6 : Opt_11.
+                    self.execute(j, SlotId(296), Some(right_child), gss_node_id, env);
                 }
             }
-            // Plus_3 : Plus_3 Layout "|" Layout . Plus_4
-            SlotId(295) => {
-                self.create(NonterminalId(27), result, gss_node_id, SlotId(296), env);
-            }
-            // Plus_3 : Plus_3 Layout "|" Layout Plus_4.
+            // Star_6 : Opt_11.
             SlotId(296) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
-                    NonterminalId(28),
+                    NonterminalId(55),
                     SlotId(296),
                     gss_node_id,
                 );
                 self.pop(gss_node_id, SlotId(296), nonterminal_node_id, None);
             }
-            // Plus_3 : . Plus_4
-            SlotId(297) => {
-                self.create(NonterminalId(27), result, gss_node_id, SlotId(298), env);
-            }
-            // Plus_3 : Plus_4.
-            SlotId(298) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(28),
-                    SlotId(298),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(298), nonterminal_node_id, None);
-            }
-            // Plus_5 : . Plus_5 Layout PostCondition
-            SlotId(299) => {
-                if let Some(right_child) = self.parse_plus_5_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_5 : Plus_5 . Layout PostCondition
-                    self.execute(j, SlotId(300), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Plus_5 : Plus_5 . Layout PostCondition
-            SlotId(300) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(301));
-                    // Plus_5 : Plus_5 Layout . PostCondition
-                    self.execute(j, SlotId(301), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_5 : Plus_5 Layout . PostCondition
-            SlotId(301) => {
-                if let Some(right_child) = self.parse_post_condition_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(302));
-                    // Plus_5 : Plus_5 Layout PostCondition.
-                    self.execute(j, SlotId(302), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_5 : Plus_5 Layout PostCondition.
-            SlotId(302) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(29),
-                    SlotId(302),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(302), nonterminal_node_id, None);
-            }
-            // Plus_5 : . PostCondition
-            SlotId(303) => {
-                if let Some(right_child) = self.parse_post_condition_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_5 : PostCondition.
-                    self.execute(j, SlotId(304), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Plus_5 : PostCondition.
-            SlotId(304) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(29),
-                    SlotId(304),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(304), nonterminal_node_id, None);
-            }
-            // Opt_5 : . Plus_5
-            SlotId(305) => {
-                if let Some(right_child) = self.parse_plus_5_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Opt_5 : Plus_5.
-                    self.execute(j, SlotId(306), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Opt_5 : Plus_5.
-            SlotId(306) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(30),
-                    SlotId(306),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(306), nonterminal_node_id, None);
-            }
-            // Opt_5 : .
-            SlotId(307) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(30),
-                    SlotId(307),
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(307), nonterminal_node_id, None);
-            }
-            // Star_3 : . Opt_5
-            SlotId(308) => {
-                if let Some(right_child) = self.parse_opt_5_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Star_3 : Opt_5.
-                    self.execute(j, SlotId(309), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Star_3 : Opt_5.
-            SlotId(309) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(31),
-                    SlotId(309),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(309), nonterminal_node_id, None);
-            }
-            // Opt_6 : . Associativity
-            SlotId(310) => {
-                if let Some(right_child) = self.parse_associativity_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Opt_6 : Associativity.
-                    self.execute(j, SlotId(311), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Opt_6 : Associativity.
-            SlotId(311) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(32),
-                    SlotId(311),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(311), nonterminal_node_id, None);
-            }
-            // Opt_6 : .
-            SlotId(312) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(32),
-                    SlotId(312),
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(312), nonterminal_node_id, None);
-            }
-            // Plus_6 : . Plus_6 Layout "|" Layout Alternative
-            SlotId(313) => {
-                self.create(NonterminalId(33), result, gss_node_id, SlotId(314), env);
-            }
-            // Plus_6 : Plus_6 . Layout "|" Layout Alternative
-            SlotId(314) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(315));
-                    // Plus_6 : Plus_6 Layout . "|" Layout Alternative
-                    self.execute(j, SlotId(315), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_6 : Plus_6 Layout . "|" Layout Alternative
-            SlotId(315) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(20),
-                    input_index,
-                    SlotId(315),
-                    Some(gss_node_id),
-                    "\"|\"",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(316));
-                    // Plus_6 : Plus_6 Layout "|" . Layout Alternative
-                    self.execute(j, SlotId(316), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_6 : Plus_6 Layout "|" . Layout Alternative
-            SlotId(316) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(317));
-                    // Plus_6 : Plus_6 Layout "|" Layout . Alternative
-                    self.execute(j, SlotId(317), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_6 : Plus_6 Layout "|" Layout . Alternative
-            SlotId(317) => {
-                self.create(NonterminalId(10), result, gss_node_id, SlotId(318), env);
-            }
-            // Plus_6 : Plus_6 Layout "|" Layout Alternative.
-            SlotId(318) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(33),
-                    SlotId(318),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(318), nonterminal_node_id, None);
-            }
-            // Plus_6 : . Alternative
-            SlotId(319) => {
-                self.create(NonterminalId(10), result, gss_node_id, SlotId(320), env);
-            }
-            // Plus_6 : Alternative.
-            SlotId(320) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(33),
-                    SlotId(320),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(320), nonterminal_node_id, None);
-            }
-            // Opt_7 : . Plus_6
-            SlotId(321) => {
-                self.create(NonterminalId(33), result, gss_node_id, SlotId(322), env);
-            }
-            // Opt_7 : Plus_6.
-            SlotId(322) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(34),
-                    SlotId(322),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(322), nonterminal_node_id, None);
-            }
-            // Opt_7 : .
-            SlotId(323) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(34),
-                    SlotId(323),
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(323), nonterminal_node_id, None);
-            }
-            // Star_4 : . Opt_7
-            SlotId(324) => {
-                self.create(NonterminalId(34), result, gss_node_id, SlotId(325), env);
-            }
-            // Star_4 : Opt_7.
-            SlotId(325) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(35),
-                    SlotId(325),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(325), nonterminal_node_id, None);
-            }
-            // Plus_7 : . Plus_7 Layout Symbol(0, 0)
-            SlotId(326) => {
-                self.create(NonterminalId(36), result, gss_node_id, SlotId(327), env);
-            }
-            // Plus_7 : Plus_7 . Layout Symbol(0, 0)
-            SlotId(327) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(328));
-                    // Plus_7 : Plus_7 Layout . Symbol(0, 0)
-                    self.execute(j, SlotId(328), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_7 : Plus_7 Layout . Symbol(0, 0)
-            SlotId(328) => {
-                self.create_symbol(result, gss_node_id, SlotId(329), env, None, 0, 0);
-            }
-            // Plus_7 : Plus_7 Layout Symbol(0, 0).
-            SlotId(329) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(36),
-                    SlotId(329),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(329), nonterminal_node_id, None);
-            }
-            // Plus_7 : . Symbol(0, 0)
-            SlotId(330) => {
-                self.create_symbol(result, gss_node_id, SlotId(331), env, None, 0, 0);
-            }
-            // Plus_7 : Symbol(0, 0).
-            SlotId(331) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(36),
-                    SlotId(331),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(331), nonterminal_node_id, None);
-            }
-            // Opt_8 : . Plus_7
-            SlotId(332) => {
-                self.create(NonterminalId(36), result, gss_node_id, SlotId(333), env);
-            }
-            // Opt_8 : Plus_7.
-            SlotId(333) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(37),
-                    SlotId(333),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(333), nonterminal_node_id, None);
-            }
-            // Opt_8 : .
-            SlotId(334) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(37),
-                    SlotId(334),
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(334), nonterminal_node_id, None);
-            }
-            // Star_5 : . Opt_8
-            SlotId(335) => {
-                self.create(NonterminalId(37), result, gss_node_id, SlotId(336), env);
-            }
-            // Star_5 : Opt_8.
-            SlotId(336) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(38),
-                    SlotId(336),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(336), nonterminal_node_id, None);
-            }
-            // Opt_9 : . Label
-            SlotId(337) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(6),
-                    input_index,
-                    SlotId(337),
-                    Some(gss_node_id),
-                    "Label",
-                ) {
-                    // Opt_9 : Label.
-                    self.execute(j, SlotId(338), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Opt_9 : Label.
-            SlotId(338) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(39),
-                    SlotId(338),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(338), nonterminal_node_id, None);
-            }
-            // Opt_9 : .
-            SlotId(339) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(39),
-                    SlotId(339),
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(339), nonterminal_node_id, None);
-            }
-            // Group_0 : . "|" Layout Symbol(0, 0)
-            SlotId(340) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(20),
-                    input_index,
-                    SlotId(340),
-                    Some(gss_node_id),
-                    "\"|\"",
-                ) {
-                    // Group_0 : "|" . Layout Symbol(0, 0)
-                    self.execute(j, SlotId(341), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Group_0 : "|" . Layout Symbol(0, 0)
-            SlotId(341) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(342));
-                    // Group_0 : "|" Layout . Symbol(0, 0)
-                    self.execute(j, SlotId(342), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Group_0 : "|" Layout . Symbol(0, 0)
-            SlotId(342) => {
-                self.create_symbol(result, gss_node_id, SlotId(343), env, None, 0, 0);
-            }
-            // Group_0 : "|" Layout Symbol(0, 0).
-            SlotId(343) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(40),
-                    SlotId(343),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(343), nonterminal_node_id, None);
-            }
-            // Plus_8 : . Plus_8 Layout Group_0
-            SlotId(344) => {
-                self.create(NonterminalId(41), result, gss_node_id, SlotId(345), env);
-            }
-            // Plus_8 : Plus_8 . Layout Group_0
-            SlotId(345) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(346));
-                    // Plus_8 : Plus_8 Layout . Group_0
-                    self.execute(j, SlotId(346), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_8 : Plus_8 Layout . Group_0
-            SlotId(346) => {
-                self.create(NonterminalId(40), result, gss_node_id, SlotId(347), env);
-            }
-            // Plus_8 : Plus_8 Layout Group_0.
-            SlotId(347) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(41),
-                    SlotId(347),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(347), nonterminal_node_id, None);
-            }
-            // Plus_8 : . Group_0
-            SlotId(348) => {
-                self.create(NonterminalId(40), result, gss_node_id, SlotId(349), env);
-            }
-            // Plus_8 : Group_0.
-            SlotId(349) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(41),
-                    SlotId(349),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(349), nonterminal_node_id, None);
-            }
-            // Group_1 : . "\" Layout Identifier
-            SlotId(350) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(22),
-                    input_index,
-                    SlotId(350),
-                    Some(gss_node_id),
-                    "\"\\\"",
-                ) {
-                    // Group_1 : "\" . Layout Identifier
-                    self.execute(j, SlotId(351), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Group_1 : "\" . Layout Identifier
-            SlotId(351) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(352));
-                    // Group_1 : "\" Layout . Identifier
-                    self.execute(j, SlotId(352), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Group_1 : "\" Layout . Identifier
-            SlotId(352) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(352),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(353));
-                    // Group_1 : "\" Layout Identifier.
-                    self.execute(j, SlotId(353), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Group_1 : "\" Layout Identifier.
-            SlotId(353) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(42),
-                    SlotId(353),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(353), nonterminal_node_id, None);
-            }
-            // Plus_9 : . Plus_9 Layout Group_1
-            SlotId(354) => {
-                if let Some(right_child) = self.parse_plus_9_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_9 : Plus_9 . Layout Group_1
-                    self.execute(j, SlotId(355), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Plus_9 : Plus_9 . Layout Group_1
-            SlotId(355) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(356));
-                    // Plus_9 : Plus_9 Layout . Group_1
-                    self.execute(j, SlotId(356), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_9 : Plus_9 Layout . Group_1
-            SlotId(356) => {
-                if let Some(right_child) = self.parse_group_1_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(357));
-                    // Plus_9 : Plus_9 Layout Group_1.
-                    self.execute(j, SlotId(357), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_9 : Plus_9 Layout Group_1.
-            SlotId(357) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(43),
-                    SlotId(357),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(357), nonterminal_node_id, None);
-            }
-            // Plus_9 : . Group_1
-            SlotId(358) => {
-                if let Some(right_child) = self.parse_group_1_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_9 : Group_1.
-                    self.execute(j, SlotId(359), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Plus_9 : Group_1.
-            SlotId(359) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(43),
-                    SlotId(359),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(359), nonterminal_node_id, None);
-            }
-            // Group_2 : . "!>>" Layout Identifier
-            SlotId(360) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(23),
-                    input_index,
-                    SlotId(360),
-                    Some(gss_node_id),
-                    "\"!>>\"",
-                ) {
-                    // Group_2 : "!>>" . Layout Identifier
-                    self.execute(j, SlotId(361), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Group_2 : "!>>" . Layout Identifier
-            SlotId(361) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(362));
-                    // Group_2 : "!>>" Layout . Identifier
-                    self.execute(j, SlotId(362), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Group_2 : "!>>" Layout . Identifier
-            SlotId(362) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(362),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(363));
-                    // Group_2 : "!>>" Layout Identifier.
-                    self.execute(j, SlotId(363), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Group_2 : "!>>" Layout Identifier.
-            SlotId(363) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(44),
-                    SlotId(363),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(363), nonterminal_node_id, None);
-            }
-            // Plus_10 : . Plus_10 Layout Group_2
-            SlotId(364) => {
-                if let Some(right_child) = self.parse_plus_10_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_10 : Plus_10 . Layout Group_2
-                    self.execute(j, SlotId(365), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Plus_10 : Plus_10 . Layout Group_2
-            SlotId(365) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(366));
-                    // Plus_10 : Plus_10 Layout . Group_2
-                    self.execute(j, SlotId(366), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_10 : Plus_10 Layout . Group_2
-            SlotId(366) => {
-                if let Some(right_child) = self.parse_group_2_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(367));
-                    // Plus_10 : Plus_10 Layout Group_2.
-                    self.execute(j, SlotId(367), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_10 : Plus_10 Layout Group_2.
-            SlotId(367) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(45),
-                    SlotId(367),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(367), nonterminal_node_id, None);
-            }
-            // Plus_10 : . Group_2
-            SlotId(368) => {
-                if let Some(right_child) = self.parse_group_2_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_10 : Group_2.
-                    self.execute(j, SlotId(369), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Plus_10 : Group_2.
-            SlotId(369) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(45),
-                    SlotId(369),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(369), nonterminal_node_id, None);
-            }
-            // Group_3 : . "!" Layout Identifier
-            SlotId(370) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(32),
-                    input_index,
-                    SlotId(370),
-                    Some(gss_node_id),
-                    "\"!\"",
-                ) {
-                    // Group_3 : "!" . Layout Identifier
-                    self.execute(j, SlotId(371), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Group_3 : "!" . Layout Identifier
-            SlotId(371) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(372));
-                    // Group_3 : "!" Layout . Identifier
-                    self.execute(j, SlotId(372), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Group_3 : "!" Layout . Identifier
-            SlotId(372) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(372),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(373));
-                    // Group_3 : "!" Layout Identifier.
-                    self.execute(j, SlotId(373), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Group_3 : "!" Layout Identifier.
-            SlotId(373) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(46),
-                    SlotId(373),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(373), nonterminal_node_id, None);
-            }
-            // Plus_11 : . Plus_11 Layout Group_3
-            SlotId(374) => {
-                if let Some(right_child) = self.parse_plus_11_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_11 : Plus_11 . Layout Group_3
-                    self.execute(j, SlotId(375), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Plus_11 : Plus_11 . Layout Group_3
-            SlotId(375) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(376));
-                    // Plus_11 : Plus_11 Layout . Group_3
-                    self.execute(j, SlotId(376), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_11 : Plus_11 Layout . Group_3
-            SlotId(376) => {
-                if let Some(right_child) = self.parse_group_3_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(377));
-                    // Plus_11 : Plus_11 Layout Group_3.
-                    self.execute(j, SlotId(377), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_11 : Plus_11 Layout Group_3.
-            SlotId(377) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(47),
-                    SlotId(377),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(377), nonterminal_node_id, None);
-            }
-            // Plus_11 : . Group_3
-            SlotId(378) => {
-                if let Some(right_child) = self.parse_group_3_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_11 : Group_3.
-                    self.execute(j, SlotId(379), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Plus_11 : Group_3.
-            SlotId(379) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(47),
-                    SlotId(379),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(379), nonterminal_node_id, None);
-            }
-            // Group_4 : . "|" Layout Regex
-            SlotId(380) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(20),
-                    input_index,
-                    SlotId(380),
-                    Some(gss_node_id),
-                    "\"|\"",
-                ) {
-                    // Group_4 : "|" . Layout Regex
-                    self.execute(j, SlotId(381), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Group_4 : "|" . Layout Regex
-            SlotId(381) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(382));
-                    // Group_4 : "|" Layout . Regex
-                    self.execute(j, SlotId(382), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Group_4 : "|" Layout . Regex
-            SlotId(382) => {
-                self.create(NonterminalId(11), result, gss_node_id, SlotId(383), env);
-            }
-            // Group_4 : "|" Layout Regex.
-            SlotId(383) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(48),
-                    SlotId(383),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(383), nonterminal_node_id, None);
-            }
-            // Plus_12 : . Plus_12 Layout Group_4
-            SlotId(384) => {
-                self.create(NonterminalId(49), result, gss_node_id, SlotId(385), env);
-            }
-            // Plus_12 : Plus_12 . Layout Group_4
-            SlotId(385) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(386));
-                    // Plus_12 : Plus_12 Layout . Group_4
-                    self.execute(j, SlotId(386), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_12 : Plus_12 Layout . Group_4
-            SlotId(386) => {
-                self.create(NonterminalId(48), result, gss_node_id, SlotId(387), env);
-            }
-            // Plus_12 : Plus_12 Layout Group_4.
-            SlotId(387) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(49),
-                    SlotId(387),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(387), nonterminal_node_id, None);
-            }
-            // Plus_12 : . Group_4
-            SlotId(388) => {
-                self.create(NonterminalId(48), result, gss_node_id, SlotId(389), env);
-            }
-            // Plus_12 : Group_4.
-            SlotId(389) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(49),
-                    SlotId(389),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(389), nonterminal_node_id, None);
-            }
-            // Opt_10 : . "!"
-            SlotId(390) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(32),
-                    input_index,
-                    SlotId(390),
-                    Some(gss_node_id),
-                    "\"!\"",
-                ) {
-                    // Opt_10 : "!".
-                    self.execute(j, SlotId(391), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Opt_10 : "!".
-            SlotId(391) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(50),
-                    SlotId(391),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(391), nonterminal_node_id, None);
-            }
-            // Opt_10 : .
-            SlotId(392) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(50),
-                    SlotId(392),
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(392), nonterminal_node_id, None);
-            }
-            // Plus_13 : . Plus_13 Layout RangeElement
-            SlotId(393) => {
-                self.create(NonterminalId(51), result, gss_node_id, SlotId(394), env);
-            }
-            // Plus_13 : Plus_13 . Layout RangeElement
-            SlotId(394) => {
-                if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(395));
-                    // Plus_13 : Plus_13 Layout . RangeElement
-                    self.execute(j, SlotId(395), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_13 : Plus_13 Layout . RangeElement
-            SlotId(395) => {
-                self.create(NonterminalId(13), result, gss_node_id, SlotId(396), env);
-            }
-            // Plus_13 : Plus_13 Layout RangeElement.
-            SlotId(396) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(51),
-                    SlotId(396),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(396), nonterminal_node_id, None);
-            }
-            // Plus_13 : . RangeElement
-            SlotId(397) => {
-                self.create(NonterminalId(13), result, gss_node_id, SlotId(398), env);
-            }
-            // Plus_13 : RangeElement.
-            SlotId(398) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(51),
-                    SlotId(398),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(398), nonterminal_node_id, None);
-            }
-            // Alt_0 : . WS
-            SlotId(399) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(7),
-                    input_index,
-                    SlotId(399),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
-                    // Alt_0 : WS.
-                    self.execute(j, SlotId(400), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Alt_0 : WS.
-            SlotId(400) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(52),
-                    SlotId(400),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(400), nonterminal_node_id, None);
-            }
-            // Alt_0 : . LineComment
-            SlotId(401) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(9),
-                    input_index,
-                    SlotId(401),
-                    Some(gss_node_id),
-                    "LineComment",
-                ) {
-                    // Alt_0 : LineComment.
-                    self.execute(j, SlotId(402), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Alt_0 : LineComment.
-            SlotId(402) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(52),
-                    SlotId(402),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(402), nonterminal_node_id, None);
-            }
-            // Plus_14 : . Plus_14 Alt_0
-            SlotId(403) => {
-                if let Some(right_child) = self.parse_plus_14_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_14 : Plus_14 . Alt_0
-                    self.execute(j, SlotId(404), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Plus_14 : Plus_14 . Alt_0
-            SlotId(404) => {
-                if let Some(right_child) = self.parse_alt_0_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(405));
-                    // Plus_14 : Plus_14 Alt_0.
-                    self.execute(j, SlotId(405), Some(new_node), gss_node_id, env);
-                }
-            }
-            // Plus_14 : Plus_14 Alt_0.
-            SlotId(405) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(53),
-                    SlotId(405),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(405), nonterminal_node_id, None);
-            }
-            // Plus_14 : . Alt_0
-            SlotId(406) => {
-                if let Some(right_child) = self.parse_alt_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_14 : Alt_0.
-                    self.execute(j, SlotId(407), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Plus_14 : Alt_0.
-            SlotId(407) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(53),
-                    SlotId(407),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(407), nonterminal_node_id, None);
-            }
-            // Opt_11 : . Plus_14
-            SlotId(408) => {
-                if let Some(right_child) = self.parse_plus_14_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Opt_11 : Plus_14.
-                    self.execute(j, SlotId(409), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Opt_11 : Plus_14.
-            SlotId(409) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(54),
-                    SlotId(409),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(409), nonterminal_node_id, None);
-            }
-            // Opt_11 : .
-            SlotId(410) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(54),
-                    SlotId(410),
-                    input_index,
-                    input_index,
-                    epsilon_node_id,
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(410), nonterminal_node_id, None);
-            }
-            // Star_6 : . Opt_11
-            SlotId(411) => {
-                if let Some(right_child) = self.parse_opt_11_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Star_6 : Opt_11.
-                    self.execute(j, SlotId(412), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Star_6 : Opt_11.
-            SlotId(412) => {
-                let nonterminal_node_id = self.create_nonterminal_node(
-                    result,
-                    NonterminalId(55),
-                    SlotId(412),
-                    gss_node_id,
-                );
-                self.pop(gss_node_id, SlotId(412), nonterminal_node_id, None);
-            }
             // StartGrammar : . Layout start:Grammar Layout
-            SlotId(413) => {
+            SlotId(297) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
                     let j = self.sppf_node(right_child).right_extent();
                     // StartGrammar : Layout . start:Grammar Layout
-                    self.execute(j, SlotId(414), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(298), Some(right_child), gss_node_id, env);
                 }
             }
             // StartGrammar : Layout . start:Grammar Layout
-            SlotId(414) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(415), env);
+            SlotId(298) => {
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(299), env);
             }
             // StartGrammar : Layout start:Grammar . Layout
-            SlotId(415) => {
+            SlotId(299) => {
                 if let Some(right_child) = self.parse_layout_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(416));
-                    // StartGrammar : Layout start:Grammar Layout.
-                    self.execute(j, SlotId(416), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(300), env)
+                    {
+                        // StartGrammar : Layout start:Grammar Layout.
+                        self.execute(j, SlotId(300), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // StartGrammar : Layout start:Grammar Layout.
-            SlotId(416) => {
+            SlotId(300) => {
                 let nonterminal_node_id = self.create_nonterminal_node(
                     result,
                     NonterminalId(56),
-                    SlotId(416),
+                    SlotId(300),
                     gss_node_id,
                 );
-                self.pop(gss_node_id, SlotId(416), nonterminal_node_id, None);
+                self.pop(gss_node_id, SlotId(300), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -4431,75 +4689,75 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Symbol(p: i32, e: i32) : . [1 & e == 0] Identifier return 0
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(74), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(301), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [2 & e == 0] "(" Layout Plus_7 Layout ")" return 1
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(78), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(305), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" return 2
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT2, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(86), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(313), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [8 & e == 0] String return 3
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT3, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(96), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(323), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT4, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(100), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(327), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT5, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(112), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(339), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT6, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(124), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(351), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT7, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(132), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(359), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT8, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(140), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(367), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT9, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(148), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(375), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT10, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(157), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(384), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 return 11
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT11, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(166), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(393), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT12, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(174), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(401), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [8192 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) return 65549
                 if self.scanner.match_any(FIRST_SET_SYMBOL_ALT13, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(182), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(409), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(74), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(301), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_SYMBOL.to_vec(),
                         }
@@ -4512,50 +4770,50 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Regex : . Regex Layout "+"
                 if self.scanner.match_any(FIRST_SET_REGEX_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(190), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(74), input_index, gss_node_id, env);
                 }
                 // Regex : . Regex Layout "*"
                 if self.scanner.match_any(FIRST_SET_REGEX_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(194), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(78), input_index, gss_node_id, env);
                 }
                 // Regex : . Regex Layout "?"
                 if self.scanner.match_any(FIRST_SET_REGEX_ALT2, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(198), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
                 }
                 // Regex : . "(" Layout first:Regex Layout rest:Plus_12 Layout ")"
                 if self.scanner.match_any(FIRST_SET_REGEX_ALT3, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(202), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(86), input_index, gss_node_id, env);
                 }
                 // Regex : . "(" Layout Plus_4 Layout ")"
                 if self.scanner.match_any(FIRST_SET_REGEX_ALT4, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(210), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(94), input_index, gss_node_id, env);
                 }
                 // Regex : . CharClass
                 if self.scanner.match_any(FIRST_SET_REGEX_ALT5, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(216), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(100), input_index, gss_node_id, env);
                 }
                 // Regex : . Char
                 if self.scanner.match_any(FIRST_SET_REGEX_ALT6, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(218), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(102), input_index, gss_node_id, env);
                 }
                 // Regex : . String
                 if self.scanner.match_any(FIRST_SET_REGEX_ALT7, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(220), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(104), input_index, gss_node_id, env);
                 }
                 // Regex : . Identifier
                 if self.scanner.match_any(FIRST_SET_REGEX_ALT8, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(222), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(106), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(190), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(74), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_REGEX.to_vec(),
                         }
@@ -4564,7 +4822,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // CharClass : . neg:Opt_10 Layout "[" Layout Plus_13 Layout "]"
             NonterminalId(12) => {
-                self.add_first_descriptor(SlotId(224), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(108), input_index, gss_node_id, env);
             }
             // RangeElement
             NonterminalId(13) => {
@@ -4575,7 +4833,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     .match_any(FIRST_SET_RANGE_ELEMENT_ALT0, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(232), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(116), input_index, gss_node_id, env);
                 }
                 // RangeElement : . RangeChar
                 if self
@@ -4583,10 +4841,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     .match_any(FIRST_SET_RANGE_ELEMENT_ALT1, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(234), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(118), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(232), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(116), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_RANGE_ELEMENT.to_vec(),
                         }
@@ -4595,11 +4853,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Range : . start:RangeChar Layout "-" Layout end:RangeChar
             NonterminalId(14) => {
-                self.add_first_descriptor(SlotId(236), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(120), input_index, gss_node_id, env);
             }
             // Layout : . Star_6 !>> WS !>> LineComment
             NonterminalId(15) => {
-                self.add_first_descriptor(SlotId(242), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(126), input_index, gss_node_id, env);
             }
             // Opt_0
             NonterminalId(16) => {
@@ -4607,17 +4865,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Opt_0 : . LayoutDef
                 if self.scanner.match_any(FIRST_SET_OPT_0_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(244), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(128), input_index, gss_node_id, env);
                 }
                 // Opt_0 : .
                 if self.scanner.match_any(FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_0, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(246), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(130), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(244), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(128), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_0.to_vec();
@@ -4634,15 +4892,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_0 : . Plus_0 Layout Rule
                 if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(247), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(131), input_index, gss_node_id, env);
                 }
                 // Plus_0 : . Rule
                 if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(251), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(135), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(247), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(131), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_0.to_vec(),
                         }
@@ -4655,17 +4913,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Opt_1 : . Plus_0
                 if self.scanner.match_any(FIRST_SET_OPT_1_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(253), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(137), input_index, gss_node_id, env);
                 }
                 // Opt_1 : .
                 if self.scanner.match_any(FIRST_SET_OPT_1_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_1, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(255), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(139), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(253), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(137), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_1.to_vec();
@@ -4678,7 +4936,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Star_0 : . Opt_1
             NonterminalId(19) => {
-                self.add_first_descriptor(SlotId(256), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(140), input_index, gss_node_id, env);
             }
             // Plus_1
             NonterminalId(20) => {
@@ -4686,15 +4944,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_1 : . Plus_1 Layout Annotation
                 if self.scanner.match_any(FIRST_SET_PLUS_1_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(258), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(142), input_index, gss_node_id, env);
                 }
                 // Plus_1 : . Annotation
                 if self.scanner.match_any(FIRST_SET_PLUS_1_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(262), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(146), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(258), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(142), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_1.to_vec(),
                         }
@@ -4707,17 +4965,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Opt_2 : . Plus_1
                 if self.scanner.match_any(FIRST_SET_OPT_2_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(264), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(148), input_index, gss_node_id, env);
                 }
                 // Opt_2 : .
                 if self.scanner.match_any(FIRST_SET_OPT_2_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_2, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(266), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(150), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(264), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(148), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_2.to_vec();
@@ -4730,7 +4988,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Star_1 : . Opt_2
             NonterminalId(22) => {
-                self.add_first_descriptor(SlotId(267), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(151), input_index, gss_node_id, env);
             }
             // Plus_2
             NonterminalId(23) => {
@@ -4738,17 +4996,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_2 : . Plus_2 Layout ">" Layout PriorityLevel
                 if self.scanner.match_any(FIRST_SET_PLUS_2_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(269), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(153), input_index, gss_node_id, env);
                 }
                 // Plus_2 : . PriorityLevel
                 if self.scanner.match_any(FIRST_SET_PLUS_2_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_PLUS_2, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(275), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(159), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(269), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(153), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_PLUS_2.to_vec();
@@ -4767,17 +5025,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     || self.scanner.match_any(FOLLOW_SET_OPT_3, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(277), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(161), input_index, gss_node_id, env);
                 }
                 // Opt_3 : .
                 if self.scanner.match_any(FIRST_SET_OPT_3_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_3, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(279), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(163), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(277), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(161), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_3.to_vec();
@@ -4790,7 +5048,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Star_2 : . Opt_3
             NonterminalId(25) => {
-                self.add_first_descriptor(SlotId(280), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(164), input_index, gss_node_id, env);
             }
             // Opt_4
             NonterminalId(26) => {
@@ -4798,17 +5056,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Opt_4 : . PreCondition
                 if self.scanner.match_any(FIRST_SET_OPT_4_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(282), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(166), input_index, gss_node_id, env);
                 }
                 // Opt_4 : .
                 if self.scanner.match_any(FIRST_SET_OPT_4_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_4, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(284), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(168), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(282), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(166), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_4.to_vec();
@@ -4825,15 +5083,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_4 : . Plus_4 Layout Regex
                 if self.scanner.match_any(FIRST_SET_PLUS_4_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(285), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(169), input_index, gss_node_id, env);
                 }
                 // Plus_4 : . Regex
                 if self.scanner.match_any(FIRST_SET_PLUS_4_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(289), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(173), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(285), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(169), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_4.to_vec(),
                         }
@@ -4846,15 +5104,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_3 : . Plus_3 Layout "|" Layout Plus_4
                 if self.scanner.match_any(FIRST_SET_PLUS_3_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(291), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(175), input_index, gss_node_id, env);
                 }
                 // Plus_3 : . Plus_4
                 if self.scanner.match_any(FIRST_SET_PLUS_3_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(297), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(181), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(291), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(175), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_3.to_vec(),
                         }
@@ -4867,15 +5125,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_5 : . Plus_5 Layout PostCondition
                 if self.scanner.match_any(FIRST_SET_PLUS_5_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(299), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(183), input_index, gss_node_id, env);
                 }
                 // Plus_5 : . PostCondition
                 if self.scanner.match_any(FIRST_SET_PLUS_5_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(303), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(187), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(299), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(183), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_5.to_vec(),
                         }
@@ -4888,17 +5146,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Opt_5 : . Plus_5
                 if self.scanner.match_any(FIRST_SET_OPT_5_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(305), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(189), input_index, gss_node_id, env);
                 }
                 // Opt_5 : .
                 if self.scanner.match_any(FIRST_SET_OPT_5_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_5, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(307), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(191), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(305), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(189), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_5.to_vec();
@@ -4911,7 +5169,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Star_3 : . Opt_5
             NonterminalId(31) => {
-                self.add_first_descriptor(SlotId(308), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(192), input_index, gss_node_id, env);
             }
             // Opt_6
             NonterminalId(32) => {
@@ -4919,17 +5177,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Opt_6 : . Associativity
                 if self.scanner.match_any(FIRST_SET_OPT_6_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(310), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(194), input_index, gss_node_id, env);
                 }
                 // Opt_6 : .
                 if self.scanner.match_any(FIRST_SET_OPT_6_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_6, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(312), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(196), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(310), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(194), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_6.to_vec();
@@ -4946,17 +5204,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_6 : . Plus_6 Layout "|" Layout Alternative
                 if self.scanner.match_any(FIRST_SET_PLUS_6_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(313), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(197), input_index, gss_node_id, env);
                 }
                 // Plus_6 : . Alternative
                 if self.scanner.match_any(FIRST_SET_PLUS_6_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_PLUS_6, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(319), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(203), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(313), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(197), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_PLUS_6.to_vec();
@@ -4975,17 +5233,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     || self.scanner.match_any(FOLLOW_SET_OPT_7, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(321), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(205), input_index, gss_node_id, env);
                 }
                 // Opt_7 : .
                 if self.scanner.match_any(FIRST_SET_OPT_7_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_7, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(323), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(207), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(321), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(205), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_7.to_vec();
@@ -4998,7 +5256,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Star_4 : . Opt_7
             NonterminalId(35) => {
-                self.add_first_descriptor(SlotId(324), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(208), input_index, gss_node_id, env);
             }
             // Plus_7
             NonterminalId(36) => {
@@ -5006,15 +5264,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_7 : . Plus_7 Layout Symbol(0, 0)
                 if self.scanner.match_any(FIRST_SET_PLUS_7_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(326), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(210), input_index, gss_node_id, env);
                 }
                 // Plus_7 : . Symbol(0, 0)
                 if self.scanner.match_any(FIRST_SET_PLUS_7_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(330), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(214), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(326), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(210), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_7.to_vec(),
                         }
@@ -5027,17 +5285,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Opt_8 : . Plus_7
                 if self.scanner.match_any(FIRST_SET_OPT_8_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(332), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(216), input_index, gss_node_id, env);
                 }
                 // Opt_8 : .
                 if self.scanner.match_any(FIRST_SET_OPT_8_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_8, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(334), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(218), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(332), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(216), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_8.to_vec();
@@ -5050,7 +5308,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Star_5 : . Opt_8
             NonterminalId(38) => {
-                self.add_first_descriptor(SlotId(335), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(219), input_index, gss_node_id, env);
             }
             // Opt_9
             NonterminalId(39) => {
@@ -5058,17 +5316,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Opt_9 : . Label
                 if self.scanner.match_any(FIRST_SET_OPT_9_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(337), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(221), input_index, gss_node_id, env);
                 }
                 // Opt_9 : .
                 if self.scanner.match_any(FIRST_SET_OPT_9_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_9, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(339), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(223), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(337), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(221), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_9.to_vec();
@@ -5081,7 +5339,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_0 : . "|" Layout Symbol(0, 0)
             NonterminalId(40) => {
-                self.add_first_descriptor(SlotId(340), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(224), input_index, gss_node_id, env);
             }
             // Plus_8
             NonterminalId(41) => {
@@ -5089,15 +5347,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_8 : . Plus_8 Layout Group_0
                 if self.scanner.match_any(FIRST_SET_PLUS_8_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(344), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(228), input_index, gss_node_id, env);
                 }
                 // Plus_8 : . Group_0
                 if self.scanner.match_any(FIRST_SET_PLUS_8_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(348), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(232), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(344), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(228), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_8.to_vec(),
                         }
@@ -5106,7 +5364,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_1 : . "\" Layout Identifier
             NonterminalId(42) => {
-                self.add_first_descriptor(SlotId(350), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(234), input_index, gss_node_id, env);
             }
             // Plus_9
             NonterminalId(43) => {
@@ -5114,15 +5372,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_9 : . Plus_9 Layout Group_1
                 if self.scanner.match_any(FIRST_SET_PLUS_9_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(354), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(238), input_index, gss_node_id, env);
                 }
                 // Plus_9 : . Group_1
                 if self.scanner.match_any(FIRST_SET_PLUS_9_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(358), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(242), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(354), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(238), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_9.to_vec(),
                         }
@@ -5131,7 +5389,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_2 : . "!>>" Layout Identifier
             NonterminalId(44) => {
-                self.add_first_descriptor(SlotId(360), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(244), input_index, gss_node_id, env);
             }
             // Plus_10
             NonterminalId(45) => {
@@ -5139,15 +5397,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_10 : . Plus_10 Layout Group_2
                 if self.scanner.match_any(FIRST_SET_PLUS_10_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(364), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(248), input_index, gss_node_id, env);
                 }
                 // Plus_10 : . Group_2
                 if self.scanner.match_any(FIRST_SET_PLUS_10_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(368), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(252), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(364), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(248), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_10.to_vec(),
                         }
@@ -5156,7 +5414,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_3 : . "!" Layout Identifier
             NonterminalId(46) => {
-                self.add_first_descriptor(SlotId(370), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(254), input_index, gss_node_id, env);
             }
             // Plus_11
             NonterminalId(47) => {
@@ -5164,15 +5422,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_11 : . Plus_11 Layout Group_3
                 if self.scanner.match_any(FIRST_SET_PLUS_11_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(374), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(258), input_index, gss_node_id, env);
                 }
                 // Plus_11 : . Group_3
                 if self.scanner.match_any(FIRST_SET_PLUS_11_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(378), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(262), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(374), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(258), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_11.to_vec(),
                         }
@@ -5181,7 +5439,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_4 : . "|" Layout Regex
             NonterminalId(48) => {
-                self.add_first_descriptor(SlotId(380), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(264), input_index, gss_node_id, env);
             }
             // Plus_12
             NonterminalId(49) => {
@@ -5189,15 +5447,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_12 : . Plus_12 Layout Group_4
                 if self.scanner.match_any(FIRST_SET_PLUS_12_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(384), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(268), input_index, gss_node_id, env);
                 }
                 // Plus_12 : . Group_4
                 if self.scanner.match_any(FIRST_SET_PLUS_12_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(388), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(272), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(384), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(268), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_12.to_vec(),
                         }
@@ -5210,17 +5468,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Opt_10 : . "!"
                 if self.scanner.match_any(FIRST_SET_OPT_10_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(390), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(274), input_index, gss_node_id, env);
                 }
                 // Opt_10 : .
                 if self.scanner.match_any(FIRST_SET_OPT_10_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_10, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(392), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(276), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(390), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(274), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_10.to_vec();
@@ -5237,15 +5495,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_13 : . Plus_13 Layout RangeElement
                 if self.scanner.match_any(FIRST_SET_PLUS_13_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(393), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(277), input_index, gss_node_id, env);
                 }
                 // Plus_13 : . RangeElement
                 if self.scanner.match_any(FIRST_SET_PLUS_13_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(397), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(281), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(393), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(277), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_13.to_vec(),
                         }
@@ -5258,15 +5516,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Alt_0 : . WS
                 if self.scanner.match_any(FIRST_SET_ALT_0_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(399), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(283), input_index, gss_node_id, env);
                 }
                 // Alt_0 : . LineComment
                 if self.scanner.match_any(FIRST_SET_ALT_0_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(401), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(285), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(399), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(283), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_ALT_0.to_vec(),
                         }
@@ -5279,15 +5537,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Plus_14 : . Plus_14 Alt_0
                 if self.scanner.match_any(FIRST_SET_PLUS_14_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(403), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(287), input_index, gss_node_id, env);
                 }
                 // Plus_14 : . Alt_0
                 if self.scanner.match_any(FIRST_SET_PLUS_14_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(406), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(290), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(403), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(287), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_14.to_vec(),
                         }
@@ -5300,17 +5558,17 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Opt_11 : . Plus_14
                 if self.scanner.match_any(FIRST_SET_OPT_11_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(408), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(292), input_index, gss_node_id, env);
                 }
                 // Opt_11 : .
                 if self.scanner.match_any(FIRST_SET_OPT_11_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_11, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(410), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(294), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(408), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(292), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_11.to_vec();
@@ -5323,11 +5581,11 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Star_6 : . Opt_11
             NonterminalId(55) => {
-                self.add_first_descriptor(SlotId(411), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(295), input_index, gss_node_id, env);
             }
             // StartGrammar : . Layout start:Grammar Layout
             NonterminalId(56) => {
-                self.add_first_descriptor(SlotId(413), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(297), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -5422,12 +5680,20 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     fn add_intermediate_node(
         &mut self,
         intermediate_node: IntermediateNode,
+        env: Option<EnvId>,
         add_to_index: bool,
     ) -> SPPFNodeId {
         let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
         if add_to_index {
-            self.intermediate_nodes_index[intermediate_node.slot_id.index()]
-                .insert(intermediate_node.span, intermediate_node_id);
+            let slot_idx = intermediate_node.slot_id.index();
+            if slot_idx < 301 {
+                self.intermediate_nodes_index[slot_idx]
+                    .insert(intermediate_node.span, intermediate_node_id);
+            } else {
+                let idx = slot_idx - 301;
+                self.dd_intermediate_nodes_index[idx]
+                    .insert((intermediate_node.span, env), intermediate_node_id);
+            }
         }
         record!(
             self,
@@ -5500,9 +5766,18 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         slot_id: SlotId,
         left_extent: u32,
         right_extent: u32,
+        env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
-        let map = &self.intermediate_nodes_index[slot_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
+        let slot_idx = slot_id.index();
+        let span = Span::new(left_extent, right_extent);
+        if slot_idx < 301 {
+            self.intermediate_nodes_index[slot_idx].get(&span).copied()
+        } else {
+            let idx = slot_idx - 301;
+            self.dd_intermediate_nodes_index[idx]
+                .get(&(span, env))
+                .copied()
+        }
     }
     fn lookup_terminal_node(
         &self,
@@ -5634,6 +5909,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
         }
+        for m in self.dd_intermediate_nodes_index.iter() {
+            stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
+        }
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
@@ -5650,7 +5928,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         right_extent: u32,
     ) -> Option<ParseErrorKind> {
         match slot {
-            SlotId(243) => {
+            SlotId(127) => {
                 if self
                     .scanner
                     .match_any(FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0, right_extent)
@@ -5857,7 +6135,10 @@ pub struct IggyParser<'i> {
     descriptors_peak: usize,
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 417],
+    // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 301],
+    // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized nonterminals; env separates calls made with different parameter values.
+    dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; 116],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 39],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
     epsilon_nodes: Vec<SPPFNodeId>,
@@ -5882,7 +6163,8 @@ impl<'i> IggyParser<'i> {
             descriptors: Vec::with_capacity(1024),
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 417],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 301],
+            dd_intermediate_nodes_index: [const { InlineMap::Empty }; 116],
             terminal_nodes_index: [const { InlineMap::Empty }; 39],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]
@@ -6427,7 +6709,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(5), start, SlotId(237), None, "RangeChar")?;
+                        self.match_terminal(TerminalId(5), start, SlotId(121), None, "RangeChar")?;
                     j = end;
                     node
                 };
@@ -6441,7 +6723,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 current = self.create_intermediate_node_ll1(
-                    SlotId(238),
+                    SlotId(122),
                     left_extent,
                     j,
                     current,
@@ -6450,12 +6732,12 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(36), start, SlotId(239), None, "\"-\"")?;
+                        self.match_terminal(TerminalId(36), start, SlotId(123), None, "\"-\"")?;
                     j = end;
                     node
                 };
                 current = self.create_intermediate_node_ll1(
-                    SlotId(239),
+                    SlotId(123),
                     left_extent,
                     j,
                     current,
@@ -6469,7 +6751,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 current = self.create_intermediate_node_ll1(
-                    SlotId(240),
+                    SlotId(124),
                     left_extent,
                     j,
                     current,
@@ -6478,12 +6760,12 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(5), start, SlotId(241), None, "RangeChar")?;
+                        self.match_terminal(TerminalId(5), start, SlotId(125), None, "RangeChar")?;
                     j = end;
                     node
                 };
                 current = self.create_intermediate_node_ll1(
-                    SlotId(241),
+                    SlotId(125),
                     left_extent,
                     j,
                     current,
@@ -6491,7 +6773,7 @@ impl<'i> IggyParser<'i> {
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(14),
-                    return_slot: SlotId(241),
+                    return_slot: SlotId(125),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -6516,8 +6798,8 @@ impl<'i> IggyParser<'i> {
                 let node = self.parse_star_6_ll1(start)?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
-                if let Some(error_kind) = self.post_conditions(SlotId(243), start, end) {
-                    self.add_parse_error(end, SlotId(243), None, || error_kind);
+                if let Some(error_kind) = self.post_conditions(SlotId(127), start, end) {
+                    self.add_parse_error(end, SlotId(127), None, || error_kind);
                     return None;
                 }
                 node
@@ -6526,7 +6808,7 @@ impl<'i> IggyParser<'i> {
             let mut current = right_child;
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(15),
-                return_slot: SlotId(243),
+                return_slot: SlotId(127),
                 span: Span {
                     left_extent,
                     right_extent: j,
@@ -6547,7 +6829,7 @@ impl<'i> IggyParser<'i> {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(16),
-                return_slot: SlotId(246),
+                return_slot: SlotId(130),
                 span: Span {
                     left_extent: i,
                     right_extent: i,
@@ -6570,7 +6852,7 @@ impl<'i> IggyParser<'i> {
                 let mut current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(16),
-                    return_slot: SlotId(245),
+                    return_slot: SlotId(129),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -6594,7 +6876,7 @@ impl<'i> IggyParser<'i> {
         let left_extent = i;
         let mut current = self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(20),
-            return_slot: SlotId(263),
+            return_slot: SlotId(147),
             span: Span {
                 left_extent,
                 right_extent: j,
@@ -6617,12 +6899,12 @@ impl<'i> IggyParser<'i> {
             };
             j = pos_1;
             current =
-                self.create_intermediate_node_ll1(SlotId(260), left_extent, pos_0, current, node_0);
+                self.create_intermediate_node_ll1(SlotId(144), left_extent, pos_0, current, node_0);
             current =
-                self.create_intermediate_node_ll1(SlotId(261), left_extent, pos_1, current, node_1);
+                self.create_intermediate_node_ll1(SlotId(145), left_extent, pos_1, current, node_1);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(20),
-                return_slot: SlotId(261),
+                return_slot: SlotId(145),
                 span: Span {
                     left_extent,
                     right_extent: j,
@@ -6640,7 +6922,7 @@ impl<'i> IggyParser<'i> {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(21),
-                return_slot: SlotId(266),
+                return_slot: SlotId(150),
                 span: Span {
                     left_extent: i,
                     right_extent: i,
@@ -6663,7 +6945,7 @@ impl<'i> IggyParser<'i> {
                 let mut current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(21),
-                    return_slot: SlotId(265),
+                    return_slot: SlotId(149),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -6690,7 +6972,7 @@ impl<'i> IggyParser<'i> {
         let mut current = right_child;
         return Some(self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(22),
-            return_slot: SlotId(268),
+            return_slot: SlotId(152),
             span: Span {
                 left_extent,
                 right_extent: j,
@@ -6711,7 +6993,7 @@ impl<'i> IggyParser<'i> {
         let left_extent = i;
         let mut current = self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(29),
-            return_slot: SlotId(304),
+            return_slot: SlotId(188),
             span: Span {
                 left_extent,
                 right_extent: j,
@@ -6734,12 +7016,12 @@ impl<'i> IggyParser<'i> {
             };
             j = pos_1;
             current =
-                self.create_intermediate_node_ll1(SlotId(301), left_extent, pos_0, current, node_0);
+                self.create_intermediate_node_ll1(SlotId(185), left_extent, pos_0, current, node_0);
             current =
-                self.create_intermediate_node_ll1(SlotId(302), left_extent, pos_1, current, node_1);
+                self.create_intermediate_node_ll1(SlotId(186), left_extent, pos_1, current, node_1);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(29),
-                return_slot: SlotId(302),
+                return_slot: SlotId(186),
                 span: Span {
                     left_extent,
                     right_extent: j,
@@ -6757,7 +7039,7 @@ impl<'i> IggyParser<'i> {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(30),
-                return_slot: SlotId(307),
+                return_slot: SlotId(191),
                 span: Span {
                     left_extent: i,
                     right_extent: i,
@@ -6780,7 +7062,7 @@ impl<'i> IggyParser<'i> {
                 let mut current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(30),
-                    return_slot: SlotId(306),
+                    return_slot: SlotId(190),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -6807,7 +7089,7 @@ impl<'i> IggyParser<'i> {
         let mut current = right_child;
         return Some(self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(31),
-            return_slot: SlotId(309),
+            return_slot: SlotId(193),
             span: Span {
                 left_extent,
                 right_extent: j,
@@ -6823,7 +7105,7 @@ impl<'i> IggyParser<'i> {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(32),
-                return_slot: SlotId(312),
+                return_slot: SlotId(196),
                 span: Span {
                     left_extent: i,
                     right_extent: i,
@@ -6846,7 +7128,7 @@ impl<'i> IggyParser<'i> {
                 let mut current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(32),
-                    return_slot: SlotId(311),
+                    return_slot: SlotId(195),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -6865,7 +7147,7 @@ impl<'i> IggyParser<'i> {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(39),
-                return_slot: SlotId(339),
+                return_slot: SlotId(223),
                 span: Span {
                     left_extent: i,
                     right_extent: i,
@@ -6880,7 +7162,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(6), start, SlotId(338), None, "Label")?;
+                        self.match_terminal(TerminalId(6), start, SlotId(222), None, "Label")?;
                     j = end;
                     node
                 };
@@ -6888,7 +7170,7 @@ impl<'i> IggyParser<'i> {
                 let mut current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(39),
-                    return_slot: SlotId(338),
+                    return_slot: SlotId(222),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -6910,7 +7192,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(22), start, SlotId(351), None, "\"\\\"")?;
+                        self.match_terminal(TerminalId(22), start, SlotId(235), None, "\"\\\"")?;
                     j = end;
                     node
                 };
@@ -6924,7 +7206,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 current = self.create_intermediate_node_ll1(
-                    SlotId(352),
+                    SlotId(236),
                     left_extent,
                     j,
                     current,
@@ -6933,12 +7215,12 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(353), None, "Identifier")?;
+                        self.match_terminal(TerminalId(1), start, SlotId(237), None, "Identifier")?;
                     j = end;
                     node
                 };
                 current = self.create_intermediate_node_ll1(
-                    SlotId(353),
+                    SlotId(237),
                     left_extent,
                     j,
                     current,
@@ -6946,7 +7228,7 @@ impl<'i> IggyParser<'i> {
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(42),
-                    return_slot: SlotId(353),
+                    return_slot: SlotId(237),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -6970,7 +7252,7 @@ impl<'i> IggyParser<'i> {
         let left_extent = i;
         let mut current = self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(43),
-            return_slot: SlotId(359),
+            return_slot: SlotId(243),
             span: Span {
                 left_extent,
                 right_extent: j,
@@ -6993,12 +7275,12 @@ impl<'i> IggyParser<'i> {
             };
             j = pos_1;
             current =
-                self.create_intermediate_node_ll1(SlotId(356), left_extent, pos_0, current, node_0);
+                self.create_intermediate_node_ll1(SlotId(240), left_extent, pos_0, current, node_0);
             current =
-                self.create_intermediate_node_ll1(SlotId(357), left_extent, pos_1, current, node_1);
+                self.create_intermediate_node_ll1(SlotId(241), left_extent, pos_1, current, node_1);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(43),
-                return_slot: SlotId(357),
+                return_slot: SlotId(241),
                 span: Span {
                     left_extent,
                     right_extent: j,
@@ -7019,7 +7301,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(23), start, SlotId(361), None, "\"!>>\"")?;
+                        self.match_terminal(TerminalId(23), start, SlotId(245), None, "\"!>>\"")?;
                     j = end;
                     node
                 };
@@ -7033,7 +7315,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 current = self.create_intermediate_node_ll1(
-                    SlotId(362),
+                    SlotId(246),
                     left_extent,
                     j,
                     current,
@@ -7042,12 +7324,12 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(363), None, "Identifier")?;
+                        self.match_terminal(TerminalId(1), start, SlotId(247), None, "Identifier")?;
                     j = end;
                     node
                 };
                 current = self.create_intermediate_node_ll1(
-                    SlotId(363),
+                    SlotId(247),
                     left_extent,
                     j,
                     current,
@@ -7055,7 +7337,7 @@ impl<'i> IggyParser<'i> {
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(44),
-                    return_slot: SlotId(363),
+                    return_slot: SlotId(247),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -7079,7 +7361,7 @@ impl<'i> IggyParser<'i> {
         let left_extent = i;
         let mut current = self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(45),
-            return_slot: SlotId(369),
+            return_slot: SlotId(253),
             span: Span {
                 left_extent,
                 right_extent: j,
@@ -7102,12 +7384,12 @@ impl<'i> IggyParser<'i> {
             };
             j = pos_1;
             current =
-                self.create_intermediate_node_ll1(SlotId(366), left_extent, pos_0, current, node_0);
+                self.create_intermediate_node_ll1(SlotId(250), left_extent, pos_0, current, node_0);
             current =
-                self.create_intermediate_node_ll1(SlotId(367), left_extent, pos_1, current, node_1);
+                self.create_intermediate_node_ll1(SlotId(251), left_extent, pos_1, current, node_1);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(45),
-                return_slot: SlotId(367),
+                return_slot: SlotId(251),
                 span: Span {
                     left_extent,
                     right_extent: j,
@@ -7128,7 +7410,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(32), start, SlotId(371), None, "\"!\"")?;
+                        self.match_terminal(TerminalId(32), start, SlotId(255), None, "\"!\"")?;
                     j = end;
                     node
                 };
@@ -7142,7 +7424,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 current = self.create_intermediate_node_ll1(
-                    SlotId(372),
+                    SlotId(256),
                     left_extent,
                     j,
                     current,
@@ -7151,12 +7433,12 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(373), None, "Identifier")?;
+                        self.match_terminal(TerminalId(1), start, SlotId(257), None, "Identifier")?;
                     j = end;
                     node
                 };
                 current = self.create_intermediate_node_ll1(
-                    SlotId(373),
+                    SlotId(257),
                     left_extent,
                     j,
                     current,
@@ -7164,7 +7446,7 @@ impl<'i> IggyParser<'i> {
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(46),
-                    return_slot: SlotId(373),
+                    return_slot: SlotId(257),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -7188,7 +7470,7 @@ impl<'i> IggyParser<'i> {
         let left_extent = i;
         let mut current = self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(47),
-            return_slot: SlotId(379),
+            return_slot: SlotId(263),
             span: Span {
                 left_extent,
                 right_extent: j,
@@ -7211,12 +7493,12 @@ impl<'i> IggyParser<'i> {
             };
             j = pos_1;
             current =
-                self.create_intermediate_node_ll1(SlotId(376), left_extent, pos_0, current, node_0);
+                self.create_intermediate_node_ll1(SlotId(260), left_extent, pos_0, current, node_0);
             current =
-                self.create_intermediate_node_ll1(SlotId(377), left_extent, pos_1, current, node_1);
+                self.create_intermediate_node_ll1(SlotId(261), left_extent, pos_1, current, node_1);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(47),
-                return_slot: SlotId(377),
+                return_slot: SlotId(261),
                 span: Span {
                     left_extent,
                     right_extent: j,
@@ -7234,7 +7516,7 @@ impl<'i> IggyParser<'i> {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(50),
-                return_slot: SlotId(392),
+                return_slot: SlotId(276),
                 span: Span {
                     left_extent: i,
                     right_extent: i,
@@ -7249,7 +7531,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(32), start, SlotId(391), None, "\"!\"")?;
+                        self.match_terminal(TerminalId(32), start, SlotId(275), None, "\"!\"")?;
                     j = end;
                     node
                 };
@@ -7257,7 +7539,7 @@ impl<'i> IggyParser<'i> {
                 let mut current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(50),
-                    return_slot: SlotId(391),
+                    return_slot: SlotId(275),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -7279,7 +7561,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(7), start, SlotId(400), None, "WS")?;
+                        self.match_terminal(TerminalId(7), start, SlotId(284), None, "WS")?;
                     j = end;
                     node
                 };
@@ -7287,7 +7569,7 @@ impl<'i> IggyParser<'i> {
                 let mut current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(52),
-                    return_slot: SlotId(400),
+                    return_slot: SlotId(284),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -7303,7 +7585,7 @@ impl<'i> IggyParser<'i> {
                     let (end, node) = self.match_terminal(
                         TerminalId(9),
                         start,
-                        SlotId(402),
+                        SlotId(286),
                         None,
                         "LineComment",
                     )?;
@@ -7314,7 +7596,7 @@ impl<'i> IggyParser<'i> {
                 let mut current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(52),
-                    return_slot: SlotId(402),
+                    return_slot: SlotId(286),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -7338,7 +7620,7 @@ impl<'i> IggyParser<'i> {
         let left_extent = i;
         let mut current = self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(53),
-            return_slot: SlotId(407),
+            return_slot: SlotId(291),
             span: Span {
                 left_extent,
                 right_extent: j,
@@ -7355,10 +7637,10 @@ impl<'i> IggyParser<'i> {
             };
             j = pos_0;
             current =
-                self.create_intermediate_node_ll1(SlotId(405), left_extent, pos_0, current, node_0);
+                self.create_intermediate_node_ll1(SlotId(289), left_extent, pos_0, current, node_0);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(53),
-                return_slot: SlotId(405),
+                return_slot: SlotId(289),
                 span: Span {
                     left_extent,
                     right_extent: j,
@@ -7376,7 +7658,7 @@ impl<'i> IggyParser<'i> {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(54),
-                return_slot: SlotId(410),
+                return_slot: SlotId(294),
                 span: Span {
                     left_extent: i,
                     right_extent: i,
@@ -7399,7 +7681,7 @@ impl<'i> IggyParser<'i> {
                 let mut current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(54),
-                    return_slot: SlotId(409),
+                    return_slot: SlotId(293),
                     span: Span {
                         left_extent,
                         right_extent: j,
@@ -7426,7 +7708,7 @@ impl<'i> IggyParser<'i> {
         let mut current = right_child;
         return Some(self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(55),
-            return_slot: SlotId(412),
+            return_slot: SlotId(296),
             span: Span {
                 left_extent,
                 right_extent: j,

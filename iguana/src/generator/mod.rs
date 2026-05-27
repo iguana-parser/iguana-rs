@@ -112,7 +112,15 @@ pub fn generate_sources(
         }
     }
     let mut slot_ids = SlotIds::new(grammar);
-    for nonterminal in grammar.nonterminals() {
+    // `nonterminal_ids.nonterminals()` returns non-parameterized nonterminals
+    // first (sorted at construction in `NonterminalIds::new`). Iterating in
+    // that order means all slots of non-parameterized nonterminals get lower
+    // ids than slots of parameterized ones. The intermediate-node index uses
+    // this partition to dispatch between a `Span`-keyed array
+    // (non-parameterized) and a `(Span, Option<EnvId>)`-keyed array
+    // (parameterized).
+    let sorted_nonterminals: Vec<_> = nonterminal_ids.nonterminals().cloned().collect();
+    for nonterminal in &sorted_nonterminals {
         let alternatives = grammar.alternatives(nonterminal);
         for (index, alternative) in alternatives.iter().enumerate() {
             for pos in 0..alternative.symbols.len() {

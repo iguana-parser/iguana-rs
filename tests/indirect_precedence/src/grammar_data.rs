@@ -55,6 +55,24 @@ pub const SLOTS: [Slot; 22] = [
         display_name: "S : E(0).",
     },
     Slot {
+        display_name: "F : . E(0) \"/\" K",
+    },
+    Slot {
+        display_name: "F : E(0) . \"/\" K",
+    },
+    Slot {
+        display_name: "F : E(0) \"/\" . K",
+    },
+    Slot {
+        display_name: "F : E(0) \"/\" K.",
+    },
+    Slot {
+        display_name: "K : . E(0)",
+    },
+    Slot {
+        display_name: "K : E(0).",
+    },
+    Slot {
         display_name: "E : . \"-\" E(2) return 2",
     },
     Slot {
@@ -95,24 +113,6 @@ pub const SLOTS: [Slot; 22] = [
     },
     Slot {
         display_name: "E : \"a\" return 0.",
-    },
-    Slot {
-        display_name: "F : . E(0) \"/\" K",
-    },
-    Slot {
-        display_name: "F : E(0) . \"/\" K",
-    },
-    Slot {
-        display_name: "F : E(0) \"/\" . K",
-    },
-    Slot {
-        display_name: "F : E(0) \"/\" K.",
-    },
-    Slot {
-        display_name: "K : . E(0)",
-    },
-    Slot {
-        display_name: "K : E(0).",
     },
 ];
 // S { EOF }

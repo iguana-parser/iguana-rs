@@ -101,6 +101,12 @@ impl<'a> SlotIds<'a> {
         self.slots.push(slot);
         SlotId(value as u16)
     }
+    pub fn dd_slot_start(&self) -> usize {
+        self.slots
+            .iter()
+            .position(|s| !s.head().parameters.is_empty())
+            .unwrap_or(self.slots.len())
+    }
     pub fn get_id(&self, slot: &Slot<'a>) -> SlotId {
         self.slot_to_id
             .get(slot)

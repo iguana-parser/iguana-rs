@@ -3,7 +3,7 @@ use specta::Type;
 
 use crate::{ids::BindingId, utils::inline_vec::InlineVec};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
 pub struct EnvId(pub u32);
 
 impl EnvId {

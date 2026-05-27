@@ -77,30 +77,30 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         );
         match slot_id {
             // Expr(e: i32) : . [1 & e == 0] Id return 0
-            SlotId(0) => {
+            SlotId(11) => {
                 if (1) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(1), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(12), result, gss_node_id, env);
                 }
             }
             // Expr(e: i32) : [1 & e == 0] . Id return 0
-            SlotId(1) => {
+            SlotId(12) => {
                 if let Some((j, right_child)) = self.match_terminal(
                     TerminalId(0),
                     input_index,
-                    SlotId(1),
+                    SlotId(12),
                     Some(gss_node_id),
                     "Id",
                 ) {
                     // Expr(e: i32) : [1 & e == 0] Id . return 0
-                    self.execute(j, SlotId(2), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(13), Some(right_child), gss_node_id, env);
                 }
             }
             // Expr(e: i32) : [1 & e == 0] Id . return 0
-            SlotId(2) => {
-                self.execute(input_index, SlotId(3), result, gss_node_id, env);
+            SlotId(13) => {
+                self.execute(input_index, SlotId(14), result, gss_node_id, env);
             }
             // Expr(e: i32) : [1 & e == 0] Id return 0.
-            SlotId(3) => {
+            SlotId(14) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -108,7 +108,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 let return_value = 0;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_expr(
                     NonterminalId(3),
-                    SlotId(3),
+                    SlotId(14),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -117,61 +117,65 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(3),
+                    SlotId(14),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Expr(e: i32) : . [2 & e == 0] Expr(0) "(" Star_0 ")" return 1
-            SlotId(4) => {
+            SlotId(15) => {
                 if (2) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(5), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(16), result, gss_node_id, env);
                 }
             }
             // Expr(e: i32) : [2 & e == 0] . Expr(0) "(" Star_0 ")" return 1
-            SlotId(5) => {
-                self.create_expr(result, gss_node_id, SlotId(6), env, None, 0);
+            SlotId(16) => {
+                self.create_expr(result, gss_node_id, SlotId(17), env, None, 0);
             }
             // Expr(e: i32) : [2 & e == 0] Expr(0) . "(" Star_0 ")" return 1
-            SlotId(6) => {
+            SlotId(17) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(1),
                     input_index,
-                    SlotId(6),
+                    SlotId(17),
                     Some(gss_node_id),
                     "\"(\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(7));
-                    // Expr(e: i32) : [2 & e == 0] Expr(0) "(" . Star_0 ")" return 1
-                    self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(18), env)
+                    {
+                        // Expr(e: i32) : [2 & e == 0] Expr(0) "(" . Star_0 ")" return 1
+                        self.execute(j, SlotId(18), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Expr(e: i32) : [2 & e == 0] Expr(0) "(" . Star_0 ")" return 1
-            SlotId(7) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(8), env);
+            SlotId(18) => {
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(19), env);
             }
             // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 . ")" return 1
-            SlotId(8) => {
+            SlotId(19) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(3),
                     input_index,
-                    SlotId(8),
+                    SlotId(19),
                     Some(gss_node_id),
                     "\")\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(9));
-                    // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 ")" . return 1
-                    self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(20), env)
+                    {
+                        // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 ")" . return 1
+                        self.execute(j, SlotId(20), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 ")" . return 1
-            SlotId(9) => {
-                self.execute(input_index, SlotId(10), result, gss_node_id, env);
+            SlotId(20) => {
+                self.execute(input_index, SlotId(21), result, gss_node_id, env);
             }
             // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 ")" return 1.
-            SlotId(10) => {
+            SlotId(21) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -179,7 +183,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 let return_value = 1;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_expr(
                     NonterminalId(3),
-                    SlotId(10),
+                    SlotId(21),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -188,46 +192,48 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(10),
+                    SlotId(21),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Expr(e: i32) : . [4 & e == 0] Expr(0) "," Expr(0) return 2
-            SlotId(11) => {
+            SlotId(22) => {
                 if (4) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                    self.execute(input_index, SlotId(12), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(23), result, gss_node_id, env);
                 }
             }
             // Expr(e: i32) : [4 & e == 0] . Expr(0) "," Expr(0) return 2
-            SlotId(12) => {
-                self.create_expr(result, gss_node_id, SlotId(13), env, None, 0);
+            SlotId(23) => {
+                self.create_expr(result, gss_node_id, SlotId(24), env, None, 0);
             }
             // Expr(e: i32) : [4 & e == 0] Expr(0) . "," Expr(0) return 2
-            SlotId(13) => {
+            SlotId(24) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(2),
                     input_index,
-                    SlotId(13),
+                    SlotId(24),
                     Some(gss_node_id),
                     "\",\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(14));
-                    // Expr(e: i32) : [4 & e == 0] Expr(0) "," . Expr(0) return 2
-                    self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(25), env)
+                    {
+                        // Expr(e: i32) : [4 & e == 0] Expr(0) "," . Expr(0) return 2
+                        self.execute(j, SlotId(25), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Expr(e: i32) : [4 & e == 0] Expr(0) "," . Expr(0) return 2
-            SlotId(14) => {
-                self.create_expr(result, gss_node_id, SlotId(15), env, None, 0);
+            SlotId(25) => {
+                self.create_expr(result, gss_node_id, SlotId(26), env, None, 0);
             }
             // Expr(e: i32) : [4 & e == 0] Expr(0) "," Expr(0) . return 2
-            SlotId(15) => {
-                self.execute(input_index, SlotId(16), result, gss_node_id, env);
+            SlotId(26) => {
+                self.execute(input_index, SlotId(27), result, gss_node_id, env);
             }
             // Expr(e: i32) : [4 & e == 0] Expr(0) "," Expr(0) return 2.
-            SlotId(16) => {
+            SlotId(27) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
@@ -235,7 +241,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 let return_value = 2;
                 let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_expr(
                     NonterminalId(3),
-                    SlotId(16),
+                    SlotId(27),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -244,82 +250,84 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(16),
+                    SlotId(27),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // Plus_0 : . Plus_0 "," Expr(4)
-            SlotId(17) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(18), env);
+            SlotId(0) => {
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(1), env);
             }
             // Plus_0 : Plus_0 . "," Expr(4)
-            SlotId(18) => {
+            SlotId(1) => {
                 if let Some((_, right_child)) = self.match_terminal(
                     TerminalId(2),
                     input_index,
-                    SlotId(18),
+                    SlotId(1),
                     Some(gss_node_id),
                     "\",\"",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(19));
-                    // Plus_0 : Plus_0 "," . Expr(4)
-                    self.execute(j, SlotId(19), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(2), env)
+                    {
+                        // Plus_0 : Plus_0 "," . Expr(4)
+                        self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Plus_0 : Plus_0 "," . Expr(4)
-            SlotId(19) => {
-                self.create_expr(result, gss_node_id, SlotId(20), env, None, 4);
+            SlotId(2) => {
+                self.create_expr(result, gss_node_id, SlotId(3), env, None, 4);
             }
             // Plus_0 : Plus_0 "," Expr(4).
-            SlotId(20) => {
+            SlotId(3) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(20), gss_node_id);
-                self.pop(gss_node_id, SlotId(20), nonterminal_node_id, None);
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(3), gss_node_id);
+                self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
             }
             // Plus_0 : . Expr(4)
-            SlotId(21) => {
-                self.create_expr(result, gss_node_id, SlotId(22), env, None, 4);
+            SlotId(4) => {
+                self.create_expr(result, gss_node_id, SlotId(5), env, None, 4);
             }
             // Plus_0 : Expr(4).
-            SlotId(22) => {
+            SlotId(5) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(22), gss_node_id);
-                self.pop(gss_node_id, SlotId(22), nonterminal_node_id, None);
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(5), gss_node_id);
+                self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
             // Opt_0 : . Plus_0
-            SlotId(23) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(24), env);
+            SlotId(6) => {
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(7), env);
             }
             // Opt_0 : Plus_0.
-            SlotId(24) => {
+            SlotId(7) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(24), gss_node_id);
-                self.pop(gss_node_id, SlotId(24), nonterminal_node_id, None);
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(7), gss_node_id);
+                self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
             }
             // Opt_0 : .
-            SlotId(25) => {
+            SlotId(8) => {
                 let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(1),
-                    SlotId(25),
+                    SlotId(8),
                     input_index,
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
                 );
-                self.pop(gss_node_id, SlotId(25), nonterminal_node_id, None);
+                self.pop(gss_node_id, SlotId(8), nonterminal_node_id, None);
             }
             // Star_0 : . Opt_0
-            SlotId(26) => {
-                self.create(NonterminalId(1), result, gss_node_id, SlotId(27), env);
+            SlotId(9) => {
+                self.create(NonterminalId(1), result, gss_node_id, SlotId(10), env);
             }
             // Star_0 : Opt_0.
-            SlotId(27) => {
+            SlotId(10) => {
                 let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(27), gss_node_id);
-                self.pop(gss_node_id, SlotId(27), nonterminal_node_id, None);
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(10), gss_node_id);
+                self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -340,20 +348,20 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 // Expr(e: i32) : . [1 & e == 0] Id return 0
                 if self.scanner.match_any(FIRST_SET_EXPR_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
                 // Expr(e: i32) : . [2 & e == 0] Expr(0) "(" Star_0 ")" return 1
                 if self.scanner.match_any(FIRST_SET_EXPR_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
                 }
                 // Expr(e: i32) : . [4 & e == 0] Expr(0) "," Expr(0) return 2
                 if self.scanner.match_any(FIRST_SET_EXPR_ALT2, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(22), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(11), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_EXPR.to_vec(),
                         }
@@ -366,15 +374,15 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 // Plus_0 : . Plus_0 "," Expr(4)
                 if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(17), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 // Plus_0 : . Expr(4)
                 if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(17), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_PLUS_0.to_vec(),
                         }
@@ -387,17 +395,17 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 // Opt_0 : . Plus_0
                 if self.scanner.match_any(FIRST_SET_OPT_0_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 // Opt_0 : .
                 if self.scanner.match_any(FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(FOLLOW_SET_OPT_0, input_index)
                 {
                     matched = true;
-                    self.add_first_descriptor(SlotId(25), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(23), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(6), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_0.to_vec();
@@ -410,7 +418,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             // Star_0 : . Opt_0
             NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
+                self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -505,12 +513,20 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
     fn add_intermediate_node(
         &mut self,
         intermediate_node: IntermediateNode,
+        env: Option<EnvId>,
         add_to_index: bool,
     ) -> SPPFNodeId {
         let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
         if add_to_index {
-            self.intermediate_nodes_index[intermediate_node.slot_id.index()]
-                .insert(intermediate_node.span, intermediate_node_id);
+            let slot_idx = intermediate_node.slot_id.index();
+            if slot_idx < 11 {
+                self.intermediate_nodes_index[slot_idx]
+                    .insert(intermediate_node.span, intermediate_node_id);
+            } else {
+                let idx = slot_idx - 11;
+                self.dd_intermediate_nodes_index[idx]
+                    .insert((intermediate_node.span, env), intermediate_node_id);
+            }
         }
         record!(
             self,
@@ -583,9 +599,18 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         slot_id: SlotId,
         left_extent: u32,
         right_extent: u32,
+        env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
-        let map = &self.intermediate_nodes_index[slot_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
+        let slot_idx = slot_id.index();
+        let span = Span::new(left_extent, right_extent);
+        if slot_idx < 11 {
+            self.intermediate_nodes_index[slot_idx].get(&span).copied()
+        } else {
+            let idx = slot_idx - 11;
+            self.dd_intermediate_nodes_index[idx]
+                .get(&(span, env))
+                .copied()
+        }
     }
     fn lookup_terminal_node(
         &self,
@@ -716,6 +741,9 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
         }
+        for m in self.dd_intermediate_nodes_index.iter() {
+            stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
+        }
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
@@ -807,7 +835,10 @@ pub struct ExcludeByLabelParser<'i> {
     descriptors_peak: usize,
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 28],
+    // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
+    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 11],
+    // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized nonterminals; env separates calls made with different parameter values.
+    dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; 17],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
     epsilon_nodes: Vec<SPPFNodeId>,
@@ -831,7 +862,8 @@ impl<'i> ExcludeByLabelParser<'i> {
             descriptors: Vec::with_capacity(1024),
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 28],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 11],
+            dd_intermediate_nodes_index: [const { InlineMap::Empty }; 17],
             terminal_nodes_index: [const { InlineMap::Empty }; 6],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]

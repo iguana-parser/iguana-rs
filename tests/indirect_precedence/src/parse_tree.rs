@@ -321,7 +321,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
             // F
             NonterminalId(1) => match nonterminal_node.return_slot {
                 // F : E(0) "/" K.
-                SlotId(19) => {
+                SlotId(5) => {
                     let [e, lit_1, k] = children.into_array::<3usize>();
                     ParseTree::F(self.bump.alloc(F {
                         e: e.unwrap_e(),
@@ -335,7 +335,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
             // K
             NonterminalId(2) => match nonterminal_node.return_slot {
                 // K : E(0).
-                SlotId(21) => {
+                SlotId(7) => {
                     let [e] = children.into_array::<1usize>();
                     ParseTree::K(self.bump.alloc(K {
                         e: e.unwrap_e(),
@@ -347,7 +347,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
             // E
             NonterminalId(3) => match nonterminal_node.return_slot {
                 // E : "-" E(2) return 2.
-                SlotId(5) => {
+                SlotId(11) => {
                     let [lit_0, e] = children.into_array::<2usize>();
                     ParseTree::E(self.bump.alloc(E::Alt0 {
                         lit_0: lit_0.unwrap_token(),
@@ -356,7 +356,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                     }))
                 }
                 // E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F return 0.
-                SlotId(12) => {
+                SlotId(18) => {
                     let [e, lit_1, f] = children.into_array::<3usize>();
                     ParseTree::E(self.bump.alloc(E::Alt1 {
                         e: e.unwrap_e(),
@@ -366,7 +366,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                     }))
                 }
                 // E : "a" return 0.
-                SlotId(15) => {
+                SlotId(21) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::E(self.bump.alloc(E::Alt2 {
                         lit_0: lit_0.unwrap_token(),

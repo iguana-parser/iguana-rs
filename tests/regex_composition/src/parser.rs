@@ -106,10 +106,12 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             // Id : Letter . Star_0
             SlotId(3) => {
                 if let Some(right_child) = self.parse_star_0_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(4));
-                    // Id : Letter Star_0.
-                    self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(4), env)
+                    {
+                        // Id : Letter Star_0.
+                        self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Id : Letter Star_0.
@@ -135,10 +137,12 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
                     Some(gss_node_id),
                     "LetterOrDigit",
                 ) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(7));
-                    // Plus_0 : Plus_0 LetterOrDigit.
-                    self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(7), env)
+                    {
+                        // Plus_0 : Plus_0 LetterOrDigit.
+                        self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Plus_0 : Plus_0 LetterOrDigit.
@@ -373,12 +377,20 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
     fn add_intermediate_node(
         &mut self,
         intermediate_node: IntermediateNode,
+        env: Option<EnvId>,
         add_to_index: bool,
     ) -> SPPFNodeId {
         let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
         if add_to_index {
-            self.intermediate_nodes_index[intermediate_node.slot_id.index()]
-                .insert(intermediate_node.span, intermediate_node_id);
+            let slot_idx = intermediate_node.slot_id.index();
+            if slot_idx < 15 {
+                self.intermediate_nodes_index[slot_idx]
+                    .insert(intermediate_node.span, intermediate_node_id);
+            } else {
+                let idx = slot_idx - 15;
+                self.dd_intermediate_nodes_index[idx]
+                    .insert((intermediate_node.span, env), intermediate_node_id);
+            }
         }
         record!(
             self,
@@ -451,9 +463,18 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
         slot_id: SlotId,
         left_extent: u32,
         right_extent: u32,
+        env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
-        let map = &self.intermediate_nodes_index[slot_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
+        let slot_idx = slot_id.index();
+        let span = Span::new(left_extent, right_extent);
+        if slot_idx < 15 {
+            self.intermediate_nodes_index[slot_idx].get(&span).copied()
+        } else {
+            let idx = slot_idx - 15;
+            self.dd_intermediate_nodes_index[idx]
+                .get(&(span, env))
+                .copied()
+        }
     }
     fn lookup_terminal_node(
         &self,
@@ -574,6 +595,9 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
         }
+        for m in self.dd_intermediate_nodes_index.iter() {
+            stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
+        }
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
@@ -665,7 +689,10 @@ pub struct RegexCompositionParser<'i> {
     descriptors_peak: usize,
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
+    // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 15],
+    // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized nonterminals; env separates calls made with different parameter values.
+    dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; 0],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 6],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
     epsilon_nodes: Vec<SPPFNodeId>,
@@ -689,6 +716,7 @@ impl<'i> RegexCompositionParser<'i> {
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
             intermediate_nodes_index: [const { InlineMap::Empty }; 15],
+            dd_intermediate_nodes_index: [const { InlineMap::Empty }; 0],
             terminal_nodes_index: [const { InlineMap::Empty }; 6],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]

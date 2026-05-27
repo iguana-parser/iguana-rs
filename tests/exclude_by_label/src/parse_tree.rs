@@ -411,7 +411,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             // Plus_0
             NonterminalId(0) => match nonterminal_node.return_slot {
                 // {Expr !comma ","}+ : {Expr !comma ","}+ "," Expr(4).
-                SlotId(20) => {
+                SlotId(3) => {
                     let [plus_0, lit_1, expr] = children.into_array::<3usize>();
                     ParseTree::Plus0(self.bump.alloc(Plus0::Alt0 {
                         plus_0: plus_0.unwrap_plus_0(),
@@ -421,7 +421,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                     }))
                 }
                 // {Expr !comma ","}+ : Expr(4).
-                SlotId(22) => {
+                SlotId(5) => {
                     let [expr] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.bump.alloc(Plus0::Alt1 {
                         expr: expr.unwrap_expr(),
@@ -433,7 +433,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             // Opt_0
             NonterminalId(1) => match nonterminal_node.return_slot {
                 // {Expr !comma ","}+? : {Expr !comma ","}+.
-                SlotId(24) => {
+                SlotId(7) => {
                     let [plus_0] = children.into_array::<1usize>();
                     ParseTree::Opt0(self.bump.alloc(Opt0::Alt0 {
                         plus_0: plus_0.unwrap_plus_0(),
@@ -441,7 +441,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                     }))
                 }
                 // {Expr !comma ","}+? : .
-                SlotId(25) => {
+                SlotId(8) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt0(self.bump.alloc(Opt0::Alt1 {
                         span: nonterminal_node.span,
@@ -452,7 +452,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             // Star_0
             NonterminalId(2) => match nonterminal_node.return_slot {
                 // {Expr !comma ","}* : {Expr !comma ","}+?.
-                SlotId(27) => {
+                SlotId(10) => {
                     let [opt_0] = children.into_array::<1usize>();
                     ParseTree::Star0(self.bump.alloc(Star0 {
                         opt_0: opt_0.unwrap_opt_0(),
@@ -464,7 +464,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             // Expr
             NonterminalId(3) => match nonterminal_node.return_slot {
                 // Expr : [1 & e == 0] Id return 0.
-                SlotId(3) => {
+                SlotId(14) => {
                     let [id] = children.into_array::<1usize>();
                     ParseTree::Expr(self.bump.alloc(Expr::Id {
                         id: id.unwrap_token(),
@@ -472,7 +472,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                     }))
                 }
                 // Expr : [2 & e == 0] Expr(0) "(" {Expr !comma ","}* ")" return 1.
-                SlotId(10) => {
+                SlotId(21) => {
                     let [expr, lit_1, star_0, lit_3] = children.into_array::<4usize>();
                     ParseTree::Expr(self.bump.alloc(Expr::Call {
                         expr: expr.unwrap_expr(),
@@ -483,7 +483,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                     }))
                 }
                 // Expr : [4 & e == 0] Expr(0) "," Expr(0) return 2.
-                SlotId(16) => {
+                SlotId(27) => {
                     let [expr_0, lit_1, expr_2] = children.into_array::<3usize>();
                     ParseTree::Expr(self.bump.alloc(Expr::Comma {
                         expr_0: expr_0.unwrap_expr(),

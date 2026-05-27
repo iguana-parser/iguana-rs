@@ -117,10 +117,12 @@ impl<'i> Parser<'i> for StarParser<'i> {
             // Plus_0 : Plus_0 . A
             SlotId(5) => {
                 if let Some(right_child) = self.parse_a_ll1(input_index) {
-                    let (j, new_node) =
-                        self.create_intermediate_node(result, right_child, SlotId(6));
-                    // Plus_0 : Plus_0 A.
-                    self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(6), env)
+                    {
+                        // Plus_0 : Plus_0 A.
+                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
+                    }
                 }
             }
             // Plus_0 : Plus_0 A.
@@ -350,12 +352,20 @@ impl<'i> Parser<'i> for StarParser<'i> {
     fn add_intermediate_node(
         &mut self,
         intermediate_node: IntermediateNode,
+        env: Option<EnvId>,
         add_to_index: bool,
     ) -> SPPFNodeId {
         let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
         if add_to_index {
-            self.intermediate_nodes_index[intermediate_node.slot_id.index()]
-                .insert(intermediate_node.span, intermediate_node_id);
+            let slot_idx = intermediate_node.slot_id.index();
+            if slot_idx < 14 {
+                self.intermediate_nodes_index[slot_idx]
+                    .insert(intermediate_node.span, intermediate_node_id);
+            } else {
+                let idx = slot_idx - 14;
+                self.dd_intermediate_nodes_index[idx]
+                    .insert((intermediate_node.span, env), intermediate_node_id);
+            }
         }
         record!(
             self,
@@ -428,9 +438,18 @@ impl<'i> Parser<'i> for StarParser<'i> {
         slot_id: SlotId,
         left_extent: u32,
         right_extent: u32,
+        env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
-        let map = &self.intermediate_nodes_index[slot_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
+        let slot_idx = slot_id.index();
+        let span = Span::new(left_extent, right_extent);
+        if slot_idx < 14 {
+            self.intermediate_nodes_index[slot_idx].get(&span).copied()
+        } else {
+            let idx = slot_idx - 14;
+            self.dd_intermediate_nodes_index[idx]
+                .get(&(span, env))
+                .copied()
+        }
     }
     fn lookup_terminal_node(
         &self,
@@ -551,6 +570,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
         }
+        for m in self.dd_intermediate_nodes_index.iter() {
+            stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
+        }
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
@@ -642,7 +664,10 @@ pub struct StarParser<'i> {
     descriptors_peak: usize,
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
+    // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 14],
+    // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized nonterminals; env separates calls made with different parameter values.
+    dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; 0],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 3],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
     epsilon_nodes: Vec<SPPFNodeId>,
@@ -666,6 +691,7 @@ impl<'i> StarParser<'i> {
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
             intermediate_nodes_index: [const { InlineMap::Empty }; 14],
+            dd_intermediate_nodes_index: [const { InlineMap::Empty }; 0],
             terminal_nodes_index: [const { InlineMap::Empty }; 3],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]
