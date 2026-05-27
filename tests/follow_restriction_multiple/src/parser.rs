@@ -834,14 +834,8 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 break;
             };
             j = pos_0;
-            current = self.get_or_create_intermediate_node(
-                SlotId(6),
-                left_extent,
-                pos_0,
-                current,
-                node_0,
-                true,
-            );
+            current =
+                self.create_intermediate_node_ll1(SlotId(6), left_extent, pos_0, current, node_0);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(2),
                 return_slot: SlotId(6),
@@ -935,14 +929,8 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 break;
             };
             j = pos_0;
-            current = self.get_or_create_intermediate_node(
-                SlotId(15),
-                left_extent,
-                pos_0,
-                current,
-                node_0,
-                true,
-            );
+            current =
+                self.create_intermediate_node_ll1(SlotId(15), left_extent, pos_0, current, node_0);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(4),
                 return_slot: SlotId(15),

@@ -707,13 +707,12 @@ impl<'i> PrecedeRestrictionParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(2),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -722,13 +721,12 @@ impl<'i> PrecedeRestrictionParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(3),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(0),
@@ -826,14 +824,8 @@ impl<'i> PrecedeRestrictionParser<'i> {
                 break;
             };
             j = pos_0;
-            current = self.get_or_create_intermediate_node(
-                SlotId(10),
-                left_extent,
-                pos_0,
-                current,
-                node_0,
-                true,
-            );
+            current =
+                self.create_intermediate_node_ll1(SlotId(10), left_extent, pos_0, current, node_0);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(2),
                 return_slot: SlotId(10),

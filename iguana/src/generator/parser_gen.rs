@@ -1392,8 +1392,8 @@ impl<'a> ParserGen<'a> {
             let next_slot = Slot::new(nonterminal, recursive_alt, idx + 2);
             let next_slot_id = self.slot_ids.get_id(&next_slot);
             build_nodes.push(quote! {
-                current = self.get_or_create_intermediate_node(
-                    #next_slot_id, left_extent, #pos_var, current, #node_var, true,
+                current = self.create_intermediate_node_ll1(
+                    #next_slot_id, left_extent, #pos_var, current, #node_var,
                 );
             });
         }
@@ -1574,8 +1574,8 @@ impl<'a> ParserGen<'a> {
                 });
             } else {
                 body.push(quote! {
-                    current = self.get_or_create_intermediate_node(
-                        #next_slot_id, left_extent, j, current, right_child, true,
+                    current = self.create_intermediate_node_ll1(
+                        #next_slot_id, left_extent, j, current, right_child,
                     );
                 });
             }

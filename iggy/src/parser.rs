@@ -5974,13 +5974,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(10),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -5989,13 +5988,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(11),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(1),
@@ -6066,13 +6064,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(28),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6081,13 +6078,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(29),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6096,13 +6092,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(30),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6111,13 +6106,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(31),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6126,13 +6120,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(32),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6141,13 +6134,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(33),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(4),
@@ -6208,13 +6200,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(50),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6223,13 +6214,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(51),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(6),
@@ -6268,13 +6258,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(54),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6283,13 +6272,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(55),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(7),
@@ -6320,13 +6308,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(58),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6335,13 +6322,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(59),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(7),
@@ -6454,13 +6440,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(238),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6469,13 +6454,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(239),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6484,13 +6468,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(240),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6499,13 +6482,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(241),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(14),
@@ -6634,22 +6616,10 @@ impl<'i> IggyParser<'i> {
                 break;
             };
             j = pos_1;
-            current = self.get_or_create_intermediate_node(
-                SlotId(260),
-                left_extent,
-                pos_0,
-                current,
-                node_0,
-                true,
-            );
-            current = self.get_or_create_intermediate_node(
-                SlotId(261),
-                left_extent,
-                pos_1,
-                current,
-                node_1,
-                true,
-            );
+            current =
+                self.create_intermediate_node_ll1(SlotId(260), left_extent, pos_0, current, node_0);
+            current =
+                self.create_intermediate_node_ll1(SlotId(261), left_extent, pos_1, current, node_1);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(20),
                 return_slot: SlotId(261),
@@ -6763,22 +6733,10 @@ impl<'i> IggyParser<'i> {
                 break;
             };
             j = pos_1;
-            current = self.get_or_create_intermediate_node(
-                SlotId(301),
-                left_extent,
-                pos_0,
-                current,
-                node_0,
-                true,
-            );
-            current = self.get_or_create_intermediate_node(
-                SlotId(302),
-                left_extent,
-                pos_1,
-                current,
-                node_1,
-                true,
-            );
+            current =
+                self.create_intermediate_node_ll1(SlotId(301), left_extent, pos_0, current, node_0);
+            current =
+                self.create_intermediate_node_ll1(SlotId(302), left_extent, pos_1, current, node_1);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(29),
                 return_slot: SlotId(302),
@@ -6965,13 +6923,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(352),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -6980,13 +6937,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(353),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(42),
@@ -7036,22 +6992,10 @@ impl<'i> IggyParser<'i> {
                 break;
             };
             j = pos_1;
-            current = self.get_or_create_intermediate_node(
-                SlotId(356),
-                left_extent,
-                pos_0,
-                current,
-                node_0,
-                true,
-            );
-            current = self.get_or_create_intermediate_node(
-                SlotId(357),
-                left_extent,
-                pos_1,
-                current,
-                node_1,
-                true,
-            );
+            current =
+                self.create_intermediate_node_ll1(SlotId(356), left_extent, pos_0, current, node_0);
+            current =
+                self.create_intermediate_node_ll1(SlotId(357), left_extent, pos_1, current, node_1);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(43),
                 return_slot: SlotId(357),
@@ -7088,13 +7032,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(362),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -7103,13 +7046,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(363),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(44),
@@ -7159,22 +7101,10 @@ impl<'i> IggyParser<'i> {
                 break;
             };
             j = pos_1;
-            current = self.get_or_create_intermediate_node(
-                SlotId(366),
-                left_extent,
-                pos_0,
-                current,
-                node_0,
-                true,
-            );
-            current = self.get_or_create_intermediate_node(
-                SlotId(367),
-                left_extent,
-                pos_1,
-                current,
-                node_1,
-                true,
-            );
+            current =
+                self.create_intermediate_node_ll1(SlotId(366), left_extent, pos_0, current, node_0);
+            current =
+                self.create_intermediate_node_ll1(SlotId(367), left_extent, pos_1, current, node_1);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(45),
                 return_slot: SlotId(367),
@@ -7211,13 +7141,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(372),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -7226,13 +7155,12 @@ impl<'i> IggyParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(373),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(46),
@@ -7282,22 +7210,10 @@ impl<'i> IggyParser<'i> {
                 break;
             };
             j = pos_1;
-            current = self.get_or_create_intermediate_node(
-                SlotId(376),
-                left_extent,
-                pos_0,
-                current,
-                node_0,
-                true,
-            );
-            current = self.get_or_create_intermediate_node(
-                SlotId(377),
-                left_extent,
-                pos_1,
-                current,
-                node_1,
-                true,
-            );
+            current =
+                self.create_intermediate_node_ll1(SlotId(376), left_extent, pos_0, current, node_0);
+            current =
+                self.create_intermediate_node_ll1(SlotId(377), left_extent, pos_1, current, node_1);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(47),
                 return_slot: SlotId(377),
@@ -7438,14 +7354,8 @@ impl<'i> IggyParser<'i> {
                 break;
             };
             j = pos_0;
-            current = self.get_or_create_intermediate_node(
-                SlotId(405),
-                left_extent,
-                pos_0,
-                current,
-                node_0,
-                true,
-            );
+            current =
+                self.create_intermediate_node_ll1(SlotId(405), left_extent, pos_0, current, node_0);
             current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(53),
                 return_slot: SlotId(405),

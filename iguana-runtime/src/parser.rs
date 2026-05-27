@@ -482,7 +482,6 @@ pub trait Parser<'i> {
                 right_extent,
                 left_child_id,
                 right_child_id,
-                false,
             )
         } else {
             right_child_id
@@ -568,23 +567,17 @@ pub trait Parser<'i> {
         self.add_nonterminal_node(nonterminal_node)
     }
 
-    /// Looks up or creates the intermediate node identified by `slot_id` and
-    /// the span (`left_extent`, `right_extent`). `is_ll1` selects the path:
+    /// GLL path. Looks up the intermediate node by `(slot_id, span)`. If it
+    /// exists, returns the existing id without further work; otherwise builds
+    /// the node and inserts it into `intermediate_nodes_index`.
     ///
-    /// - `false` (GLL): look up the node. If it exists, return the existing
-    ///   id and do nothing else: no child attachment, no ambiguity flagging,
-    ///   no equality check. Two GSS contexts arriving at the same
-    ///   `(slot, span)` under the unified parameterized form produce the
-    ///   same packed child pair, so attaching a duplicate or marking the
-    ///   node ambiguous would be spurious work that breaks parse tree
-    ///   extraction. The new caller's continuation still fires in its own
-    ///   GSS context because the descriptor queue tracks per-caller state.
-    ///   See `docs/operator_precedence_desugaring.md` section 10. If no
-    ///   node exists, build it and insert into `intermediate_nodes_index`.
-    /// - `true` (LL(1)): skip the lookup and the index insert. Build the
-    ///   node and push it onto `sppf_nodes`. LL(1) intermediate nodes are
-    ///   never queried: the deterministic LL(1) parse cannot re-enter the
-    ///   same `(slot_id, span)`, and GLL never reads them.
+    /// Two GSS contexts arriving at the same `(slot, span)` under the unified
+    /// parameterized form currently produce the same packed child pair, so
+    /// attaching a duplicate or marking the node ambiguous would be spurious
+    /// work that breaks parse tree extraction. The new caller's continuation
+    /// still fires in its own GSS context because the descriptor queue tracks
+    /// per-caller state. See `docs/operator_precedence_desugaring.md`
+    /// section 10.
     fn get_or_create_intermediate_node(
         &mut self,
         slot_id: SlotId,
@@ -592,7 +585,36 @@ pub trait Parser<'i> {
         right_extent: u32,
         left_child: SPPFNodeId,
         right_child: SPPFNodeId,
-        is_ll1: bool,
+    ) -> SPPFNodeId {
+        if let Some(existing_node_id) =
+            self.lookup_intermediate_node(slot_id, left_extent, right_extent)
+        {
+            record!(self, IntermediateNodeFound, existing_node_id);
+            return existing_node_id;
+        }
+        let intermediate_node = IntermediateNode {
+            slot_id,
+            span: Span {
+                left_extent,
+                right_extent,
+            },
+            child: (left_child, right_child),
+            ambiguous: false,
+        };
+        self.add_intermediate_node(intermediate_node, true)
+    }
+
+    /// LL(1) path. Skips the lookup and the index insert. Builds the node and
+    /// pushes it onto `sppf_nodes`. LL(1) intermediate nodes are never queried:
+    /// the deterministic LL(1) parse cannot re-enter the same `(slot_id, span)`,
+    /// and GLL never reads them.
+    fn create_intermediate_node_ll1(
+        &mut self,
+        slot_id: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+        left_child: SPPFNodeId,
+        right_child: SPPFNodeId,
     ) -> SPPFNodeId {
         let intermediate_node = IntermediateNode {
             slot_id,
@@ -603,18 +625,7 @@ pub trait Parser<'i> {
             child: (left_child, right_child),
             ambiguous: false,
         };
-
-        if is_ll1 {
-            return self.add_intermediate_node(intermediate_node, false);
-        }
-
-        if let Some(existing_node_id) =
-            self.lookup_intermediate_node(slot_id, left_extent, right_extent)
-        {
-            record!(self, IntermediateNodeFound, existing_node_id);
-            return existing_node_id;
-        }
-        self.add_intermediate_node(intermediate_node, true)
+        self.add_intermediate_node(intermediate_node, false)
     }
 
     /// Combines the left child (result from previous slots) and a right child into
@@ -635,7 +646,6 @@ pub trait Parser<'i> {
             right_extent,
             left_child_id,
             right_child_id,
-            false,
         );
         (right_extent, new_node)
     }

@@ -779,13 +779,12 @@ impl<'i> GroupParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(10),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 let right_child = {
                     let start = j;
@@ -794,13 +793,12 @@ impl<'i> GroupParser<'i> {
                     j = end;
                     node
                 };
-                current = self.get_or_create_intermediate_node(
+                current = self.create_intermediate_node_ll1(
                     SlotId(11),
                     left_extent,
                     j,
                     current,
                     right_child,
-                    true,
                 );
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(4),
