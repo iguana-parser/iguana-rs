@@ -185,7 +185,7 @@ impl<'a, 'i, P: Parser<'i>> SPPFGraphBuilder<'a, P> {
                 if n.ambiguous {
                     let children_map = self.parser.nonterminal_nodes_children_map();
                     if let Some(children) = children_map.get(&id) {
-                        for child in children {
+                        for (child, _) in children {
                             self.add_edge(id, *child);
                             self.visit_node(*child);
                         }

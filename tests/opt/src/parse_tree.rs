@@ -43,9 +43,9 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::S(_) => "S",
-            ParseTree::A(_) => "A",
-            ParseTree::Opt0(_) => "A?",
+            ParseTree::S(s) => s.display_name(),
+            ParseTree::A(a) => a.display_name(),
+            ParseTree::Opt0(opt_0) => opt_0.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -137,6 +137,9 @@ impl<'a> S<'a> {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "S"
+    }
 }
 impl<'a> A {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -157,6 +160,9 @@ impl<'a> A {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "A"
+    }
 }
 impl<'a> Opt0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -171,7 +177,7 @@ impl<'a> Opt0<'a> {
             Opt0::Alt1 { .. } => match index {
                 _ => None,
             },
-            Opt0::Amb(_) => None,
+            Opt0::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt0),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -186,6 +192,12 @@ impl<'a> Opt0<'a> {
             Opt0::Alt0 { span, .. } => *span,
             Opt0::Alt1 { span, .. } => *span,
             Opt0::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Opt0::Amb(_) => "amb",
+            _ => "A?",
         }
     }
 }
@@ -286,6 +298,21 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for OptParseTreeBuilder<'a> {
             span: terminal_node.span,
         })
     }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::OPT_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_opt_0()));
+                ParseTree::Opt0(self.bump.alloc(Opt0::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
+    }
 }
 pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
@@ -307,24 +334,21 @@ pub fn create_parse_tree_s<'a>(
     parser: &OptParser,
     builder: &OptParseTreeBuilder<'a>,
 ) -> &'a S<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()
 }
 pub fn create_parse_tree_a<'a>(
     root_id: SPPFNodeId,
     parser: &OptParser,
     builder: &OptParseTreeBuilder<'a>,
 ) -> &'a A {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_a()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_a()
 }
 pub fn create_parse_tree_opt_0<'a>(
     root_id: SPPFNodeId,
     parser: &OptParser,
     builder: &OptParseTreeBuilder<'a>,
 ) -> &'a Opt0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_opt_0()
 }

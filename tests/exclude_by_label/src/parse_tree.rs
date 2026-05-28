@@ -58,10 +58,10 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::Expr(_) => "Expr",
-            ParseTree::Plus0(_) => "{Expr !comma \",\"}+",
-            ParseTree::Opt0(_) => "{Expr !comma \",\"}+?",
-            ParseTree::Star0(_) => "{Expr !comma \",\"}*",
+            ParseTree::Expr(expr) => expr.display_name(),
+            ParseTree::Plus0(plus_0) => plus_0.display_name(),
+            ParseTree::Opt0(opt_0) => opt_0.display_name(),
+            ParseTree::Star0(star_0) => star_0.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -211,7 +211,7 @@ impl<'a> Expr<'a> {
                 2 => Some(ParseTree::Expr(expr_2)),
                 _ => None,
             },
-            Expr::Amb(_) => None,
+            Expr::Amb(alts) => alts.get(index).copied().map(ParseTree::Expr),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -228,6 +228,12 @@ impl<'a> Expr<'a> {
             Expr::Call { span, .. } => *span,
             Expr::Comma { span, .. } => *span,
             Expr::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Expr::Amb(_) => "amb",
+            _ => "Expr",
         }
     }
 }
@@ -252,7 +258,7 @@ impl<'a> Plus0<'a> {
                 0 => Some(ParseTree::Expr(expr)),
                 _ => None,
             },
-            Plus0::Amb(_) => None,
+            Plus0::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus0),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -269,6 +275,12 @@ impl<'a> Plus0<'a> {
             Plus0::Amb(alts) => alts[0].span(),
         }
     }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Plus0::Amb(_) => "amb",
+            _ => "{Expr !comma \",\"}+",
+        }
+    }
 }
 impl<'a> Opt0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -283,7 +295,7 @@ impl<'a> Opt0<'a> {
             Opt0::Alt1 { .. } => match index {
                 _ => None,
             },
-            Opt0::Amb(_) => None,
+            Opt0::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt0),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -298,6 +310,12 @@ impl<'a> Opt0<'a> {
             Opt0::Alt0 { span, .. } => *span,
             Opt0::Alt1 { span, .. } => *span,
             Opt0::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Opt0::Amb(_) => "amb",
+            _ => "{Expr !comma \",\"}+?",
         }
     }
 }
@@ -319,6 +337,9 @@ impl<'a> Star0<'a> {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "{Expr !comma \",\"}*"
     }
 }
 impl<'a> ListNode<'a> for Plus0<'a> {
@@ -503,6 +524,33 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             span: terminal_node.span,
         })
     }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::EXPR => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_expr()));
+                ParseTree::Expr(self.bump.alloc(Expr::Amb(slice)))
+            }
+            crate::grammar_data::PLUS_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_plus_0()));
+                ParseTree::Plus0(self.bump.alloc(Plus0::Amb(slice)))
+            }
+            crate::grammar_data::OPT_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_opt_0()));
+                ParseTree::Opt0(self.bump.alloc(Opt0::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
+    }
 }
 pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
@@ -531,16 +579,16 @@ pub fn create_parse_tree_expr<'a>(
     parser: &ExcludeByLabelParser,
     builder: &ExcludeByLabelParseTreeBuilder<'a>,
 ) -> &'a Expr<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_expr()
+    visit_sppf(root_id, parser, builder)
+        .unwrap_one()
+        .unwrap_expr()
 }
 pub fn create_parse_tree_plus_0<'a>(
     root_id: SPPFNodeId,
     parser: &ExcludeByLabelParser,
     builder: &ExcludeByLabelParseTreeBuilder<'a>,
 ) -> &'a Plus0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_plus_0()
 }
@@ -549,8 +597,7 @@ pub fn create_parse_tree_opt_0<'a>(
     parser: &ExcludeByLabelParser,
     builder: &ExcludeByLabelParseTreeBuilder<'a>,
 ) -> &'a Opt0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_opt_0()
 }
@@ -559,8 +606,7 @@ pub fn create_parse_tree_star_0<'a>(
     parser: &ExcludeByLabelParser,
     builder: &ExcludeByLabelParseTreeBuilder<'a>,
 ) -> &'a Star0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_star_0()
 }

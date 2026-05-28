@@ -484,6 +484,7 @@ fn gen_nonterminal_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> To
     let child_method = gen_child_method(grammar, nonterminal);
     let child_count_method = gen_child_count_method(grammar, nonterminal);
     let span_method = gen_span_method(grammar, nonterminal);
+    let display_name_method = gen_nonterminal_display_name_method(grammar, nonterminal);
     let typed_accessor = gen_typed_accessor(grammar, nonterminal);
     quote! {
         impl<'a> #ty {
@@ -491,7 +492,35 @@ fn gen_nonterminal_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> To
             #child_method
             #child_count_method
             #span_method
+            #display_name_method
             #typed_accessor
+        }
+    }
+}
+
+/// Generates `display_name` on a nonterminal type. Multi-alternative enums
+/// return `"amb"` for the `Amb` variant and the nonterminal's name otherwise;
+/// single-alternative structs return the name unconditionally.
+fn gen_nonterminal_display_name_method(
+    grammar: &Grammar,
+    nonterminal: &Nonterminal,
+) -> TokenStream {
+    let display_name = nonterminal.display_name();
+    let ident = nt_ident(&nonterminal.name);
+    if grammar.alternatives(nonterminal).len() > 1 {
+        quote! {
+            pub fn display_name(&self) -> &'static str {
+                match self {
+                    #ident::Amb(_) => "amb",
+                    _ => #display_name,
+                }
+            }
+        }
+    } else {
+        quote! {
+            pub fn display_name(&self) -> &'static str {
+                #display_name
+            }
         }
     }
 }
@@ -522,6 +551,7 @@ fn gen_start_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStr
     };
 
     let start_variant = nt_ident(&nonterminal.name);
+    let start_display_name = nonterminal.display_name();
     quote! {
         impl<'a> #start_ty {
             pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -540,6 +570,9 @@ fn gen_start_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStr
             }
             pub fn span(&self) -> Span {
                 self.span
+            }
+            pub fn display_name(&self) -> &'static str {
+                #start_display_name
             }
         }
     }
@@ -613,7 +646,7 @@ fn gen_children_by_index(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenS
         quote! {
             match self {
                 #(#arms,)*
-                #ident::Amb(_) => None
+                #ident::Amb(alts) => alts.get(index).copied().map(ParseTree::#ident)
             }
         }
     }
@@ -807,6 +840,7 @@ fn gen_parse_tree_builder_impl(
     let builder_name_ident = format_ident!("{}ParseTreeBuilder", grammar.name);
     let nonterminal_node_method = gen_nonterminal_node_method(grammar, nonterminal_ids, slot_ids);
     let new_token_method = gen_new_token_method();
+    let new_ambiguity_node_method = gen_new_ambiguity_node_method(grammar);
     quote! {
         pub struct #builder_name_ident<'a> {
             pub bump: &'a Bump,
@@ -819,6 +853,46 @@ fn gen_parse_tree_builder_impl(
         impl<'a> ParseTreeBuilder<ParseTree<'a>> for #builder_name_ident<'a> {
             #nonterminal_node_method
             #new_token_method
+            #new_ambiguity_node_method
+        }
+    }
+}
+
+/// Generates a per-grammar `new_ambiguity_node` that dispatches on the parent
+/// nonterminal id. Each multi-alternative nonterminal gets one match arm;
+/// single-alternative nonterminals cannot be ambiguous and fall through to
+/// the trait default.
+fn gen_new_ambiguity_node_method(grammar: &Grammar) -> TokenStream {
+    let cases: Vec<TokenStream> = grammar
+        .nonterminals()
+        .filter(|n| grammar.alternatives(n).len() > 1)
+        .map(|n| {
+            let variant = nt_ident(&n.name);
+            let const_name = format_ident!("{}", to_snake_case(&n.name).to_uppercase());
+            let unwrap_method = format_ident!("unwrap_{}", to_snake_case(&n.name));
+            quote! {
+                crate::grammar_data::#const_name => {
+                    let slice = self.bump.alloc_slice_fill_iter(
+                        alternatives.into_iter().map(|a| a.#unwrap_method())
+                    );
+                    ParseTree::#variant(self.bump.alloc(#variant::Amb(slice)))
+                }
+            }
+        })
+        .collect();
+    if cases.is_empty() {
+        return quote! {};
+    }
+    quote! {
+        fn new_ambiguity_node(
+            &self,
+            parent: NonterminalId,
+            alternatives: Vec<ParseTree<'a>>,
+        ) -> ParseTree<'a> {
+            match parent {
+                #(#cases)*
+                _ => unreachable!("nonterminal cannot be ambiguous"),
+            }
         }
     }
 }
@@ -1054,9 +1128,9 @@ fn gen_parse_tree_children_method(grammar: &Grammar) -> TokenStream {
 
 fn gen_parse_tree_name_method(grammar: &Grammar) -> TokenStream {
     let arms = grammar.nonterminals().map(|n| {
-        let display_name = &n.display_name();
         let name_ident = nt_ident(&n.name);
-        quote! { ParseTree::#name_ident(_) => #display_name }
+        let var_ident = safe_ident(&to_snake_case(&n.name));
+        quote! { ParseTree::#name_ident(#var_ident) => #var_ident.display_name() }
     });
     quote! {
         pub fn display_name(&self) -> &'static str {
@@ -1873,8 +1947,7 @@ fn gen_create_parse_tree_nonterminal_function(
             parser: &#parser_name_ident,
             builder: &#builder_name_ident<'a>,
         ) -> &'a #return_type {
-            let node = parser.sppf_node(root_id);
-            visit_sppf(node, parser, builder).unwrap_one().#unwrap_method()
+            visit_sppf(root_id, parser, builder).unwrap_one().#unwrap_method()
         }
     }
 }

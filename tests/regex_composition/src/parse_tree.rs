@@ -58,11 +58,11 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::S(_) => "S",
-            ParseTree::Id(_) => "Id",
-            ParseTree::Plus0(_) => "LetterOrDigit+",
-            ParseTree::Opt0(_) => "LetterOrDigit+?",
-            ParseTree::Star0(_) => "LetterOrDigit*",
+            ParseTree::S(s) => s.display_name(),
+            ParseTree::Id(id) => id.display_name(),
+            ParseTree::Plus0(plus_0) => plus_0.display_name(),
+            ParseTree::Opt0(opt_0) => opt_0.display_name(),
+            ParseTree::Star0(star_0) => star_0.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -198,6 +198,9 @@ impl<'a> S<'a> {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "S"
+    }
 }
 impl<'a> Id<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -222,6 +225,9 @@ impl<'a> Id<'a> {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "Id"
+    }
 }
 impl<'a> Plus0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -244,7 +250,7 @@ impl<'a> Plus0<'a> {
                 0 => Some(ParseTree::Token(*letter_or_digit)),
                 _ => None,
             },
-            Plus0::Amb(_) => None,
+            Plus0::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus0),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -259,6 +265,12 @@ impl<'a> Plus0<'a> {
             Plus0::Alt0 { span, .. } => *span,
             Plus0::Alt1 { span, .. } => *span,
             Plus0::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Plus0::Amb(_) => "amb",
+            _ => "LetterOrDigit+",
         }
     }
     pub fn letter_or_digits(&'a self) -> impl Iterator<Item = Token> {
@@ -283,7 +295,7 @@ impl<'a> Opt0<'a> {
             Opt0::Alt1 { .. } => match index {
                 _ => None,
             },
-            Opt0::Amb(_) => None,
+            Opt0::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt0),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -298,6 +310,12 @@ impl<'a> Opt0<'a> {
             Opt0::Alt0 { span, .. } => *span,
             Opt0::Alt1 { span, .. } => *span,
             Opt0::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Opt0::Amb(_) => "amb",
+            _ => "LetterOrDigit+?",
         }
     }
     pub fn letter_or_digits(&'a self) -> impl Iterator<Item = Token> {
@@ -324,6 +342,9 @@ impl<'a> Star0<'a> {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "LetterOrDigit*"
     }
     pub fn letter_or_digits(&self) -> impl Iterator<Item = Token> {
         self.opt_0.letter_or_digits()
@@ -508,6 +529,27 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
             span: terminal_node.span,
         })
     }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::PLUS_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_plus_0()));
+                ParseTree::Plus0(self.bump.alloc(Plus0::Amb(slice)))
+            }
+            crate::grammar_data::OPT_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_opt_0()));
+                ParseTree::Opt0(self.bump.alloc(Opt0::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
+    }
 }
 pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
@@ -535,24 +577,23 @@ pub fn create_parse_tree_s<'a>(
     parser: &RegexCompositionParser,
     builder: &RegexCompositionParseTreeBuilder<'a>,
 ) -> &'a S<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()
 }
 pub fn create_parse_tree_id<'a>(
     root_id: SPPFNodeId,
     parser: &RegexCompositionParser,
     builder: &RegexCompositionParseTreeBuilder<'a>,
 ) -> &'a Id<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_id()
+    visit_sppf(root_id, parser, builder)
+        .unwrap_one()
+        .unwrap_id()
 }
 pub fn create_parse_tree_plus_0<'a>(
     root_id: SPPFNodeId,
     parser: &RegexCompositionParser,
     builder: &RegexCompositionParseTreeBuilder<'a>,
 ) -> &'a Plus0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_plus_0()
 }
@@ -561,8 +602,7 @@ pub fn create_parse_tree_opt_0<'a>(
     parser: &RegexCompositionParser,
     builder: &RegexCompositionParseTreeBuilder<'a>,
 ) -> &'a Opt0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_opt_0()
 }
@@ -571,8 +611,7 @@ pub fn create_parse_tree_star_0<'a>(
     parser: &RegexCompositionParser,
     builder: &RegexCompositionParseTreeBuilder<'a>,
 ) -> &'a Star0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_star_0()
 }

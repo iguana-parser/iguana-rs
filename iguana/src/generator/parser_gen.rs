@@ -1139,8 +1139,8 @@ impl<'a> ParserGen<'a> {
                 epsilon_nodes: Vec<SPPFNodeId>,
                 intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
                 intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
-                nonterminal_nodes_children: Vec<(SPPFNodeId, SPPFNodeId)>,
-                nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>>,
+                nonterminal_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SlotId))>,
+                nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
                 envs: Vec<Env>,
                 parse_errors: InlineVec<ParseError, 8>,
                 #layout_memo_field
@@ -2004,17 +2004,24 @@ impl<'a> ParserGen<'a> {
 
     fn gen_add_nonterminal_node_child_method() -> TokenStream {
         quote! {
-            fn add_nonterminal_node_child(&mut self, node: SPPFNodeId, child: SPPFNodeId) {
-                self.nonterminal_nodes_children.push((node, child));
+            fn add_nonterminal_node_child(
+                &mut self,
+                node: SPPFNodeId,
+                child: SPPFNodeId,
+                return_slot: SlotId,
+            ) {
+                self.nonterminal_nodes_children.push((node, (child, return_slot)));
             }
         }
     }
 
     fn gen_nonterminal_nodes_children_map_method() -> TokenStream {
         quote! {
-            fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<SPPFNodeId>> {
+            fn nonterminal_nodes_children_map(
+                &self,
+            ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>> {
                 self.nonterminal_nodes_children_map.get_or_init(|| {
-                    let mut map: FxHashMap<SPPFNodeId, Vec<SPPFNodeId>> =
+                    let mut map: FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>> =
                         FxHashMap::default();
                     for (k, v) in &self.nonterminal_nodes_children {
                         map.entry(*k).or_default().push(*v);
@@ -2129,7 +2136,7 @@ impl<'a> ParserGen<'a> {
                         unreachable!("Expects a nonterminal node");
                     };
                     node.ambiguous = true;
-                    self.add_nonterminal_node_child(existing_node_id, child);
+                    self.add_nonterminal_node_child(existing_node_id, child, return_slot);
                     return existing_node_id;
                 }
                 let nonterminal_node = NonterminalNode {

@@ -44,8 +44,8 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::S(_) => "S",
-            ParseTree::X(_) => "X",
+            ParseTree::S(s) => s.display_name(),
+            ParseTree::X(x) => x.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -127,6 +127,9 @@ impl<'a> S<'a> {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "S"
+    }
 }
 impl<'a> X<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -142,7 +145,7 @@ impl<'a> X<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            X::Amb(_) => None,
+            X::Amb(alts) => alts.get(index).copied().map(ParseTree::X),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -157,6 +160,12 @@ impl<'a> X<'a> {
             X::Alt0 { span, .. } => *span,
             X::Alt1 { span, .. } => *span,
             X::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            X::Amb(_) => "amb",
+            _ => "X",
         }
     }
 }
@@ -241,6 +250,21 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LongestMatchParseTreeBuilder<'a> {
             span: terminal_node.span,
         })
     }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::X => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_x()));
+                ParseTree::X(self.bump.alloc(X::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
+    }
 }
 pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
@@ -259,16 +283,14 @@ pub fn create_parse_tree_s<'a>(
     parser: &LongestMatchParser,
     builder: &LongestMatchParseTreeBuilder<'a>,
 ) -> &'a S<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()
 }
 pub fn create_parse_tree_x<'a>(
     root_id: SPPFNodeId,
     parser: &LongestMatchParser,
     builder: &LongestMatchParseTreeBuilder<'a>,
 ) -> &'a X<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_x()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_x()
 }
 pub fn to_sexpr(node: ParseTree<'_>) -> String {
     let mut s = String::new();

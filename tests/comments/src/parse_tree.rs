@@ -68,8 +68,8 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::Expr(_) => "Expr",
-            ParseTree::StartExpr(_) => "Expr",
+            ParseTree::Expr(expr) => expr.display_name(),
+            ParseTree::StartExpr(start_expr) => start_expr.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -180,7 +180,7 @@ impl<'a> Expr<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            Expr::Amb(_) => None,
+            Expr::Amb(alts) => alts.get(index).copied().map(ParseTree::Expr),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -197,6 +197,12 @@ impl<'a> Expr<'a> {
             Expr::Alt1 { span, .. } => *span,
             Expr::Alt2 { span, .. } => *span,
             Expr::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Expr::Amb(_) => "amb",
+            _ => "Expr",
         }
     }
 }
@@ -217,6 +223,9 @@ impl<'a> Start<&'a Expr<'a>, Token> {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Expr"
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -327,6 +336,21 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CommentsParseTreeBuilder<'a> {
             span: terminal_node.span,
         })
     }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::EXPR => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_expr()));
+                ParseTree::Expr(self.bump.alloc(Expr::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
+    }
 }
 pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
@@ -349,16 +373,16 @@ pub fn create_parse_tree_expr<'a>(
     parser: &CommentsParser,
     builder: &CommentsParseTreeBuilder<'a>,
 ) -> &'a Expr<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_expr()
+    visit_sppf(root_id, parser, builder)
+        .unwrap_one()
+        .unwrap_expr()
 }
 pub fn create_parse_tree_start_expr<'a>(
     root_id: SPPFNodeId,
     parser: &CommentsParser,
     builder: &CommentsParseTreeBuilder<'a>,
 ) -> &'a Start<&'a Expr<'a>, Token> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_start_expr()
 }

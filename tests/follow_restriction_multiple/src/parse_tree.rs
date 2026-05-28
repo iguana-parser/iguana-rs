@@ -52,11 +52,11 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::S(_) => "S",
-            ParseTree::Id(_) => "Id",
-            ParseTree::Plus0(_) => "Id+",
-            ParseTree::Alt0(_) => "(Alpha | Digit)",
-            ParseTree::Plus1(_) => "(Alpha | Digit)+",
+            ParseTree::S(s) => s.display_name(),
+            ParseTree::Id(id) => id.display_name(),
+            ParseTree::Plus0(plus_0) => plus_0.display_name(),
+            ParseTree::Alt0(alt_0) => alt_0.display_name(),
+            ParseTree::Plus1(plus_1) => plus_1.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -196,6 +196,9 @@ impl<'a> S<'a> {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "S"
+    }
     pub fn ids(&self) -> impl Iterator<Item = &'a Id<'a>> {
         self.ids.ids()
     }
@@ -219,6 +222,9 @@ impl<'a> Id<'a> {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "Id"
+    }
     pub fn alphas(&self) -> impl Iterator<Item = Token> {
         self.plus_1.alphas()
     }
@@ -241,7 +247,7 @@ impl<'a> Plus0<'a> {
                 0 => Some(ParseTree::Id(id)),
                 _ => None,
             },
-            Plus0::Amb(_) => None,
+            Plus0::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus0),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -256,6 +262,12 @@ impl<'a> Plus0<'a> {
             Plus0::Alt0 { span, .. } => *span,
             Plus0::Alt1 { span, .. } => *span,
             Plus0::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Plus0::Amb(_) => "amb",
+            _ => "Id+",
         }
     }
     pub fn ids(&'a self) -> impl Iterator<Item = &'a Id<'a>> {
@@ -279,7 +291,7 @@ impl<'a> Alt0<'a> {
                 0 => Some(ParseTree::Token(*digit)),
                 _ => None,
             },
-            Alt0::Amb(_) => None,
+            Alt0::Amb(alts) => alts.get(index).copied().map(ParseTree::Alt0),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -294,6 +306,12 @@ impl<'a> Alt0<'a> {
             Alt0::Alt0 { span, .. } => *span,
             Alt0::Alt1 { span, .. } => *span,
             Alt0::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Alt0::Amb(_) => "amb",
+            _ => "(Alpha | Digit)",
         }
     }
 }
@@ -312,7 +330,7 @@ impl<'a> Plus1<'a> {
                 0 => Some(ParseTree::Alt0(alt_0)),
                 _ => None,
             },
-            Plus1::Amb(_) => None,
+            Plus1::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus1),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -327,6 +345,12 @@ impl<'a> Plus1<'a> {
             Plus1::Alt0 { span, .. } => *span,
             Plus1::Alt1 { span, .. } => *span,
             Plus1::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Plus1::Amb(_) => "amb",
+            _ => "(Alpha | Digit)+",
         }
     }
     pub fn alphas(&'a self) -> impl Iterator<Item = Token> {
@@ -538,6 +562,33 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
             span: terminal_node.span,
         })
     }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::PLUS_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_plus_0()));
+                ParseTree::Plus0(self.bump.alloc(Plus0::Amb(slice)))
+            }
+            crate::grammar_data::ALT_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_alt_0()));
+                ParseTree::Alt0(self.bump.alloc(Alt0::Amb(slice)))
+            }
+            crate::grammar_data::PLUS_1 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_plus_1()));
+                ParseTree::Plus1(self.bump.alloc(Plus1::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
+    }
 }
 pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
@@ -565,24 +616,23 @@ pub fn create_parse_tree_s<'a>(
     parser: &FollowRestrictionMultipleParser,
     builder: &FollowRestrictionMultipleParseTreeBuilder<'a>,
 ) -> &'a S<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()
 }
 pub fn create_parse_tree_id<'a>(
     root_id: SPPFNodeId,
     parser: &FollowRestrictionMultipleParser,
     builder: &FollowRestrictionMultipleParseTreeBuilder<'a>,
 ) -> &'a Id<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_id()
+    visit_sppf(root_id, parser, builder)
+        .unwrap_one()
+        .unwrap_id()
 }
 pub fn create_parse_tree_plus_0<'a>(
     root_id: SPPFNodeId,
     parser: &FollowRestrictionMultipleParser,
     builder: &FollowRestrictionMultipleParseTreeBuilder<'a>,
 ) -> &'a Plus0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_plus_0()
 }
@@ -591,8 +641,7 @@ pub fn create_parse_tree_alt_0<'a>(
     parser: &FollowRestrictionMultipleParser,
     builder: &FollowRestrictionMultipleParseTreeBuilder<'a>,
 ) -> &'a Alt0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_alt_0()
 }
@@ -601,8 +650,7 @@ pub fn create_parse_tree_plus_1<'a>(
     parser: &FollowRestrictionMultipleParser,
     builder: &FollowRestrictionMultipleParseTreeBuilder<'a>,
 ) -> &'a Plus1<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_plus_1()
 }

@@ -41,8 +41,8 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::S(_) => "S",
-            ParseTree::Id(_) => "Id",
+            ParseTree::S(s) => s.display_name(),
+            ParseTree::Id(id) => id.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -117,6 +117,9 @@ impl<'a> S<'a> {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "S"
+    }
 }
 impl<'a> Id {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -136,6 +139,9 @@ impl<'a> Id {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Id"
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -226,16 +232,16 @@ pub fn create_parse_tree_s<'a>(
     parser: &ExceptTerminalParser,
     builder: &ExceptTerminalParseTreeBuilder<'a>,
 ) -> &'a S<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()
 }
 pub fn create_parse_tree_id<'a>(
     root_id: SPPFNodeId,
     parser: &ExceptTerminalParser,
     builder: &ExceptTerminalParseTreeBuilder<'a>,
 ) -> &'a Id {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_id()
+    visit_sppf(root_id, parser, builder)
+        .unwrap_one()
+        .unwrap_id()
 }
 pub fn to_sexpr(node: ParseTree<'_>) -> String {
     let mut s = String::new();

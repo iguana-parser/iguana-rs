@@ -36,7 +36,7 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::A(_) => "A",
+            ParseTree::A(a) => a.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -102,7 +102,7 @@ impl<'a> A<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            A::Amb(_) => None,
+            A::Amb(alts) => alts.get(index).copied().map(ParseTree::A),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -117,6 +117,12 @@ impl<'a> A<'a> {
             A::Alt0 { span, .. } => *span,
             A::Alt1 { span, .. } => *span,
             A::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            A::Amb(_) => "amb",
+            _ => "A",
         }
     }
 }
@@ -185,6 +191,21 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LeftRecursiveListParseTreeBuilder<'
             span: terminal_node.span,
         })
     }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::A => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_a()));
+                ParseTree::A(self.bump.alloc(A::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
+    }
 }
 pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
@@ -202,8 +223,7 @@ pub fn create_parse_tree_a<'a>(
     parser: &LeftRecursiveListParser,
     builder: &LeftRecursiveListParseTreeBuilder<'a>,
 ) -> &'a A<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_a()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_a()
 }
 pub fn to_sexpr(node: ParseTree<'_>) -> String {
     let mut s = String::new();

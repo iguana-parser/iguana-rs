@@ -3,8 +3,9 @@ use std::fmt;
 pub use bumpalo::Bump;
 
 use crate::{
+    ids::{NonterminalId, SlotId},
     parser::Parser,
-    sppf::{NonterminalNode, SPPFNode, TerminalNode},
+    sppf::{NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
 };
 
 pub struct ParseContext {
@@ -87,10 +88,11 @@ impl<T: fmt::Debug> OneOrMany<T> {
 }
 
 pub fn visit_sppf<'i, T: fmt::Debug, P: Parser<'i>>(
-    node: &SPPFNode,
+    node_id: SPPFNodeId,
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
 ) -> OneOrMany<T> {
+    let node = parser.sppf_node(node_id);
     match node {
         SPPFNode::Terminal(t) => {
             if t.terminal_id == P::epsilon() {
@@ -100,16 +102,35 @@ pub fn visit_sppf<'i, T: fmt::Debug, P: Parser<'i>>(
             }
         }
         SPPFNode::Nonterminal(n) => {
-            if n.ambiguous {
-                todo!(
-                    "ambiguous nonterminal extraction: id={:?}, span={:?}",
-                    n.nonterminal_id,
-                    n.span
-                )
+            if !n.ambiguous {
+                let children = visit_sppf(n.child, parser, builder);
+                return OneOrMany::One(builder.new_nonterminal_node(n, children));
             }
-            let child = parser.sppf_node(n.child);
-            let children = visit_sppf(child, parser, builder);
-            OneOrMany::One(builder.new_nonterminal_node(n, children))
+            // Ambiguous nonterminal: each child is a complete alternative
+            // derivation. Build one parse-tree node per child using its own
+            // return slot and wrap the results in an Amb.
+            let extras: Vec<(SPPFNodeId, SlotId)> = parser
+                .nonterminal_nodes_children_map()
+                .get(&node_id)
+                .cloned()
+                .unwrap_or_default();
+            let nonterminal_id = n.nonterminal_id;
+            let span = n.span;
+            let mut alternatives: Vec<T> = Vec::with_capacity(1 + extras.len());
+            let primary_children = visit_sppf(n.child, parser, builder);
+            alternatives.push(builder.new_nonterminal_node(n, primary_children));
+            for (child_id, return_slot) in extras {
+                let synthetic = NonterminalNode {
+                    nonterminal_id,
+                    return_slot,
+                    span,
+                    child: child_id,
+                    ambiguous: false,
+                };
+                let children = visit_sppf(child_id, parser, builder);
+                alternatives.push(builder.new_nonterminal_node(&synthetic, children));
+            }
+            OneOrMany::One(builder.new_ambiguity_node(nonterminal_id, alternatives))
         }
         SPPFNode::Intermediate(i) => {
             if i.ambiguous {
@@ -120,8 +141,6 @@ pub fn visit_sppf<'i, T: fmt::Debug, P: Parser<'i>>(
                 )
             }
             let (left_child, right_child) = i.child;
-            let left_child = parser.sppf_node(left_child);
-            let right_child = parser.sppf_node(right_child);
             visit_sppf(left_child, parser, builder).merge(visit_sppf(right_child, parser, builder))
         }
     }
@@ -131,8 +150,8 @@ pub trait ParseTreeBuilder<T: fmt::Debug> {
     fn new_token(&self, terminal_node: &TerminalNode) -> T;
     fn new_nonterminal_node(&self, nonterminal_node: &NonterminalNode, children: OneOrMany<T>)
     -> T;
-    fn new_ambiguity_node(&self, alternatives: Vec<T>) -> T {
-        let _ = alternatives;
+    fn new_ambiguity_node(&self, parent: NonterminalId, alternatives: Vec<T>) -> T {
+        let _ = (parent, alternatives);
         unimplemented!("ambiguity handling not yet implemented for this builder")
     }
 }

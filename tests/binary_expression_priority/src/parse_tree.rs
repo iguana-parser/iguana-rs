@@ -47,8 +47,8 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::S(_) => "S",
-            ParseTree::E(_) => "E",
+            ParseTree::S(s) => s.display_name(),
+            ParseTree::E(e) => e.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -147,6 +147,9 @@ impl<'a> S<'a> {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "S"
+    }
 }
 impl<'a> E<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -182,7 +185,7 @@ impl<'a> E<'a> {
                 2 => Some(ParseTree::E(e_2)),
                 _ => None,
             },
-            E::Amb(_) => None,
+            E::Amb(alts) => alts.get(index).copied().map(ParseTree::E),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -201,6 +204,12 @@ impl<'a> E<'a> {
             E::Alt2 { span, .. } => *span,
             E::Alt3 { span, .. } => *span,
             E::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            E::Amb(_) => "amb",
+            _ => "E",
         }
     }
 }
@@ -308,6 +317,21 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
             span: terminal_node.span,
         })
     }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::E => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_e()));
+                ParseTree::E(self.bump.alloc(E::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
+    }
 }
 pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
@@ -326,16 +350,14 @@ pub fn create_parse_tree_s<'a>(
     parser: &BinaryExpressionPriorityParser,
     builder: &BinaryExpressionPriorityParseTreeBuilder<'a>,
 ) -> &'a S<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()
 }
 pub fn create_parse_tree_e<'a>(
     root_id: SPPFNodeId,
     parser: &BinaryExpressionPriorityParser,
     builder: &BinaryExpressionPriorityParseTreeBuilder<'a>,
 ) -> &'a E<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_e()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_e()
 }
 pub fn to_sexpr(node: ParseTree<'_>) -> String {
     let mut s = String::new();

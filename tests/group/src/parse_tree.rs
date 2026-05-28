@@ -53,11 +53,11 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::A(_) => "A",
-            ParseTree::B(_) => "B",
-            ParseTree::C(_) => "C",
-            ParseTree::D(_) => "D",
-            ParseTree::Group0(_) => "(B C D)",
+            ParseTree::A(a) => a.display_name(),
+            ParseTree::B(b) => b.display_name(),
+            ParseTree::C(c) => c.display_name(),
+            ParseTree::D(d) => d.display_name(),
+            ParseTree::Group0(group_0) => group_0.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -176,6 +176,9 @@ impl<'a> A<'a> {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "A"
+    }
 }
 impl<'a> B {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -195,6 +198,9 @@ impl<'a> B {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "B"
     }
 }
 impl<'a> C {
@@ -216,6 +222,9 @@ impl<'a> C {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "C"
+    }
 }
 impl<'a> D {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -235,6 +244,9 @@ impl<'a> D {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "D"
     }
 }
 impl<'a> Group0<'a> {
@@ -263,6 +275,9 @@ impl<'a> Group0<'a> {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "(B C D)"
     }
 }
 impl<'a> ListNode<'a> for Group0<'a> {
@@ -407,40 +422,35 @@ pub fn create_parse_tree_a<'a>(
     parser: &GroupParser,
     builder: &GroupParseTreeBuilder<'a>,
 ) -> &'a A<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_a()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_a()
 }
 pub fn create_parse_tree_b<'a>(
     root_id: SPPFNodeId,
     parser: &GroupParser,
     builder: &GroupParseTreeBuilder<'a>,
 ) -> &'a B {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_b()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_b()
 }
 pub fn create_parse_tree_c<'a>(
     root_id: SPPFNodeId,
     parser: &GroupParser,
     builder: &GroupParseTreeBuilder<'a>,
 ) -> &'a C {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_c()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_c()
 }
 pub fn create_parse_tree_d<'a>(
     root_id: SPPFNodeId,
     parser: &GroupParser,
     builder: &GroupParseTreeBuilder<'a>,
 ) -> &'a D {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_d()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_d()
 }
 pub fn create_parse_tree_group_0<'a>(
     root_id: SPPFNodeId,
     parser: &GroupParser,
     builder: &GroupParseTreeBuilder<'a>,
 ) -> &'a Group0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_group_0()
 }

@@ -30,3 +30,8 @@ fn test_add() {
 fn test_mul() {
     check("a*a", "mul");
 }
+
+#[test]
+fn test_ambig_nonterminal() {
+    check("a+a*a", "ambig_nonterminal");
+}

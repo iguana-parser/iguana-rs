@@ -52,9 +52,9 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::S(_) => "S",
-            ParseTree::Element(_) => "Element",
-            ParseTree::Plus0(_) => "Element+",
+            ParseTree::S(s) => s.display_name(),
+            ParseTree::Element(element) => element.display_name(),
+            ParseTree::Plus0(plus_0) => plus_0.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -156,6 +156,9 @@ impl<'a> S<'a> {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "S"
+    }
     pub fn elements(&self) -> impl Iterator<Item = &'a Element<'a>> {
         self.elements.elements()
     }
@@ -174,7 +177,7 @@ impl<'a> Element<'a> {
                 0 => Some(ParseTree::Token(*id)),
                 _ => None,
             },
-            Element::Amb(_) => None,
+            Element::Amb(alts) => alts.get(index).copied().map(ParseTree::Element),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -189,6 +192,12 @@ impl<'a> Element<'a> {
             Element::Alt0 { span, .. } => *span,
             Element::Alt1 { span, .. } => *span,
             Element::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Element::Amb(_) => "amb",
+            _ => "Element",
         }
     }
 }
@@ -213,7 +222,7 @@ impl<'a> Plus0<'a> {
                 0 => Some(ParseTree::Element(element)),
                 _ => None,
             },
-            Plus0::Amb(_) => None,
+            Plus0::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus0),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -228,6 +237,12 @@ impl<'a> Plus0<'a> {
             Plus0::Alt0 { span, .. } => *span,
             Plus0::Alt1 { span, .. } => *span,
             Plus0::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Plus0::Amb(_) => "amb",
+            _ => "Element+",
         }
     }
     pub fn elements(&'a self) -> impl Iterator<Item = &'a Element<'a>> {
@@ -382,6 +397,27 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionLexicalParseTreeBu
             span: terminal_node.span,
         })
     }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::ELEMENT => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_element()));
+                ParseTree::Element(self.bump.alloc(Element::Amb(slice)))
+            }
+            crate::grammar_data::PLUS_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_plus_0()));
+                ParseTree::Plus0(self.bump.alloc(Plus0::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
+    }
 }
 pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
@@ -405,16 +441,14 @@ pub fn create_parse_tree_s<'a>(
     parser: &FollowRestrictionLexicalParser,
     builder: &FollowRestrictionLexicalParseTreeBuilder<'a>,
 ) -> &'a S<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()
 }
 pub fn create_parse_tree_element<'a>(
     root_id: SPPFNodeId,
     parser: &FollowRestrictionLexicalParser,
     builder: &FollowRestrictionLexicalParseTreeBuilder<'a>,
 ) -> &'a Element<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_element()
 }
@@ -423,8 +457,7 @@ pub fn create_parse_tree_plus_0<'a>(
     parser: &FollowRestrictionLexicalParser,
     builder: &FollowRestrictionLexicalParseTreeBuilder<'a>,
 ) -> &'a Plus0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_plus_0()
 }

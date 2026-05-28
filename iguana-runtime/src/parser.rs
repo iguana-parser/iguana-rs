@@ -135,7 +135,18 @@ pub trait Parser<'i> {
     fn count_ambiguous_nodes(&self) -> usize;
     #[cfg(feature = "instrument")]
     fn record_stats(&self) -> crate::instrument::Stats;
-    fn add_nonterminal_node_child(&mut self, node: SPPFNodeId, child: SPPFNodeId);
+    /// Appends an additional child to an existing nonterminal node.
+    /// Called only when a second (or later) derivation of
+    /// `(nonterminal_id, span)` is popped. A nonterminal node holds a single
+    /// child inline on `NonterminalNode.child`, with that child's slot on
+    /// `NonterminalNode.return_slot`. Additional children live in a side map,
+    /// and a side map entry on a node marks it ambiguous.
+    fn add_nonterminal_node_child(
+        &mut self,
+        node: SPPFNodeId,
+        child: SPPFNodeId,
+        return_slot: SlotId,
+    );
     fn add_intermediate_node_child(
         &mut self,
         node: SPPFNodeId,
@@ -558,7 +569,7 @@ pub trait Parser<'i> {
                 unreachable!("Expects a nonterminal node");
             };
             node.ambiguous = true;
-            self.add_nonterminal_node_child(existing_node_id, child);
+            self.add_nonterminal_node_child(existing_node_id, child, return_slot);
             return existing_node_id;
         }
         let nonterminal_node = NonterminalNode {
@@ -788,7 +799,7 @@ pub trait Parser<'i> {
         &self,
     ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>;
 
-    fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<SPPFNodeId>>;
+    fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>;
 
     fn new_env(&mut self) -> (EnvId, &mut Env);
 

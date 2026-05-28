@@ -74,13 +74,13 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::S(_) => "S",
-            ParseTree::Layout(_) => "Layout",
-            ParseTree::Alt0(_) => "(WhiteSpace | Comment)",
-            ParseTree::Plus0(_) => "(WhiteSpace | Comment)+",
-            ParseTree::Opt0(_) => "(WhiteSpace | Comment)+?",
-            ParseTree::Star0(_) => "(WhiteSpace | Comment)*",
-            ParseTree::StartS(_) => "S",
+            ParseTree::S(s) => s.display_name(),
+            ParseTree::Layout(layout) => layout.display_name(),
+            ParseTree::Alt0(alt_0) => alt_0.display_name(),
+            ParseTree::Plus0(plus_0) => plus_0.display_name(),
+            ParseTree::Opt0(opt_0) => opt_0.display_name(),
+            ParseTree::Star0(star_0) => star_0.display_name(),
+            ParseTree::StartS(start_s) => start_s.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -235,6 +235,9 @@ impl<'a> S {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "S"
+    }
 }
 impl<'a> Layout<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -254,6 +257,9 @@ impl<'a> Layout<'a> {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Layout"
     }
     pub fn white_spaces(&self) -> impl Iterator<Item = Token> {
         self.star_0.white_spaces()
@@ -276,7 +282,7 @@ impl<'a> Alt0<'a> {
                 0 => Some(ParseTree::Token(*comment)),
                 _ => None,
             },
-            Alt0::Amb(_) => None,
+            Alt0::Amb(alts) => alts.get(index).copied().map(ParseTree::Alt0),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -291,6 +297,12 @@ impl<'a> Alt0<'a> {
             Alt0::Alt0 { span, .. } => *span,
             Alt0::Alt1 { span, .. } => *span,
             Alt0::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Alt0::Amb(_) => "amb",
+            _ => "(WhiteSpace | Comment)",
         }
     }
 }
@@ -309,7 +321,7 @@ impl<'a> Plus0<'a> {
                 0 => Some(ParseTree::Alt0(alt_0)),
                 _ => None,
             },
-            Plus0::Amb(_) => None,
+            Plus0::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus0),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -324,6 +336,12 @@ impl<'a> Plus0<'a> {
             Plus0::Alt0 { span, .. } => *span,
             Plus0::Alt1 { span, .. } => *span,
             Plus0::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Plus0::Amb(_) => "amb",
+            _ => "(WhiteSpace | Comment)+",
         }
     }
     pub fn white_spaces(&'a self) -> impl Iterator<Item = Token> {
@@ -352,7 +370,7 @@ impl<'a> Opt0<'a> {
             Opt0::Alt1 { .. } => match index {
                 _ => None,
             },
-            Opt0::Amb(_) => None,
+            Opt0::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt0),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -367,6 +385,12 @@ impl<'a> Opt0<'a> {
             Opt0::Alt0 { span, .. } => *span,
             Opt0::Alt1 { span, .. } => *span,
             Opt0::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Opt0::Amb(_) => "amb",
+            _ => "(WhiteSpace | Comment)+?",
         }
     }
     pub fn white_spaces(&'a self) -> impl Iterator<Item = Token> {
@@ -397,6 +421,9 @@ impl<'a> Star0<'a> {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "(WhiteSpace | Comment)*"
+    }
     pub fn white_spaces(&self) -> impl Iterator<Item = Token> {
         self.opt_0.white_spaces()
     }
@@ -421,6 +448,9 @@ impl<'a> Start<&'a S, &'a Layout<'a>> {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "S"
     }
 }
 impl<'a> ListNode<'a> for Plus0<'a> {
@@ -639,6 +669,33 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutNonterminalParseTreeBuilder<'
             span: terminal_node.span,
         })
     }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::ALT_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_alt_0()));
+                ParseTree::Alt0(self.bump.alloc(Alt0::Amb(slice)))
+            }
+            crate::grammar_data::PLUS_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_plus_0()));
+                ParseTree::Plus0(self.bump.alloc(Plus0::Amb(slice)))
+            }
+            crate::grammar_data::OPT_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_opt_0()));
+                ParseTree::Opt0(self.bump.alloc(Opt0::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
+    }
 }
 pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
@@ -674,16 +731,14 @@ pub fn create_parse_tree_s<'a>(
     parser: &LayoutNonterminalParser,
     builder: &LayoutNonterminalParseTreeBuilder<'a>,
 ) -> &'a S {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder).unwrap_one().unwrap_s()
+    visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()
 }
 pub fn create_parse_tree_layout<'a>(
     root_id: SPPFNodeId,
     parser: &LayoutNonterminalParser,
     builder: &LayoutNonterminalParseTreeBuilder<'a>,
 ) -> &'a Layout<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_layout()
 }
@@ -692,8 +747,7 @@ pub fn create_parse_tree_alt_0<'a>(
     parser: &LayoutNonterminalParser,
     builder: &LayoutNonterminalParseTreeBuilder<'a>,
 ) -> &'a Alt0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_alt_0()
 }
@@ -702,8 +756,7 @@ pub fn create_parse_tree_plus_0<'a>(
     parser: &LayoutNonterminalParser,
     builder: &LayoutNonterminalParseTreeBuilder<'a>,
 ) -> &'a Plus0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_plus_0()
 }
@@ -712,8 +765,7 @@ pub fn create_parse_tree_opt_0<'a>(
     parser: &LayoutNonterminalParser,
     builder: &LayoutNonterminalParseTreeBuilder<'a>,
 ) -> &'a Opt0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_opt_0()
 }
@@ -722,8 +774,7 @@ pub fn create_parse_tree_star_0<'a>(
     parser: &LayoutNonterminalParser,
     builder: &LayoutNonterminalParseTreeBuilder<'a>,
 ) -> &'a Star0<'a> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_star_0()
 }
@@ -732,8 +783,7 @@ pub fn create_parse_tree_start_s<'a>(
     parser: &LayoutNonterminalParser,
     builder: &LayoutNonterminalParseTreeBuilder<'a>,
 ) -> &'a Start<&'a S, &'a Layout<'a>> {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_start_s()
 }

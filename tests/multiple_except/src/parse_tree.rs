@@ -55,8 +55,8 @@ impl<'a> ParseTree<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            ParseTree::SyntaxIdentifier(_) => "SyntaxIdentifier",
-            ParseTree::LexicalIdentifier(_) => "LexicalIdentifier",
+            ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier.display_name(),
+            ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -131,6 +131,9 @@ impl<'a> SyntaxIdentifier {
     pub fn span(&self) -> Span {
         self.span
     }
+    pub fn display_name(&self) -> &'static str {
+        "SyntaxIdentifier"
+    }
 }
 impl<'a> LexicalIdentifier {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -150,6 +153,9 @@ impl<'a> LexicalIdentifier {
     }
     pub fn span(&self) -> Span {
         self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "LexicalIdentifier"
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -250,8 +256,7 @@ pub fn create_parse_tree_syntax_identifier<'a>(
     parser: &MultipleExceptParser,
     builder: &MultipleExceptParseTreeBuilder<'a>,
 ) -> &'a SyntaxIdentifier {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_syntax_identifier()
 }
@@ -260,8 +265,7 @@ pub fn create_parse_tree_lexical_identifier<'a>(
     parser: &MultipleExceptParser,
     builder: &MultipleExceptParseTreeBuilder<'a>,
 ) -> &'a LexicalIdentifier {
-    let node = parser.sppf_node(root_id);
-    visit_sppf(node, parser, builder)
+    visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_lexical_identifier()
 }
