@@ -1874,7 +1874,29 @@
       if (cyNode.length > 0) {
         cyNode.addClass('selected');
         highlightOutgoingEdges(parseTreeCy, cyNodeId);
-        parseTreeCy.animate({ center: { eles: cyNode } }, { duration: 200 });
+        // Always center on the selected node; pick the zoom from a
+        // hypothetical fit on the node plus a few ancestors, then clamp to
+        // a comfortable range. This keeps the node in the viewport center
+        // while letting the zoom level adapt to the local context size.
+        const ANCESTOR_COUNT = 4;
+        const MIN_ZOOM = 0.6;
+        const MAX_ZOOM = 2.0;
+        const padding = 80;
+        const focusEles = cyNode.union(
+          cyNode.predecessors('node').slice(0, ANCESTOR_COUNT),
+        );
+        const bb = focusEles.boundingBox();
+        const containerW = parseTreeContainer.clientWidth;
+        const containerH = parseTreeContainer.clientHeight;
+        const fitZoom = Math.min(
+          (containerW - 2 * padding) / bb.w,
+          (containerH - 2 * padding) / bb.h,
+        );
+        const targetZoom = Math.max(MIN_ZOOM, Math.min(fitZoom, MAX_ZOOM));
+        parseTreeCy.animate(
+          { zoom: targetZoom, center: { eles: cyNode } },
+          { duration: 300 },
+        );
       }
     }
   }

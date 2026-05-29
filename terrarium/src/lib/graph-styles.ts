@@ -194,6 +194,15 @@ export const sppfNodeStyles: Stylesheet[] = [
       "border-style": "dashed",
     },
   },
+  // Selected nodes: a thicker double-line border on top of the per-kind
+  // color shift below. Strong enough to spot at any zoom level.
+  {
+    selector: "node.selected",
+    style: {
+      "border-width": 3,
+      "border-style": "double",
+    },
+  },
   {
     selector: "node.nonterminal.selected, node[kind='Nonterminal'].selected",
     style: {
