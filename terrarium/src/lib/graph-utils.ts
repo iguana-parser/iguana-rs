@@ -78,8 +78,12 @@ export class GraphCollapseManager {
 
   /**
    * Get all nodes reachable from a starting node, respecting collapsed nodes.
+   * `expandStart` makes the start node act as if uncollapsed, which is used
+   * by focus mode so that focusing on a collapsed node still shows its
+   * subtree. The graph-root BFS passes `false` so the root can be collapsed
+   * like any other node.
    */
-  private getReachableFromNode(startNodeId: string): Set<string> {
+  private getReachableFromNode(startNodeId: string, expandStart: boolean): Set<string> {
     if (!this.cy) return new Set();
     const reachable = new Set<string>();
 
@@ -89,8 +93,12 @@ export class GraphCollapseManager {
       if (reachable.has(nodeId)) continue;
       reachable.add(nodeId);
 
-      // Don't traverse children of collapsed nodes (except the start node itself)
-      if (this.collapsedNodes.has(nodeId) && nodeId !== startNodeId) continue;
+      // Don't traverse children of collapsed nodes; the focused start node is
+      // the only exception (see `expandStart` above).
+      if (
+        this.collapsedNodes.has(nodeId) &&
+        !(expandStart && nodeId === startNodeId)
+      ) continue;
 
       const node = this.cy.getElementById(nodeId);
       node.outgoers('node').forEach((child: NodeSingular) => {
@@ -106,11 +114,12 @@ export class GraphCollapseManager {
   private getReachableNodes(): Set<string> {
     if (!this.cy) return new Set();
 
-    // If focused on a specific node, show only its subtree
-    const startNode = this.focusedNodeId ?? this.findRoot();
-    if (!startNode) return new Set();
-
-    return this.getReachableFromNode(startNode);
+    if (this.focusedNodeId !== null) {
+      return this.getReachableFromNode(this.focusedNodeId, true);
+    }
+    const root = this.findRoot();
+    if (!root) return new Set();
+    return this.getReachableFromNode(root, false);
   }
 
   updateVisibility() {
