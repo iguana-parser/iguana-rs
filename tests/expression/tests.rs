@@ -35,3 +35,8 @@ fn test_mul() {
 fn test_ambig_nonterminal() {
     check("a+a*a", "ambig_nonterminal");
 }
+
+#[test]
+fn test_ambig_intermediate() {
+    check("a+a+a", "ambig_intermediate");
+}

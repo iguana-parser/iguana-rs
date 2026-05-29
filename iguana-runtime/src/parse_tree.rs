@@ -27,9 +27,12 @@ pub enum OneOrMany<T: fmt::Debug> {
     Zero,
     One(T),
     Many(Vec<T>),
+    /// Multiple derivations under an ambiguous intermediate node, one child sequence
+    /// per derivation.
+    Multi(Vec<OneOrMany<T>>),
 }
 
-impl<T: fmt::Debug> OneOrMany<T> {
+impl<T: fmt::Debug + Clone> OneOrMany<T> {
     pub fn merge(self, other: OneOrMany<T>) -> OneOrMany<T> {
         match (self, other) {
             (OneOrMany::One(l), OneOrMany::One(r)) => OneOrMany::Many(vec![l, r]),
@@ -37,6 +40,14 @@ impl<T: fmt::Debug> OneOrMany<T> {
                 l.push(r);
                 OneOrMany::Many(l)
             }
+            // Fan `r` across every alternative sequence. The right side of
+            // an intermediate node is always a single grammar symbol, so
+            // `r` is a `One` (never `Multi`) and the result stays flat.
+            (OneOrMany::Multi(seqs), OneOrMany::One(r)) => OneOrMany::Multi(
+                seqs.into_iter()
+                    .map(|seq| seq.merge(OneOrMany::One(r.clone())))
+                    .collect(),
+            ),
             (OneOrMany::Zero, rhs) => rhs,
             (lhs, OneOrMany::Zero) => lhs,
             _ => unreachable!(""),
@@ -48,6 +59,7 @@ impl<T: fmt::Debug> OneOrMany<T> {
             OneOrMany::One(item) => vec![item],
             OneOrMany::Many(items) => items,
             OneOrMany::Zero => vec![],
+            OneOrMany::Multi(_) => unreachable!(),
         }
     }
 
@@ -75,19 +87,19 @@ impl<T: fmt::Debug> OneOrMany<T> {
                 Ok(arr) => arr,
                 Err(_) => unreachable!(),
             },
+            OneOrMany::Multi(_) => unreachable!(),
         }
     }
 
     pub fn unwrap_one(self) -> T {
         match self {
             OneOrMany::One(item) => item,
-            OneOrMany::Many(_) => panic!(),
-            OneOrMany::Zero => panic!(),
+            _ => panic!(),
         }
     }
 }
 
-pub fn visit_sppf<'i, T: fmt::Debug, P: Parser<'i>>(
+pub fn visit_sppf<'i, T: fmt::Debug + Clone, P: Parser<'i>>(
     node_id: SPPFNodeId,
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
@@ -102,47 +114,78 @@ pub fn visit_sppf<'i, T: fmt::Debug, P: Parser<'i>>(
             }
         }
         SPPFNode::Nonterminal(n) => {
-            if !n.ambiguous {
-                let children = visit_sppf(n.child, parser, builder);
-                return OneOrMany::One(builder.new_nonterminal_node(n, children));
+            let children = visit_sppf(n.child, parser, builder);
+            // `Multi` here means derivations from an ambiguous intermediate
+            // node below have bubbled up and need wrapping in `Amb` just
+            // like nonterminal-level ambiguity.
+            if n.ambiguous || matches!(children, OneOrMany::Multi(_)) {
+                let mut alternatives = create_nonterminal_nodes(children, n, builder);
+                if n.ambiguous {
+                    let extras: Vec<(SPPFNodeId, SlotId)> = parser
+                        .nonterminal_nodes_children_map()
+                        .get(&node_id)
+                        .cloned()
+                        .unwrap_or_default();
+                    for (child_id, return_slot) in extras {
+                        let synthetic = NonterminalNode {
+                            nonterminal_id: n.nonterminal_id,
+                            return_slot,
+                            span: n.span,
+                            child: child_id,
+                            ambiguous: false,
+                        };
+                        let extra_children = visit_sppf(child_id, parser, builder);
+                        alternatives.extend(create_nonterminal_nodes(
+                            extra_children,
+                            &synthetic,
+                            builder,
+                        ));
+                    }
+                }
+                return OneOrMany::One(builder.new_ambiguity_node(n.nonterminal_id, alternatives));
             }
-            // Ambiguous nonterminal: each child is a complete alternative
-            // derivation. Build one parse-tree node per child using its own
-            // return slot and wrap the results in an Amb.
-            let extras: Vec<(SPPFNodeId, SlotId)> = parser
-                .nonterminal_nodes_children_map()
-                .get(&node_id)
-                .cloned()
-                .unwrap_or_default();
-            let nonterminal_id = n.nonterminal_id;
-            let span = n.span;
-            let mut alternatives: Vec<T> = Vec::with_capacity(1 + extras.len());
-            let primary_children = visit_sppf(n.child, parser, builder);
-            alternatives.push(builder.new_nonterminal_node(n, primary_children));
-            for (child_id, return_slot) in extras {
-                let synthetic = NonterminalNode {
-                    nonterminal_id,
-                    return_slot,
-                    span,
-                    child: child_id,
-                    ambiguous: false,
-                };
-                let children = visit_sppf(child_id, parser, builder);
-                alternatives.push(builder.new_nonterminal_node(&synthetic, children));
-            }
-            OneOrMany::One(builder.new_ambiguity_node(nonterminal_id, alternatives))
+            OneOrMany::One(builder.new_nonterminal_node(n, children))
         }
         SPPFNode::Intermediate(i) => {
-            if i.ambiguous {
-                todo!(
-                    "ambiguous intermediate extraction: slot_id={:?}, span={:?}",
-                    i.slot_id,
-                    i.span
-                )
+            if !i.ambiguous {
+                let (left, right) = i.child;
+                return visit_sppf(left, parser, builder).merge(visit_sppf(right, parser, builder));
             }
-            let (left_child, right_child) = i.child;
-            visit_sppf(left_child, parser, builder).merge(visit_sppf(right_child, parser, builder))
+            let mut pairs = vec![i.child];
+            if let Some(extras) = parser.intermediate_nodes_children_map().get(&node_id) {
+                pairs.extend(extras.iter().copied());
+            }
+            let mut derivations: Vec<OneOrMany<T>> = Vec::with_capacity(pairs.len());
+            for (left, right) in pairs {
+                let merged =
+                    visit_sppf(left, parser, builder).merge(visit_sppf(right, parser, builder));
+                // A deeper ambiguity may have already produced a `Multi`; flatten
+                // so the outer `Multi` stays one level deep.
+                match merged {
+                    OneOrMany::Multi(inner) => derivations.extend(inner),
+                    flat => derivations.push(flat),
+                }
+            }
+            OneOrMany::Multi(derivations)
         }
+    }
+}
+
+/// Builds one parse-tree node per derivation. When the children arrive
+/// as a `Multi` from an ambiguous intermediate node, there are several
+/// derivations of the same alternative and the resulting nodes go into
+/// an `Amb`.
+fn create_nonterminal_nodes<T: fmt::Debug>(
+    children: OneOrMany<T>,
+    node: &NonterminalNode,
+    builder: &impl ParseTreeBuilder<T>,
+) -> Vec<T> {
+    match children {
+        OneOrMany::Multi(derivations) => derivations
+            .into_iter()
+            .map(|d| builder.new_nonterminal_node(node, d))
+            .collect(),
+        single => vec![builder.new_nonterminal_node(node, single)],
     }
 }
 
