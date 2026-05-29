@@ -33,7 +33,7 @@
   // Parse Tree types (manually defined, not via specta)
   interface ParseTreeNode {
     id: number;
-    kind: "Nonterminal" | "Token";
+    kind: "Nonterminal" | "Token" | "Amb";
     label: string;
     start: number;
     end: number;
@@ -52,7 +52,7 @@
   interface TreeNode {
     id: number;
     label: string;
-    kind: "Nonterminal" | "Token";
+    kind: "Nonterminal" | "Token" | "Amb";
     start: number;
     end: number;
     children: TreeNode[];
@@ -3065,6 +3065,7 @@
                           class="tree-label"
                           class:nonterminal={node.kind === "Nonterminal"}
                           class:token={node.kind === "Token"}
+                          class:amb={node.kind === "Amb"}
                         >
                           {node.label}
                         </span>
@@ -4923,6 +4924,10 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
 
   .tree-label.token {
     color: #ce9178;
+  }
+
+  .tree-label.amb {
+    color: #e05050;
   }
 
   .tree-span {

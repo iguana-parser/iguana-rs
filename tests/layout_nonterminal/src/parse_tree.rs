@@ -301,7 +301,7 @@ impl<'a> Alt0<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Alt0::Amb(_) => "amb",
+            Alt0::Amb(_) => "Amb",
             _ => "(WhiteSpace | Comment)",
         }
     }
@@ -340,7 +340,7 @@ impl<'a> Plus0<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus0::Amb(_) => "amb",
+            Plus0::Amb(_) => "Amb",
             _ => "(WhiteSpace | Comment)+",
         }
     }
@@ -389,7 +389,7 @@ impl<'a> Opt0<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt0::Amb(_) => "amb",
+            Opt0::Amb(_) => "Amb",
             _ => "(WhiteSpace | Comment)+?",
         }
     }
@@ -826,6 +826,9 @@ fn build_json_graph(
     let span = node.span();
     let kind = match node {
         ParseTree::Token(_) => "Token",
+        ParseTree::Alt0(e) if matches!(e, Alt0::Amb(_)) => "Amb",
+        ParseTree::Plus0(e) if matches!(e, Plus0::Amb(_)) => "Amb",
+        ParseTree::Opt0(e) if matches!(e, Opt0::Amb(_)) => "Amb",
         _ => "Nonterminal",
     };
     nodes . push (serde_json :: json ! ({ "id" : my_id , "kind" : kind , "label" : node . display_name () , "start" : span . left_extent , "end" : span . right_extent })) ;

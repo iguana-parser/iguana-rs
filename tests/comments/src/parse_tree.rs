@@ -201,7 +201,7 @@ impl<'a> Expr<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Expr::Amb(_) => "amb",
+            Expr::Amb(_) => "Amb",
             _ => "Expr",
         }
     }
@@ -425,6 +425,7 @@ fn build_json_graph(
     let span = node.span();
     let kind = match node {
         ParseTree::Token(_) => "Token",
+        ParseTree::Expr(e) if matches!(e, Expr::Amb(_)) => "Amb",
         _ => "Nonterminal",
     };
     nodes . push (serde_json :: json ! ({ "id" : my_id , "kind" : kind , "label" : node . display_name () , "start" : span . left_extent , "end" : span . right_extent })) ;

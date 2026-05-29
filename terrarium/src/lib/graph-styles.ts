@@ -230,16 +230,18 @@ export const sppfNodeStyles: Stylesheet[] = [
       "border-color": nodeColors.packed.selectedBorder,
     },
   },
-  // Ambiguous node styles (override the base colors with red)
+  // Ambiguous node styles (override the base colors with red). Covers both the
+  // SPPF `.ambiguous` flag on Nonterminal/Intermediate nodes and the parse-tree
+  // `.amb` kind (Amb wrappers around alternative derivations).
   {
-    selector: "node.ambiguous",
+    selector: "node.ambiguous, node.amb",
     style: {
       "background-color": nodeColors.ambiguous.bg,
       "border-color": nodeColors.ambiguous.border,
     },
   },
   {
-    selector: "node.ambiguous.selected",
+    selector: "node.ambiguous.selected, node.amb.selected",
     style: {
       "background-color": nodeColors.ambiguous.selectedBg,
       "border-color": nodeColors.ambiguous.selectedBorder,

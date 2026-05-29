@@ -1892,7 +1892,7 @@ impl<'a> Rule<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Rule::Amb(_) => "amb",
+            Rule::Amb(_) => "Amb",
             _ => "Rule",
         }
     }
@@ -1998,7 +1998,7 @@ impl<'a> Annotation<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Annotation::Amb(_) => "amb",
+            Annotation::Amb(_) => "Amb",
             _ => "Annotation",
         }
     }
@@ -2144,7 +2144,7 @@ impl<'a> PostCondition<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            PostCondition::Amb(_) => "amb",
+            PostCondition::Amb(_) => "Amb",
             _ => "PostCondition",
         }
     }
@@ -2219,7 +2219,7 @@ impl<'a> Associativity<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Associativity::Amb(_) => "amb",
+            Associativity::Amb(_) => "Amb",
             _ => "Associativity",
         }
     }
@@ -2488,7 +2488,7 @@ impl<'a> Symbol<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Symbol::Amb(_) => "amb",
+            Symbol::Amb(_) => "Amb",
             _ => "Symbol",
         }
     }
@@ -2615,7 +2615,7 @@ impl<'a> Regex<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Regex::Amb(_) => "amb",
+            Regex::Amb(_) => "Amb",
             _ => "Regex",
         }
     }
@@ -2700,7 +2700,7 @@ impl<'a> RangeElement<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            RangeElement::Amb(_) => "amb",
+            RangeElement::Amb(_) => "Amb",
             _ => "RangeElement",
         }
     }
@@ -2805,7 +2805,7 @@ impl<'a> Opt0<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt0::Amb(_) => "amb",
+            Opt0::Amb(_) => "Amb",
             _ => "LayoutDef?",
         }
     }
@@ -2850,7 +2850,7 @@ impl<'a> Plus0<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus0::Amb(_) => "amb",
+            Plus0::Amb(_) => "Amb",
             _ => "Rule+",
         }
     }
@@ -2893,7 +2893,7 @@ impl<'a> Opt1<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt1::Amb(_) => "amb",
+            Opt1::Amb(_) => "Amb",
             _ => "Rule+?",
         }
     }
@@ -2967,7 +2967,7 @@ impl<'a> Plus1<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus1::Amb(_) => "amb",
+            Plus1::Amb(_) => "Amb",
             _ => "Annotation+",
         }
     }
@@ -3010,7 +3010,7 @@ impl<'a> Opt2<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt2::Amb(_) => "amb",
+            Opt2::Amb(_) => "Amb",
             _ => "Annotation+?",
         }
     }
@@ -3090,7 +3090,7 @@ impl<'a> Plus2<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus2::Amb(_) => "amb",
+            Plus2::Amb(_) => "Amb",
             _ => "{PriorityLevel \">\"}+",
         }
     }
@@ -3135,7 +3135,7 @@ impl<'a> Opt3<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt3::Amb(_) => "amb",
+            Opt3::Amb(_) => "Amb",
             _ => "{PriorityLevel \">\"}+?",
         }
     }
@@ -3203,7 +3203,7 @@ impl<'a> Opt4<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt4::Amb(_) => "amb",
+            Opt4::Amb(_) => "Amb",
             _ => "PreCondition?",
         }
     }
@@ -3248,7 +3248,7 @@ impl<'a> Plus4<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus4::Amb(_) => "amb",
+            Plus4::Amb(_) => "Amb",
             _ => "Regex+",
         }
     }
@@ -3303,7 +3303,7 @@ impl<'a> Plus3<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus3::Amb(_) => "amb",
+            Plus3::Amb(_) => "Amb",
             _ => "{Regex+ \"|\"}+",
         }
     }
@@ -3354,7 +3354,7 @@ impl<'a> Plus5<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus5::Amb(_) => "amb",
+            Plus5::Amb(_) => "Amb",
             _ => "PostCondition+",
         }
     }
@@ -3399,7 +3399,7 @@ impl<'a> Opt5<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt5::Amb(_) => "amb",
+            Opt5::Amb(_) => "Amb",
             _ => "PostCondition+?",
         }
     }
@@ -3467,7 +3467,7 @@ impl<'a> Opt6<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt6::Amb(_) => "amb",
+            Opt6::Amb(_) => "Amb",
             _ => "Associativity?",
         }
     }
@@ -3516,7 +3516,7 @@ impl<'a> Plus6<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus6::Amb(_) => "amb",
+            Plus6::Amb(_) => "Amb",
             _ => "{Alternative \"|\"}+",
         }
     }
@@ -3559,7 +3559,7 @@ impl<'a> Opt7<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt7::Amb(_) => "amb",
+            Opt7::Amb(_) => "Amb",
             _ => "{Alternative \"|\"}+?",
         }
     }
@@ -3635,7 +3635,7 @@ impl<'a> Plus7<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus7::Amb(_) => "amb",
+            Plus7::Amb(_) => "Amb",
             _ => "Symbol+",
         }
     }
@@ -3678,7 +3678,7 @@ impl<'a> Opt8<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt8::Amb(_) => "amb",
+            Opt8::Amb(_) => "Amb",
             _ => "Symbol+?",
         }
     }
@@ -3744,7 +3744,7 @@ impl<'a> Opt9<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt9::Amb(_) => "amb",
+            Opt9::Amb(_) => "Amb",
             _ => "Label?",
         }
     }
@@ -3828,7 +3828,7 @@ impl<'a> Plus8<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus8::Amb(_) => "amb",
+            Plus8::Amb(_) => "Amb",
             _ => "(\"|\" Symbol)+",
         }
     }
@@ -3918,7 +3918,7 @@ impl<'a> Plus9<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus9::Amb(_) => "amb",
+            Plus9::Amb(_) => "Amb",
             _ => "(\"\\\" Identifier)+",
         }
     }
@@ -4008,7 +4008,7 @@ impl<'a> Plus10<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus10::Amb(_) => "amb",
+            Plus10::Amb(_) => "Amb",
             _ => "(\"!>>\" Identifier)+",
         }
     }
@@ -4098,7 +4098,7 @@ impl<'a> Plus11<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus11::Amb(_) => "amb",
+            Plus11::Amb(_) => "Amb",
             _ => "(\"!\" Identifier)+",
         }
     }
@@ -4188,7 +4188,7 @@ impl<'a> Plus12<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus12::Amb(_) => "amb",
+            Plus12::Amb(_) => "Amb",
             _ => "(\"|\" Regex)+",
         }
     }
@@ -4231,7 +4231,7 @@ impl<'a> Opt10<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt10::Amb(_) => "amb",
+            Opt10::Amb(_) => "Amb",
             _ => "\"!\"?",
         }
     }
@@ -4276,7 +4276,7 @@ impl<'a> Plus13<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus13::Amb(_) => "amb",
+            Plus13::Amb(_) => "Amb",
             _ => "RangeElement+",
         }
     }
@@ -4320,7 +4320,7 @@ impl<'a> Alt0<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Alt0::Amb(_) => "amb",
+            Alt0::Amb(_) => "Amb",
             _ => "(WS | LineComment)",
         }
     }
@@ -4359,7 +4359,7 @@ impl<'a> Plus14<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus14::Amb(_) => "amb",
+            Plus14::Amb(_) => "Amb",
             _ => "(WS | LineComment)+",
         }
     }
@@ -4408,7 +4408,7 @@ impl<'a> Opt11<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt11::Amb(_) => "amb",
+            Opt11::Amb(_) => "Amb",
             _ => "(WS | LineComment)+?",
         }
     }
@@ -7626,6 +7626,41 @@ fn build_json_graph(
     let span = node.span();
     let kind = match node {
         ParseTree::Token(_) => "Token",
+        ParseTree::Rule(e) if matches!(e, Rule::Amb(_)) => "Amb",
+        ParseTree::Annotation(e) if matches!(e, Annotation::Amb(_)) => "Amb",
+        ParseTree::PostCondition(e) if matches!(e, PostCondition::Amb(_)) => "Amb",
+        ParseTree::Associativity(e) if matches!(e, Associativity::Amb(_)) => "Amb",
+        ParseTree::Symbol(e) if matches!(e, Symbol::Amb(_)) => "Amb",
+        ParseTree::Regex(e) if matches!(e, Regex::Amb(_)) => "Amb",
+        ParseTree::RangeElement(e) if matches!(e, RangeElement::Amb(_)) => "Amb",
+        ParseTree::Opt0(e) if matches!(e, Opt0::Amb(_)) => "Amb",
+        ParseTree::Plus0(e) if matches!(e, Plus0::Amb(_)) => "Amb",
+        ParseTree::Opt1(e) if matches!(e, Opt1::Amb(_)) => "Amb",
+        ParseTree::Plus1(e) if matches!(e, Plus1::Amb(_)) => "Amb",
+        ParseTree::Opt2(e) if matches!(e, Opt2::Amb(_)) => "Amb",
+        ParseTree::Plus2(e) if matches!(e, Plus2::Amb(_)) => "Amb",
+        ParseTree::Opt3(e) if matches!(e, Opt3::Amb(_)) => "Amb",
+        ParseTree::Opt4(e) if matches!(e, Opt4::Amb(_)) => "Amb",
+        ParseTree::Plus4(e) if matches!(e, Plus4::Amb(_)) => "Amb",
+        ParseTree::Plus3(e) if matches!(e, Plus3::Amb(_)) => "Amb",
+        ParseTree::Plus5(e) if matches!(e, Plus5::Amb(_)) => "Amb",
+        ParseTree::Opt5(e) if matches!(e, Opt5::Amb(_)) => "Amb",
+        ParseTree::Opt6(e) if matches!(e, Opt6::Amb(_)) => "Amb",
+        ParseTree::Plus6(e) if matches!(e, Plus6::Amb(_)) => "Amb",
+        ParseTree::Opt7(e) if matches!(e, Opt7::Amb(_)) => "Amb",
+        ParseTree::Plus7(e) if matches!(e, Plus7::Amb(_)) => "Amb",
+        ParseTree::Opt8(e) if matches!(e, Opt8::Amb(_)) => "Amb",
+        ParseTree::Opt9(e) if matches!(e, Opt9::Amb(_)) => "Amb",
+        ParseTree::Plus8(e) if matches!(e, Plus8::Amb(_)) => "Amb",
+        ParseTree::Plus9(e) if matches!(e, Plus9::Amb(_)) => "Amb",
+        ParseTree::Plus10(e) if matches!(e, Plus10::Amb(_)) => "Amb",
+        ParseTree::Plus11(e) if matches!(e, Plus11::Amb(_)) => "Amb",
+        ParseTree::Plus12(e) if matches!(e, Plus12::Amb(_)) => "Amb",
+        ParseTree::Opt10(e) if matches!(e, Opt10::Amb(_)) => "Amb",
+        ParseTree::Plus13(e) if matches!(e, Plus13::Amb(_)) => "Amb",
+        ParseTree::Alt0(e) if matches!(e, Alt0::Amb(_)) => "Amb",
+        ParseTree::Plus14(e) if matches!(e, Plus14::Amb(_)) => "Amb",
+        ParseTree::Opt11(e) if matches!(e, Opt11::Amb(_)) => "Amb",
         _ => "Nonterminal",
     };
     nodes . push (serde_json :: json ! ({ "id" : my_id , "kind" : kind , "label" : node . display_name () , "start" : span . left_extent , "end" : span . right_extent })) ;

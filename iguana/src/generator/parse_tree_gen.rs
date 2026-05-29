@@ -511,7 +511,7 @@ fn gen_nonterminal_display_name_method(
         quote! {
             pub fn display_name(&self) -> &'static str {
                 match self {
-                    #ident::Amb(_) => "amb",
+                    #ident::Amb(_) => "Amb",
                     _ => #display_name,
                 }
             }
@@ -1988,6 +1988,15 @@ fn gen_to_json_function(grammar: &Grammar) -> TokenStream {
         .map(|s| quote! { Some(#s) })
         .unwrap_or_else(|| quote! { None::<&str> });
 
+    let amb_arms: Vec<_> = grammar
+        .nonterminals()
+        .filter(|n| grammar.alternatives(n).len() > 1)
+        .map(|n| {
+            let variant = nt_ident(&n.name);
+            quote! { ParseTree::#variant(e) if matches!(e, #variant::Amb(_)) => "Amb" }
+        })
+        .collect();
+
     quote! {
         /// Converts a parse tree to JSON format for visualization.
         /// Returns a JSON string with nodes and edges arrays.
@@ -2018,6 +2027,7 @@ fn gen_to_json_function(grammar: &Grammar) -> TokenStream {
             let span = node.span();
             let kind = match node {
                 ParseTree::Token(_) => "Token",
+                #(#amb_arms,)*
                 _ => "Nonterminal",
             };
 

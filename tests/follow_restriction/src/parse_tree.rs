@@ -282,7 +282,7 @@ impl<'a> Plus0<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus0::Amb(_) => "amb",
+            Plus0::Amb(_) => "Amb",
             _ => "Id+",
         }
     }
@@ -327,7 +327,7 @@ impl<'a> Plus1<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Plus1::Amb(_) => "amb",
+            Plus1::Amb(_) => "Amb",
             _ => "Char+",
         }
     }
@@ -637,6 +637,8 @@ fn build_json_graph(
     let span = node.span();
     let kind = match node {
         ParseTree::Token(_) => "Token",
+        ParseTree::Plus0(e) if matches!(e, Plus0::Amb(_)) => "Amb",
+        ParseTree::Plus1(e) if matches!(e, Plus1::Amb(_)) => "Amb",
         _ => "Nonterminal",
     };
     nodes . push (serde_json :: json ! ({ "id" : my_id , "kind" : kind , "label" : node . display_name () , "start" : span . left_extent , "end" : span . right_extent })) ;

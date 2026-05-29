@@ -196,7 +196,7 @@ impl<'a> Opt0<'a> {
     }
     pub fn display_name(&self) -> &'static str {
         match self {
-            Opt0::Amb(_) => "amb",
+            Opt0::Amb(_) => "Amb",
             _ => "A?",
         }
     }
@@ -391,6 +391,7 @@ fn build_json_graph(
     let span = node.span();
     let kind = match node {
         ParseTree::Token(_) => "Token",
+        ParseTree::Opt0(e) if matches!(e, Opt0::Amb(_)) => "Amb",
         _ => "Nonterminal",
     };
     nodes . push (serde_json :: json ! ({ "id" : my_id , "kind" : kind , "label" : node . display_name () , "start" : span . left_extent , "end" : span . right_extent })) ;
