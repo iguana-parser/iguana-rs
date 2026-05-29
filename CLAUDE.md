@@ -59,7 +59,7 @@ Tests use s-expression golden file comparison via `check_golden_file`. The gener
 
 The generator is parameterized by `GenConfig.cli` (default `true`). `iguana generate --cli=true|false` switches between a standalone CLI parser crate (Cargo.toml with `iguana-runtime = { git = ... }`, full deps, `src/main.rs`) and a minimal lib-only crate (`workspace = true` deps, no main.rs). xtask `test-gen` always uses `cli=false`. Terrarium relies on `cli=true` (the default) because it shells out to per-grammar parser binaries.
 
-The scaffold step (Cargo.toml + main.rs when cli=true) writes each file only if it does not already exist, so local edits survive regeneration. `iguana generate --force` overwrites both files; it's intended for the iggy bootstrap inside this repo and should not be used on external crates. External crates (e.g. `/Users/afroozeh/Workspace/java`) often hand-edit Cargo.toml (local path to `iguana-runtime`, custom features) — `--force` resets those edits. When a `main_gen.rs` change must land in an external crate, re-apply the relevant template diff to that crate's `main.rs` by hand, or delete `main.rs` and re-run `iguana generate` (no `--force`) so only `main.rs` is rewritten.
+The scaffold step (Cargo.toml + main.rs when cli=true) writes each file only if it does not already exist, so local edits survive regeneration. `iguana generate --force` overwrites both files; it's intended for the iggy bootstrap inside this repo and should not be used on external crates. External crates outside this workspace often hand-edit Cargo.toml (local path to `iguana-runtime`, custom features), and `--force` resets those edits. When a `main_gen.rs` change must land in an external crate, re-apply the relevant template diff to that crate's `main.rs` by hand, or delete `main.rs` and re-run `iguana generate` (no `--force`) so only `main.rs` is rewritten.
 
 `cargo xtask bootstrap` regenerates iggy with `cli=true` + `force=true`, so iggy's `main.rs` always reflects the current `main_gen.rs` template. iggy's Cargo.toml is adapted to its workspace membership by `xtask::patch_iggy_cargo_toml`, which applies three text substitutions (workspace dep for `iguana-runtime`, add license, strip `[profile.release]`). Each patch asserts it applied; if a `cargo_toml_gen.rs` template change breaks a pattern, bootstrap fails loudly. `cargo xtask test-gen` and `test-gen-all` do not pass `--force`; test grammars' Cargo.toml is first-write-only by design.
 
@@ -104,10 +104,7 @@ Shared utilities live in `terrarium/src/lib/` (`graph-styles.ts`, `graph-utils.t
 - Optimize for readability rather than clever tricks
 - State what, then why. Not the reverse.
 - Use project terminology: "parse tree" not "CST"
-- Adverbs before verbs: "directly returns" not "returns directly"
 - Don't explain the same thing in two places
-- No filler words ("simply," "just," "basically," "naturally," "seamlessly")
-- No filler phrases ("it should be noted that," "it is worth mentioning")
 - Almost all the code in `iguana-runtime` is performance critical. Be aware of adding anything expensive there.
 - Be consistent. When you make a stylistic choice (e.g. how a term is abbreviated, how a list item is formatted, which phrasing you use for a concept), apply it the same way everywhere in the change. The same rule applies to code: parallel constructs should look parallel.
 - When adding to a family of related methods (e.g. `add_gss_node` / `get_gss_node` / `new_gss_node`), reuse the existing verb if one fits — don't introduce a new verb (`register`, `install`) when `add` is the obvious sibling.
