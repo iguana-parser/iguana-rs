@@ -1,6 +1,7 @@
 use std::fmt;
 
 pub use bumpalo::Bump;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     ids::{NonterminalId, SlotId},
@@ -22,7 +23,7 @@ impl ParseContext {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum OneOrMany<T: fmt::Debug> {
     Zero,
     One(T),
@@ -99,13 +100,69 @@ impl<T: fmt::Debug + Clone> OneOrMany<T> {
     }
 }
 
+/// True iff the SPPF rooted at `root_id` contains at least one reachable
+/// ambiguous node. Entries in the parser's side maps record GLL machinery
+/// state and can include ambiguous nodes that the accepted parse never
+/// reaches, so an `is_empty` check on the maps is too coarse: it must be
+/// followed by an actual DFS from the root. The empty-maps case is a fast
+/// out covering most parses.
+pub fn is_ambiguous<'i, P: Parser<'i>>(parser: &P, root_id: SPPFNodeId) -> bool {
+    if parser.nonterminal_nodes_children_map().is_empty()
+        && parser.intermediate_nodes_children_map().is_empty()
+    {
+        return false;
+    }
+    let mut visited = FxHashSet::default();
+    let mut stack = vec![root_id];
+    while let Some(id) = stack.pop() {
+        if !visited.insert(id) {
+            continue;
+        }
+        let node = parser.sppf_node(id);
+        if node.is_ambiguous() {
+            return true;
+        }
+        match node {
+            SPPFNode::Nonterminal(n) => stack.push(n.child),
+            SPPFNode::Intermediate(i) => {
+                stack.push(i.child.0);
+                stack.push(i.child.1);
+            }
+            SPPFNode::Terminal(_) => {}
+        }
+    }
+    false
+}
+
 pub fn visit_sppf<'i, T: fmt::Debug + Clone, P: Parser<'i>>(
     node_id: SPPFNodeId,
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
 ) -> OneOrMany<T> {
+    // Memoize across the SPPF only when ambiguity is reachable; otherwise
+    // each node is visited at most once anyway, and the empty map plus its
+    // per-node check would be pure overhead.
+    let mut memo = if is_ambiguous(parser, node_id) {
+        Some(FxHashMap::default())
+    } else {
+        None
+    };
+    visit_sppf_impl(node_id, parser, builder, &mut memo)
+}
+
+fn visit_sppf_impl<'i, T: fmt::Debug + Clone, P: Parser<'i>>(
+    node_id: SPPFNodeId,
+    parser: &P,
+    builder: &impl ParseTreeBuilder<T>,
+    memo: &mut Option<FxHashMap<SPPFNodeId, OneOrMany<T>>>,
+) -> OneOrMany<T> {
+    if let Some(m) = memo.as_ref() {
+        if let Some(cached) = m.get(&node_id) {
+            return cached.clone();
+        }
+    }
     let node = parser.sppf_node(node_id);
-    match node {
+    let result = match node {
         SPPFNode::Terminal(t) => {
             if t.terminal_id == P::epsilon() {
                 OneOrMany::Zero
@@ -114,7 +171,7 @@ pub fn visit_sppf<'i, T: fmt::Debug + Clone, P: Parser<'i>>(
             }
         }
         SPPFNode::Nonterminal(n) => {
-            let children = visit_sppf(n.child, parser, builder);
+            let children = visit_sppf_impl(n.child, parser, builder, memo);
             // `Multi` here means derivations from an ambiguous intermediate
             // node below have bubbled up and need wrapping in `Amb` just
             // like nonterminal-level ambiguity.
@@ -134,7 +191,7 @@ pub fn visit_sppf<'i, T: fmt::Debug + Clone, P: Parser<'i>>(
                             child: child_id,
                             ambiguous: false,
                         };
-                        let extra_children = visit_sppf(child_id, parser, builder);
+                        let extra_children = visit_sppf_impl(child_id, parser, builder, memo);
                         alternatives.extend(create_nonterminal_nodes(
                             extra_children,
                             &synthetic,
@@ -142,33 +199,40 @@ pub fn visit_sppf<'i, T: fmt::Debug + Clone, P: Parser<'i>>(
                         ));
                     }
                 }
-                return OneOrMany::One(builder.new_ambiguity_node(n.nonterminal_id, alternatives));
+                OneOrMany::One(builder.new_ambiguity_node(n.nonterminal_id, alternatives))
+            } else {
+                OneOrMany::One(builder.new_nonterminal_node(n, children))
             }
-            OneOrMany::One(builder.new_nonterminal_node(n, children))
         }
         SPPFNode::Intermediate(i) => {
             if !i.ambiguous {
                 let (left, right) = i.child;
-                return visit_sppf(left, parser, builder).merge(visit_sppf(right, parser, builder));
-            }
-            let mut pairs = vec![i.child];
-            if let Some(extras) = parser.intermediate_nodes_children_map().get(&node_id) {
-                pairs.extend(extras.iter().copied());
-            }
-            let mut derivations: Vec<OneOrMany<T>> = Vec::with_capacity(pairs.len());
-            for (left, right) in pairs {
-                let merged =
-                    visit_sppf(left, parser, builder).merge(visit_sppf(right, parser, builder));
-                // A deeper ambiguity may have already produced a `Multi`; flatten
-                // so the outer `Multi` stays one level deep.
-                match merged {
-                    OneOrMany::Multi(inner) => derivations.extend(inner),
-                    flat => derivations.push(flat),
+                visit_sppf_impl(left, parser, builder, memo)
+                    .merge(visit_sppf_impl(right, parser, builder, memo))
+            } else {
+                let mut pairs = vec![i.child];
+                if let Some(extras) = parser.intermediate_nodes_children_map().get(&node_id) {
+                    pairs.extend(extras.iter().copied());
                 }
+                let mut derivations: Vec<OneOrMany<T>> = Vec::with_capacity(pairs.len());
+                for (left, right) in pairs {
+                    let merged = visit_sppf_impl(left, parser, builder, memo)
+                        .merge(visit_sppf_impl(right, parser, builder, memo));
+                    // A deeper ambiguity may have already produced a `Multi`;
+                    // flatten so the outer `Multi` stays one level deep.
+                    match merged {
+                        OneOrMany::Multi(inner) => derivations.extend(inner),
+                        flat => derivations.push(flat),
+                    }
+                }
+                OneOrMany::Multi(derivations)
             }
-            OneOrMany::Multi(derivations)
         }
+    };
+    if let Some(m) = memo.as_mut() {
+        m.insert(node_id, result.clone());
     }
+    result
 }
 
 /// Builds one parse-tree node per derivation. When the children arrive
