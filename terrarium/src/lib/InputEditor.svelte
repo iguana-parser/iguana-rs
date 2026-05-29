@@ -13,10 +13,17 @@
     end: number;
   }
 
+  interface AmbiguityWarning {
+    start: number;
+    end: number;
+    message: string;
+  }
+
   interface Props {
     value?: string;
     readOnly?: boolean;
     error?: ErrorInfo | null;
+    ambiguities?: AmbiguityWarning[];
     highlightSpan?: HighlightSpan | null;
     consumedUntil?: number | null;
     currentIndex?: number | null;
@@ -30,6 +37,7 @@
     value = $bindable(""),
     readOnly = false,
     error = null,
+    ambiguities = [],
     highlightSpan = null,
     consumedUntil = null,
     currentIndex = null,
@@ -132,6 +140,26 @@
     } else {
       monaco.editor.setModelMarkers(model, "parse-error", []);
     }
+  });
+
+  // Update ambiguity markers (warnings, one per outermost Amb span)
+  $effect(() => {
+    const model = editor?.getModel();
+    if (!model) return;
+
+    const markers = ambiguities.map((a) => {
+      const startPos = model.getPositionAt(a.start);
+      const endPos = model.getPositionAt(a.end);
+      return {
+        startLineNumber: startPos.lineNumber,
+        startColumn: startPos.column,
+        endLineNumber: endPos.lineNumber,
+        endColumn: endPos.column,
+        severity: monaco.MarkerSeverity.Warning,
+        message: a.message,
+      };
+    });
+    monaco.editor.setModelMarkers(model, "ambiguity", markers);
   });
 
   // Update decorations (highlight span, consumed, current)

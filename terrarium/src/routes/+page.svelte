@@ -98,6 +98,42 @@
     return buildSubtree(rootNode.id);
   }
 
+  // Outermost Amb spans. An Amb is outermost when no enclosing parse-tree
+  // node is also an Amb. Used to drive Monaco warning markers without
+  // doubling up for nested ambiguities under the same span.
+  function collectOutermostAmbs(parseTree: ParseTree): { start: number; end: number; message: string }[] {
+    if (parseTree.nodes.length === 0) return [];
+    const childrenMap = new Map<number, number[]>();
+    const hasParent = new Set<number>();
+    for (const edge of parseTree.edges) {
+      if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
+      childrenMap.get(edge.src)!.push(edge.dest);
+      hasParent.add(edge.dest);
+    }
+    const nodeMap = new Map(parseTree.nodes.map(n => [n.id, n]));
+    const root = parseTree.nodes.find(n => !hasParent.has(n.id));
+    if (!root) return [];
+    const out: { start: number; end: number; message: string }[] = [];
+    function visit(id: number) {
+      const node = nodeMap.get(id)!;
+      if (node.kind === "Amb") {
+        const childIds = childrenMap.get(id) ?? [];
+        const childLabel = childIds.length > 0
+          ? nodeMap.get(childIds[0])?.label ?? "node"
+          : "node";
+        out.push({
+          start: node.start,
+          end: node.end,
+          message: `Ambiguous ${childLabel}: ${childIds.length} derivations`,
+        });
+        return;
+      }
+      for (const childId of childrenMap.get(id) ?? []) visit(childId);
+    }
+    visit(root.id);
+    return out;
+  }
+
   // Layout nonterminal (per parseTree.layout_name) and every descendant.
   // Returns an empty set when hide is false or the grammar has no layout rule.
   function computeHiddenLayoutNodes(parseTree: ParseTree, hide: boolean): Set<number> {
@@ -659,6 +695,7 @@
 
   // Parse Tree data
   let parseTree = $state<ParseTree | null>(null);
+  let ambiguityWarnings = $derived(parseTree ? collectOutermostAmbs(parseTree) : []);
   // child node id → parent node id, rebuilt whenever parseTree is fetched
   let parseTreeParentMap = new Map<number, number>();
   // Layout nonterminal and its descendants, hidden when hideLayout is on.
@@ -2928,6 +2965,7 @@
       <InputEditor
         bind:value={inputText}
         error={parseErrorInfo}
+        ambiguities={ambiguityWarnings}
         highlightSpan={parseTreeSelectedSpan !== null
           ? parseTreeSelectedSpan
           : sppfSelectedSpan !== null
