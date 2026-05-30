@@ -36,8 +36,8 @@ impl TokenKind {
 }
 #[derive(Debug, Clone, Copy)]
 pub enum ParseTree<'a> {
-    SyntaxIdentifier(&'a SyntaxIdentifier),
-    LexicalIdentifier(&'a LexicalIdentifier),
+    SyntaxIdentifier(&'a SyntaxIdentifier<'a>),
+    LexicalIdentifier(&'a LexicalIdentifier<'a>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -74,13 +74,13 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.span(),
         }
     }
-    fn unwrap_syntax_identifier(self) -> &'a SyntaxIdentifier {
+    fn unwrap_syntax_identifier(self) -> &'a SyntaxIdentifier<'a> {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier,
             _ => panic!(),
         }
     }
-    fn unwrap_lexical_identifier(self) -> &'a LexicalIdentifier {
+    fn unwrap_lexical_identifier(self) -> &'a LexicalIdentifier<'a> {
         match self {
             ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier,
             _ => panic!(),
@@ -102,60 +102,98 @@ pub trait OptNode {
 }
 // SyntaxIdentifier = IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
 #[derive(Debug)]
-pub struct SyntaxIdentifier {
-    pub identifier_chars: Token,
-    pub span: Span,
+pub enum SyntaxIdentifier<'a> {
+    Alt0 { identifier_chars: Token, span: Span },
+    Amb(&'a [&'a SyntaxIdentifier<'a>]),
 }
 // LexicalIdentifier = Identifier
 #[derive(Debug)]
-pub struct LexicalIdentifier {
-    pub identifier: Token,
-    pub span: Span,
+pub enum LexicalIdentifier<'a> {
+    Alt0 { identifier: Token, span: Span },
+    Amb(&'a [&'a LexicalIdentifier<'a>]),
 }
-impl<'a> SyntaxIdentifier {
+impl<'a> SyntaxIdentifier<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::SyntaxIdentifier(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let identifier_chars = &self.identifier_chars;
-                ParseTree::Token(*identifier_chars)
-            }),
-            _ => None,
+        match self {
+            SyntaxIdentifier::Alt0 {
+                identifier_chars, ..
+            } => match index {
+                0 => Some(ParseTree::Token(*identifier_chars)),
+                _ => None,
+            },
+            SyntaxIdentifier::Amb(alts) => {
+                alts.get(index).copied().map(ParseTree::SyntaxIdentifier)
+            }
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            SyntaxIdentifier::Alt0 { .. } => 1usize,
+            SyntaxIdentifier::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            SyntaxIdentifier::Alt0 { span, .. } => *span,
+            SyntaxIdentifier::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "SyntaxIdentifier"
+        match self {
+            SyntaxIdentifier::Amb(_) => "Amb",
+            _ => "SyntaxIdentifier",
+        }
+    }
+    pub fn identifier_chars(&self) -> Token {
+        match self {
+            SyntaxIdentifier::Alt0 {
+                identifier_chars, ..
+            } => *identifier_chars,
+            SyntaxIdentifier::Amb(_) => panic!("SyntaxIdentifier is ambiguous"),
+        }
     }
 }
-impl<'a> LexicalIdentifier {
+impl<'a> LexicalIdentifier<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::LexicalIdentifier(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let identifier = &self.identifier;
-                ParseTree::Token(*identifier)
-            }),
-            _ => None,
+        match self {
+            LexicalIdentifier::Alt0 { identifier, .. } => match index {
+                0 => Some(ParseTree::Token(*identifier)),
+                _ => None,
+            },
+            LexicalIdentifier::Amb(alts) => {
+                alts.get(index).copied().map(ParseTree::LexicalIdentifier)
+            }
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            LexicalIdentifier::Alt0 { .. } => 1usize,
+            LexicalIdentifier::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            LexicalIdentifier::Alt0 { span, .. } => *span,
+            LexicalIdentifier::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "LexicalIdentifier"
+        match self {
+            LexicalIdentifier::Amb(_) => "Amb",
+            _ => "LexicalIdentifier",
+        }
+    }
+    pub fn identifier(&self) -> Token {
+        match self {
+            LexicalIdentifier::Alt0 { identifier, .. } => *identifier,
+            LexicalIdentifier::Amb(_) => panic!("LexicalIdentifier is ambiguous"),
+        }
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -206,7 +244,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
                 // SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
                 SlotId(1) => {
                     let [identifier_chars] = children.into_array::<1usize>();
-                    ParseTree::SyntaxIdentifier(self.bump.alloc(SyntaxIdentifier {
+                    ParseTree::SyntaxIdentifier(self.bump.alloc(SyntaxIdentifier::Alt0 {
                         identifier_chars: identifier_chars.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -218,7 +256,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
                 // LexicalIdentifier : Identifier.
                 SlotId(3) => {
                     let [identifier] = children.into_array::<1usize>();
-                    ParseTree::LexicalIdentifier(self.bump.alloc(LexicalIdentifier {
+                    ParseTree::LexicalIdentifier(self.bump.alloc(LexicalIdentifier::Alt0 {
                         identifier: identifier.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -233,6 +271,31 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
             kind: token_kind(terminal_node.terminal_id),
             span: terminal_node.span,
         })
+    }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::SYNTAX_IDENTIFIER => {
+                let slice = self.bump.alloc_slice_fill_iter(
+                    alternatives
+                        .into_iter()
+                        .map(|a| a.unwrap_syntax_identifier()),
+                );
+                ParseTree::SyntaxIdentifier(self.bump.alloc(SyntaxIdentifier::Amb(slice)))
+            }
+            crate::grammar_data::LEXICAL_IDENTIFIER => {
+                let slice = self.bump.alloc_slice_fill_iter(
+                    alternatives
+                        .into_iter()
+                        .map(|a| a.unwrap_lexical_identifier()),
+                );
+                ParseTree::LexicalIdentifier(self.bump.alloc(LexicalIdentifier::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
     }
 }
 pub fn create_parse_tree<'a>(
@@ -255,7 +318,7 @@ pub fn create_parse_tree_syntax_identifier<'a>(
     root_id: SPPFNodeId,
     parser: &MultipleExceptParser,
     builder: &MultipleExceptParseTreeBuilder<'a>,
-) -> &'a SyntaxIdentifier {
+) -> &'a SyntaxIdentifier<'a> {
     visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_syntax_identifier()
@@ -264,7 +327,7 @@ pub fn create_parse_tree_lexical_identifier<'a>(
     root_id: SPPFNodeId,
     parser: &MultipleExceptParser,
     builder: &MultipleExceptParseTreeBuilder<'a>,
-) -> &'a LexicalIdentifier {
+) -> &'a LexicalIdentifier<'a> {
     visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_lexical_identifier()

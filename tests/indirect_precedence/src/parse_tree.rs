@@ -116,9 +116,9 @@ pub trait OptNode {
 }
 // S = E(0)
 #[derive(Debug)]
-pub struct S<'a> {
-    pub e: &'a E<'a>,
-    pub span: Span,
+pub enum S<'a> {
+    Alt0 { e: &'a E<'a>, span: Span },
+    Amb(&'a [&'a S<'a>]),
 }
 #[derive(Debug)]
 pub enum E<'a> {
@@ -144,39 +144,57 @@ pub enum E<'a> {
 }
 // F = E(0) "/" K
 #[derive(Debug)]
-pub struct F<'a> {
-    pub e: &'a E<'a>,
-    pub lit_1: Token,
-    pub k: &'a K<'a>,
-    pub span: Span,
+pub enum F<'a> {
+    Alt0 {
+        e: &'a E<'a>,
+        lit_1: Token,
+        k: &'a K<'a>,
+        span: Span,
+    },
+    Amb(&'a [&'a F<'a>]),
 }
 // K = E(0)
 #[derive(Debug)]
-pub struct K<'a> {
-    pub e: &'a E<'a>,
-    pub span: Span,
+pub enum K<'a> {
+    Alt0 { e: &'a E<'a>, span: Span },
+    Amb(&'a [&'a K<'a>]),
 }
 impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::S(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let e = &self.e;
-                ParseTree::E(e)
-            }),
-            _ => None,
+        match self {
+            S::Alt0 { e, .. } => match index {
+                0 => Some(ParseTree::E(e)),
+                _ => None,
+            },
+            S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            S::Alt0 { .. } => 1usize,
+            S::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            S::Alt0 { span, .. } => *span,
+            S::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "S"
+        match self {
+            S::Amb(_) => "Amb",
+            _ => "S",
+        }
+    }
+    pub fn e(&self) -> &'a E<'a> {
+        match self {
+            S::Alt0 { e, .. } => e,
+            S::Amb(_) => panic!("S is ambiguous"),
+        }
     }
 }
 impl<'a> E<'a> {
@@ -231,30 +249,51 @@ impl<'a> F<'a> {
         ParseTree::F(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let e = &self.e;
-                ParseTree::E(e)
-            }),
-            1 => Some({
-                let lit_1 = &self.lit_1;
-                ParseTree::Token(*lit_1)
-            }),
-            2 => Some({
-                let k = &self.k;
-                ParseTree::K(k)
-            }),
-            _ => None,
+        match self {
+            F::Alt0 { e, lit_1, k, .. } => match index {
+                0 => Some(ParseTree::E(e)),
+                1 => Some(ParseTree::Token(*lit_1)),
+                2 => Some(ParseTree::K(k)),
+                _ => None,
+            },
+            F::Amb(alts) => alts.get(index).copied().map(ParseTree::F),
         }
     }
     pub fn child_count(&self) -> usize {
-        3usize
+        match self {
+            F::Alt0 { .. } => 3usize,
+            F::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            F::Alt0 { span, .. } => *span,
+            F::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "F"
+        match self {
+            F::Amb(_) => "Amb",
+            _ => "F",
+        }
+    }
+    pub fn e(&self) -> &'a E<'a> {
+        match self {
+            F::Alt0 { e, .. } => e,
+            F::Amb(_) => panic!("F is ambiguous"),
+        }
+    }
+    pub fn lit_1(&self) -> Token {
+        match self {
+            F::Alt0 { lit_1, .. } => *lit_1,
+            F::Amb(_) => panic!("F is ambiguous"),
+        }
+    }
+    pub fn k(&self) -> &'a K<'a> {
+        match self {
+            F::Alt0 { k, .. } => k,
+            F::Amb(_) => panic!("F is ambiguous"),
+        }
     }
 }
 impl<'a> K<'a> {
@@ -262,22 +301,37 @@ impl<'a> K<'a> {
         ParseTree::K(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let e = &self.e;
-                ParseTree::E(e)
-            }),
-            _ => None,
+        match self {
+            K::Alt0 { e, .. } => match index {
+                0 => Some(ParseTree::E(e)),
+                _ => None,
+            },
+            K::Amb(alts) => alts.get(index).copied().map(ParseTree::K),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            K::Alt0 { .. } => 1usize,
+            K::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            K::Alt0 { span, .. } => *span,
+            K::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "K"
+        match self {
+            K::Amb(_) => "Amb",
+            _ => "K",
+        }
+    }
+    pub fn e(&self) -> &'a E<'a> {
+        match self {
+            K::Alt0 { e, .. } => e,
+            K::Amb(_) => panic!("K is ambiguous"),
+        }
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -326,7 +380,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                 // S : E(0).
                 SlotId(1) => {
                     let [e] = children.into_array::<1usize>();
-                    ParseTree::S(self.bump.alloc(S {
+                    ParseTree::S(self.bump.alloc(S::Alt0 {
                         e: e.unwrap_e(),
                         span: nonterminal_node.span,
                     }))
@@ -338,7 +392,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                 // F : E(0) "/" K.
                 SlotId(5) => {
                     let [e, lit_1, k] = children.into_array::<3usize>();
-                    ParseTree::F(self.bump.alloc(F {
+                    ParseTree::F(self.bump.alloc(F::Alt0 {
                         e: e.unwrap_e(),
                         lit_1: lit_1.unwrap_token(),
                         k: k.unwrap_k(),
@@ -352,7 +406,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                 // K : E(0).
                 SlotId(7) => {
                     let [e] = children.into_array::<1usize>();
-                    ParseTree::K(self.bump.alloc(K {
+                    ParseTree::K(self.bump.alloc(K::Alt0 {
                         e: e.unwrap_e(),
                         span: nonterminal_node.span,
                     }))
@@ -405,11 +459,29 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
         match parent {
+            crate::grammar_data::S => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
+                ParseTree::S(self.bump.alloc(S::Amb(slice)))
+            }
             crate::grammar_data::E => {
                 let slice = self
                     .bump
                     .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_e()));
                 ParseTree::E(self.bump.alloc(E::Amb(slice)))
+            }
+            crate::grammar_data::F => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_f()));
+                ParseTree::F(self.bump.alloc(F::Amb(slice)))
+            }
+            crate::grammar_data::K => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_k()));
+                ParseTree::K(self.bump.alloc(K::Amb(slice)))
             }
             _ => unreachable!("nonterminal cannot be ambiguous"),
         }

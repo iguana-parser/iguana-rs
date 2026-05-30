@@ -31,9 +31,9 @@ impl TokenKind {
 #[derive(Debug, Clone, Copy)]
 pub enum ParseTree<'a> {
     A(&'a A<'a>),
-    B(&'a B),
-    C(&'a C),
-    D(&'a D),
+    B(&'a B<'a>),
+    C(&'a C<'a>),
+    D(&'a D<'a>),
     // (B C D)
     Group0(&'a Group0<'a>),
     Token(Token),
@@ -87,19 +87,19 @@ impl<'a> ParseTree<'a> {
             _ => panic!(),
         }
     }
-    fn unwrap_b(self) -> &'a B {
+    fn unwrap_b(self) -> &'a B<'a> {
         match self {
             ParseTree::B(b) => b,
             _ => panic!(),
         }
     }
-    fn unwrap_c(self) -> &'a C {
+    fn unwrap_c(self) -> &'a C<'a> {
         match self {
             ParseTree::C(c) => c,
             _ => panic!(),
         }
     }
-    fn unwrap_d(self) -> &'a D {
+    fn unwrap_d(self) -> &'a D<'a> {
         match self {
             ParseTree::D(d) => d,
             _ => panic!(),
@@ -127,126 +127,189 @@ pub trait OptNode {
 }
 // A = (B C D)
 #[derive(Debug)]
-pub struct A<'a> {
-    pub group_0: &'a Group0<'a>,
-    pub span: Span,
+pub enum A<'a> {
+    Alt0 { group_0: &'a Group0<'a>, span: Span },
+    Amb(&'a [&'a A<'a>]),
 }
 // B = "b"
 #[derive(Debug)]
-pub struct B {
-    pub lit_0: Token,
-    pub span: Span,
+pub enum B<'a> {
+    Alt0 { lit_0: Token, span: Span },
+    Amb(&'a [&'a B<'a>]),
 }
 // C = "c"
 #[derive(Debug)]
-pub struct C {
-    pub lit_0: Token,
-    pub span: Span,
+pub enum C<'a> {
+    Alt0 { lit_0: Token, span: Span },
+    Amb(&'a [&'a C<'a>]),
 }
 // D = "d"
 #[derive(Debug)]
-pub struct D {
-    pub lit_0: Token,
-    pub span: Span,
+pub enum D<'a> {
+    Alt0 { lit_0: Token, span: Span },
+    Amb(&'a [&'a D<'a>]),
 }
 // (B C D)
 #[derive(Debug)]
-pub struct Group0<'a> {
-    pub b: &'a B,
-    pub c: &'a C,
-    pub d: &'a D,
-    pub span: Span,
+pub enum Group0<'a> {
+    Alt0 {
+        b: &'a B<'a>,
+        c: &'a C<'a>,
+        d: &'a D<'a>,
+        span: Span,
+    },
+    Amb(&'a [&'a Group0<'a>]),
 }
 impl<'a> A<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::A(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let group_0 = &self.group_0;
-                ParseTree::Group0(group_0)
-            }),
-            _ => None,
+        match self {
+            A::Alt0 { group_0, .. } => match index {
+                0 => Some(ParseTree::Group0(group_0)),
+                _ => None,
+            },
+            A::Amb(alts) => alts.get(index).copied().map(ParseTree::A),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            A::Alt0 { .. } => 1usize,
+            A::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            A::Alt0 { span, .. } => *span,
+            A::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "A"
+        match self {
+            A::Amb(_) => "Amb",
+            _ => "A",
+        }
+    }
+    pub fn group_0(&self) -> &'a Group0<'a> {
+        match self {
+            A::Alt0 { group_0, .. } => group_0,
+            A::Amb(_) => panic!("A is ambiguous"),
+        }
     }
 }
-impl<'a> B {
+impl<'a> B<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::B(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let lit_0 = &self.lit_0;
-                ParseTree::Token(*lit_0)
-            }),
-            _ => None,
+        match self {
+            B::Alt0 { lit_0, .. } => match index {
+                0 => Some(ParseTree::Token(*lit_0)),
+                _ => None,
+            },
+            B::Amb(alts) => alts.get(index).copied().map(ParseTree::B),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            B::Alt0 { .. } => 1usize,
+            B::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            B::Alt0 { span, .. } => *span,
+            B::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "B"
+        match self {
+            B::Amb(_) => "Amb",
+            _ => "B",
+        }
+    }
+    pub fn lit_0(&self) -> Token {
+        match self {
+            B::Alt0 { lit_0, .. } => *lit_0,
+            B::Amb(_) => panic!("B is ambiguous"),
+        }
     }
 }
-impl<'a> C {
+impl<'a> C<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::C(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let lit_0 = &self.lit_0;
-                ParseTree::Token(*lit_0)
-            }),
-            _ => None,
+        match self {
+            C::Alt0 { lit_0, .. } => match index {
+                0 => Some(ParseTree::Token(*lit_0)),
+                _ => None,
+            },
+            C::Amb(alts) => alts.get(index).copied().map(ParseTree::C),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            C::Alt0 { .. } => 1usize,
+            C::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            C::Alt0 { span, .. } => *span,
+            C::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "C"
+        match self {
+            C::Amb(_) => "Amb",
+            _ => "C",
+        }
+    }
+    pub fn lit_0(&self) -> Token {
+        match self {
+            C::Alt0 { lit_0, .. } => *lit_0,
+            C::Amb(_) => panic!("C is ambiguous"),
+        }
     }
 }
-impl<'a> D {
+impl<'a> D<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::D(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let lit_0 = &self.lit_0;
-                ParseTree::Token(*lit_0)
-            }),
-            _ => None,
+        match self {
+            D::Alt0 { lit_0, .. } => match index {
+                0 => Some(ParseTree::Token(*lit_0)),
+                _ => None,
+            },
+            D::Amb(alts) => alts.get(index).copied().map(ParseTree::D),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            D::Alt0 { .. } => 1usize,
+            D::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            D::Alt0 { span, .. } => *span,
+            D::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "D"
+        match self {
+            D::Amb(_) => "Amb",
+            _ => "D",
+        }
+    }
+    pub fn lit_0(&self) -> Token {
+        match self {
+            D::Alt0 { lit_0, .. } => *lit_0,
+            D::Amb(_) => panic!("D is ambiguous"),
+        }
     }
 }
 impl<'a> Group0<'a> {
@@ -254,39 +317,65 @@ impl<'a> Group0<'a> {
         ParseTree::Group0(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let b = &self.b;
-                ParseTree::B(b)
-            }),
-            1 => Some({
-                let c = &self.c;
-                ParseTree::C(c)
-            }),
-            2 => Some({
-                let d = &self.d;
-                ParseTree::D(d)
-            }),
-            _ => None,
+        match self {
+            Group0::Alt0 { b, c, d, .. } => match index {
+                0 => Some(ParseTree::B(b)),
+                1 => Some(ParseTree::C(c)),
+                2 => Some(ParseTree::D(d)),
+                _ => None,
+            },
+            Group0::Amb(alts) => alts.get(index).copied().map(ParseTree::Group0),
         }
     }
     pub fn child_count(&self) -> usize {
-        3usize
+        match self {
+            Group0::Alt0 { .. } => 3usize,
+            Group0::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            Group0::Alt0 { span, .. } => *span,
+            Group0::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "(B C D)"
+        match self {
+            Group0::Amb(_) => "Amb",
+            _ => "(B C D)",
+        }
+    }
+    pub fn b(&self) -> &'a B<'a> {
+        match self {
+            Group0::Alt0 { b, .. } => b,
+            Group0::Amb(_) => panic!("Group_0 is ambiguous"),
+        }
+    }
+    pub fn c(&self) -> &'a C<'a> {
+        match self {
+            Group0::Alt0 { c, .. } => c,
+            Group0::Amb(_) => panic!("Group_0 is ambiguous"),
+        }
+    }
+    pub fn d(&self) -> &'a D<'a> {
+        match self {
+            Group0::Alt0 { d, .. } => d,
+            Group0::Amb(_) => panic!("Group_0 is ambiguous"),
+        }
     }
 }
 impl<'a> ListNode<'a> for Group0<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
-        let mut items = vec![];
-        items.push(self.b.as_parse_tree());
-        items.push(self.c.as_parse_tree());
-        items.push(self.d.as_parse_tree());
-        items.into_iter()
+        match self {
+            Group0::Alt0 { b, c, d, .. } => {
+                let mut items = vec![];
+                items.push(b.as_parse_tree());
+                items.push(c.as_parse_tree());
+                items.push(d.as_parse_tree());
+                items.into_iter()
+            }
+            Group0::Amb(_) => vec![ParseTree::Group0(self)].into_iter(),
+        }
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -333,7 +422,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
                 // A : (B C D).
                 SlotId(1) => {
                     let [group_0] = children.into_array::<1usize>();
-                    ParseTree::A(self.bump.alloc(A {
+                    ParseTree::A(self.bump.alloc(A::Alt0 {
                         group_0: group_0.unwrap_group_0(),
                         span: nonterminal_node.span,
                     }))
@@ -345,7 +434,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
                 // B : "b".
                 SlotId(3) => {
                     let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::B(self.bump.alloc(B {
+                    ParseTree::B(self.bump.alloc(B::Alt0 {
                         lit_0: lit_0.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -357,7 +446,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
                 // C : "c".
                 SlotId(5) => {
                     let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::C(self.bump.alloc(C {
+                    ParseTree::C(self.bump.alloc(C::Alt0 {
                         lit_0: lit_0.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -369,7 +458,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
                 // D : "d".
                 SlotId(7) => {
                     let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::D(self.bump.alloc(D {
+                    ParseTree::D(self.bump.alloc(D::Alt0 {
                         lit_0: lit_0.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -381,7 +470,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
                 // (B C D) : B C D.
                 SlotId(11) => {
                     let [b, c, d] = children.into_array::<3usize>();
-                    ParseTree::Group0(self.bump.alloc(Group0 {
+                    ParseTree::Group0(self.bump.alloc(Group0::Alt0 {
                         b: b.unwrap_b(),
                         c: c.unwrap_c(),
                         d: d.unwrap_d(),
@@ -398,6 +487,45 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
             kind: token_kind(terminal_node.terminal_id),
             span: terminal_node.span,
         })
+    }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::A => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_a()));
+                ParseTree::A(self.bump.alloc(A::Amb(slice)))
+            }
+            crate::grammar_data::B => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_b()));
+                ParseTree::B(self.bump.alloc(B::Amb(slice)))
+            }
+            crate::grammar_data::C => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_c()));
+                ParseTree::C(self.bump.alloc(C::Amb(slice)))
+            }
+            crate::grammar_data::D => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_d()));
+                ParseTree::D(self.bump.alloc(D::Amb(slice)))
+            }
+            crate::grammar_data::GROUP_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_group_0()));
+                ParseTree::Group0(self.bump.alloc(Group0::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
     }
 }
 pub fn create_parse_tree<'a>(
@@ -428,21 +556,21 @@ pub fn create_parse_tree_b<'a>(
     root_id: SPPFNodeId,
     parser: &GroupParser,
     builder: &GroupParseTreeBuilder<'a>,
-) -> &'a B {
+) -> &'a B<'a> {
     visit_sppf(root_id, parser, builder).unwrap_one().unwrap_b()
 }
 pub fn create_parse_tree_c<'a>(
     root_id: SPPFNodeId,
     parser: &GroupParser,
     builder: &GroupParseTreeBuilder<'a>,
-) -> &'a C {
+) -> &'a C<'a> {
     visit_sppf(root_id, parser, builder).unwrap_one().unwrap_c()
 }
 pub fn create_parse_tree_d<'a>(
     root_id: SPPFNodeId,
     parser: &GroupParser,
     builder: &GroupParseTreeBuilder<'a>,
-) -> &'a D {
+) -> &'a D<'a> {
     visit_sppf(root_id, parser, builder).unwrap_one().unwrap_d()
 }
 pub fn create_parse_tree_group_0<'a>(

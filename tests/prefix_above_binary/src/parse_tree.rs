@@ -94,9 +94,9 @@ pub trait OptNode {
 }
 // S = E(0)
 #[derive(Debug)]
-pub struct S<'a> {
-    pub e: &'a E<'a>,
-    pub span: Span,
+pub enum S<'a> {
+    Alt0 { e: &'a E<'a>, span: Span },
+    Amb(&'a [&'a S<'a>]),
 }
 #[derive(Debug)]
 pub enum E<'a> {
@@ -128,22 +128,37 @@ impl<'a> S<'a> {
         ParseTree::S(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let e = &self.e;
-                ParseTree::E(e)
-            }),
-            _ => None,
+        match self {
+            S::Alt0 { e, .. } => match index {
+                0 => Some(ParseTree::E(e)),
+                _ => None,
+            },
+            S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            S::Alt0 { .. } => 1usize,
+            S::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            S::Alt0 { span, .. } => *span,
+            S::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "S"
+        match self {
+            S::Amb(_) => "Amb",
+            _ => "S",
+        }
+    }
+    pub fn e(&self) -> &'a E<'a> {
+        match self {
+            S::Alt0 { e, .. } => e,
+            S::Amb(_) => panic!("S is ambiguous"),
+        }
     }
 }
 impl<'a> E<'a> {
@@ -249,7 +264,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PrefixAboveBinaryParseTreeBuilder<'
                 // S : E(0).
                 SlotId(1) => {
                     let [e] = children.into_array::<1usize>();
-                    ParseTree::S(self.bump.alloc(S {
+                    ParseTree::S(self.bump.alloc(S::Alt0 {
                         e: e.unwrap_e(),
                         span: nonterminal_node.span,
                     }))
@@ -305,6 +320,12 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PrefixAboveBinaryParseTreeBuilder<'
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
         match parent {
+            crate::grammar_data::S => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
+                ParseTree::S(self.bump.alloc(S::Amb(slice)))
+            }
             crate::grammar_data::E => {
                 let slice = self
                     .bump

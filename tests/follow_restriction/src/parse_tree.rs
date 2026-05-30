@@ -28,7 +28,7 @@ impl TokenKind {
 #[derive(Debug, Clone, Copy)]
 pub enum ParseTree<'a> {
     S(&'a S<'a>),
-    T(&'a T),
+    T(&'a T<'a>),
     Id(&'a Id<'a>),
     // Id+
     Plus0(&'a Plus0<'a>),
@@ -42,8 +42,14 @@ impl<'a> ParseTree<'a> {
             ParseTree::S(s) => (0..s.child_count()).filter_map(|i| s.child(i)).collect(),
             ParseTree::T(t) => (0..t.child_count()).filter_map(|i| t.child(i)).collect(),
             ParseTree::Id(id) => (0..id.child_count()).filter_map(|i| id.child(i)).collect(),
-            ParseTree::Plus0(plus_0) => plus_0.iter().collect(),
-            ParseTree::Plus1(plus_1) => plus_1.iter().collect(),
+            ParseTree::Plus0(plus_0) => match plus_0 {
+                Plus0::Amb(alts) => alts.iter().copied().map(ParseTree::Plus0).collect(),
+                _ => plus_0.iter().collect(),
+            },
+            ParseTree::Plus1(plus_1) => match plus_1 {
+                Plus1::Amb(alts) => alts.iter().copied().map(ParseTree::Plus1).collect(),
+                _ => plus_1.iter().collect(),
+            },
             ParseTree::Token(_) => vec![],
         }
     }
@@ -83,7 +89,7 @@ impl<'a> ParseTree<'a> {
             _ => panic!(),
         }
     }
-    fn unwrap_t(self) -> &'a T {
+    fn unwrap_t(self) -> &'a T<'a> {
         match self {
             ParseTree::T(t) => t,
             _ => panic!(),
@@ -123,28 +129,28 @@ pub trait OptNode {
 }
 // S = Id+
 #[derive(Debug)]
-pub struct S<'a> {
-    pub ids: &'a Plus0<'a>,
-    pub span: Span,
+pub enum S<'a> {
+    Alt0 { ids: &'a Plus0<'a>, span: Span },
+    Amb(&'a [&'a S<'a>]),
 }
 // T = Char !>> Char
 #[derive(Debug)]
-pub struct T {
-    pub char: Token,
-    pub span: Span,
+pub enum T<'a> {
+    Alt0 { char: Token, span: Span },
+    Amb(&'a [&'a T<'a>]),
 }
 // Id = Char+ !>> Char
 #[derive(Debug)]
-pub struct Id<'a> {
-    pub chars: &'a Plus1<'a>,
-    pub span: Span,
+pub enum Id<'a> {
+    Alt0 { chars: &'a Plus1<'a>, span: Span },
+    Amb(&'a [&'a Id<'a>]),
 }
 // Id+
 #[derive(Debug)]
 pub enum Plus0<'a> {
     // Plus_0 = Id+ WS Id
     Alt0 {
-        ids: &'a Plus0<'a>,
+        ids_0: &'a Plus0<'a>,
         ws: Token,
         id_2: &'a Id<'a>,
         span: Span,
@@ -161,7 +167,7 @@ pub enum Plus0<'a> {
 pub enum Plus1<'a> {
     // Plus_1 = Char+ Char
     Alt0 {
-        chars: &'a Plus1<'a>,
+        chars_0: &'a Plus1<'a>,
         char_1: Token,
         span: Span,
     },
@@ -177,48 +183,75 @@ impl<'a> S<'a> {
         ParseTree::S(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let ids = &self.ids;
-                ParseTree::Plus0(ids)
-            }),
-            _ => None,
+        match self {
+            S::Alt0 { ids, .. } => match index {
+                0 => Some(ParseTree::Plus0(ids)),
+                _ => None,
+            },
+            S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            S::Alt0 { .. } => 1usize,
+            S::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            S::Alt0 { span, .. } => *span,
+            S::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "S"
+        match self {
+            S::Amb(_) => "Amb",
+            _ => "S",
+        }
     }
-    pub fn ids(&self) -> impl Iterator<Item = &'a Id<'a>> {
-        self.ids.ids()
+    pub fn ids(&self) -> &'a Plus0<'a> {
+        match self {
+            S::Alt0 { ids, .. } => ids,
+            S::Amb(_) => panic!("S is ambiguous"),
+        }
     }
 }
-impl<'a> T {
+impl<'a> T<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::T(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let char = &self.char;
-                ParseTree::Token(*char)
-            }),
-            _ => None,
+        match self {
+            T::Alt0 { char, .. } => match index {
+                0 => Some(ParseTree::Token(*char)),
+                _ => None,
+            },
+            T::Amb(alts) => alts.get(index).copied().map(ParseTree::T),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            T::Alt0 { .. } => 1usize,
+            T::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            T::Alt0 { span, .. } => *span,
+            T::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "T"
+        match self {
+            T::Amb(_) => "Amb",
+            _ => "T",
+        }
+    }
+    pub fn char(&self) -> Token {
+        match self {
+            T::Alt0 { char, .. } => *char,
+            T::Amb(_) => panic!("T is ambiguous"),
+        }
     }
 }
 impl<'a> Id<'a> {
@@ -226,25 +259,37 @@ impl<'a> Id<'a> {
         ParseTree::Id(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let chars = &self.chars;
-                ParseTree::Plus1(chars)
-            }),
-            _ => None,
+        match self {
+            Id::Alt0 { chars, .. } => match index {
+                0 => Some(ParseTree::Plus1(chars)),
+                _ => None,
+            },
+            Id::Amb(alts) => alts.get(index).copied().map(ParseTree::Id),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            Id::Alt0 { .. } => 1usize,
+            Id::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            Id::Alt0 { span, .. } => *span,
+            Id::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "Id"
+        match self {
+            Id::Amb(_) => "Amb",
+            _ => "Id",
+        }
     }
-    pub fn chars(&self) -> impl Iterator<Item = Token> {
-        self.chars.chars()
+    pub fn chars(&self) -> &'a Plus1<'a> {
+        match self {
+            Id::Alt0 { chars, .. } => chars,
+            Id::Amb(_) => panic!("Id is ambiguous"),
+        }
     }
 }
 impl<'a> Plus0<'a> {
@@ -253,8 +298,10 @@ impl<'a> Plus0<'a> {
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            Plus0::Alt0 { ids, ws, id_2, .. } => match index {
-                0 => Some(ParseTree::Plus0(ids)),
+            Plus0::Alt0 {
+                ids_0, ws, id_2, ..
+            } => match index {
+                0 => Some(ParseTree::Plus0(ids_0)),
                 1 => Some(ParseTree::Token(*ws)),
                 2 => Some(ParseTree::Id(id_2)),
                 _ => None,
@@ -299,8 +346,10 @@ impl<'a> Plus1<'a> {
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            Plus1::Alt0 { chars, char_1, .. } => match index {
-                0 => Some(ParseTree::Plus1(chars)),
+            Plus1::Alt0 {
+                chars_0, char_1, ..
+            } => match index {
+                0 => Some(ParseTree::Plus1(chars_0)),
                 1 => Some(ParseTree::Token(*char_1)),
                 _ => None,
             },
@@ -345,7 +394,7 @@ impl<'a> ListNode<'a> for Plus0<'a> {
         loop {
             match current {
                 Plus0::Alt0 {
-                    ids: rest,
+                    ids_0: rest,
                     ws: layout,
                     id_2: item,
                     ..
@@ -358,7 +407,10 @@ impl<'a> ListNode<'a> for Plus0<'a> {
                     items.push(item.as_parse_tree());
                     break;
                 }
-                Plus0::Amb(_) => panic!("unexpected ambiguity in list node"),
+                Plus0::Amb(_) => {
+                    items.push(ParseTree::Plus0(current));
+                    break;
+                }
             }
         }
         items.reverse();
@@ -372,7 +424,7 @@ impl<'a> ListNode<'a> for Plus1<'a> {
         loop {
             match current {
                 Plus1::Alt0 {
-                    chars: rest,
+                    chars_0: rest,
                     char_1: item,
                     ..
                 } => {
@@ -383,7 +435,10 @@ impl<'a> ListNode<'a> for Plus1<'a> {
                     items.push(item.as_parse_tree());
                     break;
                 }
-                Plus1::Amb(_) => panic!("unexpected ambiguity in list node"),
+                Plus1::Amb(_) => {
+                    items.push(ParseTree::Plus1(current));
+                    break;
+                }
             }
         }
         items.reverse();
@@ -432,7 +487,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionParseTreeBuilder<'
                 // S : Id+.
                 SlotId(1) => {
                     let [ids] = children.into_array::<1usize>();
-                    ParseTree::S(self.bump.alloc(S {
+                    ParseTree::S(self.bump.alloc(S::Alt0 {
                         ids: ids.unwrap_plus_0(),
                         span: nonterminal_node.span,
                     }))
@@ -444,7 +499,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionParseTreeBuilder<'
                 // T : Char !>> Char.
                 SlotId(3) => {
                     let [char] = children.into_array::<1usize>();
-                    ParseTree::T(self.bump.alloc(T {
+                    ParseTree::T(self.bump.alloc(T::Alt0 {
                         char: char.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -456,7 +511,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionParseTreeBuilder<'
                 // Id : Char+ !>> Char.
                 SlotId(5) => {
                     let [chars] = children.into_array::<1usize>();
-                    ParseTree::Id(self.bump.alloc(Id {
+                    ParseTree::Id(self.bump.alloc(Id::Alt0 {
                         chars: chars.unwrap_plus_1(),
                         span: nonterminal_node.span,
                     }))
@@ -467,9 +522,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionParseTreeBuilder<'
             NonterminalId(3) => match nonterminal_node.return_slot {
                 // Id+ : Id+ WS Id.
                 SlotId(9) => {
-                    let [ids, ws, id_2] = children.into_array::<3usize>();
+                    let [ids_0, ws, id_2] = children.into_array::<3usize>();
                     ParseTree::Plus0(self.bump.alloc(Plus0::Alt0 {
-                        ids: ids.unwrap_plus_0(),
+                        ids_0: ids_0.unwrap_plus_0(),
                         ws: ws.unwrap_token(),
                         id_2: id_2.unwrap_id(),
                         span: nonterminal_node.span,
@@ -489,9 +544,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionParseTreeBuilder<'
             NonterminalId(4) => match nonterminal_node.return_slot {
                 // Char+ : Char+ Char.
                 SlotId(14) => {
-                    let [chars, char_1] = children.into_array::<2usize>();
+                    let [chars_0, char_1] = children.into_array::<2usize>();
                     ParseTree::Plus1(self.bump.alloc(Plus1::Alt0 {
-                        chars: chars.unwrap_plus_1(),
+                        chars_0: chars_0.unwrap_plus_1(),
                         char_1: char_1.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -521,6 +576,24 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionParseTreeBuilder<'
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
         match parent {
+            crate::grammar_data::S => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
+                ParseTree::S(self.bump.alloc(S::Amb(slice)))
+            }
+            crate::grammar_data::T => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_t()));
+                ParseTree::T(self.bump.alloc(T::Amb(slice)))
+            }
+            crate::grammar_data::ID => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_id()));
+                ParseTree::Id(self.bump.alloc(Id::Amb(slice)))
+            }
             crate::grammar_data::PLUS_0 => {
                 let slice = self
                     .bump
@@ -567,7 +640,7 @@ pub fn create_parse_tree_t<'a>(
     root_id: SPPFNodeId,
     parser: &FollowRestrictionParser,
     builder: &FollowRestrictionParseTreeBuilder<'a>,
-) -> &'a T {
+) -> &'a T<'a> {
     visit_sppf(root_id, parser, builder).unwrap_one().unwrap_t()
 }
 pub fn create_parse_tree_id<'a>(

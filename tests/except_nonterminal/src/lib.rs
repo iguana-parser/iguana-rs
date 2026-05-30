@@ -100,7 +100,7 @@ pub fn parse_id<'a>(
 pub fn parse_name<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> std::result::Result<ParseSuccess<&'a Name>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Name<'a>>, ParseError> {
     let mut parser = ExceptNonterminalParser::new(input, grammar_data::NAME);
     match parser.run() {
         ParseResult::Success(success) => {

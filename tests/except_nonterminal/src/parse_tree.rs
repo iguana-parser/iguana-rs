@@ -29,7 +29,7 @@ impl TokenKind {
 pub enum ParseTree<'a> {
     S(&'a S<'a>),
     Id(&'a Id<'a>),
-    Name(&'a Name),
+    Name(&'a Name<'a>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -79,7 +79,7 @@ impl<'a> ParseTree<'a> {
             _ => panic!(),
         }
     }
-    fn unwrap_name(self) -> &'a Name {
+    fn unwrap_name(self) -> &'a Name<'a> {
         match self {
             ParseTree::Name(name) => name,
             _ => panic!(),
@@ -101,43 +101,58 @@ pub trait OptNode {
 }
 // S = Id
 #[derive(Debug)]
-pub struct S<'a> {
-    pub id: &'a Id<'a>,
-    pub span: Span,
+pub enum S<'a> {
+    Alt0 { id: &'a Id<'a>, span: Span },
+    Amb(&'a [&'a S<'a>]),
 }
 // Id = Name \ Keyword
 #[derive(Debug)]
-pub struct Id<'a> {
-    pub name: &'a Name,
-    pub span: Span,
+pub enum Id<'a> {
+    Alt0 { name: &'a Name<'a>, span: Span },
+    Amb(&'a [&'a Id<'a>]),
 }
 // Name = Identifier
 #[derive(Debug)]
-pub struct Name {
-    pub identifier: Token,
-    pub span: Span,
+pub enum Name<'a> {
+    Alt0 { identifier: Token, span: Span },
+    Amb(&'a [&'a Name<'a>]),
 }
 impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::S(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let id = &self.id;
-                ParseTree::Id(id)
-            }),
-            _ => None,
+        match self {
+            S::Alt0 { id, .. } => match index {
+                0 => Some(ParseTree::Id(id)),
+                _ => None,
+            },
+            S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            S::Alt0 { .. } => 1usize,
+            S::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            S::Alt0 { span, .. } => *span,
+            S::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "S"
+        match self {
+            S::Amb(_) => "Amb",
+            _ => "S",
+        }
+    }
+    pub fn id(&self) -> &'a Id<'a> {
+        match self {
+            S::Alt0 { id, .. } => id,
+            S::Amb(_) => panic!("S is ambiguous"),
+        }
     }
 }
 impl<'a> Id<'a> {
@@ -145,45 +160,75 @@ impl<'a> Id<'a> {
         ParseTree::Id(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let name = &self.name;
-                ParseTree::Name(name)
-            }),
-            _ => None,
+        match self {
+            Id::Alt0 { name, .. } => match index {
+                0 => Some(ParseTree::Name(name)),
+                _ => None,
+            },
+            Id::Amb(alts) => alts.get(index).copied().map(ParseTree::Id),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            Id::Alt0 { .. } => 1usize,
+            Id::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            Id::Alt0 { span, .. } => *span,
+            Id::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "Id"
+        match self {
+            Id::Amb(_) => "Amb",
+            _ => "Id",
+        }
+    }
+    pub fn name(&self) -> &'a Name<'a> {
+        match self {
+            Id::Alt0 { name, .. } => name,
+            Id::Amb(_) => panic!("Id is ambiguous"),
+        }
     }
 }
-impl<'a> Name {
+impl<'a> Name<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Name(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let identifier = &self.identifier;
-                ParseTree::Token(*identifier)
-            }),
-            _ => None,
+        match self {
+            Name::Alt0 { identifier, .. } => match index {
+                0 => Some(ParseTree::Token(*identifier)),
+                _ => None,
+            },
+            Name::Amb(alts) => alts.get(index).copied().map(ParseTree::Name),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            Name::Alt0 { .. } => 1usize,
+            Name::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            Name::Alt0 { span, .. } => *span,
+            Name::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "Name"
+        match self {
+            Name::Amb(_) => "Amb",
+            _ => "Name",
+        }
+    }
+    pub fn identifier(&self) -> Token {
+        match self {
+            Name::Alt0 { identifier, .. } => *identifier,
+            Name::Amb(_) => panic!("Name is ambiguous"),
+        }
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -228,7 +273,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptNonterminalParseTreeBuilder<'
                 // S : Id.
                 SlotId(1) => {
                     let [id] = children.into_array::<1usize>();
-                    ParseTree::S(self.bump.alloc(S {
+                    ParseTree::S(self.bump.alloc(S::Alt0 {
                         id: id.unwrap_id(),
                         span: nonterminal_node.span,
                     }))
@@ -240,7 +285,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptNonterminalParseTreeBuilder<'
                 // Id : Name \ Keyword.
                 SlotId(3) => {
                     let [name] = children.into_array::<1usize>();
-                    ParseTree::Id(self.bump.alloc(Id {
+                    ParseTree::Id(self.bump.alloc(Id::Alt0 {
                         name: name.unwrap_name(),
                         span: nonterminal_node.span,
                     }))
@@ -252,7 +297,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptNonterminalParseTreeBuilder<'
                 // Name : Identifier.
                 SlotId(5) => {
                     let [identifier] = children.into_array::<1usize>();
-                    ParseTree::Name(self.bump.alloc(Name {
+                    ParseTree::Name(self.bump.alloc(Name::Alt0 {
                         identifier: identifier.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -267,6 +312,33 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptNonterminalParseTreeBuilder<'
             kind: token_kind(terminal_node.terminal_id),
             span: terminal_node.span,
         })
+    }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::S => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
+                ParseTree::S(self.bump.alloc(S::Amb(slice)))
+            }
+            crate::grammar_data::ID => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_id()));
+                ParseTree::Id(self.bump.alloc(Id::Amb(slice)))
+            }
+            crate::grammar_data::NAME => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_name()));
+                ParseTree::Name(self.bump.alloc(Name::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
     }
 }
 pub fn create_parse_tree<'a>(
@@ -304,7 +376,7 @@ pub fn create_parse_tree_name<'a>(
     root_id: SPPFNodeId,
     parser: &ExceptNonterminalParser,
     builder: &ExceptNonterminalParseTreeBuilder<'a>,
-) -> &'a Name {
+) -> &'a Name<'a> {
     visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_name()

@@ -27,7 +27,7 @@ impl TokenKind {
 }
 #[derive(Debug, Clone, Copy)]
 pub enum ParseTree<'a> {
-    S(&'a S),
+    S(&'a S<'a>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -55,7 +55,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.span(),
         }
     }
-    fn unwrap_s(self) -> &'a S {
+    fn unwrap_s(self) -> &'a S<'a> {
         match self {
             ParseTree::S(s) => s,
             _ => panic!(),
@@ -77,31 +77,46 @@ pub trait OptNode {
 }
 // S = Identifier
 #[derive(Debug)]
-pub struct S {
-    pub identifier: Token,
-    pub span: Span,
+pub enum S<'a> {
+    Alt0 { identifier: Token, span: Span },
+    Amb(&'a [&'a S<'a>]),
 }
-impl<'a> S {
+impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::S(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let identifier = &self.identifier;
-                ParseTree::Token(*identifier)
-            }),
-            _ => None,
+        match self {
+            S::Alt0 { identifier, .. } => match index {
+                0 => Some(ParseTree::Token(*identifier)),
+                _ => None,
+            },
+            S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            S::Alt0 { .. } => 1usize,
+            S::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            S::Alt0 { span, .. } => *span,
+            S::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "S"
+        match self {
+            S::Amb(_) => "Amb",
+            _ => "S",
+        }
+    }
+    pub fn identifier(&self) -> Token {
+        match self {
+            S::Alt0 { identifier, .. } => *identifier,
+            S::Amb(_) => panic!("S is ambiguous"),
+        }
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -146,7 +161,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptLexicalParseTreeBuilder<'a> {
                 // S : Identifier.
                 SlotId(1) => {
                     let [identifier] = children.into_array::<1usize>();
-                    ParseTree::S(self.bump.alloc(S {
+                    ParseTree::S(self.bump.alloc(S::Alt0 {
                         identifier: identifier.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -161,6 +176,21 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptLexicalParseTreeBuilder<'a> {
             kind: token_kind(terminal_node.terminal_id),
             span: terminal_node.span,
         })
+    }
+    fn new_ambiguity_node(
+        &self,
+        parent: NonterminalId,
+        alternatives: Vec<ParseTree<'a>>,
+    ) -> ParseTree<'a> {
+        match parent {
+            crate::grammar_data::S => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
+                ParseTree::S(self.bump.alloc(S::Amb(slice)))
+            }
+            _ => unreachable!("nonterminal cannot be ambiguous"),
+        }
     }
 }
 pub fn create_parse_tree<'a>(
@@ -178,7 +208,7 @@ pub fn create_parse_tree_s<'a>(
     root_id: SPPFNodeId,
     parser: &ExceptLexicalParser,
     builder: &ExceptLexicalParseTreeBuilder<'a>,
-) -> &'a S {
+) -> &'a S<'a> {
     visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()
 }
 pub fn to_sexpr(node: ParseTree<'_>) -> String {

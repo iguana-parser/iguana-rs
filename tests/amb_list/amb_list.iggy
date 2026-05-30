@@ -1,0 +1,5 @@
+grammar AmbList
+
+S = A* A*
+
+A = "a"

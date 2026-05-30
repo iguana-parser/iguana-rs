@@ -55,6 +55,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "amb_list"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
+name = "amb_plus"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
 name = "anstream"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -662,6 +680,8 @@ dependencies = [
 name = "iguana-tests"
 version = "0.1.0"
 dependencies = [
+ "amb_list",
+ "amb_plus",
  "assoc_test",
  "binary_expression_priority",
  "comments",

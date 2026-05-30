@@ -68,7 +68,7 @@ pub fn parse_s<'a>(
 pub fn parse_id<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> std::result::Result<ParseSuccess<&'a Id>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Id<'a>>, ParseError> {
     let mut parser = ExceptTerminalParser::new(input, grammar_data::ID);
     match parser.run() {
         ParseResult::Success(success) => {

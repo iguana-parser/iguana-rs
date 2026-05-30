@@ -96,3 +96,9 @@ mod star;
 
 #[path = "star_with_sep/tests.rs"]
 mod star_with_sep;
+
+#[path = "amb_list/tests.rs"]
+mod amb_list;
+
+#[path = "amb_plus/tests.rs"]
+mod amb_plus;

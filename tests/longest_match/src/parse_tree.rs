@@ -91,10 +91,13 @@ pub trait OptNode {
 }
 // S = X "x"
 #[derive(Debug)]
-pub struct S<'a> {
-    pub x: &'a X<'a>,
-    pub lit_1: Token,
-    pub span: Span,
+pub enum S<'a> {
+    Alt0 {
+        x: &'a X<'a>,
+        lit_1: Token,
+        span: Span,
+    },
+    Amb(&'a [&'a S<'a>]),
 }
 #[derive(Debug)]
 pub enum X<'a> {
@@ -109,26 +112,44 @@ impl<'a> S<'a> {
         ParseTree::S(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let x = &self.x;
-                ParseTree::X(x)
-            }),
-            1 => Some({
-                let lit_1 = &self.lit_1;
-                ParseTree::Token(*lit_1)
-            }),
-            _ => None,
+        match self {
+            S::Alt0 { x, lit_1, .. } => match index {
+                0 => Some(ParseTree::X(x)),
+                1 => Some(ParseTree::Token(*lit_1)),
+                _ => None,
+            },
+            S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
         }
     }
     pub fn child_count(&self) -> usize {
-        2usize
+        match self {
+            S::Alt0 { .. } => 2usize,
+            S::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            S::Alt0 { span, .. } => *span,
+            S::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "S"
+        match self {
+            S::Amb(_) => "Amb",
+            _ => "S",
+        }
+    }
+    pub fn x(&self) -> &'a X<'a> {
+        match self {
+            S::Alt0 { x, .. } => x,
+            S::Amb(_) => panic!("S is ambiguous"),
+        }
+    }
+    pub fn lit_1(&self) -> Token {
+        match self {
+            S::Alt0 { lit_1, .. } => *lit_1,
+            S::Amb(_) => panic!("S is ambiguous"),
+        }
     }
 }
 impl<'a> X<'a> {
@@ -213,7 +234,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LongestMatchParseTreeBuilder<'a> {
                 // S : X "x".
                 SlotId(2) => {
                     let [x, lit_1] = children.into_array::<2usize>();
-                    ParseTree::S(self.bump.alloc(S {
+                    ParseTree::S(self.bump.alloc(S::Alt0 {
                         x: x.unwrap_x(),
                         lit_1: lit_1.unwrap_token(),
                         span: nonterminal_node.span,
@@ -256,6 +277,12 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LongestMatchParseTreeBuilder<'a> {
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
         match parent {
+            crate::grammar_data::S => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
+                ParseTree::S(self.bump.alloc(S::Amb(slice)))
+            }
             crate::grammar_data::X => {
                 let slice = self
                     .bump

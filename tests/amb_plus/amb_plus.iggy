@@ -1,0 +1,9 @@
+grammar AmbPlus
+
+S = A*
+
+A = X | Y
+
+X = "a"
+
+Y = "a" "a"

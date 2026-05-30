@@ -10,6 +10,8 @@ iggy.workspace = true
 iguana-runtime.workspace = true
 
 [dev-dependencies]
+amb_plus = { path = "tests/amb_plus" }
+amb_list = { path = "tests/amb_list" }
 assoc_test = { path = "tests/assoc_test" }
 binary_expression_priority = { path = "tests/binary_expression_priority" }
 comments = { path = "tests/comments" }
@@ -54,6 +56,8 @@ members = [
     "iggy",
     "iguana-lsp",
     "xtask",
+    "tests/amb_plus",
+    "tests/amb_list",
     "tests/layout_nonterminal",
     "tests/longest_match",
     "tests/assoc_test",

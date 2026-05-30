@@ -39,7 +39,7 @@ pub struct ParseSuccess<T> {
 pub fn parse_syntax_identifier<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> std::result::Result<ParseSuccess<&'a SyntaxIdentifier>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a SyntaxIdentifier<'a>>, ParseError> {
     let mut parser = MultipleExceptParser::new(input, grammar_data::SYNTAX_IDENTIFIER);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -71,7 +71,7 @@ pub fn parse_syntax_identifier<'a>(
 pub fn parse_lexical_identifier<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> std::result::Result<ParseSuccess<&'a LexicalIdentifier>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a LexicalIdentifier<'a>>, ParseError> {
     let mut parser = MultipleExceptParser::new(input, grammar_data::LEXICAL_IDENTIFIER);
     match parser.run() {
         ParseResult::Success(success) => {

@@ -79,19 +79,19 @@ impl<'a> Formatter<'a> {
 
         // grammar Name
         out.push_str("grammar ");
-        out.push_str(&self.text(grammar.name.span()));
-        self.emit_comments(&mut out, &grammar.layout_3, grammar.name.span());
+        out.push_str(&self.text(grammar.name().span()));
+        self.emit_comments(&mut out, grammar.layout_3(), grammar.name().span());
 
         // layout Def
-        if let Some(layout_def) = grammar.layout_def.value() {
+        if let Some(layout_def) = grammar.layout_def().value() {
             out.push_str("\n\n");
             out.push_str("layout ");
-            out.push_str(&self.text(layout_def.identifier.span()));
-            self.emit_comments(&mut out, &grammar.layout_5, layout_def.identifier.span());
+            out.push_str(&self.text(layout_def.identifier().span()));
+            self.emit_comments(&mut out, grammar.layout_5(), layout_def.identifier().span());
         }
 
         // Rules
-        for rule in grammar.rules.rules() {
+        for rule in grammar.rules().rules() {
             out.push_str("\n\n");
             self.format_rule(&mut out, &rule);
         }
@@ -121,22 +121,22 @@ impl<'a> Formatter<'a> {
     }
 
     fn format_syntax_rule(&self, out: &mut String, rule: &SyntaxRule) {
-        for annotation in rule.annotations.annotations() {
+        for annotation in rule.annotations().annotations() {
             self.format_annotation(out, annotation);
             out.push('\n');
         }
 
-        out.push_str(&self.text(rule.head.span()));
+        out.push_str(&self.text(rule.head().span()));
 
         // Pass 1: format alternatives, keep references to originals
-        let priority_levels: Vec<_> = rule.priority_levels.priority_levels().collect();
+        let priority_levels: Vec<_> = rule.priority_levels().priority_levels().collect();
         let mut formatted_alts: Vec<(FormattedAlt, &Alternative)> = Vec::new();
 
         for (pi, pl) in priority_levels.iter().enumerate() {
             let prefix_first = if pi == 0 { RULE_PREFIX } else { PRIO_PREFIX };
-            let alternatives: Vec<_> = pl.alternatives.alternatives().collect();
+            let alternatives: Vec<_> = pl.alternatives().alternatives().collect();
 
-            let assoc_str = pl.associativity.value().map(|a| match a {
+            let assoc_str = pl.associativity().value().map(|a| match a {
                 Associativity::Alt0 { .. } => "left",
                 Associativity::Alt1 { .. } => "right",
                 Associativity::Alt2 { .. } => "none",
@@ -151,10 +151,10 @@ impl<'a> Formatter<'a> {
                         chunks.push(assoc.to_string());
                     }
                 }
-                for sym in alt.symbols.symbols() {
+                for sym in alt.symbols().symbols() {
                     chunks.push(self.symbol_to_string(&sym));
                 }
-                let label = alt.label.value().map(|t| self.text(t.span()));
+                let label = alt.label().value().map(|t| self.text(t.span()));
                 let lines = wrap_chunks(prefix, &chunks, CONT_INDENT, MAX_LINE_WIDTH);
                 formatted_alts.push((FormattedAlt { lines, label }, alt));
             }
@@ -174,7 +174,7 @@ impl<'a> Formatter<'a> {
         };
 
         // Pass 2: emit with alignment, visit layout nodes for comments
-        let mut prev_span = rule.head.span();
+        let mut prev_span = rule.head().span();
         for (fa, alt) in &formatted_alts {
             out.push('\n');
             for (i, line) in fa.lines.iter().enumerate() {
@@ -194,14 +194,14 @@ impl<'a> Formatter<'a> {
                     out.push(' ');
                 }
                 out.push_str(label);
-                prev_span = alt.label.value().unwrap().span();
+                prev_span = alt.label().value().unwrap().span();
             } else {
-                let syms: Vec<_> = alt.symbols.symbols().collect();
+                let syms: Vec<_> = alt.symbols().symbols().collect();
                 if let Some(last_sym) = syms.last() {
                     prev_span = last_sym.span();
                 }
             }
-            self.emit_comments(out, &alt.layout, prev_span);
+            self.emit_comments(out, alt.layout(), prev_span);
         }
     }
 
@@ -317,7 +317,7 @@ impl<'a> Formatter<'a> {
 
     fn postconditions_to_string(&self, rule: &RegexRule) -> String {
         let mut s = String::new();
-        for pc in rule.post_conditions.post_conditions() {
+        for pc in rule.post_conditions().post_conditions() {
             match pc {
                 PostCondition::Except { identifier, .. } => {
                     s.push_str(" \\ ");
@@ -337,18 +337,18 @@ impl<'a> Formatter<'a> {
         out.push_str("@regex\n");
 
         let groups: Vec<Vec<_>> = rule
-            .body
+            .body()
             .regexes()
             .map(|group| group.collect::<Vec<_>>())
             .collect();
 
         let pre_prefix = rule
-            .pre_condition
+            .pre_condition()
             .value()
-            .map(|pre| format!("{} !<< ", self.text(pre.identifier.span())));
+            .map(|pre| format!("{} !<< ", self.text(pre.identifier().span())));
         let pre_str = pre_prefix.as_deref().unwrap_or("");
         let postcond = self.postconditions_to_string(rule);
-        let name = self.text(rule.identifier.span());
+        let name = self.text(rule.identifier().span());
 
         if groups.len() > 1 {
             // Multi-alt: name on its own line, each alt on its own line(s)
@@ -444,16 +444,16 @@ impl<'a> Formatter<'a> {
     }
 
     fn format_char_class(&self, out: &mut String, cc: &CharClass) {
-        if cc.neg.value().is_some() {
+        if cc.neg().value().is_some() {
             out.push('!');
         }
         out.push('[');
-        for re in cc.range_elements.range_elements() {
+        for re in cc.range_elements().range_elements() {
             match re {
                 RangeElement::Alt0 { range, .. } => {
-                    out.push_str(&self.text(range.start.span()));
+                    out.push_str(&self.text(range.start().span()));
                     out.push('-');
-                    out.push_str(&self.text(range.end.span()));
+                    out.push_str(&self.text(range.end().span()));
                 }
                 RangeElement::Alt1 { range_char, .. } => {
                     out.push_str(&self.text(range_char.span()));

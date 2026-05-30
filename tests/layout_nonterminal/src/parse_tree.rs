@@ -37,7 +37,7 @@ pub struct Start<T, L> {
 }
 #[derive(Debug, Clone, Copy)]
 pub enum ParseTree<'a> {
-    S(&'a S),
+    S(&'a S<'a>),
     Layout(&'a Layout<'a>),
     // (WhiteSpace | Comment)
     Alt0(&'a Alt0<'a>),
@@ -48,7 +48,7 @@ pub enum ParseTree<'a> {
     // (WhiteSpace | Comment)*
     Star0(&'a Star0<'a>),
     // S
-    StartS(&'a Start<&'a S, &'a Layout<'a>>),
+    StartS(&'a Start<&'a S<'a>, &'a Layout<'a>>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -61,7 +61,10 @@ impl<'a> ParseTree<'a> {
             ParseTree::Alt0(alt_0) => (0..alt_0.child_count())
                 .filter_map(|i| alt_0.child(i))
                 .collect(),
-            ParseTree::Plus0(plus_0) => plus_0.iter().collect(),
+            ParseTree::Plus0(plus_0) => match plus_0 {
+                Plus0::Amb(alts) => alts.iter().copied().map(ParseTree::Plus0).collect(),
+                _ => plus_0.iter().collect(),
+            },
             ParseTree::Opt0(opt_0) => (0..opt_0.child_count())
                 .filter_map(|i| opt_0.child(i))
                 .collect(),
@@ -108,7 +111,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.span(),
         }
     }
-    fn unwrap_s(self) -> &'a S {
+    fn unwrap_s(self) -> &'a S<'a> {
         match self {
             ParseTree::S(s) => s,
             _ => panic!(),
@@ -144,7 +147,7 @@ impl<'a> ParseTree<'a> {
             _ => panic!(),
         }
     }
-    fn unwrap_start_s(self) -> &'a Start<&'a S, &'a Layout<'a>> {
+    fn unwrap_start_s(self) -> &'a Start<&'a S<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartS(start_s) => start_s,
             _ => panic!(),
@@ -166,15 +169,15 @@ pub trait OptNode {
 }
 // S = "x"
 #[derive(Debug)]
-pub struct S {
-    pub lit_0: Token,
-    pub span: Span,
+pub enum S<'a> {
+    Alt0 { lit_0: Token, span: Span },
+    Amb(&'a [&'a S<'a>]),
 }
 // Layout = (WhiteSpace | Comment)*
 #[derive(Debug)]
-pub struct Layout<'a> {
-    pub star_0: &'a Star0<'a>,
-    pub span: Span,
+pub enum Layout<'a> {
+    Alt0 { star_0: &'a Star0<'a>, span: Span },
+    Amb(&'a [&'a Layout<'a>]),
 }
 // (WhiteSpace | Comment)
 #[derive(Debug)]
@@ -212,31 +215,46 @@ pub enum Opt0<'a> {
 }
 // (WhiteSpace | Comment)*
 #[derive(Debug)]
-pub struct Star0<'a> {
-    pub opt_0: &'a Opt0<'a>,
-    pub span: Span,
+pub enum Star0<'a> {
+    Alt0 { opt_0: &'a Opt0<'a>, span: Span },
+    Amb(&'a [&'a Star0<'a>]),
 }
-impl<'a> S {
+impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::S(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let lit_0 = &self.lit_0;
-                ParseTree::Token(*lit_0)
-            }),
-            _ => None,
+        match self {
+            S::Alt0 { lit_0, .. } => match index {
+                0 => Some(ParseTree::Token(*lit_0)),
+                _ => None,
+            },
+            S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            S::Alt0 { .. } => 1usize,
+            S::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            S::Alt0 { span, .. } => *span,
+            S::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "S"
+        match self {
+            S::Amb(_) => "Amb",
+            _ => "S",
+        }
+    }
+    pub fn lit_0(&self) -> Token {
+        match self {
+            S::Alt0 { lit_0, .. } => *lit_0,
+            S::Amb(_) => panic!("S is ambiguous"),
+        }
     }
 }
 impl<'a> Layout<'a> {
@@ -244,28 +262,49 @@ impl<'a> Layout<'a> {
         ParseTree::Layout(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let star_0 = &self.star_0;
-                ParseTree::Star0(star_0)
-            }),
-            _ => None,
+        match self {
+            Layout::Alt0 { star_0, .. } => match index {
+                0 => Some(ParseTree::Star0(star_0)),
+                _ => None,
+            },
+            Layout::Amb(alts) => alts.get(index).copied().map(ParseTree::Layout),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            Layout::Alt0 { .. } => 1usize,
+            Layout::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            Layout::Alt0 { span, .. } => *span,
+            Layout::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "Layout"
+        match self {
+            Layout::Amb(_) => "Amb",
+            _ => "Layout",
+        }
     }
     pub fn white_spaces(&self) -> impl Iterator<Item = Token> {
-        self.star_0.white_spaces()
+        match self {
+            Layout::Alt0 { star_0, .. } => star_0.white_spaces(),
+            Layout::Amb(_) => panic!("Layout is ambiguous"),
+        }
     }
     pub fn comments(&self) -> impl Iterator<Item = Token> {
-        self.star_0.comments()
+        match self {
+            Layout::Alt0 { star_0, .. } => star_0.comments(),
+            Layout::Amb(_) => panic!("Layout is ambiguous"),
+        }
+    }
+    pub fn star_0(&self) -> &'a Star0<'a> {
+        match self {
+            Layout::Alt0 { star_0, .. } => star_0,
+            Layout::Amb(_) => panic!("Layout is ambiguous"),
+        }
     }
 }
 impl<'a> Alt0<'a> {
@@ -407,31 +446,52 @@ impl<'a> Star0<'a> {
         ParseTree::Star0(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some({
-                let opt_0 = &self.opt_0;
-                ParseTree::Opt0(opt_0)
-            }),
-            _ => None,
+        match self {
+            Star0::Alt0 { opt_0, .. } => match index {
+                0 => Some(ParseTree::Opt0(opt_0)),
+                _ => None,
+            },
+            Star0::Amb(alts) => alts.get(index).copied().map(ParseTree::Star0),
         }
     }
     pub fn child_count(&self) -> usize {
-        1usize
+        match self {
+            Star0::Alt0 { .. } => 1usize,
+            Star0::Amb(alts) => alts.len(),
+        }
     }
     pub fn span(&self) -> Span {
-        self.span
+        match self {
+            Star0::Alt0 { span, .. } => *span,
+            Star0::Amb(alts) => alts[0].span(),
+        }
     }
     pub fn display_name(&self) -> &'static str {
-        "(WhiteSpace | Comment)*"
+        match self {
+            Star0::Amb(_) => "Amb",
+            _ => "(WhiteSpace | Comment)*",
+        }
     }
     pub fn white_spaces(&self) -> impl Iterator<Item = Token> {
-        self.opt_0.white_spaces()
+        match self {
+            Star0::Alt0 { opt_0, .. } => opt_0.white_spaces(),
+            Star0::Amb(_) => panic!("Star_0 is ambiguous"),
+        }
     }
     pub fn comments(&self) -> impl Iterator<Item = Token> {
-        self.opt_0.comments()
+        match self {
+            Star0::Alt0 { opt_0, .. } => opt_0.comments(),
+            Star0::Amb(_) => panic!("Star_0 is ambiguous"),
+        }
+    }
+    pub fn opt_0(&self) -> &'a Opt0<'a> {
+        match self {
+            Star0::Alt0 { opt_0, .. } => opt_0,
+            Star0::Amb(_) => panic!("Star_0 is ambiguous"),
+        }
     }
 }
-impl<'a> Start<&'a S, &'a Layout<'a>> {
+impl<'a> Start<&'a S<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartS(self)
     }
@@ -471,7 +531,10 @@ impl<'a> ListNode<'a> for Plus0<'a> {
                     items.push(item.as_parse_tree());
                     break;
                 }
-                Plus0::Amb(_) => panic!("unexpected ambiguity in list node"),
+                Plus0::Amb(_) => {
+                    items.push(ParseTree::Plus0(current));
+                    break;
+                }
             }
         }
         items.reverse();
@@ -480,10 +543,13 @@ impl<'a> ListNode<'a> for Plus0<'a> {
 }
 impl<'a> ListNode<'a> for Star0<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
-        match self.opt_0 {
-            Opt0::Alt0 { plus_0: opt_0, .. } => opt_0.iter(),
-            Opt0::Alt1 { .. } => vec![].into_iter(),
-            Opt0::Amb(_) => panic!("unexpected ambiguity in list node"),
+        match self {
+            Star0::Alt0 { opt_0, .. } => match opt_0 {
+                Opt0::Alt0 { plus_0: opt_0, .. } => opt_0.iter(),
+                Opt0::Alt1 { .. } => vec![].into_iter(),
+                Opt0::Amb(_) => vec![ParseTree::Opt0(opt_0)].into_iter(),
+            },
+            Star0::Amb(_) => vec![ParseTree::Star0(self)].into_iter(),
         }
     }
 }
@@ -555,7 +621,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutNonterminalParseTreeBuilder<'
                 // S : "x".
                 SlotId(1) => {
                     let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::S(self.bump.alloc(S {
+                    ParseTree::S(self.bump.alloc(S::Alt0 {
                         lit_0: lit_0.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -567,7 +633,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutNonterminalParseTreeBuilder<'
                 // Layout : (WhiteSpace | Comment)*.
                 SlotId(3) => {
                     let [star_0] = children.into_array::<1usize>();
-                    ParseTree::Layout(self.bump.alloc(Layout {
+                    ParseTree::Layout(self.bump.alloc(Layout::Alt0 {
                         star_0: star_0.unwrap_star_0(),
                         span: nonterminal_node.span,
                     }))
@@ -639,7 +705,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutNonterminalParseTreeBuilder<'
                 // (WhiteSpace | Comment)* : (WhiteSpace | Comment)+?.
                 SlotId(17) => {
                     let [opt_0] = children.into_array::<1usize>();
-                    ParseTree::Star0(self.bump.alloc(Star0 {
+                    ParseTree::Star0(self.bump.alloc(Star0::Alt0 {
                         opt_0: opt_0.unwrap_opt_0(),
                         span: nonterminal_node.span,
                     }))
@@ -675,6 +741,18 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutNonterminalParseTreeBuilder<'
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
         match parent {
+            crate::grammar_data::S => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
+                ParseTree::S(self.bump.alloc(S::Amb(slice)))
+            }
+            crate::grammar_data::LAYOUT => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_layout()));
+                ParseTree::Layout(self.bump.alloc(Layout::Amb(slice)))
+            }
             crate::grammar_data::ALT_0 => {
                 let slice = self
                     .bump
@@ -692,6 +770,12 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutNonterminalParseTreeBuilder<'
                     .bump
                     .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_opt_0()));
                 ParseTree::Opt0(self.bump.alloc(Opt0::Amb(slice)))
+            }
+            crate::grammar_data::STAR_0 => {
+                let slice = self
+                    .bump
+                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_star_0()));
+                ParseTree::Star0(self.bump.alloc(Star0::Amb(slice)))
             }
             _ => unreachable!("nonterminal cannot be ambiguous"),
         }
@@ -730,7 +814,7 @@ pub fn create_parse_tree_s<'a>(
     root_id: SPPFNodeId,
     parser: &LayoutNonterminalParser,
     builder: &LayoutNonterminalParseTreeBuilder<'a>,
-) -> &'a S {
+) -> &'a S<'a> {
     visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()
 }
 pub fn create_parse_tree_layout<'a>(
@@ -782,7 +866,7 @@ pub fn create_parse_tree_start_s<'a>(
     root_id: SPPFNodeId,
     parser: &LayoutNonterminalParser,
     builder: &LayoutNonterminalParseTreeBuilder<'a>,
-) -> &'a Start<&'a S, &'a Layout<'a>> {
+) -> &'a Start<&'a S<'a>, &'a Layout<'a>> {
     visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_start_s()

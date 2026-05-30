@@ -94,7 +94,7 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
             ParseTree::Rule(rule) => match rule {
                 parse_tree::Rule::SyntaxRule { syntax_rule, .. } => {
                     let gr_rule = &self.grammar_def.syntax_rules[self.syntax_idx];
-                    let head_start = syntax_rule.head.span().left_extent;
+                    let head_start = syntax_rule.head().span().left_extent;
 
                     let leading = self
                         .last_layout
@@ -109,12 +109,12 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                     }
 
                     let content_end = rightmost_token_end(syntax_rule.as_parse_tree())
-                        .unwrap_or(syntax_rule.span.right_extent);
+                        .unwrap_or(syntax_rule.span().right_extent);
                     let trailing = self
                         .last_layout
                         .and_then(|l| trailing_comment(l, self.input, content_end))
                         .map(|t| t.span());
-                    let rule_span = Span::new(syntax_rule.span.left_extent, content_end);
+                    let rule_span = Span::new(syntax_rule.span().left_extent, content_end);
 
                     self.spans.syntax_rules.insert(
                         ByAddress(gr_rule),
@@ -124,7 +124,7 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                             trailing_comment: trailing,
                         },
                     );
-                    let head_span = syntax_rule.head.span();
+                    let head_span = syntax_rule.head().span();
                     let def_id = DefinitionId(
                         (self.grammar_def.lexical_rules.len() + self.syntax_idx) as u16,
                     );
@@ -133,7 +133,7 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                 }
                 parse_tree::Rule::RegexRule { regex_rule, .. } => {
                     let gr_rule = &self.grammar_def.lexical_rules[self.lexical_idx];
-                    let head_start = regex_rule.identifier.span().left_extent;
+                    let head_start = regex_rule.identifier().span().left_extent;
 
                     let leading = self
                         .last_layout
@@ -148,12 +148,12 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                     }
 
                     let content_end = rightmost_token_end(regex_rule.as_parse_tree())
-                        .unwrap_or(regex_rule.span.right_extent);
+                        .unwrap_or(regex_rule.span().right_extent);
                     let trailing = self
                         .last_layout
                         .and_then(|l| trailing_comment(l, self.input, content_end))
                         .map(|t| t.span());
-                    let rule_span = Span::new(regex_rule.span.left_extent, content_end);
+                    let rule_span = Span::new(regex_rule.span().left_extent, content_end);
 
                     self.spans.lexical_rules.insert(
                         ByAddress(gr_rule),
@@ -163,7 +163,7 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                             trailing_comment: trailing,
                         },
                     );
-                    let head_span = regex_rule.identifier.span();
+                    let head_span = regex_rule.identifier().span();
                     let def_id = DefinitionId(self.lexical_idx as u16);
                     self.spans.definition_spans.insert(def_id, head_span);
                     self.lexical_idx += 1;
@@ -199,7 +199,7 @@ pub fn build_spans<'a>(
     // the GrammarDef and parse tree in parallel.
     let mut syntax_idx = 0;
     let mut lexical_idx = 0;
-    for rule in grammar.rules.rules() {
+    for rule in grammar.rules().rules() {
         match rule {
             parse_tree::Rule::SyntaxRule { syntax_rule, .. } => {
                 let gr_rule = &grammar_def.syntax_rules[syntax_idx];
@@ -226,16 +226,16 @@ fn collect_syntax_rule_spans<'a>(
     for (gr_level, pt_level) in gr_rule
         .priority_levels
         .iter()
-        .zip(pt_rule.priority_levels.priority_levels())
+        .zip(pt_rule.priority_levels().priority_levels())
     {
         for (gr_alt, pt_alt) in gr_level
             .alternatives
             .iter()
-            .zip(pt_level.alternatives.alternatives())
+            .zip(pt_level.alternatives().alternatives())
         {
             let alt_end =
-                rightmost_token_end(pt_alt.as_parse_tree()).unwrap_or(pt_alt.span.right_extent);
-            let alt_span = Span::new(pt_alt.span.left_extent, alt_end);
+                rightmost_token_end(pt_alt.as_parse_tree()).unwrap_or(pt_alt.span().right_extent);
+            let alt_span = Span::new(pt_alt.span().left_extent, alt_end);
             spans.alternatives.insert(
                 ByAddress(gr_alt),
                 Metadata {
@@ -243,7 +243,7 @@ fn collect_syntax_rule_spans<'a>(
                     ..Default::default()
                 },
             );
-            for (gr_sym, pt_sym) in gr_alt.symbols.iter().zip(pt_alt.symbols.symbols()) {
+            for (gr_sym, pt_sym) in gr_alt.symbols.iter().zip(pt_alt.symbols().symbols()) {
                 collect_symbol_spans(gr_sym, pt_sym, spans);
             }
         }
@@ -258,7 +258,7 @@ fn collect_regex_rule_spans<'a>(
     let Regex::Alt(alts) = &gr_rule.regex else {
         return;
     };
-    for (gr_alt, pt_alt_regexes) in alts.iter().zip(pt_rule.body.regexes()) {
+    for (gr_alt, pt_alt_regexes) in alts.iter().zip(pt_rule.body().regexes()) {
         let Regex::Seq(parts) = gr_alt else {
             continue;
         };

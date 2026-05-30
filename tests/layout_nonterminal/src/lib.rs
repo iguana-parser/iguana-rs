@@ -39,7 +39,7 @@ pub struct ParseSuccess<T> {
 pub fn parse_s<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> std::result::Result<ParseSuccess<&'a Start<&'a S, &'a Layout<'a>>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a S<'a>, &'a Layout<'a>>>, ParseError> {
     let mut parser = LayoutNonterminalParser::new(input, grammar_data::START_S);
     match parser.run() {
         ParseResult::Success(success) => {

@@ -68,7 +68,7 @@ pub fn parse_s<'a>(
 pub fn parse_a<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> std::result::Result<ParseSuccess<&'a A>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a A<'a>>, ParseError> {
     let mut parser = StarWithSepParser::new(input, grammar_data::A);
     match parser.run() {
         ParseResult::Success(success) => {

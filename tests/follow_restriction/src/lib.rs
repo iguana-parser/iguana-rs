@@ -68,7 +68,7 @@ pub fn parse_s<'a>(
 pub fn parse_t<'a>(
     input: &Input,
     ctx: &'a ParseContext,
-) -> std::result::Result<ParseSuccess<&'a T>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a T<'a>>, ParseError> {
     let mut parser = FollowRestrictionParser::new(input, grammar_data::T);
     match parser.run() {
         ParseResult::Success(success) => {

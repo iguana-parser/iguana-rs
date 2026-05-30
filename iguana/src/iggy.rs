@@ -29,12 +29,12 @@ pub fn build_grammar(
     input: &Input,
 ) -> Result<GrammarDef, ParseError> {
     let grammar = &start_grammar.node;
-    let name = text(input, grammar.name.span());
+    let name = text(input, grammar.name().span());
 
     let mut syntax_rules: Vec<SyntaxRule> = Vec::new();
     let mut lexical_rules: Vec<LexicalRule> = Vec::new();
 
-    for rule in grammar.rules.rules() {
+    for rule in grammar.rules().rules() {
         match rule {
             parse_tree::Rule::SyntaxRule { syntax_rule, .. } => {
                 syntax_rules.push(convert_syntax_rule(syntax_rule, input));
@@ -46,9 +46,9 @@ pub fn build_grammar(
         }
     }
 
-    let layout = grammar.layout_def.value().map(|layout| {
+    let layout = grammar.layout_def().value().map(|layout| {
         Symbol::Identifier(Identifier {
-            name: text(input, layout.identifier.span()),
+            name: text(input, layout.identifier().span()),
             definition: None,
         })
     });
@@ -72,11 +72,11 @@ pub fn build_grammar(
 }
 
 fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRule {
-    let head_name = text(input, rule.head.span());
+    let head_name = text(input, rule.head().span());
     let head = Nonterminal::new(head_name);
 
     let priority_levels: Vec<PriorityLevel> = rule
-        .priority_levels
+        .priority_levels()
         .priority_levels()
         .map(|level| convert_priority_level(level, input))
         .collect();
@@ -84,7 +84,7 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
     let mut layout = LayoutStrategy::Default;
     let mut start = false;
 
-    for annotation in rule.annotations.annotations() {
+    for annotation in rule.annotations().annotations() {
         match annotation {
             parse_tree::Annotation::NoLayout { .. } => layout = LayoutStrategy::None,
             parse_tree::Annotation::Layout { identifier, .. } => {
@@ -109,20 +109,22 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
 
 fn convert_priority_level(level: &parse_tree::PriorityLevel, input: &Input) -> PriorityLevel {
     let alternatives: Vec<Alternative> = level
-        .alternatives
+        .alternatives()
         .alternatives()
         .map(|alt| convert_alternative(alt, input))
         .collect();
 
     let associativity =
         level
-            .associativity
+            .associativity()
             .value()
-            .map(|assoc| match text(input, assoc.span()).as_str() {
-                "left" => Associativity::Left,
-                "right" => Associativity::Right,
-                "none" => Associativity::NonAssoc,
-                other => panic!("Unknown associativity: {other}"),
+            .map(|assoc: &parse_tree::Associativity<'_>| {
+                match text(input, assoc.span()).as_str() {
+                    "left" => Associativity::Left,
+                    "right" => Associativity::Right,
+                    "none" => Associativity::NonAssoc,
+                    other => panic!("Unknown associativity: {other}"),
+                }
             });
 
     PriorityLevel::with_associativity(alternatives, associativity)
@@ -130,13 +132,13 @@ fn convert_priority_level(level: &parse_tree::PriorityLevel, input: &Input) -> P
 
 fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternative {
     let symbols: Vec<Symbol> = alt
-        .symbols
+        .symbols()
         .symbols()
         .map(|sym| convert_symbol(sym, input))
         .collect();
 
     // Extract label, stripping the # prefix
-    let label = alt.label.value().map(|token| {
+    let label = alt.label().value().map(|token| {
         let label_text = text(input, token.span());
         label_text
             .strip_prefix('#')
@@ -240,18 +242,18 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
 }
 
 fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRule {
-    let name = text(input, rule.identifier.span());
+    let name = text(input, rule.identifier().span());
     let head = Terminal::new(name);
 
     // TODO: add simplification rules to convert Alt(regex) to regex, and Seq(regex) to regex.
     let regex = Regex::Alt(
-        rule.body
+        rule.body()
             .regexes()
             .map(|inner| Regex::Seq(inner.map(|r| convert_regex(r, input)).collect()))
             .collect(),
     );
     let mut lexical_rule = LexicalRule::new(head, regex);
-    for post_condition in rule.post_conditions.post_conditions() {
+    for post_condition in rule.post_conditions().post_conditions() {
         match post_condition {
             parse_tree::PostCondition::Except { identifier, .. } => {
                 lexical_rule.except.push(Identifier {
@@ -273,9 +275,9 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
             parse_tree::PostCondition::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
-    if let Some(pc) = rule.pre_condition.value() {
+    if let Some(pc) = rule.pre_condition().value() {
         lexical_rule.precede_restriction = Some(Identifier {
-            name: text(input, pc.identifier.span()),
+            name: text(input, pc.identifier().span()),
             definition: None,
         });
     }
@@ -320,14 +322,14 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
 }
 
 fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Regex {
-    let negated = char_class.neg.value().is_some();
+    let negated = char_class.neg().value().is_some();
     let ranges = char_class
-        .range_elements
+        .range_elements()
         .range_elements()
         .map(|e| {
             if let Some(range) = e.as_range() {
-                let start = parse_range_char(&text(input, range.start.span()));
-                let end = parse_range_char(&text(input, range.end.span()));
+                let start = parse_range_char(&text(input, range.start().span()));
+                let end = parse_range_char(&text(input, range.end().span()));
                 CharRange { start, end }
             } else if let Some(range_char) = e.as_range_char() {
                 let ch = parse_range_char(&text(input, range_char.span()));
