@@ -1956,14 +1956,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout . excepts:Plus_9 return 9
             SlotId(381) => {
-                if let Some(right_child) = self.parse_plus_9_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(382), env)
-                    {
-                        // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 . return 9
-                        self.execute(j, SlotId(382), Some(new_node), gss_node_id, env);
-                    }
-                }
+                self.create(NonterminalId(43), result, gss_node_id, SlotId(382), env);
             }
             // Symbol(p: i32, e: i32) : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 . return 9
             SlotId(382) => {
@@ -2045,14 +2038,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout . restrictions:Plus_10 return 10
             SlotId(390) => {
-                if let Some(right_child) = self.parse_plus_10_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(391), env)
-                    {
-                        // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 . return 10
-                        self.execute(j, SlotId(391), Some(new_node), gss_node_id, env);
-                    }
-                }
+                self.create(NonterminalId(45), result, gss_node_id, SlotId(391), env);
             }
             // Symbol(p: i32, e: i32) : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 . return 10
             SlotId(391) => {
@@ -2126,14 +2112,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout . labels:Plus_11 return 11
             SlotId(398) => {
-                if let Some(right_child) = self.parse_plus_11_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(399), env)
-                    {
-                        // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 . return 11
-                        self.execute(j, SlotId(399), Some(new_node), gss_node_id, env);
-                    }
-                }
+                self.create(NonterminalId(47), result, gss_node_id, SlotId(399), env);
             }
             // Symbol(p: i32, e: i32) : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 . return 11
             SlotId(399) => {
@@ -3915,11 +3894,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Plus_9 : . Plus_9 Layout Group_1
             SlotId(238) => {
-                if let Some(right_child) = self.parse_plus_9_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_9 : Plus_9 . Layout Group_1
-                    self.execute(j, SlotId(239), Some(right_child), gss_node_id, env);
-                }
+                self.create(NonterminalId(43), result, gss_node_id, SlotId(239), env);
             }
             // Plus_9 : Plus_9 . Layout Group_1
             SlotId(239) => {
@@ -4024,11 +3999,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Plus_10 : . Plus_10 Layout Group_2
             SlotId(248) => {
-                if let Some(right_child) = self.parse_plus_10_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_10 : Plus_10 . Layout Group_2
-                    self.execute(j, SlotId(249), Some(right_child), gss_node_id, env);
-                }
+                self.create(NonterminalId(45), result, gss_node_id, SlotId(249), env);
             }
             // Plus_10 : Plus_10 . Layout Group_2
             SlotId(249) => {
@@ -4133,11 +4104,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Plus_11 : . Plus_11 Layout Group_3
             SlotId(258) => {
-                if let Some(right_child) = self.parse_plus_11_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_11 : Plus_11 . Layout Group_3
-                    self.execute(j, SlotId(259), Some(right_child), gss_node_id, env);
-                }
+                self.create(NonterminalId(47), result, gss_node_id, SlotId(259), env);
             }
             // Plus_11 : Plus_11 . Layout Group_3
             SlotId(259) => {
@@ -7246,57 +7213,6 @@ impl<'i> IggyParser<'i> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_plus_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(43), i));
-        let mut j = i;
-        let (body_node, body_end) = (self.parse_group_1_ll1(j).map(|node| {
-            let end = self.sppf_node(node).right_extent();
-            (node, end)
-        }))?;
-        j = body_end;
-        let left_extent = i;
-        let mut current = self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(43),
-            return_slot: SlotId(243),
-            span: Span {
-                left_extent,
-                right_extent: j,
-            },
-            child: body_node,
-            ambiguous: false,
-        });
-        loop {
-            let Some((node_0, pos_0)) = self.parse_layout_ll1(j).map(|node| {
-                let end = self.sppf_node(node).right_extent();
-                (node, end)
-            }) else {
-                break;
-            };
-            let Some((node_1, pos_1)) = self.parse_group_1_ll1(pos_0).map(|node| {
-                let end = self.sppf_node(node).right_extent();
-                (node, end)
-            }) else {
-                break;
-            };
-            j = pos_1;
-            current =
-                self.create_intermediate_node_ll1(SlotId(240), left_extent, pos_0, current, node_0);
-            current =
-                self.create_intermediate_node_ll1(SlotId(241), left_extent, pos_1, current, node_1);
-            current = self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(43),
-                return_slot: SlotId(241),
-                span: Span {
-                    left_extent,
-                    right_extent: j,
-                },
-                child: current,
-                ambiguous: false,
-            });
-        }
-        Some(current)
-    }
     fn parse_group_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(44), i));
@@ -7355,57 +7271,6 @@ impl<'i> IggyParser<'i> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_plus_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(45), i));
-        let mut j = i;
-        let (body_node, body_end) = (self.parse_group_2_ll1(j).map(|node| {
-            let end = self.sppf_node(node).right_extent();
-            (node, end)
-        }))?;
-        j = body_end;
-        let left_extent = i;
-        let mut current = self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(45),
-            return_slot: SlotId(253),
-            span: Span {
-                left_extent,
-                right_extent: j,
-            },
-            child: body_node,
-            ambiguous: false,
-        });
-        loop {
-            let Some((node_0, pos_0)) = self.parse_layout_ll1(j).map(|node| {
-                let end = self.sppf_node(node).right_extent();
-                (node, end)
-            }) else {
-                break;
-            };
-            let Some((node_1, pos_1)) = self.parse_group_2_ll1(pos_0).map(|node| {
-                let end = self.sppf_node(node).right_extent();
-                (node, end)
-            }) else {
-                break;
-            };
-            j = pos_1;
-            current =
-                self.create_intermediate_node_ll1(SlotId(250), left_extent, pos_0, current, node_0);
-            current =
-                self.create_intermediate_node_ll1(SlotId(251), left_extent, pos_1, current, node_1);
-            current = self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(45),
-                return_slot: SlotId(251),
-                span: Span {
-                    left_extent,
-                    right_extent: j,
-                },
-                child: current,
-                ambiguous: false,
-            });
-        }
-        Some(current)
-    }
     fn parse_group_3_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(46), i));
@@ -7463,57 +7328,6 @@ impl<'i> IggyParser<'i> {
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
-    }
-    fn parse_plus_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(47), i));
-        let mut j = i;
-        let (body_node, body_end) = (self.parse_group_3_ll1(j).map(|node| {
-            let end = self.sppf_node(node).right_extent();
-            (node, end)
-        }))?;
-        j = body_end;
-        let left_extent = i;
-        let mut current = self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(47),
-            return_slot: SlotId(263),
-            span: Span {
-                left_extent,
-                right_extent: j,
-            },
-            child: body_node,
-            ambiguous: false,
-        });
-        loop {
-            let Some((node_0, pos_0)) = self.parse_layout_ll1(j).map(|node| {
-                let end = self.sppf_node(node).right_extent();
-                (node, end)
-            }) else {
-                break;
-            };
-            let Some((node_1, pos_1)) = self.parse_group_3_ll1(pos_0).map(|node| {
-                let end = self.sppf_node(node).right_extent();
-                (node, end)
-            }) else {
-                break;
-            };
-            j = pos_1;
-            current =
-                self.create_intermediate_node_ll1(SlotId(260), left_extent, pos_0, current, node_0);
-            current =
-                self.create_intermediate_node_ll1(SlotId(261), left_extent, pos_1, current, node_1);
-            current = self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(47),
-                return_slot: SlotId(261),
-                span: Span {
-                    left_extent,
-                    right_extent: j,
-                },
-                child: current,
-                ambiguous: false,
-            });
-        }
-        Some(current)
     }
     fn parse_opt_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]

@@ -108,11 +108,7 @@ impl<'i> Parser<'i> for AmbListParser<'i> {
             }
             // Plus_0 : . Plus_0 A
             SlotId(5) => {
-                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_0 : Plus_0 . A
-                    self.execute(j, SlotId(6), Some(right_child), gss_node_id, env);
-                }
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(6), env);
             }
             // Plus_0 : Plus_0 . A
             SlotId(6) => {
@@ -147,11 +143,7 @@ impl<'i> Parser<'i> for AmbListParser<'i> {
             }
             // Opt_0 : . Plus_0
             SlotId(10) => {
-                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Opt_0 : Plus_0.
-                    self.execute(j, SlotId(11), Some(right_child), gss_node_id, env);
-                }
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(11), env);
             }
             // Opt_0 : Plus_0.
             SlotId(11) => {
@@ -741,49 +733,6 @@ impl<'i> AmbListParser<'i> {
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
-    }
-    fn parse_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(2), i));
-        let mut j = i;
-        let (body_node, body_end) = (self.parse_a_ll1(j).map(|node| {
-            let end = self.sppf_node(node).right_extent();
-            (node, end)
-        }))?;
-        j = body_end;
-        let left_extent = i;
-        let mut current = self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(2),
-            return_slot: SlotId(9),
-            span: Span {
-                left_extent,
-                right_extent: j,
-            },
-            child: body_node,
-            ambiguous: false,
-        });
-        loop {
-            let Some((node_0, pos_0)) = self.parse_a_ll1(j).map(|node| {
-                let end = self.sppf_node(node).right_extent();
-                (node, end)
-            }) else {
-                break;
-            };
-            j = pos_0;
-            current =
-                self.create_intermediate_node_ll1(SlotId(7), left_extent, pos_0, current, node_0);
-            current = self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(2),
-                return_slot: SlotId(7),
-                span: Span {
-                    left_extent,
-                    right_extent: j,
-                },
-                child: current,
-                ambiguous: false,
-            });
-        }
-        Some(current)
     }
     fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
         let existing = self.epsilon_nodes[i as usize];

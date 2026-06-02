@@ -80,18 +80,190 @@ impl<'a> FirstFollowSets<'a> {
     }
 
     /// A nonterminal is LL(1) if its alternatives have disjoint prediction
-    /// sets. Plus is a special case: EBNF desugaring produces left-recursive
-    /// rules (e.g., `A+ => APlus = APlus A | A`) whose alternatives always
-    /// overlap. The left recursion is an artifact of the desugaring. The
-    /// loop decision is a FIRST(A) membership test, so Plus is LL(1) if A
-    /// is LL(1). Star and Opt are not exempt: their nullable alternatives
-    /// pull FOLLOW into the prediction set, so disjointness depends on
-    /// context.
+    /// sets.
+    ///
+    /// Plus is a special case: EBNF desugaring produces left-recursive
+    /// rules (e.g., `A+ desugars into APlus = APlus A | A`) whose alternatives
+    /// always overlap. The left recursion is an artifact of the desugaring;
+    /// what the parser actually decides each iteration is whether to keep
+    /// looping or stop, by trying to match the *continuation*: the symbols in
+    /// the recursive alternative that come after the leading self-reference.
+    ///
+    /// For `Plus = Plus A | A`, the continuation is `[A]` and
+    /// `FIRST(continuation) = FIRST(A)`. `{A ","}+` desugars to
+    /// `Plus = Plus "," A | A`, so the continuation is `["," A]` and
+    /// `FIRST(continuation) = {","}` (the separator is not nullable, so the
+    /// walk stops there).
+    ///
+    /// A continuation may also contain a *longest-match* symbol: a nullable
+    /// nonterminal whose rule body is followed by a restriction that excludes
+    /// its own FIRST set, giving it the same longest-match behavior a regex
+    /// repetition would have natively. At any position past such a symbol, no
+    /// token in its FIRST can remain as a possible lookahead. Layout is one
+    /// instance, e.g.,
+    /// `Layout = (WhiteSpace | Comment)* !>> WhiteSpace !>> Comment`.
+    ///
+    /// At each iteration, the loop decides whether to match the continuation
+    /// again or return to the parent rule. Single-token lookahead can pick
+    /// between them only when no character is valid for both:
+    /// `FIRST(continuation)` and the non-recursive FOLLOW of Plus must be
+    /// disjoint. The non-recursive FOLLOW excludes the contribution that the
+    /// self-recursive rule would otherwise inject into `FOLLOW(Plus)`. When
+    /// the sets overlap, Plus is not LL(1), and the parser uses GLL to
+    /// explore both derivations.
     fn is_nonterminal_ll1(&self, nt: &Nonterminal) -> bool {
         if self.has_disjoint_alternatives(nt) {
             return true;
         }
-        matches!(&nt.origin, Some(Symbol::Plus(_, _)))
+        let Some(Symbol::Plus(_, _)) = &nt.origin else {
+            return false;
+        };
+        let continuation = &self.grammar.alternatives(nt)[0].symbols[1..];
+        // FIRST set of the continuation. Walk symbols left to right:
+        // - contribute each symbol's FIRST set to the running set;
+        // - stop after the first non-nullable symbol;
+        // - skip a longest-match symbol's FIRST set, since no token in
+        //   it can appear immediately after the symbol, so it is not
+        //   part of the actual lookahead at the position past it.
+        let mut first_continuation = FxHashSet::default();
+        for s in continuation {
+            if !self.is_longest_match(s) {
+                self.collect_first_of_symbol(s, &mut first_continuation);
+            }
+            if !self.is_nullable(s) {
+                break;
+            }
+        }
+        // Non-recursive FOLLOW(nt): the terminals that can immediately
+        // follow nt per some rule other than nt's own. Plus rules have
+        // the shape `Plus_n = Plus_n continuation | base` and nt is
+        // referenced only at position 0 of the recursive alternative, so
+        // skipping nt's own rule entirely removes exactly the self-
+        // recursive contribution. For each reference to nt elsewhere:
+        // - take FIRST of the symbols after it (skipping longest-match
+        //   symbols, which contribute nothing);
+        // - if the suffix is entirely nullable, fall back to FOLLOW of
+        //   the rule containing the reference;
+        // - subtract any `!>>` on the reference itself (e.g.,
+        //   `(Alpha|Digit)+ !>> Alpha !>> Digit`), which forbids those
+        //   terminals from following nt at this site.
+        let mut non_recursive_follow = FxHashSet::default();
+        for rule in self.grammar.nonterminals() {
+            if rule.name == nt.name {
+                continue;
+            }
+            for alternative in self.grammar.alternatives(rule) {
+                for (i, symbol) in alternative.symbols.iter().enumerate() {
+                    let Some(nt_b) = self.symbol_nonterminal(symbol) else {
+                        continue;
+                    };
+                    if nt_b.name != nt.name {
+                        continue;
+                    }
+                    let mut local = FxHashSet::default();
+                    let mut all_nullable = true;
+                    for s in &alternative.symbols[i + 1..] {
+                        if !self.is_longest_match(s) {
+                            self.collect_first_of_symbol(s, &mut local);
+                        }
+                        if !self.is_nullable(s) {
+                            all_nullable = false;
+                            break;
+                        }
+                    }
+                    if all_nullable {
+                        local.extend(self.follow_sets[rule].iter().cloned());
+                    }
+                    self.remove_restricted_terminals(&mut local, symbol);
+                    non_recursive_follow.extend(local);
+                }
+            }
+        }
+        non_recursive_follow.is_disjoint(&first_continuation)
+    }
+
+    /// A symbol is a *longest match* when it is a nullable nonterminal whose
+    /// rule guarantees, structurally, that no token in its FIRST set can
+    /// immediately follow it. The shape is a repetition body followed by a
+    /// restriction excluding that body's FIRST, e.g.,
+    /// `Layout = (WhiteSpace | Comment)* !>> WhiteSpace !>> Comment` where
+    /// FIRST(Layout) = {WhiteSpace, Comment} and the restriction excludes
+    /// exactly those. Detection is structural rather than via computed
+    /// FOLLOW: the restriction registers against the inner symbol wrapped by
+    /// the `!>>` (the EBNF body), not against the enclosing nonterminal, so
+    /// the standard FOLLOW algorithm does not filter FOLLOW(nt) directly.
+    fn is_longest_match(&self, symbol: &Symbol) -> bool {
+        if !self.is_nullable(symbol) {
+            return false;
+        }
+        let Some(nt) = self.symbol_nonterminal(symbol) else {
+            return false;
+        };
+        let Some(nt_first) = self.first_sets.get(nt) else {
+            return false;
+        };
+        let alternatives = self.grammar.alternatives(nt);
+        if alternatives.is_empty() {
+            return false;
+        }
+        alternatives.iter().all(|alt| {
+            alt.symbols
+                .last()
+                .is_some_and(|last| self.excludes_following(last, nt_first))
+        })
+    }
+
+    /// True if `symbol` has a follow restriction whose excluded terminals
+    /// cover every terminal in `target`, i.e., none of those terminals can
+    /// immediately follow `symbol` at this position. Transparent wrappers
+    /// (`Labeled`, `Binding`, `Except`, `PrecedeRestriction`, `Exclude`) are
+    /// unwrapped first, matching the set handled by
+    /// `remove_restricted_terminals`.
+    fn excludes_following(&self, symbol: &Symbol, target: &FxHashSet<Terminal>) -> bool {
+        match symbol {
+            Symbol::FollowRestriction { restrictions, .. } => {
+                let mut excluded = FxHashSet::default();
+                for r in restrictions {
+                    if let Definition::Terminal(t) = self.grammar.definition(r.resolve()) {
+                        excluded.insert(t.clone());
+                    }
+                }
+                target.iter().all(|t| excluded.contains(t))
+            }
+            Symbol::Labeled { symbol, .. }
+            | Symbol::Binding { symbol, .. }
+            | Symbol::Except { symbol, .. }
+            | Symbol::PrecedeRestriction { symbol, .. }
+            | Symbol::Exclude { symbol, .. } => self.excludes_following(symbol, target),
+            _ => false,
+        }
+    }
+
+    /// Remove from `set` every terminal that appears in any
+    /// `FollowRestriction` reached by unwrapping the symbol's transparent
+    /// wrappers.
+    fn remove_restricted_terminals(&self, set: &mut FxHashSet<Terminal>, symbol: &Symbol) {
+        match symbol {
+            Symbol::FollowRestriction {
+                symbol: inner,
+                restrictions,
+            } => {
+                for r in restrictions {
+                    if let Definition::Terminal(t) = self.grammar.definition(r.resolve()) {
+                        set.remove(t);
+                    }
+                }
+                self.remove_restricted_terminals(set, inner);
+            }
+            Symbol::Labeled { symbol, .. }
+            | Symbol::Binding { symbol, .. }
+            | Symbol::Except { symbol, .. }
+            | Symbol::PrecedeRestriction { symbol, .. }
+            | Symbol::Exclude { symbol, .. } => {
+                self.remove_restricted_terminals(set, symbol);
+            }
+            _ => {}
+        }
     }
 
     /// Returns true if every symbol of an alternative is nullable.
