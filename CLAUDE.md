@@ -108,6 +108,8 @@ Shared utilities live in `terrarium/src/lib/` (`graph-styles.ts`, `graph-utils.t
 - Almost all the code in `iguana-runtime` is performance critical. Be aware of adding anything expensive there.
 - Be consistent. When you make a stylistic choice (e.g. how a term is abbreviated, how a list item is formatted, which phrasing you use for a concept), apply it the same way everywhere in the change. The same rule applies to code: parallel constructs should look parallel.
 - When adding to a family of related methods (e.g. `add_gss_node` / `get_gss_node` / `new_gss_node`), reuse the existing verb if one fits — don't introduce a new verb (`register`, `install`) when `add` is the obvious sibling.
+- Function names match the function's own semantics, not the caller's context. A function called `tail_restriction_covers` from a caller that walks alternative tails embeds `tail` in the name even though the function itself just asks "does this symbol exclude these terminals from following?". Rename to what the function can guarantee on its own (`excludes_following`).
+- Don't combine a getter and a predicate. If a function both materializes a set and answers a yes/no about it, split: return the set from the getter, let the caller use `is_disjoint`/`contains`/etc. The two responsibilities don't share a clean name and force the caller to read the function body to understand what it returns.
 
 # Approach
 
