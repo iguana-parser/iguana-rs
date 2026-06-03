@@ -336,7 +336,7 @@ fn gen_field_name(
         return to_snake_case(label);
     }
 
-    let field_name = match symbol {
+    match symbol {
         Symbol::Star(inner, _) | Symbol::Plus(inner, _) => {
             if let Symbol::Identifier(ident) = inner.as_ref() {
                 let snake = to_snake_case(&ident.name);
@@ -408,9 +408,7 @@ fn gen_field_name(
                 format!("lit_{}", position)
             }
         }
-        Symbol::Binding { symbol, .. } => {
-            return gen_field_name(grammar, symbol, position, needs_index);
-        }
+        Symbol::Binding { symbol, .. } => gen_field_name(grammar, symbol, position, needs_index),
         Symbol::Labeled { .. } => format!("field_{}", position),
         Symbol::Literal(_) => format!("field_{}", position),
         Symbol::Group(_) => format!("field_{}", position),
@@ -418,16 +416,14 @@ fn gen_field_name(
         Symbol::Except { symbol, .. }
         | Symbol::FollowRestriction { symbol, .. }
         | Symbol::PrecedeRestriction { symbol, .. } => {
-            return gen_field_name(grammar, symbol, position, needs_index);
+            gen_field_name(grammar, symbol, position, needs_index)
         }
         Symbol::Exclude { .. } => {
             unreachable!("Exclude should be desugared before code generation")
         }
         Symbol::Condition(_) => format!("field_{}", position),
         Symbol::Return(_) => format!("field_{}", position),
-    };
-
-    field_name
+    }
 }
 
 fn gen_nonterminal_type_with_more_than_one_alternative(
@@ -1449,7 +1445,7 @@ fn gen_typed_accessor(grammar: &Grammar, nonterminal: &Nonterminal) -> Option<To
 
             let method_name = safe_ident(&pluralize(&to_snake_case(&innermost.name)));
             let child_type = nt_ident(child_name);
-            // An ambiguous list segment surfaces here as the list's own `Amb` node, not
+            // An ambiguous list segment appears here as the list's own `Amb` node, not
             // an element. A typed accessor can't represent it, so fail loud rather than
             // silently drop it and return a short list. Ambiguity-aware callers use the
             // general `iter()` / `children()` path with `is_amb()` instead.
@@ -1640,7 +1636,7 @@ fn gen_accessor_return_type(
         Some(Symbol::Group(_)) => quote! { #item_type },
         Some(Symbol::Plus(inner, _)) => {
             let child_name = get_element_type_name(grammar, nonterminal);
-            let is_nested = child_name.map_or(false, |cn| cn != elem.name)
+            let is_nested = child_name.is_some_and(|cn| cn != elem.name)
                 && !matches!(inner.as_ref(), Symbol::Group(_) | Symbol::Alt(_));
             if is_nested {
                 quote! { impl Iterator<Item = impl Iterator<Item = #item_type> + '_> }
@@ -1684,7 +1680,7 @@ fn gen_alt_variant_accessors_for_plus(
     let methods: Vec<_> = element_types
         .iter()
         .enumerate()
-        .filter_map(|(i, elem)| {
+        .map(|(i, elem)| {
             let alt = &alt_alternatives[i];
             let variant_name = nt_ident(&alternative_label(alt, i));
             let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
@@ -1695,7 +1691,7 @@ fn gen_alt_variant_accessors_for_plus(
             } else {
                 quote! { Some(#field_name) }
             };
-            Some(quote! {
+            quote! {
                 pub fn #method_name(&'a self) -> #return_type {
                     self.iter().filter_map(|node| match node {
                         ParseTree::#child_type(#child_type::#variant_name { #field_name, .. }) => #extract,
@@ -1703,7 +1699,7 @@ fn gen_alt_variant_accessors_for_plus(
                         _ => None,
                     })
                 }
-            })
+            }
         })
         .collect();
 
@@ -2043,7 +2039,8 @@ fn gen_to_sexpr_function() -> TokenStream {
             // Count how many parents reach each node. A node with two or more is shared
             // in the ambiguity DAG and gets a `#N=` / `#N#` label so its subtree is
             // written once instead of re-expanded, which keeps a shared forest readable
-            // and bounded. Unambiguous trees have no shared nodes and print as before.
+            // and bounded. Unambiguous trees have no shared nodes, so they print without
+            // labels.
             let mut indegree = FxHashMap::default();
             count_sexpr_indegree(node, &mut FxHashSet::default(), &mut indegree);
             let mut printer = SexprPrinter {
@@ -2158,7 +2155,8 @@ fn gen_to_json_function(grammar: &Grammar) -> TokenStream {
         ) -> u32 {
             // A node reachable from several parents (shared in the ambiguity DAG) is
             // emitted once; later parents get an edge to the existing node instead of
-            // a re-expanded subtree, so the graph stays a DAG rather than blowing up.
+            // a re-expanded subtree, so the graph stays a DAG rather than duplicating
+            // the shared subtree at every parent.
             if let Some(id) = node.node_id() {
                 if let Some(&existing) = seen.get(&id) {
                     return existing;

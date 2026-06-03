@@ -729,7 +729,7 @@
   let parseTreeSelectedSpan = $state<{ start: number; end: number } | null>(null);
   let parseTreeSelectedNodeId = $state<string | null>(null);
   // The selected tree row, keyed per row (TreeNode.key) so a reference and its
-  // definition — which share a node id — highlight independently. Cross-view
+  // definition (which share a node id) highlight independently. Cross-view
   // highlighting (input span, graph node) still keys on parseTreeSelectedNodeId.
   let selectedTreeRowKey = $state<string | null>(null);
 
