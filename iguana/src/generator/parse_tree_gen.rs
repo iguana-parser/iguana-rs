@@ -138,13 +138,13 @@ pub fn generate(
 fn gen_imports(grammar: &Grammar) -> TokenStream {
     let parser_name = format_ident!("{}Parser", to_first_uppercase(&grammar.name));
     quote! {
+        #![allow(clippy::collapsible_if)]
         use core::fmt;
         use std::{fmt::Write, vec::IntoIter};
         use rustc_hash::{FxHashMap, FxHashSet};
         use iguana_runtime::{
             ids::{NonterminalId, SlotId, TerminalId},
             parse_tree::{Bump, OneOrMany, ParseContext, ParseTreeBuilder, visit_sppf},
-            parser::Parser,
             sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
         };
         use crate::parser::#parser_name;
@@ -717,6 +717,9 @@ fn child_by_index(grammar: &Grammar, alternative: &Alternative) -> TokenStream {
             quote! { #i_lit => Some(#wrap) }
         })
         .collect();
+    if cases.is_empty() {
+        return quote! { None };
+    }
     quote! {
         match index {
             #(#cases,)*
@@ -820,7 +823,6 @@ fn gen_token_kind_impl(terminals: &[(TerminalId, String)]) -> TokenStream {
             pub fn name(&self) -> &'static str {
                 match self {
                     #(#terminal_ids,)*
-                    _ => unreachable!()
                 }
             }
         }
@@ -1351,13 +1353,12 @@ fn gen_alt_accessors(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStrea
                         return None;
                     }
                     let method = format_ident!("as_{}", snake);
-                    let ret = Ident::new("Token", Span::call_site());
-                    (method, ret)
+                    (method, quote! { Token })
                 }
                 Definition::Nonterminal(nt) => {
                     let method = format_ident!("as_{}", to_snake_case(&nt.name));
                     let ret = nt_ident(&nt.name);
-                    (method, ret)
+                    (method, quote! { #ret<'_> })
                 }
             };
             let variant = format_ident!("{}", to_pascal_case(&alternative_label(alt, i)));
@@ -1639,7 +1640,7 @@ fn gen_accessor_return_type(
             let is_nested = child_name.is_some_and(|cn| cn != elem.name)
                 && !matches!(inner.as_ref(), Symbol::Group(_) | Symbol::Alt(_));
             if is_nested {
-                quote! { impl Iterator<Item = impl Iterator<Item = #item_type> + '_> }
+                quote! { impl Iterator<Item = impl Iterator<Item = #item_type> + 'a> }
             } else {
                 quote! { impl Iterator<Item = #item_type> }
             }
@@ -1859,9 +1860,9 @@ fn gen_list_node_impl_for_plus(grammar: &Grammar, nonterminal: &Nonterminal) -> 
                         &first_alt_fields[2],
                     );
                     quote! {
-                        #ident::#alt_variant { #f0: rest, #f1: layout, #f2: item, .. } => {
+                        #ident::#alt_variant { #f0: rest, #f1, #f2: item, .. } => {
                             items.push(item.as_parse_tree());
-                            items.push(layout.as_parse_tree());
+                            items.push(#f1.as_parse_tree());
                             current = rest;
                         }
                     }
@@ -1958,13 +1959,9 @@ fn gen_list_node_impl_for_group(grammar: &Grammar, nonterminal: &Nonterminal) ->
     let alt0_variant = nt_ident(&alternative_label(alternative, 0));
     let fields = field_names(grammar, alternative);
 
-    let field_refs: Vec<_> = fields
+    let item_exprs: Vec<_> = fields
         .iter()
-        .map(|field| {
-            quote! {
-                items.push(#field.as_parse_tree());
-            }
-        })
+        .map(|field| quote! { #field.as_parse_tree() })
         .collect();
 
     quote! {
@@ -1972,9 +1969,7 @@ fn gen_list_node_impl_for_group(grammar: &Grammar, nonterminal: &Nonterminal) ->
             fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
                 match self {
                     #ident::#alt0_variant { #(#fields,)* .. } => {
-                        let mut items = vec![];
-                        #(#field_refs)*
-                        items.into_iter()
+                        vec![#(#item_exprs),*].into_iter()
                     }
                     #ident::Amb(_) => vec![ParseTree::#ident(self)].into_iter(),
                 }
@@ -2128,8 +2123,7 @@ fn gen_to_json_function(grammar: &Grammar) -> TokenStream {
         .unwrap_or_else(|| quote! { None::<&str> });
 
     quote! {
-        /// Converts a parse tree to JSON format for visualization.
-        /// Returns a JSON string with nodes and edges arrays.
+        /// Converts a parse tree to a JSON string of nodes and edges, for visualization.
         pub fn to_json(node: ParseTree<'_>) -> String {
             let mut nodes = Vec::new();
             let mut edges = Vec::new();

@@ -23,6 +23,12 @@ impl ParseContext {
     }
 }
 
+impl Default for ParseContext {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum OneOrMany<T: fmt::Debug> {
     Zero,
