@@ -10,7 +10,7 @@ use iguana_runtime::{
     cli,
     ids::NonterminalId,
     input::Input,
-    parse_tree::ParseContext,
+    parse_tree::{ParseContext, is_ambiguous},
     parser::{ParseResult, Parser},
     visualization::{
         dot::write_svg,
@@ -58,6 +58,11 @@ struct Cli {
     /// List simple nonterminals (one per line) and exit
     #[arg(long)]
     list_nonterminals: bool,
+    /// Interactive mode: read inputs from stdin and print the parse tree
+
+    /// for each. Requires --start; no input file is used.
+    #[arg(long)]
+    repl: bool,
     /// Write symbol table (all nonterminals) as JSON to the specified file
     #[arg(long, value_name = "FILE")]
     write_symbols: Option<PathBuf>,
@@ -204,6 +209,51 @@ fn main() -> Result<(), io::Error> {
                 )
             })?;
         return run_batch(dir, args.ext.as_deref(), start_nonterminal_id, args.hist);
+    }
+    if args.repl {
+        let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "--start is required for parsing",
+            )
+        })?;
+        let start_nonterminal_id = nonterminal_id(&format!("Start{}", start_nonterminal_name))
+            .or_else(|| nonterminal_id(start_nonterminal_name))
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("Unknown nonterminal: '{}'", start_nonterminal_name),
+                )
+            })?;
+        cli::run_repl(|text| {
+            let input = Input::from(text);
+            let ctx = ParseContext::new();
+            let parse_tree_builder = IggyParseTreeBuilder::new(&ctx);
+            let mut parser = IggyParser::new(&input, start_nonterminal_id);
+            match parser.run() {
+                ParseResult::Success(success) => {
+                    let node_id = success.sppf_node_id;
+                    let ambiguous = is_ambiguous(&parser, node_id);
+                    let tree = create_parse_tree(
+                        node_id,
+                        start_nonterminal_id,
+                        &parser,
+                        &parse_tree_builder,
+                    );
+                    cli::ReplOutcome::Parsed {
+                        tree: to_sexpr(tree),
+                        ambiguous,
+                    }
+                }
+                ParseResult::Failure(error) => {
+                    let (line, column, message) = parser.format_error(&error);
+                    cli::ReplOutcome::Failed {
+                        message: format!("Parse failed at line {line}, column {column}: {message}"),
+                    }
+                }
+            }
+        });
+        return Ok(());
     }
     let file = args.file.ok_or_else(|| {
         io::Error::new(

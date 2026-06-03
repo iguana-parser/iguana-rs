@@ -223,3 +223,63 @@ pub struct ParseFailure {
     pub column: u32,
     pub message: String,
 }
+
+/// Outcome of parsing one REPL input.
+pub enum ReplOutcome {
+    Parsed { tree: String, ambiguous: bool },
+    Failed { message: String },
+}
+
+/// Reads inputs from stdin and prints the parse tree for each. One input is a
+/// block of lines terminated by a blank line; `Ctrl-D` exits. Prompts and
+/// diagnostics go to stderr and parse trees to stdout, so the output stays
+/// usable when stdout is redirected to a file.
+pub fn run_repl<F>(mut parse_fn: F)
+where
+    F: FnMut(&str) -> ReplOutcome,
+{
+    use io::{BufRead, Write};
+
+    eprintln!("Enter input, blank line to parse, Ctrl-D to exit.");
+    let stdin = io::stdin();
+    let mut handle = stdin.lock();
+    loop {
+        eprint!("> ");
+        io::stderr().flush().ok();
+
+        // Accumulate lines until a blank line submits the block.
+        let mut block = String::new();
+        loop {
+            let mut line = String::new();
+            if handle.read_line(&mut line).unwrap_or(0) == 0 {
+                // EOF: parse a pending block, then exit on the next prompt.
+                if block.is_empty() {
+                    eprintln!();
+                    return;
+                }
+                break;
+            }
+            if line.trim_end_matches(['\n', '\r']).is_empty() {
+                break;
+            }
+            block.push_str(&line);
+            eprint!(". ");
+            io::stderr().flush().ok();
+        }
+
+        let input = block.trim_end();
+        if input.is_empty() {
+            continue;
+        }
+        match parse_fn(input) {
+            ReplOutcome::Parsed { tree, ambiguous } => {
+                if ambiguous {
+                    eprintln!("// ambiguous");
+                }
+                print!("{}", tree);
+                io::stdout().flush().ok();
+            }
+            ReplOutcome::Failed { message } => eprintln!("{}", message),
+        }
+    }
+}
