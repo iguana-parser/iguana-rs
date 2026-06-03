@@ -67,8 +67,10 @@
   }
 
   // Convert flat parse tree to hierarchical structure, skipping any node id
-  // in `hidden` (and therefore any subtree rooted at one).
-  function buildTree(parseTree: ParseTree, hidden: Set<number>): TreeNode | null {
+  // in `hidden` (and therefore any subtree rooted at one). Fills `parentMap`
+  // with each node's parent in the tree as actually rendered, so the reveal
+  // walk expands exactly the chain that leads to where a node is shown in full.
+  function buildTree(parseTree: ParseTree, hidden: Set<number>, parentMap: Map<number, number>): TreeNode | null {
     if (parseTree.nodes.length === 0) return null;
 
     // Build adjacency list from edges
@@ -95,13 +97,15 @@
     const seen = new Set<number>();
     let refCounter = 0;
 
-    // Build tree recursively
-    function buildSubtree(nodeId: number): TreeNode {
+    // Build tree recursively. `parentId` is the node this subtree hangs under,
+    // or null at the root.
+    function buildSubtree(nodeId: number, parentId: number | null): TreeNode {
       const node = nodeMap.get(nodeId)!;
       if (seen.has(nodeId)) {
         return { id: node.id, label: node.label, kind: node.kind, start: node.start, end: node.end, children: [], ref: true, key: `ref-${nodeId}-${refCounter++}` };
       }
       seen.add(nodeId);
+      if (parentId !== null) parentMap.set(node.id, parentId);
       const childIds = childrenMap.get(nodeId) || [];
       return {
         id: node.id,
@@ -109,12 +113,12 @@
         kind: node.kind,
         start: node.start,
         end: node.end,
-        children: childIds.map(buildSubtree),
+        children: childIds.map(childId => buildSubtree(childId, nodeId)),
         key: `n${node.id}`,
       };
     }
 
-    return buildSubtree(rootNode.id);
+    return buildSubtree(rootNode.id, null);
   }
 
   // Outermost Amb spans. An Amb is outermost when no enclosing parse-tree
@@ -715,11 +719,13 @@
   // Parse Tree data
   let parseTree = $state<ParseTree | null>(null);
   let ambiguityWarnings = $derived(parseTree ? collectOutermostAmbs(parseTree) : []);
-  // child node id → parent node id, rebuilt whenever parseTree is fetched
+  // child node id → parent node id in the rendered tree, filled by buildTree
   let parseTreeParentMap = new Map<number, number>();
   // Layout nonterminal and its descendants, hidden when hideLayout is on.
+  // On by default: layout nodes are rarely what you want to see, so the parse
+  // structure reads better with them hidden.
   let hiddenLayoutNodes = $state(new Set<number>());
-  let hideLayout = $state(false);
+  let hideLayout = $state(true);
   // svelte-ignore non_reactive_update
   let parseTreeContainer: HTMLDivElement;
   let parseTreeCy: cytoscape.Core | null = null;
@@ -1654,18 +1660,14 @@
   }
 
   // Re-derive everything that depends on (parseTree, hideLayout):
-  // hidden-node set, parent map for the reveal walk, and treeRoot.
+  // hidden-node set, parent map for the reveal walk, and treeRoot. The parent
+  // map is filled by buildTree from the tree as rendered, so the reveal walk
+  // follows the chain to where each shared node is shown in full.
   function rebuildLayoutDerivedState() {
     if (!parseTree) return;
     hiddenLayoutNodes = computeHiddenLayoutNodes(parseTree, hideLayout);
     parseTreeParentMap = new Map();
-    for (const edge of parseTree.edges) {
-      if (hiddenLayoutNodes.has(edge.src) || hiddenLayoutNodes.has(edge.dest)) continue;
-      // Keep the first parent so the reveal walk follows the chain to where a shared
-      // node is shown in full (its definition), matching the deduped tree.
-      if (!parseTreeParentMap.has(edge.dest)) parseTreeParentMap.set(edge.dest, edge.src);
-    }
-    treeRoot = buildTree(parseTree, hiddenLayoutNodes);
+    treeRoot = buildTree(parseTree, hiddenLayoutNodes, parseTreeParentMap);
   }
 
   // Graph controls (work with active graph)
@@ -1866,6 +1868,16 @@
     return ancestors;
   }
 
+  // Briefly flash a tree row. Used on reveal so the jump lands visibly even when
+  // the target row was already selected.
+  function flashTreeRow(el: Element) {
+    el.classList.remove('flash');
+    // Force a reflow so the animation restarts on a repeated reveal of the same row.
+    void (el as HTMLElement).offsetWidth;
+    el.classList.add('flash');
+    el.addEventListener('animationend', () => el.classList.remove('flash'), { once: true });
+  }
+
   // Reveal the given parse tree node in both views: expand collapsed ancestors,
   // set selection, scroll the tree row into view, pan the graph node into view.
   function revealParseTreeNode(node: ParseTreeNode) {
@@ -1887,11 +1899,16 @@
     // Reveal targets the node itself, which is rendered at its definition row.
     selectedTreeRowKey = cyNodeId;
 
-    // Scroll the tree row into view once the expanded-state update has rendered.
+    // Scroll the tree row into view once the expanded-state update has rendered,
+    // then flash it. The flash is the only cue when the target was already
+    // selected, since the selection highlight does not change in that case.
     tick().then(() => {
       if (treeContainerEl) {
         const selectedEl = treeContainerEl.querySelector('.tree-item.selected');
-        if (selectedEl) selectedEl.scrollIntoView({ block: 'nearest' });
+        if (selectedEl) {
+          selectedEl.scrollIntoView({ block: 'nearest' });
+          flashTreeRow(selectedEl);
+        }
       }
     });
 
@@ -4989,6 +5006,17 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
 
   .tree-item.selected {
     background: #094771;
+  }
+
+  @keyframes tree-row-flash {
+    0% { background: #2b7fc4; }
+    100% { background: transparent; }
+  }
+
+  /* Single pulse on reveal. Overrides the selected/hover background for the
+     duration, then the class is removed (on animationend) and the base returns. */
+  .tree-item.flash {
+    animation: tree-row-flash 0.35s ease-out;
   }
 
   .expand-icon {
