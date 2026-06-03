@@ -8,6 +8,7 @@ use iguana_runtime::{
     parser::Parser,
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{fmt::Write, vec::IntoIter};
 #[derive(Debug, Clone, Copy)]
 pub enum TokenKind {
@@ -608,6 +609,143 @@ impl<'a> ParseTree<'a> {
             ParseTree::Star6(star_6) => star_6.span(),
             ParseTree::StartGrammar(start_grammar) => start_grammar.span(),
             ParseTree::Token(token) => token.span(),
+        }
+    }
+    #[doc = "True when this node is an ambiguity cluster (any `*::Amb` variant). The"]
+    #[doc = "uniform way to detect ambiguity without matching each nonterminal's enum."]
+    pub fn is_amb(&self) -> bool {
+        match self {
+            ParseTree::Grammar(grammar) => matches!(grammar, Grammar::Amb(_)),
+            ParseTree::LayoutDef(layout_def) => matches!(layout_def, LayoutDef::Amb(_)),
+            ParseTree::Rule(rule) => matches!(rule, Rule::Amb(_)),
+            ParseTree::SyntaxRule(syntax_rule) => matches!(syntax_rule, SyntaxRule::Amb(_)),
+            ParseTree::Annotation(annotation) => matches!(annotation, Annotation::Amb(_)),
+            ParseTree::RegexRule(regex_rule) => matches!(regex_rule, RegexRule::Amb(_)),
+            ParseTree::PreCondition(pre_condition) => matches!(pre_condition, PreCondition::Amb(_)),
+            ParseTree::PostCondition(post_condition) => {
+                matches!(post_condition, PostCondition::Amb(_))
+            }
+            ParseTree::PriorityLevel(priority_level) => {
+                matches!(priority_level, PriorityLevel::Amb(_))
+            }
+            ParseTree::Associativity(associativity) => {
+                matches!(associativity, Associativity::Amb(_))
+            }
+            ParseTree::Alternative(alternative) => matches!(alternative, Alternative::Amb(_)),
+            ParseTree::Symbol(symbol) => matches!(symbol, Symbol::Amb(_)),
+            ParseTree::Regex(regex) => matches!(regex, Regex::Amb(_)),
+            ParseTree::CharClass(char_class) => matches!(char_class, CharClass::Amb(_)),
+            ParseTree::RangeElement(range_element) => matches!(range_element, RangeElement::Amb(_)),
+            ParseTree::Range(range) => matches!(range, Range::Amb(_)),
+            ParseTree::Layout(layout) => matches!(layout, Layout::Amb(_)),
+            ParseTree::Opt0(opt_0) => matches!(opt_0, Opt0::Amb(_)),
+            ParseTree::Plus0(plus_0) => matches!(plus_0, Plus0::Amb(_)),
+            ParseTree::Opt1(opt_1) => matches!(opt_1, Opt1::Amb(_)),
+            ParseTree::Star0(star_0) => matches!(star_0, Star0::Amb(_)),
+            ParseTree::Plus1(plus_1) => matches!(plus_1, Plus1::Amb(_)),
+            ParseTree::Opt2(opt_2) => matches!(opt_2, Opt2::Amb(_)),
+            ParseTree::Star1(star_1) => matches!(star_1, Star1::Amb(_)),
+            ParseTree::Plus2(plus_2) => matches!(plus_2, Plus2::Amb(_)),
+            ParseTree::Opt3(opt_3) => matches!(opt_3, Opt3::Amb(_)),
+            ParseTree::Star2(star_2) => matches!(star_2, Star2::Amb(_)),
+            ParseTree::Opt4(opt_4) => matches!(opt_4, Opt4::Amb(_)),
+            ParseTree::Plus4(plus_4) => matches!(plus_4, Plus4::Amb(_)),
+            ParseTree::Plus3(plus_3) => matches!(plus_3, Plus3::Amb(_)),
+            ParseTree::Plus5(plus_5) => matches!(plus_5, Plus5::Amb(_)),
+            ParseTree::Opt5(opt_5) => matches!(opt_5, Opt5::Amb(_)),
+            ParseTree::Star3(star_3) => matches!(star_3, Star3::Amb(_)),
+            ParseTree::Opt6(opt_6) => matches!(opt_6, Opt6::Amb(_)),
+            ParseTree::Plus6(plus_6) => matches!(plus_6, Plus6::Amb(_)),
+            ParseTree::Opt7(opt_7) => matches!(opt_7, Opt7::Amb(_)),
+            ParseTree::Star4(star_4) => matches!(star_4, Star4::Amb(_)),
+            ParseTree::Plus7(plus_7) => matches!(plus_7, Plus7::Amb(_)),
+            ParseTree::Opt8(opt_8) => matches!(opt_8, Opt8::Amb(_)),
+            ParseTree::Star5(star_5) => matches!(star_5, Star5::Amb(_)),
+            ParseTree::Opt9(opt_9) => matches!(opt_9, Opt9::Amb(_)),
+            ParseTree::Group0(group_0) => matches!(group_0, Group0::Amb(_)),
+            ParseTree::Plus8(plus_8) => matches!(plus_8, Plus8::Amb(_)),
+            ParseTree::Group1(group_1) => matches!(group_1, Group1::Amb(_)),
+            ParseTree::Plus9(plus_9) => matches!(plus_9, Plus9::Amb(_)),
+            ParseTree::Group2(group_2) => matches!(group_2, Group2::Amb(_)),
+            ParseTree::Plus10(plus_10) => matches!(plus_10, Plus10::Amb(_)),
+            ParseTree::Group3(group_3) => matches!(group_3, Group3::Amb(_)),
+            ParseTree::Plus11(plus_11) => matches!(plus_11, Plus11::Amb(_)),
+            ParseTree::Group4(group_4) => matches!(group_4, Group4::Amb(_)),
+            ParseTree::Plus12(plus_12) => matches!(plus_12, Plus12::Amb(_)),
+            ParseTree::Opt10(opt_10) => matches!(opt_10, Opt10::Amb(_)),
+            ParseTree::Plus13(plus_13) => matches!(plus_13, Plus13::Amb(_)),
+            ParseTree::Alt0(alt_0) => matches!(alt_0, Alt0::Amb(_)),
+            ParseTree::Plus14(plus_14) => matches!(plus_14, Plus14::Amb(_)),
+            ParseTree::Opt11(opt_11) => matches!(opt_11, Opt11::Amb(_)),
+            ParseTree::Star6(star_6) => matches!(star_6, Star6::Amb(_)),
+            ParseTree::StartGrammar(_) => false,
+            ParseTree::Token(_) => false,
+        }
+    }
+    #[doc = "Pointer identity of the underlying node, or `None` for tokens (by-value"]
+    #[doc = "leaves that are never shared). Two parse trees with the same `node_id` are"]
+    #[doc = "the same allocation, i.e. a node shared between parents in the ambiguity DAG."]
+    pub fn node_id(&self) -> Option<usize> {
+        match self {
+            ParseTree::Grammar(grammar) => Some(*grammar as *const _ as usize),
+            ParseTree::LayoutDef(layout_def) => Some(*layout_def as *const _ as usize),
+            ParseTree::Rule(rule) => Some(*rule as *const _ as usize),
+            ParseTree::SyntaxRule(syntax_rule) => Some(*syntax_rule as *const _ as usize),
+            ParseTree::Annotation(annotation) => Some(*annotation as *const _ as usize),
+            ParseTree::RegexRule(regex_rule) => Some(*regex_rule as *const _ as usize),
+            ParseTree::PreCondition(pre_condition) => Some(*pre_condition as *const _ as usize),
+            ParseTree::PostCondition(post_condition) => Some(*post_condition as *const _ as usize),
+            ParseTree::PriorityLevel(priority_level) => Some(*priority_level as *const _ as usize),
+            ParseTree::Associativity(associativity) => Some(*associativity as *const _ as usize),
+            ParseTree::Alternative(alternative) => Some(*alternative as *const _ as usize),
+            ParseTree::Symbol(symbol) => Some(*symbol as *const _ as usize),
+            ParseTree::Regex(regex) => Some(*regex as *const _ as usize),
+            ParseTree::CharClass(char_class) => Some(*char_class as *const _ as usize),
+            ParseTree::RangeElement(range_element) => Some(*range_element as *const _ as usize),
+            ParseTree::Range(range) => Some(*range as *const _ as usize),
+            ParseTree::Layout(layout) => Some(*layout as *const _ as usize),
+            ParseTree::Opt0(opt_0) => Some(*opt_0 as *const _ as usize),
+            ParseTree::Plus0(plus_0) => Some(*plus_0 as *const _ as usize),
+            ParseTree::Opt1(opt_1) => Some(*opt_1 as *const _ as usize),
+            ParseTree::Star0(star_0) => Some(*star_0 as *const _ as usize),
+            ParseTree::Plus1(plus_1) => Some(*plus_1 as *const _ as usize),
+            ParseTree::Opt2(opt_2) => Some(*opt_2 as *const _ as usize),
+            ParseTree::Star1(star_1) => Some(*star_1 as *const _ as usize),
+            ParseTree::Plus2(plus_2) => Some(*plus_2 as *const _ as usize),
+            ParseTree::Opt3(opt_3) => Some(*opt_3 as *const _ as usize),
+            ParseTree::Star2(star_2) => Some(*star_2 as *const _ as usize),
+            ParseTree::Opt4(opt_4) => Some(*opt_4 as *const _ as usize),
+            ParseTree::Plus4(plus_4) => Some(*plus_4 as *const _ as usize),
+            ParseTree::Plus3(plus_3) => Some(*plus_3 as *const _ as usize),
+            ParseTree::Plus5(plus_5) => Some(*plus_5 as *const _ as usize),
+            ParseTree::Opt5(opt_5) => Some(*opt_5 as *const _ as usize),
+            ParseTree::Star3(star_3) => Some(*star_3 as *const _ as usize),
+            ParseTree::Opt6(opt_6) => Some(*opt_6 as *const _ as usize),
+            ParseTree::Plus6(plus_6) => Some(*plus_6 as *const _ as usize),
+            ParseTree::Opt7(opt_7) => Some(*opt_7 as *const _ as usize),
+            ParseTree::Star4(star_4) => Some(*star_4 as *const _ as usize),
+            ParseTree::Plus7(plus_7) => Some(*plus_7 as *const _ as usize),
+            ParseTree::Opt8(opt_8) => Some(*opt_8 as *const _ as usize),
+            ParseTree::Star5(star_5) => Some(*star_5 as *const _ as usize),
+            ParseTree::Opt9(opt_9) => Some(*opt_9 as *const _ as usize),
+            ParseTree::Group0(group_0) => Some(*group_0 as *const _ as usize),
+            ParseTree::Plus8(plus_8) => Some(*plus_8 as *const _ as usize),
+            ParseTree::Group1(group_1) => Some(*group_1 as *const _ as usize),
+            ParseTree::Plus9(plus_9) => Some(*plus_9 as *const _ as usize),
+            ParseTree::Group2(group_2) => Some(*group_2 as *const _ as usize),
+            ParseTree::Plus10(plus_10) => Some(*plus_10 as *const _ as usize),
+            ParseTree::Group3(group_3) => Some(*group_3 as *const _ as usize),
+            ParseTree::Plus11(plus_11) => Some(*plus_11 as *const _ as usize),
+            ParseTree::Group4(group_4) => Some(*group_4 as *const _ as usize),
+            ParseTree::Plus12(plus_12) => Some(*plus_12 as *const _ as usize),
+            ParseTree::Opt10(opt_10) => Some(*opt_10 as *const _ as usize),
+            ParseTree::Plus13(plus_13) => Some(*plus_13 as *const _ as usize),
+            ParseTree::Alt0(alt_0) => Some(*alt_0 as *const _ as usize),
+            ParseTree::Plus14(plus_14) => Some(*plus_14 as *const _ as usize),
+            ParseTree::Opt11(opt_11) => Some(*opt_11 as *const _ as usize),
+            ParseTree::Star6(star_6) => Some(*star_6 as *const _ as usize),
+            ParseTree::StartGrammar(start_grammar) => Some(*start_grammar as *const _ as usize),
+            ParseTree::Token(_) => None,
         }
     }
     fn unwrap_grammar(self) -> &'a Grammar<'a> {
@@ -3291,6 +3429,7 @@ impl<'a> Plus0<'a> {
     pub fn rules(&'a self) -> impl Iterator<Item = &'a Rule<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Rule(r) => Some(r),
+            other if other.is_amb() => panic!("Plus_0 is ambiguous"),
             _ => None,
         })
     }
@@ -3426,6 +3565,7 @@ impl<'a> Plus1<'a> {
     pub fn annotations(&'a self) -> impl Iterator<Item = &'a Annotation<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Annotation(r) => Some(r),
+            other if other.is_amb() => panic!("Plus_1 is ambiguous"),
             _ => None,
         })
     }
@@ -3567,6 +3707,7 @@ impl<'a> Plus2<'a> {
     pub fn priority_levels(&'a self) -> impl Iterator<Item = &'a PriorityLevel<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::PriorityLevel(r) => Some(r),
+            other if other.is_amb() => panic!("Plus_2 is ambiguous"),
             _ => None,
         })
     }
@@ -3743,6 +3884,7 @@ impl<'a> Plus4<'a> {
     pub fn regexes(&'a self) -> impl Iterator<Item = &'a Regex<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Regex(r) => Some(r),
+            other if other.is_amb() => panic!("Plus_4 is ambiguous"),
             _ => None,
         })
     }
@@ -3798,6 +3940,7 @@ impl<'a> Plus3<'a> {
     pub fn regexes(&'a self) -> impl Iterator<Item = impl Iterator<Item = &'a Regex<'a>> + '_> {
         self.iter().filter_map(|node| match node {
             ParseTree::Plus4(r) => Some(r.regexes()),
+            other if other.is_amb() => panic!("Plus_3 is ambiguous"),
             _ => None,
         })
     }
@@ -3849,6 +3992,7 @@ impl<'a> Plus5<'a> {
     pub fn post_conditions(&'a self) -> impl Iterator<Item = &'a PostCondition<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::PostCondition(r) => Some(r),
+            other if other.is_amb() => panic!("Plus_5 is ambiguous"),
             _ => None,
         })
     }
@@ -4029,6 +4173,7 @@ impl<'a> Plus6<'a> {
     pub fn alternatives(&'a self) -> impl Iterator<Item = &'a Alternative<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Alternative(r) => Some(r),
+            other if other.is_amb() => panic!("Plus_6 is ambiguous"),
             _ => None,
         })
     }
@@ -4166,6 +4311,7 @@ impl<'a> Plus7<'a> {
     pub fn symbols(&'a self) -> impl Iterator<Item = &'a Symbol<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Symbol(r) => Some(r),
+            other if other.is_amb() => panic!("Plus_7 is ambiguous"),
             _ => None,
         })
     }
@@ -4395,6 +4541,7 @@ impl<'a> Plus8<'a> {
     pub fn symbols(&'a self) -> impl Iterator<Item = &'a Symbol<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Group0(r) => Some(r.symbol()),
+            other if other.is_amb() => panic!("Plus_8 is ambiguous"),
             _ => None,
         })
     }
@@ -4503,6 +4650,7 @@ impl<'a> Plus9<'a> {
     pub fn identifiers(&'a self) -> impl Iterator<Item = Token> {
         self.iter().filter_map(|node| match node {
             ParseTree::Group1(r) => Some(r.identifier()),
+            other if other.is_amb() => panic!("Plus_9 is ambiguous"),
             _ => None,
         })
     }
@@ -4611,6 +4759,7 @@ impl<'a> Plus10<'a> {
     pub fn identifiers(&'a self) -> impl Iterator<Item = Token> {
         self.iter().filter_map(|node| match node {
             ParseTree::Group2(r) => Some(r.identifier()),
+            other if other.is_amb() => panic!("Plus_10 is ambiguous"),
             _ => None,
         })
     }
@@ -4719,6 +4868,7 @@ impl<'a> Plus11<'a> {
     pub fn identifiers(&'a self) -> impl Iterator<Item = Token> {
         self.iter().filter_map(|node| match node {
             ParseTree::Group3(r) => Some(r.identifier()),
+            other if other.is_amb() => panic!("Plus_11 is ambiguous"),
             _ => None,
         })
     }
@@ -4827,6 +4977,7 @@ impl<'a> Plus12<'a> {
     pub fn regexes(&'a self) -> impl Iterator<Item = &'a Regex<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Group4(r) => Some(r.regex()),
+            other if other.is_amb() => panic!("Plus_12 is ambiguous"),
             _ => None,
         })
     }
@@ -4915,6 +5066,7 @@ impl<'a> Plus13<'a> {
     pub fn range_elements(&'a self) -> impl Iterator<Item = &'a RangeElement<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::RangeElement(r) => Some(r),
+            other if other.is_amb() => panic!("Plus_13 is ambiguous"),
             _ => None,
         })
     }
@@ -4998,12 +5150,14 @@ impl<'a> Plus14<'a> {
     pub fn wses(&'a self) -> impl Iterator<Item = Token> {
         self.iter().filter_map(|node| match node {
             ParseTree::Alt0(Alt0::Alt0 { ws, .. }) => Some(*ws),
+            other if other.is_amb() => panic!("Plus_14 is ambiguous"),
             _ => None,
         })
     }
     pub fn line_comments(&'a self) -> impl Iterator<Item = Token> {
         self.iter().filter_map(|node| match node {
             ParseTree::Alt0(Alt0::Alt1 { line_comment, .. }) => Some(*line_comment),
+            other if other.is_amb() => panic!("Plus_14 is ambiguous"),
             _ => None,
         })
     }
@@ -8495,20 +8649,69 @@ pub fn create_parse_tree_start_grammar<'a>(
         .unwrap_start_grammar()
 }
 pub fn to_sexpr(node: ParseTree<'_>) -> String {
+    let mut indegree = FxHashMap::default();
+    count_sexpr_indegree(node, &mut FxHashSet::default(), &mut indegree);
+    let mut printer = SexprPrinter {
+        indegree,
+        labels: FxHashMap::default(),
+        next_label: 1,
+    };
     let mut s = String::new();
-    node_to_sexpr(node, 0, &mut s).expect("error");
+    printer.print(node, 0, &mut s).expect("error");
     s
 }
-fn node_to_sexpr(node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
-    let children = node.children();
-    if children.is_empty() {
-        writeln!(w, "{:indent$}{}", "", node.display_name())
-    } else {
-        writeln!(w, "{:indent$}({}", "", node.display_name())?;
-        for child in children {
-            node_to_sexpr(child, indent + 2, w)?;
+fn count_sexpr_indegree(
+    node: ParseTree<'_>,
+    visited: &mut FxHashSet<usize>,
+    indegree: &mut FxHashMap<usize, u32>,
+) {
+    if let Some(id) = node.node_id() {
+        *indegree.entry(id).or_insert(0) += 1;
+        if !visited.insert(id) {
+            return;
         }
-        writeln!(w, "{:indent$})", "")
+    }
+    for child in node.children() {
+        count_sexpr_indegree(child, visited, indegree);
+    }
+}
+struct SexprPrinter {
+    indegree: FxHashMap<usize, u32>,
+    labels: FxHashMap<usize, u32>,
+    next_label: u32,
+}
+impl SexprPrinter {
+    fn print(&mut self, node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
+        if let Some(id) = node.node_id() {
+            if self.indegree.get(&id).copied().unwrap_or(0) > 1 {
+                if let Some(&label) = self.labels.get(&id) {
+                    return writeln!(w, "{:indent$}#{}#", "", label);
+                }
+                let label = self.next_label;
+                self.next_label += 1;
+                self.labels.insert(id, label);
+                return self.print_node(node, indent, w, &format!("#{}=", label));
+            }
+        }
+        self.print_node(node, indent, w, "")
+    }
+    fn print_node(
+        &mut self,
+        node: ParseTree<'_>,
+        indent: usize,
+        w: &mut impl Write,
+        prefix: &str,
+    ) -> fmt::Result {
+        let children = node.children();
+        if children.is_empty() {
+            writeln!(w, "{:indent$}{}{}", "", prefix, node.display_name())
+        } else {
+            writeln!(w, "{:indent$}{}({}", "", prefix, node.display_name())?;
+            for child in children {
+                self.print(child, indent + 2, w)?;
+            }
+            writeln!(w, "{:indent$})", "")
+        }
     }
 }
 /// Converts a parse tree to JSON format for visualization.
@@ -8518,7 +8721,8 @@ pub fn to_json(node: ParseTree<'_>) -> String {
     let mut nodes = Vec::new();
     let mut edges = Vec::new();
     let mut next_id = 0u32;
-    build_json_graph(node, &mut nodes, &mut edges, &mut next_id);
+    let mut seen = FxHashMap::default();
+    build_json_graph(node, &mut nodes, &mut edges, &mut next_id, &mut seen);
     let result = serde_json :: json ! ({ "layout_name" : Some ("Layout") , "nodes" : nodes , "edges" : edges });
     result.to_string()
 }
@@ -8527,52 +8731,29 @@ fn build_json_graph(
     nodes: &mut Vec<serde_json::Value>,
     edges: &mut Vec<serde_json::Value>,
     next_id: &mut u32,
+    seen: &mut FxHashMap<usize, u32>,
 ) -> u32 {
+    if let Some(id) = node.node_id() {
+        if let Some(&existing) = seen.get(&id) {
+            return existing;
+        }
+    }
     let my_id = *next_id;
     *next_id += 1;
+    if let Some(id) = node.node_id() {
+        seen.insert(id, my_id);
+    }
     let span = node.span();
-    let kind = match node {
-        ParseTree::Token(_) => "Token",
-        ParseTree::Rule(e) if matches!(e, Rule::Amb(_)) => "Amb",
-        ParseTree::Annotation(e) if matches!(e, Annotation::Amb(_)) => "Amb",
-        ParseTree::PostCondition(e) if matches!(e, PostCondition::Amb(_)) => "Amb",
-        ParseTree::Associativity(e) if matches!(e, Associativity::Amb(_)) => "Amb",
-        ParseTree::Symbol(e) if matches!(e, Symbol::Amb(_)) => "Amb",
-        ParseTree::Regex(e) if matches!(e, Regex::Amb(_)) => "Amb",
-        ParseTree::RangeElement(e) if matches!(e, RangeElement::Amb(_)) => "Amb",
-        ParseTree::Opt0(e) if matches!(e, Opt0::Amb(_)) => "Amb",
-        ParseTree::Plus0(e) if matches!(e, Plus0::Amb(_)) => "Amb",
-        ParseTree::Opt1(e) if matches!(e, Opt1::Amb(_)) => "Amb",
-        ParseTree::Plus1(e) if matches!(e, Plus1::Amb(_)) => "Amb",
-        ParseTree::Opt2(e) if matches!(e, Opt2::Amb(_)) => "Amb",
-        ParseTree::Plus2(e) if matches!(e, Plus2::Amb(_)) => "Amb",
-        ParseTree::Opt3(e) if matches!(e, Opt3::Amb(_)) => "Amb",
-        ParseTree::Opt4(e) if matches!(e, Opt4::Amb(_)) => "Amb",
-        ParseTree::Plus4(e) if matches!(e, Plus4::Amb(_)) => "Amb",
-        ParseTree::Plus3(e) if matches!(e, Plus3::Amb(_)) => "Amb",
-        ParseTree::Plus5(e) if matches!(e, Plus5::Amb(_)) => "Amb",
-        ParseTree::Opt5(e) if matches!(e, Opt5::Amb(_)) => "Amb",
-        ParseTree::Opt6(e) if matches!(e, Opt6::Amb(_)) => "Amb",
-        ParseTree::Plus6(e) if matches!(e, Plus6::Amb(_)) => "Amb",
-        ParseTree::Opt7(e) if matches!(e, Opt7::Amb(_)) => "Amb",
-        ParseTree::Plus7(e) if matches!(e, Plus7::Amb(_)) => "Amb",
-        ParseTree::Opt8(e) if matches!(e, Opt8::Amb(_)) => "Amb",
-        ParseTree::Opt9(e) if matches!(e, Opt9::Amb(_)) => "Amb",
-        ParseTree::Plus8(e) if matches!(e, Plus8::Amb(_)) => "Amb",
-        ParseTree::Plus9(e) if matches!(e, Plus9::Amb(_)) => "Amb",
-        ParseTree::Plus10(e) if matches!(e, Plus10::Amb(_)) => "Amb",
-        ParseTree::Plus11(e) if matches!(e, Plus11::Amb(_)) => "Amb",
-        ParseTree::Plus12(e) if matches!(e, Plus12::Amb(_)) => "Amb",
-        ParseTree::Opt10(e) if matches!(e, Opt10::Amb(_)) => "Amb",
-        ParseTree::Plus13(e) if matches!(e, Plus13::Amb(_)) => "Amb",
-        ParseTree::Alt0(e) if matches!(e, Alt0::Amb(_)) => "Amb",
-        ParseTree::Plus14(e) if matches!(e, Plus14::Amb(_)) => "Amb",
-        ParseTree::Opt11(e) if matches!(e, Opt11::Amb(_)) => "Amb",
-        _ => "Nonterminal",
+    let kind = if node.is_amb() {
+        "Amb"
+    } else if matches!(node, ParseTree::Token(_)) {
+        "Token"
+    } else {
+        "Nonterminal"
     };
     nodes . push (serde_json :: json ! ({ "id" : my_id , "kind" : kind , "label" : node . display_name () , "start" : span . left_extent , "end" : span . right_extent })) ;
     for child in node.children() {
-        let child_id = build_json_graph(child, nodes, edges, next_id);
+        let child_id = build_json_graph(child, nodes, edges, next_id, seen);
         edges.push(serde_json :: json ! ({ "src" : my_id , "dest" : child_id }));
     }
     my_id

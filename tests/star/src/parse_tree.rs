@@ -8,6 +8,7 @@ use iguana_runtime::{
     parser::Parser,
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::{fmt::Write, vec::IntoIter};
 #[derive(Debug, Clone, Copy)]
 pub enum TokenKind {
@@ -78,6 +79,31 @@ impl<'a> ParseTree<'a> {
             ParseTree::Opt0(opt_0) => opt_0.span(),
             ParseTree::Star0(star_0) => star_0.span(),
             ParseTree::Token(token) => token.span(),
+        }
+    }
+    #[doc = "True when this node is an ambiguity cluster (any `*::Amb` variant). The"]
+    #[doc = "uniform way to detect ambiguity without matching each nonterminal's enum."]
+    pub fn is_amb(&self) -> bool {
+        match self {
+            ParseTree::S(s) => matches!(s, S::Amb(_)),
+            ParseTree::A(a) => matches!(a, A::Amb(_)),
+            ParseTree::Plus0(plus_0) => matches!(plus_0, Plus0::Amb(_)),
+            ParseTree::Opt0(opt_0) => matches!(opt_0, Opt0::Amb(_)),
+            ParseTree::Star0(star_0) => matches!(star_0, Star0::Amb(_)),
+            ParseTree::Token(_) => false,
+        }
+    }
+    #[doc = "Pointer identity of the underlying node, or `None` for tokens (by-value"]
+    #[doc = "leaves that are never shared). Two parse trees with the same `node_id` are"]
+    #[doc = "the same allocation, i.e. a node shared between parents in the ambiguity DAG."]
+    pub fn node_id(&self) -> Option<usize> {
+        match self {
+            ParseTree::S(s) => Some(*s as *const _ as usize),
+            ParseTree::A(a) => Some(*a as *const _ as usize),
+            ParseTree::Plus0(plus_0) => Some(*plus_0 as *const _ as usize),
+            ParseTree::Opt0(opt_0) => Some(*opt_0 as *const _ as usize),
+            ParseTree::Star0(star_0) => Some(*star_0 as *const _ as usize),
+            ParseTree::Token(_) => None,
         }
     }
     fn unwrap_s(self) -> &'a S<'a> {
@@ -284,6 +310,7 @@ impl<'a> Plus0<'a> {
     pub fn r#as(&'a self) -> impl Iterator<Item = &'a A<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::A(r) => Some(r),
+            other if other.is_amb() => panic!("Plus_0 is ambiguous"),
             _ => None,
         })
     }
@@ -645,20 +672,69 @@ pub fn create_parse_tree_star_0<'a>(
         .unwrap_star_0()
 }
 pub fn to_sexpr(node: ParseTree<'_>) -> String {
+    let mut indegree = FxHashMap::default();
+    count_sexpr_indegree(node, &mut FxHashSet::default(), &mut indegree);
+    let mut printer = SexprPrinter {
+        indegree,
+        labels: FxHashMap::default(),
+        next_label: 1,
+    };
     let mut s = String::new();
-    node_to_sexpr(node, 0, &mut s).expect("error");
+    printer.print(node, 0, &mut s).expect("error");
     s
 }
-fn node_to_sexpr(node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
-    let children = node.children();
-    if children.is_empty() {
-        writeln!(w, "{:indent$}{}", "", node.display_name())
-    } else {
-        writeln!(w, "{:indent$}({}", "", node.display_name())?;
-        for child in children {
-            node_to_sexpr(child, indent + 2, w)?;
+fn count_sexpr_indegree(
+    node: ParseTree<'_>,
+    visited: &mut FxHashSet<usize>,
+    indegree: &mut FxHashMap<usize, u32>,
+) {
+    if let Some(id) = node.node_id() {
+        *indegree.entry(id).or_insert(0) += 1;
+        if !visited.insert(id) {
+            return;
         }
-        writeln!(w, "{:indent$})", "")
+    }
+    for child in node.children() {
+        count_sexpr_indegree(child, visited, indegree);
+    }
+}
+struct SexprPrinter {
+    indegree: FxHashMap<usize, u32>,
+    labels: FxHashMap<usize, u32>,
+    next_label: u32,
+}
+impl SexprPrinter {
+    fn print(&mut self, node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
+        if let Some(id) = node.node_id() {
+            if self.indegree.get(&id).copied().unwrap_or(0) > 1 {
+                if let Some(&label) = self.labels.get(&id) {
+                    return writeln!(w, "{:indent$}#{}#", "", label);
+                }
+                let label = self.next_label;
+                self.next_label += 1;
+                self.labels.insert(id, label);
+                return self.print_node(node, indent, w, &format!("#{}=", label));
+            }
+        }
+        self.print_node(node, indent, w, "")
+    }
+    fn print_node(
+        &mut self,
+        node: ParseTree<'_>,
+        indent: usize,
+        w: &mut impl Write,
+        prefix: &str,
+    ) -> fmt::Result {
+        let children = node.children();
+        if children.is_empty() {
+            writeln!(w, "{:indent$}{}{}", "", prefix, node.display_name())
+        } else {
+            writeln!(w, "{:indent$}{}({}", "", prefix, node.display_name())?;
+            for child in children {
+                self.print(child, indent + 2, w)?;
+            }
+            writeln!(w, "{:indent$})", "")
+        }
     }
 }
 /// Converts a parse tree to JSON format for visualization.
@@ -668,7 +744,8 @@ pub fn to_json(node: ParseTree<'_>) -> String {
     let mut nodes = Vec::new();
     let mut edges = Vec::new();
     let mut next_id = 0u32;
-    build_json_graph(node, &mut nodes, &mut edges, &mut next_id);
+    let mut seen = FxHashMap::default();
+    build_json_graph(node, &mut nodes, &mut edges, &mut next_id, &mut seen);
     let result = serde_json :: json ! ({ "layout_name" : None :: < & str > , "nodes" : nodes , "edges" : edges });
     result.to_string()
 }
@@ -677,19 +754,29 @@ fn build_json_graph(
     nodes: &mut Vec<serde_json::Value>,
     edges: &mut Vec<serde_json::Value>,
     next_id: &mut u32,
+    seen: &mut FxHashMap<usize, u32>,
 ) -> u32 {
+    if let Some(id) = node.node_id() {
+        if let Some(&existing) = seen.get(&id) {
+            return existing;
+        }
+    }
     let my_id = *next_id;
     *next_id += 1;
+    if let Some(id) = node.node_id() {
+        seen.insert(id, my_id);
+    }
     let span = node.span();
-    let kind = match node {
-        ParseTree::Token(_) => "Token",
-        ParseTree::Plus0(e) if matches!(e, Plus0::Amb(_)) => "Amb",
-        ParseTree::Opt0(e) if matches!(e, Opt0::Amb(_)) => "Amb",
-        _ => "Nonterminal",
+    let kind = if node.is_amb() {
+        "Amb"
+    } else if matches!(node, ParseTree::Token(_)) {
+        "Token"
+    } else {
+        "Nonterminal"
     };
     nodes . push (serde_json :: json ! ({ "id" : my_id , "kind" : kind , "label" : node . display_name () , "start" : span . left_extent , "end" : span . right_extent })) ;
     for child in node.children() {
-        let child_id = build_json_graph(child, nodes, edges, next_id);
+        let child_id = build_json_graph(child, nodes, edges, next_id, seen);
         edges.push(serde_json :: json ! ({ "src" : my_id , "dest" : child_id }));
     }
     my_id

@@ -6,7 +6,7 @@
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { createMaximizeToggle } from "$lib/window-utils";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Cog, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List, Eye, EyeOff } from "lucide-svelte";
+  import { FolderOpen, Cog, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, CornerRightUp, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List, Eye, EyeOff } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
   import {
@@ -56,6 +56,14 @@
     start: number;
     end: number;
     children: TreeNode[];
+    // A reference to a node already shown in full elsewhere (the parse tree is a
+    // DAG: an ambiguous sub-forest can be shared between parents). Reference nodes
+    // carry no children and link back to the definition instead of re-expanding it.
+    ref?: boolean;
+    // Unique per row. The definition uses `n${id}`; each reference gets its own
+    // `ref-${id}-${n}`, so selecting a reference highlights only that row, not the
+    // definition that shares its node id.
+    key: string;
   }
 
   // Convert flat parse tree to hierarchical structure, skipping any node id
@@ -81,9 +89,19 @@
     // Build node lookup for efficient access
     const nodeMap = new Map(parseTree.nodes.map(n => [n.id, n]));
 
+    // A node reachable from several parents (shared in the ambiguity DAG) is shown
+    // in full at its first occurrence; later occurrences become reference nodes so
+    // the shared sub-forest is not re-expanded into a tree.
+    const seen = new Set<number>();
+    let refCounter = 0;
+
     // Build tree recursively
     function buildSubtree(nodeId: number): TreeNode {
       const node = nodeMap.get(nodeId)!;
+      if (seen.has(nodeId)) {
+        return { id: node.id, label: node.label, kind: node.kind, start: node.start, end: node.end, children: [], ref: true, key: `ref-${nodeId}-${refCounter++}` };
+      }
+      seen.add(nodeId);
       const childIds = childrenMap.get(nodeId) || [];
       return {
         id: node.id,
@@ -92,6 +110,7 @@
         start: node.start,
         end: node.end,
         children: childIds.map(buildSubtree),
+        key: `n${node.id}`,
       };
     }
 
@@ -709,6 +728,10 @@
   // Parse tree node selection (for highlighting span in input)
   let parseTreeSelectedSpan = $state<{ start: number; end: number } | null>(null);
   let parseTreeSelectedNodeId = $state<string | null>(null);
+  // The selected tree row, keyed per row (TreeNode.key) so a reference and its
+  // definition — which share a node id — highlight independently. Cross-view
+  // highlighting (input span, graph node) still keys on parseTreeSelectedNodeId.
+  let selectedTreeRowKey = $state<string | null>(null);
 
   // Parse tree view mode (graph or tree)
   let parseTreeViewMode = $state<"graph" | "tree">("tree");
@@ -1017,6 +1040,7 @@
     // Clear selection when re-rendering
     parseTreeSelectedSpan = null;
     parseTreeSelectedNodeId = null;
+    selectedTreeRowKey = null;
 
     if (parseTreeTooltipCleanup) {
       parseTreeTooltipCleanup();
@@ -1637,7 +1661,9 @@
     parseTreeParentMap = new Map();
     for (const edge of parseTree.edges) {
       if (hiddenLayoutNodes.has(edge.src) || hiddenLayoutNodes.has(edge.dest)) continue;
-      parseTreeParentMap.set(edge.dest, edge.src);
+      // Keep the first parent so the reveal walk follows the chain to where a shared
+      // node is shown in full (its definition), matching the deduped tree.
+      if (!parseTreeParentMap.has(edge.dest)) parseTreeParentMap.set(edge.dest, edge.src);
     }
     treeRoot = buildTree(parseTree, hiddenLayoutNodes);
   }
@@ -1784,6 +1810,7 @@
   function selectTreeNode(node: TreeNode) {
     parseTreeSelectedSpan = { start: node.start, end: node.end };
     parseTreeSelectedNodeId = `n${node.id}`;
+    selectedTreeRowKey = node.key;
     // Scroll selected node into view
     tick().then(() => {
       if (treeContainerEl) {
@@ -1857,6 +1884,8 @@
     }
     parseTreeSelectedSpan = { start: node.start, end: node.end };
     parseTreeSelectedNodeId = cyNodeId;
+    // Reveal targets the node itself, which is rendered at its definition row.
+    selectedTreeRowKey = cyNodeId;
 
     // Scroll the tree row into view once the expanded-state update has rendered.
     tick().then(() => {
@@ -1915,6 +1944,7 @@
     }
     parseTreeSelectedSpan = null;
     parseTreeSelectedNodeId = null;
+    selectedTreeRowKey = null;
     if (parseTreeCy) clearEdgeHighlights(parseTreeCy);
 
     if (sppfSelectedNodeId && cy) {
@@ -2677,6 +2707,7 @@
       sppfSelectedSpan = null;
       parseTreeSelectedNodeId = null;
       parseTreeSelectedSpan = null;
+      selectedTreeRowKey = null;
       selectedNodeId = null;
       selectedSpan = null;
       return;
@@ -3105,7 +3136,7 @@
                       <!-- svelte-ignore a11y_no_static_element_interactions -->
                       <div
                         class="tree-item"
-                        class:selected={parseTreeSelectedNodeId === `n${node.id}`}
+                        class:selected={selectedTreeRowKey === node.key}
                         style="padding-left: {depth * 16 + 8}px"
                         onclick={() => selectTreeNode(node)}
                         ondblclick={() => { if (node.children.length > 0) toggleTreeNode(node.id); }}
@@ -3121,13 +3152,18 @@
                         {:else}
                           <span class="expand-icon-placeholder"></span>
                         {/if}
+                        <!-- svelte-ignore a11y_click_events_have_key_events -->
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
                         <span
                           class="tree-label"
                           class:nonterminal={node.kind === "Nonterminal"}
                           class:token={node.kind === "Token"}
                           class:amb={node.kind === "Amb"}
+                          class:reference={node.ref}
+                          title={node.ref ? "Jump to definition" : undefined}
+                          onclick={node.ref ? (e) => { e.stopPropagation(); revealParseTreeNode(node); } : undefined}
                         >
-                          {node.label}
+                          {node.label}{#if node.ref}<span class="tree-ref-icon"><CornerRightUp size={13} /></span>{/if}
                         </span>
                         <span class="tree-span">[{node.start}:{node.end}]</span>
                       </div>
@@ -4988,6 +5024,27 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
 
   .tree-label.amb {
     color: #e05050;
+  }
+
+  /* A reference is its own category (a link to a shared node), not the kind it
+     points to, so it gets one dedicated color regardless of the target's kind.
+     The label is the jump link: pointer cursor and an underline on hover make it
+     read as clickable, and clicking it navigates to the definition. */
+  .tree-label.reference {
+    color: #c586c0;
+    font-style: italic;
+    cursor: pointer;
+  }
+
+  .tree-label.reference:hover {
+    text-decoration: underline;
+    color: #e0a0db;
+  }
+
+  .tree-ref-icon {
+    display: inline-flex;
+    vertical-align: middle;
+    margin-left: 4px;
   }
 
   .tree-span {
