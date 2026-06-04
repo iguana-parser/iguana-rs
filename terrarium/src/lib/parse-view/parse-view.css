@@ -1,0 +1,30 @@
+/*
+ * Shared chrome styles for the parse view, used across its components (the
+ * action buttons in the header, the "Collect now" button in the stats panel).
+ * Imported globally so the styles reach every parse-view component; the
+ * desktop host and the standalone web viewer both rely on this single source.
+ */
+
+.parse-btn {
+  margin-left: auto;
+  padding: 6px 16px;
+  background: transparent;
+  color: #d4d4d4;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.parse-btn:hover:not(:disabled) {
+  border-color: #888;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.parse-btn:disabled {
+  background: transparent;
+  color: #555;
+  border-color: #3c3c3c;
+  cursor: not-allowed;
+}

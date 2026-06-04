@@ -15,6 +15,8 @@
     edgeStyles,
     gssEdgeStyles,
     capZoom,
+    adjustZoomGraph,
+    resetViewGraph,
     createGraph,
     getViewport,
     truncateLabel,
@@ -28,7 +30,10 @@
   import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng, parseNodeKind } from "$lib/graph-utils";
   import MonacoEditor from "$lib/MonacoEditor.svelte";
   import InputEditor from "$lib/InputEditor.svelte";
+  import "$lib/graph.css";
   import NonterminalPicker from "$lib/NonterminalPicker.svelte";
+  import ParseStats from "$lib/parse-view/ParseStats.svelte";
+  import "$lib/parse-view/parse-view.css";
 
   // Parse Tree types (manually defined, not via specta)
   interface ParseTreeNode {
@@ -1527,7 +1532,7 @@
   }
 
   async function parse() {
-    if (!parserDirectory || buildStatus !== "success") return;
+    if (!parserDirectory || buildStatus !== "success" || !startNonterminal) return;
     setStatus("Parsing...", "info");
 
     // Reset previous results
@@ -1672,19 +1677,6 @@
 
   // Graph controls (work with active graph)
   // Generic graph control functions
-  function adjustZoomGraph(graph: cytoscape.Core | null, factor: number) {
-    if (graph) {
-      graph.zoom(graph.zoom() * factor);
-    }
-  }
-
-  function resetViewGraph(graph: cytoscape.Core | null) {
-    if (graph) {
-      graph.fit();
-      capZoom(graph);
-    }
-  }
-
   // Parse mode convenience functions
   function getActiveGraph(): cytoscape.Core | null {
     switch (activeTab) {
@@ -3268,70 +3260,12 @@
             </div>
           {/if}
         {:else if activeTab === "stats"}
-          <div class="stats-panel">
-            {#if !buildFeatures?.instrument}
-              <div class="stats-empty">Rebuild with the Instrument option enabled to collect stats.</div>
-            {:else if !statsData}
-              <div class="stats-empty">
-                Run a parse to collect stats.
-                {#if parseResultAvailable}
-                  <div style="margin-top: 8px;">
-                    <button class="parse-btn" onclick={fetchStats}>Collect now</button>
-                  </div>
-                {/if}
-              </div>
-            {:else}
-              <div class="stats-counters">
-                <div><span class="stats-label">descriptors</span><span class="stats-value">{statsData.descriptors_count}</span></div>
-                <div><span class="stats-label">gss_nodes</span><span class="stats-value">{statsData.gss_nodes_count}</span></div>
-                <div><span class="stats-label">gss_edges</span><span class="stats-value">{statsData.gss_edges_count}</span></div>
-                <div><span class="stats-label">nonterminal_nodes</span><span class="stats-value">{statsData.nonterminal_nodes_count}</span></div>
-                <div><span class="stats-label">intermediate_nodes</span><span class="stats-value">{statsData.intermediate_nodes_count}</span></div>
-                <div><span class="stats-label">terminal_nodes</span><span class="stats-value">{statsData.terminal_nodes_count}</span></div>
-                <div><span class="stats-label">ambiguous_nodes</span><span class="stats-value">{statsData.ambiguous_nodes_count}</span></div>
-              </div>
-              {#if Object.keys(statsData.histograms).length > 0}
-                <div class="stats-histograms">
-                  <h4>Size histograms</h4>
-                  {#each Object.entries(statsData.histograms) as [name, lens] (name)}
-                    {@const lensArr = lens as number[]}
-                    {@const buckets = (() => {
-                      const b = [0, 0, 0, 0, 0, 0, 0, 0];
-                      for (const l of lensArr) {
-                        if (l === 0) b[0]++;
-                        else if (l === 1) b[1]++;
-                        else if (l === 2) b[2]++;
-                        else if (l <= 4) b[3]++;
-                        else if (l <= 8) b[4]++;
-                        else if (l <= 16) b[5]++;
-                        else if (l <= 32) b[6]++;
-                        else b[7]++;
-                      }
-                      return b;
-                    })()}
-                    {@const labels = ['0', '1', '2', '3-4', '5-8', '9-16', '17-32', '33+']}
-                    {@const max = Math.max(1, ...buckets)}
-                    {@const n = lensArr.length}
-                    {@const sum = lensArr.reduce((a: number, b: number) => a + b, 0)}
-                    {@const maxv = Math.max(0, ...lensArr)}
-                    <div class="histogram">
-                      <div class="histogram-name">{name}</div>
-                      <div class="histogram-meta">n={n}  max={maxv}  avg={(sum / Math.max(1, n)).toFixed(2)}</div>
-                      {#each buckets as count, i}
-                        <div class="histogram-row">
-                          <span class="histogram-bucket">{labels[i]}</span>
-                          <div class="histogram-bar-container">
-                            <div class="histogram-bar" style="width: {(count * 100) / max}%"></div>
-                          </div>
-                          <span class="histogram-count">{count}</span>
-                        </div>
-                      {/each}
-                    </div>
-                  {/each}
-                </div>
-              {/if}
-            {/if}
-          </div>
+          <ParseStats
+            statsData={statsData}
+            instrument={!!buildFeatures?.instrument}
+            parseResultAvailable={parseResultAvailable}
+            onCollect={fetchStats}
+          />
         {/if}
       </div>
     </div>
@@ -4510,29 +4444,6 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     font-size: 13px;
   }
 
-  .parse-btn {
-    margin-left: auto;
-    padding: 6px 16px;
-    background: transparent;
-    color: #d4d4d4;
-    border: 1px solid #555;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-  }
-
-  .parse-btn:hover:not(:disabled) {
-    border-color: #888;
-    color: #fff;
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .parse-btn:disabled {
-    background: transparent;
-    color: #555;
-    border-color: #3c3c3c;
-    cursor: not-allowed;
-  }
 
 
   /* Input Section */
@@ -5082,62 +4993,9 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     padding-left: 12px;
   }
 
-  .graph-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #1e1e1e;
-    overflow: hidden;
-    position: relative;
-    min-height: 0;
-  }
-
   .graph-placeholder {
     color: #555;
     font-size: 24px;
-  }
-
-  .cytoscape-container {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
-
-  .graph-controls {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    display: flex;
-    gap: 4px;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  .graph-container:hover .graph-controls {
-    opacity: 1;
-  }
-
-  .graph-controls button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background: rgba(45, 45, 45, 0.9);
-    border: 1px solid #555;
-    border-radius: 4px;
-    color: #d4d4d4;
-    cursor: pointer;
-  }
-
-  .graph-controls button:hover {
-    background: rgba(60, 60, 60, 0.95);
-    border-color: #888;
   }
 
   /* Context Menu */
@@ -5778,55 +5636,4 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     cursor: not-allowed;
   }
 
-  .stats-panel {
-    padding: 16px 20px;
-    overflow: auto;
-    color: #cccccc;
-    font-family: Menlo, monospace;
-    font-size: 12px;
-    width: 100%;
-    height: 100%;
-    align-self: stretch;
-    box-sizing: border-box;
-  }
-  .stats-empty { color: #888; padding: 8px 0; }
-  .stats-counters > div {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 0;
-    border-bottom: 1px solid #2d2d2d;
-  }
-  .stats-label { color: #888; }
-  .stats-value { color: #4ec9b0; font-weight: 600; }
-  .stats-histograms { margin-top: 18px; }
-  .stats-histograms h4 { margin: 0 0 10px 0; color: #ddd; font-size: 12px; font-weight: 600; }
-  .histogram { margin-bottom: 14px; }
-  .histogram-name { color: #569cd6; margin-bottom: 2px; }
-  .histogram-meta { color: #888; margin-bottom: 4px; font-size: 11px; }
-  .histogram-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    height: 16px;
-  }
-  .histogram-bucket {
-    width: 38px;
-    text-align: right;
-    color: #888;
-  }
-  .histogram-bar-container {
-    flex: 1;
-    background: #1e1e1e;
-    height: 10px;
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .histogram-bar {
-    background: #4ec9b0;
-    height: 100%;
-  }
-  .histogram-count {
-    width: 36px;
-    color: #aaa;
-  }
 </style>

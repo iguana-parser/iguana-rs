@@ -392,6 +392,21 @@ export function capZoom(cyInstance: Core) {
   }
 }
 
+// Multiply a graph's zoom by a factor (zoom in/out controls)
+export function adjustZoomGraph(graph: Core | null, factor: number) {
+  if (graph) {
+    graph.zoom(graph.zoom() * factor);
+  }
+}
+
+// Fit a graph to its contents, then cap the zoom so small graphs don't over-zoom
+export function resetViewGraph(graph: Core | null) {
+  if (graph) {
+    graph.fit();
+    capZoom(graph);
+  }
+}
+
 // Get current viewport from a graph instance
 export function getViewport(cyInstance: Core): Viewport {
   return {
