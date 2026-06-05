@@ -19,7 +19,7 @@
     clearEdgeHighlights,
     highlightClickedEdge,
   } from "$lib/graph-styles";
-  import { GraphCollapseManager, buildDebugSppfElements, buildDebugGssElements, buildSppfElements, buildGssElements, exportGraphPng } from "$lib/graph-utils";
+  import { GraphCollapseManager, buildDebugSppfElements, buildDebugGssElements, buildSppfElements, buildGssElements, buildParseTreeElements, exportGraphPng, type ParseTreeData } from "$lib/graph-utils";
   import { createMaximizeToggle } from "$lib/window-utils";
   import type {
     SPPF,
@@ -67,6 +67,7 @@
   const graphType = $page.url.searchParams.get("type") as
     | "sppf"
     | "gss"
+    | "parseTree"
     | "debugSppf"
     | "debugGss"
     | null;
@@ -78,6 +79,7 @@
   // Data for different graph types (received via events)
   let sppfData: SPPF | null = $state(null);
   let gssData: GSS | null = $state(null);
+  let parseTreeData: ParseTreeData | null = $state(null);
   let debugSppfNodes: DebugSPPFNode[] = $state([]);
   let debugSppfCurrentNodeId: number | null = $state(null);
   let debugGssNodes: DebugGSSNode[] = $state([]);
@@ -96,6 +98,8 @@
       case "gss":
       case "debugGss":
         return "GSS";
+      case "parseTree":
+        return "Parse Tree";
       default:
         return "Graph";
     }
@@ -107,6 +111,8 @@
         return sppfData ? buildSppfElements(sppfData) : [];
       case "gss":
         return gssData ? buildGssElements(gssData) : [];
+      case "parseTree":
+        return parseTreeData ? buildParseTreeElements(parseTreeData, showSpans) : [];
       case "debugSppf":
         return buildDebugSppfElements(debugSppfNodes, debugSppfCurrentNodeId, showSpans) || [];
       case "debugGss":
@@ -150,6 +156,9 @@
 
     const isGss = graphType === "gss" || graphType === "debugGss";
     const isSppf = graphType === "sppf" || graphType === "debugSppf";
+    // The parse-tree graph reuses the SPPF styling and interactions, but its node
+    // selection is not synced back to the main window (it has no leftExtent/rightExtent).
+    const isParseTree = graphType === "parseTree";
 
     cy = createGraph({
       container,
@@ -164,7 +173,7 @@
     collapseManager.setCy(cy);
 
     // Setup tooltip for long labels (SPPF only, since intermediate nodes have long labels)
-    if (isSppf) {
+    if (isSppf || isParseTree) {
       tooltipCleanup = setupGraphTooltip(cy, container);
 
       // Add double-click handler for collapse/expand
@@ -174,7 +183,7 @@
       });
 
       // Click on node to select and emit span to main window
-      if (isSppf) {
+      if (isSppf || isParseTree) {
         cy.on('tap', 'node', (event) => {
           const node = event.target;
           const left = node.data('leftExtent');
@@ -208,7 +217,7 @@
               selectedNodeId = null;
             }
             if (cy) clearEdgeHighlights(cy);
-            emit('sppf-node-selected', { left: null, right: null, nodeId: null });
+            if (!isParseTree) emit('sppf-node-selected', { left: null, right: null, nodeId: null });
             contextMenu = null;
           }
         });
@@ -224,7 +233,7 @@
           if (cy) {
             highlightClickedEdge(cy, edge.id());
           }
-          emit('sppf-node-selected', { left: null, right: null, nodeId: null });
+          if (!isParseTree) emit('sppf-node-selected', { left: null, right: null, nodeId: null });
         });
 
         // Right-click on node to show context menu
@@ -268,6 +277,7 @@
     // Track all data sources
     sppfData;
     gssData;
+    parseTreeData;
     debugSppfNodes;
     debugSppfCurrentNodeId;
     debugGssNodes;
@@ -293,6 +303,12 @@
       unlisteners.push(
         listen<GSS>("graph-data-gss", (event) => {
           gssData = event.payload;
+        })
+      );
+    } else if (graphType === "parseTree") {
+      unlisteners.push(
+        listen<ParseTreeData>("graph-data-parse-tree", (event) => {
+          parseTreeData = event.payload;
         })
       );
     } else if (graphType === "debugSppf") {
@@ -410,7 +426,7 @@
       <button onclick={resetView} title="Reset View">
         <Maximize2 size={14} />
       </button>
-      {#if graphType === 'debugSppf'}
+      {#if graphType === 'debugSppf' || graphType === 'parseTree'}
         <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
           {#if showSpans}
             <FoldHorizontal size={14} />

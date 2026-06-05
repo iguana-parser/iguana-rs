@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { commands, type SPPF, type GSS, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo, type ErrorInfo, type StatsData, type BuildFeatures, type DocumentSymbolData } from "../bindings";
+  import { commands, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo, type ErrorInfo, type BuildFeatures, type DocumentSymbolData } from "../bindings";
   import { listen, emit } from "@tauri-apps/api/event";
   import { open } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { createMaximizeToggle } from "$lib/window-utils";
   import { onMount, tick } from "svelte";
-  import { FolderOpen, Cog, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, CornerRightUp, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List, Eye, EyeOff } from "lucide-svelte";
+  import { FolderOpen, Cog, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
   import {
@@ -19,176 +19,18 @@
     resetViewGraph,
     createGraph,
     getViewport,
-    truncateLabel,
     setupGraphTooltip,
     highlightOutgoingEdges,
     clearEdgeHighlights,
     highlightClickedEdge,
-    LABEL_MAX_LENGTH,
-    INTERMEDIATE_MAX_LENGTH,
   } from "$lib/graph-styles";
-  import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng, parseNodeKind } from "$lib/graph-utils";
+  import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng, type ParseTreeData } from "$lib/graph-utils";
   import MonacoEditor from "$lib/MonacoEditor.svelte";
   import InputEditor from "$lib/InputEditor.svelte";
   import "$lib/graph.css";
   import NonterminalPicker from "$lib/NonterminalPicker.svelte";
-  import ParseStats from "$lib/parse-view/ParseStats.svelte";
+  import ParseView from "$lib/parse-view/ParseView.svelte";
   import "$lib/parse-view/parse-view.css";
-
-  // Parse Tree types (manually defined, not via specta)
-  interface ParseTreeNode {
-    id: number;
-    kind: "Nonterminal" | "Token" | "Amb";
-    label: string;
-    start: number;
-    end: number;
-  }
-  interface ParseTreeEdge {
-    src: number;
-    dest: number;
-  }
-  interface ParseTree {
-    layout_name?: string | null;
-    nodes: ParseTreeNode[];
-    edges: ParseTreeEdge[];
-  }
-
-  // Hierarchical tree node for tree view
-  interface TreeNode {
-    id: number;
-    label: string;
-    kind: "Nonterminal" | "Token" | "Amb";
-    start: number;
-    end: number;
-    children: TreeNode[];
-    // A reference to a node already shown in full elsewhere (the parse tree is a
-    // DAG: an ambiguous sub-forest can be shared between parents). Reference nodes
-    // carry no children and link back to the definition instead of re-expanding it.
-    ref?: boolean;
-    // Unique per row. The definition uses `n${id}`; each reference gets its own
-    // `ref-${id}-${n}`, so selecting a reference highlights only that row, not the
-    // definition that shares its node id.
-    key: string;
-  }
-
-  // Convert flat parse tree to hierarchical structure, skipping any node id
-  // in `hidden` (and therefore any subtree rooted at one). Fills `parentMap`
-  // with each node's parent in the tree as actually rendered, so the reveal
-  // walk expands exactly the chain that leads to where a node is shown in full.
-  function buildTree(parseTree: ParseTree, hidden: Set<number>, parentMap: Map<number, number>): TreeNode | null {
-    if (parseTree.nodes.length === 0) return null;
-
-    // Build adjacency list from edges
-    const childrenMap = new Map<number, number[]>();
-    const hasParent = new Set<number>();
-
-    for (const edge of parseTree.edges) {
-      if (hidden.has(edge.src) || hidden.has(edge.dest)) continue;
-      if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
-      childrenMap.get(edge.src)!.push(edge.dest);
-      hasParent.add(edge.dest);
-    }
-
-    // Find root (node with no parent)
-    const rootNode = parseTree.nodes.find(n => !hidden.has(n.id) && !hasParent.has(n.id));
-    if (!rootNode) return null;
-
-    // Build node lookup for efficient access
-    const nodeMap = new Map(parseTree.nodes.map(n => [n.id, n]));
-
-    // A node reachable from several parents (shared in the ambiguity DAG) is shown
-    // in full at its first occurrence; later occurrences become reference nodes so
-    // the shared sub-forest is not re-expanded into a tree.
-    const seen = new Set<number>();
-    let refCounter = 0;
-
-    // Build tree recursively. `parentId` is the node this subtree hangs under,
-    // or null at the root.
-    function buildSubtree(nodeId: number, parentId: number | null): TreeNode {
-      const node = nodeMap.get(nodeId)!;
-      if (seen.has(nodeId)) {
-        return { id: node.id, label: node.label, kind: node.kind, start: node.start, end: node.end, children: [], ref: true, key: `ref-${nodeId}-${refCounter++}` };
-      }
-      seen.add(nodeId);
-      if (parentId !== null) parentMap.set(node.id, parentId);
-      const childIds = childrenMap.get(nodeId) || [];
-      return {
-        id: node.id,
-        label: node.label,
-        kind: node.kind,
-        start: node.start,
-        end: node.end,
-        children: childIds.map(childId => buildSubtree(childId, nodeId)),
-        key: `n${node.id}`,
-      };
-    }
-
-    return buildSubtree(rootNode.id, null);
-  }
-
-  // Outermost Amb spans. An Amb is outermost when no enclosing parse-tree
-  // node is also an Amb. Used to drive Monaco warning markers without
-  // doubling up for nested ambiguities under the same span.
-  function collectOutermostAmbs(parseTree: ParseTree): { start: number; end: number; message: string }[] {
-    if (parseTree.nodes.length === 0) return [];
-    const childrenMap = new Map<number, number[]>();
-    const hasParent = new Set<number>();
-    for (const edge of parseTree.edges) {
-      if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
-      childrenMap.get(edge.src)!.push(edge.dest);
-      hasParent.add(edge.dest);
-    }
-    const nodeMap = new Map(parseTree.nodes.map(n => [n.id, n]));
-    const root = parseTree.nodes.find(n => !hasParent.has(n.id));
-    if (!root) return [];
-    const out: { start: number; end: number; message: string }[] = [];
-    function visit(id: number) {
-      const node = nodeMap.get(id)!;
-      if (node.kind === "Amb") {
-        const childIds = childrenMap.get(id) ?? [];
-        const childLabel = childIds.length > 0
-          ? nodeMap.get(childIds[0])?.label ?? "node"
-          : "node";
-        out.push({
-          start: node.start,
-          end: node.end,
-          message: `Ambiguous ${childLabel}: ${childIds.length} derivations`,
-        });
-        return;
-      }
-      for (const childId of childrenMap.get(id) ?? []) visit(childId);
-    }
-    visit(root.id);
-    return out;
-  }
-
-  // Layout nonterminal (per parseTree.layout_name) and every descendant.
-  // Returns an empty set when hide is false or the grammar has no layout rule.
-  function computeHiddenLayoutNodes(parseTree: ParseTree, hide: boolean): Set<number> {
-    const hidden = new Set<number>();
-    if (!hide || !parseTree.layout_name) return hidden;
-    const layoutName = parseTree.layout_name;
-
-    const childrenMap = new Map<number, number[]>();
-    for (const edge of parseTree.edges) {
-      if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
-      childrenMap.get(edge.src)!.push(edge.dest);
-    }
-
-    for (const node of parseTree.nodes) {
-      if (node.kind !== "Nonterminal" || node.label !== layoutName) continue;
-      if (hidden.has(node.id)) continue;
-      const queue = [node.id];
-      while (queue.length > 0) {
-        const id = queue.shift()!;
-        if (hidden.has(id)) continue;
-        hidden.add(id);
-        const children = childrenMap.get(id);
-        if (children) queue.push(...children);
-      }
-    }
-    return hidden;
-  }
 
   cytoscape.use(dagre);
 
@@ -219,10 +61,6 @@
         buildFeatures = event.payload.features ?? null;
         if (buildFeatures && !buildFeatures.debug_trace && activeMode === "debug") {
           activeMode = "parse";
-        }
-        if (!buildFeatures?.instrument) {
-          statsData = null;
-          if (activeTab === "stats") activeTab = "parse-tree";
         }
         if (parserDirectory) {
           const [nameResult, ntResult] = await Promise.all([
@@ -330,46 +168,14 @@
       }
     });
 
-    // Listen for spans toggle from popup windows
+    // Listen for spans toggle from popup windows (debug SPPF only)
     const unlistenSpansToggled = listen<{ show_spans: boolean }>("spans-toggled", (event) => {
       showSpans = event.payload.show_spans;
-      // Preserve selection state before re-rendering
-      const savedParseTreeSelection = parseTreeSelectedNodeId;
-      const savedParseTreeSpan = parseTreeSelectedSpan;
-      const savedSppfSelection = sppfSelectedNodeId;
-      const savedSppfSpan = sppfSelectedSpan;
       const savedDebugSelection = selectedNodeId;
       const savedDebugSpan = selectedSpan;
-
-      // Re-render main window graphs
-      if (parseTree) {
-        tick().then(() => {
-          renderParseTree();
-          // Restore selection
-          if (savedParseTreeSelection && parseTreeCy) {
-            parseTreeSelectedNodeId = savedParseTreeSelection;
-            parseTreeSelectedSpan = savedParseTreeSpan;
-            parseTreeCy.getElementById(savedParseTreeSelection).addClass('selected');
-            highlightOutgoingEdges(parseTreeCy, savedParseTreeSelection);
-          }
-        });
-      }
-      if (sppf) {
-        tick().then(() => {
-          renderSPPF();
-          // Restore selection
-          if (savedSppfSelection && cy) {
-            sppfSelectedNodeId = savedSppfSelection;
-            sppfSelectedSpan = savedSppfSpan;
-            cy.getElementById(savedSppfSelection).addClass('selected');
-            highlightOutgoingEdges(cy, savedSppfSelection);
-          }
-        });
-      }
       if (debugSppfNodes.length > 0) {
         tick().then(() => {
           renderDebugSppf();
-          // Restore selection
           if (savedDebugSelection && debugSppfCy) {
             selectedNodeId = savedDebugSelection;
             selectedSpan = savedDebugSpan;
@@ -427,7 +233,7 @@
         return;
       }
       if (buildStatus === "success" && startNonterminal) {
-        parse();
+        parseViewRef?.parse();
       }
     }
     window.addEventListener("terrarium-parse", handleTerrariumParse);
@@ -649,7 +455,6 @@
 
   // State
   let inputText = $state("");
-  let lastParsedInput = $state<string | null>(null);
   let startNonterminal = $state<string | null>(null);
   let nonterminals = $state<string[]>([]);
 
@@ -688,9 +493,6 @@
   let debugGssContainer: HTMLElement;
   let debugGssCy: cytoscape.Core | null = null;
 
-  // Graph tab
-  let activeTab = $state<"gss" | "sppf" | "parse-tree" | "stats">("parse-tree");
-
   // Build configuration (chosen by user in Generate dropdown)
   let buildConfig = $state({ ll1: true, instrument: false, debugTrace: false });
   let generateDurationMs = $state<number | null>(null);
@@ -701,8 +503,6 @@
   let buildFeatures = $state<BuildFeatures | null>(null);
   // Generate dropdown popover
   let generateMenuOpen = $state(false);
-  // Stats panel
-  let statsData = $state<StatsData | null>(null);
 
   // Show spans in graph labels (hidden by default)
   let showSpans = $state(false);
@@ -710,63 +510,12 @@
   // App mode
   let activeMode = $state<"design" | "parse" | "debug">("design");
 
-  // SPPF data
-  let sppf = $state<SPPF | null>(null);
-  // svelte-ignore non_reactive_update
-  let sppfContainer: HTMLDivElement;
-  const sppfCollapseManager = new GraphCollapseManager();
-
-  // GSS data
-  let gss = $state<GSS | null>(null);
-  // svelte-ignore non_reactive_update
-  let gssContainer: HTMLDivElement;
-
-  // Parse Tree data
-  let parseTree = $state<ParseTree | null>(null);
-  let ambiguityWarnings = $derived(parseTree ? collectOutermostAmbs(parseTree) : []);
-  // child node id → parent node id in the rendered tree, filled by buildTree
-  let parseTreeParentMap = new Map<number, number>();
-  // Layout nonterminal and its descendants, hidden when hideLayout is on.
-  // On by default: layout nodes are rarely what you want to see, so the parse
-  // structure reads better with them hidden.
-  let hiddenLayoutNodes = $state(new Set<number>());
-  let hideLayout = $state(true);
-  // svelte-ignore non_reactive_update
-  let parseTreeContainer: HTMLDivElement;
-  let parseTreeCy: cytoscape.Core | null = null;
-  const parseTreeCollapseManager = new GraphCollapseManager();
-
-  // Parse tree node selection (for highlighting span in input)
-  let parseTreeSelectedSpan = $state<{ start: number; end: number } | null>(null);
-  let parseTreeSelectedNodeId = $state<string | null>(null);
-  // The selected tree row, keyed per row (TreeNode.key) so a reference and its
-  // definition (which share a node id) highlight independently. Cross-view
-  // highlighting (input span, graph node) still keys on parseTreeSelectedNodeId.
-  let selectedTreeRowKey = $state<string | null>(null);
-
-  // Parse tree view mode (graph or tree)
-  let parseTreeViewMode = $state<"graph" | "tree">("tree");
-  let treeRoot = $state<TreeNode | null>(null);
-  let expandedNodes = $state(new Set<number>());
-  // svelte-ignore non_reactive_update
-  let treeContainerEl: HTMLDivElement;
-
-  // SPPF node selection (for highlighting span in input)
-  let sppfSelectedSpan = $state<{ left: number; right: number } | null>(null);
-  let sppfSelectedNodeId = $state<string | null>(null);
-
-  // Context menu state for SPPF
-  let sppfContextMenu = $state<{ x: number; y: number; nodeId: string } | null>(null);
-  let sppfSubtreeFocused = $state(false);
-
-  // Track if parse result is available
-  let parseResultAvailable = $state(false);
-
-  // Parse error info for input editor markers
-  let parseErrorInfo = $state<{ line: number; column: number; message: string } | null>(null);
-
   // Graph window management (separate OS windows)
-  type GraphType = 'sppf' | 'gss' | 'debugSppf' | 'debugGss';
+  type GraphType = 'parseTree' | 'debugSppf' | 'debugGss';
+
+  // Bound to the parse-mode component so Cmd+P can trigger the same parse and the
+  // parse-tree pop-out can read the visible tree.
+  let parseViewRef = $state<{ parse: () => Promise<void>; getParseTreeForPopup: () => ParseTreeData | null } | undefined>(undefined);
   let graphWindows = $state<Map<GraphType, WebviewWindow>>(new Map());
 
   // Event log window
@@ -817,391 +566,6 @@
   function clearOutput() {
     outputLog = [];
   }
-  let cy: cytoscape.Core | null = null;
-  let gssCy: cytoscape.Core | null = null;
-
-  let sppfTooltipCleanup: (() => void) | null = null;
-
-  function renderSPPF() {
-    if (!sppf || !sppfContainer) return;
-
-    // Reset collapsed nodes and focus when rendering new SPPF
-    sppfCollapseManager.reset();
-    sppfSubtreeFocused = false;
-    // Clear selection when re-rendering
-    sppfSelectedSpan = null;
-    sppfSelectedNodeId = null;
-
-    // Cleanup previous tooltip
-    if (sppfTooltipCleanup) {
-      sppfTooltipCleanup();
-      sppfTooltipCleanup = null;
-    }
-
-    // Build a map of node IDs to their ambiguous status for edge coloring
-    const nodeAmbiguousMap = new Map<number, boolean>();
-
-    // Count terminal nodes per span to detect shared spans
-    const spanCounts = new Map<string, number>();
-    for (const node of sppf.nodes) {
-      const { name: kindName } = parseNodeKind(node.kind);
-      if (kindName === "Terminal") {
-        const spanKey = `${node.left_extent},${node.right_extent}`;
-        spanCounts.set(spanKey, (spanCounts.get(spanKey) || 0) + 1);
-      }
-    }
-
-    const elements: cytoscape.ElementDefinition[] = [
-      ...sppf.nodes.map((node) => {
-        const { name: kindName, ambiguous } = parseNodeKind(node.kind);
-        nodeAmbiguousMap.set(node.id, ambiguous);
-        const baseLabel = node.label || (kindName === "Packed" ? "●" : "");
-        // Intermediate nodes get longer max length since they show grammar slots
-        const maxLen = kindName === "Intermediate" ? INTERMEDIATE_MAX_LENGTH : LABEL_MAX_LENGTH;
-        // Optionally add span to label (skip for packed nodes which have no real span)
-        const span = `(${node.left_extent}, ${node.right_extent})`;
-        const displayLabel = showSpans && kindName !== "Packed"
-          ? `${truncateLabel(baseLabel, maxLen)}\n${span}`
-          : truncateLabel(baseLabel, maxLen);
-        const fullLabel = showSpans && kindName !== "Packed"
-          ? `${baseLabel}\n${span}`
-          : baseLabel;
-        // Check if this terminal node shares its span with other terminals
-        const spanKey = `${node.left_extent},${node.right_extent}`;
-        const hasSharedSpan = kindName === "Terminal" && (spanCounts.get(spanKey) || 0) > 1;
-        let classes = kindName.toLowerCase();
-        if (ambiguous) classes += ' ambiguous';
-        if (hasSharedSpan) classes += ' shared-span';
-        return {
-          data: {
-            id: `n${node.id}`,
-            label: displayLabel,
-            fullLabel: fullLabel,
-            kind: kindName,
-            ambiguous: ambiguous,
-            leftExtent: node.left_extent,
-            rightExtent: node.right_extent,
-          },
-          classes: classes,
-        };
-      }),
-      ...sppf.edges.map((edge, i) => {
-        const sourceAmbiguous = nodeAmbiguousMap.get(edge.src) || false;
-        return {
-          data: {
-            id: `e${i}`,
-            source: `n${edge.src}`,
-            target: `n${edge.dest}`,
-          },
-          classes: sourceAmbiguous ? "edge-ambiguous" : "",
-        };
-      }),
-    ];
-
-    // Save viewport before destroying
-    const savedViewport = cy ? getViewport(cy) : undefined;
-
-    if (cy) {
-      cy.destroy();
-    }
-
-    cy = createGraph({
-      container: sppfContainer,
-      elements,
-      styles: [...sppfNodeStyles, ...edgeStyles],
-      layout: 'sppf',
-      viewport: savedViewport,
-    });
-
-    sppfCollapseManager.setCy(cy);
-
-    // Setup tooltip for long labels
-    sppfTooltipCleanup = setupGraphTooltip(cy, sppfContainer);
-
-    // Add double-click handler for collapse/expand
-    cy.on('dbltap', 'node', (event) => {
-      const node = event.target;
-      sppfCollapseManager.toggleCollapse(node.id());
-    });
-
-    // Click on node to highlight span in input and select node
-    cy.on('tap', 'node', (event) => {
-      const node = event.target;
-      const left = node.data('leftExtent');
-      const right = node.data('rightExtent');
-      if (left !== undefined && right !== undefined) {
-        sppfSelectedSpan = { left, right };
-      }
-      // Update node selection styling
-      if (sppfSelectedNodeId) {
-        cy?.getElementById(sppfSelectedNodeId).removeClass('selected');
-      }
-      // Clear previous edge highlights and highlight new outgoing edges
-      if (cy) {
-        clearEdgeHighlights(cy);
-        sppfSelectedNodeId = node.id();
-        node.addClass('selected');
-        highlightOutgoingEdges(cy, node.id());
-      }
-      // Close context menu on regular click
-      sppfContextMenu = null;
-    });
-
-    // Click on background to clear selection and close context menu
-    cy.on('tap', (event) => {
-      if (event.target === cy) {
-        sppfSelectedSpan = null;
-        if (sppfSelectedNodeId && cy) {
-          cy.getElementById(sppfSelectedNodeId).removeClass('selected');
-          sppfSelectedNodeId = null;
-        }
-        if (cy) clearEdgeHighlights(cy);
-        sppfContextMenu = null;
-      }
-    });
-
-    // Click on edge to highlight it
-    cy.on('tap', 'edge', (event) => {
-      const edge = event.target;
-      // Clear node selection
-      if (sppfSelectedNodeId && cy) {
-        cy.getElementById(sppfSelectedNodeId).removeClass('selected');
-        sppfSelectedNodeId = null;
-      }
-      sppfSelectedSpan = null;
-      if (cy) highlightClickedEdge(cy, edge.id());
-    });
-
-    // Right-click on node to show context menu
-    cy.on('cxttap', 'node', (event) => {
-      const node = event.target;
-      const renderedPos = node.renderedPosition();
-      const containerRect = sppfContainer.getBoundingClientRect();
-      // Hide tooltip when showing context menu
-      const tooltip = document.querySelector('.graph-tooltip') as HTMLElement;
-      if (tooltip) tooltip.style.display = 'none';
-      sppfContextMenu = {
-        x: containerRect.left + renderedPos.x,
-        y: containerRect.top + renderedPos.y,
-        nodeId: node.id()
-      };
-    });
-
-    // Right-click on background to close context menu
-    cy.on('cxttap', (event) => {
-      if (event.target === cy) {
-        sppfContextMenu = null;
-      }
-    });
-  }
-
-  function handleSppfContextMenuAction(action: 'focus' | 'showAll') {
-    if (action === 'focus' && sppfContextMenu) {
-      sppfCollapseManager.focusOnSubtree(sppfContextMenu.nodeId);
-      sppfSubtreeFocused = true;
-    } else if (action === 'showAll') {
-      sppfCollapseManager.clearFocus();
-      sppfSubtreeFocused = false;
-    }
-    sppfContextMenu = null;
-  }
-
-  function renderGSS() {
-    if (!gss || !gssContainer) return;
-
-    const elements: cytoscape.ElementDefinition[] = [
-      ...gss.nodes.map((node) => ({
-        data: {
-          id: `n${node.id}`,
-          label: node.label,
-        },
-      })),
-      ...gss.edges.map((edge, i) => ({
-        data: {
-          id: `e${i}`,
-          source: `n${edge.src}`,
-          target: `n${edge.dest}`,
-          label: edge.label,
-        },
-      })),
-    ];
-
-    // Save viewport before destroying
-    const savedViewport = gssCy ? getViewport(gssCy) : undefined;
-
-    if (gssCy) {
-      gssCy.destroy();
-    }
-
-    gssCy = createGraph({
-      container: gssContainer,
-      elements,
-      styles: [...gssNodeStyles, gssEdgeStyles],
-      layout: 'gss',
-      viewport: savedViewport,
-    });
-  }
-
-  let parseTreeTooltipCleanup: (() => void) | null = null;
-
-  function renderParseTree() {
-    if (!parseTree || !parseTreeContainer) return;
-
-    parseTreeCollapseManager.reset();
-    // Clear selection when re-rendering
-    parseTreeSelectedSpan = null;
-    parseTreeSelectedNodeId = null;
-    selectedTreeRowKey = null;
-
-    if (parseTreeTooltipCleanup) {
-      parseTreeTooltipCleanup();
-      parseTreeTooltipCleanup = null;
-    }
-
-    const elements: cytoscape.ElementDefinition[] = [
-      ...parseTree.nodes
-        .filter((node) => !hiddenLayoutNodes.has(node.id))
-        .map((node) => {
-          const maxLen = LABEL_MAX_LENGTH;
-          // Optionally add span to label: "label\n(start, end)"
-          const span = `(${node.start}, ${node.end})`;
-          const displayLabel = showSpans
-            ? `${truncateLabel(node.label, maxLen)}\n${span}`
-            : truncateLabel(node.label, maxLen);
-          const fullLabel = showSpans
-            ? `${node.label}\n${span}`
-            : node.label;
-          return {
-            data: {
-              id: `n${node.id}`,
-              label: displayLabel,
-              fullLabel: fullLabel,
-              start: node.start,
-              end: node.end,
-            },
-            classes: node.kind.toLowerCase(),
-          };
-        }),
-      ...parseTree.edges
-        .filter((edge) => !hiddenLayoutNodes.has(edge.src) && !hiddenLayoutNodes.has(edge.dest))
-        .map((edge, i) => ({
-          data: {
-            id: `e${i}`,
-            source: `n${edge.src}`,
-            target: `n${edge.dest}`,
-          },
-        })),
-    ];
-
-    // Save viewport before destroying
-    const savedViewport = parseTreeCy ? getViewport(parseTreeCy) : undefined;
-
-    if (parseTreeCy) {
-      parseTreeCy.destroy();
-    }
-
-    parseTreeCy = createGraph({
-      container: parseTreeContainer,
-      elements,
-      styles: [...sppfNodeStyles, ...edgeStyles],  // Reuse SPPF styles (nonterminal/token)
-      layout: 'sppf',  // Top-to-bottom tree layout
-      viewport: savedViewport,
-    });
-
-    parseTreeCollapseManager.setCy(parseTreeCy);
-
-    // Setup tooltip for long labels
-    parseTreeTooltipCleanup = setupGraphTooltip(parseTreeCy, parseTreeContainer);
-
-    // Add double-click handler for collapse/expand
-    parseTreeCy.on('dbltap', 'node', (event) => {
-      const node = event.target;
-      parseTreeCollapseManager.toggleCollapse(node.id());
-    });
-
-    // Add click handler for node selection and span highlighting
-    parseTreeCy.on('tap', 'node', (event) => {
-      const node = event.target;
-      const start = node.data('start');
-      const end = node.data('end');
-      if (start !== undefined && end !== undefined) {
-        parseTreeSelectedSpan = { start, end };
-      }
-      // Update node selection styling
-      if (parseTreeSelectedNodeId) {
-        parseTreeCy?.getElementById(parseTreeSelectedNodeId).removeClass('selected');
-      }
-      // Clear previous edge highlights and highlight new outgoing edges
-      if (parseTreeCy) {
-        clearEdgeHighlights(parseTreeCy);
-        parseTreeSelectedNodeId = node.id();
-        node.addClass('selected');
-        highlightOutgoingEdges(parseTreeCy, node.id());
-      }
-    });
-
-    // Click on background clears selection
-    parseTreeCy.on('tap', (event) => {
-      if (event.target === parseTreeCy) {
-        parseTreeSelectedSpan = null;
-        if (parseTreeSelectedNodeId && parseTreeCy) {
-          parseTreeCy.getElementById(parseTreeSelectedNodeId).removeClass('selected');
-          parseTreeSelectedNodeId = null;
-        }
-        if (parseTreeCy) clearEdgeHighlights(parseTreeCy);
-      }
-    });
-
-    // Click on edge to highlight it
-    parseTreeCy.on('tap', 'edge', (event) => {
-      const edge = event.target;
-      // Clear node selection
-      if (parseTreeSelectedNodeId && parseTreeCy) {
-        parseTreeCy.getElementById(parseTreeSelectedNodeId).removeClass('selected');
-        parseTreeSelectedNodeId = null;
-      }
-      parseTreeSelectedSpan = null;
-      if (parseTreeCy) highlightClickedEdge(parseTreeCy, edge.id());
-    });
-  }
-
-  $effect(() => {
-    // Track activeTab so effect re-runs when switching tabs
-    if (activeTab === "sppf" && sppf) {
-      // Wait for DOM to update after tab switch
-      tick().then(() => {
-        if (sppfContainer) {
-          renderSPPF();
-        }
-      });
-    } else if (activeTab === "gss" && gss) {
-      tick().then(() => {
-        if (gssContainer) {
-          renderGSS();
-        }
-      });
-    } else if (activeTab === "parse-tree" && parseTree && parseTreeViewMode === "graph") {
-      tick().then(() => {
-        if (parseTreeContainer) {
-          renderParseTree();
-        }
-      });
-    }
-  });
-
-  // Fetch data when switching tabs
-  $effect(() => {
-    if (parseResultAvailable) {
-      if (activeTab === "sppf" && !sppf) {
-        fetchSppf();
-      } else if (activeTab === "gss" && !gss) {
-        fetchGss();
-      } else if (activeTab === "parse-tree" && !parseTree) {
-        fetchParseTree();
-      }
-    }
-  });
-
   // ResizeObservers for debug graph containers
   let debugSppfResizeObserver: ResizeObserver | null = null;
   let debugGssResizeObserver: ResizeObserver | null = null;
@@ -1450,11 +814,6 @@
       buildError = null;
       generateStatus = "none";
       generateError = null;
-      sppf = null;
-      gss = null;
-      parseTree = null;
-      parseResultAvailable = false;
-      lastParsedInput = null;
       nonterminals = [];
       startNonterminal = null;
       grammarText = "";
@@ -1521,96 +880,6 @@
     showStatusDetails = false;
   }
 
-  async function fetchStats() {
-    if (!parserDirectory || !startNonterminal) return;
-    const result = await commands.getStats(parserDirectory, inputText, startNonterminal);
-    if (result.status === "ok") {
-      statsData = result.data;
-    } else {
-      statsData = null;
-    }
-  }
-
-  async function parse() {
-    if (!parserDirectory || buildStatus !== "success" || !startNonterminal) return;
-    setStatus("Parsing...", "info");
-
-    // Reset previous results
-    sppf = null;
-    gss = null;
-    parseTree = null;
-    statsData = null;
-    parseResultAvailable = false;
-    parseTreeSelectedSpan = null;
-    sppfSelectedSpan = null;
-    parseErrorInfo = null;
-
-    logCommand(`${parserName} <input> --start ${startNonterminal}`);
-
-    const result = await commands.parse(parserDirectory, inputText, startNonterminal);
-    if (result.status === "error") {
-      // Command itself failed (couldn't run parser)
-      logError(result.error);
-      setStatus("Parse failed", "error");
-      return;
-    }
-
-    const output = result.data;
-    lastParsedInput = inputText;
-
-    // Some data may be available even if parsing or parse tree creation failed
-    parseResultAvailable = output.has_sppf || output.has_gss || output.has_parse_tree;
-
-    if (output.success) {
-      parseErrorInfo = null;
-      const totalMs = (output.duration_ms ?? 0) + (output.tree_construction_ms ?? 0);
-      const durationStr = output.duration_ms != null ? ` (${totalMs}ms)` : "";
-      logOutput(`Parse successful${durationStr}`);
-      const tooltip = output.duration_ms != null
-        ? `Parse: ${output.duration_ms}ms\nTree construction: ${output.tree_construction_ms ?? '?'}ms`
-        : undefined;
-      setStatus(`Parse successful${durationStr}`, "success", tooltip);
-    } else {
-      parseErrorInfo = output.error_info ?? null;
-      // Partial success - show error but still display available data
-      if (output.error) {
-        logError(output.error);
-      }
-      if (parseResultAvailable) {
-        const available = [
-          output.has_sppf ? "SPPF" : null,
-          output.has_gss ? "GSS" : null,
-          output.has_parse_tree ? "Parse Tree" : null,
-        ].filter(Boolean).join(", ");
-        logOutput(`Partial data available: ${available}`);
-        setStatus("Parse error (partial data)", "error");
-      } else {
-        setStatus("Parse failed", "error");
-      }
-    }
-
-    // Fetch the data for the active tab if available
-    if (activeTab === "sppf" && output.has_sppf) {
-      await fetchSppf();
-    } else if (activeTab === "gss" && output.has_gss) {
-      await fetchGss();
-    } else if (activeTab === "parse-tree" && output.has_parse_tree) {
-      await fetchParseTree();
-    } else if (activeTab === "stats" && buildFeatures?.instrument) {
-      await fetchStats();
-    } else if (output.has_sppf) {
-      // If active tab data not available, try to show something
-      await fetchSppf();
-    } else if (output.has_gss) {
-      await fetchGss();
-    }
-
-    // Always fetch stats when instrument is enabled (independent of active tab)
-    if (buildFeatures?.instrument && activeTab !== "stats") {
-      await fetchStats();
-    }
-  }
-
   function profileParser() {
     if (!parserDirectory || buildStatus !== "success" || !startNonterminal) return;
     isProfiling = true;
@@ -1628,140 +897,13 @@
     }
   }
 
-  async function fetchSppf() {
-    if (!parseResultAvailable) return;
-    const result = await commands.getSppf();
-    if (result.status === "ok") {
-      sppf = result.data;
-    } else {
-    }
-  }
-
-  async function fetchGss() {
-    if (!parseResultAvailable) return;
-    const result = await commands.getGss();
-    if (result.status === "ok") {
-      gss = result.data;
-    } else {
-    }
-  }
-
-  async function fetchParseTree() {
-    if (!parseResultAvailable) return;
-    const result = await commands.getParseTree();
-    if (result.status === "ok") {
-      try {
-        parseTree = JSON.parse(result.data) as ParseTree;
-        rebuildLayoutDerivedState();
-        // Expand root by default
-        if (treeRoot) {
-          expandedNodes = new Set([treeRoot.id]);
-        }
-      } catch (e) {
-        // JSON parse error — ignore
-      }
-    } else {
-    }
-  }
-
-  // Re-derive everything that depends on (parseTree, hideLayout):
-  // hidden-node set, parent map for the reveal walk, and treeRoot. The parent
-  // map is filled by buildTree from the tree as rendered, so the reveal walk
-  // follows the chain to where each shared node is shown in full.
-  function rebuildLayoutDerivedState() {
-    if (!parseTree) return;
-    hiddenLayoutNodes = computeHiddenLayoutNodes(parseTree, hideLayout);
-    parseTreeParentMap = new Map();
-    treeRoot = buildTree(parseTree, hiddenLayoutNodes, parseTreeParentMap);
-  }
-
-  // Graph controls (work with active graph)
-  // Generic graph control functions
-  // Parse mode convenience functions
-  function getActiveGraph(): cytoscape.Core | null {
-    switch (activeTab) {
-      case "sppf": return cy;
-      case "gss": return gssCy;
-      case "parse-tree": return parseTreeCy;
-      default: return null;
-    }
-  }
-
-  function zoomIn() {
-    adjustZoomGraph(getActiveGraph(), 1.2);
-  }
-
-  function zoomOut() {
-    adjustZoomGraph(getActiveGraph(), 1/1.2);
-  }
-
-  function resetView() {
-    resetViewGraph(getActiveGraph());
-  }
-
-  function expandAll() {
-    if (activeTab === "sppf") {
-      sppfCollapseManager.expandAll();
-    } else if (activeTab === "parse-tree") {
-      parseTreeCollapseManager.expandAll();
-    }
-  }
-
-  function exportGraph() {
-    const graph = getActiveGraph();
-    const filename = activeTab === "parse-tree" ? "parse-tree" : activeTab;
-    exportGraphPng(graph, filename);
-  }
-
-  function toggleHideLayout() {
-    hideLayout = !hideLayout;
-    rebuildLayoutDerivedState();
-    // Selection may have pointed at a now-hidden node; drop it.
-    clearParseModeInputSelection();
-    if (parseTree && parseTreeViewMode === "graph") {
-      tick().then(() => renderParseTree());
-    }
-  }
-
   function toggleSpans() {
     showSpans = !showSpans;
-    // Preserve selection state before re-rendering
-    const savedParseTreeSelection = parseTreeSelectedNodeId;
-    const savedParseTreeSpan = parseTreeSelectedSpan;
-    const savedSppfSelection = sppfSelectedNodeId;
-    const savedSppfSpan = sppfSelectedSpan;
     const savedDebugSelection = selectedNodeId;
     const savedDebugSpan = selectedSpan;
-
-    // Re-render affected graphs
-    if (parseTree) {
-      tick().then(() => {
-        renderParseTree();
-        // Restore selection
-        if (savedParseTreeSelection && parseTreeCy) {
-          parseTreeSelectedNodeId = savedParseTreeSelection;
-          parseTreeSelectedSpan = savedParseTreeSpan;
-          parseTreeCy.getElementById(savedParseTreeSelection).addClass('selected');
-          highlightOutgoingEdges(parseTreeCy, savedParseTreeSelection);
-        }
-      });
-    }
-    if (sppf) {
-      tick().then(() => {
-        renderSPPF();
-        // Restore selection
-        if (savedSppfSelection && cy) {
-          sppfSelectedNodeId = savedSppfSelection;
-          sppfSelectedSpan = savedSppfSpan;
-          cy.getElementById(savedSppfSelection).addClass('selected');
-          highlightOutgoingEdges(cy, savedSppfSelection);
-        }
-      });
-    }
     if (debugSppfNodes.length > 0) {
       tick().then(() => {
         renderDebugSppf();
-        // Restore selection
         if (savedDebugSelection && debugSppfCy) {
           selectedNodeId = savedDebugSelection;
           selectedSpan = savedDebugSpan;
@@ -1772,270 +914,6 @@
     }
     // Notify popup windows about the change
     notifyPopupWindowsSpansChanged();
-  }
-
-  // Tree view functions
-  function toggleTreeNode(nodeId: number) {
-    if (expandedNodes.has(nodeId)) {
-      expandedNodes.delete(nodeId);
-    } else {
-      expandedNodes.add(nodeId);
-    }
-    expandedNodes = new Set(expandedNodes); // Trigger reactivity
-  }
-
-  function expandAllTreeNodes() {
-    if (!treeRoot) return;
-    const allWithChildren = new Set<number>();
-    function collect(node: TreeNode) {
-      if (node.children.length > 0) {
-        allWithChildren.add(node.id);
-        node.children.forEach(collect);
-      }
-    }
-    collect(treeRoot);
-    expandedNodes = allWithChildren;
-  }
-
-  function collapseAllTreeNodes() {
-    expandedNodes = new Set();
-  }
-
-  function selectTreeNode(node: TreeNode) {
-    parseTreeSelectedSpan = { start: node.start, end: node.end };
-    parseTreeSelectedNodeId = `n${node.id}`;
-    selectedTreeRowKey = node.key;
-    // Scroll selected node into view
-    tick().then(() => {
-      if (treeContainerEl) {
-        const selectedEl = treeContainerEl.querySelector('.tree-item.selected');
-        if (selectedEl) {
-          selectedEl.scrollIntoView({ block: 'nearest' });
-        }
-      }
-    });
-  }
-
-  // Smallest-span parse tree node whose half-open range [start, end) covers
-  // the offset, i.e. the deepest enclosing node. When the click lands inside
-  // a hidden layout subtree, fall back to the nearest visible token instead
-  // of returning the wide enclosing parent.
-  function findDeepestParseTreeNodeAt(offset: number): ParseTreeNode | null {
-    if (!parseTree) return null;
-    let best: ParseTreeNode | null = null;
-    let clickInsideHidden = false;
-    for (const node of parseTree.nodes) {
-      const contains = node.start <= offset && offset < node.end;
-      if (hiddenLayoutNodes.has(node.id)) {
-        if (contains) clickInsideHidden = true;
-        continue;
-      }
-      if (contains && (!best || node.end - node.start < best.end - best.start)) {
-        best = node;
-      }
-    }
-    if (clickInsideHidden) {
-      let nearestToken: ParseTreeNode | null = null;
-      let nearestDistance = Infinity;
-      for (const node of parseTree.nodes) {
-        if (node.kind !== "Token" || hiddenLayoutNodes.has(node.id)) continue;
-        const distance = offset < node.start ? node.start - offset : offset - node.end;
-        if (distance < nearestDistance) {
-          nearestDistance = distance;
-          nearestToken = node;
-        }
-      }
-      if (nearestToken) return nearestToken;
-    }
-    return best;
-  }
-
-  function parseTreeAncestorsOf(nodeId: number): number[] {
-    const ancestors: number[] = [];
-    let cur = parseTreeParentMap.get(nodeId);
-    while (cur !== undefined) {
-      ancestors.push(cur);
-      cur = parseTreeParentMap.get(cur);
-    }
-    return ancestors;
-  }
-
-  // Briefly flash a tree row. Used on reveal so the jump lands visibly even when
-  // the target row was already selected.
-  function flashTreeRow(el: Element) {
-    el.classList.remove('flash');
-    // Force a reflow so the animation restarts on a repeated reveal of the same row.
-    void (el as HTMLElement).offsetWidth;
-    el.classList.add('flash');
-    el.addEventListener('animationend', () => el.classList.remove('flash'), { once: true });
-  }
-
-  // Reveal the given parse tree node in both views: expand collapsed ancestors,
-  // set selection, scroll the tree row into view, pan the graph node into view.
-  function revealParseTreeNode(node: ParseTreeNode) {
-    const ancestors = parseTreeAncestorsOf(node.id);
-
-    // Tree view: ensure every ancestor is expanded so the row is visible.
-    if (ancestors.length > 0) {
-      const next = new Set(expandedNodes);
-      for (const id of ancestors) next.add(id);
-      expandedNodes = next;
-    }
-
-    const cyNodeId = `n${node.id}`;
-    if (parseTreeCy && parseTreeSelectedNodeId) {
-      parseTreeCy.getElementById(parseTreeSelectedNodeId).removeClass('selected');
-    }
-    parseTreeSelectedSpan = { start: node.start, end: node.end };
-    parseTreeSelectedNodeId = cyNodeId;
-    // Reveal targets the node itself, which is rendered at its definition row.
-    selectedTreeRowKey = cyNodeId;
-
-    // Scroll the tree row into view once the expanded-state update has rendered,
-    // then flash it. The flash is the only cue when the target was already
-    // selected, since the selection highlight does not change in that case.
-    tick().then(() => {
-      if (treeContainerEl) {
-        const selectedEl = treeContainerEl.querySelector('.tree-item.selected');
-        if (selectedEl) {
-          selectedEl.scrollIntoView({ block: 'nearest' });
-          flashTreeRow(selectedEl);
-        }
-      }
-    });
-
-    // Graph view (only when currently rendered).
-    if (parseTreeCy) {
-      parseTreeCollapseManager.expandAncestors(cyNodeId);
-      clearEdgeHighlights(parseTreeCy);
-      const cyNode = parseTreeCy.getElementById(cyNodeId);
-      if (cyNode.length > 0) {
-        cyNode.addClass('selected');
-        highlightOutgoingEdges(parseTreeCy, cyNodeId);
-        // Always center on the selected node; pick the zoom from a
-        // hypothetical fit on the node plus a few ancestors, then clamp to
-        // a comfortable range. This keeps the node in the viewport center
-        // while letting the zoom level adapt to the local context size.
-        const ANCESTOR_COUNT = 4;
-        const MIN_ZOOM = 0.6;
-        const MAX_ZOOM = 2.0;
-        const padding = 80;
-        const focusEles = cyNode.union(
-          cyNode.predecessors('node').slice(0, ANCESTOR_COUNT),
-        );
-        const bb = focusEles.boundingBox();
-        const containerW = parseTreeContainer.clientWidth;
-        const containerH = parseTreeContainer.clientHeight;
-        const fitZoom = Math.min(
-          (containerW - 2 * padding) / bb.w,
-          (containerH - 2 * padding) / bb.h,
-        );
-        const targetZoom = Math.max(MIN_ZOOM, Math.min(fitZoom, MAX_ZOOM));
-        parseTreeCy.animate(
-          { zoom: targetZoom, center: { eles: cyNode } },
-          { duration: 300 },
-        );
-      }
-    }
-  }
-
-  function onParseInputClick(offset: number) {
-    const node = findDeepestParseTreeNodeAt(offset);
-    if (node) revealParseTreeNode(node);
-  }
-
-  // Drop any input-side highlight driven by a tree, SPPF, or graph selection.
-  // Triggered when the user edits the input or presses Esc, so stale highlights
-  // do not linger across content changes.
-  function clearParseModeInputSelection() {
-    if (parseTreeSelectedNodeId && parseTreeCy) {
-      parseTreeCy.getElementById(parseTreeSelectedNodeId).removeClass('selected');
-    }
-    parseTreeSelectedSpan = null;
-    parseTreeSelectedNodeId = null;
-    selectedTreeRowKey = null;
-    if (parseTreeCy) clearEdgeHighlights(parseTreeCy);
-
-    if (sppfSelectedNodeId && cy) {
-      cy.getElementById(sppfSelectedNodeId).removeClass('selected');
-    }
-    sppfSelectedSpan = null;
-    sppfSelectedNodeId = null;
-    if (cy) clearEdgeHighlights(cy);
-  }
-
-  // Get visible nodes in display order (for keyboard navigation)
-  function getVisibleTreeNodes(): TreeNode[] {
-    if (!treeRoot) return [];
-    const visible: TreeNode[] = [];
-    function collect(node: TreeNode) {
-      visible.push(node);
-      if (expandedNodes.has(node.id)) {
-        node.children.forEach(collect);
-      }
-    }
-    collect(treeRoot);
-    return visible;
-  }
-
-  // Find a TreeNode by ID
-  function findTreeNodeById(nodeId: number): TreeNode | null {
-    if (!treeRoot) return null;
-    function find(node: TreeNode): TreeNode | null {
-      if (node.id === nodeId) return node;
-      for (const child of node.children) {
-        const found = find(child);
-        if (found) return found;
-      }
-      return null;
-    }
-    return find(treeRoot);
-  }
-
-  // Handle keyboard navigation in tree view
-  function handleTreeKeydown(e: KeyboardEvent) {
-    if (!treeRoot) return;
-
-    const visibleNodes = getVisibleTreeNodes();
-    if (visibleNodes.length === 0) return;
-
-    // Get currently selected node ID (strip 'n' prefix)
-    const currentId = parseTreeSelectedNodeId ? parseInt(parseTreeSelectedNodeId.slice(1)) : null;
-    const currentIndex = currentId !== null
-      ? visibleNodes.findIndex(n => n.id === currentId)
-      : -1;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (currentIndex < visibleNodes.length - 1) {
-        selectTreeNode(visibleNodes[currentIndex + 1]);
-      } else if (currentIndex === -1 && visibleNodes.length > 0) {
-        selectTreeNode(visibleNodes[0]);
-      }
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (currentIndex > 0) {
-        selectTreeNode(visibleNodes[currentIndex - 1]);
-      } else if (currentIndex === -1 && visibleNodes.length > 0) {
-        selectTreeNode(visibleNodes[visibleNodes.length - 1]);
-      }
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      if (currentId !== null) {
-        const node = findTreeNodeById(currentId);
-        if (node && node.children.length > 0 && !expandedNodes.has(node.id)) {
-          toggleTreeNode(node.id);
-        }
-      }
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      if (currentId !== null) {
-        const node = findTreeNodeById(currentId);
-        if (node && node.children.length > 0 && expandedNodes.has(node.id)) {
-          toggleTreeNode(node.id);
-        }
-      }
-    }
   }
 
   function notifyPopupWindowsSpansChanged() {
@@ -2054,8 +932,7 @@
   // Graph window management functions (separate OS windows)
   function getGraphTitle(graphType: GraphType): string {
     switch (graphType) {
-      case 'sppf': return 'SPPF';
-      case 'gss': return 'GSS';
+      case 'parseTree': return 'Parse Tree';
       case 'debugSppf': return 'SPPF (Debug)';
       case 'debugGss': return 'GSS (Debug)';
     }
@@ -2094,16 +971,13 @@
     if (!graphWindows.has(graphType)) return;
 
     switch (graphType) {
-      case 'sppf':
-        if (sppf) {
-          await emit('graph-data-sppf', sppf);
+      case 'parseTree': {
+        const parseTree = parseViewRef?.getParseTreeForPopup();
+        if (parseTree) {
+          await emit('graph-data-parse-tree', parseTree);
         }
         break;
-      case 'gss':
-        if (gss) {
-          await emit('graph-data-gss', gss);
-        }
-        break;
+      }
       case 'debugSppf':
         await emit('graph-data-debug-sppf', {
           nodes: debugSppfNodes,
@@ -2653,7 +1527,7 @@
       if (activeMode === "design") {
         commands.analyzeGrammar(grammarText).then(onGrammarAnalyze);
       } else if (buildStatus === "success" && startNonterminal) {
-        parse();
+        parseViewRef?.parse();
       }
       return;
     }
@@ -2677,11 +1551,6 @@
       if (active?.closest('.monaco-editor')) {
         return;
       }
-      // Close context menu first
-      if (sppfContextMenu) {
-        sppfContextMenu = null;
-        return;
-      }
       // Close modals
       if (showShortcutsModal) {
         showShortcutsModal = false;
@@ -2699,24 +1568,11 @@
       }
       window.getSelection()?.removeAllRanges();
       active?.blur();
-      // Clear all graph selections and edge highlights
-      if (cy) {
-        if (sppfSelectedNodeId) cy.getElementById(sppfSelectedNodeId).removeClass('selected');
-        clearEdgeHighlights(cy);
-      }
-      if (parseTreeCy) {
-        if (parseTreeSelectedNodeId) parseTreeCy.getElementById(parseTreeSelectedNodeId).removeClass('selected');
-        clearEdgeHighlights(parseTreeCy);
-      }
+      // Clear debug graph selections and edge highlights
       if (debugSppfCy) {
         if (selectedNodeId) debugSppfCy.getElementById(selectedNodeId).removeClass('selected');
         clearEdgeHighlights(debugSppfCy);
       }
-      sppfSelectedNodeId = null;
-      sppfSelectedSpan = null;
-      parseTreeSelectedNodeId = null;
-      parseTreeSelectedSpan = null;
-      selectedTreeRowKey = null;
       selectedNodeId = null;
       selectedSpan = null;
       return;
@@ -3000,277 +1856,25 @@
     </div>
   </div>
   {:else if activeMode === "parse"}
-  <!-- Parse Mode -->
-  <div class="main-content">
-    <!-- Left Panel -->
-    <div class="left-panel" style="width: {leftPanelWidth}px">
-      <!-- Header -->
-      <div class="header">
-        <div class="dropdown-wrapper">
-          <span class="dropdown-label">Start:</span>
-          <NonterminalPicker
-            bind:value={startNonterminal}
-            options={nonterminals}
-            disabled={!parserDirectory || nonterminals.length === 0}
-          />
-        </div>
-        <div class="parse-actions">
-          <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Parse</button>
-          <button class="parse-btn" onclick={profileParser} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal || isProfiling}>
-            {isProfiling ? "Profiling..." : "Profile"}
-          </button>
-        </div>
-      </div>
-
-    <!-- Input Area -->
-    <div class="input-section">
-      <InputEditor
-        bind:value={inputText}
-        error={parseErrorInfo}
-        ambiguities={ambiguityWarnings}
-        highlightSpan={parseTreeSelectedSpan !== null
-          ? parseTreeSelectedSpan
-          : sppfSelectedSpan !== null
-            ? { start: sppfSelectedSpan.left, end: sppfSelectedSpan.right }
-            : null}
-        onclick={onParseInputClick}
-        onchange={clearParseModeInputSelection}
-        onescape={clearParseModeInputSelection}
-        placeholder="Enter code to parse..."
-      />
-    </div>
-  </div>
-
-  <!-- Vertical Resize Handle -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="resize-handle-vertical" onmousedown={startVerticalDrag}></div>
-
-  <!-- Right Panel -->
-  <div class="right-panel">
-    <!-- Graph Tabs -->
-    <div class="graph-section">
-      <div class="tabs">
-        <button
-          class:active={activeTab === "parse-tree"}
-          onclick={() => activeTab = "parse-tree"}
-        >Parse Tree</button>
-        <button
-          class:active={activeTab === "sppf"}
-          onclick={() => activeTab = "sppf"}
-        >SPPF</button>
-        <button
-          class:active={activeTab === "gss"}
-          onclick={() => activeTab = "gss"}
-        >GSS</button>
-        {#if buildFeatures?.instrument}
-          <button
-            class:active={activeTab === "stats"}
-            onclick={async () => { activeTab = "stats"; if (!statsData && parseResultAvailable) await fetchStats(); }}
-          >Stats</button>
-        {/if}
-      </div>
-      {#if activeTab === "parse-tree"}
-        <div class="view-toggle-row">
-          <div class="view-toggle">
-            <button
-              class:active={parseTreeViewMode === "graph"}
-              onclick={() => parseTreeViewMode = "graph"}
-            >Graph</button>
-            <button
-              class:active={parseTreeViewMode === "tree"}
-              onclick={() => parseTreeViewMode = "tree"}
-            >Tree</button>
-          </div>
-          {#if parseTree?.layout_name}
-            <button
-              class="layout-toggle"
-              class:active={hideLayout}
-              onclick={toggleHideLayout}
-              title={hideLayout ? `Show ${parseTree.layout_name} nodes` : `Hide ${parseTree.layout_name} nodes`}
-            >
-              {#if hideLayout}
-                <EyeOff size={14} />
-              {:else}
-                <Eye size={14} />
-              {/if}
-              <span>{parseTree.layout_name}</span>
-            </button>
-          {/if}
-        </div>
-      {/if}
-      <div class="graph-container">
-        {#if activeTab === "parse-tree"}
-          {#if parseTree}
-            {#if parseTreeViewMode === "graph"}
-              <div class="cytoscape-container" bind:this={parseTreeContainer}></div>
-              <div class="graph-controls">
-                <button onclick={zoomIn} title="Zoom in">
-                  <ZoomIn size={16} />
-                </button>
-                <button onclick={zoomOut} title="Zoom out">
-                  <ZoomOut size={16} />
-                </button>
-                <button onclick={resetView} title="Reset view">
-                  <Maximize2 size={16} />
-                </button>
-                <button onclick={expandAll} title="Expand all (double-click node to collapse)">
-                  <Expand size={16} />
-                </button>
-                <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
-                  {#if showSpans}
-                    <FoldHorizontal size={16} />
-                  {:else}
-                    <UnfoldHorizontal size={16} />
-                  {/if}
-                </button>
-                <button onclick={exportGraph} title="Export as PNG">
-                  <Download size={16} />
-                </button>
-              </div>
-            {:else}
-              <div class="tree-view">
-                <div class="tree-controls">
-                  <button onclick={expandAllTreeNodes} title="Expand All">
-                    <Expand size={16} />
-                  </button>
-                  <button onclick={collapseAllTreeNodes} title="Collapse All">
-                    <Minimize2 size={16} />
-                  </button>
-                </div>
-                <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-                <div class="tree-container" tabindex="0" onkeydown={handleTreeKeydown} bind:this={treeContainerEl}>
-                  {#if treeRoot}
-                    {#snippet treeNode(node: TreeNode, depth: number)}
-                      <!-- svelte-ignore a11y_click_events_have_key_events -->
-                      <!-- svelte-ignore a11y_no_static_element_interactions -->
-                      <div
-                        class="tree-item"
-                        class:selected={selectedTreeRowKey === node.key}
-                        style="padding-left: {depth * 16 + 8}px"
-                        onclick={() => selectTreeNode(node)}
-                        ondblclick={() => { if (node.children.length > 0) toggleTreeNode(node.id); }}
-                      >
-                        {#if node.children.length > 0}
-                          <span class="expand-icon" onclick={(e) => { e.stopPropagation(); toggleTreeNode(node.id); }}>
-                            {#if expandedNodes.has(node.id)}
-                              <ChevronDown size={14} />
-                            {:else}
-                              <ChevronRight size={14} />
-                            {/if}
-                          </span>
-                        {:else}
-                          <span class="expand-icon-placeholder"></span>
-                        {/if}
-                        <!-- svelte-ignore a11y_click_events_have_key_events -->
-                        <!-- svelte-ignore a11y_no_static_element_interactions -->
-                        <span
-                          class="tree-label"
-                          class:nonterminal={node.kind === "Nonterminal"}
-                          class:token={node.kind === "Token"}
-                          class:amb={node.kind === "Amb"}
-                          class:reference={node.ref}
-                          title={node.ref ? "Jump to definition" : undefined}
-                          onclick={node.ref ? (e) => { e.stopPropagation(); revealParseTreeNode(node); } : undefined}
-                        >
-                          {node.label}{#if node.ref}<span class="tree-ref-icon"><CornerRightUp size={13} /></span>{/if}
-                        </span>
-                        <span class="tree-span">[{node.start}:{node.end}]</span>
-                      </div>
-                      {#if expandedNodes.has(node.id)}
-                        {#each node.children as child}
-                          {@render treeNode(child, depth + 1)}
-                        {/each}
-                      {/if}
-                    {/snippet}
-                    {@render treeNode(treeRoot, 0)}
-                  {/if}
-                </div>
-              </div>
-            {/if}
-          {/if}
-        {:else if activeTab === "sppf"}
-          {#if sppf}
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <div class="cytoscape-container" bind:this={sppfContainer} oncontextmenu={(e) => e.preventDefault()}></div>
-            <div class="graph-controls">
-              <button onclick={zoomIn} title="Zoom in">
-                <ZoomIn size={16} />
-              </button>
-              <button onclick={zoomOut} title="Zoom out">
-                <ZoomOut size={16} />
-              </button>
-              <button onclick={resetView} title="Reset view">
-                <Maximize2 size={16} />
-              </button>
-              <button onclick={expandAll} title="Expand all (double-click node to collapse)">
-                <Expand size={16} />
-              </button>
-              <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
-                {#if showSpans}
-                  <FoldHorizontal size={16} />
-                {:else}
-                  <UnfoldHorizontal size={16} />
-                {/if}
-              </button>
-              <button onclick={exportGraph} title="Export as PNG">
-                <Download size={16} />
-              </button>
-              <button onclick={() => openGraphWindow('sppf')} title="Pop out">
-                <Fullscreen size={16} />
-              </button>
-            </div>
-            {#if sppfContextMenu}
-              <!-- svelte-ignore a11y_no_static_element_interactions -->
-              <div
-                class="context-menu"
-                style="left: {sppfContextMenu.x}px; top: {sppfContextMenu.y}px;"
-                onmousedown={(e) => e.stopPropagation()}
-              >
-                <button onclick={() => handleSppfContextMenuAction('focus')}>Focus on subtree</button>
-                {#if sppfSubtreeFocused}
-                  <button onclick={() => handleSppfContextMenuAction('showAll')}>Show all nodes</button>
-                {/if}
-              </div>
-            {/if}
-            {#if sppfSubtreeFocused}
-              <button class="show-all-button" onclick={() => handleSppfContextMenuAction('showAll')}>
-                Show all nodes
-              </button>
-            {/if}
-          {/if}
-        {:else if activeTab === "gss"}
-          {#if gss}
-            <div class="cytoscape-container" bind:this={gssContainer}></div>
-            <div class="graph-controls">
-              <button onclick={zoomIn} title="Zoom in">
-                <ZoomIn size={16} />
-              </button>
-              <button onclick={zoomOut} title="Zoom out">
-                <ZoomOut size={16} />
-              </button>
-              <button onclick={resetView} title="Reset view">
-                <Maximize2 size={16} />
-              </button>
-              <button onclick={exportGraph} title="Export as PNG">
-                <Download size={16} />
-              </button>
-              <button onclick={() => openGraphWindow('gss')} title="Pop out">
-                <Fullscreen size={16} />
-              </button>
-            </div>
-          {/if}
-        {:else if activeTab === "stats"}
-          <ParseStats
-            statsData={statsData}
-            instrument={!!buildFeatures?.instrument}
-            parseResultAvailable={parseResultAvailable}
-            onCollect={fetchStats}
-          />
-        {/if}
-      </div>
-    </div>
-  </div>
-  </div>
+  <ParseView
+    bind:this={parseViewRef}
+    {parserDirectory}
+    {parserName}
+    {buildStatus}
+    {nonterminals}
+    bind:startNonterminal
+    bind:inputText
+    {leftPanelWidth}
+    {isProfiling}
+    onStatus={(message, type, tooltip) => setStatus(message, type ?? "info", tooltip)}
+    onLogCommand={logCommand}
+    onLogOutput={logOutput}
+    onLogError={logError}
+    onProfile={profileParser}
+    onPopOut={() => openGraphWindow('parseTree')}
+    onParseTreeChange={() => { if (graphWindows.has('parseTree')) sendGraphData('parseTree'); }}
+    {startVerticalDrag}
+  />
   {:else if activeMode === "debug"}
   <!-- Debug Mode - Three Column Layout -->
   <div class="debug-layout">
@@ -3806,8 +2410,7 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
   .middle-area.output-open .input-section textarea,
   .middle-area.output-open .input-viewer,
   .middle-area.output-open .stack-list,
-  .middle-area.output-open .section-content,
-  .middle-area.output-open .tree-container {
+  .middle-area.output-open .section-content {
     padding-bottom: 200px;  /* Space for output panel */
   }
 
@@ -4233,13 +2836,6 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     color: #f48771;
   }
 
-  /* Main Content */
-  .main-content {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-  }
-
   /* Dragging state */
   .app.dragging {
     user-select: none;
@@ -4288,15 +2884,6 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
   .resize-handle-horizontal:hover,
   .app.dragging .resize-handle-horizontal {
     background: #0e639c;
-  }
-
-  /* Left Panel */
-  .left-panel {
-    min-width: 250px;
-    max-width: 600px;
-    display: flex;
-    flex-direction: column;
-    background: #252526;
   }
 
   /* Debug Layout - Three Columns */
@@ -4741,309 +3328,9 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     font-style: italic;
   }
 
-  /* Right Panel */
-  .right-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  /* Graph Section */
-  .graph-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  .tabs {
-    display: flex;
-    background: #2d2d2d;
-    border-bottom: 1px solid #3c3c3c;
-  }
-
-  .tabs button {
-    padding: 8px 20px;
-    background: transparent;
-    color: #888;
-    border: none;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-  }
-
-  .tabs button.active {
-    color: #d4d4d4;
-    border-bottom-color: #0e639c;
-  }
-
-  .tabs button:hover:not(.active) {
-    color: #d4d4d4;
-  }
-
-  /* View toggle row (Graph/Tree) */
-  .view-toggle-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    background: #252526;
-    border-bottom: 1px solid #3c3c3c;
-  }
-
-  .view-toggle {
-    display: flex;
-  }
-
-  .layout-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
-    background: #2d2d2d;
-    color: #888;
-    border: 1px solid #3c3c3c;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 11px;
-  }
-
-  .layout-toggle.active {
-    background: #3c3c3c;
-    color: #fff;
-    border-color: #555;
-  }
-
-  .layout-toggle:hover:not(.active) {
-    background: #3c3c3c;
-    color: #d4d4d4;
-  }
-
-  .view-toggle button {
-    padding: 3px 10px;
-    background: #2d2d2d;
-    color: #888;
-    border: 1px solid #3c3c3c;
-    cursor: pointer;
-    font-size: 11px;
-  }
-
-  .view-toggle button:first-child {
-    border-radius: 3px 0 0 3px;
-  }
-
-  .view-toggle button:last-child {
-    border-radius: 0 3px 3px 0;
-    border-left: none;
-  }
-
-  .view-toggle button.active {
-    background: #3c3c3c;
-    color: #fff;
-    border-color: #555;
-  }
-
-  .view-toggle button:hover:not(.active) {
-    background: #3c3c3c;
-    color: #d4d4d4;
-  }
-
-  /* Tree View */
-  .tree-view {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
-
-  .tree-controls {
-    padding: 8px;
-    border-bottom: 1px solid #3c3c3c;
-    display: flex;
-    gap: 4px;
-    background: #252526;
-  }
-
-  .tree-controls button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background: #2d2d2d;
-    border: 1px solid #3c3c3c;
-    border-radius: 4px;
-    color: #888;
-    cursor: pointer;
-  }
-
-  .tree-controls button:hover {
-    background: #3c3c3c;
-    color: #d4d4d4;
-  }
-
-  .tree-container {
-    flex: 1;
-    overflow: auto;
-    padding: 8px 0;
-    font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
-    font-size: 13px;
-    outline: none;
-  }
-
-  .tree-container:focus {
-    outline: 1px solid #0e639c;
-    outline-offset: -1px;
-  }
-
-  .tree-item {
-    display: flex;
-    align-items: center;
-    padding: 2px 8px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-
-  .tree-item:hover {
-    background: #2a2d2e;
-  }
-
-  .tree-item.selected {
-    background: #094771;
-  }
-
-  @keyframes tree-row-flash {
-    0% { background: #2b7fc4; }
-    100% { background: transparent; }
-  }
-
-  /* Single pulse on reveal. Overrides the selected/hover background for the
-     duration, then the class is removed (on animationend) and the base returns. */
-  .tree-item.flash {
-    animation: tree-row-flash 0.35s ease-out;
-  }
-
-  .expand-icon {
-    width: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #888;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-
-  .expand-icon:hover {
-    color: #d4d4d4;
-  }
-
-  .expand-icon-placeholder {
-    width: 18px;
-    flex-shrink: 0;
-  }
-
-  .tree-label {
-    margin-right: 8px;
-  }
-
-  .tree-label.nonterminal {
-    color: #4ec9b0;
-  }
-
-  .tree-label.token {
-    color: #ce9178;
-  }
-
-  .tree-label.amb {
-    color: #e05050;
-  }
-
-  /* A reference is its own category (a link to a shared node), not the kind it
-     points to, so it gets one dedicated color regardless of the target's kind.
-     The label is the jump link: pointer cursor and an underline on hover make it
-     read as clickable, and clicking it navigates to the definition. */
-  .tree-label.reference {
-    color: #c586c0;
-    font-style: italic;
-    cursor: pointer;
-  }
-
-  .tree-label.reference:hover {
-    text-decoration: underline;
-    color: #e0a0db;
-  }
-
-  .tree-ref-icon {
-    display: inline-flex;
-    vertical-align: middle;
-    margin-left: 4px;
-  }
-
-  .tree-span {
-    color: #6a9955;
-    font-size: 11px;
-    margin-left: auto;
-    padding-left: 12px;
-  }
-
   .graph-placeholder {
     color: #555;
     font-size: 24px;
-  }
-
-  /* Context Menu */
-  .context-menu {
-    position: fixed;
-    background: #2d2d2d;
-    border: 1px solid #555;
-    border-radius: 4px;
-    padding: 2px 0;
-    min-width: 130px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    z-index: 10001;
-  }
-
-  .context-menu button {
-    display: block;
-    width: 100%;
-    padding: 5px 10px;
-    background: none;
-    border: none;
-    color: #d4d4d4;
-    font-size: 12px;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .context-menu button:hover {
-    background: #3a3a3a;
-  }
-
-  /* Show all nodes button (when subtree is focused) */
-  .show-all-button {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    padding: 6px 12px;
-    background: rgba(45, 45, 45, 0.95);
-    border: 1px solid #555;
-    border-radius: 4px;
-    color: #d4d4d4;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 100;
-  }
-
-  .show-all-button:hover {
-    background: rgba(60, 60, 60, 0.95);
-    border-color: #888;
   }
 
   /* Call Stack */

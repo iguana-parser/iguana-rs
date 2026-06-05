@@ -398,6 +398,46 @@ export function buildSppfElements(sppf: SPPF): ElementDefinition[] {
   return [...nodes, ...edges];
 }
 
+/** The parse-tree shape `to_json` emits, as consumed by the parse view. */
+export interface ParseTreeData {
+  layout_name?: string | null;
+  nodes: { id: number; kind: "Nonterminal" | "Token" | "Amb"; label: string; start: number; end: number }[];
+  edges: { src: number; dest: number }[];
+}
+
+/**
+ * Builds Cytoscape elements for the parse-tree graph (parse view and its pop-out).
+ * Skips any node id in `hidden` and edges touching one. With `showSpans`, the
+ * label gets a "(start, end)" second line.
+ */
+export function buildParseTreeElements(
+  parseTree: ParseTreeData,
+  showSpans: boolean,
+  hidden: Set<number> = new Set(),
+): ElementDefinition[] {
+  const nodes = parseTree.nodes
+    .filter((node) => !hidden.has(node.id))
+    .map((node) => {
+      const span = `(${node.start}, ${node.end})`;
+      const displayLabel = showSpans
+        ? `${truncateLabel(node.label, LABEL_MAX_LENGTH)}\n${span}`
+        : truncateLabel(node.label, LABEL_MAX_LENGTH);
+      const fullLabel = showSpans ? `${node.label}\n${span}` : node.label;
+      return {
+        data: { id: `n${node.id}`, label: displayLabel, fullLabel, start: node.start, end: node.end },
+        classes: node.kind.toLowerCase(),
+      };
+    });
+
+  const edges = parseTree.edges
+    .filter((edge) => !hidden.has(edge.src) && !hidden.has(edge.dest))
+    .map((edge, i) => ({
+      data: { id: `e${i}`, source: `n${edge.src}`, target: `n${edge.dest}` },
+    }));
+
+  return [...nodes, ...edges];
+}
+
 /**
  * Builds Cytoscape elements for GSS visualization (parse mode).
  */

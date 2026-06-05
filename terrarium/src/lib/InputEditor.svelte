@@ -211,6 +211,19 @@
 
     decorationIds = editor.deltaDecorations(decorationIds, decorations);
   });
+
+  // Scroll the highlighted span into view when it changes (e.g. selecting a node
+  // in the parse tree / SPPF / s-expression). Depends only on highlightSpan, so a
+  // selection reveals its text, but unrelated decoration updates do not scroll.
+  $effect(() => {
+    if (!editor || !highlightSpan) return;
+    const model = editor.getModel();
+    if (!model) return;
+    const startPos = model.getPositionAt(highlightSpan.start);
+    const endPos = model.getPositionAt(highlightSpan.end);
+    const range = new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column);
+    editor.revealRangeInCenterIfOutsideViewport(range, monaco.editor.ScrollType.Smooth);
+  });
 </script>
 
 <div class="input-editor-container" bind:this={container}></div>
